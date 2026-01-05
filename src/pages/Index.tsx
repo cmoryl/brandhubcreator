@@ -1,126 +1,151 @@
 import { useState } from 'react';
-import { Palette, Type, Image, Eye, Sparkles } from 'lucide-react';
-import { BrandGuide, BrandColor, BrandTypography, BrandLogo } from '@/types/brand';
-import { BrandHeader } from '@/components/brand/BrandHeader';
-import { ColorPaletteSection } from '@/components/brand/ColorPaletteSection';
-import { TypographySection } from '@/components/brand/TypographySection';
+import { Sparkles, Menu } from 'lucide-react';
+import { BrandGuide, SectionId } from '@/types/brand';
+import { BrandSidebar } from '@/components/brand/BrandSidebar';
+import { HeroSection } from '@/components/brand/HeroSection';
+import { IdentitySection } from '@/components/brand/IdentitySection';
+import { ValuesSection } from '@/components/brand/ValuesSection';
 import { LogoSection } from '@/components/brand/LogoSection';
-import { BrandPreview } from '@/components/brand/BrandPreview';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BrandIconsSection } from '@/components/brand/BrandIconsSection';
+import { ColorPaletteSection } from '@/components/brand/ColorPaletteSection';
+import { GradientsSection } from '@/components/brand/GradientsSection';
+import { PatternsSection } from '@/components/brand/PatternsSection';
+import { TypographySection } from '@/components/brand/TypographySection';
+import { TextStylesSection } from '@/components/brand/TextStylesSection';
+import { IconographySection } from '@/components/brand/IconographySection';
+import { SocialIconsSection } from '@/components/brand/SocialIconsSection';
+import { ImagerySection } from '@/components/brand/ImagerySection';
+import { SocialSection } from '@/components/brand/SocialSection';
+import { SignaturesSection } from '@/components/brand/SignaturesSection';
+import { QRSection } from '@/components/brand/QRSection';
+import { AssetsSection } from '@/components/brand/AssetsSection';
+import { MisuseSection } from '@/components/brand/MisuseSection';
+import { AtmosphereSection } from '@/components/brand/AtmosphereSection';
+import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
+import { BrochuresSection } from '@/components/brand/BrochuresSection';
+import { TemplatesSection } from '@/components/brand/TemplatesSection';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
-const defaultColors: BrandColor[] = [
-  { id: '1', name: 'Primary', hex: '#1a1a2e', usage: 'Main brand color' },
-  { id: '2', name: 'Secondary', hex: '#e94560', usage: 'Accent and CTAs' },
-  { id: '3', name: 'Background', hex: '#f8f7f4', usage: 'Light backgrounds' },
-  { id: '4', name: 'Text', hex: '#16213e', usage: 'Body text' },
-];
-
-const defaultTypography: BrandTypography[] = [
-  { id: '1', name: 'Heading', fontFamily: 'Fraunces, serif', weight: '600', usage: 'Headlines and titles' },
-  { id: '2', name: 'Body', fontFamily: 'DM Sans, sans-serif', weight: '400', usage: 'Body text and paragraphs' },
-];
+const defaultBrand: BrandGuide = {
+  id: crypto.randomUUID(),
+  hero: { name: 'My Brand', tagline: 'Crafting exceptional experiences', coverImage: '', logoUrl: '' },
+  identity: { missionStatement: '', archetype: '', toneOfVoice: [] },
+  values: [],
+  logos: [],
+  brandIcons: [],
+  colors: [
+    { id: '1', name: 'Primary', hex: '#1a1a2e', usage: 'Main brand color' },
+    { id: '2', name: 'Secondary', hex: '#e94560', usage: 'Accent and CTAs' },
+    { id: '3', name: 'Background', hex: '#f8f7f4', usage: 'Light backgrounds' },
+  ],
+  gradients: [],
+  patterns: [],
+  typography: [
+    { id: '1', name: 'Heading', fontFamily: 'Fraunces, serif', weight: '600', usage: 'Headlines and titles' },
+    { id: '2', name: 'Body', fontFamily: 'DM Sans, sans-serif', weight: '400', usage: 'Body text' },
+  ],
+  textStyles: [],
+  iconography: [],
+  socialIcons: [],
+  imagery: [],
+  social: [],
+  signatures: [],
+  qr: { defaultUrl: 'https://yourbrand.com', fgColor: '#1a1a2e', bgColor: '#ffffff' },
+  assets: [],
+  misuse: [],
+  atmosphere: { style: 'gradient', animate: true, opacity: 0.5, blur: 0 },
+  caseStudies: [],
+  brochures: [],
+  templates: [],
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
 
 const Index = () => {
-  const [brand, setBrand] = useState<BrandGuide>({
-    id: crypto.randomUUID(),
-    name: 'My Brand',
-    description: 'A comprehensive guide to our visual identity and brand standards.',
-    colors: defaultColors,
-    typography: defaultTypography,
-    logos: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+  const [brand, setBrand] = useState<BrandGuide>(defaultBrand);
+  const [activeSection, setActiveSection] = useState<SectionId>('hero');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const updateBrand = (updates: Partial<BrandGuide>) => {
     setBrand(prev => ({ ...prev, ...updates, updatedAt: new Date() }));
   };
 
+  const renderSection = () => {
+    switch (activeSection) {
+      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={(hero) => updateBrand({ hero })} />;
+      case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={(identity) => updateBrand({ identity })} />;
+      case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => updateBrand({ values })} />;
+      case 'logos': return <LogoSection logos={brand.logos} onLogosChange={(logos) => updateBrand({ logos })} />;
+      case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={(brandIcons) => updateBrand({ brandIcons })} />;
+      case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={(colors) => updateBrand({ colors })} />;
+      case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={(gradients) => updateBrand({ gradients })} />;
+      case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={(patterns) => updateBrand({ patterns })} />;
+      case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={(typography) => updateBrand({ typography })} />;
+      case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={(textStyles) => updateBrand({ textStyles })} />;
+      case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={(iconography) => updateBrand({ iconography })} />;
+      case 'socialicons': return <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={(socialIcons) => updateBrand({ socialIcons })} />;
+      case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={(imagery) => updateBrand({ imagery })} />;
+      case 'social': return <SocialSection social={brand.social} onSocialChange={(social) => updateBrand({ social })} />;
+      case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={(signatures) => updateBrand({ signatures })} />;
+      case 'qr': return <QRSection qr={brand.qr} onQRChange={(qr) => updateBrand({ qr })} />;
+      case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={(assets) => updateBrand({ assets })} />;
+      case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={(misuse) => updateBrand({ misuse })} />;
+      case 'atmosphere': return <AtmosphereSection atmosphere={brand.atmosphere} onAtmosphereChange={(atmosphere) => updateBrand({ atmosphere })} />;
+      case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies} onCaseStudiesChange={(caseStudies) => updateBrand({ caseStudies })} />;
+      case 'brochures': return <BrochuresSection brochures={brand.brochures} onBrochuresChange={(brochures) => updateBrand({ brochures })} />;
+      case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={(templates) => updateBrand({ templates })} />;
+      default: return null;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-accent/10 rounded-xl">
-                <Sparkles className="h-5 w-5 text-accent" />
-              </div>
-              <span className="text-lg font-serif font-semibold text-foreground">BrandForge</span>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Last saved: {brand.updatedAt.toLocaleTimeString()}
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-background flex">
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block">
+        <BrandSidebar activeSection={activeSection} onSectionChange={setActiveSection} brandName={brand.hero.name} />
+      </div>
+
+      {/* Mobile Sidebar */}
+      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+        <SheetContent side="left" className="p-0 w-72">
+          <BrandSidebar activeSection={activeSection} onSectionChange={(section) => { setActiveSection(section); setSidebarOpen(false); }} brandName={brand.hero.name} />
+        </SheetContent>
+      </Sheet>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <BrandHeader
-          name={brand.name}
-          description={brand.description}
-          onNameChange={(name) => updateBrand({ name })}
-          onDescriptionChange={(description) => updateBrand({ description })}
-        />
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
+          <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="lg:hidden">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+              </Sheet>
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-accent/10 rounded-lg">
+                  <Sparkles className="h-4 w-4 text-accent" />
+                </div>
+                <span className="font-serif font-semibold text-foreground">BrandForge</span>
+              </div>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Saved {brand.updatedAt.toLocaleTimeString()}
+            </div>
+          </div>
+        </header>
 
-        <div className="mt-8">
-          <Tabs defaultValue="colors" className="space-y-8">
-            <TabsList className="bg-secondary/50 p-1 h-auto flex-wrap">
-              <TabsTrigger value="colors" className="gap-2 data-[state=active]:bg-background">
-                <Palette className="h-4 w-4" />
-                <span className="hidden sm:inline">Colors</span>
-              </TabsTrigger>
-              <TabsTrigger value="typography" className="gap-2 data-[state=active]:bg-background">
-                <Type className="h-4 w-4" />
-                <span className="hidden sm:inline">Typography</span>
-              </TabsTrigger>
-              <TabsTrigger value="logos" className="gap-2 data-[state=active]:bg-background">
-                <Image className="h-4 w-4" />
-                <span className="hidden sm:inline">Logos</span>
-              </TabsTrigger>
-              <TabsTrigger value="preview" className="gap-2 data-[state=active]:bg-background">
-                <Eye className="h-4 w-4" />
-                <span className="hidden sm:inline">Preview</span>
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="colors" className="animate-fade-in">
-              <ColorPaletteSection
-                colors={brand.colors}
-                onColorsChange={(colors) => updateBrand({ colors })}
-              />
-            </TabsContent>
-
-            <TabsContent value="typography" className="animate-fade-in">
-              <TypographySection
-                typography={brand.typography}
-                onTypographyChange={(typography) => updateBrand({ typography })}
-              />
-            </TabsContent>
-
-            <TabsContent value="logos" className="animate-fade-in">
-              <LogoSection
-                logos={brand.logos}
-                onLogosChange={(logos) => updateBrand({ logos })}
-              />
-            </TabsContent>
-
-            <TabsContent value="preview" className="animate-fade-in">
-              <BrandPreview brand={brand} />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-center text-sm text-muted-foreground">
-            Create and export beautiful brand guidelines
-          </p>
-        </div>
-      </footer>
+        {/* Content */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+          <div className="max-w-5xl mx-auto animate-fade-in">
+            {renderSection()}
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

@@ -13,6 +13,8 @@ interface LogoSectionProps {
 const variantLabels: Record<BrandLogo['variant'], string> = {
   primary: 'Primary Logo',
   secondary: 'Secondary Logo',
+  reversed: 'Reversed Logo',
+  monochrome: 'Monochrome Logo',
   icon: 'Icon / Favicon',
   wordmark: 'Wordmark',
 };
@@ -82,7 +84,7 @@ export const LogoSection = ({ logos, onLogosChange }: LogoSectionProps) => {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {(['primary', 'secondary', 'icon', 'wordmark'] as const).map((variant) => (
+        {(['primary', 'secondary', 'reversed', 'monochrome', 'icon', 'wordmark'] as const).map((variant) => (
           <div key={variant} className="space-y-3">
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
               {variantLabels[variant]}
