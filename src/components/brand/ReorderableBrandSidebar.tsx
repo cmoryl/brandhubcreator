@@ -41,7 +41,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   logos: { label: 'Mark Repository', icon: Image, category: 'Visual' },
   brandicon: { label: 'Symbol Standards', icon: Bookmark, category: 'Visual' },
   colors: { label: 'Prismatic Lab', icon: Palette, category: 'Visual' },
-  gradients: { label: 'Flux Nodes', icon: Blend, category: 'Visual' },
+  gradients: { label: 'Gradients', icon: Blend, category: 'Visual' },
   patterns: { label: 'Geometric Primitives', icon: Grid3X3, category: 'Visual' },
   typography: { label: 'Type Registry', icon: Type, category: 'Typography' },
   textstyles: { label: 'CSS Hierarchies', icon: Code, category: 'Typography' },

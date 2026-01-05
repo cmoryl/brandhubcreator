@@ -121,7 +121,7 @@ const BrandEditor = () => {
       case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => updateBrand({ values })} />;
       case 'logos': return <LogoSection logos={brand.logos} onLogosChange={(logos) => updateBrand({ logos })} />;
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={(brandIcons) => updateBrand({ brandIcons })} />;
-      case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={(colors) => updateBrand({ colors })} />;
+      case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={(colors) => updateBrand({ colors })} colorCombinations={brand.colorCombinations} onColorCombinationsChange={(colorCombinations) => updateBrand({ colorCombinations })} />;
       case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={(gradients) => updateBrand({ gradients })} />;
       case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={(patterns) => updateBrand({ patterns })} />;
       case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={(typography) => updateBrand({ typography })} />;

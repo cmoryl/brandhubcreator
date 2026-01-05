@@ -20,7 +20,7 @@ const sections: { id: SectionId; label: string; icon: React.ElementType; categor
   { id: 'logos', label: 'Mark Repository', icon: Image, category: 'Visual' },
   { id: 'brandicon', label: 'Symbol Standards', icon: Bookmark, category: 'Visual' },
   { id: 'colors', label: 'Prismatic Lab', icon: Palette, category: 'Visual' },
-  { id: 'gradients', label: 'Flux Nodes', icon: Blend, category: 'Visual' },
+  { id: 'gradients', label: 'Gradients', icon: Blend, category: 'Visual' },
   { id: 'patterns', label: 'Geometric Primitives', icon: Grid3X3, category: 'Visual' },
   { id: 'typography', label: 'Type Registry', icon: Type, category: 'Typography' },
   { id: 'textstyles', label: 'CSS Hierarchies', icon: Code, category: 'Typography' },

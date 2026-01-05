@@ -32,6 +32,7 @@ const createDefaultBrand = (name: string = 'My Brand'): BrandGuide => ({
     { id: '2', name: 'Secondary', hex: '#e94560', usage: 'Accent and CTAs' },
     { id: '3', name: 'Background', hex: '#f8f7f4', usage: 'Light backgrounds' },
   ],
+  colorCombinations: [],
   gradients: [],
   patterns: [],
   typography: [
@@ -69,6 +70,7 @@ const createDefaultProduct = (name: string = 'My Product', parentBrandId?: strin
     { id: '2', name: 'Secondary', hex: '#10b981', usage: 'Accent and CTAs' },
     { id: '3', name: 'Background', hex: '#f8fafc', usage: 'Light backgrounds' },
   ],
+  colorCombinations: [],
   gradients: [],
   patterns: [],
   typography: [
