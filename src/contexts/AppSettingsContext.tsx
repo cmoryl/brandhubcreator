@@ -7,6 +7,18 @@ export interface ThemeColors {
   primaryForeground: string;
 }
 
+export type HeroBackgroundType = 'gradient' | 'image' | 'animated-gradient' | 'animated-particles';
+
+export interface HeroBackground {
+  type: HeroBackgroundType;
+  image: string;
+  gradientFrom: string;
+  gradientTo: string;
+  animationSpeed: 'slow' | 'medium' | 'fast';
+  overlay: boolean;
+  overlayOpacity: number;
+}
+
 export interface AppSettings {
   appName: string;
   appLogo: string;
@@ -15,6 +27,7 @@ export interface AppSettings {
   heroDescription: string;
   heroBadgeText: string;
   colors: ThemeColors;
+  heroBackground: HeroBackground;
 }
 
 const defaultColors: ThemeColors = {
@@ -22,6 +35,16 @@ const defaultColors: ThemeColors = {
   accentForeground: '0 0% 100%',
   primary: '220 15% 20%',
   primaryForeground: '40 20% 98%',
+};
+
+const defaultHeroBackground: HeroBackground = {
+  type: 'gradient',
+  image: '',
+  gradientFrom: 'primary/5',
+  gradientTo: 'background',
+  animationSpeed: 'medium',
+  overlay: true,
+  overlayOpacity: 0.5,
 };
 
 const defaultSettings: AppSettings = {
@@ -32,6 +55,7 @@ const defaultSettings: AppSettings = {
   heroDescription: 'Design, organize, and share comprehensive brand identity systems. From colors to typography, logos to guidelines — all in one place.',
   heroBadgeText: 'Brand Identity Platform',
   colors: defaultColors,
+  heroBackground: defaultHeroBackground,
 };
 
 interface AppSettingsContextType {
@@ -122,7 +146,12 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        return { ...defaultSettings, ...parsed, colors: { ...defaultColors, ...parsed.colors } };
+        return { 
+          ...defaultSettings, 
+          ...parsed, 
+          colors: { ...defaultColors, ...parsed.colors },
+          heroBackground: { ...defaultHeroBackground, ...parsed.heroBackground }
+        };
       }
     } catch (e) {
       console.error('Error loading app settings:', e);

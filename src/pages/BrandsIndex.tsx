@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { AppSettingsEditor } from '@/components/admin/AppSettingsEditor';
+import { HeroBackground } from '@/components/HeroBackground';
 
 const BrandsIndex = () => {
   const navigate = useNavigate();
@@ -96,12 +97,9 @@ const BrandsIndex = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-accent/5 to-background">
-        {/* Decorative Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
-        </div>
+      <div className="relative overflow-hidden">
+        {/* Dynamic Background */}
+        <HeroBackground />
 
         {/* Header */}
         <header className="relative z-10">
