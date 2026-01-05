@@ -128,8 +128,8 @@ const BrandEditor = () => {
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-background flex">
-        {/* Desktop Sidebar */}
-        <div className="hidden lg:block">
+        {/* Desktop Sidebar - Sticky */}
+        <div className="hidden lg:block sticky top-0 h-screen">
           <BrandSidebar activeSection={activeSection} onSectionChange={handleSectionChange} brandName={brand.hero.name} />
         </div>
 
