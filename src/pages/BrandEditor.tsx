@@ -6,6 +6,7 @@ import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
+import { ShareButton } from '@/components/brand/ShareButton';
 import { HeroSection } from '@/components/brand/HeroSection';
 import { IdentitySection } from '@/components/brand/IdentitySection';
 import { ValuesSection } from '@/components/brand/ValuesSection';
@@ -214,6 +215,7 @@ const BrandEditor = () => {
                   </TooltipTrigger>
                   <TooltipContent>{brand.isFavorite ? 'Remove from favorites' : 'Add to favorites'}</TooltipContent>
                 </Tooltip>
+                <ShareButton guideId={brand.id} guideName={brand.hero.name} type="brand" />
                 <ExportPdfButton guide={brand} />
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
                   <Tooltip>
