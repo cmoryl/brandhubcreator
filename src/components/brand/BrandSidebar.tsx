@@ -45,7 +45,7 @@ export const BrandSidebar = ({ activeSection, onSectionChange, brandName }: Bran
     <aside className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
       {/* Brand header */}
       <div className="p-4 border-b border-sidebar-border">
-        <h2 className="font-serif font-semibold text-sidebar-foreground truncate">{brandName || 'Brand Guide'}</h2>
+        <h2 className="font-semibold text-sidebar-foreground truncate">{brandName || 'Brand Guide'}</h2>
         <p className="text-xs text-sidebar-foreground/60 mt-1">22 Sections</p>
       </div>
 
