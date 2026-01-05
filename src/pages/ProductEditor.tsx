@@ -5,6 +5,7 @@ import { SectionId, DEFAULT_SECTION_ORDER } from '@/types/brand';
 import { useBrands } from '@/contexts/BrandContext';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
+import { ShareButton } from '@/components/brand/ShareButton';
 import { HeroSection } from '@/components/brand/HeroSection';
 import { IdentitySection } from '@/components/brand/IdentitySection';
 import { ValuesSection } from '@/components/brand/ValuesSection';
@@ -188,6 +189,7 @@ const ProductEditor = () => {
                   </TooltipTrigger>
                   <TooltipContent>{currentProduct.isFavorite ? 'Remove from favorites' : 'Add to favorites'}</TooltipContent>
                 </Tooltip>
+                <ShareButton guideId={currentProduct.id} guideName={currentProduct.hero.name} type="product" />
                 <ExportPdfButton guide={currentProduct} />
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
                   <Tooltip>
