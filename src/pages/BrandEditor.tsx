@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut } from 'lucide-react';
+import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star } from 'lucide-react';
 import { SectionId } from '@/types/brand';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,6 +28,7 @@ import { AtmosphereSection } from '@/components/brand/AtmosphereSection';
 import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
 import { BrochuresSection } from '@/components/brand/BrochuresSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
+import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -48,7 +49,7 @@ type ViewMode = 'sections' | 'full';
 const BrandEditor = () => {
   const { brandId } = useParams<{ brandId: string }>();
   const navigate = useNavigate();
-  const { getBrand, updateBrand: updateBrandContext } = useBrands();
+  const { getBrand, updateBrand: updateBrandContext, toggleFavorite } = useBrands();
   const { user, isAdmin, signOut } = useAuth();
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
@@ -180,6 +181,20 @@ const BrandEditor = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => toggleFavorite(brand.id, 'brand')}
+                      className={brand.isFavorite ? 'text-yellow-500' : ''}
+                    >
+                      <Star className={`h-5 w-5 ${brand.isFavorite ? 'fill-current' : ''}`} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{brand.isFavorite ? 'Remove from favorites' : 'Add to favorites'}</TooltipContent>
+                </Tooltip>
+                <ExportPdfButton guide={brand} />
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
                   <Tooltip>
                     <TooltipTrigger asChild>

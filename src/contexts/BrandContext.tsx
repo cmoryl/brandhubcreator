@@ -13,6 +13,8 @@ interface BrandContextType {
   getBrand: (id: string) => BrandGuide | undefined;
   getProduct: (id: string) => ProductGuide | undefined;
   getRecentlyUpdated: () => BaseGuide[];
+  toggleFavorite: (id: string, type: 'brand' | 'product') => void;
+  getFavorites: () => BaseGuide[];
 }
 
 const BrandContext = createContext<BrandContextType | undefined>(undefined);
@@ -147,6 +149,27 @@ export const BrandProvider = ({ children }: { children: ReactNode }) => {
       .slice(0, 5);
   };
 
+  const toggleFavorite = (id: string, type: 'brand' | 'product') => {
+    if (type === 'brand') {
+      setBrands(prev => prev.map(brand =>
+        brand.id === id
+          ? { ...brand, isFavorite: !brand.isFavorite }
+          : brand
+      ));
+    } else {
+      setProducts(prev => prev.map(product =>
+        product.id === id
+          ? { ...product, isFavorite: !product.isFavorite }
+          : product
+      ));
+    }
+  };
+
+  const getFavorites = (): BaseGuide[] => {
+    const all = [...brands, ...products];
+    return all.filter(item => item.isFavorite);
+  };
+
   return (
     <BrandContext.Provider value={{ 
       brands, 
@@ -159,7 +182,9 @@ export const BrandProvider = ({ children }: { children: ReactNode }) => {
       deleteProduct, 
       getBrand, 
       getProduct,
-      getRecentlyUpdated 
+      getRecentlyUpdated,
+      toggleFavorite,
+      getFavorites
     }}>
       {children}
     </BrandContext.Provider>

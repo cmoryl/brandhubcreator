@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Package } from 'lucide-react';
+import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Package, Star } from 'lucide-react';
 import { SectionId } from '@/types/brand';
 import { useBrands } from '@/contexts/BrandContext';
 import { BrandSidebar } from '@/components/brand/BrandSidebar';
@@ -27,6 +27,7 @@ import { AtmosphereSection } from '@/components/brand/AtmosphereSection';
 import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
 import { BrochuresSection } from '@/components/brand/BrochuresSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
+import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -39,7 +40,7 @@ type ViewMode = 'sections' | 'full';
 const ProductEditor = () => {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
-  const { getProduct, updateProduct } = useBrands();
+  const { getProduct, updateProduct, toggleFavorite } = useBrands();
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -153,7 +154,21 @@ const ProductEditor = () => {
                   <span className="font-medium text-foreground">{currentProduct.hero.name}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => toggleFavorite(currentProduct.id, 'product')}
+                      className={currentProduct.isFavorite ? 'text-yellow-500' : ''}
+                    >
+                      <Star className={`h-5 w-5 ${currentProduct.isFavorite ? 'fill-current' : ''}`} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{currentProduct.isFavorite ? 'Remove from favorites' : 'Add to favorites'}</TooltipContent>
+                </Tooltip>
+                <ExportPdfButton guide={currentProduct} />
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
                   <Tooltip>
                     <TooltipTrigger asChild>

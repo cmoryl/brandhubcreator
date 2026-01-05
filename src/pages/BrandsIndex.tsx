@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock } from 'lucide-react';
+import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart } from 'lucide-react';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
@@ -33,7 +33,7 @@ import { BaseGuide } from '@/types/brand';
 
 const BrandsIndex = () => {
   const navigate = useNavigate();
-  const { brands, products, addBrand, addProduct, deleteBrand, deleteProduct, updateBrand, updateProduct, getRecentlyUpdated } = useBrands();
+  const { brands, products, addBrand, addProduct, deleteBrand, deleteProduct, updateBrand, updateProduct, getRecentlyUpdated, toggleFavorite, getFavorites } = useBrands();
   const { user, isAdmin, signOut } = useAuth();
   const { settings } = useAppSettings();
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
@@ -44,6 +44,7 @@ const BrandsIndex = () => {
   const fileInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
   const recentlyUpdated = getRecentlyUpdated();
+  const favorites = getFavorites();
 
   const handleCreateItem = () => {
     if (newItemName.trim()) {
@@ -276,6 +277,10 @@ const BrandsIndex = () => {
                 <Package className="h-4 w-4" />
                 Products ({products.length})
               </TabsTrigger>
+              <TabsTrigger value="favorites" className="gap-2">
+                <Star className="h-4 w-4" />
+                Favorites ({favorites.length})
+              </TabsTrigger>
             </TabsList>
             {canEdit && (
               <div className="flex gap-2">
@@ -327,11 +332,24 @@ const BrandsIndex = () => {
                       
                       {/* Recently Updated Badge */}
                       {isRecentlyUpdated(brand) && (
-                        <Badge className="absolute top-3 right-3 gap-1 bg-accent text-accent-foreground">
+                        <Badge className="absolute top-3 right-12 gap-1 bg-accent text-accent-foreground">
                           <Clock className="h-3 w-3" />
                           Recently Updated
                         </Badge>
                       )}
+
+                      {/* Favorite Button */}
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className={`absolute top-3 right-3 h-8 w-8 ${brand.isFavorite ? 'bg-yellow-100 text-yellow-500 hover:bg-yellow-200' : 'bg-white/90 hover:bg-white'}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(brand.id, 'brand');
+                        }}
+                      >
+                        <Star className={`h-4 w-4 ${brand.isFavorite ? 'fill-current' : ''}`} />
+                      </Button>
 
                       {/* Overlay Actions - Only show for admins */}
                       {canEdit && (
@@ -479,11 +497,24 @@ const BrandsIndex = () => {
                       
                       {/* Recently Updated Badge */}
                       {isRecentlyUpdated(product) && (
-                        <Badge className="absolute top-3 right-3 gap-1 bg-accent text-accent-foreground">
+                        <Badge className="absolute top-3 right-12 gap-1 bg-accent text-accent-foreground">
                           <Clock className="h-3 w-3" />
                           Recently Updated
                         </Badge>
                       )}
+
+                      {/* Favorite Button */}
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className={`absolute top-3 right-3 h-8 w-8 ${product.isFavorite ? 'bg-yellow-100 text-yellow-500 hover:bg-yellow-200' : 'bg-white/90 hover:bg-white'}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(product.id, 'product');
+                        }}
+                      >
+                        <Star className={`h-4 w-4 ${product.isFavorite ? 'fill-current' : ''}`} />
+                      </Button>
 
                       {/* Product Badge */}
                       <Badge variant="secondary" className="absolute top-3 left-3 gap-1">
@@ -588,6 +619,120 @@ const BrandsIndex = () => {
                 <div className="col-span-full text-center py-12">
                   <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">No product guides yet</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="favorites">
+            {/* Favorites Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {favorites.map((item) => (
+                <Card 
+                  key={item.id}
+                  className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
+                  onClick={() => navigate(item.type === 'brand' ? `/brand/${item.id}` : `/product/${item.id}`)}
+                >
+                  <CardContent className="p-0">
+                    {/* Cover Image / Color Preview */}
+                    <div className="relative h-44 overflow-hidden">
+                      {item.hero.coverImage ? (
+                        <img 
+                          src={item.hero.coverImage} 
+                          alt={item.hero.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex">
+                          {item.colors.length > 0 ? (
+                            item.colors.slice(0, 4).map((color) => (
+                              <div 
+                                key={color.id} 
+                                className="flex-1 transition-all duration-500 group-hover:flex-[1.1]"
+                                style={{ backgroundColor: color.hex }}
+                              />
+                            ))
+                          ) : (
+                            <div className="flex-1 bg-gradient-to-br from-muted to-muted/50" />
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Favorite Star */}
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="absolute top-3 right-3 h-8 w-8 bg-white/90 hover:bg-white text-yellow-500"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(item.id, item.type);
+                        }}
+                      >
+                        <Star className="h-4 w-4 fill-current" />
+                      </Button>
+
+                      {/* Type Badge */}
+                      <Badge variant="secondary" className="absolute top-3 left-3 gap-1">
+                        {item.type === 'brand' ? (
+                          <>
+                            <Sparkles className="h-3 w-3" />
+                            Brand
+                          </>
+                        ) : (
+                          <>
+                            <Package className="h-3 w-3" />
+                            Product
+                          </>
+                        )}
+                      </Badge>
+                    </div>
+
+                    {/* Card Info */}
+                    <div className="p-5">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-foreground truncate text-xl">
+                            {item.hero.name}
+                          </h3>
+                          <p className="text-sm text-muted-foreground truncate mt-1">
+                            {item.hero.tagline}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Stats */}
+                      <div className="flex items-center gap-3 text-xs">
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
+                          <Palette className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">{item.colors.length}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
+                          <Type className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">{item.typography.length}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
+                          <Image className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">{item.logos.length}</span>
+                        </div>
+                      </div>
+
+                      {/* Footer */}
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+                        <p className="text-xs text-muted-foreground">
+                          Updated {item.updatedAt.toLocaleDateString()}
+                        </p>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {favorites.length === 0 && (
+                <div className="col-span-full text-center py-12">
+                  <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No favorites yet</h3>
+                  <p className="text-muted-foreground">Click the star icon on any brand or product to add it to your favorites</p>
                 </div>
               )}
             </div>

@@ -177,6 +177,7 @@ export interface BrandTemplate {
 export interface BaseGuide {
   id: string;
   type: 'brand' | 'product';
+  isFavorite?: boolean;
   // Hero
   hero: BrandHero;
   // Identity
