@@ -30,6 +30,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const createDefaultBrand = (name: string = 'My Brand'): BrandGuide => ({
   id: crypto.randomUUID(),
@@ -213,6 +214,7 @@ const Index = () => {
                     <TooltipContent>Full Page View</TooltipContent>
                   </Tooltip>
                 </ToggleGroup>
+                <ThemeToggle />
                 <div className="text-xs text-muted-foreground hidden sm:block">
                   Saved {currentBrand.updatedAt.toLocaleTimeString()}
                 </div>
