@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AppSettingsProvider } from "@/contexts/AppSettingsContext";
 import BrandsIndex from "./pages/BrandsIndex";
 import BrandEditor from "./pages/BrandEditor";
+import ProductEditor from "./pages/ProductEditor";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
@@ -26,6 +27,7 @@ const App = () => (
                 <Route path="/" element={<BrandsIndex />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/brand/:brandId" element={<BrandEditor />} />
+                <Route path="/product/:productId" element={<ProductEditor />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

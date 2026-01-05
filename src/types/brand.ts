@@ -173,9 +173,10 @@ export interface BrandTemplate {
   fileSize: string;
 }
 
-// Main Brand Guide interface
-export interface BrandGuide {
+// Base Guide interface shared by Brands and Products
+export interface BaseGuide {
   id: string;
+  type: 'brand' | 'product';
   // Hero
   hero: BrandHero;
   // Identity
@@ -223,6 +224,17 @@ export interface BrandGuide {
   // Metadata
   createdAt: Date;
   updatedAt: Date;
+}
+
+// Main Brand Guide interface (extends base)
+export interface BrandGuide extends BaseGuide {
+  type: 'brand';
+}
+
+// Product Guide interface
+export interface ProductGuide extends BaseGuide {
+  type: 'product';
+  parentBrandId?: string; // Optional link to parent brand
 }
 
 // Section IDs for navigation

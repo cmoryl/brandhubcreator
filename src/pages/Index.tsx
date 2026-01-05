@@ -34,6 +34,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 
 const createDefaultBrand = (name: string = 'My Brand'): BrandGuide => ({
   id: crypto.randomUUID(),
+  type: 'brand',
   hero: { name, tagline: 'Crafting exceptional experiences', coverImage: '', logoUrl: '' },
   identity: { missionStatement: '', archetype: '', toneOfVoice: [] },
   values: [],
