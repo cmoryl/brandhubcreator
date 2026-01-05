@@ -1,9 +1,11 @@
 import { useState, useRef } from 'react';
-import { Settings, Upload, X, Save, RotateCcw } from 'lucide-react';
+import { Settings, Upload, X, Save, RotateCcw, Image, Sparkles, Waves } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -14,7 +16,13 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAppSettings, AppSettings, hexToHSL, hslToHex } from '@/contexts/AppSettingsContext';
+import { 
+  useAppSettings, 
+  AppSettings, 
+  hexToHSL, 
+  hslToHex,
+  HeroBackgroundType 
+} from '@/contexts/AppSettingsContext';
 import { toast } from 'sonner';
 
 const colorPresets = [
@@ -28,12 +36,20 @@ const colorPresets = [
   { name: 'Teal', accent: '175 60% 40%' },
 ];
 
+const backgroundTypes: { type: HeroBackgroundType; name: string; icon: typeof Image; description: string }[] = [
+  { type: 'gradient', name: 'Gradient', icon: Sparkles, description: 'Static gradient background' },
+  { type: 'image', name: 'Image', icon: Image, description: 'Custom background image' },
+  { type: 'animated-gradient', name: 'Animated', icon: Waves, description: 'Animated gradient effect' },
+  { type: 'animated-particles', name: 'Particles', icon: Sparkles, description: 'Floating particle effect' },
+];
+
 export const AppSettingsEditor = () => {
   const { settings, updateSettings, resetColors } = useAppSettings();
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState<AppSettings>(settings);
   const [accentHex, setAccentHex] = useState(hslToHex(settings.colors.accent));
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const bgImageInputRef = useRef<HTMLInputElement>(null);
 
   const handleOpen = () => {
     setFormData(settings);
@@ -58,8 +74,33 @@ export const AppSettingsEditor = () => {
     }
   };
 
+  const handleBgImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ 
+          ...prev, 
+          heroBackground: { 
+            ...prev.heroBackground, 
+            image: reader.result as string,
+            type: 'image'
+          } 
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const removeLogo = () => {
     setFormData(prev => ({ ...prev, appLogo: '' }));
+  };
+
+  const removeBgImage = () => {
+    setFormData(prev => ({ 
+      ...prev, 
+      heroBackground: { ...prev.heroBackground, image: '', type: 'gradient' } 
+    }));
   };
 
   const handleAccentColorChange = (hex: string) => {
@@ -94,6 +135,13 @@ export const AppSettingsEditor = () => {
     toast.success('Colors reset to defaults!');
   };
 
+  const setBackgroundType = (type: HeroBackgroundType) => {
+    setFormData(prev => ({
+      ...prev,
+      heroBackground: { ...prev.heroBackground, type }
+    }));
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -110,9 +158,10 @@ export const AppSettingsEditor = () => {
         </DialogHeader>
 
         <Tabs defaultValue="branding" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="branding">Branding</TabsTrigger>
             <TabsTrigger value="hero">Hero</TabsTrigger>
+            <TabsTrigger value="background">Background</TabsTrigger>
             <TabsTrigger value="colors">Colors</TabsTrigger>
           </TabsList>
 
@@ -209,6 +258,138 @@ export const AppSettingsEditor = () => {
                 rows={3}
               />
             </div>
+          </TabsContent>
+
+          <TabsContent value="background" className="space-y-4 py-4">
+            <div className="space-y-3">
+              <Label>Background Type</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {backgroundTypes.map((bg) => (
+                  <button
+                    key={bg.type}
+                    onClick={() => setBackgroundType(bg.type)}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-colors ${
+                      formData.heroBackground.type === bg.type
+                        ? 'border-accent bg-accent/10'
+                        : 'border-border hover:border-accent/50'
+                    }`}
+                  >
+                    <bg.icon className={`h-5 w-5 ${
+                      formData.heroBackground.type === bg.type ? 'text-accent' : 'text-muted-foreground'
+                    }`} />
+                    <span className="text-sm font-medium">{bg.name}</span>
+                    <span className="text-xs text-muted-foreground text-center">{bg.description}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {formData.heroBackground.type === 'image' && (
+              <div className="space-y-3">
+                <Label>Background Image</Label>
+                <div className="space-y-3">
+                  {formData.heroBackground.image ? (
+                    <div className="relative rounded-lg overflow-hidden border border-border">
+                      <img
+                        src={formData.heroBackground.image}
+                        alt="Background"
+                        className="w-full h-32 object-cover"
+                      />
+                      <button
+                        onClick={removeBgImage}
+                        className="absolute top-2 right-2 p-1.5 bg-destructive text-destructive-foreground rounded-full shadow-lg"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="h-32 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
+                      <span className="text-sm text-muted-foreground">No image selected</span>
+                    </div>
+                  )}
+                  <input
+                    ref={bgImageInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleBgImageUpload}
+                  />
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => bgImageInputRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Background Image
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {(formData.heroBackground.type === 'animated-gradient' || 
+              formData.heroBackground.type === 'animated-particles') && (
+              <div className="space-y-3">
+                <Label>Animation Speed</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['slow', 'medium', 'fast'] as const).map((speed) => (
+                    <button
+                      key={speed}
+                      onClick={() => setFormData(prev => ({
+                        ...prev,
+                        heroBackground: { ...prev.heroBackground, animationSpeed: speed }
+                      }))}
+                      className={`py-2 px-3 rounded-lg border-2 text-sm font-medium capitalize transition-colors ${
+                        formData.heroBackground.animationSpeed === speed
+                          ? 'border-accent bg-accent/10 text-accent'
+                          : 'border-border hover:border-accent/50'
+                      }`}
+                    >
+                      {speed}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {formData.heroBackground.type === 'image' && (
+              <>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Overlay</Label>
+                    <p className="text-xs text-muted-foreground">Add a dark overlay for better text readability</p>
+                  </div>
+                  <Switch
+                    checked={formData.heroBackground.overlay}
+                    onCheckedChange={(checked) => setFormData(prev => ({
+                      ...prev,
+                      heroBackground: { ...prev.heroBackground, overlay: checked }
+                    }))}
+                  />
+                </div>
+
+                {formData.heroBackground.overlay && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Overlay Opacity</Label>
+                      <span className="text-sm text-muted-foreground">
+                        {Math.round(formData.heroBackground.overlayOpacity * 100)}%
+                      </span>
+                    </div>
+                    <Slider
+                      value={[formData.heroBackground.overlayOpacity]}
+                      onValueChange={([value]) => setFormData(prev => ({
+                        ...prev,
+                        heroBackground: { ...prev.heroBackground, overlayOpacity: value }
+                      }))}
+                      min={0}
+                      max={1}
+                      step={0.05}
+                      className="w-full"
+                    />
+                  </div>
+                )}
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="colors" className="space-y-4 py-4">
