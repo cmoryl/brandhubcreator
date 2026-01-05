@@ -184,6 +184,8 @@ export interface BaseGuide {
   isFavorite?: boolean;
   // Section ordering
   sectionOrder?: SectionId[];
+  // Hidden sections (admin can toggle visibility)
+  hiddenSections?: SectionId[];
   // Hero
   hero: BrandHero;
   // Identity

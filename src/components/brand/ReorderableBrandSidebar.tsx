@@ -29,9 +29,12 @@ interface ReorderableBrandSidebarProps {
   brandName: string;
   sectionOrder: SectionId[];
   onSectionOrderChange: (newOrder: SectionId[]) => void;
+  hiddenSections?: SectionId[];
+  onHiddenSectionsChange?: (hiddenSections: SectionId[]) => void;
+  isAdmin?: boolean;
 }
 
-const sectionMeta: Record<SectionId, { label: string; icon: React.ElementType; category: string }> = {
+export const sectionMeta: Record<SectionId, { label: string; icon: React.ElementType; category: string }> = {
   hero: { label: 'Identity Shield', icon: Shield, category: 'Identity' },
   identity: { label: 'Narrative Architecture', icon: Scroll, category: 'Identity' },
   values: { label: 'Philosophical Pillars', icon: Heart, category: 'Identity' },
@@ -61,7 +64,10 @@ export const ReorderableBrandSidebar = ({
   onSectionChange, 
   brandName,
   sectionOrder,
-  onSectionOrderChange
+  onSectionOrderChange,
+  hiddenSections = [],
+  onHiddenSectionsChange,
+  isAdmin = false
 }: ReorderableBrandSidebarProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -85,12 +91,27 @@ export const ReorderableBrandSidebar = ({
     }
   };
 
+  const toggleSectionVisibility = (sectionId: SectionId) => {
+    if (!onHiddenSectionsChange) return;
+    
+    if (hiddenSections.includes(sectionId)) {
+      onHiddenSectionsChange(hiddenSections.filter(id => id !== sectionId));
+    } else {
+      onHiddenSectionsChange([...hiddenSections, sectionId]);
+    }
+  };
+
+  const visibleCount = sectionOrder.length - hiddenSections.length;
+
   return (
     <aside className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
       {/* Brand header */}
       <div className="p-4 border-b border-sidebar-border">
         <h2 className="font-semibold text-sidebar-foreground truncate">{brandName || 'Brand Guide'}</h2>
-        <p className="text-xs text-sidebar-foreground/60 mt-1">22 Sections • Drag to reorder</p>
+        <p className="text-xs text-sidebar-foreground/60 mt-1">
+          {visibleCount} of {sectionOrder.length} Sections
+          {isAdmin && ' • Click eye to hide'}
+        </p>
       </div>
 
       {/* Navigation */}
@@ -106,6 +127,8 @@ export const ReorderableBrandSidebar = ({
                 {sectionOrder.map(sectionId => {
                   const meta = sectionMeta[sectionId];
                   if (!meta) return null;
+                  const isHidden = hiddenSections.includes(sectionId);
+                  
                   return (
                     <SortableSectionItem
                       key={sectionId}
@@ -113,7 +136,10 @@ export const ReorderableBrandSidebar = ({
                       label={meta.label}
                       icon={meta.icon}
                       isActive={activeSection === sectionId}
+                      isHidden={isHidden}
+                      isAdmin={isAdmin}
                       onClick={() => onSectionChange(sectionId)}
+                      onToggleVisibility={() => toggleSectionVisibility(sectionId)}
                     />
                   );
                 })}

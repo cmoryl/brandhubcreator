@@ -30,6 +30,8 @@ interface FullBrandPageProps {
   scrollToSection?: SectionId | null;
   onSectionVisible?: (sectionId: SectionId) => void;
   sectionOrder?: SectionId[];
+  hiddenSections?: SectionId[];
+  isAdmin?: boolean;
 }
 
 export const FullBrandPage = ({ 
@@ -37,7 +39,9 @@ export const FullBrandPage = ({
   onBrandUpdate, 
   scrollToSection,
   onSectionVisible,
-  sectionOrder = DEFAULT_SECTION_ORDER
+  sectionOrder = DEFAULT_SECTION_ORDER,
+  hiddenSections = [],
+  isAdmin = false
 }: FullBrandPageProps) => {
   const sectionRefs = useRef<Map<SectionId, HTMLDivElement>>(new Map());
 
@@ -108,16 +112,30 @@ export const FullBrandPage = ({
     }
   };
 
+  // Filter out hidden sections for non-admin users
+  const visibleSections = isAdmin 
+    ? sectionOrder 
+    : sectionOrder.filter(id => !hiddenSections.includes(id));
+
   return (
     <div className="space-y-16">
-      {sectionOrder.map((sectionId, index) => (
-        <div key={sectionId}>
-          <div ref={setRef(sectionId)} data-section={sectionId} className="scroll-mt-24">
-            {renderSection(sectionId)}
+      {visibleSections.map((sectionId, index) => {
+        const isHidden = hiddenSections.includes(sectionId);
+        
+        return (
+          <div key={sectionId} className={isHidden && isAdmin ? 'opacity-50 relative' : ''}>
+            {isHidden && isAdmin && (
+              <div className="absolute -top-2 right-0 text-xs bg-muted px-2 py-1 rounded text-muted-foreground">
+                Hidden from viewers
+              </div>
+            )}
+            <div ref={setRef(sectionId)} data-section={sectionId} className="scroll-mt-24">
+              {renderSection(sectionId)}
+            </div>
+            {index < visibleSections.length - 1 && <Separator className="my-12" />}
           </div>
-          {index < sectionOrder.length - 1 && <Separator className="my-12" />}
-        </div>
-      ))}
+        );
+      })}
       <div className="h-32" /> {/* Bottom spacing */}
     </div>
   );

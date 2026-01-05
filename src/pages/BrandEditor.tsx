@@ -62,10 +62,17 @@ const BrandEditor = () => {
   const canEdit = user && isAdmin;
   
   const sectionOrder = brand?.sectionOrder || DEFAULT_SECTION_ORDER;
+  const hiddenSections = brand?.hiddenSections || [];
 
   const handleSectionOrderChange = useCallback((newOrder: SectionId[]) => {
     if (brand) {
       updateBrandContext(brand.id, { sectionOrder: newOrder });
+    }
+  }, [brand, updateBrandContext]);
+
+  const handleHiddenSectionsChange = useCallback((newHiddenSections: SectionId[]) => {
+    if (brand) {
+      updateBrandContext(brand.id, { hiddenSections: newHiddenSections });
     }
   }, [brand, updateBrandContext]);
 
@@ -146,6 +153,9 @@ const BrandEditor = () => {
             brandName={brand.hero.name}
             sectionOrder={sectionOrder}
             onSectionOrderChange={handleSectionOrderChange}
+            hiddenSections={hiddenSections}
+            onHiddenSectionsChange={handleHiddenSectionsChange}
+            isAdmin={isAdmin}
           />
         </div>
 
@@ -158,6 +168,9 @@ const BrandEditor = () => {
               brandName={brand.hero.name}
               sectionOrder={sectionOrder}
               onSectionOrderChange={handleSectionOrderChange}
+              hiddenSections={hiddenSections}
+              onHiddenSectionsChange={handleHiddenSectionsChange}
+              isAdmin={isAdmin}
             />
           </SheetContent>
         </Sheet>
@@ -286,6 +299,8 @@ const BrandEditor = () => {
                   scrollToSection={scrollToSection}
                   onSectionVisible={handleSectionVisible}
                   sectionOrder={sectionOrder}
+                  hiddenSections={hiddenSections}
+                  isAdmin={isAdmin}
                 />
               )}
             </div>
