@@ -4,6 +4,8 @@ import { BrandColor } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { getAllColorFormats, getContrastColor } from '@/lib/colorUtils';
+import { toast } from 'sonner';
 
 interface ColorPaletteSectionProps {
   colors: BrandColor[];
@@ -12,7 +14,7 @@ interface ColorPaletteSectionProps {
 
 export const ColorPaletteSection = ({ colors, onColorsChange }: ColorPaletteSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedValue, setCopiedValue] = useState<string | null>(null);
 
   const addColor = () => {
     const newColor: BrandColor = {
@@ -34,18 +36,11 @@ export const ColorPaletteSection = ({ colors, onColorsChange }: ColorPaletteSect
     if (editingId === id) setEditingId(null);
   };
 
-  const copyHex = async (hex: string, id: string) => {
-    await navigator.clipboard.writeText(hex);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const getContrastColor = (hex: string) => {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance > 0.5 ? '#1a1a1a' : '#ffffff';
+  const copyValue = async (value: string, label: string) => {
+    await navigator.clipboard.writeText(value);
+    setCopiedValue(value);
+    toast.success(`${label} copied!`);
+    setTimeout(() => setCopiedValue(null), 2000);
   };
 
   return (
@@ -53,7 +48,7 @@ export const ColorPaletteSection = ({ colors, onColorsChange }: ColorPaletteSect
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-serif font-semibold text-foreground">Color Palette</h2>
-          <p className="text-muted-foreground mt-1">Define your brand's color system</p>
+          <p className="text-muted-foreground mt-1">Define your brand's color system with all color formats</p>
         </div>
         <Button onClick={addColor} size="sm" className="gap-2">
           <Plus className="h-4 w-4" />
@@ -61,106 +56,147 @@ export const ColorPaletteSection = ({ colors, onColorsChange }: ColorPaletteSect
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {colors.map((color, index) => (
-          <div
-            key={color.id}
-            className="group relative bg-card rounded-xl overflow-hidden shadow-sm border border-border animate-scale-in"
-            style={{ animationDelay: `${index * 50}ms` }}
-          >
-            {/* Color swatch */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {colors.map((color, index) => {
+          const formats = getAllColorFormats(color.hex);
+          
+          return (
             <div
-              className="h-32 relative cursor-pointer transition-transform hover:scale-[1.02]"
-              style={{ backgroundColor: color.hex }}
-              onClick={() => copyHex(color.hex, color.id)}
+              key={color.id}
+              className="group relative bg-card rounded-xl overflow-hidden shadow-sm border border-border animate-scale-in"
+              style={{ animationDelay: `${index * 50}ms` }}
             >
-              <div 
-                className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ color: getContrastColor(color.hex) }}
-              >
-                {copiedId === color.id ? (
-                  <div className="flex items-center gap-1 text-sm font-medium">
-                    <Check className="h-4 w-4" />
-                    Copied!
+              <div className="flex">
+                {/* Color swatch */}
+                <div
+                  className="w-32 min-h-[200px] relative cursor-pointer transition-transform hover:scale-[1.02] shrink-0"
+                  style={{ backgroundColor: color.hex }}
+                  onClick={() => copyValue(color.hex, 'HEX')}
+                >
+                  <div 
+                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ color: getContrastColor(color.hex) }}
+                  >
+                    {copiedValue === color.hex ? (
+                      <Check className="h-6 w-6" />
+                    ) : (
+                      <Copy className="h-6 w-6" />
+                    )}
                   </div>
-                ) : (
-                  <div className="flex items-center gap-1 text-sm font-medium">
-                    <Copy className="h-4 w-4" />
-                    Copy
-                  </div>
-                )}
-              </div>
 
-              {/* Delete button */}
-              <button
-                onClick={(e) => { e.stopPropagation(); deleteColor(color.id); }}
-                className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-
-            {/* Color info */}
-            <div className="p-4 space-y-3">
-              {editingId === color.id ? (
-                <div className="space-y-2">
-                  <Input
-                    value={color.name}
-                    onChange={(e) => updateColor(color.id, { name: e.target.value })}
-                    className="h-8 text-sm font-medium"
-                    placeholder="Color name"
-                  />
-                  <div className="flex gap-2">
-                    <Input
-                      type="color"
-                      value={color.hex}
-                      onChange={(e) => updateColor(color.id, { hex: e.target.value })}
-                      className="h-8 w-12 p-1 cursor-pointer"
-                    />
-                    <Input
-                      value={color.hex}
-                      onChange={(e) => updateColor(color.id, { hex: e.target.value })}
-                      className="h-8 text-sm font-mono uppercase"
-                      placeholder="#000000"
-                    />
-                  </div>
-                  <Input
-                    value={color.usage || ''}
-                    onChange={(e) => updateColor(color.id, { usage: e.target.value })}
-                    className="h-8 text-sm"
-                    placeholder="Usage description"
-                  />
-                  <Button size="sm" variant="secondary" onClick={() => setEditingId(null)} className="w-full">
-                    Done
-                  </Button>
+                  {/* Delete button */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deleteColor(color.id); }}
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
                 </div>
-              ) : (
-                <>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-medium text-foreground">{color.name}</h3>
-                      <p className="text-sm font-mono text-muted-foreground uppercase">{color.hex}</p>
+
+                {/* Color info */}
+                <div className="flex-1 p-4 space-y-3">
+                  {editingId === color.id ? (
+                    <div className="space-y-3">
+                      <Input
+                        value={color.name}
+                        onChange={(e) => updateColor(color.id, { name: e.target.value })}
+                        className="h-9 font-medium"
+                        placeholder="Color name"
+                      />
+                      <div className="flex gap-2">
+                        <Input
+                          type="color"
+                          value={color.hex}
+                          onChange={(e) => updateColor(color.id, { hex: e.target.value })}
+                          className="h-9 w-14 p-1 cursor-pointer"
+                        />
+                        <Input
+                          value={color.hex}
+                          onChange={(e) => updateColor(color.id, { hex: e.target.value })}
+                          className="h-9 font-mono uppercase"
+                          placeholder="#000000"
+                        />
+                      </div>
+                      <Input
+                        value={color.pantone || ''}
+                        onChange={(e) => updateColor(color.id, { pantone: e.target.value })}
+                        className="h-9"
+                        placeholder="Pantone (e.g., PMS 286 C)"
+                      />
+                      <Input
+                        value={color.usage || ''}
+                        onChange={(e) => updateColor(color.id, { usage: e.target.value })}
+                        className="h-9"
+                        placeholder="Usage description"
+                      />
+                      <Button size="sm" variant="secondary" onClick={() => setEditingId(null)} className="w-full">
+                        Done
+                      </Button>
                     </div>
-                    <button
-                      onClick={() => setEditingId(color.id)}
-                      className="p-1.5 rounded-md hover:bg-secondary transition-colors"
-                    >
-                      <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
-                  </div>
-                  {color.usage && (
-                    <p className="text-sm text-muted-foreground">{color.usage}</p>
+                  ) : (
+                    <>
+                      <div className="flex items-start justify-between">
+                        <h3 className="font-semibold text-lg text-foreground">{color.name}</h3>
+                        <button
+                          onClick={() => setEditingId(color.id)}
+                          className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+                        >
+                          <Pencil className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                      </div>
+
+                      {/* Color codes grid */}
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <ColorCodeItem 
+                          label="HEX" 
+                          value={formats.hex} 
+                          onCopy={() => copyValue(formats.hex, 'HEX')}
+                          isCopied={copiedValue === formats.hex}
+                        />
+                        <ColorCodeItem 
+                          label="RGB" 
+                          value={formats.rgb} 
+                          onCopy={() => copyValue(formats.rgb, 'RGB')}
+                          isCopied={copiedValue === formats.rgb}
+                        />
+                        <ColorCodeItem 
+                          label="CMYK" 
+                          value={formats.cmyk} 
+                          onCopy={() => copyValue(formats.cmyk, 'CMYK')}
+                          isCopied={copiedValue === formats.cmyk}
+                        />
+                        <ColorCodeItem 
+                          label="HSV" 
+                          value={formats.hsv} 
+                          onCopy={() => copyValue(formats.hsv, 'HSV')}
+                          isCopied={copiedValue === formats.hsv}
+                        />
+                        {color.pantone && (
+                          <ColorCodeItem 
+                            label="Pantone" 
+                            value={color.pantone} 
+                            onCopy={() => copyValue(color.pantone!, 'Pantone')}
+                            isCopied={copiedValue === color.pantone}
+                            className="col-span-2"
+                          />
+                        )}
+                      </div>
+
+                      {color.usage && (
+                        <p className="text-sm text-muted-foreground pt-2 border-t border-border">{color.usage}</p>
+                      )}
+                    </>
                   )}
-                </>
-              )}
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {colors.length === 0 && (
           <button
             onClick={addColor}
-            className="h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors"
+            className="h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors col-span-full"
           >
             <Plus className="h-8 w-8" />
             <span className="text-sm font-medium">Add your first color</span>
@@ -170,3 +206,33 @@ export const ColorPaletteSection = ({ colors, onColorsChange }: ColorPaletteSect
     </section>
   );
 };
+
+interface ColorCodeItemProps {
+  label: string;
+  value: string;
+  onCopy: () => void;
+  isCopied: boolean;
+  className?: string;
+}
+
+const ColorCodeItem = ({ label, value, onCopy, isCopied, className }: ColorCodeItemProps) => (
+  <button
+    onClick={onCopy}
+    className={cn(
+      "flex items-center justify-between p-2 rounded-md bg-secondary/50 hover:bg-secondary transition-colors text-left group/item",
+      className
+    )}
+  >
+    <div className="min-w-0 flex-1">
+      <span className="font-semibold text-foreground block">{label}</span>
+      <span className="font-mono text-muted-foreground truncate block text-[10px]">{value}</span>
+    </div>
+    <div className="shrink-0 ml-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
+      {isCopied ? (
+        <Check className="h-3 w-3 text-green-500" />
+      ) : (
+        <Copy className="h-3 w-3 text-muted-foreground" />
+      )}
+    </div>
+  </button>
+);
