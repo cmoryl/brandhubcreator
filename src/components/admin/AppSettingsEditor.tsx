@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Settings, Upload, X, Save } from 'lucide-react';
+import { Settings, Upload, X, Save, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,17 +13,31 @@ import {
   DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { useAppSettings, AppSettings } from '@/contexts/AppSettingsContext';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAppSettings, AppSettings, hexToHSL, hslToHex } from '@/contexts/AppSettingsContext';
 import { toast } from 'sonner';
 
+const colorPresets = [
+  { name: 'Coral', accent: '12 76% 61%' },
+  { name: 'Ocean', accent: '199 89% 48%' },
+  { name: 'Forest', accent: '142 71% 45%' },
+  { name: 'Purple', accent: '262 83% 58%' },
+  { name: 'Gold', accent: '45 93% 47%' },
+  { name: 'Rose', accent: '346 77% 50%' },
+  { name: 'Slate', accent: '215 16% 47%' },
+  { name: 'Teal', accent: '175 60% 40%' },
+];
+
 export const AppSettingsEditor = () => {
-  const { settings, updateSettings } = useAppSettings();
+  const { settings, updateSettings, resetColors } = useAppSettings();
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState<AppSettings>(settings);
+  const [accentHex, setAccentHex] = useState(hslToHex(settings.colors.accent));
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const handleOpen = () => {
     setFormData(settings);
+    setAccentHex(hslToHex(settings.colors.accent));
     setIsOpen(true);
   };
 
@@ -48,6 +62,38 @@ export const AppSettingsEditor = () => {
     setFormData(prev => ({ ...prev, appLogo: '' }));
   };
 
+  const handleAccentColorChange = (hex: string) => {
+    setAccentHex(hex);
+    const hsl = hexToHSL(hex);
+    setFormData(prev => ({
+      ...prev,
+      colors: { ...prev.colors, accent: hsl }
+    }));
+  };
+
+  const applyPreset = (accentHsl: string) => {
+    setAccentHex(hslToHex(accentHsl));
+    setFormData(prev => ({
+      ...prev,
+      colors: { ...prev.colors, accent: accentHsl }
+    }));
+  };
+
+  const handleResetColors = () => {
+    resetColors();
+    setAccentHex(hslToHex('12 76% 61%'));
+    setFormData(prev => ({
+      ...prev,
+      colors: {
+        accent: '12 76% 61%',
+        accentForeground: '0 0% 100%',
+        primary: '220 15% 20%',
+        primaryForeground: '40 20% 98%',
+      }
+    }));
+    toast.success('Colors reset to defaults!');
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -59,15 +105,18 @@ export const AppSettingsEditor = () => {
         <DialogHeader>
           <DialogTitle>App Settings</DialogTitle>
           <DialogDescription>
-            Customize the application branding and hero section.
+            Customize the application branding, hero section, and theme colors.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          {/* App Branding */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground">App Branding</h3>
-            
+        <Tabs defaultValue="branding" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="branding">Branding</TabsTrigger>
+            <TabsTrigger value="hero">Hero</TabsTrigger>
+            <TabsTrigger value="colors">Colors</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="branding" className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="appName">App Name</Label>
               <Input
@@ -117,12 +166,9 @@ export const AppSettingsEditor = () => {
                 </Button>
               </div>
             </div>
-          </div>
+          </TabsContent>
 
-          {/* Hero Section */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground">Hero Section</h3>
-
+          <TabsContent value="hero" className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="heroBadgeText">Badge Text</Label>
               <Input
@@ -163,8 +209,91 @@ export const AppSettingsEditor = () => {
                 rows={3}
               />
             </div>
-          </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="colors" className="space-y-4 py-4">
+            <div className="space-y-3">
+              <Label>Color Presets</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {colorPresets.map((preset) => (
+                  <button
+                    key={preset.name}
+                    onClick={() => applyPreset(preset.accent)}
+                    className="flex flex-col items-center gap-1 p-2 rounded-lg border border-border hover:border-accent transition-colors"
+                  >
+                    <div 
+                      className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
+                      style={{ backgroundColor: `hsl(${preset.accent})` }}
+                    />
+                    <span className="text-xs text-muted-foreground">{preset.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="accentColor">Custom Accent Color</Label>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <input
+                    type="color"
+                    id="accentColor"
+                    value={accentHex}
+                    onChange={(e) => handleAccentColorChange(e.target.value)}
+                    className="w-12 h-12 rounded-lg cursor-pointer border-2 border-border"
+                  />
+                </div>
+                <div className="flex-1">
+                  <Input
+                    value={accentHex}
+                    onChange={(e) => handleAccentColorChange(e.target.value)}
+                    placeholder="#E96D4A"
+                    className="font-mono"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                This color is used for highlights, buttons, and accents throughout the app.
+              </p>
+            </div>
+
+            <div className="pt-4 border-t border-border">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Preview</p>
+                  <p className="text-xs text-muted-foreground">See how your colors look</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleResetColors}>
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reset
+                </Button>
+              </div>
+              <div className="mt-3 p-4 rounded-lg border border-border bg-card">
+                <div className="flex items-center gap-3 mb-3">
+                  <div 
+                    className="w-10 h-10 rounded-lg"
+                    style={{ backgroundColor: `hsl(${formData.colors.accent})` }}
+                  />
+                  <div>
+                    <p className="font-medium" style={{ color: `hsl(${formData.colors.accent})` }}>
+                      Accent Color
+                    </p>
+                    <p className="text-xs text-muted-foreground">HSL: {formData.colors.accent}</p>
+                  </div>
+                </div>
+                <Button 
+                  size="sm"
+                  style={{ 
+                    backgroundColor: `hsl(${formData.colors.accent})`,
+                    color: `hsl(${formData.colors.accentForeground})`
+                  }}
+                >
+                  Sample Button
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setIsOpen(false)}>
