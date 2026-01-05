@@ -1,0 +1,90 @@
+import { 
+  Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
+  Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, 
+  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType
+} from 'lucide-react';
+import { SectionId } from '@/types/brand';
+import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+interface BrandSidebarProps {
+  activeSection: SectionId;
+  onSectionChange: (section: SectionId) => void;
+  brandName: string;
+}
+
+const sections: { id: SectionId; label: string; icon: React.ElementType; category: string }[] = [
+  { id: 'hero', label: 'Identity Shield', icon: Shield, category: 'Identity' },
+  { id: 'identity', label: 'Narrative Architecture', icon: Scroll, category: 'Identity' },
+  { id: 'values', label: 'Philosophical Pillars', icon: Heart, category: 'Identity' },
+  { id: 'logos', label: 'Mark Repository', icon: Image, category: 'Visual' },
+  { id: 'brandicon', label: 'Symbol Standards', icon: Bookmark, category: 'Visual' },
+  { id: 'colors', label: 'Prismatic Lab', icon: Palette, category: 'Visual' },
+  { id: 'gradients', label: 'Flux Nodes', icon: Blend, category: 'Visual' },
+  { id: 'patterns', label: 'Geometric Primitives', icon: Grid3X3, category: 'Visual' },
+  { id: 'typography', label: 'Type Registry', icon: Type, category: 'Typography' },
+  { id: 'textstyles', label: 'CSS Hierarchies', icon: Code, category: 'Typography' },
+  { id: 'iconography', label: 'Neural Vectors', icon: Layers, category: 'Assets' },
+  { id: 'socialicons', label: 'Platform Markers', icon: Share2, category: 'Assets' },
+  { id: 'imagery', label: 'Visual Direction', icon: Camera, category: 'Assets' },
+  { id: 'social', label: 'Social Registry', icon: Users, category: 'Communication' },
+  { id: 'signatures', label: 'Signature Protocol', icon: Mail, category: 'Communication' },
+  { id: 'qr', label: 'Access Ports', icon: QrCode, category: 'Communication' },
+  { id: 'assets', label: 'Operational Vault', icon: FolderArchive, category: 'Resources' },
+  { id: 'misuse', label: 'Anti-Patterns', icon: Ban, category: 'Resources' },
+  { id: 'atmosphere', label: 'Atmosphere Engine', icon: Sparkles, category: 'Resources' },
+  { id: 'casestudies', label: 'Proof Shards', icon: FileText, category: 'Collateral' },
+  { id: 'brochures', label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
+  { id: 'templates', label: 'Master Scaffolds', icon: FileType, category: 'Collateral' },
+];
+
+const categories = ['Identity', 'Visual', 'Typography', 'Assets', 'Communication', 'Resources', 'Collateral'];
+
+export const BrandSidebar = ({ activeSection, onSectionChange, brandName }: BrandSidebarProps) => {
+  return (
+    <aside className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
+      {/* Brand header */}
+      <div className="p-4 border-b border-sidebar-border">
+        <h2 className="font-serif font-semibold text-sidebar-foreground truncate">{brandName || 'Brand Guide'}</h2>
+        <p className="text-xs text-sidebar-foreground/60 mt-1">22 Sections</p>
+      </div>
+
+      {/* Navigation */}
+      <ScrollArea className="flex-1">
+        <nav className="p-2">
+          {categories.map(category => {
+            const categorySections = sections.filter(s => s.category === category);
+            return (
+              <div key={category} className="mb-4">
+                <h3 className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 px-3 mb-1">
+                  {category}
+                </h3>
+                <div className="space-y-0.5">
+                  {categorySections.map(section => {
+                    const Icon = section.icon;
+                    const isActive = activeSection === section.id;
+                    return (
+                      <button
+                        key={section.id}
+                        onClick={() => onSectionChange(section.id)}
+                        className={cn(
+                          "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors",
+                          isActive 
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" 
+                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                        )}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{section.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </nav>
+      </ScrollArea>
+    </aside>
+  );
+};

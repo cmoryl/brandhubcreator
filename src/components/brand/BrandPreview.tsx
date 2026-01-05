@@ -44,13 +44,13 @@ export const BrandPreview = ({ brand }: BrandPreviewProps) => {
               className="text-3xl font-semibold"
               style={headingFont ? { fontFamily: headingFont.fontFamily, fontWeight: parseInt(headingFont.weight) } : undefined}
             >
-              {brand.name || 'Your Brand'}
+              {brand.hero.name || 'Your Brand'}
             </h1>
             <p 
               className="opacity-80 mt-1"
               style={bodyFont ? { fontFamily: bodyFont.fontFamily } : undefined}
             >
-              {brand.description || 'Brand Guidelines'}
+              {brand.hero.tagline || 'Brand Guidelines'}
             </p>
           </div>
         </div>
