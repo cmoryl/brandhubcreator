@@ -43,8 +43,8 @@ export const GradientsSection = ({ gradients, onGradientsChange }: GradientsSect
     <section className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Flux Nodes</h2>
-          <p className="text-muted-foreground mt-1">Synthesize atmospheric depth with CSS gradients</p>
+          <h2 className="text-2xl font-serif font-semibold text-foreground">Gradients</h2>
+          <p className="text-muted-foreground mt-1">Define atmospheric depth with CSS gradients</p>
         </div>
         <Button onClick={addGradient} size="sm" className="gap-2">
           <Plus className="h-4 w-4" />

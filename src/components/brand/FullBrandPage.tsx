@@ -91,7 +91,7 @@ export const FullBrandPage = ({
       case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => onBrandUpdate({ values })} />;
       case 'logos': return <LogoSection logos={brand.logos} onLogosChange={(logos) => onBrandUpdate({ logos })} />;
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={(brandIcons) => onBrandUpdate({ brandIcons })} />;
-      case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={(colors) => onBrandUpdate({ colors })} />;
+      case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={(colors) => onBrandUpdate({ colors })} colorCombinations={brand.colorCombinations} onColorCombinationsChange={(colorCombinations) => onBrandUpdate({ colorCombinations })} />;
       case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={(gradients) => onBrandUpdate({ gradients })} />;
       case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={(patterns) => onBrandUpdate({ patterns })} />;
       case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={(typography) => onBrandUpdate({ typography })} />;

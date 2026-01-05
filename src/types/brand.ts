@@ -11,6 +11,15 @@ export interface BrandColor {
   role?: 'primary' | 'secondary' | 'accent' | 'neutral';
 }
 
+// Color Combination for A/B testing
+export interface ColorCombination {
+  id: string;
+  name: string;
+  colors: string[]; // Array of hex values
+  status: 'approved' | 'rejected' | 'testing';
+  notes?: string;
+}
+
 export interface BrandTypography {
   id: string;
   name: string;
@@ -59,7 +68,7 @@ export interface BrandIcon {
   settings: string;
 }
 
-// GRADIENTS - Flux Nodes
+// GRADIENTS - Gradients
 export interface BrandGradient {
   id: string;
   name: string;
@@ -198,7 +207,9 @@ export interface BaseGuide {
   brandIcons: BrandIcon[];
   // Colors (Prismatic Lab)
   colors: BrandColor[];
-  // Gradients (Flux Nodes)
+  // Color Combinations (A/B Testing)
+  colorCombinations: ColorCombination[];
+  // Gradients
   gradients: BrandGradient[];
   // Patterns (Geometric Primitives)
   patterns: BrandPattern[];

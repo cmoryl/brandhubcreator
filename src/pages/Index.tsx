@@ -45,6 +45,7 @@ const createDefaultBrand = (name: string = 'My Brand'): BrandGuide => ({
     { id: '2', name: 'Secondary', hex: '#e94560', usage: 'Accent and CTAs' },
     { id: '3', name: 'Background', hex: '#f8f7f4', usage: 'Light backgrounds' },
   ],
+  colorCombinations: [],
   gradients: [],
   patterns: [],
   typography: [
@@ -132,7 +133,7 @@ const Index = () => {
       case 'values': return <ValuesSection values={currentBrand.values} onValuesChange={(values) => updateBrand({ values })} />;
       case 'logos': return <LogoSection logos={currentBrand.logos} onLogosChange={(logos) => updateBrand({ logos })} />;
       case 'brandicon': return <BrandIconsSection brandIcons={currentBrand.brandIcons} onBrandIconsChange={(brandIcons) => updateBrand({ brandIcons })} />;
-      case 'colors': return <ColorPaletteSection colors={currentBrand.colors} onColorsChange={(colors) => updateBrand({ colors })} />;
+      case 'colors': return <ColorPaletteSection colors={currentBrand.colors} onColorsChange={(colors) => updateBrand({ colors })} colorCombinations={currentBrand.colorCombinations} onColorCombinationsChange={(colorCombinations) => updateBrand({ colorCombinations })} />;
       case 'gradients': return <GradientsSection gradients={currentBrand.gradients} onGradientsChange={(gradients) => updateBrand({ gradients })} />;
       case 'patterns': return <PatternsSection patterns={currentBrand.patterns} onPatternsChange={(patterns) => updateBrand({ patterns })} />;
       case 'typography': return <TypographySection typography={currentBrand.typography} onTypographyChange={(typography) => updateBrand({ typography })} />;
