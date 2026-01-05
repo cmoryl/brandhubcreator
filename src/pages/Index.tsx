@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Sparkles, Menu } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Sparkles, Menu, LayoutList, ScrollText } from 'lucide-react';
 import { BrandGuide, SectionId } from '@/types/brand';
 import { BrandSidebar } from '@/components/brand/BrandSidebar';
 import { BrandSelector } from '@/components/brand/BrandSelector';
+import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { HeroSection } from '@/components/brand/HeroSection';
 import { IdentitySection } from '@/components/brand/IdentitySection';
 import { ValuesSection } from '@/components/brand/ValuesSection';
@@ -27,6 +28,8 @@ import { BrochuresSection } from '@/components/brand/BrochuresSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const createDefaultBrand = (name: string = 'My Brand'): BrandGuide => ({
   id: crypto.randomUUID(),
@@ -63,11 +66,15 @@ const createDefaultBrand = (name: string = 'My Brand'): BrandGuide => ({
   updatedAt: new Date(),
 });
 
+type ViewMode = 'sections' | 'full';
+
 const Index = () => {
   const [brands, setBrands] = useState<BrandGuide[]>([createDefaultBrand()]);
   const [currentBrandId, setCurrentBrandId] = useState<string>(brands[0].id);
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('sections');
+  const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
 
   const currentBrand = brands.find(b => b.id === currentBrandId) || brands[0];
 
@@ -101,6 +108,21 @@ const Index = () => {
     setActiveSection('hero');
   };
 
+  const handleSectionChange = useCallback((section: SectionId) => {
+    setActiveSection(section);
+    if (viewMode === 'full') {
+      setScrollToSection(section);
+      // Reset after triggering scroll
+      setTimeout(() => setScrollToSection(null), 100);
+    }
+  }, [viewMode]);
+
+  const handleSectionVisible = useCallback((section: SectionId) => {
+    if (viewMode === 'full') {
+      setActiveSection(section);
+    }
+  }, [viewMode]);
+
   const renderSection = () => {
     switch (activeSection) {
       case 'hero': return <HeroSection hero={currentBrand.hero} onHeroChange={(hero) => updateBrand({ hero })} />;
@@ -130,61 +152,92 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:block">
-        <BrandSidebar activeSection={activeSection} onSectionChange={setActiveSection} brandName={currentBrand.hero.name} />
-      </div>
+    <TooltipProvider>
+      <div className="min-h-screen bg-background flex">
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block">
+          <BrandSidebar activeSection={activeSection} onSectionChange={handleSectionChange} brandName={currentBrand.hero.name} />
+        </div>
 
-      {/* Mobile Sidebar */}
-      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="p-0 w-72">
-          <BrandSidebar activeSection={activeSection} onSectionChange={(section) => { setActiveSection(section); setSidebarOpen(false); }} brandName={currentBrand.hero.name} />
-        </SheetContent>
-      </Sheet>
+        {/* Mobile Sidebar */}
+        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+          <SheetContent side="left" className="p-0 w-72">
+            <BrandSidebar activeSection={activeSection} onSectionChange={(section) => { handleSectionChange(section); setSidebarOpen(false); }} brandName={currentBrand.hero.name} />
+          </SheetContent>
+        </Sheet>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
-          <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="lg:hidden">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-              </Sheet>
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-accent/10 rounded-lg">
-                  <Sparkles className="h-4 w-4 text-accent" />
+        {/* Main content */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Header */}
+          <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
+            <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="lg:hidden">
+                      <Menu className="h-5 w-5" />
+                    </Button>
+                  </SheetTrigger>
+                </Sheet>
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-accent/10 rounded-lg">
+                    <Sparkles className="h-4 w-4 text-accent" />
+                  </div>
+                  <span className="font-serif font-semibold text-foreground hidden sm:inline">BrandForge</span>
                 </div>
-                <span className="font-serif font-semibold text-foreground hidden sm:inline">BrandForge</span>
+                <div className="h-6 w-px bg-border mx-2 hidden sm:block" />
+                <BrandSelector
+                  brands={brands}
+                  currentBrandId={currentBrandId}
+                  onBrandSelect={handleBrandSelect}
+                  onBrandCreate={handleBrandCreate}
+                  onBrandDelete={handleBrandDelete}
+                />
               </div>
-              <div className="h-6 w-px bg-border mx-2 hidden sm:block" />
-              <BrandSelector
-                brands={brands}
-                currentBrandId={currentBrandId}
-                onBrandSelect={handleBrandSelect}
-                onBrandCreate={handleBrandCreate}
-                onBrandDelete={handleBrandDelete}
-              />
+              <div className="flex items-center gap-4">
+                <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ToggleGroupItem value="sections" aria-label="Section view" className="h-8 w-8 data-[state=on]:bg-background">
+                        <LayoutList className="h-4 w-4" />
+                      </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>Section View</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ToggleGroupItem value="full" aria-label="Full page view" className="h-8 w-8 data-[state=on]:bg-background">
+                        <ScrollText className="h-4 w-4" />
+                      </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>Full Page View</TooltipContent>
+                  </Tooltip>
+                </ToggleGroup>
+                <div className="text-xs text-muted-foreground hidden sm:block">
+                  Saved {currentBrand.updatedAt.toLocaleTimeString()}
+                </div>
+              </div>
             </div>
-            <div className="text-xs text-muted-foreground">
-              Saved {currentBrand.updatedAt.toLocaleTimeString()}
-            </div>
-          </div>
-        </header>
+          </header>
 
-        {/* Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
-          <div className="max-w-5xl mx-auto animate-fade-in">
-            {renderSection()}
-          </div>
-        </main>
+          {/* Content */}
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+            <div className="max-w-5xl mx-auto animate-fade-in">
+              {viewMode === 'sections' ? (
+                renderSection()
+              ) : (
+                <FullBrandPage 
+                  brand={currentBrand} 
+                  onBrandUpdate={updateBrand}
+                  scrollToSection={scrollToSection}
+                  onSectionVisible={handleSectionVisible}
+                />
+              )}
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 
