@@ -141,13 +141,13 @@ const BrandsIndex = () => {
         <HeroBackground />
 
         {/* Header */}
-        <header className="relative z-10">
+        <header className="relative z-10 animate-fade-in-down">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {settings.appLogo ? (
                 <img src={settings.appLogo} alt={settings.appName} className="h-10 w-auto" />
               ) : (
-                <div className="p-2.5 bg-accent/10 rounded-xl border border-accent/20">
+                <div className="p-2.5 bg-accent/10 rounded-xl border border-accent/20 hover-scale cursor-pointer animate-bounce-gentle">
                   <Sparkles className="h-6 w-6 text-accent" />
                 </div>
               )}
@@ -195,7 +195,7 @@ const BrandsIndex = () => {
         {/* Hero Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-24">
           <div className="max-w-3xl">
-            <div className="flex items-center gap-2 mb-6">
+            <div className="flex items-center gap-2 mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <div className="px-3 py-1 bg-accent/10 rounded-full border border-accent/20">
                 <span className="text-xs font-medium text-accent">{settings.heroBadgeText}</span>
               </div>
@@ -205,14 +205,14 @@ const BrandsIndex = () => {
                 </div>
               )}
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-foreground mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-foreground mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               {settings.heroTitle}<br />
               <span className="text-accent">{settings.heroHighlight}</span>
             </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl">
+            <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
               {settings.heroDescription}
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-4 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
               {canEdit ? (
                 <>
                   <Button 
@@ -246,7 +246,7 @@ const BrandsIndex = () => {
             </div>
 
             {/* Stats */}
-            <div className="flex items-center gap-8 mt-12 pt-8 border-t border-border/50">
+            <div className="flex items-center gap-8 mt-12 pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
               <div>
                 <p className="text-3xl font-semibold text-foreground">{brands.length}</p>
                 <p className="text-sm text-muted-foreground">Brand Guides</p>
@@ -299,10 +299,11 @@ const BrandsIndex = () => {
           <TabsContent value="brands">
             {/* Brand Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {brands.map((brand) => (
+              {brands.map((brand, index) => (
                 <Card 
                   key={brand.id}
-                  className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
+                  className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg hover-lift card-animate"
+                  style={{ animationDelay: `${index * 0.1}s` }}
                   onClick={() => navigate(`/brand/${brand.id}`)}
                 >
                   <CardContent className="p-0">
@@ -444,7 +445,8 @@ const BrandsIndex = () => {
               {/* New Brand Card - Only show for admins */}
               {canEdit && (
                 <Card 
-                  className="group cursor-pointer border-2 border-dashed border-border hover:border-accent/50 bg-transparent hover:bg-accent/5 transition-all duration-300"
+                  className="group cursor-pointer border-2 border-dashed border-border hover:border-accent/50 bg-transparent hover:bg-accent/5 transition-all duration-300 hover-scale card-animate"
+                  style={{ animationDelay: `${brands.length * 0.1}s` }}
                   onClick={() => { setNewItemType('brand'); setIsNewDialogOpen(true); }}
                 >
                   <CardContent className="flex flex-col items-center justify-center h-full min-h-[320px] text-center">
@@ -464,10 +466,11 @@ const BrandsIndex = () => {
           <TabsContent value="products">
             {/* Product Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product) => (
+              {products.map((product, index) => (
                 <Card 
                   key={product.id}
-                  className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
+                  className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg hover-lift card-animate"
+                  style={{ animationDelay: `${index * 0.1}s` }}
                   onClick={() => navigate(`/product/${product.id}`)}
                 >
                   <CardContent className="p-0">

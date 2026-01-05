@@ -44,15 +44,15 @@ export const SortableSectionItem = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-1 rounded-lg transition-colors group",
-        isDragging && "opacity-50 z-50",
+        "flex items-center gap-1 rounded-lg transition-all duration-200 group",
+        isDragging && "opacity-50 z-50 scale-105",
         isHidden && "opacity-50"
       )}
     >
       <button
         {...attributes}
         {...listeners}
-        className="p-1 text-muted-foreground/50 hover:text-muted-foreground cursor-grab active:cursor-grabbing"
+        className="p-1 text-muted-foreground/50 hover:text-muted-foreground cursor-grab active:cursor-grabbing transition-colors duration-200"
         aria-label="Drag to reorder"
       >
         <GripVertical className="h-3 w-3" />
@@ -60,14 +60,17 @@ export const SortableSectionItem = ({
       <button
         onClick={onClick}
         className={cn(
-          "flex-1 flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors",
+          "flex-1 flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-all duration-200",
           isActive 
-            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" 
-            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-sm" 
+            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:translate-x-1",
           isHidden && "line-through"
         )}
       >
-        <Icon className="h-4 w-4 shrink-0" />
+        <Icon className={cn(
+          "h-4 w-4 shrink-0 transition-transform duration-200",
+          isActive && "scale-110"
+        )} />
         <span className="truncate flex-1 text-left">{label}</span>
       </button>
       {isAdmin && onToggleVisibility && (

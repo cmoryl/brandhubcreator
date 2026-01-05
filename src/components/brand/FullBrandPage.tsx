@@ -123,16 +123,26 @@ export const FullBrandPage = ({
         const isHidden = hiddenSections.includes(sectionId);
         
         return (
-          <div key={sectionId} className={isHidden && isAdmin ? 'opacity-50 relative' : ''}>
+          <div 
+            key={sectionId} 
+            className={`section-reveal ${isHidden && isAdmin ? 'opacity-50 relative' : ''}`}
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
             {isHidden && isAdmin && (
-              <div className="absolute -top-2 right-0 text-xs bg-muted px-2 py-1 rounded text-muted-foreground">
+              <div className="absolute -top-2 right-0 text-xs bg-muted px-2 py-1 rounded text-muted-foreground animate-fade-in">
                 Hidden from viewers
               </div>
             )}
-            <div ref={setRef(sectionId)} data-section={sectionId} className="scroll-mt-24">
+            <div 
+              ref={setRef(sectionId)} 
+              data-section={sectionId} 
+              className="scroll-mt-24 hover-lift rounded-xl transition-all duration-300"
+            >
               {renderSection(sectionId)}
             </div>
-            {index < visibleSections.length - 1 && <Separator className="my-12" />}
+            {index < visibleSections.length - 1 && (
+              <Separator className="my-12 animate-fade-in" style={{ animationDelay: `${index * 0.1 + 0.3}s` }} />
+            )}
           </div>
         );
       })}
