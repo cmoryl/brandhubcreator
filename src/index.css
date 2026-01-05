@@ -118,7 +118,7 @@
     font-weight: 700;
   }
 
-  h2 {
+  h1, h2 {
     font-family: 'Poppins', sans-serif !important;
     font-weight: 700 !important;
   }
