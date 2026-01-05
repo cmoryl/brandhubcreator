@@ -42,7 +42,7 @@ const BrandEditor = () => {
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('sections');
+  const [viewMode, setViewMode] = useState<ViewMode>('full');
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
 
   const brand = getBrand(brandId || '');

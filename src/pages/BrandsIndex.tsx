@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Sparkles, Trash2, Palette, Type, Image } from 'lucide-react';
+import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers } from 'lucide-react';
 import { useBrands } from '@/contexts/BrandContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,11 +18,12 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 
 const BrandsIndex = () => {
   const navigate = useNavigate();
-  const { brands, addBrand, deleteBrand } = useBrands();
+  const { brands, addBrand, deleteBrand, updateBrand } = useBrands();
   const [isNewBrandDialogOpen, setIsNewBrandDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [brandToDelete, setBrandToDelete] = useState<string | null>(null);
   const [newBrandName, setNewBrandName] = useState('');
+  const fileInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
   const handleCreateBrand = () => {
     if (newBrandName.trim()) {
@@ -47,74 +48,198 @@ const BrandsIndex = () => {
     }
   };
 
+  const handleImageUpload = (brandId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const brand = brands.find(b => b.id === brandId);
+        if (brand) {
+          updateBrand(brandId, {
+            hero: { ...brand.hero, coverImage: reader.result as string }
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerImageUpload = (brandId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const input = fileInputRefs.current.get(brandId);
+    if (input) {
+      input.click();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-accent/10 rounded-xl">
-              <Sparkles className="h-5 w-5 text-accent" />
-            </div>
-            <span className="font-semibold text-xl text-foreground">BrandForge</span>
-          </div>
-          <ThemeToggle />
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-accent/5 to-background">
+        {/* Decorative Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
         </div>
-      </header>
+
+        {/* Header */}
+        <header className="relative z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-accent/10 rounded-xl border border-accent/20">
+                <Sparkles className="h-6 w-6 text-accent" />
+              </div>
+              <span className="font-semibold text-2xl text-foreground">BrandForge</span>
+            </div>
+            <ThemeToggle />
+          </div>
+        </header>
+
+        {/* Hero Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-24">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="px-3 py-1 bg-accent/10 rounded-full border border-accent/20">
+                <span className="text-xs font-medium text-accent">Brand Identity Platform</span>
+              </div>
+            </div>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-foreground mb-6 leading-tight">
+              Create stunning<br />
+              <span className="text-accent">brand guides</span>
+            </h1>
+            <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl">
+              Design, organize, and share comprehensive brand identity systems. 
+              From colors to typography, logos to guidelines — all in one place.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Button 
+                size="lg" 
+                className="gap-2"
+                onClick={() => setIsNewBrandDialogOpen(true)}
+              >
+                <Plus className="h-5 w-5" />
+                Create New Brand
+              </Button>
+              {brands.length > 0 && (
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="gap-2"
+                  onClick={() => navigate(`/brand/${brands[0].id}`)}
+                >
+                  View Latest
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+              )}
+            </div>
+
+            {/* Stats */}
+            <div className="flex items-center gap-8 mt-12 pt-8 border-t border-border/50">
+              <div>
+                <p className="text-3xl font-semibold text-foreground">{brands.length}</p>
+                <p className="text-sm text-muted-foreground">Brand Guides</p>
+              </div>
+              <div>
+                <p className="text-3xl font-semibold text-foreground">22</p>
+                <p className="text-sm text-muted-foreground">Sections</p>
+              </div>
+              <div>
+                <p className="text-3xl font-semibold text-foreground">∞</p>
+                <p className="text-sm text-muted-foreground">Possibilities</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-10">
-          <h1 className="text-3xl font-semibold text-foreground mb-2">Brand Guides</h1>
-          <p className="text-muted-foreground">Create and manage your brand identity systems</p>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-2xl font-semibold text-foreground mb-1">Your Brands</h2>
+            <p className="text-muted-foreground">Select a brand to edit or create a new one</p>
+          </div>
+          <Button onClick={() => setIsNewBrandDialogOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            New Brand
+          </Button>
         </div>
 
         {/* Brand Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {/* New Brand Card */}
-          <Card 
-            className="group cursor-pointer border-2 border-dashed border-border hover:border-accent/50 transition-all duration-300 hover:shadow-lg"
-            onClick={() => setIsNewBrandDialogOpen(true)}
-          >
-            <CardContent className="flex flex-col items-center justify-center h-64 text-center">
-              <div className="p-4 bg-muted rounded-full mb-4 group-hover:bg-accent/10 transition-colors">
-                <Plus className="h-8 w-8 text-muted-foreground group-hover:text-accent transition-colors" />
-              </div>
-              <h3 className="font-medium text-foreground mb-1">Create New Brand</h3>
-              <p className="text-sm text-muted-foreground">Start a fresh brand guide</p>
-            </CardContent>
-          </Card>
-
-          {/* Existing Brand Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {brands.map((brand) => (
             <Card 
               key={brand.id}
-              className="group cursor-pointer hover:shadow-xl transition-all duration-300 overflow-hidden"
+              className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
               onClick={() => navigate(`/brand/${brand.id}`)}
             >
               <CardContent className="p-0">
-                {/* Color Preview Bar */}
-                <div className="h-24 flex">
-                  {brand.colors.slice(0, 4).map((color, idx) => (
-                    <div 
-                      key={color.id} 
-                      className="flex-1 transition-all duration-300 group-hover:flex-[1.2]"
-                      style={{ backgroundColor: color.hex }}
+                {/* Cover Image / Color Preview */}
+                <div className="relative h-44 overflow-hidden">
+                  {brand.hero.coverImage ? (
+                    <img 
+                      src={brand.hero.coverImage} 
+                      alt={brand.hero.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                  ))}
-                  {brand.colors.length === 0 && (
-                    <div className="flex-1 bg-gradient-to-r from-muted to-muted/50" />
+                  ) : (
+                    <div className="w-full h-full flex">
+                      {brand.colors.length > 0 ? (
+                        brand.colors.slice(0, 4).map((color) => (
+                          <div 
+                            key={color.id} 
+                            className="flex-1 transition-all duration-500 group-hover:flex-[1.1]"
+                            style={{ backgroundColor: color.hex }}
+                          />
+                        ))
+                      ) : (
+                        <div className="flex-1 bg-gradient-to-br from-muted to-muted/50" />
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Overlay Actions */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                    <input
+                      ref={(el) => { if (el) fileInputRefs.current.set(brand.id, el); }}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleImageUpload(brand.id, e)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={(e) => triggerImageUpload(brand.id, e)}
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      {brand.hero.coverImage ? 'Change' : 'Add'} Cover
+                    </Button>
+                  </div>
+
+                  {/* Logo Badge */}
+                  {brand.hero.logoUrl && (
+                    <div className="absolute bottom-3 left-3 p-2 bg-white/90 backdrop-blur rounded-lg shadow-lg">
+                      <img 
+                        src={brand.hero.logoUrl} 
+                        alt="Logo" 
+                        className="h-8 w-auto"
+                      />
+                    </div>
                   )}
                 </div>
 
                 {/* Card Info */}
                 <div className="p-5">
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between mb-4">
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-foreground truncate text-lg">
+                      <h3 className="font-semibold text-foreground truncate text-xl">
                         {brand.hero.name}
                       </h3>
-                      <p className="text-sm text-muted-foreground truncate mt-0.5">
+                      <p className="text-sm text-muted-foreground truncate mt-1">
                         {brand.hero.tagline}
                       </p>
                     </div>
@@ -131,29 +256,52 @@ const BrandsIndex = () => {
                   </div>
 
                   {/* Stats */}
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1.5">
-                      <Palette className="h-3.5 w-3.5" />
-                      <span>{brand.colors.length} colors</span>
+                  <div className="flex items-center gap-3 text-xs">
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
+                      <Palette className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">{brand.colors.length}</span>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <Type className="h-3.5 w-3.5" />
-                      <span>{brand.typography.length} fonts</span>
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
+                      <Type className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">{brand.typography.length}</span>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <Image className="h-3.5 w-3.5" />
-                      <span>{brand.logos.length} logos</span>
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
+                      <Image className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">{brand.logos.length}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
+                      <Layers className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">{brand.values.length}</span>
                     </div>
                   </div>
 
-                  {/* Updated Date */}
-                  <p className="text-xs text-muted-foreground mt-4 pt-3 border-t border-border">
-                    Updated {brand.updatedAt.toLocaleDateString()}
-                  </p>
+                  {/* Footer */}
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+                    <p className="text-xs text-muted-foreground">
+                      Updated {brand.updatedAt.toLocaleDateString()}
+                    </p>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))}
+
+          {/* New Brand Card */}
+          <Card 
+            className="group cursor-pointer border-2 border-dashed border-border hover:border-accent/50 bg-transparent hover:bg-accent/5 transition-all duration-300"
+            onClick={() => setIsNewBrandDialogOpen(true)}
+          >
+            <CardContent className="flex flex-col items-center justify-center h-full min-h-[320px] text-center">
+              <div className="p-5 bg-muted rounded-2xl mb-5 group-hover:bg-accent/10 group-hover:scale-110 transition-all duration-300">
+                <Plus className="h-10 w-10 text-muted-foreground group-hover:text-accent transition-colors" />
+              </div>
+              <h3 className="font-semibold text-lg text-foreground mb-2">Create New Brand</h3>
+              <p className="text-sm text-muted-foreground max-w-[200px]">
+                Start building a fresh brand identity guide
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </main>
 
