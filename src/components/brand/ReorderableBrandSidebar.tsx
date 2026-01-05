@@ -104,9 +104,9 @@ export const ReorderableBrandSidebar = ({
   const visibleCount = sectionOrder.length - hiddenSections.length;
 
   return (
-    <aside className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
+    <aside className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col animate-slide-in-left">
       {/* Brand header */}
-      <div className="p-4 border-b border-sidebar-border">
+      <div className="p-4 border-b border-sidebar-border animate-fade-in" style={{ animationDelay: '0.1s' }}>
         <h2 className="font-semibold text-sidebar-foreground truncate">{brandName || 'Brand Guide'}</h2>
         <p className="text-xs text-sidebar-foreground/60 mt-1">
           {visibleCount} of {sectionOrder.length} Sections
@@ -124,12 +124,17 @@ export const ReorderableBrandSidebar = ({
           >
             <SortableContext items={sectionOrder} strategy={verticalListSortingStrategy}>
               <div className="space-y-0.5">
-                {sectionOrder.map(sectionId => {
+                {sectionOrder.map((sectionId, index) => {
                   const meta = sectionMeta[sectionId];
                   if (!meta) return null;
                   const isHidden = hiddenSections.includes(sectionId);
                   
                   return (
+                    <div 
+                      key={sectionId}
+                      className="animate-fade-in-up"
+                      style={{ animationDelay: `${0.2 + index * 0.03}s` }}
+                    >
                     <SortableSectionItem
                       key={sectionId}
                       id={sectionId}
@@ -141,6 +146,7 @@ export const ReorderableBrandSidebar = ({
                       onClick={() => onSectionChange(sectionId)}
                       onToggleVisibility={() => toggleSectionVisibility(sectionId)}
                     />
+                    </div>
                   );
                 })}
               </div>
