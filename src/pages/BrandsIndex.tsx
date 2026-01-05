@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers } from 'lucide-react';
+import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield } from 'lucide-react';
 import { useBrands } from '@/contexts/BrandContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -15,10 +16,19 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const BrandsIndex = () => {
   const navigate = useNavigate();
   const { brands, addBrand, deleteBrand, updateBrand } = useBrands();
+  const { user, isAdmin, signOut } = useAuth();
   const [isNewBrandDialogOpen, setIsNewBrandDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [brandToDelete, setBrandToDelete] = useState<string | null>(null);
@@ -73,6 +83,13 @@ const BrandsIndex = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  const canEdit = user && isAdmin;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -92,7 +109,41 @@ const BrandsIndex = () => {
               </div>
               <span className="font-semibold text-2xl text-foreground">BrandForge</span>
             </div>
-            <ThemeToggle />
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-accent/10 text-accent text-sm">
+                          {user.email?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="hidden sm:inline text-sm">{user.email}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {isAdmin && (
+                      <DropdownMenuItem className="gap-2 text-accent">
+                        <Shield className="h-4 w-4" />
+                        Admin
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="gap-2">
+                      <LogOut className="h-4 w-4" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button onClick={() => navigate('/auth')} variant="outline" className="gap-2">
+                  <Lock className="h-4 w-4" />
+                  Admin Login
+                </Button>
+              )}
+            </div>
           </div>
         </header>
 
@@ -103,6 +154,11 @@ const BrandsIndex = () => {
               <div className="px-3 py-1 bg-accent/10 rounded-full border border-accent/20">
                 <span className="text-xs font-medium text-accent">Brand Identity Platform</span>
               </div>
+              {canEdit && (
+                <div className="px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20">
+                  <span className="text-xs font-medium text-green-600 dark:text-green-400">Edit Mode</span>
+                </div>
+              )}
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-foreground mb-6 leading-tight">
               Create stunning<br />
@@ -113,14 +169,25 @@ const BrandsIndex = () => {
               From colors to typography, logos to guidelines — all in one place.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Button 
-                size="lg" 
-                className="gap-2"
-                onClick={() => setIsNewBrandDialogOpen(true)}
-              >
-                <Plus className="h-5 w-5" />
-                Create New Brand
-              </Button>
+              {canEdit ? (
+                <Button 
+                  size="lg" 
+                  className="gap-2"
+                  onClick={() => setIsNewBrandDialogOpen(true)}
+                >
+                  <Plus className="h-5 w-5" />
+                  Create New Brand
+                </Button>
+              ) : (
+                <Button 
+                  size="lg" 
+                  className="gap-2"
+                  onClick={() => navigate('/auth')}
+                >
+                  <Lock className="h-5 w-5" />
+                  Login to Create
+                </Button>
+              )}
               {brands.length > 0 && (
                 <Button 
                   variant="outline" 
@@ -158,12 +225,16 @@ const BrandsIndex = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-semibold text-foreground mb-1">Your Brands</h2>
-            <p className="text-muted-foreground">Select a brand to edit or create a new one</p>
+            <p className="text-muted-foreground">
+              {canEdit ? 'Select a brand to edit or create a new one' : 'View brand guides'}
+            </p>
           </div>
-          <Button onClick={() => setIsNewBrandDialogOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            New Brand
-          </Button>
+          {canEdit && (
+            <Button onClick={() => setIsNewBrandDialogOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              New Brand
+            </Button>
+          )}
         </div>
 
         {/* Brand Cards Grid */}
@@ -199,26 +270,28 @@ const BrandsIndex = () => {
                     </div>
                   )}
                   
-                  {/* Overlay Actions */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                    <input
-                      ref={(el) => { if (el) fileInputRefs.current.set(brand.id, el); }}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleImageUpload(brand.id, e)}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="gap-1.5"
-                      onClick={(e) => triggerImageUpload(brand.id, e)}
-                    >
-                      <Upload className="h-3.5 w-3.5" />
-                      {brand.hero.coverImage ? 'Change' : 'Add'} Cover
-                    </Button>
-                  </div>
+                  {/* Overlay Actions - Only show for admins */}
+                  {canEdit && (
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                      <input
+                        ref={(el) => { if (el) fileInputRefs.current.set(brand.id, el); }}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleImageUpload(brand.id, e)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={(e) => triggerImageUpload(brand.id, e)}
+                      >
+                        <Upload className="h-3.5 w-3.5" />
+                        {brand.hero.coverImage ? 'Change' : 'Add'} Cover
+                      </Button>
+                    </div>
+                  )}
 
                   {/* Logo Badge */}
                   {brand.hero.logoUrl && (
@@ -243,7 +316,7 @@ const BrandsIndex = () => {
                         {brand.hero.tagline}
                       </p>
                     </div>
-                    {brands.length > 1 && (
+                    {canEdit && brands.length > 1 && (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -287,22 +360,40 @@ const BrandsIndex = () => {
             </Card>
           ))}
 
-          {/* New Brand Card */}
-          <Card 
-            className="group cursor-pointer border-2 border-dashed border-border hover:border-accent/50 bg-transparent hover:bg-accent/5 transition-all duration-300"
-            onClick={() => setIsNewBrandDialogOpen(true)}
-          >
-            <CardContent className="flex flex-col items-center justify-center h-full min-h-[320px] text-center">
-              <div className="p-5 bg-muted rounded-2xl mb-5 group-hover:bg-accent/10 group-hover:scale-110 transition-all duration-300">
-                <Plus className="h-10 w-10 text-muted-foreground group-hover:text-accent transition-colors" />
-              </div>
-              <h3 className="font-semibold text-lg text-foreground mb-2">Create New Brand</h3>
-              <p className="text-sm text-muted-foreground max-w-[200px]">
-                Start building a fresh brand identity guide
-              </p>
-            </CardContent>
-          </Card>
+          {/* New Brand Card - Only show for admins */}
+          {canEdit && (
+            <Card 
+              className="group cursor-pointer border-2 border-dashed border-border hover:border-accent/50 bg-transparent hover:bg-accent/5 transition-all duration-300"
+              onClick={() => setIsNewBrandDialogOpen(true)}
+            >
+              <CardContent className="flex flex-col items-center justify-center h-full min-h-[320px] text-center">
+                <div className="p-5 bg-muted rounded-2xl mb-5 group-hover:bg-accent/10 group-hover:scale-110 transition-all duration-300">
+                  <Plus className="h-10 w-10 text-muted-foreground group-hover:text-accent transition-colors" />
+                </div>
+                <h3 className="font-semibold text-lg text-foreground mb-2">Create New Brand</h3>
+                <p className="text-sm text-muted-foreground max-w-[200px]">
+                  Start building a fresh brand identity guide
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
+
+        {/* Login prompt for non-admins */}
+        {!canEdit && (
+          <div className="mt-12 p-8 bg-muted/50 rounded-2xl text-center">
+            <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-foreground mb-2">Admin Access Required</h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              To create, edit, or publish brand guides, you need admin access. 
+              Login with an admin account to manage brands.
+            </p>
+            <Button onClick={() => navigate('/auth')} className="gap-2">
+              <Lock className="h-4 w-4" />
+              Login as Admin
+            </Button>
+          </div>
+        )}
       </main>
 
       {/* New Brand Dialog */}

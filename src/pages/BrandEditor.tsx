@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft } from 'lucide-react';
+import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut } from 'lucide-react';
 import { SectionId } from '@/types/brand';
 import { useBrands } from '@/contexts/BrandContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { BrandSidebar } from '@/components/brand/BrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { HeroSection } from '@/components/brand/HeroSection';
@@ -32,6 +33,15 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
 
 type ViewMode = 'sections' | 'full';
 
@@ -39,6 +49,7 @@ const BrandEditor = () => {
   const { brandId } = useParams<{ brandId: string }>();
   const navigate = useNavigate();
   const { getBrand, updateBrand: updateBrandContext } = useBrands();
+  const { user, isAdmin, signOut } = useAuth();
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -46,6 +57,12 @@ const BrandEditor = () => {
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
 
   const brand = getBrand(brandId || '');
+  const canEdit = user && isAdmin;
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   if (!brand) {
     return (
@@ -151,11 +168,18 @@ const BrandEditor = () => {
                   <span className="font-semibold text-foreground hidden sm:inline">BrandForge</span>
                 </div>
                 <div className="h-6 w-px bg-border mx-2 hidden sm:block" />
-                <span className="font-medium text-foreground truncate max-w-[150px] sm:max-w-[200px]">
-                  {brand.hero.name}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-foreground truncate max-w-[150px] sm:max-w-[200px]">
+                    {brand.hero.name}
+                  </span>
+                  {canEdit && (
+                    <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
+                      Editing
+                    </Badge>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -175,9 +199,40 @@ const BrandEditor = () => {
                   </Tooltip>
                 </ToggleGroup>
                 <ThemeToggle />
-                <div className="text-xs text-muted-foreground hidden sm:block">
-                  Saved {brand.updatedAt.toLocaleTimeString()}
-                </div>
+                {user ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-accent/10 text-accent text-sm">
+                            {user.email?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem className="text-xs text-muted-foreground">
+                        {user.email}
+                      </DropdownMenuItem>
+                      {isAdmin && (
+                        <DropdownMenuItem className="gap-2 text-accent">
+                          <Shield className="h-4 w-4" />
+                          Admin
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut} className="gap-2">
+                        <LogOut className="h-4 w-4" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="gap-2">
+                    <Lock className="h-4 w-4" />
+                    Login
+                  </Button>
+                )}
               </div>
             </div>
           </header>
