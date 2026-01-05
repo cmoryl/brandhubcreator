@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Sparkles, Menu } from 'lucide-react';
 import { BrandGuide, SectionId } from '@/types/brand';
 import { BrandSidebar } from '@/components/brand/BrandSidebar';
+import { BrandSelector } from '@/components/brand/BrandSelector';
 import { HeroSection } from '@/components/brand/HeroSection';
 import { IdentitySection } from '@/components/brand/IdentitySection';
 import { ValuesSection } from '@/components/brand/ValuesSection';
@@ -27,9 +28,9 @@ import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
-const defaultBrand: BrandGuide = {
+const createDefaultBrand = (name: string = 'My Brand'): BrandGuide => ({
   id: crypto.randomUUID(),
-  hero: { name: 'My Brand', tagline: 'Crafting exceptional experiences', coverImage: '', logoUrl: '' },
+  hero: { name, tagline: 'Crafting exceptional experiences', coverImage: '', logoUrl: '' },
   identity: { missionStatement: '', archetype: '', toneOfVoice: [] },
   values: [],
   logos: [],
@@ -60,41 +61,70 @@ const defaultBrand: BrandGuide = {
   templates: [],
   createdAt: new Date(),
   updatedAt: new Date(),
-};
+});
 
 const Index = () => {
-  const [brand, setBrand] = useState<BrandGuide>(defaultBrand);
+  const [brands, setBrands] = useState<BrandGuide[]>([createDefaultBrand()]);
+  const [currentBrandId, setCurrentBrandId] = useState<string>(brands[0].id);
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const currentBrand = brands.find(b => b.id === currentBrandId) || brands[0];
+
   const updateBrand = (updates: Partial<BrandGuide>) => {
-    setBrand(prev => ({ ...prev, ...updates, updatedAt: new Date() }));
+    setBrands(prev => prev.map(brand => 
+      brand.id === currentBrandId 
+        ? { ...brand, ...updates, updatedAt: new Date() }
+        : brand
+    ));
+  };
+
+  const handleBrandCreate = (name: string) => {
+    const newBrand = createDefaultBrand(name);
+    setBrands(prev => [...prev, newBrand]);
+    setCurrentBrandId(newBrand.id);
+    setActiveSection('hero');
+  };
+
+  const handleBrandDelete = (brandId: string) => {
+    if (brands.length <= 1) return;
+    
+    setBrands(prev => prev.filter(b => b.id !== brandId));
+    if (currentBrandId === brandId) {
+      const remainingBrands = brands.filter(b => b.id !== brandId);
+      setCurrentBrandId(remainingBrands[0].id);
+    }
+  };
+
+  const handleBrandSelect = (brandId: string) => {
+    setCurrentBrandId(brandId);
+    setActiveSection('hero');
   };
 
   const renderSection = () => {
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={(hero) => updateBrand({ hero })} />;
-      case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={(identity) => updateBrand({ identity })} />;
-      case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => updateBrand({ values })} />;
-      case 'logos': return <LogoSection logos={brand.logos} onLogosChange={(logos) => updateBrand({ logos })} />;
-      case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={(brandIcons) => updateBrand({ brandIcons })} />;
-      case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={(colors) => updateBrand({ colors })} />;
-      case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={(gradients) => updateBrand({ gradients })} />;
-      case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={(patterns) => updateBrand({ patterns })} />;
-      case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={(typography) => updateBrand({ typography })} />;
-      case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={(textStyles) => updateBrand({ textStyles })} />;
-      case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={(iconography) => updateBrand({ iconography })} />;
-      case 'socialicons': return <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={(socialIcons) => updateBrand({ socialIcons })} />;
-      case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={(imagery) => updateBrand({ imagery })} />;
-      case 'social': return <SocialSection social={brand.social} onSocialChange={(social) => updateBrand({ social })} />;
-      case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={(signatures) => updateBrand({ signatures })} />;
-      case 'qr': return <QRSection qr={brand.qr} onQRChange={(qr) => updateBrand({ qr })} />;
-      case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={(assets) => updateBrand({ assets })} />;
-      case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={(misuse) => updateBrand({ misuse })} />;
-      case 'atmosphere': return <AtmosphereSection atmosphere={brand.atmosphere} onAtmosphereChange={(atmosphere) => updateBrand({ atmosphere })} />;
-      case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies} onCaseStudiesChange={(caseStudies) => updateBrand({ caseStudies })} />;
-      case 'brochures': return <BrochuresSection brochures={brand.brochures} onBrochuresChange={(brochures) => updateBrand({ brochures })} />;
-      case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={(templates) => updateBrand({ templates })} />;
+      case 'hero': return <HeroSection hero={currentBrand.hero} onHeroChange={(hero) => updateBrand({ hero })} />;
+      case 'identity': return <IdentitySection identity={currentBrand.identity} onIdentityChange={(identity) => updateBrand({ identity })} />;
+      case 'values': return <ValuesSection values={currentBrand.values} onValuesChange={(values) => updateBrand({ values })} />;
+      case 'logos': return <LogoSection logos={currentBrand.logos} onLogosChange={(logos) => updateBrand({ logos })} />;
+      case 'brandicon': return <BrandIconsSection brandIcons={currentBrand.brandIcons} onBrandIconsChange={(brandIcons) => updateBrand({ brandIcons })} />;
+      case 'colors': return <ColorPaletteSection colors={currentBrand.colors} onColorsChange={(colors) => updateBrand({ colors })} />;
+      case 'gradients': return <GradientsSection gradients={currentBrand.gradients} onGradientsChange={(gradients) => updateBrand({ gradients })} />;
+      case 'patterns': return <PatternsSection patterns={currentBrand.patterns} onPatternsChange={(patterns) => updateBrand({ patterns })} />;
+      case 'typography': return <TypographySection typography={currentBrand.typography} onTypographyChange={(typography) => updateBrand({ typography })} />;
+      case 'textstyles': return <TextStylesSection textStyles={currentBrand.textStyles} onTextStylesChange={(textStyles) => updateBrand({ textStyles })} />;
+      case 'iconography': return <IconographySection iconography={currentBrand.iconography} onIconographyChange={(iconography) => updateBrand({ iconography })} />;
+      case 'socialicons': return <SocialIconsSection socialIcons={currentBrand.socialIcons} onSocialIconsChange={(socialIcons) => updateBrand({ socialIcons })} />;
+      case 'imagery': return <ImagerySection imagery={currentBrand.imagery} onImageryChange={(imagery) => updateBrand({ imagery })} />;
+      case 'social': return <SocialSection social={currentBrand.social} onSocialChange={(social) => updateBrand({ social })} />;
+      case 'signatures': return <SignaturesSection signatures={currentBrand.signatures} onSignaturesChange={(signatures) => updateBrand({ signatures })} />;
+      case 'qr': return <QRSection qr={currentBrand.qr} onQRChange={(qr) => updateBrand({ qr })} />;
+      case 'assets': return <AssetsSection assets={currentBrand.assets} onAssetsChange={(assets) => updateBrand({ assets })} />;
+      case 'misuse': return <MisuseSection misuse={currentBrand.misuse} onMisuseChange={(misuse) => updateBrand({ misuse })} />;
+      case 'atmosphere': return <AtmosphereSection atmosphere={currentBrand.atmosphere} onAtmosphereChange={(atmosphere) => updateBrand({ atmosphere })} />;
+      case 'casestudies': return <CaseStudiesSection caseStudies={currentBrand.caseStudies} onCaseStudiesChange={(caseStudies) => updateBrand({ caseStudies })} />;
+      case 'brochures': return <BrochuresSection brochures={currentBrand.brochures} onBrochuresChange={(brochures) => updateBrand({ brochures })} />;
+      case 'templates': return <TemplatesSection templates={currentBrand.templates} onTemplatesChange={(templates) => updateBrand({ templates })} />;
       default: return null;
     }
   };
@@ -103,13 +133,13 @@ const Index = () => {
     <div className="min-h-screen bg-background flex">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
-        <BrandSidebar activeSection={activeSection} onSectionChange={setActiveSection} brandName={brand.hero.name} />
+        <BrandSidebar activeSection={activeSection} onSectionChange={setActiveSection} brandName={currentBrand.hero.name} />
       </div>
 
       {/* Mobile Sidebar */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
         <SheetContent side="left" className="p-0 w-72">
-          <BrandSidebar activeSection={activeSection} onSectionChange={(section) => { setActiveSection(section); setSidebarOpen(false); }} brandName={brand.hero.name} />
+          <BrandSidebar activeSection={activeSection} onSectionChange={(section) => { setActiveSection(section); setSidebarOpen(false); }} brandName={currentBrand.hero.name} />
         </SheetContent>
       </Sheet>
 
@@ -130,11 +160,19 @@ const Index = () => {
                 <div className="p-1.5 bg-accent/10 rounded-lg">
                   <Sparkles className="h-4 w-4 text-accent" />
                 </div>
-                <span className="font-serif font-semibold text-foreground">BrandForge</span>
+                <span className="font-serif font-semibold text-foreground hidden sm:inline">BrandForge</span>
               </div>
+              <div className="h-6 w-px bg-border mx-2 hidden sm:block" />
+              <BrandSelector
+                brands={brands}
+                currentBrandId={currentBrandId}
+                onBrandSelect={handleBrandSelect}
+                onBrandCreate={handleBrandCreate}
+                onBrandDelete={handleBrandDelete}
+              />
             </div>
             <div className="text-xs text-muted-foreground">
-              Saved {brand.updatedAt.toLocaleTimeString()}
+              Saved {currentBrand.updatedAt.toLocaleTimeString()}
             </div>
           </div>
         </header>
