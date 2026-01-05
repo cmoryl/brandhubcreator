@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield } from 'lucide-react';
+import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock } from 'lucide-react';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
@@ -27,38 +27,76 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { AppSettingsEditor } from '@/components/admin/AppSettingsEditor';
 import { HeroBackground } from '@/components/HeroBackground';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BaseGuide } from '@/types/brand';
 
 const BrandsIndex = () => {
   const navigate = useNavigate();
-  const { brands, addBrand, deleteBrand, updateBrand } = useBrands();
+  const { brands, products, addBrand, addProduct, deleteBrand, deleteProduct, updateBrand, updateProduct, getRecentlyUpdated } = useBrands();
   const { user, isAdmin, signOut } = useAuth();
   const { settings } = useAppSettings();
-  const [isNewBrandDialogOpen, setIsNewBrandDialogOpen] = useState(false);
+  const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [brandToDelete, setBrandToDelete] = useState<string | null>(null);
-  const [newBrandName, setNewBrandName] = useState('');
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'brand' | 'product' } | null>(null);
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemType, setNewItemType] = useState<'brand' | 'product'>('brand');
   const fileInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
-  const handleCreateBrand = () => {
-    if (newBrandName.trim()) {
-      const brand = addBrand(newBrandName.trim());
-      setNewBrandName('');
-      setIsNewBrandDialogOpen(false);
-      navigate(`/brand/${brand.id}`);
+  const recentlyUpdated = getRecentlyUpdated();
+
+  const handleCreateItem = () => {
+    if (newItemName.trim()) {
+      if (newItemType === 'brand') {
+        const brand = addBrand(newItemName.trim());
+        setNewItemName('');
+        setIsNewDialogOpen(false);
+        navigate(`/brand/${brand.id}`);
+      } else {
+        const product = addProduct(newItemName.trim());
+        setNewItemName('');
+        setIsNewDialogOpen(false);
+        navigate(`/product/${product.id}`);
+      }
     }
   };
 
-  const handleDeleteClick = (brandId: string, e: React.MouseEvent) => {
+  const handleDeleteClick = (id: string, type: 'brand' | 'product', e: React.MouseEvent) => {
     e.stopPropagation();
-    setBrandToDelete(brandId);
+    setItemToDelete({ id, type });
     setIsDeleteDialogOpen(true);
   };
 
   const confirmDelete = () => {
-    if (brandToDelete) {
-      deleteBrand(brandToDelete);
-      setBrandToDelete(null);
+    if (itemToDelete) {
+      if (itemToDelete.type === 'brand') {
+        deleteBrand(itemToDelete.id);
+      } else {
+        deleteProduct(itemToDelete.id);
+      }
+      setItemToDelete(null);
       setIsDeleteDialogOpen(false);
+    }
+  };
+
+  const isRecentlyUpdated = (item: BaseGuide) => {
+    return recentlyUpdated.some(r => r.id === item.id);
+  };
+
+  const handleProductImageUpload = (productId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const product = products.find(p => p.id === productId);
+        if (product) {
+          updateProduct(productId, {
+            hero: { ...product.hero, coverImage: reader.result as string }
+          });
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -175,14 +213,25 @@ const BrandsIndex = () => {
             </p>
             <div className="flex flex-wrap gap-4">
               {canEdit ? (
-                <Button 
-                  size="lg" 
-                  className="gap-2"
-                  onClick={() => setIsNewBrandDialogOpen(true)}
-                >
-                  <Plus className="h-5 w-5" />
-                  Create New Brand
-                </Button>
+                <>
+                  <Button 
+                    size="lg" 
+                    className="gap-2"
+                    onClick={() => { setNewItemType('brand'); setIsNewDialogOpen(true); }}
+                  >
+                    <Plus className="h-5 w-5" />
+                    Create Brand
+                  </Button>
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    className="gap-2"
+                    onClick={() => { setNewItemType('product'); setIsNewDialogOpen(true); }}
+                  >
+                    <Package className="h-5 w-5" />
+                    Create Product
+                  </Button>
+                </>
               ) : (
                 <Button 
                   size="lg" 
@@ -191,17 +240,6 @@ const BrandsIndex = () => {
                 >
                   <Lock className="h-5 w-5" />
                   Login to Create
-                </Button>
-              )}
-              {brands.length > 0 && (
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="gap-2"
-                  onClick={() => navigate(`/brand/${brands[0].id}`)}
-                >
-                  View Latest
-                  <ArrowRight className="h-5 w-5" />
                 </Button>
               )}
             </div>
@@ -213,8 +251,8 @@ const BrandsIndex = () => {
                 <p className="text-sm text-muted-foreground">Brand Guides</p>
               </div>
               <div>
-                <p className="text-3xl font-semibold text-foreground">22</p>
-                <p className="text-sm text-muted-foreground">Sections</p>
+                <p className="text-3xl font-semibold text-foreground">{products.length}</p>
+                <p className="text-sm text-muted-foreground">Product Guides</p>
               </div>
               <div>
                 <p className="text-3xl font-semibold text-foreground">∞</p>
@@ -227,162 +265,334 @@ const BrandsIndex = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-2xl font-semibold text-foreground mb-1">Your Brands</h2>
-            <p className="text-muted-foreground">
-              {canEdit ? 'Select a brand to edit or create a new one' : 'View brand guides'}
-            </p>
+        <Tabs defaultValue="brands" className="w-full">
+          <div className="flex items-center justify-between mb-8">
+            <TabsList>
+              <TabsTrigger value="brands" className="gap-2">
+                <Sparkles className="h-4 w-4" />
+                Brands ({brands.length})
+              </TabsTrigger>
+              <TabsTrigger value="products" className="gap-2">
+                <Package className="h-4 w-4" />
+                Products ({products.length})
+              </TabsTrigger>
+            </TabsList>
+            {canEdit && (
+              <div className="flex gap-2">
+                <Button onClick={() => { setNewItemType('brand'); setIsNewDialogOpen(true); }} variant="outline" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  New Brand
+                </Button>
+                <Button onClick={() => { setNewItemType('product'); setIsNewDialogOpen(true); }} className="gap-2">
+                  <Package className="h-4 w-4" />
+                  New Product
+                </Button>
+              </div>
+            )}
           </div>
-          {canEdit && (
-            <Button onClick={() => setIsNewBrandDialogOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              New Brand
-            </Button>
-          )}
-        </div>
 
-        {/* Brand Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {brands.map((brand) => (
-            <Card 
-              key={brand.id}
-              className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
-              onClick={() => navigate(`/brand/${brand.id}`)}
-            >
-              <CardContent className="p-0">
-                {/* Cover Image / Color Preview */}
-                <div className="relative h-44 overflow-hidden">
-                  {brand.hero.coverImage ? (
-                    <img 
-                      src={brand.hero.coverImage} 
-                      alt={brand.hero.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex">
-                      {brand.colors.length > 0 ? (
-                        brand.colors.slice(0, 4).map((color) => (
-                          <div 
-                            key={color.id} 
-                            className="flex-1 transition-all duration-500 group-hover:flex-[1.1]"
-                            style={{ backgroundColor: color.hex }}
-                          />
-                        ))
+          <TabsContent value="brands">
+            {/* Brand Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {brands.map((brand) => (
+                <Card 
+                  key={brand.id}
+                  className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
+                  onClick={() => navigate(`/brand/${brand.id}`)}
+                >
+                  <CardContent className="p-0">
+                    {/* Cover Image / Color Preview */}
+                    <div className="relative h-44 overflow-hidden">
+                      {brand.hero.coverImage ? (
+                        <img 
+                          src={brand.hero.coverImage} 
+                          alt={brand.hero.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
                       ) : (
-                        <div className="flex-1 bg-gradient-to-br from-muted to-muted/50" />
+                        <div className="w-full h-full flex">
+                          {brand.colors.length > 0 ? (
+                            brand.colors.slice(0, 4).map((color) => (
+                              <div 
+                                key={color.id} 
+                                className="flex-1 transition-all duration-500 group-hover:flex-[1.1]"
+                                style={{ backgroundColor: color.hex }}
+                              />
+                            ))
+                          ) : (
+                            <div className="flex-1 bg-gradient-to-br from-muted to-muted/50" />
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Recently Updated Badge */}
+                      {isRecentlyUpdated(brand) && (
+                        <Badge className="absolute top-3 right-3 gap-1 bg-accent text-accent-foreground">
+                          <Clock className="h-3 w-3" />
+                          Recently Updated
+                        </Badge>
+                      )}
+
+                      {/* Overlay Actions - Only show for admins */}
+                      {canEdit && (
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                          <input
+                            ref={(el) => { if (el) fileInputRefs.current.set(brand.id, el); }}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleImageUpload(brand.id, e)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="gap-1.5"
+                            onClick={(e) => triggerImageUpload(brand.id, e)}
+                          >
+                            <Upload className="h-3.5 w-3.5" />
+                            {brand.hero.coverImage ? 'Change' : 'Add'} Cover
+                          </Button>
+                        </div>
+                      )}
+
+                      {/* Logo Badge */}
+                      {brand.hero.logoUrl && (
+                        <div className="absolute bottom-3 left-3 p-2 bg-white/90 backdrop-blur rounded-lg shadow-lg">
+                          <img 
+                            src={brand.hero.logoUrl} 
+                            alt="Logo" 
+                            className="h-8 w-auto"
+                          />
+                        </div>
                       )}
                     </div>
-                  )}
-                  
-                  {/* Overlay Actions - Only show for admins */}
-                  {canEdit && (
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                      <input
-                        ref={(el) => { if (el) fileInputRefs.current.set(brand.id, el); }}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleImageUpload(brand.id, e)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="gap-1.5"
-                        onClick={(e) => triggerImageUpload(brand.id, e)}
-                      >
-                        <Upload className="h-3.5 w-3.5" />
-                        {brand.hero.coverImage ? 'Change' : 'Add'} Cover
-                      </Button>
-                    </div>
-                  )}
 
-                  {/* Logo Badge */}
-                  {brand.hero.logoUrl && (
-                    <div className="absolute bottom-3 left-3 p-2 bg-white/90 backdrop-blur rounded-lg shadow-lg">
-                      <img 
-                        src={brand.hero.logoUrl} 
-                        alt="Logo" 
-                        className="h-8 w-auto"
-                      />
-                    </div>
-                  )}
-                </div>
+                    {/* Card Info */}
+                    <div className="p-5">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-foreground truncate text-xl">
+                            {brand.hero.name}
+                          </h3>
+                          <p className="text-sm text-muted-foreground truncate mt-1">
+                            {brand.hero.tagline}
+                          </p>
+                        </div>
+                        {canEdit && brands.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 -mr-2"
+                            onClick={(e) => handleDeleteClick(brand.id, 'brand', e)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
 
-                {/* Card Info */}
-                <div className="p-5">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-foreground truncate text-xl">
-                        {brand.hero.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground truncate mt-1">
-                        {brand.hero.tagline}
-                      </p>
-                    </div>
-                    {canEdit && brands.length > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 -mr-2"
-                        onClick={(e) => handleDeleteClick(brand.id, e)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    )}
-                  </div>
+                      {/* Stats */}
+                      <div className="flex items-center gap-3 text-xs">
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
+                          <Palette className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">{brand.colors.length}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
+                          <Type className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">{brand.typography.length}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
+                          <Image className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">{brand.logos.length}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
+                          <Layers className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">{brand.values.length}</span>
+                        </div>
+                      </div>
 
-                  {/* Stats */}
-                  <div className="flex items-center gap-3 text-xs">
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
-                      <Palette className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-muted-foreground">{brand.colors.length}</span>
+                      {/* Footer */}
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+                        <p className="text-xs text-muted-foreground">
+                          Updated {brand.updatedAt.toLocaleDateString()}
+                        </p>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
-                      <Type className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-muted-foreground">{brand.typography.length}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
-                      <Image className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-muted-foreground">{brand.logos.length}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
-                      <Layers className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-muted-foreground">{brand.values.length}</span>
-                    </div>
-                  </div>
+                  </CardContent>
+                </Card>
+              ))}
 
-                  {/* Footer */}
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-                    <p className="text-xs text-muted-foreground">
-                      Updated {brand.updatedAt.toLocaleDateString()}
+              {/* New Brand Card - Only show for admins */}
+              {canEdit && (
+                <Card 
+                  className="group cursor-pointer border-2 border-dashed border-border hover:border-accent/50 bg-transparent hover:bg-accent/5 transition-all duration-300"
+                  onClick={() => { setNewItemType('brand'); setIsNewDialogOpen(true); }}
+                >
+                  <CardContent className="flex flex-col items-center justify-center h-full min-h-[320px] text-center">
+                    <div className="p-5 bg-muted rounded-2xl mb-5 group-hover:bg-accent/10 group-hover:scale-110 transition-all duration-300">
+                      <Plus className="h-10 w-10 text-muted-foreground group-hover:text-accent transition-colors" />
+                    </div>
+                    <h3 className="font-semibold text-lg text-foreground mb-2">Create New Brand</h3>
+                    <p className="text-sm text-muted-foreground max-w-[200px]">
+                      Start building a fresh brand identity guide
                     </p>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-1 transition-all" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
 
-          {/* New Brand Card - Only show for admins */}
-          {canEdit && (
-            <Card 
-              className="group cursor-pointer border-2 border-dashed border-border hover:border-accent/50 bg-transparent hover:bg-accent/5 transition-all duration-300"
-              onClick={() => setIsNewBrandDialogOpen(true)}
-            >
-              <CardContent className="flex flex-col items-center justify-center h-full min-h-[320px] text-center">
-                <div className="p-5 bg-muted rounded-2xl mb-5 group-hover:bg-accent/10 group-hover:scale-110 transition-all duration-300">
-                  <Plus className="h-10 w-10 text-muted-foreground group-hover:text-accent transition-colors" />
+          <TabsContent value="products">
+            {/* Product Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {products.map((product) => (
+                <Card 
+                  key={product.id}
+                  className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
+                  onClick={() => navigate(`/product/${product.id}`)}
+                >
+                  <CardContent className="p-0">
+                    {/* Cover Image / Color Preview */}
+                    <div className="relative h-44 overflow-hidden">
+                      {product.hero.coverImage ? (
+                        <img 
+                          src={product.hero.coverImage} 
+                          alt={product.hero.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex">
+                          {product.colors.length > 0 ? (
+                            product.colors.slice(0, 4).map((color) => (
+                              <div 
+                                key={color.id} 
+                                className="flex-1 transition-all duration-500 group-hover:flex-[1.1]"
+                                style={{ backgroundColor: color.hex }}
+                              />
+                            ))
+                          ) : (
+                            <div className="flex-1 bg-gradient-to-br from-muted to-muted/50" />
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Recently Updated Badge */}
+                      {isRecentlyUpdated(product) && (
+                        <Badge className="absolute top-3 right-3 gap-1 bg-accent text-accent-foreground">
+                          <Clock className="h-3 w-3" />
+                          Recently Updated
+                        </Badge>
+                      )}
+
+                      {/* Product Badge */}
+                      <Badge variant="secondary" className="absolute top-3 left-3 gap-1">
+                        <Package className="h-3 w-3" />
+                        Product
+                      </Badge>
+
+                      {/* Overlay Actions - Only show for admins */}
+                      {canEdit && (
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                          <input
+                            ref={(el) => { if (el) fileInputRefs.current.set(product.id, el); }}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleProductImageUpload(product.id, e)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="gap-1.5"
+                            onClick={(e) => triggerImageUpload(product.id, e)}
+                          >
+                            <Upload className="h-3.5 w-3.5" />
+                            {product.hero.coverImage ? 'Change' : 'Add'} Cover
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Card Info */}
+                    <div className="p-5">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-foreground truncate text-xl">
+                            {product.hero.name}
+                          </h3>
+                          <p className="text-sm text-muted-foreground truncate mt-1">
+                            {product.hero.tagline}
+                          </p>
+                        </div>
+                        {canEdit && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 -mr-2"
+                            onClick={(e) => handleDeleteClick(product.id, 'product', e)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+
+                      {/* Stats */}
+                      <div className="flex items-center gap-3 text-xs">
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
+                          <Palette className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">{product.colors.length}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
+                          <Type className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">{product.typography.length}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
+                          <Image className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">{product.logos.length}</span>
+                        </div>
+                      </div>
+
+                      {/* Footer */}
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+                        <p className="text-xs text-muted-foreground">
+                          Updated {product.updatedAt.toLocaleDateString()}
+                        </p>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {/* New Product Card - Only show for admins */}
+              {canEdit && (
+                <Card 
+                  className="group cursor-pointer border-2 border-dashed border-border hover:border-accent/50 bg-transparent hover:bg-accent/5 transition-all duration-300"
+                  onClick={() => { setNewItemType('product'); setIsNewDialogOpen(true); }}
+                >
+                  <CardContent className="flex flex-col items-center justify-center h-full min-h-[320px] text-center">
+                    <div className="p-5 bg-muted rounded-2xl mb-5 group-hover:bg-accent/10 group-hover:scale-110 transition-all duration-300">
+                      <Package className="h-10 w-10 text-muted-foreground group-hover:text-accent transition-colors" />
+                    </div>
+                    <h3 className="font-semibold text-lg text-foreground mb-2">Create New Product</h3>
+                    <p className="text-sm text-muted-foreground max-w-[200px]">
+                      Start building a fresh product identity guide
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {products.length === 0 && !canEdit && (
+                <div className="col-span-full text-center py-12">
+                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No product guides yet</p>
                 </div>
-                <h3 className="font-semibold text-lg text-foreground mb-2">Create New Brand</h3>
-                <p className="text-sm text-muted-foreground max-w-[200px]">
-                  Start building a fresh brand identity guide
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Login prompt for non-admins */}
         {!canEdit && (
@@ -401,32 +611,32 @@ const BrandsIndex = () => {
         )}
       </main>
 
-      {/* New Brand Dialog */}
-      <Dialog open={isNewBrandDialogOpen} onOpenChange={setIsNewBrandDialogOpen}>
+      {/* Create New Dialog */}
+      <Dialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create New Brand Guide</DialogTitle>
+            <DialogTitle>Create New {newItemType === 'brand' ? 'Brand' : 'Product'} Guide</DialogTitle>
             <DialogDescription>
-              Start a new brand identity from scratch.
+              Start a new {newItemType} identity from scratch.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <Label htmlFor="brand-name">Brand Name</Label>
+            <Label htmlFor="item-name">{newItemType === 'brand' ? 'Brand' : 'Product'} Name</Label>
             <Input
-              id="brand-name"
-              value={newBrandName}
-              onChange={(e) => setNewBrandName(e.target.value)}
-              placeholder="Enter brand name..."
+              id="item-name"
+              value={newItemName}
+              onChange={(e) => setNewItemName(e.target.value)}
+              placeholder={`Enter ${newItemType} name...`}
               className="mt-2"
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateBrand()}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreateItem()}
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsNewBrandDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsNewDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreateBrand} disabled={!newBrandName.trim()}>
-              Create Brand
+            <Button onClick={handleCreateItem} disabled={!newItemName.trim()}>
+              Create {newItemType === 'brand' ? 'Brand' : 'Product'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -436,9 +646,9 @@ const BrandsIndex = () => {
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Brand Guide?</DialogTitle>
+            <DialogTitle>Delete {itemToDelete?.type === 'brand' ? 'Brand' : 'Product'} Guide?</DialogTitle>
             <DialogDescription>
-              This action cannot be undone. All brand data will be permanently deleted.
+              This action cannot be undone. All data will be permanently deleted.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -446,7 +656,7 @@ const BrandsIndex = () => {
               Cancel
             </Button>
             <Button variant="destructive" onClick={confirmDelete}>
-              Delete Brand
+              Delete {itemToDelete?.type === 'brand' ? 'Brand' : 'Product'}
             </Button>
           </DialogFooter>
         </DialogContent>

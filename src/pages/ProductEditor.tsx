@@ -1,0 +1,204 @@
+import { useState, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Package } from 'lucide-react';
+import { SectionId } from '@/types/brand';
+import { useBrands } from '@/contexts/BrandContext';
+import { BrandSidebar } from '@/components/brand/BrandSidebar';
+import { FullBrandPage } from '@/components/brand/FullBrandPage';
+import { HeroSection } from '@/components/brand/HeroSection';
+import { IdentitySection } from '@/components/brand/IdentitySection';
+import { ValuesSection } from '@/components/brand/ValuesSection';
+import { LogoSection } from '@/components/brand/LogoSection';
+import { BrandIconsSection } from '@/components/brand/BrandIconsSection';
+import { ColorPaletteSection } from '@/components/brand/ColorPaletteSection';
+import { GradientsSection } from '@/components/brand/GradientsSection';
+import { PatternsSection } from '@/components/brand/PatternsSection';
+import { TypographySection } from '@/components/brand/TypographySection';
+import { TextStylesSection } from '@/components/brand/TextStylesSection';
+import { IconographySection } from '@/components/brand/IconographySection';
+import { SocialIconsSection } from '@/components/brand/SocialIconsSection';
+import { ImagerySection } from '@/components/brand/ImagerySection';
+import { SocialSection } from '@/components/brand/SocialSection';
+import { SignaturesSection } from '@/components/brand/SignaturesSection';
+import { QRSection } from '@/components/brand/QRSection';
+import { AssetsSection } from '@/components/brand/AssetsSection';
+import { MisuseSection } from '@/components/brand/MisuseSection';
+import { AtmosphereSection } from '@/components/brand/AtmosphereSection';
+import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
+import { BrochuresSection } from '@/components/brand/BrochuresSection';
+import { TemplatesSection } from '@/components/brand/TemplatesSection';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { Badge } from '@/components/ui/badge';
+
+type ViewMode = 'sections' | 'full';
+
+const ProductEditor = () => {
+  const { productId } = useParams<{ productId: string }>();
+  const navigate = useNavigate();
+  const { getProduct, updateProduct } = useBrands();
+  
+  const [activeSection, setActiveSection] = useState<SectionId>('hero');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('sections');
+  const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
+
+  const currentProduct = getProduct(productId || '');
+
+  if (!currentProduct) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-foreground mb-4">Product not found</h1>
+          <Button onClick={() => navigate('/')}>Go back home</Button>
+        </div>
+      </div>
+    );
+  }
+
+  const handleUpdateProduct = (updates: Partial<typeof currentProduct>) => {
+    if (productId) {
+      updateProduct(productId, updates);
+    }
+  };
+
+  const handleSectionChange = (section: SectionId) => {
+    setActiveSection(section);
+    if (viewMode === 'full') {
+      setScrollToSection(section);
+      setTimeout(() => setScrollToSection(null), 100);
+    }
+  };
+
+  const handleSectionVisible = useCallback((section: SectionId) => {
+    if (viewMode === 'full') {
+      setActiveSection(section);
+    }
+  }, [viewMode]);
+
+  const renderSection = () => {
+    switch (activeSection) {
+      case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={(hero) => handleUpdateProduct({ hero })} />;
+      case 'identity': return <IdentitySection identity={currentProduct.identity} onIdentityChange={(identity) => handleUpdateProduct({ identity })} />;
+      case 'values': return <ValuesSection values={currentProduct.values} onValuesChange={(values) => handleUpdateProduct({ values })} />;
+      case 'logos': return <LogoSection logos={currentProduct.logos} onLogosChange={(logos) => handleUpdateProduct({ logos })} />;
+      case 'brandicon': return <BrandIconsSection brandIcons={currentProduct.brandIcons} onBrandIconsChange={(brandIcons) => handleUpdateProduct({ brandIcons })} />;
+      case 'colors': return <ColorPaletteSection colors={currentProduct.colors} onColorsChange={(colors) => handleUpdateProduct({ colors })} />;
+      case 'gradients': return <GradientsSection gradients={currentProduct.gradients} onGradientsChange={(gradients) => handleUpdateProduct({ gradients })} />;
+      case 'patterns': return <PatternsSection patterns={currentProduct.patterns} onPatternsChange={(patterns) => handleUpdateProduct({ patterns })} />;
+      case 'typography': return <TypographySection typography={currentProduct.typography} onTypographyChange={(typography) => handleUpdateProduct({ typography })} />;
+      case 'textstyles': return <TextStylesSection textStyles={currentProduct.textStyles} onTextStylesChange={(textStyles) => handleUpdateProduct({ textStyles })} />;
+      case 'iconography': return <IconographySection iconography={currentProduct.iconography} onIconographyChange={(iconography) => handleUpdateProduct({ iconography })} />;
+      case 'socialicons': return <SocialIconsSection socialIcons={currentProduct.socialIcons} onSocialIconsChange={(socialIcons) => handleUpdateProduct({ socialIcons })} />;
+      case 'imagery': return <ImagerySection imagery={currentProduct.imagery} onImageryChange={(imagery) => handleUpdateProduct({ imagery })} />;
+      case 'social': return <SocialSection social={currentProduct.social} onSocialChange={(social) => handleUpdateProduct({ social })} />;
+      case 'signatures': return <SignaturesSection signatures={currentProduct.signatures} onSignaturesChange={(signatures) => handleUpdateProduct({ signatures })} />;
+      case 'qr': return <QRSection qr={currentProduct.qr} onQRChange={(qr) => handleUpdateProduct({ qr })} />;
+      case 'assets': return <AssetsSection assets={currentProduct.assets} onAssetsChange={(assets) => handleUpdateProduct({ assets })} />;
+      case 'misuse': return <MisuseSection misuse={currentProduct.misuse} onMisuseChange={(misuse) => handleUpdateProduct({ misuse })} />;
+      case 'atmosphere': return <AtmosphereSection atmosphere={currentProduct.atmosphere} onAtmosphereChange={(atmosphere) => handleUpdateProduct({ atmosphere })} />;
+      case 'casestudies': return <CaseStudiesSection caseStudies={currentProduct.caseStudies} onCaseStudiesChange={(caseStudies) => handleUpdateProduct({ caseStudies })} />;
+      case 'brochures': return <BrochuresSection brochures={currentProduct.brochures} onBrochuresChange={(brochures) => handleUpdateProduct({ brochures })} />;
+      case 'templates': return <TemplatesSection templates={currentProduct.templates} onTemplatesChange={(templates) => handleUpdateProduct({ templates })} />;
+      default: return null;
+    }
+  };
+
+  return (
+    <TooltipProvider>
+      <div className="min-h-screen bg-background flex">
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block">
+          <BrandSidebar activeSection={activeSection} onSectionChange={handleSectionChange} brandName={currentProduct.hero.name} />
+        </div>
+
+        {/* Mobile Sidebar */}
+        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+          <SheetContent side="left" className="p-0 w-72">
+            <BrandSidebar activeSection={activeSection} onSectionChange={(section) => { handleSectionChange(section); setSidebarOpen(false); }} brandName={currentProduct.hero.name} />
+          </SheetContent>
+        </Sheet>
+
+        {/* Main content */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Header */}
+          <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
+            <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="lg:hidden">
+                      <Menu className="h-5 w-5" />
+                    </Button>
+                  </SheetTrigger>
+                </Sheet>
+                <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-accent/10 rounded-lg">
+                    <Sparkles className="h-4 w-4 text-accent" />
+                  </div>
+                  <span className="font-serif font-semibold text-foreground hidden sm:inline">BrandForge</span>
+                </div>
+                <div className="h-6 w-px bg-border mx-2 hidden sm:block" />
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="gap-1">
+                    <Package className="h-3 w-3" />
+                    Product
+                  </Badge>
+                  <span className="font-medium text-foreground">{currentProduct.hero.name}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ToggleGroupItem value="sections" aria-label="Section view" className="h-8 w-8 data-[state=on]:bg-background">
+                        <LayoutList className="h-4 w-4" />
+                      </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>Section View</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ToggleGroupItem value="full" aria-label="Full page view" className="h-8 w-8 data-[state=on]:bg-background">
+                        <ScrollText className="h-4 w-4" />
+                      </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>Full Page View</TooltipContent>
+                  </Tooltip>
+                </ToggleGroup>
+                <ThemeToggle />
+                <div className="text-xs text-muted-foreground hidden sm:block">
+                  Saved {currentProduct.updatedAt.toLocaleTimeString()}
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Content */}
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+            <div className="max-w-5xl mx-auto animate-fade-in">
+              {viewMode === 'sections' ? (
+                renderSection()
+              ) : (
+                <FullBrandPage 
+                  brand={currentProduct} 
+                  onBrandUpdate={handleUpdateProduct}
+                  scrollToSection={scrollToSection}
+                  onSectionVisible={handleSectionVisible}
+                />
+              )}
+            </div>
+          </main>
+        </div>
+      </div>
+    </TooltipProvider>
+  );
+};
+
+export default ProductEditor;

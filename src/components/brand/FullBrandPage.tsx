@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { BrandGuide, SectionId } from '@/types/brand';
+import { BaseGuide, SectionId } from '@/types/brand';
 import { HeroSection } from './HeroSection';
 import { IdentitySection } from './IdentitySection';
 import { ValuesSection } from './ValuesSection';
@@ -25,8 +25,8 @@ import { TemplatesSection } from './TemplatesSection';
 import { Separator } from '@/components/ui/separator';
 
 interface FullBrandPageProps {
-  brand: BrandGuide;
-  onBrandUpdate: (updates: Partial<BrandGuide>) => void;
+  brand: BaseGuide;
+  onBrandUpdate: (updates: Partial<BaseGuide>) => void;
   scrollToSection?: SectionId | null;
   onSectionVisible?: (sectionId: SectionId) => void;
 }
