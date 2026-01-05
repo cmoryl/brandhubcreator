@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { BrandProvider } from "@/contexts/BrandContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AppSettingsProvider } from "@/contexts/AppSettingsContext";
 import BrandsIndex from "./pages/BrandsIndex";
 import BrandEditor from "./pages/BrandEditor";
 import AuthPage from "./pages/AuthPage";
@@ -16,18 +17,20 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <BrandProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<BrandsIndex />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/brand/:brandId" element={<BrandEditor />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </BrandProvider>
+        <AppSettingsProvider>
+          <BrandProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<BrandsIndex />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/brand/:brandId" element={<BrandEditor />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </BrandProvider>
+        </AppSettingsProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
