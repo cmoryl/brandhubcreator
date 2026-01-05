@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Package, Star } from 'lucide-react';
 import { SectionId, DEFAULT_SECTION_ORDER } from '@/types/brand';
 import { useBrands } from '@/contexts/BrandContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { ShareButton } from '@/components/brand/ShareButton';
@@ -42,6 +43,7 @@ const ProductEditor = () => {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
   const { getProduct, updateProduct, toggleFavorite } = useBrands();
+  const { isAdmin } = useAuth();
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -51,10 +53,17 @@ const ProductEditor = () => {
   const currentProduct = getProduct(productId || '');
   
   const sectionOrder = currentProduct?.sectionOrder || DEFAULT_SECTION_ORDER;
+  const hiddenSections = currentProduct?.hiddenSections || [];
 
   const handleSectionOrderChange = useCallback((newOrder: SectionId[]) => {
     if (productId && currentProduct) {
       updateProduct(productId, { sectionOrder: newOrder });
+    }
+  }, [productId, currentProduct, updateProduct]);
+
+  const handleHiddenSectionsChange = useCallback((newHiddenSections: SectionId[]) => {
+    if (productId && currentProduct) {
+      updateProduct(productId, { hiddenSections: newHiddenSections });
     }
   }, [productId, currentProduct, updateProduct]);
 
@@ -128,6 +137,9 @@ const ProductEditor = () => {
             brandName={currentProduct.hero.name}
             sectionOrder={sectionOrder}
             onSectionOrderChange={handleSectionOrderChange}
+            hiddenSections={hiddenSections}
+            onHiddenSectionsChange={handleHiddenSectionsChange}
+            isAdmin={isAdmin}
           />
         </div>
 
@@ -140,6 +152,9 @@ const ProductEditor = () => {
               brandName={currentProduct.hero.name}
               sectionOrder={sectionOrder}
               onSectionOrderChange={handleSectionOrderChange}
+              hiddenSections={hiddenSections}
+              onHiddenSectionsChange={handleHiddenSectionsChange}
+              isAdmin={isAdmin}
             />
           </SheetContent>
         </Sheet>
@@ -229,6 +244,8 @@ const ProductEditor = () => {
                   scrollToSection={scrollToSection}
                   onSectionVisible={handleSectionVisible}
                   sectionOrder={sectionOrder}
+                  hiddenSections={hiddenSections}
+                  isAdmin={isAdmin}
                 />
               )}
             </div>
