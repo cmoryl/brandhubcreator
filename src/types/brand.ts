@@ -3,6 +3,10 @@ export interface BrandColor {
   id: string;
   name: string;
   hex: string;
+  rgb?: string;
+  cmyk?: string;
+  hsv?: string;
+  pantone?: string;
   usage?: string;
   role?: 'primary' | 'secondary' | 'accent' | 'neutral';
 }

@@ -3,6 +3,7 @@ import { FileDown, Loader2, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseGuide, DEFAULT_SECTION_ORDER, SectionId } from '@/types/brand';
 import { exportToPdf } from '@/lib/exportPdf';
+import { getAllColorFormats } from '@/lib/colorUtils';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -183,20 +184,50 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
         return (
           <div className={cn("py-8 border-b", t.border)} key="colors">
             <h2 className={cn("text-2xl font-bold mb-4", t.text)}>Color Palette</h2>
-            <div className="grid grid-cols-3 gap-4">
-              {guide.colors.map((color) => (
-                <div key={color.id} className="text-center">
-                  <div 
-                    className="w-full h-20 rounded-lg mb-2 border"
-                    style={{ backgroundColor: color.hex }}
-                  />
-                  <p className={cn("font-medium", t.text)}>{color.name}</p>
-                  <p className={cn("text-sm font-mono", t.textMuted)}>{color.hex}</p>
-                  {color.usage && (
-                    <p className={cn("text-xs", t.textSubtle)}>{color.usage}</p>
-                  )}
-                </div>
-              ))}
+            <div className="grid grid-cols-2 gap-4">
+              {guide.colors.map((color) => {
+                const formats = getAllColorFormats(color.hex);
+                return (
+                  <div key={color.id} className={cn("p-4 rounded-lg", t.card)}>
+                    <div className="flex gap-4">
+                      <div 
+                        className="w-20 h-20 rounded-lg shrink-0 border"
+                        style={{ backgroundColor: color.hex }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className={cn("font-semibold mb-2", t.text)}>{color.name}</p>
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                          <div>
+                            <span className={cn("font-medium", t.text)}>HEX:</span>
+                            <span className={cn("font-mono ml-1", t.textMuted)}>{formats.hex}</span>
+                          </div>
+                          <div>
+                            <span className={cn("font-medium", t.text)}>RGB:</span>
+                            <span className={cn("font-mono ml-1", t.textMuted)}>{formats.rgb.replace('rgb(', '').replace(')', '')}</span>
+                          </div>
+                          <div>
+                            <span className={cn("font-medium", t.text)}>CMYK:</span>
+                            <span className={cn("font-mono ml-1", t.textMuted)}>{formats.cmyk.replace('cmyk(', '').replace(')', '')}</span>
+                          </div>
+                          <div>
+                            <span className={cn("font-medium", t.text)}>HSV:</span>
+                            <span className={cn("font-mono ml-1", t.textMuted)}>{formats.hsv.replace('hsv(', '').replace(')', '')}</span>
+                          </div>
+                          {color.pantone && (
+                            <div className="col-span-2">
+                              <span className={cn("font-medium", t.text)}>Pantone:</span>
+                              <span className={cn("font-mono ml-1", t.textMuted)}>{color.pantone}</span>
+                            </div>
+                          )}
+                        </div>
+                        {color.usage && (
+                          <p className={cn("text-xs mt-2", t.textSubtle)}>{color.usage}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         );
