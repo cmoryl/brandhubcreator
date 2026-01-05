@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, X, Pencil, Copy, Check, Code } from 'lucide-react';
+import DOMPurify from 'dompurify';
 import { BrandSignature } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,10 +55,16 @@ export const SignaturesSection = ({ signatures, onSignaturesChange }: Signatures
   };
 
   const renderPreview = (signature: BrandSignature) => {
-    return signature.html
+    const html = signature.html
       .replace('[NAME]', signature.name)
       .replace('[ROLE]', signature.role)
       .replace('[LOGO_URL]', 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60"><rect fill="%23e94560" width="60" height="60" rx="8"/></svg>');
+    
+    // Sanitize HTML to prevent XSS attacks
+    return DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['table', 'tr', 'td', 'th', 'tbody', 'thead', 'p', 'img', 'a', 'strong', 'em', 'b', 'i', 'span', 'div', 'br', 'hr'],
+      ALLOWED_ATTR: ['style', 'src', 'alt', 'width', 'height', 'href', 'cellpadding', 'cellspacing', 'border', 'align', 'valign', 'class', 'target', 'rel']
+    });
   };
 
   return (
