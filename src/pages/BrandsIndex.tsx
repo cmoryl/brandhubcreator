@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield } from 'lucide-react';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAppSettings } from '@/contexts/AppSettingsContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -24,11 +25,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { AppSettingsEditor } from '@/components/admin/AppSettingsEditor';
 
 const BrandsIndex = () => {
   const navigate = useNavigate();
   const { brands, addBrand, deleteBrand, updateBrand } = useBrands();
   const { user, isAdmin, signOut } = useAuth();
+  const { settings } = useAppSettings();
   const [isNewBrandDialogOpen, setIsNewBrandDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [brandToDelete, setBrandToDelete] = useState<string | null>(null);
@@ -104,12 +107,17 @@ const BrandsIndex = () => {
         <header className="relative z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-accent/10 rounded-xl border border-accent/20">
-                <Sparkles className="h-6 w-6 text-accent" />
-              </div>
-              <span className="font-semibold text-2xl text-foreground">BrandForge</span>
+              {settings.appLogo ? (
+                <img src={settings.appLogo} alt={settings.appName} className="h-10 w-auto" />
+              ) : (
+                <div className="p-2.5 bg-accent/10 rounded-xl border border-accent/20">
+                  <Sparkles className="h-6 w-6 text-accent" />
+                </div>
+              )}
+              <span className="font-semibold text-2xl text-foreground">{settings.appName}</span>
             </div>
             <div className="flex items-center gap-3">
+              {canEdit && <AppSettingsEditor />}
               <ThemeToggle />
               {user ? (
                 <DropdownMenu>
@@ -152,7 +160,7 @@ const BrandsIndex = () => {
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-6">
               <div className="px-3 py-1 bg-accent/10 rounded-full border border-accent/20">
-                <span className="text-xs font-medium text-accent">Brand Identity Platform</span>
+                <span className="text-xs font-medium text-accent">{settings.heroBadgeText}</span>
               </div>
               {canEdit && (
                 <div className="px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20">
@@ -161,12 +169,11 @@ const BrandsIndex = () => {
               )}
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-foreground mb-6 leading-tight">
-              Create stunning<br />
-              <span className="text-accent">brand guides</span>
+              {settings.heroTitle}<br />
+              <span className="text-accent">{settings.heroHighlight}</span>
             </h1>
             <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl">
-              Design, organize, and share comprehensive brand identity systems. 
-              From colors to typography, logos to guidelines — all in one place.
+              {settings.heroDescription}
             </p>
             <div className="flex flex-wrap gap-4">
               {canEdit ? (
