@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { BaseGuide, SectionId } from '@/types/brand';
+import { BaseGuide, SectionId, DEFAULT_SECTION_ORDER } from '@/types/brand';
 import { HeroSection } from './HeroSection';
 import { IdentitySection } from './IdentitySection';
 import { ValuesSection } from './ValuesSection';
@@ -29,20 +29,15 @@ interface FullBrandPageProps {
   onBrandUpdate: (updates: Partial<BaseGuide>) => void;
   scrollToSection?: SectionId | null;
   onSectionVisible?: (sectionId: SectionId) => void;
+  sectionOrder?: SectionId[];
 }
-
-const sectionOrder: SectionId[] = [
-  'hero', 'identity', 'values', 'logos', 'brandicon', 'colors', 'gradients', 
-  'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
-  'imagery', 'social', 'signatures', 'qr', 'assets', 'misuse', 'atmosphere',
-  'casestudies', 'brochures', 'templates'
-];
 
 export const FullBrandPage = ({ 
   brand, 
   onBrandUpdate, 
   scrollToSection,
-  onSectionVisible 
+  onSectionVisible,
+  sectionOrder = DEFAULT_SECTION_ORDER
 }: FullBrandPageProps) => {
   const sectionRefs = useRef<Map<SectionId, HTMLDivElement>>(new Map());
 
@@ -85,138 +80,44 @@ export const FullBrandPage = ({
     }
   };
 
+  const renderSection = (sectionId: SectionId) => {
+    switch (sectionId) {
+      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={(hero) => onBrandUpdate({ hero })} />;
+      case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={(identity) => onBrandUpdate({ identity })} />;
+      case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => onBrandUpdate({ values })} />;
+      case 'logos': return <LogoSection logos={brand.logos} onLogosChange={(logos) => onBrandUpdate({ logos })} />;
+      case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={(brandIcons) => onBrandUpdate({ brandIcons })} />;
+      case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={(colors) => onBrandUpdate({ colors })} />;
+      case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={(gradients) => onBrandUpdate({ gradients })} />;
+      case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={(patterns) => onBrandUpdate({ patterns })} />;
+      case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={(typography) => onBrandUpdate({ typography })} />;
+      case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={(textStyles) => onBrandUpdate({ textStyles })} />;
+      case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={(iconography) => onBrandUpdate({ iconography })} />;
+      case 'socialicons': return <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={(socialIcons) => onBrandUpdate({ socialIcons })} />;
+      case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={(imagery) => onBrandUpdate({ imagery })} />;
+      case 'social': return <SocialSection social={brand.social} onSocialChange={(social) => onBrandUpdate({ social })} />;
+      case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={(signatures) => onBrandUpdate({ signatures })} />;
+      case 'qr': return <QRSection qr={brand.qr} onQRChange={(qr) => onBrandUpdate({ qr })} />;
+      case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={(assets) => onBrandUpdate({ assets })} />;
+      case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={(misuse) => onBrandUpdate({ misuse })} />;
+      case 'atmosphere': return <AtmosphereSection atmosphere={brand.atmosphere} onAtmosphereChange={(atmosphere) => onBrandUpdate({ atmosphere })} />;
+      case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies} onCaseStudiesChange={(caseStudies) => onBrandUpdate({ caseStudies })} />;
+      case 'brochures': return <BrochuresSection brochures={brand.brochures} onBrochuresChange={(brochures) => onBrandUpdate({ brochures })} />;
+      case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={(templates) => onBrandUpdate({ templates })} />;
+      default: return null;
+    }
+  };
+
   return (
     <div className="space-y-16">
-      <div ref={setRef('hero')} data-section="hero" className="scroll-mt-24">
-        <HeroSection hero={brand.hero} onHeroChange={(hero) => onBrandUpdate({ hero })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('identity')} data-section="identity" className="scroll-mt-24">
-        <IdentitySection identity={brand.identity} onIdentityChange={(identity) => onBrandUpdate({ identity })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('values')} data-section="values" className="scroll-mt-24">
-        <ValuesSection values={brand.values} onValuesChange={(values) => onBrandUpdate({ values })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('logos')} data-section="logos" className="scroll-mt-24">
-        <LogoSection logos={brand.logos} onLogosChange={(logos) => onBrandUpdate({ logos })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('brandicon')} data-section="brandicon" className="scroll-mt-24">
-        <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={(brandIcons) => onBrandUpdate({ brandIcons })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('colors')} data-section="colors" className="scroll-mt-24">
-        <ColorPaletteSection colors={brand.colors} onColorsChange={(colors) => onBrandUpdate({ colors })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('gradients')} data-section="gradients" className="scroll-mt-24">
-        <GradientsSection gradients={brand.gradients} onGradientsChange={(gradients) => onBrandUpdate({ gradients })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('patterns')} data-section="patterns" className="scroll-mt-24">
-        <PatternsSection patterns={brand.patterns} onPatternsChange={(patterns) => onBrandUpdate({ patterns })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('typography')} data-section="typography" className="scroll-mt-24">
-        <TypographySection typography={brand.typography} onTypographyChange={(typography) => onBrandUpdate({ typography })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('textstyles')} data-section="textstyles" className="scroll-mt-24">
-        <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={(textStyles) => onBrandUpdate({ textStyles })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('iconography')} data-section="iconography" className="scroll-mt-24">
-        <IconographySection iconography={brand.iconography} onIconographyChange={(iconography) => onBrandUpdate({ iconography })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('socialicons')} data-section="socialicons" className="scroll-mt-24">
-        <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={(socialIcons) => onBrandUpdate({ socialIcons })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('imagery')} data-section="imagery" className="scroll-mt-24">
-        <ImagerySection imagery={brand.imagery} onImageryChange={(imagery) => onBrandUpdate({ imagery })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('social')} data-section="social" className="scroll-mt-24">
-        <SocialSection social={brand.social} onSocialChange={(social) => onBrandUpdate({ social })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('signatures')} data-section="signatures" className="scroll-mt-24">
-        <SignaturesSection signatures={brand.signatures} onSignaturesChange={(signatures) => onBrandUpdate({ signatures })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('qr')} data-section="qr" className="scroll-mt-24">
-        <QRSection qr={brand.qr} onQRChange={(qr) => onBrandUpdate({ qr })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('assets')} data-section="assets" className="scroll-mt-24">
-        <AssetsSection assets={brand.assets} onAssetsChange={(assets) => onBrandUpdate({ assets })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('misuse')} data-section="misuse" className="scroll-mt-24">
-        <MisuseSection misuse={brand.misuse} onMisuseChange={(misuse) => onBrandUpdate({ misuse })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('atmosphere')} data-section="atmosphere" className="scroll-mt-24">
-        <AtmosphereSection atmosphere={brand.atmosphere} onAtmosphereChange={(atmosphere) => onBrandUpdate({ atmosphere })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('casestudies')} data-section="casestudies" className="scroll-mt-24">
-        <CaseStudiesSection caseStudies={brand.caseStudies} onCaseStudiesChange={(caseStudies) => onBrandUpdate({ caseStudies })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('brochures')} data-section="brochures" className="scroll-mt-24">
-        <BrochuresSection brochures={brand.brochures} onBrochuresChange={(brochures) => onBrandUpdate({ brochures })} />
-      </div>
-      
-      <Separator className="my-12" />
-      
-      <div ref={setRef('templates')} data-section="templates" className="scroll-mt-24">
-        <TemplatesSection templates={brand.templates} onTemplatesChange={(templates) => onBrandUpdate({ templates })} />
-      </div>
-      
+      {sectionOrder.map((sectionId, index) => (
+        <div key={sectionId}>
+          <div ref={setRef(sectionId)} data-section={sectionId} className="scroll-mt-24">
+            {renderSection(sectionId)}
+          </div>
+          {index < sectionOrder.length - 1 && <Separator className="my-12" />}
+        </div>
+      ))}
       <div className="h-32" /> {/* Bottom spacing */}
     </div>
   );

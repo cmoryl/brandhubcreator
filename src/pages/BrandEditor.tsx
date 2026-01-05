@@ -1,10 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star } from 'lucide-react';
-import { SectionId } from '@/types/brand';
+import { SectionId, DEFAULT_SECTION_ORDER } from '@/types/brand';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { BrandSidebar } from '@/components/brand/BrandSidebar';
+import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { HeroSection } from '@/components/brand/HeroSection';
 import { IdentitySection } from '@/components/brand/IdentitySection';
@@ -59,6 +59,14 @@ const BrandEditor = () => {
 
   const brand = getBrand(brandId || '');
   const canEdit = user && isAdmin;
+  
+  const sectionOrder = brand?.sectionOrder || DEFAULT_SECTION_ORDER;
+
+  const handleSectionOrderChange = useCallback((newOrder: SectionId[]) => {
+    if (brand) {
+      updateBrandContext(brand.id, { sectionOrder: newOrder });
+    }
+  }, [brand, updateBrandContext]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -131,13 +139,25 @@ const BrandEditor = () => {
       <div className="min-h-screen bg-background flex">
         {/* Desktop Sidebar - Sticky */}
         <div className="hidden lg:block sticky top-0 h-screen">
-          <BrandSidebar activeSection={activeSection} onSectionChange={handleSectionChange} brandName={brand.hero.name} />
+          <ReorderableBrandSidebar 
+            activeSection={activeSection} 
+            onSectionChange={handleSectionChange} 
+            brandName={brand.hero.name}
+            sectionOrder={sectionOrder}
+            onSectionOrderChange={handleSectionOrderChange}
+          />
         </div>
 
         {/* Mobile Sidebar */}
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
           <SheetContent side="left" className="p-0 w-72">
-            <BrandSidebar activeSection={activeSection} onSectionChange={(section) => { handleSectionChange(section); setSidebarOpen(false); }} brandName={brand.hero.name} />
+            <ReorderableBrandSidebar 
+              activeSection={activeSection} 
+              onSectionChange={(section) => { handleSectionChange(section); setSidebarOpen(false); }} 
+              brandName={brand.hero.name}
+              sectionOrder={sectionOrder}
+              onSectionOrderChange={handleSectionOrderChange}
+            />
           </SheetContent>
         </Sheet>
 
@@ -263,6 +283,7 @@ const BrandEditor = () => {
                   onBrandUpdate={updateBrand}
                   scrollToSection={scrollToSection}
                   onSectionVisible={handleSectionVisible}
+                  sectionOrder={sectionOrder}
                 />
               )}
             </div>

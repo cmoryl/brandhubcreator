@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Package, Star } from 'lucide-react';
-import { SectionId } from '@/types/brand';
+import { SectionId, DEFAULT_SECTION_ORDER } from '@/types/brand';
 import { useBrands } from '@/contexts/BrandContext';
-import { BrandSidebar } from '@/components/brand/BrandSidebar';
+import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { HeroSection } from '@/components/brand/HeroSection';
 import { IdentitySection } from '@/components/brand/IdentitySection';
@@ -48,6 +48,14 @@ const ProductEditor = () => {
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
 
   const currentProduct = getProduct(productId || '');
+  
+  const sectionOrder = currentProduct?.sectionOrder || DEFAULT_SECTION_ORDER;
+
+  const handleSectionOrderChange = useCallback((newOrder: SectionId[]) => {
+    if (productId && currentProduct) {
+      updateProduct(productId, { sectionOrder: newOrder });
+    }
+  }, [productId, currentProduct, updateProduct]);
 
   if (!currentProduct) {
     return (
@@ -112,14 +120,26 @@ const ProductEditor = () => {
     <TooltipProvider>
       <div className="min-h-screen bg-background flex">
         {/* Desktop Sidebar */}
-        <div className="hidden lg:block">
-          <BrandSidebar activeSection={activeSection} onSectionChange={handleSectionChange} brandName={currentProduct.hero.name} />
+        <div className="hidden lg:block sticky top-0 h-screen">
+          <ReorderableBrandSidebar 
+            activeSection={activeSection} 
+            onSectionChange={handleSectionChange} 
+            brandName={currentProduct.hero.name}
+            sectionOrder={sectionOrder}
+            onSectionOrderChange={handleSectionOrderChange}
+          />
         </div>
 
         {/* Mobile Sidebar */}
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
           <SheetContent side="left" className="p-0 w-72">
-            <BrandSidebar activeSection={activeSection} onSectionChange={(section) => { handleSectionChange(section); setSidebarOpen(false); }} brandName={currentProduct.hero.name} />
+            <ReorderableBrandSidebar 
+              activeSection={activeSection} 
+              onSectionChange={(section) => { handleSectionChange(section); setSidebarOpen(false); }} 
+              brandName={currentProduct.hero.name}
+              sectionOrder={sectionOrder}
+              onSectionOrderChange={handleSectionOrderChange}
+            />
           </SheetContent>
         </Sheet>
 
@@ -206,6 +226,7 @@ const ProductEditor = () => {
                   onBrandUpdate={handleUpdateProduct}
                   scrollToSection={scrollToSection}
                   onSectionVisible={handleSectionVisible}
+                  sectionOrder={sectionOrder}
                 />
               )}
             </div>

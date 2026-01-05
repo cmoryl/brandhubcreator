@@ -178,6 +178,8 @@ export interface BaseGuide {
   id: string;
   type: 'brand' | 'product';
   isFavorite?: boolean;
+  // Section ordering
+  sectionOrder?: SectionId[];
   // Hero
   hero: BrandHero;
   // Identity
@@ -226,6 +228,14 @@ export interface BaseGuide {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Default section order
+export const DEFAULT_SECTION_ORDER: SectionId[] = [
+  'hero', 'identity', 'values', 'logos', 'brandicon', 'colors', 'gradients', 
+  'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
+  'imagery', 'social', 'signatures', 'qr', 'assets', 'misuse', 'atmosphere',
+  'casestudies', 'brochures', 'templates'
+];
 
 // Main Brand Guide interface (extends base)
 export interface BrandGuide extends BaseGuide {
