@@ -81,7 +81,7 @@ export const HeroSection = ({ hero, onHeroChange }: HeroSectionProps) => {
         <div className="p-6 sm:p-8 flex flex-col sm:flex-row gap-6 items-start">
           {/* Logo */}
           <div
-            className={`shrink-0 w-24 h-24 sm:w-32 sm:h-32 -mt-16 sm:-mt-20 bg-background border-4 border-background rounded-2xl shadow-lg flex items-center justify-center ${isEditing ? 'cursor-pointer group' : ''}`}
+            className={`relative z-10 shrink-0 w-24 h-24 sm:w-32 sm:h-32 -mt-16 sm:-mt-20 bg-background border-4 border-background rounded-2xl shadow-lg flex items-center justify-center overflow-hidden ${isEditing ? 'cursor-pointer group' : ''}`}
             onClick={() => isEditing && logoInputRef.current?.click()}
           >
             {hero.logoUrl ? (
