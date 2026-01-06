@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle } from 'lucide-react';
+import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText } from 'lucide-react';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
@@ -827,6 +827,121 @@ const BrandsIndex = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Features Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 border-t border-border/30">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Everything you need for brand consistency</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Create comprehensive brand guides that keep your team aligned and your brand consistent across every touchpoint.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
+              <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
+                <Palette className="h-6 w-6 text-accent" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Color Systems</h3>
+              <p className="text-sm text-muted-foreground">Define primary, secondary, and accent colors with hex, RGB, and HSL values.</p>
+            </Card>
+            
+            <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
+              <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
+                <Type className="h-6 w-6 text-accent" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Typography</h3>
+              <p className="text-sm text-muted-foreground">Document fonts, sizes, weights, and usage guidelines for consistent text styling.</p>
+            </Card>
+            
+            <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
+              <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
+                <Image className="h-6 w-6 text-accent" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Logo & Assets</h3>
+              <p className="text-sm text-muted-foreground">Upload logos, icons, and brand assets with usage guidelines and variations.</p>
+            </Card>
+            
+            <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
+              <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
+                <Share2 className="h-6 w-6 text-accent" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Easy Sharing</h3>
+              <p className="text-sm text-muted-foreground">Share brand guides publicly with a link. No login required for viewers.</p>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Preview Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="p-3 bg-accent/10 rounded-xl w-fit mx-auto mb-4">
+              <HelpCircle className="h-6 w-6 text-accent" />
+            </div>
+            <h2 className="text-3xl font-bold text-foreground mb-4">Frequently Asked Questions</h2>
+            <p className="text-lg text-muted-foreground">
+              Quick answers to common questions about BrandForge.
+            </p>
+          </div>
+          
+          <div className="grid gap-4 mb-8">
+            <Card className="p-6 border-border/50">
+              <h3 className="font-semibold text-foreground mb-2">What is BrandForge?</h3>
+              <p className="text-muted-foreground">BrandForge is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines.</p>
+            </Card>
+            
+            <Card className="p-6 border-border/50">
+              <h3 className="font-semibold text-foreground mb-2">Can I share my brand guide publicly?</h3>
+              <p className="text-muted-foreground">Yes! All brand guides are publicly viewable by default. Share the link with your team, clients, or stakeholders.</p>
+            </Card>
+            
+            <Card className="p-6 border-border/50">
+              <h3 className="font-semibold text-foreground mb-2">What sections can I include?</h3>
+              <p className="text-muted-foreground">Colors, typography, logos, imagery, patterns, gradients, icons, social media guidelines, templates, and much more.</p>
+            </Card>
+          </div>
+          
+          <div className="text-center">
+            <Button variant="outline" onClick={() => navigate('/knowledge')} className="gap-2">
+              <BookOpen className="h-4 w-4" />
+              View All FAQs
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-border/30">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-accent/10 rounded-lg">
+                <Sparkles className="h-5 w-5 text-accent" />
+              </div>
+              <span className="font-semibold text-lg text-foreground">{settings.appName}</span>
+            </div>
+            
+            <nav className="flex flex-wrap items-center justify-center gap-6 text-sm">
+              <button onClick={() => navigate('/knowledge')} className="text-muted-foreground hover:text-foreground transition-colors">
+                FAQ & Help
+              </button>
+              <button onClick={() => navigate('/knowledge')} className="text-muted-foreground hover:text-foreground transition-colors">
+                Documentation
+              </button>
+              <button onClick={() => navigate('/auth')} className="text-muted-foreground hover:text-foreground transition-colors">
+                Admin Login
+              </button>
+            </nav>
+            
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} {settings.appName}. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
