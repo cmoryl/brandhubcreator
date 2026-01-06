@@ -10,6 +10,7 @@ import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import BrandsIndex from "./pages/BrandsIndex";
 import BrandEditor from "./pages/BrandEditor";
 import ProductEditor from "./pages/ProductEditor";
+import OrganizationPortal from "./pages/OrganizationPortal";
 import AuthPage from "./pages/AuthPage";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import NotFound from "./pages/NotFound";
@@ -37,6 +38,7 @@ const App = () => (
                   <Route path="/onboarding" element={<Navigate to="/" replace />} />
 
                   <Route path="/knowledge" element={<KnowledgeBase />} />
+                  <Route path="/org/:slug" element={<OrganizationPortal />} />
                   <Route path="/brand/:brandId" element={<BrandEditor />} />
                   <Route path="/product/:productId" element={<ProductEditor />} />
                   <Route path="*" element={<NotFound />} />
