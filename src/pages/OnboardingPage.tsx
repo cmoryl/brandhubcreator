@@ -8,12 +8,14 @@ const OnboardingPage = () => {
   const { user, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
+    // Onboarding flow disabled: never block access.
+    // If a non-authenticated visitor hits /onboarding, send them to the public home page.
     if (!authLoading && !user) {
-      navigate('/auth');
+      navigate('/');
     }
   }, [user, authLoading, navigate]);
 
-  // Onboarding flow disabled: always send users to the main app.
+  // If an authenticated user hits /onboarding, send them to the main app.
   useEffect(() => {
     if (!authLoading && user) {
       navigate('/');
