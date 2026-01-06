@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2 } from 'lucide-react';
+import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus } from 'lucide-react';
+import { InviteMembersDialog } from '@/components/organization/InviteMembersDialog';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
@@ -193,6 +194,7 @@ const BrandsIndex = () => {
                 <HelpCircle className="h-4 w-4" />
                 <span className="hidden sm:inline">Help</span>
               </Button>
+              <InviteMembersDialog />
               {canEdit && <AppSettingsEditor />}
               <ThemeToggle />
               {user ? (
