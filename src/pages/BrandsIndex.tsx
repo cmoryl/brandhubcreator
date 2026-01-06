@@ -874,8 +874,55 @@ const BrandsIndex = () => {
         </div>
       </section>
 
-      {/* FAQ Preview Section */}
+      {/* How It Works Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="p-3 bg-accent/10 rounded-xl w-fit mx-auto mb-4">
+              <Zap className="h-6 w-6 text-accent" />
+            </div>
+            <h2 className="text-3xl font-bold text-foreground mb-4">How It Works</h2>
+            <p className="text-lg text-muted-foreground">
+              Create your professional brand guide in three simple steps.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                1
+              </div>
+              <h3 className="font-semibold text-foreground text-lg mb-2">Create Your Brand</h3>
+              <p className="text-muted-foreground">
+                Sign in and click "New Brand" to start building your brand guide. Give it a name and you are ready to go.
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                2
+              </div>
+              <h3 className="font-semibold text-foreground text-lg mb-2">Add Your Elements</h3>
+              <p className="text-muted-foreground">
+                Define your colors, typography, logos, imagery guidelines, and all the elements that make your brand unique.
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                3
+              </div>
+              <h3 className="font-semibold text-foreground text-lg mb-2">Share With Your Team</h3>
+              <p className="text-muted-foreground">
+                Share your brand guide link with anyone. They can view it instantly without needing an account.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Preview Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <div className="p-3 bg-accent/10 rounded-xl w-fit mx-auto mb-4">
