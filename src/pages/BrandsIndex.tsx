@@ -298,6 +298,23 @@ const BrandsIndex = () => {
               )}
             </div>
 
+            {/* Create Organization CTA for users without an org */}
+            {user && !organization && !orgLoading && (
+              <div className="mt-8 p-4 bg-accent/10 rounded-xl border border-accent/20 animate-fade-in-up" style={{ animationDelay: '0.45s' }}>
+                <div className="flex items-center gap-3">
+                  <Building2 className="h-5 w-5 text-accent" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-foreground">Create your organization</p>
+                    <p className="text-xs text-muted-foreground">Set up your team workspace to share brands and invite members</p>
+                  </div>
+                  <Button size="sm" onClick={() => navigate('/onboarding')} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Create
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Stats */}
             <div className="flex items-center gap-8 mt-12 pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
               <div>
