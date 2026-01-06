@@ -39,6 +39,8 @@ export interface PageSectionVisibility {
 export interface AppSettings {
   appName: string;
   appLogo: string;
+  appLogoLight: string;  // Logo for light mode
+  appLogoDark: string;   // Logo for dark mode
   heroTitle: string;
   heroHighlight: string;
   heroDescription: string;
@@ -75,6 +77,8 @@ const defaultPageSections: PageSectionVisibility = {
 const defaultSettings: AppSettings = {
   appName: 'BrandHub',
   appLogo: '',
+  appLogoLight: '',
+  appLogoDark: '',
   heroTitle: 'Create stunning',
   heroHighlight: 'brand guides',
   heroDescription: 'Design, organize, and share comprehensive brand identity systems. From colors to typography, logos to guidelines — all in one place.',

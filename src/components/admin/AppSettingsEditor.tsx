@@ -53,7 +53,8 @@ export const AppSettingsEditor = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState<AppSettings>(settings);
   const [accentHex, setAccentHex] = useState(hslToHex(settings.colors.accent));
-  const logoInputRef = useRef<HTMLInputElement>(null);
+  const logoLightInputRef = useRef<HTMLInputElement>(null);
+  const logoDarkInputRef = useRef<HTMLInputElement>(null);
   const bgImageInputRef = useRef<HTMLInputElement>(null);
 
   const handleOpen = () => {
@@ -68,12 +69,23 @@ export const AppSettingsEditor = () => {
     toast.success('App settings updated successfully!');
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoLightUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, appLogo: reader.result as string }));
+        setFormData(prev => ({ ...prev, appLogoLight: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleLogoDarkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, appLogoDark: reader.result as string }));
       };
       reader.readAsDataURL(file);
     }
@@ -97,8 +109,12 @@ export const AppSettingsEditor = () => {
     }
   };
 
-  const removeLogo = () => {
-    setFormData(prev => ({ ...prev, appLogo: '' }));
+  const removeLogoLight = () => {
+    setFormData(prev => ({ ...prev, appLogoLight: '' }));
+  };
+
+  const removeLogoDark = () => {
+    setFormData(prev => ({ ...prev, appLogoDark: '' }));
   };
 
   const removeBgImage = () => {
@@ -182,43 +198,97 @@ export const AppSettingsEditor = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>App Logo</Label>
-              <div className="flex items-center gap-3">
-                {formData.appLogo ? (
-                  <div className="relative">
-                    <img
-                      src={formData.appLogo}
-                      alt="App Logo"
-                      className="h-12 w-auto rounded border bg-white p-1"
-                    />
-                    <button
-                      onClick={removeLogo}
-                      className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="h-12 w-12 rounded border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
-                    <span className="text-xs text-muted-foreground">No logo</span>
-                  </div>
-                )}
-                <input
-                  ref={logoInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleLogoUpload}
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => logoInputRef.current?.click()}
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Logo
-                </Button>
+            <div className="space-y-4">
+              <Label>App Logos</Label>
+              <p className="text-xs text-muted-foreground">
+                Upload separate logos for light and dark themes. The appropriate logo will display based on the current theme.
+              </p>
+              
+              {/* Light Mode Logo */}
+              <div className="p-3 rounded-lg border border-border bg-white">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-900">Light Mode Logo</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  {formData.appLogoLight ? (
+                    <div className="relative">
+                      <img
+                        src={formData.appLogoLight}
+                        alt="Light Mode Logo"
+                        className="h-10 w-auto rounded border bg-white p-1"
+                      />
+                      <button
+                        onClick={removeLogoLight}
+                        className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="h-10 w-10 rounded border-2 border-dashed border-gray-300 flex items-center justify-center">
+                      <span className="text-xs text-gray-400">None</span>
+                    </div>
+                  )}
+                  <input
+                    ref={logoLightInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleLogoLightUpload}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => logoLightInputRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload
+                  </Button>
+                </div>
+              </div>
+
+              {/* Dark Mode Logo */}
+              <div className="p-3 rounded-lg border border-border bg-gray-900">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-white">Dark Mode Logo</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  {formData.appLogoDark ? (
+                    <div className="relative">
+                      <img
+                        src={formData.appLogoDark}
+                        alt="Dark Mode Logo"
+                        className="h-10 w-auto rounded border border-gray-700 bg-gray-900 p-1"
+                      />
+                      <button
+                        onClick={removeLogoDark}
+                        className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="h-10 w-10 rounded border-2 border-dashed border-gray-600 flex items-center justify-center">
+                      <span className="text-xs text-gray-500">None</span>
+                    </div>
+                  )}
+                  <input
+                    ref={logoDarkInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleLogoDarkUpload}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => logoDarkInputRef.current?.click()}
+                    className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload
+                  </Button>
+                </div>
               </div>
             </div>
           </TabsContent>
