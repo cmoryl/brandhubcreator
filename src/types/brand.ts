@@ -231,6 +231,7 @@ export interface BaseGuide {
   id: string;
   type: 'brand' | 'product';
   isFavorite?: boolean;
+  isPublic?: boolean;
   // Section ordering
   sectionOrder?: SectionId[];
   // Hidden sections (admin can toggle visibility)

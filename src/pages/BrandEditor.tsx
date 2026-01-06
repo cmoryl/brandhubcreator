@@ -307,7 +307,14 @@ const BrandEditor = () => {
                   </TooltipTrigger>
                   <TooltipContent>{brand.isFavorite ? 'Remove from favorites' : 'Add to favorites'}</TooltipContent>
                 </Tooltip>
-                <ShareButton guideId={brand.id} guideName={brand.hero.name} type="brand" />
+                <ShareButton 
+                  guideId={brand.id} 
+                  guideName={brand.hero.name} 
+                  type="brand" 
+                  isPublic={brand.isPublic}
+                  onPublicChange={(isPublic) => updateBrand({ isPublic })}
+                  canEdit={canEdit || false}
+                />
                 <BrandAuditButton brand={brand} />
                 {isAdmin && (
                   <BrandPageSettingsEditor 
