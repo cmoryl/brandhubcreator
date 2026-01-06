@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2 } from 'lucide-react';
 import { useBrands } from '@/contexts/BrandContext';
@@ -144,10 +144,12 @@ const BrandsIndex = () => {
     }
   };
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     await signOut();
     navigate('/');
-  };
+  }, [signOut, navigate]);
 
   const canEdit = user && isAdmin;
 
