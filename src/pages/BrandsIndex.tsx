@@ -214,6 +214,18 @@ const BrandsIndex = () => {
                         Admin
                       </DropdownMenuItem>
                     )}
+                    {organization && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => navigate(`/org/${organization.slug}`)} 
+                          className="gap-2"
+                        >
+                          <Building2 className="h-4 w-4" />
+                          View Public Portal
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} className="gap-2">
                       <LogOut className="h-4 w-4" />
