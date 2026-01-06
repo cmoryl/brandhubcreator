@@ -1,1 +1,4 @@
 project_id = "nhxaijbyqfkkhhoornzy"
+
+[functions.brand-audit]
+verify_jwt = false
