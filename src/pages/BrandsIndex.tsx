@@ -48,12 +48,7 @@ const BrandsIndex = () => {
   const recentlyUpdated = getRecentlyUpdated();
   const favorites = getFavorites();
 
-  // Redirect to onboarding if user is logged in but needs to set up organization
-  useEffect(() => {
-    if (!authLoading && !orgLoading && user && needsOnboarding) {
-      navigate('/onboarding');
-    }
-  }, [user, needsOnboarding, authLoading, orgLoading, navigate]);
+  // Onboarding redirect removed - users go straight to the main page
 
   // Show loading state
   if (authLoading || isLoading) {
