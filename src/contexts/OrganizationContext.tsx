@@ -87,6 +87,38 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (!memberData) {
+        // Check for pending invites by email before giving up
+        if (user.email) {
+          const { data: pendingInvite } = await supabase
+            .from('organization_members')
+            .select('*, organizations(*)')
+            .eq('invited_email', user.email)
+            .is('user_id', null)
+            .maybeSingle();
+
+          if (pendingInvite) {
+            // Auto-accept the invite
+            const { error: acceptError } = await supabase
+              .from('organization_members')
+              .update({
+                user_id: user.id,
+                invite_accepted_at: new Date().toISOString(),
+                invite_token: null,
+              })
+              .eq('id', pendingInvite.id);
+
+            if (!acceptError) {
+              // Refetch to get the updated data
+              const org = dbToOrganization(pendingInvite.organizations);
+              setOrganization(org);
+              setUserRole(pendingInvite.role as OrganizationMember['role']);
+              setNeedsOnboarding(false);
+              setIsLoading(false);
+              return;
+            }
+          }
+        }
+
         // User has no organization - allow using the app without onboarding
         setNeedsOnboarding(false);
         setIsLoading(false);
@@ -96,7 +128,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       const org = dbToOrganization(memberData.organizations);
       setOrganization(org);
       setUserRole(memberData.role as OrganizationMember['role']);
-      setNeedsOnboarding(false); // Never require onboarding
+      setNeedsOnboarding(false);
 
       // Fetch all members if user is admin or owner
       if (memberData.role === 'owner' || memberData.role === 'admin') {
