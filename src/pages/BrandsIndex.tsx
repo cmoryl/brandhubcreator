@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus } from 'lucide-react';
+import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings } from 'lucide-react';
 import { InviteMembersDialog } from '@/components/organization/InviteMembersDialog';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -244,6 +244,15 @@ const BrandsIndex = () => {
                           <Building2 className="h-4 w-4" />
                           View Public Portal
                         </DropdownMenuItem>
+                        {(userRole === 'owner' || userRole === 'admin') && (
+                          <DropdownMenuItem 
+                            onClick={() => navigate('/org/settings')} 
+                            className="gap-2"
+                          >
+                            <Settings className="h-4 w-4" />
+                            Organization Settings
+                          </DropdownMenuItem>
+                        )}
                       </>
                     )}
                     <DropdownMenuSeparator />
