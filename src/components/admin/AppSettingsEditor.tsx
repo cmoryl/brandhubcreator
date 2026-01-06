@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Settings, Upload, X, Save, RotateCcw, Image, Sparkles, Waves } from 'lucide-react';
+import { Settings, Upload, X, Save, RotateCcw, Image, Sparkles, Waves, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -158,9 +158,10 @@ export const AppSettingsEditor = () => {
         </DialogHeader>
 
         <Tabs defaultValue="branding" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="branding">Branding</TabsTrigger>
             <TabsTrigger value="hero">Hero</TabsTrigger>
+            <TabsTrigger value="sections">Sections</TabsTrigger>
             <TabsTrigger value="background">Background</TabsTrigger>
             <TabsTrigger value="colors">Colors</TabsTrigger>
           </TabsList>
@@ -257,6 +258,73 @@ export const AppSettingsEditor = () => {
                 placeholder="Enter hero description..."
                 rows={3}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="sections" className="space-y-4 py-4">
+            <div className="space-y-1 mb-4">
+              <p className="text-sm font-medium">Homepage Sections</p>
+              <p className="text-xs text-muted-foreground">
+                Toggle which sections are visible on the public homepage.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-lg border border-border">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium">Features Section</p>
+                  <p className="text-xs text-muted-foreground">Color Systems, Typography, Logo & Assets, Easy Sharing</p>
+                </div>
+                <Switch
+                  checked={formData.pageSections?.features ?? true}
+                  onCheckedChange={(checked) => setFormData(prev => ({
+                    ...prev,
+                    pageSections: { ...prev.pageSections, features: checked }
+                  }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-lg border border-border">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium">How It Works</p>
+                  <p className="text-xs text-muted-foreground">3-step guide: Create, Add Elements, Share</p>
+                </div>
+                <Switch
+                  checked={formData.pageSections?.howItWorks ?? true}
+                  onCheckedChange={(checked) => setFormData(prev => ({
+                    ...prev,
+                    pageSections: { ...prev.pageSections, howItWorks: checked }
+                  }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-lg border border-border">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium">FAQ Preview</p>
+                  <p className="text-xs text-muted-foreground">Top questions with link to full Knowledge Base</p>
+                </div>
+                <Switch
+                  checked={formData.pageSections?.faqPreview ?? true}
+                  onCheckedChange={(checked) => setFormData(prev => ({
+                    ...prev,
+                    pageSections: { ...prev.pageSections, faqPreview: checked }
+                  }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-lg border border-border">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium">Video Tutorials</p>
+                  <p className="text-xs text-muted-foreground">Tutorial videos on Knowledge Base page</p>
+                </div>
+                <Switch
+                  checked={formData.pageSections?.videoTutorials ?? false}
+                  onCheckedChange={(checked) => setFormData(prev => ({
+                    ...prev,
+                    pageSections: { ...prev.pageSections, videoTutorials: checked }
+                  }))}
+                />
+              </div>
             </div>
           </TabsContent>
 
