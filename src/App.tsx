@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { BrandProvider } from "@/contexts/BrandContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppSettingsProvider } from "@/contexts/AppSettingsContext";
@@ -13,6 +13,7 @@ import ProductEditor from "./pages/ProductEditor";
 import OrganizationPortal from "./pages/OrganizationPortal";
 import AuthPage from "./pages/AuthPage";
 import KnowledgeBase from "./pages/KnowledgeBase";
+import OnboardingPage from "./pages/OnboardingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,8 +35,8 @@ const App = () => (
                   {/* Auth */}
                   <Route path="/auth" element={<AuthPage />} />
 
-                  {/* Onboarding disabled */}
-                  <Route path="/onboarding" element={<Navigate to="/" replace />} />
+                  {/* Onboarding */}
+                  <Route path="/onboarding" element={<OnboardingPage />} />
 
                   <Route path="/knowledge" element={<KnowledgeBase />} />
                   <Route path="/org/:slug" element={<OrganizationPortal />} />
