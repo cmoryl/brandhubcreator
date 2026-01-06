@@ -10,6 +10,7 @@ import BrandsIndex from "./pages/BrandsIndex";
 import BrandEditor from "./pages/BrandEditor";
 import ProductEditor from "./pages/ProductEditor";
 import AuthPage from "./pages/AuthPage";
+import KnowledgeBase from "./pages/KnowledgeBase";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<BrandsIndex />} />
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/knowledge" element={<KnowledgeBase />} />
                 <Route path="/brand/:brandId" element={<BrandEditor />} />
                 <Route path="/product/:productId" element={<ProductEditor />} />
                 <Route path="*" element={<NotFound />} />

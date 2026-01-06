@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart } from 'lucide-react';
+import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle } from 'lucide-react';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
@@ -168,6 +168,10 @@ const BrandsIndex = () => {
               <span className="font-semibold text-2xl text-foreground">{settings.appName}</span>
             </div>
             <div className="flex items-center gap-3">
+              <Button variant="ghost" onClick={() => navigate('/knowledge')} className="gap-2 text-muted-foreground hover:text-foreground">
+                <HelpCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">Help</span>
+              </Button>
               {canEdit && <AppSettingsEditor />}
               <ThemeToggle />
               {user ? (
