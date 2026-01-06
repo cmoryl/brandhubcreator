@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
 import { useTheme } from 'next-themes';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -40,7 +41,7 @@ const BrandsIndex = () => {
   const { user, isAdmin, signOut, isLoading: authLoading } = useAuth();
   const { settings } = useAppSettings();
   const { resolvedTheme } = useTheme();
-  const { organization, needsOnboarding, isLoading: orgLoading } = useOrganization();
+  const { organization, userRole, isLoading: orgLoading } = useOrganization();
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'brand' | 'product' } | null>(null);
@@ -190,6 +191,23 @@ const BrandsIndex = () => {
               <span className="font-semibold text-2xl text-foreground">{settings.appName}</span>
             </div>
             <div className="flex items-center gap-3">
+              {/* Organization Badge */}
+              {user && organization && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg border border-border/50">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground max-w-32 truncate">{organization.name}</span>
+                      <Badge variant="secondary" className="text-xs capitalize">
+                        {userRole}
+                      </Badge>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{organization.name} • {userRole}</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
               <Button variant="ghost" onClick={() => navigate('/knowledge')} className="gap-2 text-muted-foreground hover:text-foreground">
                 <HelpCircle className="h-4 w-4" />
                 <span className="hidden sm:inline">Help</span>
