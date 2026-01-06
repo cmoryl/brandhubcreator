@@ -264,10 +264,11 @@ const KnowledgeBase = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" />
-            <span>Back to Home</span>
+            <span className="hidden sm:inline">Back to Home</span>
+            <span className="sm:hidden">Back</span>
           </Link>
           <Link to="/auth">
             <Button variant="outline" size="sm">Sign In</Button>
@@ -276,19 +277,19 @@ const KnowledgeBase = () => {
       </header>
 
       {/* Hero */}
-      <section className="py-16 px-6 text-center border-b border-border/30">
+      <section className="py-10 sm:py-16 px-4 sm:px-6 text-center border-b border-border/30">
         <div className="max-w-2xl mx-auto space-y-4">
           <div className="p-3 bg-accent/10 rounded-2xl w-fit mx-auto">
-            <HelpCircle className="h-8 w-8 text-accent" />
+            <HelpCircle className="h-6 w-6 sm:h-8 sm:w-8 text-accent" />
           </div>
-          <h1 className="text-4xl font-bold text-foreground">Knowledge Base</h1>
-          <p className="text-lg text-muted-foreground">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Knowledge Base</h1>
+          <p className="text-base sm:text-lg text-muted-foreground px-2">
             Find answers to common questions and learn how to make the most of BrandForge.
           </p>
           
           {/* Search */}
-          <div className="relative max-w-md mx-auto mt-8">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="relative max-w-md mx-auto mt-6 sm:mt-8 px-2">
+            <Search className="absolute left-5 sm:left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search questions..."
               value={searchQuery}
@@ -301,19 +302,19 @@ const KnowledgeBase = () => {
 
       {/* Video Tutorials Section */}
       {settings.pageSections?.videoTutorials && (
-        <section className="py-12 px-6 bg-muted/30">
+        <section className="py-8 sm:py-12 px-4 sm:px-6 bg-muted/30">
           <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-8">
+            <div className="text-center mb-6 sm:mb-8">
               <div className="p-3 bg-accent/10 rounded-xl w-fit mx-auto mb-4">
-                <Video className="h-6 w-6 text-accent" />
+                <Video className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
               </div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">Video Tutorials</h2>
-              <p className="text-muted-foreground">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Video Tutorials</h2>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Watch step-by-step guides to master BrandForge quickly.
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {tutorials.map((tutorial) => (
                 <Card 
                   key={tutorial.id}
@@ -345,7 +346,7 @@ const KnowledgeBase = () => {
       )}
 
       {/* FAQ Content */}
-      <section className="py-12 px-6">
+      <section className="py-8 sm:py-12 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto space-y-8">
           {filteredFaqs.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
@@ -389,10 +390,10 @@ const KnowledgeBase = () => {
       </section>
 
       {/* Contact Section */}
-      <section className="py-12 px-6 border-t border-border/30">
-        <div className="max-w-2xl mx-auto text-center space-y-4">
-          <h2 className="text-2xl font-semibold text-foreground">Still have questions?</h2>
-          <p className="text-muted-foreground">
+      <section className="py-8 sm:py-12 px-4 sm:px-6 border-t border-border/30">
+        <div className="max-w-2xl mx-auto text-center space-y-3 sm:space-y-4">
+          <h2 className="text-xl sm:text-2xl font-semibold text-foreground">Still have questions?</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Can't find what you're looking for? We're here to help.
           </p>
           <Button variant="outline" asChild>
@@ -403,9 +404,9 @@ const KnowledgeBase = () => {
 
       {/* Video Player Modal */}
       <Dialog open={!!selectedVideo} onOpenChange={() => setSelectedVideo(null)}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden">
-          <DialogHeader className="p-4 pb-0">
-            <DialogTitle>{selectedVideo?.title}</DialogTitle>
+        <DialogContent className="max-w-4xl w-[95vw] sm:w-full p-0 overflow-hidden">
+          <DialogHeader className="p-3 sm:p-4 pb-0">
+            <DialogTitle className="text-base sm:text-lg">{selectedVideo?.title}</DialogTitle>
           </DialogHeader>
           <div className="aspect-video bg-black">
             {selectedVideo && (
@@ -414,10 +415,11 @@ const KnowledgeBase = () => {
                 className="w-full h-full"
                 controls
                 autoPlay
+                playsInline
               />
             )}
           </div>
-          <div className="p-4 pt-2">
+          <div className="p-3 sm:p-4 pt-2">
             <p className="text-sm text-muted-foreground">{selectedVideo?.description}</p>
           </div>
         </DialogContent>
