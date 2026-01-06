@@ -94,7 +94,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       const org = dbToOrganization(memberData.organizations);
       setOrganization(org);
       setUserRole(memberData.role as OrganizationMember['role']);
-      setNeedsOnboarding(!org.onboardingCompleted);
+      setNeedsOnboarding(false); // Never require onboarding
 
       // Fetch all members if user is admin or owner
       if (memberData.role === 'owner' || memberData.role === 'admin') {
