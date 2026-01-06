@@ -285,30 +285,30 @@ const BrandsIndex = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <Tabs defaultValue="brands" className="w-full">
-          <div className="flex items-center justify-between mb-8">
-            <TabsList>
-              <TabsTrigger value="brands" className="gap-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <TabsList className="w-full sm:w-auto overflow-x-auto">
+              <TabsTrigger value="brands" className="gap-2 text-xs sm:text-sm">
                 <Sparkles className="h-4 w-4" />
-                Brands ({brands.length})
+                <span className="hidden xs:inline">Brands</span> ({brands.length})
               </TabsTrigger>
-              <TabsTrigger value="products" className="gap-2">
+              <TabsTrigger value="products" className="gap-2 text-xs sm:text-sm">
                 <Package className="h-4 w-4" />
-                Products ({products.length})
+                <span className="hidden xs:inline">Products</span> ({products.length})
               </TabsTrigger>
-              <TabsTrigger value="favorites" className="gap-2">
+              <TabsTrigger value="favorites" className="gap-2 text-xs sm:text-sm">
                 <Star className="h-4 w-4" />
-                Favorites ({favorites.length})
+                <span className="hidden xs:inline">Favorites</span> ({favorites.length})
               </TabsTrigger>
             </TabsList>
             {canEdit && (
-              <div className="flex gap-2">
-                <Button onClick={() => { setNewItemType('brand'); setIsNewDialogOpen(true); }} variant="outline" className="gap-2">
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button onClick={() => { setNewItemType('brand'); setIsNewDialogOpen(true); }} variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none">
                   <Plus className="h-4 w-4" />
-                  New Brand
+                  <span className="sm:inline">New Brand</span>
                 </Button>
-                <Button onClick={() => { setNewItemType('product'); setIsNewDialogOpen(true); }} className="gap-2">
+                <Button onClick={() => { setNewItemType('product'); setIsNewDialogOpen(true); }} size="sm" className="gap-2 flex-1 sm:flex-none">
                   <Package className="h-4 w-4" />
-                  New Product
+                  <span className="sm:inline">New Product</span>
                 </Button>
               </div>
             )}
