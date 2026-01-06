@@ -30,6 +30,7 @@ import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
 import { BrochuresSection } from '@/components/brand/BrochuresSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
+import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -229,6 +230,7 @@ const BrandEditor = () => {
                   <TooltipContent>{brand.isFavorite ? 'Remove from favorites' : 'Add to favorites'}</TooltipContent>
                 </Tooltip>
                 <ShareButton guideId={brand.id} guideName={brand.hero.name} type="brand" />
+                <BrandAuditButton brand={brand} />
                 <ExportPdfButton guide={brand} />
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
                   <Tooltip>
