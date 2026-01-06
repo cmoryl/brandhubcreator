@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Pencil, Check, QrCode, Copy } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Pencil, Check, Copy, Download } from 'lucide-react';
+import QRCode from 'qrcode';
 import { BrandQR } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,64 +13,56 @@ interface QRSectionProps {
 export const QRSection = ({ qr, onQRChange }: QRSectionProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
 
-  // Simple QR code SVG generator (basic representation)
-  const generateQRPreview = () => {
-    const size = 200;
-    const modules = 21; // 21x21 for version 1 QR
-    const moduleSize = size / modules;
-    
-    // Generate a simple pattern (not real QR encoding)
-    const pattern: boolean[][] = [];
-    for (let i = 0; i < modules; i++) {
-      pattern[i] = [];
-      for (let j = 0; j < modules; j++) {
-        // Position markers
-        const isPositionMarker = 
-          (i < 7 && j < 7) || 
-          (i < 7 && j >= modules - 7) || 
-          (i >= modules - 7 && j < 7);
-        
-        if (isPositionMarker) {
-          const inOuter = i < 7 && j < 7 ? (i === 0 || i === 6 || j === 0 || j === 6) :
-                         i < 7 && j >= modules - 7 ? (i === 0 || i === 6 || j === modules - 7 || j === modules - 1) :
-                         (i === modules - 7 || i === modules - 1 || j === 0 || j === 6);
-          const inInner = i < 7 && j < 7 ? (i >= 2 && i <= 4 && j >= 2 && j <= 4) :
-                         i < 7 && j >= modules - 7 ? (i >= 2 && i <= 4 && j >= modules - 5 && j <= modules - 3) :
-                         (i >= modules - 5 && i <= modules - 3 && j >= 2 && j <= 4);
-          pattern[i][j] = inOuter || inInner;
-        } else {
-          pattern[i][j] = Math.random() > 0.5;
-        }
+  // Generate real QR code
+  useEffect(() => {
+    const generateQR = async () => {
+      try {
+        const url = qr.defaultUrl || 'https://yourbrand.com';
+        const dataUrl = await QRCode.toDataURL(url, {
+          width: 200,
+          margin: 2,
+          color: {
+            dark: qr.fgColor,
+            light: qr.bgColor,
+          },
+          errorCorrectionLevel: 'M',
+        });
+        setQrDataUrl(dataUrl);
+      } catch (err) {
+        console.error('QR generation error:', err);
       }
-    }
-
-    return (
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <rect width={size} height={size} fill={qr.bgColor} />
-        {pattern.map((row, i) =>
-          row.map((cell, j) =>
-            cell ? (
-              <rect
-                key={`${i}-${j}`}
-                x={j * moduleSize}
-                y={i * moduleSize}
-                width={moduleSize}
-                height={moduleSize}
-                fill={qr.fgColor}
-              />
-            ) : null
-          )
-        )}
-      </svg>
-    );
-  };
+    };
+    generateQR();
+  }, [qr.defaultUrl, qr.fgColor, qr.bgColor]);
 
   const copySettings = async () => {
     const settings = JSON.stringify(qr, null, 2);
     await navigator.clipboard.writeText(settings);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const downloadQR = async () => {
+    try {
+      const url = qr.defaultUrl || 'https://yourbrand.com';
+      const dataUrl = await QRCode.toDataURL(url, {
+        width: 512,
+        margin: 2,
+        color: {
+          dark: qr.fgColor,
+          light: qr.bgColor,
+        },
+        errorCorrectionLevel: 'H',
+      });
+      const link = document.createElement('a');
+      link.download = 'brand-qr-code.png';
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('QR download error:', err);
+    }
   };
 
   return (
@@ -94,11 +87,19 @@ export const QRSection = ({ qr, onQRChange }: QRSectionProps) => {
         {/* Preview */}
         <div className="bg-card rounded-xl p-8 border border-border flex flex-col items-center justify-center">
           <div className="rounded-xl overflow-hidden shadow-lg mb-4">
-            {generateQRPreview()}
+            {qrDataUrl ? (
+              <img src={qrDataUrl} alt="QR Code" width={200} height={200} />
+            ) : (
+              <div className="w-[200px] h-[200px] bg-muted animate-pulse rounded" />
+            )}
           </div>
-          <p className="text-sm text-muted-foreground text-center">
-            Preview with current color settings
+          <p className="text-sm text-muted-foreground text-center mb-3">
+            Scannable QR code with your brand colors
           </p>
+          <Button variant="outline" size="sm" onClick={downloadQR} className="gap-2">
+            <Download className="h-4 w-4" />
+            Download HD
+          </Button>
         </div>
 
         {/* Settings */}
