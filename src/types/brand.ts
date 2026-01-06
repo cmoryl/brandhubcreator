@@ -174,6 +174,7 @@ export type BrandBackgroundType =
   | 'animated-aurora'
   | 'animated-geometric'
   | 'animated-spotlight'
+  | 'animated-mesh-waves'
   | 'solid';
 
 export interface BrandPageSettings {
