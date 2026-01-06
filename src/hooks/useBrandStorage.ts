@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { BrandGuide, ProductGuide, DEFAULT_SECTION_ORDER } from '@/types/brand';
 import { useAuth } from '@/contexts/AuthContext';
 import { Json } from '@/integrations/supabase/types';
+import { toast } from 'sonner';
 interface DbBrand {
   id: string;
   user_id: string;
@@ -206,7 +207,10 @@ export const useBrandStorage = () => {
   }, [fetchData]);
 
   const addBrand = async (name: string): Promise<BrandGuide | null> => {
-    if (!user) return null;
+    if (!user) {
+      toast.error('Please sign in to create a brand');
+      return null;
+    }
 
     const guideData = createDefaultGuideData(name, 'brand');
     const dbData = {
@@ -226,16 +230,21 @@ export const useBrandStorage = () => {
 
     if (error) {
       console.error('Error creating brand:', error);
+      toast.error('Failed to create brand. Please try again.');
       return null;
     }
 
     const newBrand = dbToBrandGuide(data as DbBrand);
     setBrands(prev => [newBrand, ...prev]);
+    toast.success('Brand created successfully!');
     return newBrand;
   };
 
   const addProduct = async (name: string, parentBrandId?: string): Promise<ProductGuide | null> => {
-    if (!user) return null;
+    if (!user) {
+      toast.error('Please sign in to create a product');
+      return null;
+    }
 
     const guideData = createDefaultGuideData(name, 'product');
     const dbData = {
@@ -256,20 +265,28 @@ export const useBrandStorage = () => {
 
     if (error) {
       console.error('Error creating product:', error);
+      toast.error('Failed to create product. Please try again.');
       return null;
     }
 
     const newProduct = dbToProductGuide(data as DbProduct);
     setProducts(prev => [newProduct, ...prev]);
+    toast.success('Product created successfully!');
     return newProduct;
   };
 
   const updateBrand = async (id: string, updates: Partial<BrandGuide>) => {
-    if (!user) return;
+    if (!user) {
+      toast.error('Please sign in to save changes');
+      return;
+    }
 
     // Get current brand to merge updates
     const currentBrand = brands.find(b => b.id === id);
-    if (!currentBrand) return;
+    if (!currentBrand) {
+      toast.error('Brand not found');
+      return;
+    }
 
     const merged = { ...currentBrand, ...updates };
     const dbData = brandGuideToDb(merged, user.id);
@@ -281,6 +298,7 @@ export const useBrandStorage = () => {
 
     if (error) {
       console.error('Error updating brand:', error);
+      toast.error('Failed to save changes. Please try again.');
       return;
     }
 
@@ -290,10 +308,16 @@ export const useBrandStorage = () => {
   };
 
   const updateProduct = async (id: string, updates: Partial<ProductGuide>) => {
-    if (!user) return;
+    if (!user) {
+      toast.error('Please sign in to save changes');
+      return;
+    }
 
     const currentProduct = products.find(p => p.id === id);
-    if (!currentProduct) return;
+    if (!currentProduct) {
+      toast.error('Product not found');
+      return;
+    }
 
     const merged = { ...currentProduct, ...updates };
     const dbData = productGuideToDb(merged, user.id);
@@ -305,6 +329,7 @@ export const useBrandStorage = () => {
 
     if (error) {
       console.error('Error updating product:', error);
+      toast.error('Failed to save changes. Please try again.');
       return;
     }
 
