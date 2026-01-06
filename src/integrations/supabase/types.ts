@@ -22,6 +22,7 @@ export type Database = {
           id: string
           is_favorite: boolean | null
           name: string
+          organization_id: string | null
           section_order: string[] | null
           updated_at: string
           user_id: string
@@ -33,6 +34,7 @@ export type Database = {
           id?: string
           is_favorite?: boolean | null
           name: string
+          organization_id?: string | null
           section_order?: string[] | null
           updated_at?: string
           user_id: string
@@ -44,9 +46,122 @@ export type Database = {
           id?: string
           is_favorite?: boolean | null
           name?: string
+          organization_id?: string | null
           section_order?: string[] | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brands_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_members: {
+        Row: {
+          created_at: string
+          id: string
+          invite_accepted_at: string | null
+          invite_token: string | null
+          invited_email: string | null
+          organization_id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invite_accepted_at?: string | null
+          invite_token?: string | null
+          invited_email?: string | null
+          organization_id: string
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invite_accepted_at?: string | null
+          invite_token?: string | null
+          invited_email?: string | null
+          organization_id?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          accent_color: string | null
+          created_at: string
+          custom_domain: string | null
+          email_from_address: string | null
+          email_from_name: string | null
+          favicon_url: string | null
+          features: Json | null
+          hide_platform_branding: boolean | null
+          id: string
+          logo_url: string | null
+          name: string
+          onboarding_completed: boolean | null
+          onboarding_step: number | null
+          primary_color: string | null
+          secondary_color: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string | null
+          created_at?: string
+          custom_domain?: string | null
+          email_from_address?: string | null
+          email_from_name?: string | null
+          favicon_url?: string | null
+          features?: Json | null
+          hide_platform_branding?: boolean | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string | null
+          created_at?: string
+          custom_domain?: string | null
+          email_from_address?: string | null
+          email_from_name?: string | null
+          favicon_url?: string | null
+          features?: Json | null
+          hide_platform_branding?: boolean | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -58,6 +173,7 @@ export type Database = {
           id: string
           is_favorite: boolean | null
           name: string
+          organization_id: string | null
           parent_brand_id: string | null
           section_order: string[] | null
           updated_at: string
@@ -70,6 +186,7 @@ export type Database = {
           id?: string
           is_favorite?: boolean | null
           name: string
+          organization_id?: string | null
           parent_brand_id?: string | null
           section_order?: string[] | null
           updated_at?: string
@@ -82,12 +199,20 @@ export type Database = {
           id?: string
           is_favorite?: boolean | null
           name?: string
+          organization_id?: string | null
           parent_brand_id?: string | null
           section_order?: string[] | null
           updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "products_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_parent_brand_id_fkey"
             columns: ["parent_brand_id"]
