@@ -21,6 +21,7 @@ export type Database = {
           hidden_sections: string[] | null
           id: string
           is_favorite: boolean | null
+          is_public: boolean
           name: string
           organization_id: string | null
           section_order: string[] | null
@@ -33,6 +34,7 @@ export type Database = {
           hidden_sections?: string[] | null
           id?: string
           is_favorite?: boolean | null
+          is_public?: boolean
           name: string
           organization_id?: string | null
           section_order?: string[] | null
@@ -45,6 +47,7 @@ export type Database = {
           hidden_sections?: string[] | null
           id?: string
           is_favorite?: boolean | null
+          is_public?: boolean
           name?: string
           organization_id?: string | null
           section_order?: string[] | null
@@ -172,6 +175,7 @@ export type Database = {
           hidden_sections: string[] | null
           id: string
           is_favorite: boolean | null
+          is_public: boolean
           name: string
           organization_id: string | null
           parent_brand_id: string | null
@@ -185,6 +189,7 @@ export type Database = {
           hidden_sections?: string[] | null
           id?: string
           is_favorite?: boolean | null
+          is_public?: boolean
           name: string
           organization_id?: string | null
           parent_brand_id?: string | null
@@ -198,6 +203,7 @@ export type Database = {
           hidden_sections?: string[] | null
           id?: string
           is_favorite?: boolean | null
+          is_public?: boolean
           name?: string
           organization_id?: string | null
           parent_brand_id?: string | null

@@ -12,6 +12,7 @@ interface DbBrand {
   user_id: string;
   name: string;
   is_favorite: boolean;
+  is_public: boolean;
   section_order: string[] | null;
   hidden_sections: string[] | null;
   guide_data: Record<string, unknown>;
@@ -25,6 +26,7 @@ interface DbProduct {
   parent_brand_id: string | null;
   name: string;
   is_favorite: boolean;
+  is_public: boolean;
   section_order: string[] | null;
   hidden_sections: string[] | null;
   guide_data: Record<string, unknown>;
@@ -86,6 +88,7 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     id: db.id,
     type: 'brand',
     isFavorite: db.is_favorite,
+    isPublic: db.is_public ?? false,
     sectionOrder: db.section_order as BrandGuide['sectionOrder'] ?? DEFAULT_SECTION_ORDER,
     hiddenSections: db.hidden_sections as BrandGuide['hiddenSections'] ?? [],
     hero: (guideData.hero as BrandGuide['hero']) ?? { name: db.name, tagline: '', coverImage: '', logoUrl: '' },
@@ -123,6 +126,7 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
     type: 'product',
     parentBrandId: db.parent_brand_id ?? undefined,
     isFavorite: db.is_favorite,
+    isPublic: db.is_public ?? false,
     sectionOrder: db.section_order as ProductGuide['sectionOrder'] ?? DEFAULT_SECTION_ORDER,
     hiddenSections: db.hidden_sections as ProductGuide['hiddenSections'] ?? [],
     hero: (guideData.hero as ProductGuide['hero']) ?? { name: db.name, tagline: '', coverImage: '', logoUrl: '' },
@@ -154,11 +158,12 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
 };
 
 const brandGuideToDb = (brand: Partial<BrandGuide>, userId: string) => {
-  const { id, type, isFavorite, sectionOrder, hiddenSections, createdAt, updatedAt, ...guideData } = brand as BrandGuide;
+  const { id, type, isFavorite, isPublic, sectionOrder, hiddenSections, createdAt, updatedAt, ...guideData } = brand as BrandGuide;
   return {
     user_id: userId,
     name: guideData.hero?.name ?? 'My Brand',
     is_favorite: isFavorite ?? false,
+    is_public: isPublic ?? false,
     section_order: (sectionOrder as string[] | null) ?? null,
     hidden_sections: (hiddenSections as string[] | null) ?? null,
     guide_data: guideData as unknown as Json,
@@ -166,12 +171,13 @@ const brandGuideToDb = (brand: Partial<BrandGuide>, userId: string) => {
 };
 
 const productGuideToDb = (product: Partial<ProductGuide>, userId: string) => {
-  const { id, type, parentBrandId, isFavorite, sectionOrder, hiddenSections, createdAt, updatedAt, ...guideData } = product as ProductGuide;
+  const { id, type, parentBrandId, isFavorite, isPublic, sectionOrder, hiddenSections, createdAt, updatedAt, ...guideData } = product as ProductGuide;
   return {
     user_id: userId,
     parent_brand_id: parentBrandId ?? null,
     name: guideData.hero?.name ?? 'My Product',
     is_favorite: isFavorite ?? false,
+    is_public: isPublic ?? false,
     section_order: (sectionOrder as string[] | null) ?? null,
     hidden_sections: (hiddenSections as string[] | null) ?? null,
     guide_data: guideData as unknown as Json,

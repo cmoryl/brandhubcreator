@@ -44,7 +44,7 @@ const ProductEditor = () => {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
   const { getProduct, updateProduct, toggleFavorite, isLoading } = useBrands();
-  const { isAdmin, isLoading: authLoading } = useAuth();
+  const { user, isAdmin, isLoading: authLoading } = useAuth();
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -219,7 +219,14 @@ const ProductEditor = () => {
                   </TooltipTrigger>
                   <TooltipContent>{currentProduct.isFavorite ? 'Remove from favorites' : 'Add to favorites'}</TooltipContent>
                 </Tooltip>
-                <ShareButton guideId={currentProduct.id} guideName={currentProduct.hero.name} type="product" />
+                <ShareButton 
+                  guideId={currentProduct.id} 
+                  guideName={currentProduct.hero.name} 
+                  type="product"
+                  isPublic={currentProduct.isPublic}
+                  onPublicChange={(isPublic) => handleUpdateProduct({ isPublic })}
+                  canEdit={!!user && isAdmin}
+                />
                 <BrandAuditButton brand={currentProduct} />
                 <ExportPdfButton guide={currentProduct} />
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
