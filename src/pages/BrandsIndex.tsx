@@ -48,6 +48,15 @@ const BrandsIndex = () => {
   const recentlyUpdated = getRecentlyUpdated();
   const favorites = getFavorites();
 
+  const handleSignOut = useCallback(async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await signOut();
+    navigate('/');
+  }, [signOut, navigate]);
+
+  const canEdit = user && isAdmin;
+
   // Onboarding redirect removed - users go straight to the main page
 
   // Show loading state
@@ -143,15 +152,6 @@ const BrandsIndex = () => {
       input.click();
     }
   };
-
-  const handleSignOut = useCallback(async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    await signOut();
-    navigate('/');
-  }, [signOut, navigate]);
-
-  const canEdit = user && isAdmin;
 
   return (
     <div className="min-h-screen bg-background">
