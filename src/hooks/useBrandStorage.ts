@@ -180,15 +180,8 @@ export const useBrandStorage = () => {
   const [products, setProducts] = useState<ProductGuide[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch brands and products
+  // Fetch brands and products - public access (no auth required for viewing)
   const fetchData = useCallback(async () => {
-    if (!user) {
-      setBrands([]);
-      setProducts([]);
-      setIsLoading(false);
-      return;
-    }
-
     setIsLoading(true);
     try {
       const [brandsRes, productsRes] = await Promise.all([
@@ -206,7 +199,7 @@ export const useBrandStorage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     fetchData();

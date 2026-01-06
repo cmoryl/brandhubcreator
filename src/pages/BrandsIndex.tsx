@@ -54,26 +54,7 @@ const BrandsIndex = () => {
           <div className="p-4 bg-accent/10 rounded-2xl w-fit mx-auto animate-pulse">
             <Sparkles className="h-8 w-8 text-accent" />
           </div>
-          <p className="text-muted-foreground">Loading your brands...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Redirect to auth if not logged in
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4 max-w-md mx-auto p-8">
-          <div className="p-4 bg-accent/10 rounded-2xl w-fit mx-auto">
-            <Lock className="h-8 w-8 text-accent" />
-          </div>
-          <h1 className="text-2xl font-semibold text-foreground">Sign in to BrandForge</h1>
-          <p className="text-muted-foreground">Create and manage your brand guides securely.</p>
-          <Button onClick={() => navigate('/auth')} className="gap-2">
-            <Lock className="h-4 w-4" />
-            Sign In
-          </Button>
+          <p className="text-muted-foreground">Loading brand guides...</p>
         </div>
       </div>
     );
