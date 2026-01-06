@@ -1,9 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BrandGuide, ProductGuide, DEFAULT_SECTION_ORDER } from '@/types/brand';
 import { useAuth } from '@/contexts/AuthContext';
 import { Json } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
+
+// Debounce delay for database syncing (ms)
+const SYNC_DEBOUNCE_MS = 500;
 interface DbBrand {
   id: string;
   user_id: string;
@@ -275,28 +278,16 @@ export const useBrandStorage = () => {
     return newProduct;
   };
 
-  const updateBrand = async (id: string, updates: Partial<BrandGuide>) => {
-    if (!user) {
-      toast.error('Please sign in to save changes');
-      return;
-    }
+  // Debounce refs for batching updates
+  const brandSyncTimeouts = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const productSyncTimeouts = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const pendingBrandUpdates = useRef<Map<string, Partial<BrandGuide>>>(new Map());
+  const pendingProductUpdates = useRef<Map<string, Partial<ProductGuide>>>(new Map());
 
-    // Get current brand to merge updates
-    const currentBrand = brands.find(b => b.id === id);
-    if (!currentBrand) {
-      toast.error('Brand not found');
-      return;
-    }
-
-    // Optimistic update - update UI immediately
-    setBrands(prev => prev.map(brand =>
-      brand.id === id ? { ...brand, ...updates, updatedAt: new Date() } : brand
-    ));
-
-    // Then sync to database in background
-    const merged = { ...currentBrand, ...updates };
+  const syncBrandToDb = useCallback(async (id: string, merged: BrandGuide) => {
+    if (!user) return;
+    
     const dbData = brandGuideToDb(merged, user.id);
-
     const { error } = await supabase
       .from('brands')
       .update(dbData)
@@ -305,14 +296,72 @@ export const useBrandStorage = () => {
     if (error) {
       console.error('Error updating brand:', error);
       toast.error('Failed to save changes. Please try again.');
-      // Revert optimistic update on error
-      setBrands(prev => prev.map(brand =>
-        brand.id === id ? currentBrand : brand
-      ));
     }
-  };
+    
+    pendingBrandUpdates.current.delete(id);
+  }, [user]);
 
-  const updateProduct = async (id: string, updates: Partial<ProductGuide>) => {
+  const syncProductToDb = useCallback(async (id: string, merged: ProductGuide) => {
+    if (!user) return;
+    
+    const dbData = productGuideToDb(merged, user.id);
+    const { error } = await supabase
+      .from('products')
+      .update(dbData)
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating product:', error);
+      toast.error('Failed to save changes. Please try again.');
+    }
+    
+    pendingProductUpdates.current.delete(id);
+  }, [user]);
+
+  const updateBrand = useCallback((id: string, updates: Partial<BrandGuide>) => {
+    if (!user) {
+      toast.error('Please sign in to save changes');
+      return;
+    }
+
+    // Get current brand state (from local state, including pending updates)
+    const currentBrand = brands.find(b => b.id === id);
+    if (!currentBrand) {
+      toast.error('Brand not found');
+      return;
+    }
+
+    // Merge with any pending updates
+    const existingPending = pendingBrandUpdates.current.get(id) || {};
+    const allUpdates = { ...existingPending, ...updates };
+    pendingBrandUpdates.current.set(id, allUpdates);
+
+    // Optimistic update - update UI immediately
+    setBrands(prev => prev.map(brand =>
+      brand.id === id ? { ...brand, ...updates, updatedAt: new Date() } : brand
+    ));
+
+    // Clear existing timeout for this brand
+    const existingTimeout = brandSyncTimeouts.current.get(id);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+    }
+
+    // Set new debounced sync
+    const timeout = setTimeout(() => {
+      const latestBrand = brands.find(b => b.id === id);
+      if (latestBrand) {
+        const finalUpdates = pendingBrandUpdates.current.get(id) || {};
+        const merged = { ...latestBrand, ...finalUpdates };
+        syncBrandToDb(id, merged as BrandGuide);
+      }
+      brandSyncTimeouts.current.delete(id);
+    }, SYNC_DEBOUNCE_MS);
+    
+    brandSyncTimeouts.current.set(id, timeout);
+  }, [user, brands, syncBrandToDb]);
+
+  const updateProduct = useCallback((id: string, updates: Partial<ProductGuide>) => {
     if (!user) {
       toast.error('Please sign in to save changes');
       return;
@@ -324,29 +373,35 @@ export const useBrandStorage = () => {
       return;
     }
 
+    // Merge with any pending updates
+    const existingPending = pendingProductUpdates.current.get(id) || {};
+    const allUpdates = { ...existingPending, ...updates };
+    pendingProductUpdates.current.set(id, allUpdates);
+
     // Optimistic update - update UI immediately
     setProducts(prev => prev.map(product =>
       product.id === id ? { ...product, ...updates, updatedAt: new Date() } : product
     ));
 
-    // Then sync to database in background
-    const merged = { ...currentProduct, ...updates };
-    const dbData = productGuideToDb(merged, user.id);
-
-    const { error } = await supabase
-      .from('products')
-      .update(dbData)
-      .eq('id', id);
-
-    if (error) {
-      console.error('Error updating product:', error);
-      toast.error('Failed to save changes. Please try again.');
-      // Revert optimistic update on error
-      setProducts(prev => prev.map(product =>
-        product.id === id ? currentProduct : product
-      ));
+    // Clear existing timeout for this product
+    const existingTimeout = productSyncTimeouts.current.get(id);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
     }
-  };
+
+    // Set new debounced sync
+    const timeout = setTimeout(() => {
+      const latestProduct = products.find(p => p.id === id);
+      if (latestProduct) {
+        const finalUpdates = pendingProductUpdates.current.get(id) || {};
+        const merged = { ...latestProduct, ...finalUpdates };
+        syncProductToDb(id, merged as ProductGuide);
+      }
+      productSyncTimeouts.current.delete(id);
+    }, SYNC_DEBOUNCE_MS);
+    
+    productSyncTimeouts.current.set(id, timeout);
+  }, [user, products, syncProductToDb]);
 
   const deleteBrand = async (id: string) => {
     if (!user || brands.length <= 1) return;
