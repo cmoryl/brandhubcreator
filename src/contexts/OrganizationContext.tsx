@@ -85,8 +85,8 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (!memberData) {
-        // User has no organization - needs onboarding
-        setNeedsOnboarding(true);
+        // User has no organization - allow using the app without onboarding
+        setNeedsOnboarding(false);
         setIsLoading(false);
         return;
       }
@@ -147,7 +147,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       const org = dbToOrganization(orgData);
       setOrganization(org);
       setUserRole('owner');
-      setNeedsOnboarding(true);
+      setNeedsOnboarding(false);
 
       return org;
     } catch (error) {

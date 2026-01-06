@@ -1,14 +1,11 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useOrganization } from '@/contexts/OrganizationContext';
-import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { Loader2 } from 'lucide-react';
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
-  const { organization, needsOnboarding, isLoading: orgLoading } = useOrganization();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -16,13 +13,14 @@ const OnboardingPage = () => {
     }
   }, [user, authLoading, navigate]);
 
+  // Onboarding flow disabled: always send users to the main app.
   useEffect(() => {
-    if (!orgLoading && organization && !needsOnboarding) {
+    if (!authLoading && user) {
       navigate('/');
     }
-  }, [organization, needsOnboarding, orgLoading, navigate]);
+  }, [authLoading, user, navigate]);
 
-  if (authLoading || orgLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -30,11 +28,7 @@ const OnboardingPage = () => {
     );
   }
 
-  if (!user) {
-    return null;
-  }
-
-  return <OnboardingWizard />;
+  return null;
 };
 
 export default OnboardingPage;
