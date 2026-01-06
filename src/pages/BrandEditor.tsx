@@ -51,8 +51,8 @@ type ViewMode = 'sections' | 'full';
 const BrandEditor = () => {
   const { brandId } = useParams<{ brandId: string }>();
   const navigate = useNavigate();
-  const { getBrand, updateBrand: updateBrandContext, toggleFavorite } = useBrands();
-  const { user, isAdmin, signOut } = useAuth();
+  const { getBrand, updateBrand: updateBrandContext, toggleFavorite, isLoading } = useBrands();
+  const { user, isAdmin, signOut, isLoading: authLoading } = useAuth();
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -64,6 +64,20 @@ const BrandEditor = () => {
   
   const sectionOrder = brand?.sectionOrder || DEFAULT_SECTION_ORDER;
   const hiddenSections = brand?.hiddenSections || [];
+
+  // Show loading state
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="p-4 bg-accent/10 rounded-2xl w-fit mx-auto animate-pulse">
+            <Sparkles className="h-8 w-8 text-accent" />
+          </div>
+          <p className="text-muted-foreground">Loading brand...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSectionOrderChange = useCallback((newOrder: SectionId[]) => {
     if (brand) {
