@@ -111,20 +111,6 @@ const BrandEditor = () => {
     }
   }, [brand, updateBrandContext]);
 
-  // Show loading state
-  if (authLoading || isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="p-4 bg-accent/10 rounded-2xl w-fit mx-auto animate-pulse">
-            <Sparkles className="h-8 w-8 text-accent" />
-          </div>
-          <p className="text-muted-foreground">Loading brand...</p>
-        </div>
-      </div>
-    );
-  }
-
   const handleSectionOrderChange = useCallback((newOrder: SectionId[]) => {
     if (brand) {
       updateBrandContext(brand.id, { sectionOrder: newOrder });
@@ -142,25 +128,6 @@ const BrandEditor = () => {
     navigate('/');
   };
 
-  if (!brand) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold text-foreground mb-2">Brand not found</h1>
-          <p className="text-muted-foreground mb-4">The brand you're looking for doesn't exist.</p>
-          <Button onClick={() => navigate('/')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Brands
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  const updateBrand = (updates: Parameters<typeof updateBrandContext>[1]) => {
-    updateBrandContext(brand.id, updates);
-  };
-
   const handleSectionChange = useCallback((section: SectionId) => {
     setActiveSection(section);
     if (viewMode === 'full') {
@@ -174,6 +141,39 @@ const BrandEditor = () => {
       setActiveSection(section);
     }
   }, [viewMode]);
+
+  // Show loading state - AFTER all hooks
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="p-4 bg-accent/10 rounded-2xl w-fit mx-auto animate-pulse">
+            <Sparkles className="h-8 w-8 text-accent" />
+          </div>
+          <p className="text-muted-foreground">Loading brand...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!brand) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-foreground mb-2">Brand not found</h1>
+          <p className="text-muted-foreground mb-4">The brand you&apos;s looking for doesn&apos;t exist.</p>
+          <Button onClick={() => navigate('/')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Brands
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const updateBrand = (updates: Parameters<typeof updateBrandContext>[1]) => {
+    updateBrandContext(brand.id, updates);
+  };
 
   const renderSection = () => {
     switch (activeSection) {
