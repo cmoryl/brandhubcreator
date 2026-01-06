@@ -320,6 +320,135 @@ export const HeroBackground = ({
     );
   }
 
+  // Animated mesh waves with lines
+  if (type === 'animated-mesh-waves') {
+    return (
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-background" />
+        {/* Horizontal wave lines */}
+        {Array.from({ length: 8 }).map((_, i) => (
+          <svg
+            key={`h-${i}`}
+            className="absolute w-full"
+            style={{
+              top: `${10 + i * 12}%`,
+              height: '60px',
+            }}
+            viewBox="0 0 1200 60"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0,30 Q150,10 300,30 T600,30 T900,30 T1200,30"
+              fill="none"
+              stroke={`hsl(var(--accent) / ${0.08 + i * 0.02})`}
+              strokeWidth="1.5"
+              style={{
+                animation: `meshWaveLine ${parseFloat(getAnimationDuration()) + i * 0.5}s ease-in-out infinite`,
+                animationDelay: `${i * 0.2}s`,
+              }}
+            />
+          </svg>
+        ))}
+        {/* Vertical wave lines */}
+        {Array.from({ length: 6 }).map((_, i) => (
+          <svg
+            key={`v-${i}`}
+            className="absolute h-full"
+            style={{
+              left: `${10 + i * 16}%`,
+              width: '60px',
+            }}
+            viewBox="0 0 60 800"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M30,0 Q10,100 30,200 T30,400 T30,600 T30,800"
+              fill="none"
+              stroke={`hsl(var(--primary) / ${0.06 + i * 0.015})`}
+              strokeWidth="1.5"
+              style={{
+                animation: `meshWaveLineV ${parseFloat(getAnimationDuration()) + i * 0.8}s ease-in-out infinite`,
+                animationDelay: `${i * 0.3}s`,
+              }}
+            />
+          </svg>
+        ))}
+        {/* Intersection glow points */}
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div
+            key={`glow-${i}`}
+            className="absolute rounded-full"
+            style={{
+              width: '8px',
+              height: '8px',
+              left: `${15 + (i % 4) * 25}%`,
+              top: `${20 + Math.floor(i / 4) * 30}%`,
+              background: `hsl(var(--accent) / 0.3)`,
+              boxShadow: `0 0 20px hsl(var(--accent) / 0.4)`,
+              animation: `meshGlowPulse ${parseFloat(getAnimationDuration()) / 2}s ease-in-out infinite`,
+              animationDelay: `${i * 0.15}s`,
+            }}
+          />
+        ))}
+        {/* Gradient overlay */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(at 20% 30%, hsl(var(--accent) / 0.08) 0px, transparent 50%),
+              radial-gradient(at 80% 70%, hsl(var(--primary) / 0.06) 0px, transparent 50%)
+            `,
+            animation: `meshOverlay ${getAnimationDuration()} ease-in-out infinite`,
+          }}
+        />
+        <style>{`
+          @keyframes meshWaveLine {
+            0%, 100% { 
+              d: path("M0,30 Q150,10 300,30 T600,30 T900,30 T1200,30");
+              opacity: 0.6;
+            }
+            25% { 
+              d: path("M0,30 Q150,50 300,30 T600,30 T900,30 T1200,30");
+              opacity: 1;
+            }
+            50% { 
+              d: path("M0,30 Q150,30 300,10 T600,50 T900,30 T1200,30");
+              opacity: 0.8;
+            }
+            75% { 
+              d: path("M0,30 Q150,20 300,40 T600,20 T900,40 T1200,30");
+              opacity: 1;
+            }
+          }
+          @keyframes meshWaveLineV {
+            0%, 100% { 
+              d: path("M30,0 Q10,100 30,200 T30,400 T30,600 T30,800");
+              opacity: 0.5;
+            }
+            50% { 
+              d: path("M30,0 Q50,100 30,200 T30,400 T30,600 T30,800");
+              opacity: 0.8;
+            }
+          }
+          @keyframes meshGlowPulse {
+            0%, 100% { 
+              transform: scale(1);
+              opacity: 0.4;
+            }
+            50% { 
+              transform: scale(1.5);
+              opacity: 0.8;
+            }
+          }
+          @keyframes meshOverlay {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   // Default gradient background
   return (
     <div className="absolute inset-0 overflow-hidden">

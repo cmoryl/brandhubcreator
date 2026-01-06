@@ -41,6 +41,7 @@ const backgroundTypes: { type: BrandBackgroundType; name: string; icon: typeof I
   { type: 'animated-aurora', name: 'Aurora', icon: Waves, description: 'Northern lights effect' },
   { type: 'animated-geometric', name: 'Geometric', icon: LayoutGrid, description: 'Floating geometric shapes' },
   { type: 'animated-spotlight', name: 'Spotlight', icon: Sparkles, description: 'Moving spotlight effect' },
+  { type: 'animated-mesh-waves', name: 'Mesh Lines', icon: LayoutGrid, description: 'Animated mesh wave lines' },
 ];
 
 const headerStyles = [
