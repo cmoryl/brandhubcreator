@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, BookOpen, HelpCircle, Lightbulb, Search } from "lucide-react";
+import { ArrowLeft, BookOpen, HelpCircle, Lightbulb, Search, CreditCard, Plug, Users, Globe, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -71,7 +71,7 @@ const faqs = [
   },
   {
     category: "Sharing & Export",
-    icon: BookOpen,
+    icon: Globe,
     questions: [
       {
         q: "How do I share my brand guide?",
@@ -84,6 +84,102 @@ const faqs = [
       {
         q: "Is there a way to password-protect my brand guide?",
         a: "Currently, all brand guides are publicly viewable. For private brand guides, we recommend sharing only with trusted parties. Enhanced privacy features are coming soon."
+      }
+    ]
+  },
+  {
+    category: "Pricing & Plans",
+    icon: CreditCard,
+    questions: [
+      {
+        q: "Is BrandForge free to use?",
+        a: "BrandForge offers a free tier with essential features. You can create and share brand guides at no cost. Premium features and advanced capabilities are available on paid plans."
+      },
+      {
+        q: "What's included in the free plan?",
+        a: "The free plan includes the ability to create brand guides, add colors, typography, logos, and share publicly. You get access to all core sections and basic export options."
+      },
+      {
+        q: "How do I upgrade my account?",
+        a: "Navigate to your account settings and select the plan that fits your needs. Upgrades are instant and you'll immediately get access to premium features."
+      },
+      {
+        q: "Can I cancel my subscription anytime?",
+        a: "Yes, you can cancel your subscription at any time. You'll continue to have access to premium features until the end of your billing period."
+      },
+      {
+        q: "Do you offer discounts for students or nonprofits?",
+        a: "Yes! We offer special pricing for students, educators, and nonprofit organizations. Contact our support team with verification to get your discount applied."
+      }
+    ]
+  },
+  {
+    category: "Team Collaboration",
+    icon: Users,
+    questions: [
+      {
+        q: "Can I invite team members to collaborate?",
+        a: "Yes! You can invite team members to your workspace. They'll be able to view and edit brand guides based on their assigned permissions."
+      },
+      {
+        q: "What permission levels are available?",
+        a: "We offer multiple permission levels: Viewer (view only), Editor (can edit guides), Admin (can manage settings and collaborators), and Owner (full control including deletion)."
+      },
+      {
+        q: "How many team members can I add?",
+        a: "The number of team members depends on your plan. Free plans support individual use, while paid plans offer unlimited team members."
+      },
+      {
+        q: "Can different team members work on the same brand guide?",
+        a: "Yes, multiple team members can collaborate on the same brand guide. Changes are saved in real-time so everyone stays in sync."
+      },
+      {
+        q: "How do I remove a team member?",
+        a: "Go to your workspace settings, find the People section, and remove the team member. They will immediately lose access to all shared brand guides."
+      }
+    ]
+  },
+  {
+    category: "Integrations",
+    icon: Plug,
+    questions: [
+      {
+        q: "Does BrandForge integrate with design tools?",
+        a: "We're actively working on integrations with popular design tools like Figma, Sketch, and Adobe Creative Cloud. Stay tuned for updates!"
+      },
+      {
+        q: "Can I embed my brand guide on my website?",
+        a: "Yes, you can embed your brand guide using an iframe or link directly to specific sections. This is great for internal wikis and documentation sites."
+      },
+      {
+        q: "Is there an API available?",
+        a: "API access is available on enterprise plans. Contact our sales team to learn more about programmatic access to your brand data."
+      },
+      {
+        q: "Can I import brand assets from other tools?",
+        a: "You can upload assets directly from your computer. We support common formats like PNG, SVG, JPG, PDF, and font files."
+      }
+    ]
+  },
+  {
+    category: "Security & Privacy",
+    icon: Shield,
+    questions: [
+      {
+        q: "Is my brand data secure?",
+        a: "Yes, we take security seriously. All data is encrypted in transit and at rest. We use industry-standard security practices to protect your brand assets."
+      },
+      {
+        q: "Who can see my brand guides?",
+        a: "Brand guides are publicly viewable by default via their unique URL. Only people with the link can access them. Private brand guides with access controls are coming soon."
+      },
+      {
+        q: "Can I delete my account and data?",
+        a: "Yes, you can delete your account at any time from your account settings. This will permanently remove all your brand guides and associated data."
+      },
+      {
+        q: "Where is my data stored?",
+        a: "Your data is stored on secure cloud servers with automatic backups. We use trusted infrastructure providers to ensure reliability and performance."
       }
     ]
   }
