@@ -1,9 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText } from 'lucide-react';
+import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2 } from 'lucide-react';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -36,6 +37,7 @@ const BrandsIndex = () => {
   const { brands, products, addBrand, addProduct, deleteBrand, deleteProduct, updateBrand, updateProduct, getRecentlyUpdated, toggleFavorite, getFavorites, isLoading } = useBrands();
   const { user, isAdmin, signOut, isLoading: authLoading } = useAuth();
   const { settings } = useAppSettings();
+  const { organization, needsOnboarding, isLoading: orgLoading } = useOrganization();
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'brand' | 'product' } | null>(null);
@@ -45,6 +47,13 @@ const BrandsIndex = () => {
 
   const recentlyUpdated = getRecentlyUpdated();
   const favorites = getFavorites();
+
+  // Redirect to onboarding if user is logged in but needs to set up organization
+  useEffect(() => {
+    if (!authLoading && !orgLoading && user && needsOnboarding) {
+      navigate('/onboarding');
+    }
+  }, [user, needsOnboarding, authLoading, orgLoading, navigate]);
 
   // Show loading state
   if (authLoading || isLoading) {

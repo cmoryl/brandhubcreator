@@ -6,11 +6,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { BrandProvider } from "@/contexts/BrandContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppSettingsProvider } from "@/contexts/AppSettingsContext";
+import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import BrandsIndex from "./pages/BrandsIndex";
 import BrandEditor from "./pages/BrandEditor";
 import ProductEditor from "./pages/ProductEditor";
 import AuthPage from "./pages/AuthPage";
 import KnowledgeBase from "./pages/KnowledgeBase";
+import OnboardingPage from "./pages/OnboardingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,20 +22,23 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <AppSettingsProvider>
-          <BrandProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<BrandsIndex />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/knowledge" element={<KnowledgeBase />} />
-                <Route path="/brand/:brandId" element={<BrandEditor />} />
-                <Route path="/product/:productId" element={<ProductEditor />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </BrandProvider>
+          <OrganizationProvider>
+            <BrandProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<BrandsIndex />} />
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/onboarding" element={<OnboardingPage />} />
+                  <Route path="/knowledge" element={<KnowledgeBase />} />
+                  <Route path="/brand/:brandId" element={<BrandEditor />} />
+                  <Route path="/product/:productId" element={<ProductEditor />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </BrandProvider>
+          </OrganizationProvider>
         </AppSettingsProvider>
       </AuthProvider>
     </TooltipProvider>
