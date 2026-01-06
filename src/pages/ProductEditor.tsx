@@ -43,8 +43,8 @@ type ViewMode = 'sections' | 'full';
 const ProductEditor = () => {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
-  const { getProduct, updateProduct, toggleFavorite } = useBrands();
-  const { isAdmin } = useAuth();
+  const { getProduct, updateProduct, toggleFavorite, isLoading } = useBrands();
+  const { isAdmin, isLoading: authLoading } = useAuth();
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -55,6 +55,20 @@ const ProductEditor = () => {
   
   const sectionOrder = currentProduct?.sectionOrder || DEFAULT_SECTION_ORDER;
   const hiddenSections = currentProduct?.hiddenSections || [];
+
+  // Show loading state
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="p-4 bg-accent/10 rounded-2xl w-fit mx-auto animate-pulse">
+            <Sparkles className="h-8 w-8 text-accent" />
+          </div>
+          <p className="text-muted-foreground">Loading product...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSectionOrderChange = useCallback((newOrder: SectionId[]) => {
     if (productId && currentProduct) {

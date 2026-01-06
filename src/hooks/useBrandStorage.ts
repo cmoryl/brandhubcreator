@@ -1,0 +1,404 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { BrandGuide, ProductGuide, DEFAULT_SECTION_ORDER } from '@/types/brand';
+import { useAuth } from '@/contexts/AuthContext';
+import { Json } from '@/integrations/supabase/types';
+interface DbBrand {
+  id: string;
+  user_id: string;
+  name: string;
+  is_favorite: boolean;
+  section_order: string[] | null;
+  hidden_sections: string[] | null;
+  guide_data: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DbProduct {
+  id: string;
+  user_id: string;
+  parent_brand_id: string | null;
+  name: string;
+  is_favorite: boolean;
+  section_order: string[] | null;
+  hidden_sections: string[] | null;
+  guide_data: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+const createDefaultGuideData = (name: string, type: 'brand' | 'product') => ({
+  hero: { 
+    name, 
+    tagline: type === 'brand' ? 'Crafting exceptional experiences' : 'Innovative product experience', 
+    coverImage: '', 
+    logoUrl: '' 
+  },
+  identity: { missionStatement: '', archetype: '', toneOfVoice: [] },
+  values: [],
+  logos: [],
+  brandIcons: [],
+  colors: type === 'brand' 
+    ? [
+        { id: '1', name: 'Primary', hex: '#1a1a2e', usage: 'Main brand color' },
+        { id: '2', name: 'Secondary', hex: '#e94560', usage: 'Accent and CTAs' },
+        { id: '3', name: 'Background', hex: '#f8f7f4', usage: 'Light backgrounds' },
+      ]
+    : [
+        { id: '1', name: 'Primary', hex: '#2563eb', usage: 'Main product color' },
+        { id: '2', name: 'Secondary', hex: '#10b981', usage: 'Accent and CTAs' },
+        { id: '3', name: 'Background', hex: '#f8fafc', usage: 'Light backgrounds' },
+      ],
+  colorCombinations: [],
+  gradients: [],
+  patterns: [],
+  typography: [
+    { id: '1', name: 'Heading', fontFamily: 'Poppins, sans-serif', weight: '600', usage: 'Headlines and titles' },
+    { id: '2', name: 'Body', fontFamily: 'Poppins, sans-serif', weight: '400', usage: 'Body text' },
+  ],
+  textStyles: [],
+  iconography: [],
+  socialIcons: [],
+  imagery: [],
+  social: [],
+  signatures: [],
+  qr: { 
+    defaultUrl: type === 'brand' ? 'https://yourbrand.com' : 'https://yourproduct.com', 
+    fgColor: type === 'brand' ? '#1a1a2e' : '#2563eb', 
+    bgColor: '#ffffff' 
+  },
+  assets: [],
+  misuse: [],
+  atmosphere: { style: 'gradient', animate: true, opacity: 0.5, blur: 0 },
+  caseStudies: [],
+  brochures: [],
+  templates: [],
+});
+
+const dbToBrandGuide = (db: DbBrand): BrandGuide => {
+  const guideData = db.guide_data as Record<string, unknown>;
+  return {
+    id: db.id,
+    type: 'brand',
+    isFavorite: db.is_favorite,
+    sectionOrder: db.section_order as BrandGuide['sectionOrder'] ?? DEFAULT_SECTION_ORDER,
+    hiddenSections: db.hidden_sections as BrandGuide['hiddenSections'] ?? [],
+    hero: (guideData.hero as BrandGuide['hero']) ?? { name: db.name, tagline: '', coverImage: '', logoUrl: '' },
+    identity: (guideData.identity as BrandGuide['identity']) ?? { missionStatement: '', archetype: '', toneOfVoice: [] },
+    values: (guideData.values as BrandGuide['values']) ?? [],
+    logos: (guideData.logos as BrandGuide['logos']) ?? [],
+    brandIcons: (guideData.brandIcons as BrandGuide['brandIcons']) ?? [],
+    colors: (guideData.colors as BrandGuide['colors']) ?? [],
+    colorCombinations: (guideData.colorCombinations as BrandGuide['colorCombinations']) ?? [],
+    gradients: (guideData.gradients as BrandGuide['gradients']) ?? [],
+    patterns: (guideData.patterns as BrandGuide['patterns']) ?? [],
+    typography: (guideData.typography as BrandGuide['typography']) ?? [],
+    textStyles: (guideData.textStyles as BrandGuide['textStyles']) ?? [],
+    iconography: (guideData.iconography as BrandGuide['iconography']) ?? [],
+    socialIcons: (guideData.socialIcons as BrandGuide['socialIcons']) ?? [],
+    imagery: (guideData.imagery as BrandGuide['imagery']) ?? [],
+    social: (guideData.social as BrandGuide['social']) ?? [],
+    signatures: (guideData.signatures as BrandGuide['signatures']) ?? [],
+    qr: (guideData.qr as BrandGuide['qr']) ?? { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' },
+    assets: (guideData.assets as BrandGuide['assets']) ?? [],
+    misuse: (guideData.misuse as BrandGuide['misuse']) ?? [],
+    atmosphere: (guideData.atmosphere as BrandGuide['atmosphere']) ?? { style: 'gradient', animate: true, opacity: 0.5, blur: 0 },
+    caseStudies: (guideData.caseStudies as BrandGuide['caseStudies']) ?? [],
+    brochures: (guideData.brochures as BrandGuide['brochures']) ?? [],
+    templates: (guideData.templates as BrandGuide['templates']) ?? [],
+    createdAt: new Date(db.created_at),
+    updatedAt: new Date(db.updated_at),
+  };
+};
+
+const dbToProductGuide = (db: DbProduct): ProductGuide => {
+  const guideData = db.guide_data as Record<string, unknown>;
+  return {
+    id: db.id,
+    type: 'product',
+    parentBrandId: db.parent_brand_id ?? undefined,
+    isFavorite: db.is_favorite,
+    sectionOrder: db.section_order as ProductGuide['sectionOrder'] ?? DEFAULT_SECTION_ORDER,
+    hiddenSections: db.hidden_sections as ProductGuide['hiddenSections'] ?? [],
+    hero: (guideData.hero as ProductGuide['hero']) ?? { name: db.name, tagline: '', coverImage: '', logoUrl: '' },
+    identity: (guideData.identity as ProductGuide['identity']) ?? { missionStatement: '', archetype: '', toneOfVoice: [] },
+    values: (guideData.values as ProductGuide['values']) ?? [],
+    logos: (guideData.logos as ProductGuide['logos']) ?? [],
+    brandIcons: (guideData.brandIcons as ProductGuide['brandIcons']) ?? [],
+    colors: (guideData.colors as ProductGuide['colors']) ?? [],
+    colorCombinations: (guideData.colorCombinations as ProductGuide['colorCombinations']) ?? [],
+    gradients: (guideData.gradients as ProductGuide['gradients']) ?? [],
+    patterns: (guideData.patterns as ProductGuide['patterns']) ?? [],
+    typography: (guideData.typography as ProductGuide['typography']) ?? [],
+    textStyles: (guideData.textStyles as ProductGuide['textStyles']) ?? [],
+    iconography: (guideData.iconography as ProductGuide['iconography']) ?? [],
+    socialIcons: (guideData.socialIcons as ProductGuide['socialIcons']) ?? [],
+    imagery: (guideData.imagery as ProductGuide['imagery']) ?? [],
+    social: (guideData.social as ProductGuide['social']) ?? [],
+    signatures: (guideData.signatures as ProductGuide['signatures']) ?? [],
+    qr: (guideData.qr as ProductGuide['qr']) ?? { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' },
+    assets: (guideData.assets as ProductGuide['assets']) ?? [],
+    misuse: (guideData.misuse as ProductGuide['misuse']) ?? [],
+    atmosphere: (guideData.atmosphere as ProductGuide['atmosphere']) ?? { style: 'gradient', animate: true, opacity: 0.5, blur: 0 },
+    caseStudies: (guideData.caseStudies as ProductGuide['caseStudies']) ?? [],
+    brochures: (guideData.brochures as ProductGuide['brochures']) ?? [],
+    templates: (guideData.templates as ProductGuide['templates']) ?? [],
+    createdAt: new Date(db.created_at),
+    updatedAt: new Date(db.updated_at),
+  };
+};
+
+const brandGuideToDb = (brand: Partial<BrandGuide>, userId: string) => {
+  const { id, type, isFavorite, sectionOrder, hiddenSections, createdAt, updatedAt, ...guideData } = brand as BrandGuide;
+  return {
+    user_id: userId,
+    name: guideData.hero?.name ?? 'My Brand',
+    is_favorite: isFavorite ?? false,
+    section_order: (sectionOrder as string[] | null) ?? null,
+    hidden_sections: (hiddenSections as string[] | null) ?? null,
+    guide_data: guideData as unknown as Json,
+  };
+};
+
+const productGuideToDb = (product: Partial<ProductGuide>, userId: string) => {
+  const { id, type, parentBrandId, isFavorite, sectionOrder, hiddenSections, createdAt, updatedAt, ...guideData } = product as ProductGuide;
+  return {
+    user_id: userId,
+    parent_brand_id: parentBrandId ?? null,
+    name: guideData.hero?.name ?? 'My Product',
+    is_favorite: isFavorite ?? false,
+    section_order: (sectionOrder as string[] | null) ?? null,
+    hidden_sections: (hiddenSections as string[] | null) ?? null,
+    guide_data: guideData as unknown as Json,
+  };
+};
+
+export const useBrandStorage = () => {
+  const { user } = useAuth();
+  const [brands, setBrands] = useState<BrandGuide[]>([]);
+  const [products, setProducts] = useState<ProductGuide[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch brands and products
+  const fetchData = useCallback(async () => {
+    if (!user) {
+      setBrands([]);
+      setProducts([]);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const [brandsRes, productsRes] = await Promise.all([
+        supabase.from('brands').select('*').order('created_at', { ascending: false }),
+        supabase.from('products').select('*').order('created_at', { ascending: false }),
+      ]);
+
+      if (brandsRes.error) throw brandsRes.error;
+      if (productsRes.error) throw productsRes.error;
+
+      setBrands((brandsRes.data as DbBrand[]).map(dbToBrandGuide));
+      setProducts((productsRes.data as DbProduct[]).map(dbToProductGuide));
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const addBrand = async (name: string): Promise<BrandGuide | null> => {
+    if (!user) return null;
+
+    const guideData = createDefaultGuideData(name, 'brand');
+    const dbData = {
+      user_id: user.id,
+      name,
+      is_favorite: false,
+      section_order: DEFAULT_SECTION_ORDER as string[],
+      hidden_sections: [] as string[],
+      guide_data: guideData as unknown as Json,
+    };
+
+    const { data, error } = await supabase
+      .from('brands')
+      .insert(dbData)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating brand:', error);
+      return null;
+    }
+
+    const newBrand = dbToBrandGuide(data as DbBrand);
+    setBrands(prev => [newBrand, ...prev]);
+    return newBrand;
+  };
+
+  const addProduct = async (name: string, parentBrandId?: string): Promise<ProductGuide | null> => {
+    if (!user) return null;
+
+    const guideData = createDefaultGuideData(name, 'product');
+    const dbData = {
+      user_id: user.id,
+      parent_brand_id: parentBrandId ?? null,
+      name,
+      is_favorite: false,
+      section_order: DEFAULT_SECTION_ORDER as string[],
+      hidden_sections: [] as string[],
+      guide_data: guideData as unknown as Json,
+    };
+
+    const { data, error } = await supabase
+      .from('products')
+      .insert(dbData)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating product:', error);
+      return null;
+    }
+
+    const newProduct = dbToProductGuide(data as DbProduct);
+    setProducts(prev => [newProduct, ...prev]);
+    return newProduct;
+  };
+
+  const updateBrand = async (id: string, updates: Partial<BrandGuide>) => {
+    if (!user) return;
+
+    // Get current brand to merge updates
+    const currentBrand = brands.find(b => b.id === id);
+    if (!currentBrand) return;
+
+    const merged = { ...currentBrand, ...updates };
+    const dbData = brandGuideToDb(merged, user.id);
+
+    const { error } = await supabase
+      .from('brands')
+      .update(dbData)
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating brand:', error);
+      return;
+    }
+
+    setBrands(prev => prev.map(brand =>
+      brand.id === id ? { ...brand, ...updates, updatedAt: new Date() } : brand
+    ));
+  };
+
+  const updateProduct = async (id: string, updates: Partial<ProductGuide>) => {
+    if (!user) return;
+
+    const currentProduct = products.find(p => p.id === id);
+    if (!currentProduct) return;
+
+    const merged = { ...currentProduct, ...updates };
+    const dbData = productGuideToDb(merged, user.id);
+
+    const { error } = await supabase
+      .from('products')
+      .update(dbData)
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating product:', error);
+      return;
+    }
+
+    setProducts(prev => prev.map(product =>
+      product.id === id ? { ...product, ...updates, updatedAt: new Date() } : product
+    ));
+  };
+
+  const deleteBrand = async (id: string) => {
+    if (!user || brands.length <= 1) return;
+
+    const { error } = await supabase
+      .from('brands')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting brand:', error);
+      return;
+    }
+
+    setBrands(prev => prev.filter(b => b.id !== id));
+  };
+
+  const deleteProduct = async (id: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting product:', error);
+      return;
+    }
+
+    setProducts(prev => prev.filter(p => p.id !== id));
+  };
+
+  const getBrand = (id: string) => brands.find(b => b.id === id);
+  const getProduct = (id: string) => products.find(p => p.id === id);
+
+  const getRecentlyUpdated = () => {
+    const all = [...brands, ...products];
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    return all
+      .filter(item => item.updatedAt >= oneDayAgo)
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+      .slice(0, 5);
+  };
+
+  const toggleFavorite = async (id: string, type: 'brand' | 'product') => {
+    if (!user) return;
+
+    if (type === 'brand') {
+      const brand = brands.find(b => b.id === id);
+      if (!brand) return;
+      await updateBrand(id, { isFavorite: !brand.isFavorite });
+    } else {
+      const product = products.find(p => p.id === id);
+      if (!product) return;
+      await updateProduct(id, { isFavorite: !product.isFavorite });
+    }
+  };
+
+  const getFavorites = () => {
+    const all = [...brands, ...products];
+    return all.filter(item => item.isFavorite);
+  };
+
+  return {
+    brands,
+    products,
+    isLoading,
+    addBrand,
+    addProduct,
+    updateBrand,
+    updateProduct,
+    deleteBrand,
+    deleteProduct,
+    getBrand,
+    getProduct,
+    getRecentlyUpdated,
+    toggleFavorite,
+    getFavorites,
+    refetch: fetchData,
+  };
+};

@@ -33,8 +33,8 @@ import { BaseGuide } from '@/types/brand';
 
 const BrandsIndex = () => {
   const navigate = useNavigate();
-  const { brands, products, addBrand, addProduct, deleteBrand, deleteProduct, updateBrand, updateProduct, getRecentlyUpdated, toggleFavorite, getFavorites } = useBrands();
-  const { user, isAdmin, signOut } = useAuth();
+  const { brands, products, addBrand, addProduct, deleteBrand, deleteProduct, updateBrand, updateProduct, getRecentlyUpdated, toggleFavorite, getFavorites, isLoading } = useBrands();
+  const { user, isAdmin, signOut, isLoading: authLoading } = useAuth();
   const { settings } = useAppSettings();
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -46,18 +46,51 @@ const BrandsIndex = () => {
   const recentlyUpdated = getRecentlyUpdated();
   const favorites = getFavorites();
 
-  const handleCreateItem = () => {
+  // Show loading state
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="p-4 bg-accent/10 rounded-2xl w-fit mx-auto animate-pulse">
+            <Sparkles className="h-8 w-8 text-accent" />
+          </div>
+          <p className="text-muted-foreground">Loading your brands...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to auth if not logged in
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4 max-w-md mx-auto p-8">
+          <div className="p-4 bg-accent/10 rounded-2xl w-fit mx-auto">
+            <Lock className="h-8 w-8 text-accent" />
+          </div>
+          <h1 className="text-2xl font-semibold text-foreground">Sign in to BrandForge</h1>
+          <p className="text-muted-foreground">Create and manage your brand guides securely.</p>
+          <Button onClick={() => navigate('/auth')} className="gap-2">
+            <Lock className="h-4 w-4" />
+            Sign In
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const handleCreateItem = async () => {
     if (newItemName.trim()) {
       if (newItemType === 'brand') {
-        const brand = addBrand(newItemName.trim());
+        const brand = await addBrand(newItemName.trim());
         setNewItemName('');
         setIsNewDialogOpen(false);
-        navigate(`/brand/${brand.id}`);
+        if (brand) navigate(`/brand/${brand.id}`);
       } else {
-        const product = addProduct(newItemName.trim());
+        const product = await addProduct(newItemName.trim());
         setNewItemName('');
         setIsNewDialogOpen(false);
-        navigate(`/product/${product.id}`);
+        if (product) navigate(`/product/${product.id}`);
       }
     }
   };
