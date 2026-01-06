@@ -197,7 +197,7 @@ const BrandEditor = () => {
                   <TooltipContent>Back to Brands</TooltipContent>
                 </Tooltip>
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-accent/10 rounded-lg hover-scale cursor-pointer animate-bounce-gentle">
+                  <div className="p-1.5 bg-accent/10 rounded-lg hover-scale cursor-pointer">
                     <Sparkles className="h-4 w-4 text-accent" />
                   </div>
                   <span className="font-semibold text-foreground hidden sm:inline">BrandForge</span>
