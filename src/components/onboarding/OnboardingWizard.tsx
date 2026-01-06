@@ -116,7 +116,7 @@ export const OnboardingWizard = () => {
       
       toast({
         title: 'Setup Complete!',
-        description: 'Your workspace is ready. Welcome to BrandForge!',
+        description: 'Your workspace is ready. Welcome to BrandHub!',
       });
       
       navigate('/');
@@ -142,7 +142,7 @@ export const OnboardingWizard = () => {
             <div className="p-2 bg-primary/10 rounded-xl">
               <Sparkles className="h-6 w-6 text-primary" />
             </div>
-            <span className="font-semibold text-xl">BrandForge</span>
+            <span className="font-semibold text-xl">BrandHub</span>
           </div>
           <div className="text-sm text-muted-foreground">
             Step {step} of 4

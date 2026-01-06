@@ -16,7 +16,7 @@ interface OnboardingStep4Props {
 export const OnboardingStep4 = ({ data, onUpdate, onBack, onComplete, isLoading }: OnboardingStep4Props) => {
   const summaryItems = [
     { label: 'Organization', value: data.organizationName },
-    { label: 'Workspace URL', value: `${data.slug}.brandforge.app` },
+    { label: 'Workspace URL', value: `${data.slug}.brandhub.app` },
     { label: 'Custom Domain', value: data.customDomain || 'Not configured' },
     { label: 'White-label', value: data.hidePlatformBranding ? 'Enabled' : 'Disabled' },
   ];
@@ -75,7 +75,7 @@ export const OnboardingStep4 = ({ data, onUpdate, onBack, onComplete, isLoading 
           <ul className="text-sm text-muted-foreground space-y-2">
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">→</span>
-              <span>Your workspace will be created at <strong>{data.slug}.brandforge.app</strong></span>
+              <span>Your workspace will be created at <strong>{data.slug}.brandhub.app</strong></span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">→</span>

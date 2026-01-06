@@ -72,7 +72,7 @@ const defaultPageSections: PageSectionVisibility = {
 };
 
 const defaultSettings: AppSettings = {
-  appName: 'BrandForge',
+  appName: 'BrandHub',
   appLogo: '',
   heroTitle: 'Create stunning',
   heroHighlight: 'brand guides',
@@ -91,7 +91,7 @@ interface AppSettingsContextType {
 
 const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'brandforge-app-settings';
+const STORAGE_KEY = 'brandhub-app-settings';
 
 // Convert hex to HSL
 const hexToHSL = (hex: string): string => {

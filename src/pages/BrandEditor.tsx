@@ -279,7 +279,7 @@ const BrandEditor = () => {
                   <div className="p-1.5 bg-accent/10 rounded-lg hover-scale cursor-pointer">
                     <Sparkles className="h-4 w-4 text-accent" />
                   </div>
-                  <span className="font-semibold text-foreground hidden sm:inline">BrandForge</span>
+                  <span className="font-semibold text-foreground hidden sm:inline">BrandHub</span>
                 </div>
                 <div className="h-6 w-px bg-border mx-2 hidden sm:block" />
                 <div className="flex items-center gap-2">
