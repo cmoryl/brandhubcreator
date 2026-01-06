@@ -19,6 +19,13 @@ export interface HeroBackground {
   overlayOpacity: number;
 }
 
+export interface PageSectionVisibility {
+  features: boolean;
+  howItWorks: boolean;
+  faqPreview: boolean;
+  videoTutorials: boolean;
+}
+
 export interface AppSettings {
   appName: string;
   appLogo: string;
@@ -28,6 +35,7 @@ export interface AppSettings {
   heroBadgeText: string;
   colors: ThemeColors;
   heroBackground: HeroBackground;
+  pageSections: PageSectionVisibility;
 }
 
 const defaultColors: ThemeColors = {
@@ -47,6 +55,13 @@ const defaultHeroBackground: HeroBackground = {
   overlayOpacity: 0.5,
 };
 
+const defaultPageSections: PageSectionVisibility = {
+  features: true,
+  howItWorks: true,
+  faqPreview: true,
+  videoTutorials: false, // Hidden by default until fine-tuned
+};
+
 const defaultSettings: AppSettings = {
   appName: 'BrandForge',
   appLogo: '',
@@ -56,6 +71,7 @@ const defaultSettings: AppSettings = {
   heroBadgeText: 'Brand Identity Platform',
   colors: defaultColors,
   heroBackground: defaultHeroBackground,
+  pageSections: defaultPageSections,
 };
 
 interface AppSettingsContextType {
@@ -150,7 +166,8 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
           ...defaultSettings, 
           ...parsed, 
           colors: { ...defaultColors, ...parsed.colors },
-          heroBackground: { ...defaultHeroBackground, ...parsed.heroBackground }
+          heroBackground: { ...defaultHeroBackground, ...parsed.heroBackground },
+          pageSections: { ...defaultPageSections, ...parsed.pageSections }
         };
       }
     } catch (e) {

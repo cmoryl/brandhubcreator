@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, BookOpen, HelpCircle, Lightbulb, Search, CreditCard, Plug, Users, Globe, Shield, Play, Video, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 import {
   Accordion,
   AccordionContent,
@@ -248,6 +249,8 @@ const faqs = [
 const KnowledgeBase = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedVideo, setSelectedVideo] = useState<typeof tutorials[0] | null>(null);
+  const { settings } = useAppSettings();
+  
   const filteredFaqs = faqs.map(category => ({
     ...category,
     questions: category.questions.filter(
@@ -297,47 +300,49 @@ const KnowledgeBase = () => {
       </section>
 
       {/* Video Tutorials Section */}
-      <section className="py-12 px-6 bg-muted/30">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="p-3 bg-accent/10 rounded-xl w-fit mx-auto mb-4">
-              <Video className="h-6 w-6 text-accent" />
+      {settings.pageSections?.videoTutorials && (
+        <section className="py-12 px-6 bg-muted/30">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-8">
+              <div className="p-3 bg-accent/10 rounded-xl w-fit mx-auto mb-4">
+                <Video className="h-6 w-6 text-accent" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Video Tutorials</h2>
+              <p className="text-muted-foreground">
+                Watch step-by-step guides to master BrandForge quickly.
+              </p>
             </div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">Video Tutorials</h2>
-            <p className="text-muted-foreground">
-              Watch step-by-step guides to master BrandForge quickly.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {tutorials.map((tutorial) => (
-              <Card 
-                key={tutorial.id}
-                className="overflow-hidden border-border/50 hover:shadow-lg transition-shadow cursor-pointer group"
-                onClick={() => setSelectedVideo(tutorial)}
-              >
-                <div className="aspect-video bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center relative overflow-hidden">
-                  <video 
-                    src={tutorial.video} 
-                    className="absolute inset-0 w-full h-full object-cover opacity-60"
-                    muted
-                    playsInline
-                  />
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
-                  <div className="relative w-16 h-16 rounded-full bg-accent/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Play className="h-8 w-8 text-accent-foreground ml-1" />
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {tutorials.map((tutorial) => (
+                <Card 
+                  key={tutorial.id}
+                  className="overflow-hidden border-border/50 hover:shadow-lg transition-shadow cursor-pointer group"
+                  onClick={() => setSelectedVideo(tutorial)}
+                >
+                  <div className="aspect-video bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center relative overflow-hidden">
+                    <video 
+                      src={tutorial.video} 
+                      className="absolute inset-0 w-full h-full object-cover opacity-60"
+                      muted
+                      playsInline
+                    />
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
+                    <div className="relative w-16 h-16 rounded-full bg-accent/90 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Play className="h-8 w-8 text-accent-foreground ml-1" />
+                    </div>
                   </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-foreground mb-1">{tutorial.title}</h3>
-                  <p className="text-sm text-muted-foreground">{tutorial.description}</p>
-                  <p className="text-xs text-muted-foreground mt-2">{tutorial.duration}</p>
-                </div>
-              </Card>
-            ))}
+                  <div className="p-4">
+                    <h3 className="font-semibold text-foreground mb-1">{tutorial.title}</h3>
+                    <p className="text-sm text-muted-foreground">{tutorial.description}</p>
+                    <p className="text-xs text-muted-foreground mt-2">{tutorial.duration}</p>
+                  </div>
+                </Card>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* FAQ Content */}
       <section className="py-12 px-6">

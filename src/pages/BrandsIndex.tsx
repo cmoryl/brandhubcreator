@@ -829,136 +829,142 @@ const BrandsIndex = () => {
       </Dialog>
 
       {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 border-t border-border/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Everything you need for brand consistency</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Create comprehensive brand guides that keep your team aligned and your brand consistent across every touchpoint.
-            </p>
+      {settings.pageSections?.features !== false && (
+        <section className="py-20 px-4 sm:px-6 lg:px-8 border-t border-border/30">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-foreground mb-4">Everything you need for brand consistency</h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Create comprehensive brand guides that keep your team aligned and your brand consistent across every touchpoint.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
+                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
+                  <Palette className="h-6 w-6 text-accent" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Color Systems</h3>
+                <p className="text-sm text-muted-foreground">Define primary, secondary, and accent colors with hex, RGB, and HSL values.</p>
+              </Card>
+              
+              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
+                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
+                  <Type className="h-6 w-6 text-accent" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Typography</h3>
+                <p className="text-sm text-muted-foreground">Document fonts, sizes, weights, and usage guidelines for consistent text styling.</p>
+              </Card>
+              
+              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
+                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
+                  <Image className="h-6 w-6 text-accent" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Logo & Assets</h3>
+                <p className="text-sm text-muted-foreground">Upload logos, icons, and brand assets with usage guidelines and variations.</p>
+              </Card>
+              
+              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
+                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
+                  <Share2 className="h-6 w-6 text-accent" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Easy Sharing</h3>
+                <p className="text-sm text-muted-foreground">Share brand guides publicly with a link. No login required for viewers.</p>
+              </Card>
+            </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
-              <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
-                <Palette className="h-6 w-6 text-accent" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">Color Systems</h3>
-              <p className="text-sm text-muted-foreground">Define primary, secondary, and accent colors with hex, RGB, and HSL values.</p>
-            </Card>
-            
-            <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
-              <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
-                <Type className="h-6 w-6 text-accent" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">Typography</h3>
-              <p className="text-sm text-muted-foreground">Document fonts, sizes, weights, and usage guidelines for consistent text styling.</p>
-            </Card>
-            
-            <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
-              <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
-                <Image className="h-6 w-6 text-accent" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">Logo & Assets</h3>
-              <p className="text-sm text-muted-foreground">Upload logos, icons, and brand assets with usage guidelines and variations.</p>
-            </Card>
-            
-            <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
-              <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
-                <Share2 className="h-6 w-6 text-accent" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">Easy Sharing</h3>
-              <p className="text-sm text-muted-foreground">Share brand guides publicly with a link. No login required for viewers.</p>
-            </Card>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* How It Works Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="p-3 bg-accent/10 rounded-xl w-fit mx-auto mb-4">
-              <Zap className="h-6 w-6 text-accent" />
-            </div>
-            <h2 className="text-3xl font-bold text-foreground mb-4">How It Works</h2>
-            <p className="text-lg text-muted-foreground">
-              Create your professional brand guide in three simple steps.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                1
+      {settings.pageSections?.howItWorks !== false && (
+        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <div className="p-3 bg-accent/10 rounded-xl w-fit mx-auto mb-4">
+                <Zap className="h-6 w-6 text-accent" />
               </div>
-              <h3 className="font-semibold text-foreground text-lg mb-2">Create Your Brand</h3>
-              <p className="text-muted-foreground">
-                Sign in and click "New Brand" to start building your brand guide. Give it a name and you are ready to go.
+              <h2 className="text-3xl font-bold text-foreground mb-4">How It Works</h2>
+              <p className="text-lg text-muted-foreground">
+                Create your professional brand guide in three simple steps.
               </p>
             </div>
             
-            <div className="text-center">
-              <div className="w-12 h-12 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                2
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                  1
+                </div>
+                <h3 className="font-semibold text-foreground text-lg mb-2">Create Your Brand</h3>
+                <p className="text-muted-foreground">
+                  Sign in and click "New Brand" to start building your brand guide. Give it a name and you are ready to go.
+                </p>
               </div>
-              <h3 className="font-semibold text-foreground text-lg mb-2">Add Your Elements</h3>
-              <p className="text-muted-foreground">
-                Define your colors, typography, logos, imagery guidelines, and all the elements that make your brand unique.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-12 h-12 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                3
+              
+              <div className="text-center">
+                <div className="w-12 h-12 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                  2
+                </div>
+                <h3 className="font-semibold text-foreground text-lg mb-2">Add Your Elements</h3>
+                <p className="text-muted-foreground">
+                  Define your colors, typography, logos, imagery guidelines, and all the elements that make your brand unique.
+                </p>
               </div>
-              <h3 className="font-semibold text-foreground text-lg mb-2">Share With Your Team</h3>
-              <p className="text-muted-foreground">
-                Share your brand guide link with anyone. They can view it instantly without needing an account.
-              </p>
+              
+              <div className="text-center">
+                <div className="w-12 h-12 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                  3
+                </div>
+                <h3 className="font-semibold text-foreground text-lg mb-2">Share With Your Team</h3>
+                <p className="text-muted-foreground">
+                  Share your brand guide link with anyone. They can view it instantly without needing an account.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* FAQ Preview Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="p-3 bg-accent/10 rounded-xl w-fit mx-auto mb-4">
-              <HelpCircle className="h-6 w-6 text-accent" />
+      {settings.pageSections?.faqPreview !== false && (
+        <section className="py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <div className="p-3 bg-accent/10 rounded-xl w-fit mx-auto mb-4">
+                <HelpCircle className="h-6 w-6 text-accent" />
+              </div>
+              <h2 className="text-3xl font-bold text-foreground mb-4">Frequently Asked Questions</h2>
+              <p className="text-lg text-muted-foreground">
+                Quick answers to common questions about BrandForge.
+              </p>
             </div>
-            <h2 className="text-3xl font-bold text-foreground mb-4">Frequently Asked Questions</h2>
-            <p className="text-lg text-muted-foreground">
-              Quick answers to common questions about BrandForge.
-            </p>
-          </div>
-          
-          <div className="grid gap-4 mb-8">
-            <Card className="p-6 border-border/50">
-              <h3 className="font-semibold text-foreground mb-2">What is BrandForge?</h3>
-              <p className="text-muted-foreground">BrandForge is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines.</p>
-            </Card>
             
-            <Card className="p-6 border-border/50">
-              <h3 className="font-semibold text-foreground mb-2">Can I share my brand guide publicly?</h3>
-              <p className="text-muted-foreground">Yes! All brand guides are publicly viewable by default. Share the link with your team, clients, or stakeholders.</p>
-            </Card>
+            <div className="grid gap-4 mb-8">
+              <Card className="p-6 border-border/50">
+                <h3 className="font-semibold text-foreground mb-2">What is BrandForge?</h3>
+                <p className="text-muted-foreground">BrandForge is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines.</p>
+              </Card>
+              
+              <Card className="p-6 border-border/50">
+                <h3 className="font-semibold text-foreground mb-2">Can I share my brand guide publicly?</h3>
+                <p className="text-muted-foreground">Yes! All brand guides are publicly viewable by default. Share the link with your team, clients, or stakeholders.</p>
+              </Card>
+              
+              <Card className="p-6 border-border/50">
+                <h3 className="font-semibold text-foreground mb-2">What sections can I include?</h3>
+                <p className="text-muted-foreground">Colors, typography, logos, imagery, patterns, gradients, icons, social media guidelines, templates, and much more.</p>
+              </Card>
+            </div>
             
-            <Card className="p-6 border-border/50">
-              <h3 className="font-semibold text-foreground mb-2">What sections can I include?</h3>
-              <p className="text-muted-foreground">Colors, typography, logos, imagery, patterns, gradients, icons, social media guidelines, templates, and much more.</p>
-            </Card>
+            <div className="text-center">
+              <Button variant="outline" onClick={() => navigate('/knowledge')} className="gap-2">
+                <BookOpen className="h-4 w-4" />
+                View All FAQs
+              </Button>
+            </div>
           </div>
-          
-          <div className="text-center">
-            <Button variant="outline" onClick={() => navigate('/knowledge')} className="gap-2">
-              <BookOpen className="h-4 w-4" />
-              View All FAQs
-            </Button>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-border/30">
