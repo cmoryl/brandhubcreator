@@ -75,7 +75,7 @@ export const OnboardingStep1 = ({ data, onUpdate, onNext, isLoading }: Onboardin
                 className="rounded-l-none h-12 text-base"
               />
               <span className="text-muted-foreground text-sm bg-muted px-3 py-3 rounded-r-md border border-l-0 border-input h-12 flex items-center">
-                .brandforge.app
+                .brandhub.app
               </span>
             </div>
           </div>

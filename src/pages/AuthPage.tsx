@@ -130,7 +130,7 @@ const AuthPage = () => {
               <div className="p-2 bg-accent/10 rounded-xl">
                 <Sparkles className="h-5 w-5 text-accent" />
               </div>
-              <span className="font-semibold text-xl text-foreground">BrandForge</span>
+              <span className="font-semibold text-xl text-foreground">BrandHub</span>
             </div>
           </div>
           <ThemeToggle />

@@ -944,14 +944,14 @@ const BrandsIndex = () => {
               </div>
               <h2 className="text-3xl font-bold text-foreground mb-4">Frequently Asked Questions</h2>
               <p className="text-lg text-muted-foreground">
-                Quick answers to common questions about BrandForge.
+                Quick answers to common questions about BrandHub.
               </p>
             </div>
             
             <div className="grid gap-4 mb-8">
               <Card className="p-6 border-border/50">
-                <h3 className="font-semibold text-foreground mb-2">What is BrandForge?</h3>
-                <p className="text-muted-foreground">BrandForge is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines.</p>
+                <h3 className="font-semibold text-foreground mb-2">What is BrandHub?</h3>
+                <p className="text-muted-foreground">BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines.</p>
               </Card>
               
               <Card className="p-6 border-border/50">

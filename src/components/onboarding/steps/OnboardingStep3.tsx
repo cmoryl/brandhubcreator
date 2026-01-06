@@ -49,9 +49,9 @@ export const OnboardingStep3 = ({ data, onUpdate, onBack, onNext, isLoading }: O
               <EyeOff className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
-              <Label className="text-base font-medium">Hide BrandForge Branding</Label>
+              <Label className="text-base font-medium">Hide BrandHub Branding</Label>
               <p className="text-sm text-muted-foreground">
-                Remove all "Powered by BrandForge" references
+                Remove all "Powered by BrandHub" references
               </p>
             </div>
           </div>
@@ -68,7 +68,7 @@ export const OnboardingStep3 = ({ data, onUpdate, onBack, onNext, isLoading }: O
             <li>• Your logo and colors throughout the app</li>
             <li>• Custom subdomain or your own domain</li>
             <li>• Branded email notifications (coming soon)</li>
-            <li>• Removal of all BrandForge references</li>
+            <li>• Removal of all BrandHub references</li>
             <li>• Custom favicon for browser tabs</li>
           </ul>
         </div>

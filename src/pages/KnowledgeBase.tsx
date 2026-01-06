@@ -77,8 +77,8 @@ const faqs = [
     icon: Lightbulb,
     questions: [
       {
-        q: "What is BrandForge?",
-        a: "BrandForge is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines. Create stunning brand books with colors, typography, logos, and more."
+        q: "What is BrandHub?",
+        a: "BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines. Create stunning brand books with colors, typography, logos, and more."
       },
       {
         q: "How do I create my first brand guide?",
@@ -96,7 +96,7 @@ const faqs = [
     questions: [
       {
         q: "What sections can I include in my brand guide?",
-        a: "BrandForge supports many sections including: Hero/Cover, Identity & Mission, Color Palette, Typography, Logo Usage, Imagery Guidelines, Patterns, Gradients, Icons, Social Media, Templates, and more."
+        a: "BrandHub supports many sections including: Hero/Cover, Identity & Mission, Color Palette, Typography, Logo Usage, Imagery Guidelines, Patterns, Gradients, Icons, Social Media, Templates, and more."
       },
       {
         q: "How do I add custom colors to my palette?",
@@ -153,8 +153,8 @@ const faqs = [
     icon: CreditCard,
     questions: [
       {
-        q: "Is BrandForge free to use?",
-        a: "BrandForge offers a free tier with essential features. You can create and share brand guides at no cost. Premium features and advanced capabilities are available on paid plans."
+        q: "Is BrandHub free to use?",
+        a: "BrandHub offers a free tier with essential features. You can create and share brand guides at no cost. Premium features and advanced capabilities are available on paid plans."
       },
       {
         q: "What's included in the free plan?",
@@ -205,7 +205,7 @@ const faqs = [
     icon: Plug,
     questions: [
       {
-        q: "Does BrandForge integrate with design tools?",
+        q: "Does BrandHub integrate with design tools?",
         a: "We're actively working on integrations with popular design tools like Figma, Sketch, and Adobe Creative Cloud. Stay tuned for updates!"
       },
       {
@@ -284,7 +284,7 @@ const KnowledgeBase = () => {
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Knowledge Base</h1>
           <p className="text-base sm:text-lg text-muted-foreground px-2">
-            Find answers to common questions and learn how to make the most of BrandForge.
+            Find answers to common questions and learn how to make the most of BrandHub.
           </p>
           
           {/* Search */}
@@ -310,7 +310,7 @@ const KnowledgeBase = () => {
               </div>
               <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Video Tutorials</h2>
               <p className="text-sm sm:text-base text-muted-foreground">
-                Watch step-by-step guides to master BrandForge quickly.
+                Watch step-by-step guides to master BrandHub quickly.
               </p>
             </div>
             
@@ -397,7 +397,7 @@ const KnowledgeBase = () => {
             Can't find what you're looking for? We're here to help.
           </p>
           <Button variant="outline" asChild>
-            <a href="mailto:support@brandforge.com">Contact Support</a>
+            <a href="mailto:support@brandhub.com">Contact Support</a>
           </Button>
         </div>
       </section>
