@@ -7,7 +7,16 @@ export interface ThemeColors {
   primaryForeground: string;
 }
 
-export type HeroBackgroundType = 'gradient' | 'image' | 'animated-gradient' | 'animated-particles';
+export type HeroBackgroundType = 
+  | 'gradient' 
+  | 'image' 
+  | 'animated-gradient' 
+  | 'animated-particles'
+  | 'animated-waves'
+  | 'animated-mesh'
+  | 'animated-aurora'
+  | 'animated-geometric'
+  | 'animated-spotlight';
 
 export interface HeroBackground {
   type: HeroBackgroundType;

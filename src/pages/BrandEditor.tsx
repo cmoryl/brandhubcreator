@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star } from 'lucide-react';
-import { SectionId, DEFAULT_SECTION_ORDER } from '@/types/brand';
+import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings } from '@/types/brand';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
@@ -31,6 +31,9 @@ import { BrochuresSection } from '@/components/brand/BrochuresSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
+import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
+import { HeroBackground } from '@/components/HeroBackground';
+import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -64,6 +67,49 @@ const BrandEditor = () => {
   
   const sectionOrder = brand?.sectionOrder || DEFAULT_SECTION_ORDER;
   const hiddenSections = brand?.hiddenSections || [];
+  const pageSettings = brand?.pageSettings || DEFAULT_PAGE_SETTINGS;
+
+  // Get content width class based on settings
+  const getContentWidthClass = () => {
+    switch (pageSettings.contentWidth) {
+      case 'wide': return 'max-w-6xl';
+      case 'full': return 'max-w-full px-4';
+      default: return 'max-w-5xl';
+    }
+  };
+
+  // Get section spacing class based on settings
+  const getSectionSpacingClass = () => {
+    switch (pageSettings.sectionSpacing) {
+      case 'compact': return 'space-y-4';
+      case 'spacious': return 'space-y-16';
+      default: return 'space-y-8';
+    }
+  };
+
+  // Get header style classes
+  const getHeaderClasses = () => {
+    const base = 'sticky top-0 z-40 animate-fade-in-down';
+    switch (pageSettings.headerStyle) {
+      case 'minimal': return `${base} bg-background border-b border-border`;
+      case 'transparent': return `${base} bg-transparent`;
+      default: return `${base} bg-background/80 backdrop-blur-lg border-b border-border`;
+    }
+  };
+
+  // Determine background type for brand page
+  const getBrandBackgroundType = (): HeroBackgroundType | undefined => {
+    if (pageSettings.backgroundType === 'inherit' || pageSettings.backgroundType === 'solid') {
+      return undefined;
+    }
+    return pageSettings.backgroundType as HeroBackgroundType;
+  };
+
+  const handlePageSettingsChange = useCallback((newSettings: BrandPageSettings) => {
+    if (brand) {
+      updateBrandContext(brand.id, { pageSettings: newSettings });
+    }
+  }, [brand, updateBrandContext]);
 
   // Show loading state
   if (authLoading || isLoading) {
@@ -159,9 +205,26 @@ const BrandEditor = () => {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-background flex">
+      <div className="min-h-screen bg-background flex relative">
+        {/* Brand-specific Background */}
+        {pageSettings.backgroundType !== 'inherit' && pageSettings.backgroundType !== 'solid' && (
+          <div className="fixed inset-0 z-0 pointer-events-none">
+            <HeroBackground 
+              type={getBrandBackgroundType()} 
+              image={pageSettings.backgroundImage}
+              animationSpeed={pageSettings.animationSpeed}
+            />
+          </div>
+        )}
+        {pageSettings.backgroundType === 'solid' && pageSettings.backgroundColor && (
+          <div 
+            className="fixed inset-0 z-0 pointer-events-none" 
+            style={{ backgroundColor: pageSettings.backgroundColor }}
+          />
+        )}
+
         {/* Desktop Sidebar - Sticky */}
-        <div className="hidden lg:block sticky top-0 h-screen">
+        <div className="hidden lg:block sticky top-0 h-screen z-10">
           <ReorderableBrandSidebar 
             activeSection={activeSection} 
             onSectionChange={handleSectionChange} 
@@ -191,9 +254,10 @@ const BrandEditor = () => {
         </Sheet>
 
         {/* Main content */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 relative z-10">
           {/* Header */}
-          <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border animate-fade-in-down">
+          {pageSettings.showHeader && (
+          <header className={getHeaderClasses()}>
             <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
@@ -245,6 +309,12 @@ const BrandEditor = () => {
                 </Tooltip>
                 <ShareButton guideId={brand.id} guideName={brand.hero.name} type="brand" />
                 <BrandAuditButton brand={brand} />
+                {isAdmin && (
+                  <BrandPageSettingsEditor 
+                    settings={pageSettings} 
+                    onSettingsChange={handlePageSettingsChange} 
+                  />
+                )}
                 <ExportPdfButton guide={brand} />
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
                   <Tooltip>
@@ -302,10 +372,11 @@ const BrandEditor = () => {
               </div>
             </div>
           </header>
+          )}
 
           {/* Content */}
           <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
-            <div className="max-w-5xl mx-auto animate-fade-in-up">
+            <div className={`${getContentWidthClass()} mx-auto animate-fade-in-up ${getSectionSpacingClass()}`}>
               {viewMode === 'sections' ? (
                 <div className="animate-zoom-in">
                   {renderSection()}

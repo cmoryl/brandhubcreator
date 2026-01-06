@@ -41,6 +41,11 @@ const backgroundTypes: { type: HeroBackgroundType; name: string; icon: typeof Im
   { type: 'image', name: 'Image', icon: Image, description: 'Custom background image' },
   { type: 'animated-gradient', name: 'Animated', icon: Waves, description: 'Animated gradient effect' },
   { type: 'animated-particles', name: 'Particles', icon: Sparkles, description: 'Floating particle effect' },
+  { type: 'animated-waves', name: 'Waves', icon: Waves, description: 'Flowing wave animation' },
+  { type: 'animated-mesh', name: 'Mesh', icon: LayoutGrid, description: 'Mesh gradient effect' },
+  { type: 'animated-aurora', name: 'Aurora', icon: Waves, description: 'Northern lights effect' },
+  { type: 'animated-geometric', name: 'Geometric', icon: LayoutGrid, description: 'Floating geometric shapes' },
+  { type: 'animated-spotlight', name: 'Spotlight', icon: Sparkles, description: 'Moving spotlight effect' },
 ];
 
 export const AppSettingsEditor = () => {
@@ -331,25 +336,27 @@ export const AppSettingsEditor = () => {
           <TabsContent value="background" className="space-y-4 py-4">
             <div className="space-y-3">
               <Label>Background Type</Label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {backgroundTypes.map((bg) => (
                   <button
                     key={bg.type}
                     onClick={() => setBackgroundType(bg.type)}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-colors ${
+                    className={`flex flex-col items-center gap-1.5 p-2.5 rounded-lg border-2 transition-colors ${
                       formData.heroBackground.type === bg.type
                         ? 'border-accent bg-accent/10'
                         : 'border-border hover:border-accent/50'
                     }`}
                   >
-                    <bg.icon className={`h-5 w-5 ${
+                    <bg.icon className={`h-4 w-4 ${
                       formData.heroBackground.type === bg.type ? 'text-accent' : 'text-muted-foreground'
                     }`} />
-                    <span className="text-sm font-medium">{bg.name}</span>
-                    <span className="text-xs text-muted-foreground text-center">{bg.description}</span>
+                    <span className="text-xs font-medium">{bg.name}</span>
                   </button>
                 ))}
               </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                {backgroundTypes.find(bg => bg.type === formData.heroBackground.type)?.description}
+              </p>
             </div>
 
             {formData.heroBackground.type === 'image' && (

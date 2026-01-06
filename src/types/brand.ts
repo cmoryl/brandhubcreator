@@ -162,6 +162,32 @@ export interface BrandAtmosphere {
   blur: number;
 }
 
+// PAGESETTINGS - Brand Page Display Settings
+export type BrandBackgroundType = 
+  | 'inherit' 
+  | 'gradient' 
+  | 'image' 
+  | 'animated-gradient' 
+  | 'animated-particles'
+  | 'animated-waves'
+  | 'animated-mesh'
+  | 'animated-aurora'
+  | 'animated-geometric'
+  | 'animated-spotlight'
+  | 'solid';
+
+export interface BrandPageSettings {
+  backgroundType: BrandBackgroundType;
+  backgroundImage: string;
+  backgroundColor: string;
+  accentColor: string;
+  animationSpeed: 'slow' | 'medium' | 'fast';
+  showHeader: boolean;
+  headerStyle: 'default' | 'minimal' | 'transparent';
+  contentWidth: 'default' | 'wide' | 'full';
+  sectionSpacing: 'compact' | 'default' | 'spacious';
+}
+
 // CASESTUDIES - Proof Shards
 export interface BrandCaseStudy {
   id: string;
@@ -186,6 +212,19 @@ export interface BrandTemplate {
   fileSize: string;
 }
 
+// Default page settings
+export const DEFAULT_PAGE_SETTINGS: BrandPageSettings = {
+  backgroundType: 'inherit',
+  backgroundImage: '',
+  backgroundColor: '',
+  accentColor: '',
+  animationSpeed: 'medium',
+  showHeader: true,
+  headerStyle: 'default',
+  contentWidth: 'default',
+  sectionSpacing: 'default',
+};
+
 // Base Guide interface shared by Brands and Products
 export interface BaseGuide {
   id: string;
@@ -195,6 +234,8 @@ export interface BaseGuide {
   sectionOrder?: SectionId[];
   // Hidden sections (admin can toggle visibility)
   hiddenSections?: SectionId[];
+  // Page display settings (individual brand customization)
+  pageSettings?: BrandPageSettings;
   // Hero
   hero: BrandHero;
   // Identity
