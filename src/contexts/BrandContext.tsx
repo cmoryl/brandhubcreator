@@ -8,8 +8,8 @@ interface BrandContextType {
   isLoading: boolean;
   addBrand: (name: string) => Promise<BrandGuide | null>;
   addProduct: (name: string, parentBrandId?: string) => Promise<ProductGuide | null>;
-  updateBrand: (id: string, updates: Partial<BrandGuide>) => Promise<void>;
-  updateProduct: (id: string, updates: Partial<ProductGuide>) => Promise<void>;
+  updateBrand: (id: string, updates: Partial<BrandGuide>) => void;
+  updateProduct: (id: string, updates: Partial<ProductGuide>) => void;
   deleteBrand: (id: string) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   getBrand: (id: string) => BrandGuide | undefined;
