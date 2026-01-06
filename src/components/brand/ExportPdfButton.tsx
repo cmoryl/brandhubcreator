@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { FileDown, Loader2, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseGuide, DEFAULT_SECTION_ORDER, SectionId } from '@/types/brand';
 import { exportToPdf } from '@/lib/exportPdf';
 import { getAllColorFormats } from '@/lib/colorUtils';
 import { toast } from 'sonner';
+import QRCode from 'qrcode';
 import {
   Dialog,
   DialogContent,
@@ -26,9 +27,26 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [pdfTheme, setPdfTheme] = useState<PdfTheme>('light');
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const exportRef = useRef<HTMLDivElement>(null);
 
   const sectionOrder = guide.sectionOrder || DEFAULT_SECTION_ORDER;
+
+  // Generate QR code when preview opens or QR settings change
+  useEffect(() => {
+    if (showPreview && guide.qr.defaultUrl) {
+      QRCode.toDataURL(guide.qr.defaultUrl, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: guide.qr.fgColor || '#000000',
+          light: guide.qr.bgColor || '#ffffff',
+        },
+      })
+        .then(setQrCodeDataUrl)
+        .catch(console.error);
+    }
+  }, [showPreview, guide.qr.defaultUrl, guide.qr.fgColor, guide.qr.bgColor]);
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -416,19 +434,32 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'qr':
         return (
           <div className={cn("py-8 border-b", t.border)} key="qr">
-            <h2 className={cn("text-2xl font-bold mb-4", t.text)}>QR Code Settings</h2>
-            <div className={cn("p-4 rounded-lg", t.card)}>
-              <p className={cn("mb-2", t.text)}>
-                <span className="font-medium">Default URL:</span> {guide.qr.defaultUrl}
-              </p>
-              <div className="flex gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded border" style={{ backgroundColor: guide.qr.fgColor }} />
-                  <span className={cn("text-sm", t.textMuted)}>Foreground: {guide.qr.fgColor}</span>
+            <h2 className={cn("text-2xl font-bold mb-4", t.text)}>QR Code</h2>
+            <div className={cn("p-4 rounded-lg flex items-start gap-6", t.card)}>
+              {/* Real QR Code Image */}
+              {qrCodeDataUrl && (
+                <div className="shrink-0">
+                  <img 
+                    src={qrCodeDataUrl} 
+                    alt="QR Code" 
+                    className="w-32 h-32 rounded border"
+                    style={{ borderColor: guide.qr.fgColor }}
+                  />
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded border" style={{ backgroundColor: guide.qr.bgColor }} />
-                  <span className={cn("text-sm", t.textMuted)}>Background: {guide.qr.bgColor}</span>
+              )}
+              <div className="flex-1">
+                <p className={cn("mb-3", t.text)}>
+                  <span className="font-medium">URL:</span> {guide.qr.defaultUrl}
+                </p>
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded border" style={{ backgroundColor: guide.qr.fgColor }} />
+                    <span className={cn("text-sm", t.textMuted)}>Foreground: {guide.qr.fgColor}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded border" style={{ backgroundColor: guide.qr.bgColor }} />
+                    <span className={cn("text-sm", t.textMuted)}>Background: {guide.qr.bgColor}</span>
+                  </div>
                 </div>
               </div>
             </div>
