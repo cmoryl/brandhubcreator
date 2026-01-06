@@ -288,6 +288,12 @@ export const useBrandStorage = () => {
       return;
     }
 
+    // Optimistic update - update UI immediately
+    setBrands(prev => prev.map(brand =>
+      brand.id === id ? { ...brand, ...updates, updatedAt: new Date() } : brand
+    ));
+
+    // Then sync to database in background
     const merged = { ...currentBrand, ...updates };
     const dbData = brandGuideToDb(merged, user.id);
 
@@ -299,12 +305,11 @@ export const useBrandStorage = () => {
     if (error) {
       console.error('Error updating brand:', error);
       toast.error('Failed to save changes. Please try again.');
-      return;
+      // Revert optimistic update on error
+      setBrands(prev => prev.map(brand =>
+        brand.id === id ? currentBrand : brand
+      ));
     }
-
-    setBrands(prev => prev.map(brand =>
-      brand.id === id ? { ...brand, ...updates, updatedAt: new Date() } : brand
-    ));
   };
 
   const updateProduct = async (id: string, updates: Partial<ProductGuide>) => {
@@ -319,6 +324,12 @@ export const useBrandStorage = () => {
       return;
     }
 
+    // Optimistic update - update UI immediately
+    setProducts(prev => prev.map(product =>
+      product.id === id ? { ...product, ...updates, updatedAt: new Date() } : product
+    ));
+
+    // Then sync to database in background
     const merged = { ...currentProduct, ...updates };
     const dbData = productGuideToDb(merged, user.id);
 
@@ -330,12 +341,11 @@ export const useBrandStorage = () => {
     if (error) {
       console.error('Error updating product:', error);
       toast.error('Failed to save changes. Please try again.');
-      return;
+      // Revert optimistic update on error
+      setProducts(prev => prev.map(product =>
+        product.id === id ? currentProduct : product
+      ));
     }
-
-    setProducts(prev => prev.map(product =>
-      product.id === id ? { ...product, ...updates, updatedAt: new Date() } : product
-    ));
   };
 
   const deleteBrand = async (id: string) => {
