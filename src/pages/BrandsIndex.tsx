@@ -57,6 +57,14 @@ const BrandsIndex = () => {
 
   const canEdit = user && isAdmin;
 
+  // Sort brands and products by most recently updated
+  const sortedBrands = [...brands].sort((a, b) => 
+    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  );
+  const sortedProducts = [...products].sort((a, b) => 
+    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  );
+
   // Onboarding redirect removed - users go straight to the main page
 
   // Show loading state
@@ -323,7 +331,7 @@ const BrandsIndex = () => {
           <TabsContent value="brands">
             {/* Brand Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {brands.map((brand, index) => (
+              {sortedBrands.map((brand, index) => (
                 <Card 
                   key={brand.id}
                   className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg hover-lift card-animate"
@@ -490,7 +498,7 @@ const BrandsIndex = () => {
           <TabsContent value="products">
             {/* Product Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product, index) => (
+              {sortedProducts.map((product, index) => (
                 <Card 
                   key={product.id}
                   className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg hover-lift card-animate"
