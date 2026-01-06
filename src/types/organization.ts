@@ -30,7 +30,7 @@ export interface OrganizationFeatures {
 export interface OrganizationMember {
   id: string;
   organizationId: string;
-  userId: string;
+  userId: string | null;
   role: 'owner' | 'admin' | 'member' | 'viewer';
   invitedEmail: string | null;
   inviteToken: string | null;

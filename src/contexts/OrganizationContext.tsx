@@ -12,6 +12,8 @@ interface OrganizationContextType {
   createOrganization: (name: string, slug: string) => Promise<Organization | null>;
   updateOrganization: (updates: Partial<Organization>) => Promise<void>;
   inviteMember: (email: string, role: OrganizationMember['role']) => Promise<void>;
+  acceptInvite: (inviteToken: string) => Promise<boolean>;
+  checkPendingInvite: () => Promise<OrganizationMember | null>;
   removeMember: (memberId: string) => Promise<void>;
   updateMemberRole: (memberId: string, role: OrganizationMember['role']) => Promise<void>;
   completeOnboarding: () => Promise<void>;
@@ -197,7 +199,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       .from('organization_members')
       .insert({
         organization_id: organization.id,
-        user_id: crypto.randomUUID(), // Placeholder until invite is accepted
+        user_id: null, // Will be set when invite is accepted
         role,
         invited_email: email,
         invite_token: inviteToken,
@@ -209,6 +211,55 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     }
 
     await fetchOrganization();
+  };
+
+  const acceptInvite = async (inviteToken: string): Promise<boolean> => {
+    if (!user) return false;
+
+    // Find the invite
+    const { data: invite, error: fetchError } = await supabase
+      .from('organization_members')
+      .select('*')
+      .eq('invite_token', inviteToken)
+      .is('user_id', null)
+      .maybeSingle();
+
+    if (fetchError || !invite) {
+      console.error('Error finding invite:', fetchError);
+      return false;
+    }
+
+    // Accept the invite by setting user_id
+    const { error: updateError } = await supabase
+      .from('organization_members')
+      .update({
+        user_id: user.id,
+        invite_accepted_at: new Date().toISOString(),
+        invite_token: null, // Clear token after use
+      })
+      .eq('id', invite.id);
+
+    if (updateError) {
+      console.error('Error accepting invite:', updateError);
+      return false;
+    }
+
+    await fetchOrganization();
+    return true;
+  };
+
+  const checkPendingInvite = async (): Promise<OrganizationMember | null> => {
+    if (!user?.email) return null;
+
+    const { data, error } = await supabase
+      .from('organization_members')
+      .select('*, organizations(*)')
+      .eq('invited_email', user.email)
+      .is('user_id', null)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return dbToMember(data);
   };
 
   const removeMember = async (memberId: string) => {
@@ -254,6 +305,8 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       createOrganization,
       updateOrganization,
       inviteMember,
+      acceptInvite,
+      checkPendingInvite,
       removeMember,
       updateMemberRole,
       completeOnboarding,
