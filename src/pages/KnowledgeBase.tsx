@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, BookOpen, HelpCircle, Lightbulb, Search, CreditCard, Plug, Users, Globe, Shield, Play, Video } from "lucide-react";
+import { ArrowLeft, BookOpen, HelpCircle, Lightbulb, Search, CreditCard, Plug, Users, Globe, Shield, Play, Video, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,6 +10,65 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+// Import tutorial videos
+import tutorialGettingStarted from "@/assets/videos/tutorial-getting-started.mp4";
+import tutorialColorSystems from "@/assets/videos/tutorial-color-systems.mp4";
+import tutorialTypography from "@/assets/videos/tutorial-typography.mp4";
+import tutorialLogoAssets from "@/assets/videos/tutorial-logo-assets.mp4";
+import tutorialSharing from "@/assets/videos/tutorial-sharing.mp4";
+import tutorialExportPdf from "@/assets/videos/tutorial-export-pdf.mp4";
+
+const tutorials = [
+  {
+    id: "getting-started",
+    title: "Getting Started",
+    description: "Learn the basics of creating your first brand guide in under 5 minutes.",
+    duration: "0:05",
+    video: tutorialGettingStarted,
+  },
+  {
+    id: "color-systems",
+    title: "Color Systems Deep Dive",
+    description: "Master color palettes, A/B testing, and organizing your brand colors.",
+    duration: "0:05",
+    video: tutorialColorSystems,
+  },
+  {
+    id: "typography",
+    title: "Typography Guidelines",
+    description: "Set up fonts, text styles, and usage rules for consistent typography.",
+    duration: "0:05",
+    video: tutorialTypography,
+  },
+  {
+    id: "logo-assets",
+    title: "Logo Usage & Assets",
+    description: "Upload logos, define clear space rules, and document brand assets.",
+    duration: "0:05",
+    video: tutorialLogoAssets,
+  },
+  {
+    id: "sharing",
+    title: "Sharing & Collaboration",
+    description: "Share brand guides with your team and manage access permissions.",
+    duration: "0:05",
+    video: tutorialSharing,
+  },
+  {
+    id: "export-pdf",
+    title: "Exporting to PDF",
+    description: "Generate professional PDF exports of your complete brand guidelines.",
+    duration: "0:05",
+    video: tutorialExportPdf,
+  },
+];
 
 const faqs = [
   {
@@ -188,7 +247,7 @@ const faqs = [
 
 const KnowledgeBase = () => {
   const [searchQuery, setSearchQuery] = useState("");
-
+  const [selectedVideo, setSelectedVideo] = useState<typeof tutorials[0] | null>(null);
   const filteredFaqs = faqs.map(category => ({
     ...category,
     questions: category.questions.filter(
@@ -251,89 +310,31 @@ const KnowledgeBase = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="overflow-hidden border-border/50 hover:shadow-lg transition-shadow cursor-pointer group">
-              <div className="aspect-video bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center relative">
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                <div className="w-16 h-16 rounded-full bg-accent/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Play className="h-8 w-8 text-accent-foreground ml-1" />
+            {tutorials.map((tutorial) => (
+              <Card 
+                key={tutorial.id}
+                className="overflow-hidden border-border/50 hover:shadow-lg transition-shadow cursor-pointer group"
+                onClick={() => setSelectedVideo(tutorial)}
+              >
+                <div className="aspect-video bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center relative overflow-hidden">
+                  <video 
+                    src={tutorial.video} 
+                    className="absolute inset-0 w-full h-full object-cover opacity-60"
+                    muted
+                    playsInline
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
+                  <div className="relative w-16 h-16 rounded-full bg-accent/90 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Play className="h-8 w-8 text-accent-foreground ml-1" />
+                  </div>
                 </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-foreground mb-1">Getting Started</h3>
-                <p className="text-sm text-muted-foreground">Learn the basics of creating your first brand guide in under 5 minutes.</p>
-                <p className="text-xs text-muted-foreground mt-2">4:32</p>
-              </div>
-            </Card>
-            
-            <Card className="overflow-hidden border-border/50 hover:shadow-lg transition-shadow cursor-pointer group">
-              <div className="aspect-video bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center relative">
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                <div className="w-16 h-16 rounded-full bg-accent/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Play className="h-8 w-8 text-accent-foreground ml-1" />
+                <div className="p-4">
+                  <h3 className="font-semibold text-foreground mb-1">{tutorial.title}</h3>
+                  <p className="text-sm text-muted-foreground">{tutorial.description}</p>
+                  <p className="text-xs text-muted-foreground mt-2">{tutorial.duration}</p>
                 </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-foreground mb-1">Color Systems Deep Dive</h3>
-                <p className="text-sm text-muted-foreground">Master color palettes, A/B testing, and organizing your brand colors.</p>
-                <p className="text-xs text-muted-foreground mt-2">7:15</p>
-              </div>
-            </Card>
-            
-            <Card className="overflow-hidden border-border/50 hover:shadow-lg transition-shadow cursor-pointer group">
-              <div className="aspect-video bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center relative">
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                <div className="w-16 h-16 rounded-full bg-accent/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Play className="h-8 w-8 text-accent-foreground ml-1" />
-                </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-foreground mb-1">Typography Guidelines</h3>
-                <p className="text-sm text-muted-foreground">Set up fonts, text styles, and usage rules for consistent typography.</p>
-                <p className="text-xs text-muted-foreground mt-2">5:48</p>
-              </div>
-            </Card>
-            
-            <Card className="overflow-hidden border-border/50 hover:shadow-lg transition-shadow cursor-pointer group">
-              <div className="aspect-video bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center relative">
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                <div className="w-16 h-16 rounded-full bg-accent/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Play className="h-8 w-8 text-accent-foreground ml-1" />
-                </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-foreground mb-1">Logo Usage & Assets</h3>
-                <p className="text-sm text-muted-foreground">Upload logos, define clear space rules, and document brand assets.</p>
-                <p className="text-xs text-muted-foreground mt-2">6:22</p>
-              </div>
-            </Card>
-            
-            <Card className="overflow-hidden border-border/50 hover:shadow-lg transition-shadow cursor-pointer group">
-              <div className="aspect-video bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center relative">
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                <div className="w-16 h-16 rounded-full bg-accent/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Play className="h-8 w-8 text-accent-foreground ml-1" />
-                </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-foreground mb-1">Sharing & Collaboration</h3>
-                <p className="text-sm text-muted-foreground">Share brand guides with your team and manage access permissions.</p>
-                <p className="text-xs text-muted-foreground mt-2">4:05</p>
-              </div>
-            </Card>
-            
-            <Card className="overflow-hidden border-border/50 hover:shadow-lg transition-shadow cursor-pointer group">
-              <div className="aspect-video bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center relative">
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                <div className="w-16 h-16 rounded-full bg-accent/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Play className="h-8 w-8 text-accent-foreground ml-1" />
-                </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-foreground mb-1">Exporting to PDF</h3>
-                <p className="text-sm text-muted-foreground">Generate professional PDF exports of your complete brand guidelines.</p>
-                <p className="text-xs text-muted-foreground mt-2">3:18</p>
-              </div>
-            </Card>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -394,6 +395,28 @@ const KnowledgeBase = () => {
           </Button>
         </div>
       </section>
+
+      {/* Video Player Modal */}
+      <Dialog open={!!selectedVideo} onOpenChange={() => setSelectedVideo(null)}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden">
+          <DialogHeader className="p-4 pb-0">
+            <DialogTitle>{selectedVideo?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="aspect-video bg-black">
+            {selectedVideo && (
+              <video
+                src={selectedVideo.video}
+                className="w-full h-full"
+                controls
+                autoPlay
+              />
+            )}
+          </div>
+          <div className="p-4 pt-2">
+            <p className="text-sm text-muted-foreground">{selectedVideo?.description}</p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
