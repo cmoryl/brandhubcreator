@@ -4,6 +4,7 @@ import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layer
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
+import { useTheme } from 'next-themes';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -37,6 +38,7 @@ const BrandsIndex = () => {
   const { brands, products, addBrand, addProduct, deleteBrand, deleteProduct, updateBrand, updateProduct, getRecentlyUpdated, toggleFavorite, getFavorites, isLoading } = useBrands();
   const { user, isAdmin, signOut, isLoading: authLoading } = useAuth();
   const { settings } = useAppSettings();
+  const { resolvedTheme } = useTheme();
   const { organization, needsOnboarding, isLoading: orgLoading } = useOrganization();
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -47,6 +49,11 @@ const BrandsIndex = () => {
 
   const recentlyUpdated = getRecentlyUpdated();
   const favorites = getFavorites();
+
+  // Get the appropriate logo based on current theme
+  const currentLogo = resolvedTheme === 'dark' 
+    ? (settings.appLogoDark || settings.appLogoLight || settings.appLogo)
+    : (settings.appLogoLight || settings.appLogoDark || settings.appLogo);
 
   const handleSignOut = useCallback(async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -172,8 +179,8 @@ const BrandsIndex = () => {
         <header className="relative z-10 animate-fade-in-down">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {settings.appLogo ? (
-                <img src={settings.appLogo} alt={settings.appName} className="h-10 w-auto" />
+              {currentLogo ? (
+                <img src={currentLogo} alt={settings.appName} className="h-10 w-auto" />
               ) : (
                 <div className="p-2.5 bg-accent/10 rounded-xl border border-accent/20 hover-scale cursor-pointer animate-bounce-gentle">
                   <Sparkles className="h-6 w-6 text-accent" />
