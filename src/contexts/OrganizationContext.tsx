@@ -155,17 +155,35 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
   const createOrganization = async (name: string, slug: string): Promise<Organization | null> => {
     if (!user) return null;
 
+    const normalizedSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+
     try {
+      // Check if slug is already taken
+      const { data: existingOrg } = await supabase
+        .from('organizations')
+        .select('id')
+        .eq('slug', normalizedSlug)
+        .maybeSingle();
+
+      if (existingOrg) {
+        throw new Error(`The workspace URL "${normalizedSlug}" is already taken. Please choose a different one.`);
+      }
+
       const { data: orgData, error: orgError } = await supabase
         .from('organizations')
         .insert({
           name,
-          slug: slug.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
+          slug: normalizedSlug,
         })
         .select()
         .single();
 
-      if (orgError) throw orgError;
+      if (orgError) {
+        if (orgError.code === '23505') {
+          throw new Error(`The workspace URL "${normalizedSlug}" is already taken. Please choose a different one.`);
+        }
+        throw orgError;
+      }
 
       // Add user as owner
       const { error: memberError } = await supabase
@@ -184,9 +202,9 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       setNeedsOnboarding(false);
 
       return org;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating organization:', error);
-      return null;
+      throw error;
     }
   };
 
