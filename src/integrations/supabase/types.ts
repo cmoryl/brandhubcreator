@@ -297,6 +297,7 @@ export type Database = {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
+      is_slug_taken: { Args: { check_slug: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
