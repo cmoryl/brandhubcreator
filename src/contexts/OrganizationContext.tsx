@@ -173,6 +173,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
         .insert({
           name,
           slug: normalizedSlug,
+          created_by: user.id,
         })
         .select()
         .single();
