@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, Globe, Lock, Building2 } from 'lucide-react';
+import { Sparkles, ArrowRight, Globe, Lock, Building2, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { HeroBackground } from '@/components/HeroBackground';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface OrganizationData {
   id: string;
@@ -36,6 +37,7 @@ interface PublicBrand {
 const OrganizationPortal = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [organization, setOrganization] = useState<OrganizationData | null>(null);
   const [brands, setBrands] = useState<PublicBrand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -154,6 +156,17 @@ const OrganizationPortal = () => {
               <span className="font-semibold text-2xl text-foreground">{organization.name}</span>
             </div>
             <div className="flex items-center gap-3">
+              {user && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate(`/org/${slug}`)}
+                  className="gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Dashboard
+                </Button>
+              )}
               <Badge variant="outline" className="gap-1">
                 <Globe className="h-3 w-3" />
                 Public Portal
