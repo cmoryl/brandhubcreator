@@ -158,14 +158,13 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     const normalizedSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '-');
 
     try {
-      // Check if slug is already taken
-      const { data: existingOrg } = await supabase
-        .from('organizations')
-        .select('id')
-        .eq('slug', normalizedSlug)
-        .maybeSingle();
+      // Check if slug is already taken using RPC function (works without org membership)
+      const { data: slugTaken, error: slugError } = await supabase
+        .rpc('is_slug_taken', { check_slug: normalizedSlug });
 
-      if (existingOrg) {
+      if (slugError) {
+        console.error('Error checking slug:', slugError);
+      } else if (slugTaken) {
         throw new Error(`The workspace URL "${normalizedSlug}" is already taken. Please choose a different one.`);
       }
 
