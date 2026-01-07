@@ -112,6 +112,7 @@ export type Database = {
         Row: {
           accent_color: string | null
           created_at: string
+          created_by: string | null
           custom_domain: string | null
           email_from_address: string | null
           email_from_name: string | null
@@ -131,6 +132,7 @@ export type Database = {
         Insert: {
           accent_color?: string | null
           created_at?: string
+          created_by?: string | null
           custom_domain?: string | null
           email_from_address?: string | null
           email_from_name?: string | null
@@ -150,6 +152,7 @@ export type Database = {
         Update: {
           accent_color?: string | null
           created_at?: string
+          created_by?: string | null
           custom_domain?: string | null
           email_from_address?: string | null
           email_from_name?: string | null
