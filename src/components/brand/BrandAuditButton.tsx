@@ -42,8 +42,9 @@ export const BrandAuditButton = ({ brand }: BrandAuditButtonProps) => {
     setAuditResult(null);
 
     try {
+      // Send only brandId - the edge function fetches from DB with RLS enforcement
       const { data, error } = await supabase.functions.invoke('brand-audit', {
-        body: { brand }
+        body: { brandId: brand.id, entityType: brand.type || 'brand' }
       });
 
       if (error) throw error;

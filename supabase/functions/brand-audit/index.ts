@@ -72,16 +72,53 @@ Deno.serve(async (req) => {
 
     console.log(`Authenticated user: ${user.id}`);
 
-    const { brand } = await req.json();
+    const { brandId, entityType = 'brand' } = await req.json();
     
-    if (!brand) {
+    if (!brandId) {
       return new Response(
-        JSON.stringify({ error: 'Brand data is required' }),
+        JSON.stringify({ error: 'Brand ID is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Starting brand audit for: ${brand.hero?.name || 'Unknown'} by user ${user.id}`);
+    // Fetch brand/product from database - RLS automatically enforces access control
+    const tableName = entityType === 'product' ? 'products' : 'brands';
+    const { data: brandData, error: fetchError } = await supabaseClient
+      .from(tableName)
+      .select('id, name, guide_data, user_id, organization_id')
+      .eq('id', brandId)
+      .single();
+
+    if (fetchError || !brandData) {
+      console.log(`Brand not found or access denied: ${brandId}`, fetchError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Brand not found or access denied' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Build brand object from database data
+    const guideData = brandData.guide_data as Record<string, unknown> || {};
+    const brand: BrandData = {
+      id: brandData.id,
+      type: entityType as 'brand' | 'product',
+      hero: {
+        name: brandData.name || (guideData.hero as Record<string, unknown>)?.name as string || 'Unnamed Brand',
+        tagline: (guideData.hero as Record<string, unknown>)?.tagline as string || '',
+      },
+      identity: {
+        missionStatement: (guideData.identity as Record<string, unknown>)?.missionStatement as string || '',
+        archetype: (guideData.identity as Record<string, unknown>)?.archetype as string || '',
+        toneOfVoice: (guideData.identity as Record<string, unknown>)?.toneOfVoice as string[] || [],
+      },
+      values: (guideData.values as Array<{ title: string; description: string }>) || [],
+      colors: (guideData.colors as Array<{ name: string; hex: string; usage: string }>) || [],
+      typography: (guideData.typography as Array<{ name: string; fontFamily: string; usage: string }>) || [],
+      gradients: (guideData.gradients as Array<{ name: string; colors: string[] }>) || [],
+      patterns: (guideData.patterns as Array<{ name: string }>) || [],
+    };
+
+    console.log(`Starting brand audit for: ${brand.hero.name} by user ${user.id}`);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -189,7 +226,7 @@ Be specific and actionable in your recommendations.`
       JSON.stringify({ 
         success: true, 
         audit: auditResult,
-        brandName: brand.hero?.name,
+        brandName: brand.hero.name,
         auditDate: new Date().toISOString()
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
