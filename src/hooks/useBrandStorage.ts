@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BrandGuide, ProductGuide, DEFAULT_SECTION_ORDER } from '@/types/brand';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { Json } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 
@@ -189,6 +190,7 @@ const productGuideToDb = (product: Partial<ProductGuide>, userId: string) => {
 
 export const useBrandStorage = () => {
   const { user } = useAuth();
+  const { organization } = useOrganization();
   const [brands, setBrands] = useState<BrandGuide[]>([]);
   const [products, setProducts] = useState<ProductGuide[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -236,10 +238,10 @@ export const useBrandStorage = () => {
     }
   }, []);
 
-  // Refetch when user auth state changes to ensure RLS policies apply correctly
+  // Refetch when user/org auth state changes to ensure RLS policies apply correctly
   useEffect(() => {
     fetchData();
-  }, [fetchData, user?.id]);
+  }, [fetchData, user?.id, organization?.id]);
 
   const addBrand = async (name: string): Promise<BrandGuide | null> => {
     if (!user) {
@@ -250,6 +252,7 @@ export const useBrandStorage = () => {
     const guideData = createDefaultGuideData(name, 'brand');
     const dbData = {
       user_id: user.id,
+      organization_id: organization?.id ?? null,
       name,
       is_favorite: false,
       section_order: DEFAULT_SECTION_ORDER as string[],
@@ -284,6 +287,7 @@ export const useBrandStorage = () => {
     const guideData = createDefaultGuideData(name, 'product');
     const dbData = {
       user_id: user.id,
+      organization_id: organization?.id ?? null,
       parent_brand_id: parentBrandId ?? null,
       name,
       is_favorite: false,
