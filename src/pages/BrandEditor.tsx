@@ -4,6 +4,7 @@ import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings } from '@/types/brand';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSEO } from '@/hooks/useSEO';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { ShareButton } from '@/components/brand/ShareButton';
@@ -69,6 +70,20 @@ const BrandEditor = () => {
   const sectionOrder = brand?.sectionOrder || DEFAULT_SECTION_ORDER;
   const hiddenSections = brand?.hiddenSections || [];
   const pageSettings = brand?.pageSettings || DEFAULT_PAGE_SETTINGS;
+
+  // SEO metadata for brand page
+  useSEO({
+    title: brand ? `${brand.hero.name} Brand Guidelines` : 'Brand Guidelines',
+    description: brand?.hero.tagline 
+      ? `${brand.hero.name} - ${brand.hero.tagline}. View the complete brand guidelines including logos, colors, typography, and more.`
+      : brand ? `Complete brand guidelines for ${brand.hero.name}. Access logos, colors, typography, and visual identity standards.`
+      : 'View brand guidelines',
+    canonicalUrl: brand ? `${window.location.origin}/brand/${brand.id}` : undefined,
+    ogTitle: brand ? `${brand.hero.name} - Brand Guidelines` : undefined,
+    ogDescription: brand?.hero.tagline || (brand ? `Official brand guidelines for ${brand.hero.name}` : undefined),
+    ogImage: brand?.hero.coverImage || brand?.hero.logoUrl || undefined,
+    ogType: 'article',
+  });
 
   // Get content width class based on settings
   const getContentWidthClass = () => {
