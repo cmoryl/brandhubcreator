@@ -15,6 +15,7 @@ import AuthPage from "./pages/AuthPage";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import OnboardingPage from "./pages/OnboardingPage";
 import OrganizationSettings from "./pages/OrganizationSettings";
+import ContactUs from "./pages/ContactUs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
                   <Route path="/knowledge" element={<KnowledgeBase />} />
                   <Route path="/org/:slug" element={<OrganizationPortal />} />
                   <Route path="/org/settings" element={<OrganizationSettings />} />
+                  <Route path="/contact" element={<ContactUs />} />
                   <Route path="/brand/:brandId" element={<BrandEditor />} />
                   <Route path="/product/:productId" element={<ProductEditor />} />
                   <Route path="*" element={<NotFound />} />
