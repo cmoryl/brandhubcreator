@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { HeroBackground } from '@/components/HeroBackground';
 import { useAuth } from '@/contexts/AuthContext';
-
+import { useSEO } from '@/hooks/useSEO';
 interface OrganizationData {
   id: string;
   name: string;
@@ -42,6 +42,21 @@ const OrganizationPortal = () => {
   const [brands, setBrands] = useState<PublicBrand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // SEO metadata
+  useSEO({
+    title: organization ? `${organization.name} Brand Portal` : 'Brand Portal',
+    description: organization 
+      ? `Explore ${organization.name}'s public brand guidelines and resources. Everything you need to represent the brand correctly.`
+      : 'Explore public brand guidelines and resources.',
+    canonicalUrl: organization ? `${window.location.origin}/portal/${organization.slug}` : undefined,
+    ogTitle: organization ? `${organization.name} - Brand Portal` : undefined,
+    ogDescription: organization 
+      ? `Official brand guidelines for ${organization.name}. Access logos, colors, typography, and more.`
+      : undefined,
+    ogImage: organization?.logo_url || undefined,
+    ogType: 'website',
+  });
 
   useEffect(() => {
     const fetchOrganizationAndBrands = async () => {
