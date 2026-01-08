@@ -59,9 +59,11 @@ export const ShareButton = ({
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
   };
 
-  const handlePublicToggle = (checked: boolean) => {
+  const handlePublicToggle = async (checked: boolean) => {
     if (onPublicChange) {
       onPublicChange(checked);
+      // Give debounced update time to sync before showing success
+      await new Promise(resolve => setTimeout(resolve, 600));
       toast.success(checked ? 'Brand is now public' : 'Brand is now private');
     }
   };
