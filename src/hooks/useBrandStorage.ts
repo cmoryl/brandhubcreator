@@ -74,6 +74,7 @@ const createDefaultGuideData = (name: string, type: 'brand' | 'product') => ({
     fgColor: type === 'brand' ? '#1a1a2e' : '#2563eb', 
     bgColor: '#ffffff' 
   },
+  videos: [],
   assets: [],
   misuse: [],
   atmosphere: { style: 'gradient', animate: true, opacity: 0.5, blur: 0 },
@@ -108,6 +109,7 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     social: (guideData.social as BrandGuide['social']) ?? [],
     signatures: (guideData.signatures as BrandGuide['signatures']) ?? [],
     qr: (guideData.qr as BrandGuide['qr']) ?? { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' },
+    videos: (guideData.videos as BrandGuide['videos']) ?? [],
     assets: (guideData.assets as BrandGuide['assets']) ?? [],
     misuse: (guideData.misuse as BrandGuide['misuse']) ?? [],
     atmosphere: (guideData.atmosphere as BrandGuide['atmosphere']) ?? { style: 'gradient', animate: true, opacity: 0.5, blur: 0 },
@@ -146,6 +148,7 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
     social: (guideData.social as ProductGuide['social']) ?? [],
     signatures: (guideData.signatures as ProductGuide['signatures']) ?? [],
     qr: (guideData.qr as ProductGuide['qr']) ?? { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' },
+    videos: (guideData.videos as ProductGuide['videos']) ?? [],
     assets: (guideData.assets as ProductGuide['assets']) ?? [],
     misuse: (guideData.misuse as ProductGuide['misuse']) ?? [],
     atmosphere: (guideData.atmosphere as ProductGuide['atmosphere']) ?? { style: 'gradient', animate: true, opacity: 0.5, blur: 0 },

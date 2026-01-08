@@ -1,7 +1,7 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, 
-  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType
+  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video
 } from 'lucide-react';
 import { SectionId } from '@/types/brand';
 import { cn } from '@/lib/utils';
@@ -30,6 +30,7 @@ const sections: { id: SectionId; label: string; icon: React.ElementType; categor
   { id: 'social', label: 'Social Registry', icon: Users, category: 'Communication' },
   { id: 'signatures', label: 'Signature Protocol', icon: Mail, category: 'Communication' },
   { id: 'qr', label: 'Access Ports', icon: QrCode, category: 'Communication' },
+  { id: 'videos', label: 'Video Resources', icon: Video, category: 'Resources' },
   { id: 'assets', label: 'Operational Vault', icon: FolderArchive, category: 'Resources' },
   { id: 'misuse', label: 'Anti-Patterns', icon: Ban, category: 'Resources' },
   { id: 'atmosphere', label: 'Atmosphere Engine', icon: Sparkles, category: 'Resources' },
@@ -46,7 +47,7 @@ export const BrandSidebar = ({ activeSection, onSectionChange, brandName }: Bran
       {/* Brand header */}
       <div className="p-4 border-b border-sidebar-border">
         <h2 className="font-semibold text-sidebar-foreground truncate">{brandName || 'Brand Guide'}</h2>
-        <p className="text-xs text-sidebar-foreground/60 mt-1">22 Sections</p>
+        <p className="text-xs text-sidebar-foreground/60 mt-1">23 Sections</p>
       </div>
 
       {/* Navigation */}
