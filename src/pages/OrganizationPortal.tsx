@@ -46,12 +46,12 @@ const OrganizationPortal = () => {
   // SEO metadata
   useSEO({
     title: organization ? `${organization.name} Brand Portal` : 'Brand Portal',
-    description: organization 
+    description: organization
       ? `Explore ${organization.name}'s public brand guidelines and resources. Everything you need to represent the brand correctly.`
       : 'Explore public brand guidelines and resources.',
-    canonicalUrl: organization ? `${window.location.origin}/portal/${organization.slug}` : undefined,
+    canonicalUrl: organization ? `${window.location.origin}/org/${organization.slug}` : undefined,
     ogTitle: organization ? `${organization.name} - Brand Portal` : undefined,
-    ogDescription: organization 
+    ogDescription: organization
       ? `Official brand guidelines for ${organization.name}. Access logos, colors, typography, and more.`
       : undefined,
     ogImage: organization?.logo_url || undefined,
