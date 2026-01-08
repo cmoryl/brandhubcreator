@@ -207,10 +207,16 @@ export const useBrandStorage = () => {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
+      // Add timeout to prevent infinite loading on connection issues
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
       const [brandsRes, productsRes] = await Promise.all([
         supabase.from('brands').select('*').order('created_at', { ascending: false }),
         supabase.from('products').select('*').order('created_at', { ascending: false }),
       ]);
+
+      clearTimeout(timeoutId);
 
       if (brandsRes.error) throw brandsRes.error;
       if (productsRes.error) throw productsRes.error;
@@ -219,6 +225,9 @@ export const useBrandStorage = () => {
       setProducts((productsRes.data as DbProduct[]).map(dbToProductGuide));
     } catch (error) {
       console.error('Error fetching data:', error);
+      // Set empty arrays on error so UI isn't stuck loading
+      setBrands([]);
+      setProducts([]);
     } finally {
       setIsLoading(false);
     }
