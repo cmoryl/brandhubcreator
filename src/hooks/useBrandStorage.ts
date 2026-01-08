@@ -161,11 +161,11 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
   };
 };
 
-const brandGuideToDb = (brand: Partial<BrandGuide>, userId: string, organizationId: string | null) => {
+const brandGuideToDb = (brand: Partial<BrandGuide>, userId: string, organizationId?: string | null) => {
   const { id, type, isFavorite, isPublic, sectionOrder, hiddenSections, createdAt, updatedAt, ...guideData } = brand as BrandGuide;
   return {
     user_id: userId,
-    organization_id: organizationId,
+    ...(organizationId ? { organization_id: organizationId } : {}),
     name: guideData.hero?.name ?? 'My Brand',
     is_favorite: isFavorite ?? false,
     is_public: isPublic ?? false,
@@ -175,11 +175,11 @@ const brandGuideToDb = (brand: Partial<BrandGuide>, userId: string, organization
   };
 };
 
-const productGuideToDb = (product: Partial<ProductGuide>, userId: string, organizationId: string | null) => {
+const productGuideToDb = (product: Partial<ProductGuide>, userId: string, organizationId?: string | null) => {
   const { id, type, parentBrandId, isFavorite, isPublic, sectionOrder, hiddenSections, createdAt, updatedAt, ...guideData } = product as ProductGuide;
   return {
     user_id: userId,
-    organization_id: organizationId,
+    ...(organizationId ? { organization_id: organizationId } : {}),
     parent_brand_id: parentBrandId ?? null,
     name: guideData.hero?.name ?? 'My Product',
     is_favorite: isFavorite ?? false,
@@ -325,7 +325,9 @@ export const useBrandStorage = () => {
   const syncBrandToDb = useCallback(async (id: string, merged: BrandGuide) => {
     if (!user) return;
 
-    const dbData = brandGuideToDb(merged, user.id, organization?.id ?? null);
+    // IMPORTANT: only include organization_id when we actually have one,
+    // otherwise we risk overwriting an existing org association with null.
+    const dbData = brandGuideToDb(merged, user.id, organization?.id);
     const { error } = await supabase
       .from('brands')
       .update(dbData)
@@ -342,7 +344,7 @@ export const useBrandStorage = () => {
   const syncProductToDb = useCallback(async (id: string, merged: ProductGuide) => {
     if (!user) return;
 
-    const dbData = productGuideToDb(merged, user.id, organization?.id ?? null);
+    const dbData = productGuideToDb(merged, user.id, organization?.id);
     const { error } = await supabase
       .from('products')
       .update(dbData)
