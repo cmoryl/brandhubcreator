@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings } from 'lucide-react';
+import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink } from 'lucide-react';
 import { InviteMembersDialog } from '@/components/organization/InviteMembersDialog';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -212,6 +212,25 @@ const BrandsIndex = () => {
                 <HelpCircle className="h-4 w-4" />
                 <span className="hidden sm:inline">Help</span>
               </Button>
+              {user && organization && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.open(`/org/${organization.slug}`, '_blank')}
+                      className="gap-2"
+                    >
+                      <Globe className="h-4 w-4" />
+                      <span className="hidden sm:inline">Public Portal</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>View your organization's public portal</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
               <InviteMembersDialog />
               {canEdit && <AppSettingsEditor />}
               <ThemeToggle />
