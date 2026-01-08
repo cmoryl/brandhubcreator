@@ -1,7 +1,7 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, 
-  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType
+  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -51,6 +51,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   social: { label: 'Social Registry', icon: Users, category: 'Communication' },
   signatures: { label: 'Signature Protocol', icon: Mail, category: 'Communication' },
   qr: { label: 'Access Ports', icon: QrCode, category: 'Communication' },
+  videos: { label: 'Video Resources', icon: Video, category: 'Resources' },
   assets: { label: 'Operational Vault', icon: FolderArchive, category: 'Resources' },
   misuse: { label: 'Anti-Patterns', icon: Ban, category: 'Resources' },
   atmosphere: { label: 'Atmosphere Engine', icon: Sparkles, category: 'Resources' },

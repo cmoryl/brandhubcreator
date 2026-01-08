@@ -23,6 +23,7 @@ import { ImagerySection } from '@/components/brand/ImagerySection';
 import { SocialSection } from '@/components/brand/SocialSection';
 import { SignaturesSection } from '@/components/brand/SignaturesSection';
 import { QRSection } from '@/components/brand/QRSection';
+import { VideosSection } from '@/components/brand/VideosSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
 import { AtmosphereSection } from '@/components/brand/AtmosphereSection';
@@ -193,6 +194,7 @@ const BrandEditor = () => {
       case 'social': return <SocialSection social={brand.social} onSocialChange={(social) => updateBrand({ social })} />;
       case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={(signatures) => updateBrand({ signatures })} />;
       case 'qr': return <QRSection qr={brand.qr} onQRChange={(qr) => updateBrand({ qr })} />;
+      case 'videos': return <VideosSection videos={brand.videos} onVideosChange={(videos) => updateBrand({ videos })} />;
       case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={(assets) => updateBrand({ assets })} />;
       case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={(misuse) => updateBrand({ misuse })} />;
       case 'atmosphere': return <AtmosphereSection atmosphere={brand.atmosphere} onAtmosphereChange={(atmosphere) => updateBrand({ atmosphere })} />;

@@ -16,6 +16,7 @@ import { ImagerySection } from './ImagerySection';
 import { SocialSection } from './SocialSection';
 import { SignaturesSection } from './SignaturesSection';
 import { QRSection } from './QRSection';
+import { VideosSection } from './VideosSection';
 import { AssetsSection } from './AssetsSection';
 import { MisuseSection } from './MisuseSection';
 import { AtmosphereSection } from './AtmosphereSection';
@@ -102,6 +103,7 @@ export const FullBrandPage = ({
       case 'social': return <SocialSection social={brand.social} onSocialChange={(social) => onBrandUpdate({ social })} />;
       case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={(signatures) => onBrandUpdate({ signatures })} />;
       case 'qr': return <QRSection qr={brand.qr} onQRChange={(qr) => onBrandUpdate({ qr })} />;
+      case 'videos': return <VideosSection videos={brand.videos} onVideosChange={(videos) => onBrandUpdate({ videos })} />;
       case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={(assets) => onBrandUpdate({ assets })} />;
       case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={(misuse) => onBrandUpdate({ misuse })} />;
       case 'atmosphere': return <AtmosphereSection atmosphere={brand.atmosphere} onAtmosphereChange={(atmosphere) => onBrandUpdate({ atmosphere })} />;

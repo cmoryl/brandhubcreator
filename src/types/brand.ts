@@ -138,6 +138,16 @@ export interface BrandQR {
   bgColor: string;
 }
 
+// VIDEOS - Video Resources
+export interface BrandVideo {
+  id: string;
+  title: string;
+  url: string;
+  type: 'youtube' | 'vimeo' | 'direct';
+  description?: string;
+  thumbnail?: string;
+}
+
 // ASSETS - Operational Vault
 export interface BrandAsset {
   id: string;
@@ -272,6 +282,8 @@ export interface BaseGuide {
   signatures: BrandSignature[];
   // QR (Access Ports)
   qr: BrandQR;
+  // Videos (Video Resources)
+  videos: BrandVideo[];
   // Assets (Operational Vault)
   assets: BrandAsset[];
   // Misuse (Anti-Patterns)
@@ -293,7 +305,7 @@ export interface BaseGuide {
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'identity', 'values', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
-  'imagery', 'social', 'signatures', 'qr', 'assets', 'misuse', 'atmosphere',
+  'imagery', 'social', 'signatures', 'qr', 'videos', 'assets', 'misuse', 'atmosphere',
   'casestudies', 'brochures', 'templates'
 ];
 
@@ -326,6 +338,7 @@ export type SectionId =
   | 'social'
   | 'signatures'
   | 'qr'
+  | 'videos'
   | 'assets'
   | 'misuse'
   | 'atmosphere'
