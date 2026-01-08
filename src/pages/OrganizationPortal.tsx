@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowRight, Globe, Lock, Building2, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -58,53 +58,72 @@ const OrganizationPortal = () => {
     ogType: 'website',
   });
 
-  useEffect(() => {
-    const fetchOrganizationAndBrands = async () => {
-      if (!slug) {
+  const fetchOrganizationAndBrands = useCallback(async () => {
+    if (!slug) {
+      setError('Organization not found');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // Fetch organization by slug
+      const { data: orgData, error: orgError } = await supabase
+        .from('organizations')
+        .select('id, name, slug, logo_url, primary_color, secondary_color, accent_color')
+        .eq('slug', slug)
+        .single();
+
+      if (orgError || !orgData) {
         setError('Organization not found');
         setIsLoading(false);
         return;
       }
 
-      try {
-        // Fetch organization by slug
-        const { data: orgData, error: orgError } = await supabase
-          .from('organizations')
-          .select('id, name, slug, logo_url, primary_color, secondary_color, accent_color')
-          .eq('slug', slug)
-          .single();
+      setOrganization(orgData);
 
-        if (orgError || !orgData) {
-          setError('Organization not found');
-          setIsLoading(false);
-          return;
-        }
+      // Fetch public brands for this organization
+      const { data: brandsData, error: brandsError } = await supabase
+        .from('brands')
+        .select('id, name, is_public, guide_data, updated_at')
+        .eq('organization_id', orgData.id)
+        .eq('is_public', true)
+        .order('updated_at', { ascending: false });
 
-        setOrganization(orgData);
-
-        // Fetch public brands for this organization
-        const { data: brandsData, error: brandsError } = await supabase
-          .from('brands')
-          .select('id, name, is_public, guide_data, updated_at')
-          .eq('organization_id', orgData.id)
-          .eq('is_public', true)
-          .order('updated_at', { ascending: false });
-
-        if (brandsError) {
-          console.error('Error fetching brands:', brandsError);
-        } else {
-          setBrands(brandsData as PublicBrand[] || []);
-        }
-      } catch (err) {
-        console.error('Error:', err);
-        setError('Something went wrong');
-      } finally {
-        setIsLoading(false);
+      if (brandsError) {
+        console.error('Error fetching brands:', brandsError);
+      } else {
+        setBrands((brandsData as PublicBrand[]) || []);
       }
+
+      setError(null);
+    } catch (err) {
+      console.error('Error:', err);
+      setError('Something went wrong');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    fetchOrganizationAndBrands();
+  }, [fetchOrganizationAndBrands]);
+
+  // Keep portal fresh when user switches tabs / returns from editing
+  useEffect(() => {
+    const onFocus = () => fetchOrganizationAndBrands();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') fetchOrganizationAndBrands();
     };
 
-    fetchOrganizationAndBrands();
-  }, [slug]);
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [fetchOrganizationAndBrands]);
 
   if (isLoading) {
     return (
