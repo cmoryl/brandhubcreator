@@ -1,7 +1,7 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, 
-  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video
+  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video, Quote
 } from 'lucide-react';
 import { SectionId } from '@/types/brand';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,7 @@ interface BrandSidebarProps {
 
 const sections: { id: SectionId; label: string; icon: React.ElementType; category: string }[] = [
   { id: 'hero', label: 'Identity Shield', icon: Shield, category: 'Identity' },
+  { id: 'tagline', label: 'Corporate Tagline', icon: Quote, category: 'Identity' },
   { id: 'identity', label: 'Narrative Architecture', icon: Scroll, category: 'Identity' },
   { id: 'values', label: 'Philosophical Pillars', icon: Heart, category: 'Identity' },
   { id: 'logos', label: 'Mark Repository', icon: Image, category: 'Visual' },

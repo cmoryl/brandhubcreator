@@ -9,6 +9,7 @@ import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSide
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { ShareButton } from '@/components/brand/ShareButton';
 import { HeroSection } from '@/components/brand/HeroSection';
+import { TaglineSection } from '@/components/brand/TaglineSection';
 import { IdentitySection } from '@/components/brand/IdentitySection';
 import { ValuesSection } from '@/components/brand/ValuesSection';
 import { LogoSection } from '@/components/brand/LogoSection';
@@ -194,6 +195,7 @@ const BrandEditor = () => {
   const renderSection = () => {
     switch (activeSection) {
       case 'hero': return <HeroSection hero={brand.hero} onHeroChange={(hero) => updateBrand({ hero })} />;
+      case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={(tagline) => updateBrand({ tagline })} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={(identity) => updateBrand({ identity })} />;
       case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => updateBrand({ values })} />;
       case 'logos': return <LogoSection logos={brand.logos} onLogosChange={(logos) => updateBrand({ logos })} />;

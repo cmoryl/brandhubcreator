@@ -45,6 +45,13 @@ export interface BrandHero {
   logoUrl: string;
 }
 
+// TAGLINE - Corporate Tagline
+export interface BrandTagline {
+  primary: string;
+  secondary?: string;
+  variations?: string[];
+}
+
 // IDENTITY - Narrative Architecture
 export interface BrandIdentity {
   missionStatement: string;
@@ -250,6 +257,8 @@ export interface BaseGuide {
   pageSettings?: BrandPageSettings;
   // Hero
   hero: BrandHero;
+  // Tagline (Corporate Tagline)
+  tagline: BrandTagline;
   // Identity
   identity: BrandIdentity;
   // Values
@@ -303,7 +312,7 @@ export interface BaseGuide {
 
 // Default section order
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
-  'hero', 'identity', 'values', 'logos', 'brandicon', 'colors', 'gradients', 
+  'hero', 'tagline', 'identity', 'values', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
   'imagery', 'social', 'signatures', 'qr', 'videos', 'assets', 'misuse', 'atmosphere',
   'casestudies', 'brochures', 'templates'
@@ -323,6 +332,7 @@ export interface ProductGuide extends BaseGuide {
 // Section IDs for navigation
 export type SectionId = 
   | 'hero'
+  | 'tagline'
   | 'identity'
   | 'values'
   | 'logos'

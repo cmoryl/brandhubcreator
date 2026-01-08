@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { BaseGuide, SectionId, DEFAULT_SECTION_ORDER } from '@/types/brand';
 import { HeroSection } from './HeroSection';
+import { TaglineSection } from './TaglineSection';
 import { IdentitySection } from './IdentitySection';
 import { ValuesSection } from './ValuesSection';
 import { LogoSection } from './LogoSection';
@@ -88,6 +89,7 @@ export const FullBrandPage = ({
   const renderSection = (sectionId: SectionId) => {
     switch (sectionId) {
       case 'hero': return <HeroSection hero={brand.hero} onHeroChange={(hero) => onBrandUpdate({ hero })} />;
+      case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={(tagline) => onBrandUpdate({ tagline })} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={(identity) => onBrandUpdate({ identity })} />;
       case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => onBrandUpdate({ values })} />;
       case 'logos': return <LogoSection logos={brand.logos} onLogosChange={(logos) => onBrandUpdate({ logos })} />;

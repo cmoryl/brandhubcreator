@@ -1,7 +1,7 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, 
-  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video
+  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video, Quote
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -36,6 +36,7 @@ interface ReorderableBrandSidebarProps {
 
 export const sectionMeta: Record<SectionId, { label: string; icon: React.ElementType; category: string }> = {
   hero: { label: 'Identity Shield', icon: Shield, category: 'Identity' },
+  tagline: { label: 'Corporate Tagline', icon: Quote, category: 'Identity' },
   identity: { label: 'Narrative Architecture', icon: Scroll, category: 'Identity' },
   values: { label: 'Philosophical Pillars', icon: Heart, category: 'Identity' },
   logos: { label: 'Mark Repository', icon: Image, category: 'Visual' },
