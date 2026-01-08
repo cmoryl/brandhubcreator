@@ -190,6 +190,19 @@ export const useBrandStorage = () => {
   const [products, setProducts] = useState<ProductGuide[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Refs to always have latest state in callbacks
+  const brandsRef = useRef<BrandGuide[]>([]);
+  const productsRef = useRef<ProductGuide[]>([]);
+  
+  // Keep refs in sync with state
+  useEffect(() => {
+    brandsRef.current = brands;
+  }, [brands]);
+  
+  useEffect(() => {
+    productsRef.current = products;
+  }, [products]);
+
   // Fetch brands and products - public access (no auth required for viewing)
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -355,7 +368,7 @@ export const useBrandStorage = () => {
 
     // Set new debounced sync
     const timeout = setTimeout(() => {
-      const latestBrand = brands.find(b => b.id === id);
+      const latestBrand = brandsRef.current.find(b => b.id === id);
       if (latestBrand) {
         const finalUpdates = pendingBrandUpdates.current.get(id) || {};
         const merged = { ...latestBrand, ...finalUpdates };
@@ -365,7 +378,7 @@ export const useBrandStorage = () => {
     }, SYNC_DEBOUNCE_MS);
     
     brandSyncTimeouts.current.set(id, timeout);
-  }, [user, brands, syncBrandToDb]);
+  }, [user, syncBrandToDb]);
 
   const updateProduct = useCallback((id: string, updates: Partial<ProductGuide>) => {
     if (!user) {
@@ -397,7 +410,7 @@ export const useBrandStorage = () => {
 
     // Set new debounced sync
     const timeout = setTimeout(() => {
-      const latestProduct = products.find(p => p.id === id);
+      const latestProduct = productsRef.current.find(p => p.id === id);
       if (latestProduct) {
         const finalUpdates = pendingProductUpdates.current.get(id) || {};
         const merged = { ...latestProduct, ...finalUpdates };
@@ -407,7 +420,7 @@ export const useBrandStorage = () => {
     }, SYNC_DEBOUNCE_MS);
     
     productSyncTimeouts.current.set(id, timeout);
-  }, [user, products, syncProductToDb]);
+  }, [user, syncProductToDb]);
 
   const deleteBrand = async (id: string) => {
     if (!user || brands.length <= 1) return;
