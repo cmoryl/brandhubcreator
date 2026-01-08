@@ -1,16 +1,19 @@
 import { useState } from 'react';
-import { Pencil, Check, Plus, X, Quote } from 'lucide-react';
+import { Plus, X, Quote } from 'lucide-react';
 import { BrandTagline } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { SectionHeader } from './SectionHeader';
 
 interface TaglineSectionProps {
   tagline: BrandTagline;
   onTaglineChange: (tagline: BrandTagline) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
-export const TaglineSection = ({ tagline, onTaglineChange }: TaglineSectionProps) => {
+export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSubtitleChange }: TaglineSectionProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newVariation, setNewVariation] = useState('');
 
@@ -33,21 +36,14 @@ export const TaglineSection = ({ tagline, onTaglineChange }: TaglineSectionProps
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Corporate Tagline</h2>
-          <p className="text-muted-foreground mt-1">Your brand's memorable signature phrases</p>
-        </div>
-        <Button
-          variant={isEditing ? "default" : "outline"}
-          size="sm"
-          onClick={() => setIsEditing(!isEditing)}
-          className="gap-2"
-        >
-          {isEditing ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-          {isEditing ? 'Done' : 'Edit'}
-        </Button>
-      </div>
+      <SectionHeader
+        title="Corporate Tagline"
+        defaultSubtitle="Your brand's memorable signature phrases"
+        customSubtitle={customSubtitle}
+        onSubtitleChange={onSubtitleChange}
+        isEditing={isEditing}
+        onEditToggle={() => setIsEditing(!isEditing)}
+      />
 
       <div className="grid gap-6">
         {/* Primary Tagline */}

@@ -1,15 +1,18 @@
 import { useState } from 'react';
-import { Pencil, Check, Plus, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { BrandIdentity } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { SectionHeader } from './SectionHeader';
 
 interface IdentitySectionProps {
   identity: BrandIdentity;
   onIdentityChange: (identity: BrandIdentity) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
 const archetypes = [
@@ -27,7 +30,7 @@ const archetypes = [
   'The Creator',
 ];
 
-export const IdentitySection = ({ identity, onIdentityChange }: IdentitySectionProps) => {
+export const IdentitySection = ({ identity, onIdentityChange, customSubtitle, onSubtitleChange }: IdentitySectionProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newTone, setNewTone] = useState('');
 
@@ -44,21 +47,14 @@ export const IdentitySection = ({ identity, onIdentityChange }: IdentitySectionP
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Narrative Architecture</h2>
-          <p className="text-muted-foreground mt-1">Define your brand's soul - mission, archetype, and voice</p>
-        </div>
-        <Button
-          variant={isEditing ? "default" : "outline"}
-          size="sm"
-          onClick={() => setIsEditing(!isEditing)}
-          className="gap-2"
-        >
-          {isEditing ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-          {isEditing ? 'Done' : 'Edit'}
-        </Button>
-      </div>
+      <SectionHeader
+        title="Narrative Architecture"
+        defaultSubtitle="Define your brand's soul - mission, archetype, and voice"
+        customSubtitle={customSubtitle}
+        onSubtitleChange={onSubtitleChange}
+        isEditing={isEditing}
+        onEditToggle={() => setIsEditing(!isEditing)}
+      />
 
       <div className="grid gap-6">
         {/* Mission Statement */}

@@ -5,10 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SectionHeader } from './SectionHeader';
 
 interface ValuesSectionProps {
   values: BrandValue[];
   onValuesChange: (values: BrandValue[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
 const iconOptions = [
@@ -29,8 +32,9 @@ const getIconComponent = (iconName: string) => {
   return option?.Icon || Heart;
 };
 
-export const ValuesSection = ({ values, onValuesChange }: ValuesSectionProps) => {
+export const ValuesSection = ({ values, onValuesChange, customSubtitle, onSubtitleChange }: ValuesSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const addValue = () => {
     const newValue: BrandValue = {
@@ -54,12 +58,18 @@ export const ValuesSection = ({ values, onValuesChange }: ValuesSectionProps) =>
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Philosophical Pillars</h2>
-          <p className="text-muted-foreground mt-1">Define your organization's core values and ethical framework</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <SectionHeader
+            title="Philosophical Pillars"
+            defaultSubtitle="Define your organization's core values and ethical framework"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            isEditing={isHeaderEditing}
+            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+          />
         </div>
-        <Button onClick={addValue} size="sm" className="gap-2">
+        <Button onClick={addValue} size="sm" className="gap-2 shrink-0">
           <Plus className="h-4 w-4" />
           Add Value
         </Button>

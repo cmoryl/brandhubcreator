@@ -253,6 +253,8 @@ export interface BaseGuide {
   sectionOrder?: SectionId[];
   // Hidden sections (admin can toggle visibility)
   hiddenSections?: SectionId[];
+  // Section subtitles (custom descriptions for each section)
+  sectionSubtitles?: Partial<Record<SectionId, string>>;
   // Page display settings (individual brand customization)
   pageSettings?: BrandPageSettings;
   // Hero
