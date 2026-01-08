@@ -161,10 +161,11 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
   };
 };
 
-const brandGuideToDb = (brand: Partial<BrandGuide>, userId: string) => {
+const brandGuideToDb = (brand: Partial<BrandGuide>, userId: string, organizationId: string | null) => {
   const { id, type, isFavorite, isPublic, sectionOrder, hiddenSections, createdAt, updatedAt, ...guideData } = brand as BrandGuide;
   return {
     user_id: userId,
+    organization_id: organizationId,
     name: guideData.hero?.name ?? 'My Brand',
     is_favorite: isFavorite ?? false,
     is_public: isPublic ?? false,
@@ -174,10 +175,11 @@ const brandGuideToDb = (brand: Partial<BrandGuide>, userId: string) => {
   };
 };
 
-const productGuideToDb = (product: Partial<ProductGuide>, userId: string) => {
+const productGuideToDb = (product: Partial<ProductGuide>, userId: string, organizationId: string | null) => {
   const { id, type, parentBrandId, isFavorite, isPublic, sectionOrder, hiddenSections, createdAt, updatedAt, ...guideData } = product as ProductGuide;
   return {
     user_id: userId,
+    organization_id: organizationId,
     parent_brand_id: parentBrandId ?? null,
     name: guideData.hero?.name ?? 'My Product',
     is_favorite: isFavorite ?? false,
@@ -322,8 +324,8 @@ export const useBrandStorage = () => {
 
   const syncBrandToDb = useCallback(async (id: string, merged: BrandGuide) => {
     if (!user) return;
-    
-    const dbData = brandGuideToDb(merged, user.id);
+
+    const dbData = brandGuideToDb(merged, user.id, organization?.id ?? null);
     const { error } = await supabase
       .from('brands')
       .update(dbData)
@@ -333,14 +335,14 @@ export const useBrandStorage = () => {
       console.error('Error updating brand:', error);
       toast.error('Failed to save changes. Please try again.');
     }
-    
+
     pendingBrandUpdates.current.delete(id);
-  }, [user]);
+  }, [user, organization?.id]);
 
   const syncProductToDb = useCallback(async (id: string, merged: ProductGuide) => {
     if (!user) return;
-    
-    const dbData = productGuideToDb(merged, user.id);
+
+    const dbData = productGuideToDb(merged, user.id, organization?.id ?? null);
     const { error } = await supabase
       .from('products')
       .update(dbData)
@@ -350,9 +352,9 @@ export const useBrandStorage = () => {
       console.error('Error updating product:', error);
       toast.error('Failed to save changes. Please try again.');
     }
-    
+
     pendingProductUpdates.current.delete(id);
-  }, [user]);
+  }, [user, organization?.id]);
 
   const updateBrand = useCallback((id: string, updates: Partial<BrandGuide>) => {
     if (!user) {
