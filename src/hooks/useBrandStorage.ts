@@ -206,7 +206,7 @@ export const useBrandStorage = () => {
     productsRef.current = products;
   }, [products]);
 
-  // Fetch brands and products - public access (no auth required for viewing)
+  // Fetch brands and products - depends on user auth state for RLS
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -236,9 +236,10 @@ export const useBrandStorage = () => {
     }
   }, []);
 
+  // Refetch when user auth state changes to ensure RLS policies apply correctly
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [fetchData, user?.id]);
 
   const addBrand = async (name: string): Promise<BrandGuide | null> => {
     if (!user) {
