@@ -42,6 +42,7 @@ const createDefaultGuideData = (name: string, type: 'brand' | 'product') => ({
     coverImage: '', 
     logoUrl: '' 
   },
+  tagline: { primary: '', secondary: '', variations: [] },
   identity: { missionStatement: '', archetype: '', toneOfVoice: [] },
   values: [],
   logos: [],
@@ -94,6 +95,7 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     sectionOrder: db.section_order as BrandGuide['sectionOrder'] ?? DEFAULT_SECTION_ORDER,
     hiddenSections: db.hidden_sections as BrandGuide['hiddenSections'] ?? [],
     hero: (guideData.hero as BrandGuide['hero']) ?? { name: db.name, tagline: '', coverImage: '', logoUrl: '' },
+    tagline: (guideData.tagline as BrandGuide['tagline']) ?? { primary: '', secondary: '', variations: [] },
     identity: (guideData.identity as BrandGuide['identity']) ?? { missionStatement: '', archetype: '', toneOfVoice: [] },
     values: (guideData.values as BrandGuide['values']) ?? [],
     logos: (guideData.logos as BrandGuide['logos']) ?? [],
@@ -133,6 +135,7 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
     sectionOrder: db.section_order as ProductGuide['sectionOrder'] ?? DEFAULT_SECTION_ORDER,
     hiddenSections: db.hidden_sections as ProductGuide['hiddenSections'] ?? [],
     hero: (guideData.hero as ProductGuide['hero']) ?? { name: db.name, tagline: '', coverImage: '', logoUrl: '' },
+    tagline: (guideData.tagline as ProductGuide['tagline']) ?? { primary: '', secondary: '', variations: [] },
     identity: (guideData.identity as ProductGuide['identity']) ?? { missionStatement: '', archetype: '', toneOfVoice: [] },
     values: (guideData.values as ProductGuide['values']) ?? [],
     logos: (guideData.logos as ProductGuide['logos']) ?? [],

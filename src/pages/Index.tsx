@@ -5,6 +5,7 @@ import { BrandSidebar } from '@/components/brand/BrandSidebar';
 import { BrandSelector } from '@/components/brand/BrandSelector';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { HeroSection } from '@/components/brand/HeroSection';
+import { TaglineSection } from '@/components/brand/TaglineSection';
 import { IdentitySection } from '@/components/brand/IdentitySection';
 import { ValuesSection } from '@/components/brand/ValuesSection';
 import { LogoSection } from '@/components/brand/LogoSection';
@@ -37,6 +38,7 @@ const createDefaultBrand = (name: string = 'My Brand'): BrandGuide => ({
   id: crypto.randomUUID(),
   type: 'brand',
   hero: { name, tagline: 'Crafting exceptional experiences', coverImage: '', logoUrl: '' },
+  tagline: { primary: '', secondary: '', variations: [] },
   identity: { missionStatement: '', archetype: '', toneOfVoice: [] },
   values: [],
   logos: [],
@@ -131,6 +133,7 @@ const Index = () => {
   const renderSection = () => {
     switch (activeSection) {
       case 'hero': return <HeroSection hero={currentBrand.hero} onHeroChange={(hero) => updateBrand({ hero })} />;
+      case 'tagline': return <TaglineSection tagline={currentBrand.tagline} onTaglineChange={(tagline) => updateBrand({ tagline })} />;
       case 'identity': return <IdentitySection identity={currentBrand.identity} onIdentityChange={(identity) => updateBrand({ identity })} />;
       case 'values': return <ValuesSection values={currentBrand.values} onValuesChange={(values) => updateBrand({ values })} />;
       case 'logos': return <LogoSection logos={currentBrand.logos} onLogosChange={(logos) => updateBrand({ logos })} />;
