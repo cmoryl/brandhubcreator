@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Mail, Lock, ArrowLeft, Loader2 } from 'lucide-react';
+import { Sparkles, Mail, Lock, ArrowLeft, Loader2, Chrome } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 
@@ -18,8 +19,9 @@ const authSchema = z.object({
 
 const AuthPage = () => {
   const navigate = useNavigate();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithGoogle } = useAuth();
   const { toast } = useToast();
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   
   const [isLoading, setIsLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
@@ -198,6 +200,41 @@ const AuthPage = () => {
                       'Sign In'
                     )}
                   </Button>
+                  
+                  <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator className="w-full" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                    </div>
+                  </div>
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={async () => {
+                      setIsGoogleLoading(true);
+                      const { error } = await signInWithGoogle();
+                      if (error) {
+                        toast({
+                          title: 'Google Sign-In Failed',
+                          description: error.message,
+                          variant: 'destructive',
+                        });
+                        setIsGoogleLoading(false);
+                      }
+                    }}
+                    disabled={isGoogleLoading}
+                  >
+                    {isGoogleLoading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Chrome className="mr-2 h-4 w-4" />
+                    )}
+                    Continue with Google
+                  </Button>
                 </form>
               </TabsContent>
               
@@ -257,6 +294,41 @@ const AuthPage = () => {
                     ) : (
                       'Create Account'
                     )}
+                  </Button>
+                  
+                  <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator className="w-full" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                    </div>
+                  </div>
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={async () => {
+                      setIsGoogleLoading(true);
+                      const { error } = await signInWithGoogle();
+                      if (error) {
+                        toast({
+                          title: 'Google Sign-Up Failed',
+                          description: error.message,
+                          variant: 'destructive',
+                        });
+                        setIsGoogleLoading(false);
+                      }
+                    }}
+                    disabled={isGoogleLoading}
+                  >
+                    {isGoogleLoading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Chrome className="mr-2 h-4 w-4" />
+                    )}
+                    Continue with Google
                   </Button>
                 </form>
               </TabsContent>
