@@ -367,11 +367,10 @@ export const useBrandStorage = () => {
       return;
     }
 
-    // Get current brand state (from local state, including pending updates)
-    const currentBrand = brands.find(b => b.id === id);
+    // Get current brand state using ref to avoid stale closure issues
+    const currentBrand = brandsRef.current.find(b => b.id === id);
     if (!currentBrand) {
-      toast.error('Brand not found');
-      return;
+      console.warn('Brand not found in local state, attempting update anyway:', id);
     }
 
     // Merge with any pending updates
@@ -410,10 +409,10 @@ export const useBrandStorage = () => {
       return;
     }
 
-    const currentProduct = products.find(p => p.id === id);
+    // Get current product state using ref to avoid stale closure issues
+    const currentProduct = productsRef.current.find(p => p.id === id);
     if (!currentProduct) {
-      toast.error('Product not found');
-      return;
+      console.warn('Product not found in local state, attempting update anyway:', id);
     }
 
     // Merge with any pending updates
