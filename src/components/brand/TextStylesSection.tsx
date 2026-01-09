@@ -4,18 +4,22 @@ import { BrandTextStyle } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SectionHeader } from './SectionHeader';
 
 interface TextStylesSectionProps {
   textStyles: BrandTextStyle[];
   onTextStylesChange: (textStyles: BrandTextStyle[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
 const tagOptions = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'small'];
 const weightOptions = ['100', '200', '300', '400', '500', '600', '700', '800', '900'];
 
-export const TextStylesSection = ({ textStyles, onTextStylesChange }: TextStylesSectionProps) => {
+export const TextStylesSection = ({ textStyles, onTextStylesChange, customSubtitle, onSubtitleChange }: TextStylesSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const addTextStyle = () => {
     const newStyle: BrandTextStyle = {
@@ -54,12 +58,18 @@ export const TextStylesSection = ({ textStyles, onTextStylesChange }: TextStyles
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">CSS Hierarchies</h2>
-          <p className="text-muted-foreground mt-1">Developer handover protocol - semantic HTML tag mappings</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <SectionHeader
+            title="CSS Hierarchies"
+            defaultSubtitle="Developer handover protocol - semantic HTML tag mappings"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            isEditing={isHeaderEditing}
+            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+          />
         </div>
-        <Button onClick={addTextStyle} size="sm" className="gap-2">
+        <Button onClick={addTextStyle} size="sm" className="gap-2 shrink-0">
           <Plus className="h-4 w-4" />
           Add Style
         </Button>

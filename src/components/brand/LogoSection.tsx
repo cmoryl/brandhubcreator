@@ -4,10 +4,13 @@ import { BrandLogo } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SectionHeader } from './SectionHeader';
 
 interface LogoSectionProps {
   logos: BrandLogo[];
   onLogosChange: (logos: BrandLogo[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
 const variantLabels: Record<BrandLogo['variant'], string> = {
@@ -19,8 +22,9 @@ const variantLabels: Record<BrandLogo['variant'], string> = {
   wordmark: 'Wordmark',
 };
 
-export const LogoSection = ({ logos, onLogosChange }: LogoSectionProps) => {
+export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleChange }: LogoSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingVariant, setPendingVariant] = useState<BrandLogo['variant']>('primary');
 
@@ -68,12 +72,14 @@ export const LogoSection = ({ logos, onLogosChange }: LogoSectionProps) => {
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Logos</h2>
-          <p className="text-muted-foreground mt-1">Upload and organize your brand logos</p>
-        </div>
-      </div>
+      <SectionHeader
+        title="Logos"
+        defaultSubtitle="Upload and organize your brand logos"
+        customSubtitle={customSubtitle}
+        onSubtitleChange={onSubtitleChange}
+        isEditing={isHeaderEditing}
+        onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+      />
 
       <input
         ref={fileInputRef}

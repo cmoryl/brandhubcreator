@@ -6,23 +6,29 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { getAllColorFormats, getContrastColor } from '@/lib/colorUtils';
 import { toast } from 'sonner';
+import { SectionHeader } from './SectionHeader';
 
 interface ColorPaletteSectionProps {
   colors: BrandColor[];
   onColorsChange: (colors: BrandColor[]) => void;
   colorCombinations?: ColorCombination[];
   onColorCombinationsChange?: (combinations: ColorCombination[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
 export const ColorPaletteSection = ({ 
   colors, 
   onColorsChange,
   colorCombinations = [],
-  onColorCombinationsChange
+  onColorCombinationsChange,
+  customSubtitle,
+  onSubtitleChange
 }: ColorPaletteSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedValue, setCopiedValue] = useState<string | null>(null);
   const [editingCombinationId, setEditingCombinationId] = useState<string | null>(null);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const addColor = () => {
     const newColor: BrandColor = {
@@ -88,12 +94,18 @@ export const ColorPaletteSection = ({
     <section className="space-y-8">
       {/* Color Palette */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-serif font-semibold text-foreground">Color Palette</h2>
-            <p className="text-muted-foreground mt-1">Define your brand's color system with all color formats</p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <SectionHeader
+              title="Color Palette"
+              defaultSubtitle="Define your brand's color system with all color formats"
+              customSubtitle={customSubtitle}
+              onSubtitleChange={onSubtitleChange}
+              isEditing={isHeaderEditing}
+              onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+            />
           </div>
-          <Button onClick={addColor} size="sm" className="gap-2">
+          <Button onClick={addColor} size="sm" className="gap-2 shrink-0">
             <Plus className="h-4 w-4" />
             Add Color
           </Button>

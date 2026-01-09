@@ -4,15 +4,19 @@ import { BrandGradient } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { SectionHeader } from './SectionHeader';
 
 interface GradientsSectionProps {
   gradients: BrandGradient[];
   onGradientsChange: (gradients: BrandGradient[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
-export const GradientsSection = ({ gradients, onGradientsChange }: GradientsSectionProps) => {
+export const GradientsSection = ({ gradients, onGradientsChange, customSubtitle, onSubtitleChange }: GradientsSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const addGradient = () => {
     const newGradient: BrandGradient = {
@@ -41,12 +45,18 @@ export const GradientsSection = ({ gradients, onGradientsChange }: GradientsSect
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Gradients</h2>
-          <p className="text-muted-foreground mt-1">Define atmospheric depth with CSS gradients</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <SectionHeader
+            title="Gradients"
+            defaultSubtitle="Define atmospheric depth with CSS gradients"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            isEditing={isHeaderEditing}
+            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+          />
         </div>
-        <Button onClick={addGradient} size="sm" className="gap-2">
+        <Button onClick={addGradient} size="sm" className="gap-2 shrink-0">
           <Plus className="h-4 w-4" />
           Add Gradient
         </Button>

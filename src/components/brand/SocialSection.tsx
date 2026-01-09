@@ -4,10 +4,13 @@ import { BrandSocialProfile } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SectionHeader } from './SectionHeader';
 
 interface SocialSectionProps {
   social: BrandSocialProfile[];
   onSocialChange: (social: BrandSocialProfile[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
 const platformOptions = [
@@ -23,8 +26,9 @@ const platformOptions = [
   { name: 'Behance', color: '#1769FF' },
 ];
 
-export const SocialSection = ({ social, onSocialChange }: SocialSectionProps) => {
+export const SocialSection = ({ social, onSocialChange, customSubtitle, onSubtitleChange }: SocialSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const addProfile = () => {
     const newProfile: BrandSocialProfile = {
@@ -54,12 +58,18 @@ export const SocialSection = ({ social, onSocialChange }: SocialSectionProps) =>
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Social Registry</h2>
-          <p className="text-muted-foreground mt-1">Official social handles and URLs</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <SectionHeader
+            title="Social Registry"
+            defaultSubtitle="Official social handles and URLs"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            isEditing={isHeaderEditing}
+            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+          />
         </div>
-        <Button onClick={addProfile} size="sm" className="gap-2">
+        <Button onClick={addProfile} size="sm" className="gap-2 shrink-0">
           <Plus className="h-4 w-4" />
           Add Profile
         </Button>

@@ -5,17 +5,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SectionHeader } from './SectionHeader';
 
 interface IconographySectionProps {
   iconography: BrandIconography[];
   onIconographyChange: (iconography: BrandIconography[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
 const categoryOptions = ['Navigation', 'Actions', 'Social', 'Status', 'Commerce', 'Media', 'Communication', 'Other'];
 
-export const IconographySection = ({ iconography, onIconographyChange }: IconographySectionProps) => {
+export const IconographySection = ({ iconography, onIconographyChange, customSubtitle, onSubtitleChange }: IconographySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const addIcon = () => {
     const newIcon: BrandIconography = {
@@ -52,12 +56,18 @@ export const IconographySection = ({ iconography, onIconographyChange }: Iconogr
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Neural Vectors</h2>
-          <p className="text-muted-foreground mt-1">Custom UI glyph system with SVG path data</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <SectionHeader
+            title="Neural Vectors"
+            defaultSubtitle="Custom UI glyph system with SVG path data"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            isEditing={isHeaderEditing}
+            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+          />
         </div>
-        <Button onClick={addIcon} size="sm" className="gap-2">
+        <Button onClick={addIcon} size="sm" className="gap-2 shrink-0">
           <Plus className="h-4 w-4" />
           Add Icon
         </Button>
