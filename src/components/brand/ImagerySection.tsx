@@ -4,15 +4,19 @@ import { BrandImagery } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SectionHeader } from './SectionHeader';
 
 interface ImagerySectionProps {
   imagery: BrandImagery[];
   onImageryChange: (imagery: BrandImagery[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
-export const ImagerySection = ({ imagery, onImageryChange }: ImagerySectionProps) => {
+export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSubtitleChange }: ImagerySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pendingType, setPendingType] = useState<'do' | 'dont'>('do');
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,12 +60,14 @@ export const ImagerySection = ({ imagery, onImageryChange }: ImagerySectionProps
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Visual Direction</h2>
-          <p className="text-muted-foreground mt-1">Photography standards - Do's and Don'ts</p>
-        </div>
-      </div>
+      <SectionHeader
+        title="Visual Direction"
+        defaultSubtitle="Photography standards - Do's and Don'ts"
+        customSubtitle={customSubtitle}
+        onSubtitleChange={onSubtitleChange}
+        isEditing={isHeaderEditing}
+        onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+      />
 
       <input
         ref={fileInputRef}

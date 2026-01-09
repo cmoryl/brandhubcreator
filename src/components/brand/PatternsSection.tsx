@@ -3,14 +3,18 @@ import { Plus, X, Pencil, Upload } from 'lucide-react';
 import { BrandPattern } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SectionHeader } from './SectionHeader';
 
 interface PatternsSectionProps {
   patterns: BrandPattern[];
   onPatternsChange: (patterns: BrandPattern[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
-export const PatternsSection = ({ patterns, onPatternsChange }: PatternsSectionProps) => {
+export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, onSubtitleChange }: PatternsSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,12 +49,18 @@ export const PatternsSection = ({ patterns, onPatternsChange }: PatternsSectionP
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Geometric Primitives</h2>
-          <p className="text-muted-foreground mt-1">Surface texture rules for visual continuity</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <SectionHeader
+            title="Geometric Primitives"
+            defaultSubtitle="Surface texture rules for visual continuity"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            isEditing={isHeaderEditing}
+            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+          />
         </div>
-        <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2">
+        <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0">
           <Upload className="h-4 w-4" />
           Upload Pattern
         </Button>

@@ -4,10 +4,13 @@ import { BrandTypography } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SectionHeader } from './SectionHeader';
 
 interface TypographySectionProps {
   typography: BrandTypography[];
   onTypographyChange: (typography: BrandTypography[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
 const fontOptions = [
@@ -25,8 +28,9 @@ const fontOptions = [
 
 const weightOptions = ['100', '200', '300', '400', '500', '600', '700', '800', '900'];
 
-export const TypographySection = ({ typography, onTypographyChange }: TypographySectionProps) => {
+export const TypographySection = ({ typography, onTypographyChange, customSubtitle, onSubtitleChange }: TypographySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const addTypography = () => {
     const newType: BrandTypography = {
@@ -51,12 +55,18 @@ export const TypographySection = ({ typography, onTypographyChange }: Typography
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Typography</h2>
-          <p className="text-muted-foreground mt-1">Define your brand's type system</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <SectionHeader
+            title="Typography"
+            defaultSubtitle="Define your brand's type system"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            isEditing={isHeaderEditing}
+            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+          />
         </div>
-        <Button onClick={addTypography} size="sm" className="gap-2">
+        <Button onClick={addTypography} size="sm" className="gap-2 shrink-0">
           <Plus className="h-4 w-4" />
           Add Style
         </Button>

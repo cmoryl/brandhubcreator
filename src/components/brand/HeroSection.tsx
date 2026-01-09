@@ -1,16 +1,18 @@
 import { useState, useRef } from 'react';
-import { Pencil, Check, Upload, Image } from 'lucide-react';
+import { Upload, Image } from 'lucide-react';
 import { BrandHero } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
+import { SectionHeader } from './SectionHeader';
 
 interface HeroSectionProps {
   hero: BrandHero;
   onHeroChange: (hero: BrandHero) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
-export const HeroSection = ({ hero, onHeroChange }: HeroSectionProps) => {
+export const HeroSection = ({ hero, onHeroChange, customSubtitle, onSubtitleChange }: HeroSectionProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -29,21 +31,14 @@ export const HeroSection = ({ hero, onHeroChange }: HeroSectionProps) => {
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Identity Shield</h2>
-          <p className="text-muted-foreground mt-1">The primary retinal handshake - your brand's first impression</p>
-        </div>
-        <Button
-          variant={isEditing ? "default" : "outline"}
-          size="sm"
-          onClick={() => setIsEditing(!isEditing)}
-          className="gap-2"
-        >
-          {isEditing ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-          {isEditing ? 'Done' : 'Edit'}
-        </Button>
-      </div>
+      <SectionHeader
+        title="Identity Shield"
+        defaultSubtitle="The primary retinal handshake - your brand's first impression"
+        customSubtitle={customSubtitle}
+        onSubtitleChange={onSubtitleChange}
+        isEditing={isEditing}
+        onEditToggle={() => setIsEditing(!isEditing)}
+      />
 
       <input
         ref={coverInputRef}
