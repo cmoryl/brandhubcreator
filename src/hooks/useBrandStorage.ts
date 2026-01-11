@@ -392,11 +392,13 @@ export const useBrandStorage = () => {
     // Set new debounced sync
     const timeout = setTimeout(() => {
       const latestBrand = brandsRef.current.find(b => b.id === id);
-      if (latestBrand) {
-        const finalUpdates = pendingBrandUpdates.current.get(id) || {};
-        const merged = { ...latestBrand, ...finalUpdates };
-        syncBrandToDb(id, merged as BrandGuide);
-      }
+      const finalUpdates = pendingBrandUpdates.current.get(id) || {};
+      
+      // Even if brand not in local state, sync using pending updates with a base object
+      const baseData = latestBrand || currentBrand || { id } as BrandGuide;
+      const merged = { ...baseData, ...finalUpdates };
+      syncBrandToDb(id, merged as BrandGuide);
+      
       brandSyncTimeouts.current.delete(id);
     }, SYNC_DEBOUNCE_MS);
     
@@ -434,11 +436,13 @@ export const useBrandStorage = () => {
     // Set new debounced sync
     const timeout = setTimeout(() => {
       const latestProduct = productsRef.current.find(p => p.id === id);
-      if (latestProduct) {
-        const finalUpdates = pendingProductUpdates.current.get(id) || {};
-        const merged = { ...latestProduct, ...finalUpdates };
-        syncProductToDb(id, merged as ProductGuide);
-      }
+      const finalUpdates = pendingProductUpdates.current.get(id) || {};
+      
+      // Even if product not in local state, sync using pending updates with a base object
+      const baseData = latestProduct || currentProduct || { id } as ProductGuide;
+      const merged = { ...baseData, ...finalUpdates };
+      syncProductToDb(id, merged as ProductGuide);
+      
       productSyncTimeouts.current.delete(id);
     }, SYNC_DEBOUNCE_MS);
     
