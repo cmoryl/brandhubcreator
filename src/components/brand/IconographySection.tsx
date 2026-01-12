@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { Plus, X, Pencil, Copy, Check } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Plus, X, Pencil, Copy, Check, Upload } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SectionHeader } from './SectionHeader';
+import { toast } from 'sonner';
 
 interface IconographySectionProps {
   iconography: BrandIconography[];
@@ -20,6 +21,7 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addIcon = () => {
     const newIcon: BrandIconography = {
@@ -30,6 +32,61 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
     };
     onIconographyChange([...iconography, newIcon]);
     setEditingId(newIcon.id);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newIcons: BrandIconography[] = [];
+
+    for (const file of Array.from(files)) {
+      if (!file.name.endsWith('.svg')) {
+        toast.error(`${file.name} is not an SVG file`);
+        continue;
+      }
+
+      try {
+        const text = await file.text();
+        // Parse SVG to extract path data
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, 'image/svg+xml');
+        const paths = doc.querySelectorAll('path');
+        
+        if (paths.length === 0) {
+          toast.error(`No path data found in ${file.name}`);
+          continue;
+        }
+
+        // Combine all path data
+        const pathData = Array.from(paths)
+          .map(p => p.getAttribute('d'))
+          .filter(Boolean)
+          .join(' ');
+
+        if (pathData) {
+          newIcons.push({
+            id: crypto.randomUUID(),
+            name: file.name.replace('.svg', ''),
+            svgPath: pathData,
+            category: 'Other',
+          });
+        }
+      } catch (err) {
+        toast.error(`Failed to parse ${file.name}`);
+        console.error(err);
+      }
+    }
+
+    if (newIcons.length > 0) {
+      onIconographyChange([...iconography, ...newIcons]);
+      toast.success(`Added ${newIcons.length} icon(s)`);
+    }
+
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const updateIcon = (id: string, updates: Partial<BrandIconography>) => {
@@ -67,10 +124,29 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button onClick={addIcon} size="sm" className="gap-2 shrink-0">
-          <Plus className="h-4 w-4" />
-          Add Icon
-        </Button>
+        <div className="flex gap-2 shrink-0">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".svg"
+            multiple
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-2"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload className="h-4 w-4" />
+            Upload SVG
+          </Button>
+          <Button onClick={addIcon} size="sm" className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Icon
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-6">

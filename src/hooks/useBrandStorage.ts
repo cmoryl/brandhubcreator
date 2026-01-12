@@ -85,6 +85,17 @@ const createDefaultGuideData = (name: string, type: 'brand' | 'product') => ({
   templates: [],
 });
 
+// Merge section order with default to ensure new sections are included for existing brands
+const mergeSectionOrder = (dbOrder: string[] | null): BrandGuide['sectionOrder'] => {
+  if (!dbOrder) return DEFAULT_SECTION_ORDER;
+  
+  // Get any new sections that don't exist in the stored order
+  const missingSections = DEFAULT_SECTION_ORDER.filter(s => !dbOrder.includes(s));
+  
+  // Append missing sections to the end
+  return [...dbOrder, ...missingSections] as BrandGuide['sectionOrder'];
+};
+
 const dbToBrandGuide = (db: DbBrand): BrandGuide => {
   const guideData = db.guide_data as Record<string, unknown>;
   return {
@@ -92,7 +103,7 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     type: 'brand',
     isFavorite: db.is_favorite,
     isPublic: db.is_public ?? false,
-    sectionOrder: db.section_order as BrandGuide['sectionOrder'] ?? DEFAULT_SECTION_ORDER,
+    sectionOrder: mergeSectionOrder(db.section_order),
     hiddenSections: db.hidden_sections as BrandGuide['hiddenSections'] ?? [],
     hero: (guideData.hero as BrandGuide['hero']) ?? { name: db.name, tagline: '', coverImage: '', logoUrl: '' },
     tagline: (guideData.tagline as BrandGuide['tagline']) ?? { primary: '', secondary: '', variations: [] },
@@ -132,7 +143,7 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
     parentBrandId: db.parent_brand_id ?? undefined,
     isFavorite: db.is_favorite,
     isPublic: db.is_public ?? false,
-    sectionOrder: db.section_order as ProductGuide['sectionOrder'] ?? DEFAULT_SECTION_ORDER,
+    sectionOrder: mergeSectionOrder(db.section_order),
     hiddenSections: db.hidden_sections as ProductGuide['hiddenSections'] ?? [],
     hero: (guideData.hero as ProductGuide['hero']) ?? { name: db.name, tagline: '', coverImage: '', logoUrl: '' },
     tagline: (guideData.tagline as ProductGuide['tagline']) ?? { primary: '', secondary: '', variations: [] },
