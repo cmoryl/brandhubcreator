@@ -48,15 +48,32 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
 
       try {
         const text = await file.text();
-        // Parse SVG to extract path data
+        // Parse SVG to extract path data and viewBox
         const parser = new DOMParser();
         const doc = parser.parseFromString(text, 'image/svg+xml');
+        const svgElement = doc.querySelector('svg');
         const paths = doc.querySelectorAll('path');
         
         if (paths.length === 0) {
           toast.error(`No path data found in ${file.name}`);
           continue;
         }
+
+        // Get viewBox from SVG element
+        let viewBox = svgElement?.getAttribute('viewBox') || '0 0 24 24';
+        
+        // If no viewBox, try to construct from width/height
+        if (!svgElement?.getAttribute('viewBox')) {
+          const width = svgElement?.getAttribute('width')?.replace(/[^0-9.]/g, '') || '24';
+          const height = svgElement?.getAttribute('height')?.replace(/[^0-9.]/g, '') || '24';
+          viewBox = `0 0 ${width} ${height}`;
+        }
+
+        // Detect fill mode - check if paths use fill or stroke
+        const firstPath = paths[0];
+        const hasFill = firstPath?.getAttribute('fill') && firstPath.getAttribute('fill') !== 'none';
+        const hasStroke = firstPath?.getAttribute('stroke') && firstPath.getAttribute('stroke') !== 'none';
+        const fillMode: 'stroke' | 'fill' = hasFill && !hasStroke ? 'fill' : 'stroke';
 
         // Combine all path data
         const pathData = Array.from(paths)
@@ -70,6 +87,8 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
             name: file.name.replace('.svg', ''),
             svgPath: pathData,
             category: 'Other',
+            viewBox,
+            fillMode,
           });
         }
       } catch (err) {
@@ -99,7 +118,9 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
   };
 
   const copySVG = async (icon: BrandIconography) => {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${icon.svgPath}"/></svg>`;
+    const viewBox = icon.viewBox || '0 0 24 24';
+    const fillAttr = icon.fillMode === 'fill' ? 'fill="currentColor"' : 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" ${fillAttr}><path d="${icon.svgPath}"/></svg>`;
     await navigator.clipboard.writeText(svg);
     setCopiedId(icon.id);
     setTimeout(() => setCopiedId(null), 2000);
@@ -163,12 +184,12 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
                 >
                   <svg
                     className="w-8 h-8 text-foreground mb-2"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                    viewBox={icon.viewBox || '0 0 24 24'}
+                    fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
+                    stroke={icon.fillMode === 'fill' ? 'none' : 'currentColor'}
+                    strokeWidth={icon.fillMode === 'fill' ? undefined : '2'}
+                    strokeLinecap={icon.fillMode === 'fill' ? undefined : 'round'}
+                    strokeLinejoin={icon.fillMode === 'fill' ? undefined : 'round'}
                   >
                     <path d={icon.svgPath} />
                   </svg>
