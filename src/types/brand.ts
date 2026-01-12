@@ -104,6 +104,8 @@ export interface BrandIconography {
   name: string;
   svgPath: string;
   category: string;
+  viewBox?: string;
+  fillMode?: 'stroke' | 'fill';
 }
 
 // SOCIALICONS - Platform Markers
