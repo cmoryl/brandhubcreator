@@ -50,6 +50,7 @@ const dbToMember = (db: any): OrganizationMember => ({
   invitedEmail: db.invited_email,
   inviteToken: db.invite_token,
   inviteAcceptedAt: db.invite_accepted_at,
+  inviteExpiresAt: db.invite_expires_at,
   createdAt: db.created_at,
   updatedAt: db.updated_at,
 });
@@ -88,12 +89,14 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
 
       if (!memberData) {
         // Check for pending invites by email before giving up
+        // SECURITY: Exclude invite_token and check expiration
         if (user.email) {
           const { data: pendingInvite } = await supabase
             .from('organization_members')
-            .select('*, organizations(*)')
+            .select('id, organization_id, user_id, role, invited_email, invite_accepted_at, invite_expires_at, created_at, updated_at, organizations(*)')
             .eq('invited_email', user.email)
             .is('user_id', null)
+            .gt('invite_expires_at', new Date().toISOString())
             .maybeSingle();
 
           if (pendingInvite) {
@@ -131,10 +134,11 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       setNeedsOnboarding(false);
 
       // Fetch all members if user is admin or owner
+      // SECURITY: Explicitly exclude invite_token to prevent token theft
       if (memberData.role === 'owner' || memberData.role === 'admin') {
         const { data: membersData } = await supabase
           .from('organization_members')
-          .select('*')
+          .select('id, organization_id, user_id, role, invited_email, invite_accepted_at, invite_expires_at, created_at, updated_at')
           .eq('organization_id', org.id);
 
         if (membersData) {
@@ -266,16 +270,18 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
   const acceptInvite = async (inviteToken: string): Promise<boolean> => {
     if (!user) return false;
 
-    // Find the invite
+    // Find the invite - check for valid, non-expired token
+    // SECURITY: Only select needed fields and check expiration
     const { data: invite, error: fetchError } = await supabase
       .from('organization_members')
-      .select('*')
+      .select('id, organization_id, role, invited_email')
       .eq('invite_token', inviteToken)
       .is('user_id', null)
+      .gt('invite_expires_at', new Date().toISOString())
       .maybeSingle();
 
     if (fetchError || !invite) {
-      console.error('Error finding invite:', fetchError);
+      console.error('Error finding invite or invite has expired:', fetchError);
       return false;
     }
 
@@ -301,11 +307,13 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
   const checkPendingInvite = async (): Promise<OrganizationMember | null> => {
     if (!user?.email) return null;
 
+    // SECURITY: Only select needed fields, exclude invite_token, check expiration
     const { data, error } = await supabase
       .from('organization_members')
-      .select('*, organizations(*)')
+      .select('id, organization_id, user_id, role, invited_email, invite_accepted_at, invite_expires_at, created_at, updated_at, organizations(*)')
       .eq('invited_email', user.email)
       .is('user_id', null)
+      .gt('invite_expires_at', new Date().toISOString())
       .maybeSingle();
 
     if (error || !data) return null;
