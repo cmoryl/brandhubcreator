@@ -69,6 +69,7 @@ export type Database = {
           created_at: string
           id: string
           invite_accepted_at: string | null
+          invite_expires_at: string | null
           invite_token: string | null
           invited_email: string | null
           organization_id: string
@@ -80,6 +81,7 @@ export type Database = {
           created_at?: string
           id?: string
           invite_accepted_at?: string | null
+          invite_expires_at?: string | null
           invite_token?: string | null
           invited_email?: string | null
           organization_id: string
@@ -91,6 +93,7 @@ export type Database = {
           created_at?: string
           id?: string
           invite_accepted_at?: string | null
+          invite_expires_at?: string | null
           invite_token?: string | null
           invited_email?: string | null
           organization_id?: string
@@ -284,6 +287,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_invites: { Args: never; Returns: number }
       get_auth_email: { Args: never; Returns: string }
       has_role: {
         Args: {

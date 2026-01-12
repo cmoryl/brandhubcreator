@@ -35,6 +35,7 @@ export interface OrganizationMember {
   invitedEmail: string | null;
   inviteToken: string | null;
   inviteAcceptedAt: string | null;
+  inviteExpiresAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
