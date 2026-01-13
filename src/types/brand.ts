@@ -222,6 +222,7 @@ export interface BrandBrochure {
   title: string;
   category: string;
   previewUrl: string;
+  thumbnailUrl?: string; // Optional image preview/screenshot
 }
 
 // TEMPLATES - Master Scaffolds
