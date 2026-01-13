@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SectionHeader } from './SectionHeader';
 import { toast } from 'sonner';
+import DOMPurify from 'dompurify';
 
 interface IconographySectionProps {
   iconography: BrandIconography[];
@@ -29,6 +30,8 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
       name: 'New Icon',
       svgPath: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
       category: 'Other',
+      viewBox: '0 0 24 24',
+      fillMode: 'stroke',
     };
     onIconographyChange([...iconography, newIcon]);
     setEditingId(newIcon.id);
@@ -48,49 +51,42 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
 
       try {
         const text = await file.text();
-        // Parse SVG to extract path data and viewBox
+        // Parse SVG to extract essential info
         const parser = new DOMParser();
         const doc = parser.parseFromString(text, 'image/svg+xml');
         const svgElement = doc.querySelector('svg');
-        const paths = doc.querySelectorAll('path');
         
-        if (paths.length === 0) {
-          toast.error(`No path data found in ${file.name}`);
+        if (!svgElement) {
+          toast.error(`No SVG element found in ${file.name}`);
           continue;
         }
 
         // Get viewBox from SVG element
-        let viewBox = svgElement?.getAttribute('viewBox') || '0 0 24 24';
+        let viewBox = svgElement.getAttribute('viewBox') || '';
         
         // If no viewBox, try to construct from width/height
-        if (!svgElement?.getAttribute('viewBox')) {
-          const width = svgElement?.getAttribute('width')?.replace(/[^0-9.]/g, '') || '24';
-          const height = svgElement?.getAttribute('height')?.replace(/[^0-9.]/g, '') || '24';
+        if (!viewBox) {
+          const width = svgElement.getAttribute('width')?.replace(/[^0-9.]/g, '') || '24';
+          const height = svgElement.getAttribute('height')?.replace(/[^0-9.]/g, '') || '24';
           viewBox = `0 0 ${width} ${height}`;
         }
 
-        // Detect fill mode - check if paths use fill or stroke
-        const firstPath = paths[0];
-        const hasFill = firstPath?.getAttribute('fill') && firstPath.getAttribute('fill') !== 'none';
-        const hasStroke = firstPath?.getAttribute('stroke') && firstPath.getAttribute('stroke') !== 'none';
-        const fillMode: 'stroke' | 'fill' = hasFill && !hasStroke ? 'fill' : 'stroke';
+        // Detect fill mode by checking the SVG content
+        const hasStrokeAttr = text.includes('stroke=') && !text.includes('stroke="none"');
+        const hasFillAttr = text.includes('fill=') && !text.includes('fill="none"') && !text.includes('fill="transparent"');
+        const fillMode: 'stroke' | 'fill' = hasStrokeAttr && !hasFillAttr ? 'stroke' : 'fill';
 
-        // Combine all path data
-        const pathData = Array.from(paths)
-          .map(p => p.getAttribute('d'))
-          .filter(Boolean)
-          .join(' ');
+        // Get the inner content of the SVG (all children)
+        const svgContent = svgElement.innerHTML;
 
-        if (pathData) {
-          newIcons.push({
-            id: crypto.randomUUID(),
-            name: file.name.replace('.svg', ''),
-            svgPath: pathData,
-            category: 'Other',
-            viewBox,
-            fillMode,
-          });
-        }
+        newIcons.push({
+          id: crypto.randomUUID(),
+          name: file.name.replace('.svg', ''),
+          svgPath: svgContent, // Store full SVG inner content
+          category: 'Other',
+          viewBox,
+          fillMode,
+        });
       } catch (err) {
         toast.error(`Failed to parse ${file.name}`);
         console.error(err);
@@ -119,11 +115,49 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
 
   const copySVG = async (icon: BrandIconography) => {
     const viewBox = icon.viewBox || '0 0 24 24';
-    const fillAttr = icon.fillMode === 'fill' ? 'fill="currentColor"' : 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" ${fillAttr}><path d="${icon.svgPath}"/></svg>`;
+    // Check if svgPath contains full SVG inner content or just path data
+    const isFullContent = icon.svgPath.includes('<');
+    const innerContent = isFullContent 
+      ? icon.svgPath 
+      : `<path d="${icon.svgPath}" ${icon.fillMode === 'fill' ? 'fill="currentColor"' : 'fill="none" stroke="currentColor" stroke-width="2"'}/>`;
+    
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${innerContent}</svg>`;
     await navigator.clipboard.writeText(svg);
     setCopiedId(icon.id);
+    toast.success('SVG copied to clipboard');
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const renderIcon = (icon: BrandIconography) => {
+    const viewBox = icon.viewBox || '0 0 24 24';
+    const isFullContent = icon.svgPath.includes('<');
+    
+    if (isFullContent) {
+      // Render full SVG content with sanitization
+      const sanitizedContent = DOMPurify.sanitize(icon.svgPath, { USE_PROFILES: { svg: true } });
+      return (
+        <svg
+          className="w-8 h-8 text-foreground mb-2"
+          viewBox={viewBox}
+          dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+        />
+      );
+    } else {
+      // Render path-only SVG
+      return (
+        <svg
+          className="w-8 h-8 text-foreground mb-2"
+          viewBox={viewBox}
+          fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
+          stroke={icon.fillMode === 'fill' ? 'none' : 'currentColor'}
+          strokeWidth={icon.fillMode === 'fill' ? undefined : '2'}
+          strokeLinecap={icon.fillMode === 'fill' ? undefined : 'round'}
+          strokeLinejoin={icon.fillMode === 'fill' ? undefined : 'round'}
+        >
+          <path d={icon.svgPath} />
+        </svg>
+      );
+    }
   };
 
   const groupedIcons = iconography.reduce((acc, icon) => {
@@ -137,7 +171,7 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1">
           <SectionHeader
-            title="Neural Vectors"
+            title="Iconography"
             defaultSubtitle="Custom UI glyph system with SVG path data"
             customSubtitle={customSubtitle}
             onSubtitleChange={onSubtitleChange}
@@ -182,17 +216,7 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
                   style={{ animationDelay: `${index * 50}ms` }}
                   onClick={() => copySVG(icon)}
                 >
-                  <svg
-                    className="w-8 h-8 text-foreground mb-2"
-                    viewBox={icon.viewBox || '0 0 24 24'}
-                    fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
-                    stroke={icon.fillMode === 'fill' ? 'none' : 'currentColor'}
-                    strokeWidth={icon.fillMode === 'fill' ? undefined : '2'}
-                    strokeLinecap={icon.fillMode === 'fill' ? undefined : 'round'}
-                    strokeLinejoin={icon.fillMode === 'fill' ? undefined : 'round'}
-                  >
-                    <path d={icon.svgPath} />
-                  </svg>
+                  {renderIcon(icon)}
                   <p className="text-xs text-muted-foreground text-center truncate w-full">{icon.name}</p>
 
                   <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -265,7 +289,7 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
                   <Textarea
                     value={icon.svgPath}
                     onChange={(e) => updateIcon(icon.id, { svgPath: e.target.value })}
-                    placeholder="SVG path data"
+                    placeholder="SVG path data or full SVG content"
                     className="font-mono text-xs min-h-[100px]"
                   />
                   <Button onClick={() => setEditingId(null)} className="w-full">Done</Button>

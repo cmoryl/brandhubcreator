@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Upload, Download, FileText } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Download, FileText, Image } from 'lucide-react';
 import { BrandBrochure } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 interface BrochuresSectionProps {
   brochures: BrandBrochure[];
@@ -15,6 +16,8 @@ const categoryOptions = ['Whitepaper', 'Capability Statement', 'Product Brochure
 export const BrochuresSection = ({ brochures, onBrochuresChange }: BrochuresSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingThumbnailFor, setUploadingThumbnailFor] = useState<string | null>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -39,6 +42,34 @@ export const BrochuresSection = ({ brochures, onBrochuresChange }: BrochuresSect
     }
   };
 
+  const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !uploadingThumbnailFor) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const thumbnailUrl = event.target?.result as string;
+      updateBrochure(uploadingThumbnailFor, { thumbnailUrl });
+      toast.success('Thumbnail added');
+    };
+    reader.readAsDataURL(file);
+
+    if (thumbnailInputRef.current) {
+      thumbnailInputRef.current.value = '';
+    }
+    setUploadingThumbnailFor(null);
+  };
+
+  const triggerThumbnailUpload = (brochureId: string) => {
+    setUploadingThumbnailFor(brochureId);
+    thumbnailInputRef.current?.click();
+  };
+
   const updateBrochure = (id: string, updates: Partial<BrandBrochure>) => {
     onBrochuresChange(brochures.map(b => b.id === id ? { ...b, ...updates } : b));
   };
@@ -53,6 +84,11 @@ export const BrochuresSection = ({ brochures, onBrochuresChange }: BrochuresSect
     link.href = brochure.previewUrl;
     link.download = brochure.title;
     link.click();
+  };
+
+  const removeThumbnail = (brochureId: string) => {
+    updateBrochure(brochureId, { thumbnailUrl: undefined });
+    toast.success('Thumbnail removed');
   };
 
   // Group by category
@@ -82,6 +118,13 @@ export const BrochuresSection = ({ brochures, onBrochuresChange }: BrochuresSect
         onChange={handleFileUpload}
         className="hidden"
       />
+      <input
+        ref={thumbnailInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleThumbnailUpload}
+        className="hidden"
+      />
 
       {Object.keys(groupedBrochures).length > 0 ? (
         <div className="space-y-6">
@@ -98,13 +141,28 @@ export const BrochuresSection = ({ brochures, onBrochuresChange }: BrochuresSect
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     {/* Preview */}
-                    <div className="aspect-[3/4] bg-muted relative flex items-center justify-center">
-                      {brochure.previewUrl.includes('image') || brochure.previewUrl.includes('data:image') ? (
+                    <div className="aspect-[3/4] bg-muted relative flex items-center justify-center overflow-hidden">
+                      {brochure.thumbnailUrl ? (
+                        // Show thumbnail if available
+                        <img src={brochure.thumbnailUrl} alt={brochure.title} className="w-full h-full object-cover" />
+                      ) : brochure.previewUrl.includes('image') || brochure.previewUrl.includes('data:image') ? (
+                        // Show image preview for image files
                         <img src={brochure.previewUrl} alt={brochure.title} className="w-full h-full object-cover" />
                       ) : (
-                        <FileText className="h-16 w-16 text-muted-foreground" />
+                        // Show file icon for PDFs without thumbnail
+                        <div className="flex flex-col items-center gap-2">
+                          <FileText className="h-16 w-16 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">PDF Document</span>
+                        </div>
                       )}
                       <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => triggerThumbnailUpload(brochure.id)}
+                          className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-secondary"
+                          title="Add thumbnail image"
+                        >
+                          <Image className="h-3.5 w-3.5" />
+                        </button>
                         <button
                           onClick={() => downloadBrochure(brochure)}
                           className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-secondary"
@@ -118,6 +176,14 @@ export const BrochuresSection = ({ brochures, onBrochuresChange }: BrochuresSect
                           <X className="h-3.5 w-3.5" />
                         </button>
                       </div>
+                      {brochure.thumbnailUrl && (
+                        <button
+                          onClick={() => removeThumbnail(brochure.id)}
+                          className="absolute bottom-2 right-2 px-2 py-1 text-xs rounded bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          Remove thumbnail
+                        </button>
+                      )}
                     </div>
 
                     {/* Info */}
