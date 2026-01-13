@@ -64,7 +64,8 @@ const BrandsIndex = () => {
     navigate('/');
   }, [signOut, navigate]);
 
-  const canEdit = user && isAdmin;
+  // Allow editing if user is logged in AND either is a global admin OR is an org member with appropriate role
+  const canEdit = user && (isAdmin || (organization && ['owner', 'admin', 'member'].includes(userRole || '')));
 
   // Sort brands and products by most recently updated
   const sortedBrands = [...brands].sort((a, b) => 
