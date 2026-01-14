@@ -414,55 +414,57 @@ const BrandsIndex = () => {
       </div>
 
       {/* Services Section */}
-      <section className="py-16 bg-muted/30 border-y border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
-              What We Offer
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Comprehensive tools to build, manage, and share your brand identity
-            </p>
+      {settings.pageSections?.services !== false && (
+        <section className="py-16 bg-muted/30 border-y border-border">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
+                What We Offer
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Comprehensive tools to build, manage, and share your brand identity
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Service 1 */}
+              <div className="group bg-card rounded-xl p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                  <Palette className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Brand Guidelines</h3>
+                <p className="text-sm text-muted-foreground">Create comprehensive style guides for consistent branding</p>
+              </div>
+              
+              {/* Service 2 */}
+              <div className="group bg-card rounded-xl p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+                <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
+                  <Layers className="h-6 w-6 text-accent" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Asset Management</h3>
+                <p className="text-sm text-muted-foreground">Organize logos, colors, and typography in one place</p>
+              </div>
+              
+              {/* Service 3 */}
+              <div className="group bg-card rounded-xl p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+                <div className="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center mb-4 group-hover:bg-green-500/20 transition-colors">
+                  <Share2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Easy Sharing</h3>
+                <p className="text-sm text-muted-foreground">Share brand guides with clients and team members</p>
+              </div>
+              
+              {/* Service 4 */}
+              <div className="group bg-card rounded-xl p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+                <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4 group-hover:bg-blue-500/20 transition-colors">
+                  <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">PDF Export</h3>
+                <p className="text-sm text-muted-foreground">Generate professional PDF brand books instantly</p>
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Service 1 */}
-            <div className="group bg-card rounded-xl p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <Palette className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">Brand Guidelines</h3>
-              <p className="text-sm text-muted-foreground">Create comprehensive style guides for consistent branding</p>
-            </div>
-            
-            {/* Service 2 */}
-            <div className="group bg-card rounded-xl p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
-                <Layers className="h-6 w-6 text-accent" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">Asset Management</h3>
-              <p className="text-sm text-muted-foreground">Organize logos, colors, and typography in one place</p>
-            </div>
-            
-            {/* Service 3 */}
-            <div className="group bg-card rounded-xl p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center mb-4 group-hover:bg-green-500/20 transition-colors">
-                <Share2 className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">Easy Sharing</h3>
-              <p className="text-sm text-muted-foreground">Share brand guides with clients and team members</p>
-            </div>
-            
-            {/* Service 4 */}
-            <div className="group bg-card rounded-xl p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4 group-hover:bg-blue-500/20 transition-colors">
-                <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">PDF Export</h3>
-              <p className="text-sm text-muted-foreground">Generate professional PDF brand books instantly</p>
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
