@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AppSettingsProvider } from "@/contexts/AppSettingsContext";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { GlobalErrorLogger } from "@/components/GlobalErrorLogger";
 import BrandsIndex from "./pages/BrandsIndex";
 import BrandEditor from "./pages/BrandEditor";
 import ProductEditor from "./pages/ProductEditor";
@@ -29,6 +30,7 @@ const App = () => (
         <AppSettingsProvider>
           <OrganizationProvider>
             <BrandProvider>
+              <GlobalErrorLogger />
               <Toaster />
               <Sonner />
               <BrowserRouter>
