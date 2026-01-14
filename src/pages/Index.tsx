@@ -70,6 +70,7 @@ const createDefaultBrand = (name: string = 'My Brand'): BrandGuide => ({
   caseStudies: [],
   brochures: [],
   templates: [],
+  services: [],
   createdAt: new Date(),
   updatedAt: new Date(),
 });
