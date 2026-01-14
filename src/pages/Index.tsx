@@ -60,6 +60,7 @@ const createDefaultBrand = (name: string = 'My Brand'): BrandGuide => ({
   socialIcons: [],
   imagery: [],
   social: [],
+  websites: [],
   signatures: [],
   qr: { defaultUrl: 'https://yourbrand.com', fgColor: '#1a1a2e', bgColor: '#ffffff' },
   videos: [],
