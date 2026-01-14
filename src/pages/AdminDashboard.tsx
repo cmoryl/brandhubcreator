@@ -5,7 +5,8 @@ import {
   TrendingUp, TrendingDown, BarChart3, PieChart, Clock,
   UserPlus, LogIn, Eye, Edit, Trash2, Download, RefreshCw,
   Settings, Database, HardDrive, AlertTriangle, CheckCircle,
-  Crown, Search, Filter, MoreHorizontal, ArrowUpRight, Calendar
+  Crown, Search, Filter, MoreHorizontal, ArrowUpRight, Calendar,
+  FileText, Brain
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,6 +33,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { BrandReportGenerator } from '@/components/admin/BrandReportGenerator';
+import { AIMarketAnalysis } from '@/components/admin/AIMarketAnalysis';
 
 interface DashboardStats {
   totalUsers: number;
@@ -414,7 +417,7 @@ export default function AdminDashboard() {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 lg:w-auto lg:inline-grid">
             <TabsTrigger value="overview" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
@@ -430,6 +433,14 @@ export default function AdminDashboard() {
             <TabsTrigger value="content" className="gap-2">
               <Palette className="h-4 w-4" />
               Content
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Reports
+            </TabsTrigger>
+            <TabsTrigger value="ai-analysis" className="gap-2">
+              <Brain className="h-4 w-4" />
+              AI Analysis
             </TabsTrigger>
             <TabsTrigger value="activity" className="gap-2">
               <Activity className="h-4 w-4" />
@@ -792,6 +803,16 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Reports Tab */}
+          <TabsContent value="reports" className="space-y-6">
+            <BrandReportGenerator />
+          </TabsContent>
+
+          {/* AI Analysis Tab */}
+          <TabsContent value="ai-analysis" className="space-y-6">
+            <AIMarketAnalysis />
           </TabsContent>
 
           {/* Activity Tab */}
