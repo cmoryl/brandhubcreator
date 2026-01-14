@@ -237,7 +237,8 @@ const Index = () => {
                 <div className="animate-zoom-in">{renderSection()}</div>
               ) : (
                 <FullBrandPage 
-                  brand={currentBrand} 
+                  brand={currentBrand}
+                  brandId={currentBrand.id}
                   onBrandUpdate={updateBrand}
                   scrollToSection={scrollToSection}
                   onSectionVisible={handleSectionVisible}

@@ -320,7 +320,7 @@ export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'tagline', 'identity', 'values', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
   'imagery', 'social', 'signatures', 'qr', 'videos', 'assets', 'misuse', 'atmosphere',
-  'casestudies', 'brochures', 'templates'
+  'casestudies', 'brochures', 'templates', 'products'
 ];
 
 // Main Brand Guide interface (extends base)
@@ -359,4 +359,5 @@ export type SectionId =
   | 'atmosphere'
   | 'casestudies'
   | 'brochures'
-  | 'templates';
+  | 'templates'
+  | 'products';

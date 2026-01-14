@@ -1,7 +1,7 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, 
-  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video, Quote
+  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video, Quote, Package
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -59,6 +59,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   casestudies: { label: 'Proof Shards', icon: FileText, category: 'Collateral' },
   brochures: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
   templates: { label: 'Master Scaffolds', icon: FileType, category: 'Collateral' },
+  products: { label: 'Products', icon: Package, category: 'Collateral' },
 };
 
 export const ReorderableBrandSidebar = ({ 
