@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { BrandGuide, ProductGuide, DEFAULT_SECTION_ORDER } from '@/types/brand';
+import { BrandGuide, ProductGuide, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS } from '@/types/brand';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Json } from '@/integrations/supabase/types';
@@ -84,6 +84,8 @@ const createDefaultGuideData = (name: string, type: 'brand' | 'product') => ({
   caseStudies: [],
   brochures: [],
   templates: [],
+  sectionSubtitles: {},
+  pageSettings: DEFAULT_PAGE_SETTINGS,
 });
 
 // Merge section order with default to ensure new sections are included for existing brands
@@ -132,6 +134,8 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     caseStudies: (guideData.caseStudies as BrandGuide['caseStudies']) ?? [],
     brochures: (guideData.brochures as BrandGuide['brochures']) ?? [],
     templates: (guideData.templates as BrandGuide['templates']) ?? [],
+    sectionSubtitles: (guideData.sectionSubtitles as BrandGuide['sectionSubtitles']) ?? {},
+    pageSettings: (guideData.pageSettings as BrandGuide['pageSettings']) ?? DEFAULT_PAGE_SETTINGS,
     createdAt: new Date(db.created_at),
     updatedAt: new Date(db.updated_at),
   };
@@ -173,6 +177,8 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
     caseStudies: (guideData.caseStudies as ProductGuide['caseStudies']) ?? [],
     brochures: (guideData.brochures as ProductGuide['brochures']) ?? [],
     templates: (guideData.templates as ProductGuide['templates']) ?? [],
+    sectionSubtitles: (guideData.sectionSubtitles as ProductGuide['sectionSubtitles']) ?? {},
+    pageSettings: (guideData.pageSettings as ProductGuide['pageSettings']) ?? DEFAULT_PAGE_SETTINGS,
     createdAt: new Date(db.created_at),
     updatedAt: new Date(db.updated_at),
   };
