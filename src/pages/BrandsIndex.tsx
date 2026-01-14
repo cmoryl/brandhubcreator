@@ -249,10 +249,13 @@ const BrandsIndex = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     {isAdmin && (
-                      <DropdownMenuItem className="gap-2 text-accent">
-                        <Shield className="h-4 w-4" />
-                        Admin
-                      </DropdownMenuItem>
+                      <>
+                        <DropdownMenuItem onClick={() => navigate('/admin')} className="gap-2 text-accent">
+                          <Shield className="h-4 w-4" />
+                          Admin Dashboard
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
                     )}
                     {organization && (
                       <>
