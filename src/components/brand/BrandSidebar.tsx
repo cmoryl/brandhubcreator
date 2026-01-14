@@ -1,7 +1,7 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, 
-  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video, Quote
+  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video, Quote, Package
 } from 'lucide-react';
 import { SectionId } from '@/types/brand';
 import { cn } from '@/lib/utils';
@@ -38,6 +38,7 @@ const sections: { id: SectionId; label: string; icon: React.ElementType; categor
   { id: 'casestudies', label: 'Proof Shards', icon: FileText, category: 'Collateral' },
   { id: 'brochures', label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
   { id: 'templates', label: 'Master Scaffolds', icon: FileType, category: 'Collateral' },
+  { id: 'products', label: 'Products', icon: Package, category: 'Collateral' },
 ];
 
 const categories = ['Identity', 'Visual', 'Typography', 'Assets', 'Communication', 'Resources', 'Collateral'];

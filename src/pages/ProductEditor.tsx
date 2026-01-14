@@ -262,7 +262,8 @@ const ProductEditor = () => {
                 renderSection()
               ) : (
                 <FullBrandPage 
-                  brand={currentProduct} 
+                  brand={currentProduct}
+                  brandId={productId || ''}
                   onBrandUpdate={handleUpdateProduct}
                   scrollToSection={scrollToSection}
                   onSectionVisible={handleSectionVisible}

@@ -137,8 +137,10 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
       const sanitizedContent = DOMPurify.sanitize(icon.svgPath, { USE_PROFILES: { svg: true } });
       return (
         <svg
-          className="w-8 h-8 text-foreground mb-2"
+          className="w-full h-full max-w-12 max-h-12 text-foreground mb-2"
           viewBox={viewBox}
+          preserveAspectRatio="xMidYMid meet"
+          style={{ overflow: 'visible' }}
           dangerouslySetInnerHTML={{ __html: sanitizedContent }}
         />
       );
@@ -146,8 +148,10 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
       // Render path-only SVG
       return (
         <svg
-          className="w-8 h-8 text-foreground mb-2"
+          className="w-full h-full max-w-12 max-h-12 text-foreground mb-2"
           viewBox={viewBox}
+          preserveAspectRatio="xMidYMid meet"
+          style={{ overflow: 'visible' }}
           fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
           stroke={icon.fillMode === 'fill' ? 'none' : 'currentColor'}
           strokeWidth={icon.fillMode === 'fill' ? undefined : '2'}

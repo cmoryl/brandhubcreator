@@ -409,7 +409,8 @@ const BrandEditor = () => {
                 </div>
               ) : (
                 <FullBrandPage 
-                  brand={brand} 
+                  brand={brand}
+                  brandId={brandId || ''}
                   onBrandUpdate={updateBrand}
                   scrollToSection={scrollToSection}
                   onSectionVisible={handleSectionVisible}

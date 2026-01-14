@@ -24,10 +24,12 @@ import { AtmosphereSection } from './AtmosphereSection';
 import { CaseStudiesSection } from './CaseStudiesSection';
 import { BrochuresSection } from './BrochuresSection';
 import { TemplatesSection } from './TemplatesSection';
+import { ProductsSection } from './ProductsSection';
 import { Separator } from '@/components/ui/separator';
 
 interface FullBrandPageProps {
   brand: BaseGuide;
+  brandId: string;
   onBrandUpdate: (updates: Partial<BaseGuide>) => void;
   scrollToSection?: SectionId | null;
   onSectionVisible?: (sectionId: SectionId) => void;
@@ -37,7 +39,8 @@ interface FullBrandPageProps {
 }
 
 export const FullBrandPage = ({ 
-  brand, 
+  brand,
+  brandId,
   onBrandUpdate, 
   scrollToSection,
   onSectionVisible,
@@ -126,6 +129,7 @@ export const FullBrandPage = ({
       case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies} onCaseStudiesChange={(caseStudies) => onBrandUpdate({ caseStudies })} />;
       case 'brochures': return <BrochuresSection brochures={brand.brochures} onBrochuresChange={(brochures) => onBrandUpdate({ brochures })} />;
       case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={(templates) => onBrandUpdate({ templates })} />;
+      case 'products': return brand.type === 'brand' ? <ProductsSection brandId={brandId} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} /> : null;
       default: return null;
     }
   };
