@@ -34,6 +34,8 @@ import { HeroBackground } from '@/components/HeroBackground';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BaseGuide } from '@/types/brand';
+import { Organization } from '@/types/organization';
+import { OrganizationSwitcher } from '@/components/OrganizationSwitcher';
 
 const BrandsIndex = () => {
   const navigate = useNavigate();
@@ -47,6 +49,7 @@ const BrandsIndex = () => {
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'brand' | 'product' } | null>(null);
   const [newItemName, setNewItemName] = useState('');
   const [newItemType, setNewItemType] = useState<'brand' | 'product'>('brand');
+  const [viewingOrg, setViewingOrg] = useState<Organization | null>(null);
   const fileInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
   const recentlyUpdated = getRecentlyUpdated();
@@ -67,15 +70,21 @@ const BrandsIndex = () => {
   // Allow editing if user is logged in AND either is a global admin OR is an org member with appropriate role
   const canEdit = user && (isAdmin || (organization && ['owner', 'admin', 'member'].includes(userRole || '')));
 
-  // Filter brands and products by current organization context
-  // Only show brands/products that belong to the current organization
-  const orgFilteredBrands = organization 
-    ? brands.filter(b => b.organizationId === organization.id)
-    : brands;
+  // Determine which organization to filter by
+  // For admins: use viewingOrg (null = all orgs, or specific org)
+  // For regular users: use their organization context
+  const activeOrg = isAdmin ? viewingOrg : organization;
+
+  // Filter brands and products by active organization context
+  // If activeOrg is null (admin viewing all), show all brands
+  // Otherwise filter to just that organization's brands
+  const orgFilteredBrands = activeOrg 
+    ? brands.filter(b => b.organizationId === activeOrg.id)
+    : isAdmin ? brands : brands.filter(b => b.organizationId === organization?.id);
   
-  const orgFilteredProducts = organization
-    ? products.filter(p => p.organizationId === organization.id)
-    : products;
+  const orgFilteredProducts = activeOrg
+    ? products.filter(p => p.organizationId === activeOrg.id)
+    : isAdmin ? products : products.filter(p => p.organizationId === organization?.id);
 
   // Sort brands and products by most recently updated
   const sortedBrands = [...orgFilteredBrands].sort((a, b) => 
@@ -86,9 +95,9 @@ const BrandsIndex = () => {
   );
 
   // Filter favorites by organization too
-  const favorites = organization
-    ? allFavorites.filter(f => f.organizationId === organization.id)
-    : allFavorites;
+  const favorites = activeOrg
+    ? allFavorites.filter(f => f.organizationId === activeOrg.id)
+    : isAdmin ? allFavorites : allFavorites.filter(f => f.organizationId === organization?.id);
 
   // Onboarding redirect removed - users go straight to the main page
 
@@ -207,8 +216,13 @@ const BrandsIndex = () => {
               <span className="font-semibold text-2xl text-foreground">{settings.appName}</span>
             </div>
             <div className="flex items-center gap-3">
-              {/* Organization Badge */}
-              {user && organization && (
+              {/* Organization Switcher for Admins */}
+              {isAdmin && (
+                <OrganizationSwitcher onSwitch={(org) => setViewingOrg(org)} />
+              )}
+              
+              {/* Organization Badge for non-admins */}
+              {user && organization && !isAdmin && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg border border-border/50">
