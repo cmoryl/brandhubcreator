@@ -51,13 +51,14 @@ const AuthPage = () => {
     setIsLoading(false);
 
     if (error) {
+      // Use generic message to prevent user enumeration attacks
       toast({
-        title: 'Login Failed',
-        description: error.message === 'Invalid login credentials' 
-          ? 'Invalid email or password. Please try again.' 
-          : error.message,
+        title: 'Sign In Failed',
+        description: 'Invalid credentials. Please check your email and password.',
         variant: 'destructive',
       });
+      // Log actual error for debugging (server-side only in production)
+      console.error('[AUTH] Login failed:', error.message);
     } else {
       toast({
         title: 'Welcome back!',
@@ -97,19 +98,14 @@ const AuthPage = () => {
     setIsLoading(false);
 
     if (error) {
-      if (error.message.includes('already registered')) {
-        toast({
-          title: 'Account Exists',
-          description: 'An account with this email already exists. Please login instead.',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Signup Failed',
-          description: error.message,
-          variant: 'destructive',
-        });
-      }
+      // Use generic message to prevent user enumeration attacks
+      // Don't reveal whether the email exists or not
+      console.error('[AUTH] Signup failed:', error.message);
+      toast({
+        title: 'Registration',
+        description: 'If this email is available, you will be able to sign in. Please check your email or try logging in.',
+        variant: 'default',
+      });
     } else {
       toast({
         title: 'Account Created!',
@@ -218,9 +214,11 @@ const AuthPage = () => {
                       setIsGoogleLoading(true);
                       const { error } = await signInWithGoogle();
                       if (error) {
+                        // Use generic message for security
+                        console.error('[AUTH] Google sign-in failed:', error.message);
                         toast({
-                          title: 'Google Sign-In Failed',
-                          description: error.message,
+                          title: 'Sign-In Failed',
+                          description: 'Unable to sign in with Google. Please try again.',
                           variant: 'destructive',
                         });
                         setIsGoogleLoading(false);
@@ -313,9 +311,11 @@ const AuthPage = () => {
                       setIsGoogleLoading(true);
                       const { error } = await signInWithGoogle();
                       if (error) {
+                        // Use generic message for security
+                        console.error('[AUTH] Google sign-up failed:', error.message);
                         toast({
-                          title: 'Google Sign-Up Failed',
-                          description: error.message,
+                          title: 'Sign-Up Failed',
+                          description: 'Unable to sign up with Google. Please try again.',
                           variant: 'destructive',
                         });
                         setIsGoogleLoading(false);
