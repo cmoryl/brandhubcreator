@@ -70,6 +70,7 @@ const createDefaultGuideData = (name: string, type: 'brand' | 'product') => ({
   socialIcons: [],
   imagery: [],
   social: [],
+  websites: [],
   signatures: [],
   qr: { 
     defaultUrl: type === 'brand' ? 'https://yourbrand.com' : 'https://yourproduct.com', 
@@ -121,6 +122,7 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     socialIcons: (guideData.socialIcons as BrandGuide['socialIcons']) ?? [],
     imagery: (guideData.imagery as BrandGuide['imagery']) ?? [],
     social: (guideData.social as BrandGuide['social']) ?? [],
+    websites: (guideData.websites as BrandGuide['websites']) ?? [],
     signatures: (guideData.signatures as BrandGuide['signatures']) ?? [],
     qr: (guideData.qr as BrandGuide['qr']) ?? { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' },
     videos: (guideData.videos as BrandGuide['videos']) ?? [],
@@ -161,6 +163,7 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
     socialIcons: (guideData.socialIcons as ProductGuide['socialIcons']) ?? [],
     imagery: (guideData.imagery as ProductGuide['imagery']) ?? [],
     social: (guideData.social as ProductGuide['social']) ?? [],
+    websites: (guideData.websites as ProductGuide['websites']) ?? [],
     signatures: (guideData.signatures as ProductGuide['signatures']) ?? [],
     qr: (guideData.qr as ProductGuide['qr']) ?? { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' },
     videos: (guideData.videos as ProductGuide['videos']) ?? [],

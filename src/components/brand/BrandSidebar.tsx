@@ -1,6 +1,6 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
-  Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, 
+  Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, Globe,
   FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video, Quote, Package
 } from 'lucide-react';
 import { SectionId } from '@/types/brand';
@@ -29,6 +29,7 @@ const sections: { id: SectionId; label: string; icon: React.ElementType; categor
   { id: 'socialicons', label: 'Platform Markers', icon: Share2, category: 'Assets' },
   { id: 'imagery', label: 'Visual Direction', icon: Camera, category: 'Assets' },
   { id: 'social', label: 'Social Registry', icon: Users, category: 'Communication' },
+  { id: 'website', label: 'Website', icon: Globe, category: 'Communication' },
   { id: 'signatures', label: 'Signature Protocol', icon: Mail, category: 'Communication' },
   { id: 'qr', label: 'Access Ports', icon: QrCode, category: 'Communication' },
   { id: 'videos', label: 'Video Resources', icon: Video, category: 'Resources' },

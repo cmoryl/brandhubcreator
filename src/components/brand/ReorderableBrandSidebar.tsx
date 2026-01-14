@@ -1,6 +1,6 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
-  Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, 
+  Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, Globe,
   FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video, Quote, Package
 } from 'lucide-react';
 import { 
@@ -50,6 +50,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   socialicons: { label: 'Platform Markers', icon: Share2, category: 'Assets' },
   imagery: { label: 'Visual Direction', icon: Camera, category: 'Assets' },
   social: { label: 'Social Registry', icon: Users, category: 'Communication' },
+  website: { label: 'Website', icon: Globe, category: 'Communication' },
   signatures: { label: 'Signature Protocol', icon: Mail, category: 'Communication' },
   qr: { label: 'Access Ports', icon: QrCode, category: 'Communication' },
   videos: { label: 'Video Resources', icon: Video, category: 'Resources' },

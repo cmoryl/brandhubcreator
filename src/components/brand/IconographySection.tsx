@@ -146,11 +146,12 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
       // Render full SVG content with sanitization
       const sanitizedContent = DOMPurify.sanitize(icon.svgPath, { USE_PROFILES: { svg: true } });
       return (
-        <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
+        <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0 overflow-visible`}>
           <svg
             className="w-full h-full text-foreground"
             viewBox={viewBox}
             preserveAspectRatio="xMidYMid meet"
+            style={{ overflow: 'visible' }}
             dangerouslySetInnerHTML={{ __html: sanitizedContent }}
           />
         </div>
@@ -158,11 +159,12 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
     } else {
       // Render path-only SVG
       return (
-        <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
+        <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0 overflow-visible`}>
           <svg
             className="w-full h-full text-foreground"
             viewBox={viewBox}
             preserveAspectRatio="xMidYMid meet"
+            style={{ overflow: 'visible' }}
             fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
             stroke={icon.fillMode === 'fill' ? 'none' : 'currentColor'}
             strokeWidth={icon.fillMode === 'fill' ? undefined : '2'}
@@ -244,7 +246,7 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
               {icons.map((icon, index) => (
                 <div
                   key={icon.id}
-                  className={`group relative bg-card rounded-xl ${gridSizeConfig[gridSize].padding} shadow-sm border border-border animate-scale-in flex flex-col items-center cursor-pointer overflow-hidden`}
+                  className={`group relative bg-card rounded-xl ${gridSizeConfig[gridSize].padding} shadow-sm border border-border animate-scale-in flex flex-col items-center cursor-pointer`}
                   style={{ animationDelay: `${index * 50}ms` }}
                   onClick={() => copySVG(icon)}
                 >
