@@ -1,7 +1,8 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star } from 'lucide-react';
-import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings } from '@/types/brand';
+import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, BrandGuide } from '@/types/brand';
+import { supabase } from '@/integrations/supabase/client';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -68,8 +69,82 @@ const BrandEditor = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('full');
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
+  const [publicBrand, setPublicBrand] = useState<BrandGuide | null>(null);
+  const [publicBrandLoading, setPublicBrandLoading] = useState(false);
 
-  const brand = getBrand(brandId || '');
+  const contextBrand = getBrand(brandId || '');
+  
+  // Fetch public brand directly if not in context (for logged-out users)
+  useEffect(() => {
+    const fetchPublicBrand = async () => {
+      if (!brandId || contextBrand || authLoading || isLoading) return;
+      
+      setPublicBrandLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('brands')
+          .select('*')
+          .eq('id', brandId)
+          .eq('is_public', true)
+          .single();
+        
+        if (!error && data) {
+          // Convert DB format to BrandGuide
+          const guideData = data.guide_data as Record<string, unknown>;
+          const brand: BrandGuide = {
+            id: data.id,
+            type: 'brand',
+            organizationId: data.organization_id,
+            isFavorite: data.is_favorite ?? false,
+            isPublic: data.is_public ?? false,
+            sectionOrder: (data.section_order as SectionId[]) || DEFAULT_SECTION_ORDER,
+            hiddenSections: (data.hidden_sections as SectionId[]) || [],
+            hero: (guideData.hero as BrandGuide['hero']) ?? { name: data.name, tagline: '', coverImage: '', logoUrl: '' },
+            tagline: (guideData.tagline as BrandGuide['tagline']) ?? { primary: '', secondary: '', variations: [] },
+            identity: (guideData.identity as BrandGuide['identity']) ?? { missionStatement: '', archetype: '', toneOfVoice: [] },
+            values: (guideData.values as BrandGuide['values']) ?? [],
+            logos: (guideData.logos as BrandGuide['logos']) ?? [],
+            brandIcons: (guideData.brandIcons as BrandGuide['brandIcons']) ?? [],
+            colors: (guideData.colors as BrandGuide['colors']) ?? [],
+            colorCombinations: (guideData.colorCombinations as BrandGuide['colorCombinations']) ?? [],
+            gradients: (guideData.gradients as BrandGuide['gradients']) ?? [],
+            patterns: (guideData.patterns as BrandGuide['patterns']) ?? [],
+            typography: (guideData.typography as BrandGuide['typography']) ?? [],
+            textStyles: (guideData.textStyles as BrandGuide['textStyles']) ?? [],
+            iconography: (guideData.iconography as BrandGuide['iconography']) ?? [],
+            socialIcons: (guideData.socialIcons as BrandGuide['socialIcons']) ?? [],
+            imagery: (guideData.imagery as BrandGuide['imagery']) ?? [],
+            social: (guideData.social as BrandGuide['social']) ?? [],
+            websites: (guideData.websites as BrandGuide['websites']) ?? [],
+            signatures: (guideData.signatures as BrandGuide['signatures']) ?? [],
+            qr: (guideData.qr as BrandGuide['qr']) ?? { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' },
+            videos: (guideData.videos as BrandGuide['videos']) ?? [],
+            assets: (guideData.assets as BrandGuide['assets']) ?? [],
+            misuse: (guideData.misuse as BrandGuide['misuse']) ?? [],
+            atmosphere: (guideData.atmosphere as BrandGuide['atmosphere']) ?? { style: 'gradient', animate: true, opacity: 0.5, blur: 0 },
+            caseStudies: (guideData.caseStudies as BrandGuide['caseStudies']) ?? [],
+            brochures: (guideData.brochures as BrandGuide['brochures']) ?? [],
+            templates: (guideData.templates as BrandGuide['templates']) ?? [],
+            services: (guideData.services as BrandGuide['services']) ?? [],
+            sectionSubtitles: (guideData.sectionSubtitles as BrandGuide['sectionSubtitles']) ?? {},
+            pageSettings: (guideData.pageSettings as BrandGuide['pageSettings']) ?? DEFAULT_PAGE_SETTINGS,
+            createdAt: new Date(data.created_at),
+            updatedAt: new Date(data.updated_at),
+          };
+          setPublicBrand(brand);
+        }
+      } catch (err) {
+        console.error('Error fetching public brand:', err);
+      } finally {
+        setPublicBrandLoading(false);
+      }
+    };
+    
+    fetchPublicBrand();
+  }, [brandId, contextBrand, authLoading, isLoading]);
+  
+  // Use context brand if available, otherwise use fetched public brand
+  const brand = contextBrand || publicBrand;
   
   // Check if user can edit: global admin OR org member with appropriate role
   const canEditOrg = orgRole && ['owner', 'admin', 'member'].includes(orgRole);
@@ -167,7 +242,7 @@ const BrandEditor = () => {
   }, [viewMode]);
 
   // Show loading state - AFTER all hooks
-  if (authLoading || isLoading) {
+  if (authLoading || isLoading || publicBrandLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
