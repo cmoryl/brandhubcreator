@@ -214,7 +214,7 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>{editingService ? 'Edit Service' : 'Add Service'}</DialogTitle>
           </DialogHeader>

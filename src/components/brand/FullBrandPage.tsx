@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, memo, useMemo, useCallback } from 'react';
 import { BaseGuide, SectionId, DEFAULT_SECTION_ORDER } from '@/types/brand';
 import { HeroSection } from './HeroSection';
 import { TaglineSection } from './TaglineSection';
@@ -28,6 +28,49 @@ import { BrochuresSection } from './BrochuresSection';
 import { TemplatesSection } from './TemplatesSection';
 import { ProductsSection } from './ProductsSection';
 import { Separator } from '@/components/ui/separator';
+
+// Memoized section wrapper to prevent unnecessary re-renders
+interface SectionWrapperProps {
+  sectionId: SectionId;
+  children: React.ReactNode;
+  isHidden: boolean;
+  isAdmin: boolean;
+  index: number;
+  isLast: boolean;
+  setRef: (el: HTMLDivElement | null) => void;
+}
+
+const SectionWrapper = memo(({ 
+  sectionId, 
+  children, 
+  isHidden, 
+  isAdmin, 
+  index, 
+  isLast,
+  setRef 
+}: SectionWrapperProps) => (
+  <div 
+    key={sectionId} 
+    className={`section-reveal ${isHidden && isAdmin ? 'opacity-50 relative' : ''}`}
+    style={{ animationDelay: `${index * 0.1}s` }}
+  >
+    {isHidden && isAdmin && (
+      <div className="absolute -top-2 right-0 text-xs bg-muted px-2 py-1 rounded text-muted-foreground animate-fade-in">
+        Hidden from viewers
+      </div>
+    )}
+    <div 
+      ref={setRef} 
+      data-section={sectionId} 
+      className="scroll-mt-24 hover-lift rounded-xl transition-all duration-300"
+    >
+      {children}
+    </div>
+    {!isLast && (
+      <Separator className="my-12 animate-fade-in" style={{ animationDelay: `${index * 0.1 + 0.3}s` }} />
+    )}
+  </div>
+));
 
 interface FullBrandPageProps {
   brand: BaseGuide;
@@ -85,24 +128,25 @@ export const FullBrandPage = ({
     return () => observer.disconnect();
   }, [onSectionVisible]);
 
-  const setRef = (id: SectionId) => (el: HTMLDivElement | null) => {
+  const setRef = useCallback((id: SectionId) => (el: HTMLDivElement | null) => {
     if (el) {
       sectionRefs.current.set(id, el);
     }
-  };
+  }, []);
 
   const sectionSubtitles = brand.sectionSubtitles || {};
 
-  const handleSubtitleChange = (sectionId: SectionId) => (subtitle: string) => {
+  const handleSubtitleChange = useCallback((sectionId: SectionId) => (subtitle: string) => {
     onBrandUpdate({
       sectionSubtitles: {
         ...sectionSubtitles,
         [sectionId]: subtitle,
       },
     });
-  };
+  }, [onBrandUpdate, sectionSubtitles]);
 
-  const renderSection = (sectionId: SectionId) => {
+  // Memoize section content to prevent unnecessary re-renders
+  const renderSection = useCallback((sectionId: SectionId) => {
     const customSubtitle = sectionSubtitles[sectionId];
     const onSubtitleChange = handleSubtitleChange(sectionId);
 
@@ -136,12 +180,15 @@ export const FullBrandPage = ({
       case 'products': return brand.type === 'brand' ? <ProductsSection brandId={brandId} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} /> : null;
       default: return null;
     }
-  };
+  }, [brand, brandId, onBrandUpdate, sectionSubtitles, handleSubtitleChange]);
 
-  // Filter out hidden sections for non-admin users
-  const visibleSections = isAdmin 
-    ? sectionOrder 
-    : sectionOrder.filter(id => !hiddenSections.includes(id));
+  // Filter out hidden sections for non-admin users - memoized
+  const visibleSections = useMemo(() => 
+    isAdmin 
+      ? sectionOrder 
+      : sectionOrder.filter(id => !hiddenSections.includes(id)),
+    [isAdmin, sectionOrder, hiddenSections]
+  );
 
   return (
     <div className="space-y-16">
@@ -149,27 +196,17 @@ export const FullBrandPage = ({
         const isHidden = hiddenSections.includes(sectionId);
         
         return (
-          <div 
-            key={sectionId} 
-            className={`section-reveal ${isHidden && isAdmin ? 'opacity-50 relative' : ''}`}
-            style={{ animationDelay: `${index * 0.1}s` }}
+          <SectionWrapper
+            key={sectionId}
+            sectionId={sectionId}
+            isHidden={isHidden}
+            isAdmin={isAdmin}
+            index={index}
+            isLast={index >= visibleSections.length - 1}
+            setRef={setRef(sectionId)}
           >
-            {isHidden && isAdmin && (
-              <div className="absolute -top-2 right-0 text-xs bg-muted px-2 py-1 rounded text-muted-foreground animate-fade-in">
-                Hidden from viewers
-              </div>
-            )}
-            <div 
-              ref={setRef(sectionId)} 
-              data-section={sectionId} 
-              className="scroll-mt-24 hover-lift rounded-xl transition-all duration-300"
-            >
-              {renderSection(sectionId)}
-            </div>
-            {index < visibleSections.length - 1 && (
-              <Separator className="my-12 animate-fade-in" style={{ animationDelay: `${index * 0.1 + 0.3}s` }} />
-            )}
-          </div>
+            {renderSection(sectionId)}
+          </SectionWrapper>
         );
       })}
       <div className="h-32" /> {/* Bottom spacing */}
