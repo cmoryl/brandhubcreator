@@ -137,6 +137,7 @@ export interface BrandWebsiteLink {
   id: string;
   label: string;
   url: string;
+  screenshotUrl?: string; // Optional screenshot preview of the website
 }
 
 // SIGNATURES - Signature Protocol
