@@ -241,6 +241,7 @@ const BrandEditor = () => {
               type={getBrandBackgroundType()} 
               image={pageSettings.backgroundImage}
               animationSpeed={pageSettings.animationSpeed}
+              tintColor={pageSettings.animationTintColor || undefined}
             />
           </div>
         )}

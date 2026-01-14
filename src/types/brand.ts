@@ -203,6 +203,7 @@ export type BrandBackgroundType =
   | 'animated-geometric'
   | 'animated-spotlight'
   | 'animated-mesh-waves'
+  | 'animated-dataflow'
   | 'solid';
 
 export interface BrandPageSettings {
@@ -210,6 +211,7 @@ export interface BrandPageSettings {
   backgroundImage: string;
   backgroundColor: string;
   accentColor: string;
+  animationTintColor: string; // Color tint for animated backgrounds
   animationSpeed: 'slow' | 'medium' | 'fast';
   showHeader: boolean;
   headerStyle: 'default' | 'minimal' | 'transparent';
@@ -248,6 +250,7 @@ export const DEFAULT_PAGE_SETTINGS: BrandPageSettings = {
   backgroundImage: '',
   backgroundColor: '',
   accentColor: '',
+  animationTintColor: '',
   animationSpeed: 'medium',
   showHeader: true,
   headerStyle: 'default',
