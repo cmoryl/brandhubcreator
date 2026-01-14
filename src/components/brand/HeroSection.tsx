@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
-import { Upload, Image } from 'lucide-react';
+import { Upload, Image, Pencil, Check } from 'lucide-react';
 import { BrandHero } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { SectionHeader } from './SectionHeader';
+import { Button } from '@/components/ui/button';
 
 interface HeroSectionProps {
   hero: BrandHero;
@@ -12,7 +12,7 @@ interface HeroSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
 }
 
-export const HeroSection = ({ hero, onHeroChange, customSubtitle, onSubtitleChange }: HeroSectionProps) => {
+export const HeroSection = ({ hero, onHeroChange }: HeroSectionProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -30,16 +30,7 @@ export const HeroSection = ({ hero, onHeroChange, customSubtitle, onSubtitleChan
   };
 
   return (
-    <section className="space-y-6">
-      <SectionHeader
-        title="Identity Shield"
-        defaultSubtitle="The primary retinal handshake - your brand's first impression"
-        customSubtitle={customSubtitle}
-        onSubtitleChange={onSubtitleChange}
-        isEditing={isEditing}
-        onEditToggle={() => setIsEditing(!isEditing)}
-      />
-
+    <section>
       <input
         ref={coverInputRef}
         type="file"
@@ -80,9 +71,22 @@ export const HeroSection = ({ hero, onHeroChange, customSubtitle, onSubtitleChan
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           
+          {/* Edit button - floating in top right */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(!isEditing);
+            }}
+            className="absolute top-4 right-4 z-20 bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 hover:text-white"
+          >
+            {isEditing ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
+          </Button>
+          
           {/* Edit overlay */}
           {isEditing && (
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
               <div className="text-white flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20">
                 <Upload className="h-5 w-5" />
                 <span className="font-medium">Upload Cover Image</span>
