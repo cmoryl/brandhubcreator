@@ -81,6 +81,25 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Rate limiting: Check how many audits this user has performed in the last hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count: auditCount, error: countError } = await supabaseClient
+      .from('audit_logs')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', oneHourAgo);
+
+    if (countError) {
+      console.error('Error checking rate limit:', countError.message);
+      // Continue without rate limiting if there's an error (fail open for now)
+    } else if (auditCount !== null && auditCount >= 10) {
+      console.log(`Rate limit exceeded for user ${user.id}: ${auditCount} audits in last hour`);
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Maximum 10 audits per hour.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Fetch brand/product from database - RLS automatically enforces access control
     const tableName = entityType === 'product' ? 'products' : 'brands';
     const { data: brandData, error: fetchError } = await supabaseClient
@@ -221,6 +240,20 @@ Be specific and actionable in your recommendations.`
     }
 
     console.log(`Audit complete. Overall score: ${auditResult.overallScore}`);
+
+    // Log this audit for rate limiting and monitoring
+    const { error: logError } = await supabaseClient
+      .from('audit_logs')
+      .insert({
+        user_id: user.id,
+        brand_id: brandId,
+        entity_type: entityType
+      });
+
+    if (logError) {
+      console.error('Failed to log audit:', logError.message);
+      // Continue anyway - don't fail the audit due to logging issues
+    }
 
     return new Response(
       JSON.stringify({ 

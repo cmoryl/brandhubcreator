@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          brand_id: string
+          created_at: string
+          entity_type: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          brand_id: string
+          created_at?: string
+          entity_type?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          brand_id?: string
+          created_at?: string
+          entity_type?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       brands: {
         Row: {
           created_at: string
@@ -288,6 +312,7 @@ export type Database = {
     }
     Functions: {
       cleanup_expired_invites: { Args: never; Returns: number }
+      cleanup_old_audit_logs: { Args: never; Returns: number }
       get_auth_email: { Args: never; Returns: string }
       has_role: {
         Args: {
