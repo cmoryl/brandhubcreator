@@ -132,6 +132,13 @@ export interface BrandSocialProfile {
   color: string;
 }
 
+// WEBSITE - Website Links
+export interface BrandWebsiteLink {
+  id: string;
+  label: string;
+  url: string;
+}
+
 // SIGNATURES - Signature Protocol
 export interface BrandSignature {
   id: string;
@@ -292,6 +299,8 @@ export interface BaseGuide {
   imagery: BrandImagery[];
   // Social (Social Registry)
   social: BrandSocialProfile[];
+  // Website (Website Links)
+  websites: BrandWebsiteLink[];
   // Signatures (Signature Protocol)
   signatures: BrandSignature[];
   // QR (Access Ports)
@@ -319,7 +328,7 @@ export interface BaseGuide {
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'tagline', 'identity', 'values', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
-  'imagery', 'social', 'signatures', 'qr', 'videos', 'assets', 'misuse', 'atmosphere',
+  'imagery', 'social', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse', 'atmosphere',
   'casestudies', 'brochures', 'templates', 'products'
 ];
 
@@ -351,6 +360,7 @@ export type SectionId =
   | 'socialicons'
   | 'imagery'
   | 'social'
+  | 'website'
   | 'signatures'
   | 'qr'
   | 'videos'
