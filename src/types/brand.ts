@@ -262,6 +262,7 @@ export const DEFAULT_PAGE_SETTINGS: BrandPageSettings = {
 export interface BaseGuide {
   id: string;
   type: 'brand' | 'product';
+  organizationId?: string | null; // Organization this guide belongs to
   isFavorite?: boolean;
   isPublic?: boolean;
   // Section ordering

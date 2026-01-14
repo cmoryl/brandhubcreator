@@ -50,7 +50,7 @@ const BrandsIndex = () => {
   const fileInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
   const recentlyUpdated = getRecentlyUpdated();
-  const favorites = getFavorites();
+  const allFavorites = getFavorites();
 
   // Get the appropriate logo based on current theme
   const currentLogo = resolvedTheme === 'dark' 
@@ -67,13 +67,28 @@ const BrandsIndex = () => {
   // Allow editing if user is logged in AND either is a global admin OR is an org member with appropriate role
   const canEdit = user && (isAdmin || (organization && ['owner', 'admin', 'member'].includes(userRole || '')));
 
+  // Filter brands and products by current organization context
+  // Only show brands/products that belong to the current organization
+  const orgFilteredBrands = organization 
+    ? brands.filter(b => b.organizationId === organization.id)
+    : brands;
+  
+  const orgFilteredProducts = organization
+    ? products.filter(p => p.organizationId === organization.id)
+    : products;
+
   // Sort brands and products by most recently updated
-  const sortedBrands = [...brands].sort((a, b) => 
+  const sortedBrands = [...orgFilteredBrands].sort((a, b) => 
     new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
-  const sortedProducts = [...products].sort((a, b) => 
+  const sortedProducts = [...orgFilteredProducts].sort((a, b) => 
     new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
+
+  // Filter favorites by organization too
+  const favorites = organization
+    ? allFavorites.filter(f => f.organizationId === organization.id)
+    : allFavorites;
 
   // Onboarding redirect removed - users go straight to the main page
 
@@ -368,11 +383,11 @@ const BrandsIndex = () => {
             {/* Stats */}
             <div className="flex items-center gap-8 mt-12 pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
               <div>
-                <p className="text-3xl font-semibold text-foreground">{brands.length}</p>
+                <p className="text-3xl font-semibold text-foreground">{sortedBrands.length}</p>
                 <p className="text-sm text-muted-foreground">Brand Guides</p>
               </div>
               <div>
-                <p className="text-3xl font-semibold text-foreground">{products.length}</p>
+                <p className="text-3xl font-semibold text-foreground">{sortedProducts.length}</p>
                 <p className="text-sm text-muted-foreground">Product Guides</p>
               </div>
               <div>
@@ -391,11 +406,11 @@ const BrandsIndex = () => {
             <TabsList className="w-full sm:w-auto overflow-x-auto">
               <TabsTrigger value="brands" className="gap-2 text-xs sm:text-sm">
                 <Sparkles className="h-4 w-4" />
-                <span className="hidden xs:inline">Brands</span> ({brands.length})
+                <span className="hidden xs:inline">Brands</span> ({sortedBrands.length})
               </TabsTrigger>
               <TabsTrigger value="products" className="gap-2 text-xs sm:text-sm">
                 <Package className="h-4 w-4" />
-                <span className="hidden xs:inline">Products</span> ({products.length})
+                <span className="hidden xs:inline">Products</span> ({sortedProducts.length})
               </TabsTrigger>
               <TabsTrigger value="favorites" className="gap-2 text-xs sm:text-sm">
                 <Star className="h-4 w-4" />
@@ -518,7 +533,7 @@ const BrandsIndex = () => {
                             {brand.hero.tagline}
                           </p>
                         </div>
-                        {canEdit && brands.length > 1 && (
+                        {canEdit && sortedBrands.length > 1 && (
                           <Button
                             variant="ghost"
                             size="icon"
@@ -566,7 +581,7 @@ const BrandsIndex = () => {
               {canEdit && (
                 <Card 
                   className="group cursor-pointer border-2 border-dashed border-border hover:border-accent/50 bg-transparent hover:bg-accent/5 transition-all duration-300 hover-scale card-animate"
-                  style={{ animationDelay: `${brands.length * 0.1}s` }}
+                  style={{ animationDelay: `${sortedBrands.length * 0.1}s` }}
                   onClick={() => { setNewItemType('brand'); setIsNewDialogOpen(true); }}
                 >
                   <CardContent className="flex flex-col items-center justify-center h-full min-h-[320px] text-center">

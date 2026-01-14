@@ -11,6 +11,7 @@ const SYNC_DEBOUNCE_MS = 500;
 interface DbBrand {
   id: string;
   user_id: string;
+  organization_id: string | null;
   name: string;
   is_favorite: boolean;
   is_public: boolean;
@@ -24,6 +25,7 @@ interface DbBrand {
 interface DbProduct {
   id: string;
   user_id: string;
+  organization_id: string | null;
   parent_brand_id: string | null;
   name: string;
   is_favorite: boolean;
@@ -104,6 +106,7 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
   return {
     id: db.id,
     type: 'brand',
+    organizationId: db.organization_id,
     isFavorite: db.is_favorite,
     isPublic: db.is_public ?? false,
     sectionOrder: mergeSectionOrder(db.section_order),
@@ -146,6 +149,7 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
   return {
     id: db.id,
     type: 'product',
+    organizationId: db.organization_id,
     parentBrandId: db.parent_brand_id ?? undefined,
     isFavorite: db.is_favorite,
     isPublic: db.is_public ?? false,
