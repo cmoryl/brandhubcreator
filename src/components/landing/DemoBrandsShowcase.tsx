@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Palette, Star, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -5,6 +6,7 @@ import { Button } from '@/components/ui/button';
 
 interface DemoBrand {
   id: string;
+  slug: string;
   name: string;
   tagline: string;
   industry: string;
@@ -17,6 +19,7 @@ interface DemoBrand {
 const demoBrands: DemoBrand[] = [
   {
     id: 'demo-1',
+    slug: 'lumina-studios',
     name: 'Lumina Studios',
     tagline: 'Crafting light through design',
     industry: 'Creative Agency',
@@ -27,6 +30,7 @@ const demoBrands: DemoBrand[] = [
   },
   {
     id: 'demo-2',
+    slug: 'greenleaf-organics',
     name: 'GreenLeaf Organics',
     tagline: 'Nature in every bite',
     industry: 'Food & Beverage',
@@ -36,6 +40,7 @@ const demoBrands: DemoBrand[] = [
   },
   {
     id: 'demo-3',
+    slug: 'techflow',
     name: 'TechFlow',
     tagline: 'Seamless digital solutions',
     industry: 'Technology',
@@ -46,6 +51,7 @@ const demoBrands: DemoBrand[] = [
   },
   {
     id: 'demo-4',
+    slug: 'artisan-coffee',
     name: 'Artisan Coffee Co.',
     tagline: 'Roasted to perfection',
     industry: 'Hospitality',
@@ -55,6 +61,7 @@ const demoBrands: DemoBrand[] = [
   },
   {
     id: 'demo-5',
+    slug: 'velocity-sports',
     name: 'Velocity Sports',
     tagline: 'Push your limits',
     industry: 'Sports & Fitness',
@@ -64,6 +71,7 @@ const demoBrands: DemoBrand[] = [
   },
   {
     id: 'demo-6',
+    slug: 'serenity-spa',
     name: 'Serenity Spa',
     tagline: 'Your wellness journey',
     industry: 'Health & Wellness',
@@ -74,6 +82,7 @@ const demoBrands: DemoBrand[] = [
 ];
 
 export function DemoBrandsShowcase({ onLoginClick }: { onLoginClick: () => void }) {
+  const navigate = useNavigate();
   return (
     <section className="py-20 bg-gradient-to-b from-background to-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -164,7 +173,7 @@ export function DemoBrandsShowcase({ onLoginClick }: { onLoginClick: () => void 
                   </div>
 
                   {/* View Button */}
-                  <Button variant="outline" className="w-full gap-2 group/btn" onClick={onLoginClick}>
+                  <Button variant="outline" className="w-full gap-2 group/btn" onClick={() => navigate(`/demo/${brand.slug}`)}>
                     View Full Guide
                     <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                   </Button>

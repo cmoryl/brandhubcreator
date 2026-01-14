@@ -19,6 +19,7 @@ import OnboardingPage from "./pages/OnboardingPage";
 import OrganizationSettings from "./pages/OrganizationSettings";
 import ContactUs from "./pages/ContactUs";
 import AdminDashboard from "./pages/AdminDashboard";
+import DemoBrandPreview from "./pages/DemoBrandPreview";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +55,7 @@ const App = () => (
                     <Route path="/contact" element={<ContactUs />} />
                     <Route path="/brand/:brandId" element={<BrandEditor />} />
                     <Route path="/product/:productId" element={<ProductEditor />} />
+                    <Route path="/demo/:brandSlug" element={<DemoBrandPreview />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </ErrorBoundary>
