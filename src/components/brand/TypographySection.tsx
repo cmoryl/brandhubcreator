@@ -28,6 +28,8 @@ const fontOptions = [
 
 const weightOptions = ['100', '200', '300', '400', '500', '600', '700', '800', '900'];
 
+const DEFAULT_PREVIEW_TEXT = 'The quick brown fox jumps over the lazy dog';
+
 export const TypographySection = ({ typography, onTypographyChange, customSubtitle, onSubtitleChange }: TypographySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
@@ -125,6 +127,12 @@ export const TypographySection = ({ typography, onTypographyChange, customSubtit
                   placeholder="Usage description"
                   className="h-10"
                 />
+                <Input
+                  value={type.previewText || ''}
+                  onChange={(e) => updateTypography(type.id, { previewText: e.target.value })}
+                  placeholder="Custom preview text (e.g., your company tagline)"
+                  className="h-10"
+                />
                 <Button size="sm" variant="secondary" onClick={() => setEditingId(null)}>
                   Done
                 </Button>
@@ -144,7 +152,7 @@ export const TypographySection = ({ typography, onTypographyChange, customSubtit
                     className="text-3xl text-foreground"
                     style={{ fontFamily: type.fontFamily, fontWeight: parseInt(type.weight) }}
                   >
-                    The quick brown fox jumps over the lazy dog
+                    {type.previewText || DEFAULT_PREVIEW_TEXT}
                   </p>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span className="font-mono">{type.fontFamily.split(',')[0]}</span>
