@@ -1,7 +1,7 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, Globe,
-  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video, Quote, Package
+  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -39,6 +39,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   tagline: { label: 'Corporate Tagline', icon: Quote, category: 'Identity' },
   identity: { label: 'Narrative Architecture', icon: Scroll, category: 'Identity' },
   values: { label: 'Philosophical Pillars', icon: Heart, category: 'Identity' },
+  services: { label: 'Our Services', icon: Briefcase, category: 'Identity' },
   logos: { label: 'Mark Repository', icon: Image, category: 'Visual' },
   brandicon: { label: 'Symbol Standards', icon: Bookmark, category: 'Visual' },
   colors: { label: 'Prismatic Lab', icon: Palette, category: 'Visual' },

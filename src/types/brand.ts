@@ -256,6 +256,15 @@ export interface BrandTemplate {
   fileSize: string;
 }
 
+// SERVICES - Service Offerings
+export interface BrandService {
+  id: string;
+  name: string;
+  description: string;
+  icon: string; // Lucide icon name
+  imageUrl?: string; // Optional custom image
+}
+
 // Default page settings
 export const DEFAULT_PAGE_SETTINGS: BrandPageSettings = {
   backgroundType: 'inherit',
@@ -337,6 +346,8 @@ export interface BaseGuide {
   brochures: BrandBrochure[];
   // Templates (Master Scaffolds)
   templates: BrandTemplate[];
+  // Services (Service Offerings)
+  services: BrandService[];
   // Metadata
   createdAt: Date;
   updatedAt: Date;
@@ -344,7 +355,7 @@ export interface BaseGuide {
 
 // Default section order
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
-  'hero', 'tagline', 'identity', 'values', 'logos', 'brandicon', 'colors', 'gradients', 
+  'hero', 'tagline', 'identity', 'values', 'services', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
   'imagery', 'social', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse', 'atmosphere',
   'casestudies', 'brochures', 'templates', 'products'
@@ -367,6 +378,7 @@ export type SectionId =
   | 'tagline'
   | 'identity'
   | 'values'
+  | 'services'
   | 'logos'
   | 'brandicon'
   | 'colors'
