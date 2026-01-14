@@ -139,37 +139,54 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
   };
 
   const renderIcon = (icon: BrandIconography, sizeClass: string) => {
-    const viewBox = icon.viewBox || '0 0 24 24';
+    // Default viewBox if not specified - try to detect from path bounds or use default
+    const viewBox = icon.viewBox || '0 0 100 100';
     const isFullContent = icon.svgPath.includes('<');
+    // Default fillMode to 'fill' if not specified
+    const fillMode = icon.fillMode || 'fill';
     
     if (isFullContent) {
-      // Render full SVG content with sanitization
-      const sanitizedContent = DOMPurify.sanitize(icon.svgPath, { USE_PROFILES: { svg: true } });
+      // Sanitize and clean SVG content
+      let cleanedContent = icon.svgPath;
+      
+      // Remove inline styles that set specific colors - we want to use currentColor
+      cleanedContent = cleanedContent
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '') // Remove <style> tags
+        .replace(/style="[^"]*"/gi, '') // Remove inline style attributes
+        .replace(/fill="#[0-9a-fA-F]{3,6}"/gi, 'fill="currentColor"')
+        .replace(/fill:'#[0-9a-fA-F]{3,6}'/gi, "fill='currentColor'")
+        .replace(/stroke="#[0-9a-fA-F]{3,6}"/gi, 'stroke="currentColor"')
+        .replace(/stroke:'#[0-9a-fA-F]{3,6}'/gi, "stroke='currentColor'")
+        .replace(/class="[^"]*"/gi, ''); // Remove class attributes that may reference removed styles
+      
+      // Sanitize the cleaned content
+      const sanitizedContent = DOMPurify.sanitize(cleanedContent, { USE_PROFILES: { svg: true } });
+      
       return (
-        <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0 overflow-visible`}>
+        <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
           <svg
             className="w-full h-full text-foreground"
             viewBox={viewBox}
             preserveAspectRatio="xMidYMid meet"
-            style={{ overflow: 'visible' }}
+            fill="currentColor"
             dangerouslySetInnerHTML={{ __html: sanitizedContent }}
           />
         </div>
       );
     } else {
       // Render path-only SVG
+      const isFillMode = fillMode === 'fill';
       return (
-        <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0 overflow-visible`}>
+        <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
           <svg
             className="w-full h-full text-foreground"
             viewBox={viewBox}
             preserveAspectRatio="xMidYMid meet"
-            style={{ overflow: 'visible' }}
-            fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
-            stroke={icon.fillMode === 'fill' ? 'none' : 'currentColor'}
-            strokeWidth={icon.fillMode === 'fill' ? undefined : '2'}
-            strokeLinecap={icon.fillMode === 'fill' ? undefined : 'round'}
-            strokeLinejoin={icon.fillMode === 'fill' ? undefined : 'round'}
+            fill={isFillMode ? 'currentColor' : 'none'}
+            stroke={isFillMode ? 'none' : 'currentColor'}
+            strokeWidth={isFillMode ? undefined : '2'}
+            strokeLinecap={isFillMode ? undefined : 'round'}
+            strokeLinejoin={isFillMode ? undefined : 'round'}
           >
             <path d={icon.svgPath} />
           </svg>
