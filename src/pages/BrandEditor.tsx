@@ -23,6 +23,7 @@ import { IconographySection } from '@/components/brand/IconographySection';
 import { SocialIconsSection } from '@/components/brand/SocialIconsSection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
 import { SocialSection } from '@/components/brand/SocialSection';
+import { WebsiteSection } from '@/components/brand/WebsiteSection';
 import { SignaturesSection } from '@/components/brand/SignaturesSection';
 import { QRSection } from '@/components/brand/QRSection';
 import { VideosSection } from '@/components/brand/VideosSection';
@@ -32,6 +33,7 @@ import { AtmosphereSection } from '@/components/brand/AtmosphereSection';
 import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
 import { BrochuresSection } from '@/components/brand/BrochuresSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
+import { ProductsSection } from '@/components/brand/ProductsSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
@@ -209,6 +211,7 @@ const BrandEditor = () => {
       case 'socialicons': return <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={(socialIcons) => updateBrand({ socialIcons })} />;
       case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={(imagery) => updateBrand({ imagery })} />;
       case 'social': return <SocialSection social={brand.social} onSocialChange={(social) => updateBrand({ social })} />;
+      case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={(websites) => updateBrand({ websites })} />;
       case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={(signatures) => updateBrand({ signatures })} />;
       case 'qr': return <QRSection qr={brand.qr} onQRChange={(qr) => updateBrand({ qr })} />;
       case 'videos': return <VideosSection videos={brand.videos} onVideosChange={(videos) => updateBrand({ videos })} />;
@@ -218,6 +221,7 @@ const BrandEditor = () => {
       case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies} onCaseStudiesChange={(caseStudies) => updateBrand({ caseStudies })} />;
       case 'brochures': return <BrochuresSection brochures={brand.brochures} onBrochuresChange={(brochures) => updateBrand({ brochures })} />;
       case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={(templates) => updateBrand({ templates })} />;
+      case 'products': return <ProductsSection brandId={brand.id} />;
       default: return null;
     }
   };
