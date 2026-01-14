@@ -32,9 +32,9 @@ export const BrandProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useBrands = () => {
+export const useBrands = (): BrandContextType => {
   const context = useContext(BrandContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useBrands must be used within a BrandProvider');
   }
   return context;
