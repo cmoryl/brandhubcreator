@@ -228,80 +228,120 @@ export const ProductsSection = ({
           ))}
         </div>
       ) : linkedProducts.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {linkedProducts.map((product, index) => (
-            <div
-              key={product.id}
-              className="group relative bg-card rounded-xl p-6 shadow-sm border border-border hover:shadow-md transition-all cursor-pointer animate-scale-in"
-              style={{ animationDelay: `${index * 50}ms` }}
-              onClick={() => openProduct(product.id)}
-            >
-              <div className="flex items-start gap-4">
-                {(product.guide_data as any)?.hero?.logoUrl ? (
-                  <img
-                    src={(product.guide_data as any).hero.logoUrl}
-                    alt={product.name}
-                    className="w-12 h-12 object-contain rounded-lg bg-muted p-1"
-                  />
-                ) : (
-                  <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                    <Package className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
-                  {(product.guide_data as any)?.hero?.tagline && (
-                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                      {(product.guide_data as any).hero.tagline}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openProduct(product.id);
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {linkedProducts.map((product, index) => {
+            const guideData = product.guide_data as any;
+            const heroImage = guideData?.hero?.coverImage || guideData?.hero?.logoUrl;
+            const logoUrl = guideData?.hero?.logoUrl;
+            const tagline = guideData?.hero?.tagline;
+            const primaryColor = guideData?.colors?.[0]?.hex;
+            
+            return (
+              <div
+                key={product.id}
+                className="group relative bg-card rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-xl hover:border-primary/30 transition-all duration-300 cursor-pointer animate-scale-in"
+                style={{ animationDelay: `${index * 50}ms` }}
+                onClick={() => openProduct(product.id)}
+              >
+                {/* Product Image/Cover */}
+                <div 
+                  className="relative h-40 overflow-hidden"
+                  style={{ 
+                    background: heroImage 
+                      ? `url(${heroImage}) center/cover` 
+                      : primaryColor 
+                        ? `linear-gradient(135deg, ${primaryColor}, ${primaryColor}88)` 
+                        : 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))'
                   }}
                 >
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
+                  {/* Overlay gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  
+                  {/* Logo overlay if different from cover */}
+                  {logoUrl && heroImage !== logoUrl && (
+                    <div className="absolute bottom-3 left-3 w-12 h-12 bg-background/90 backdrop-blur-sm rounded-xl p-2 shadow-lg">
+                      <img src={logoUrl} alt="" className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                  
+                  {/* Hover actions */}
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 hover:bg-destructive hover:text-destructive-foreground"
-                      onClick={(e) => e.stopPropagation()}
+                      className="h-8 w-8 bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openProduct(product.id);
+                      }}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <ExternalLink className="h-4 w-4" />
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Unlink Product</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will remove "{product.name}" from this brand guide. The product itself will not be deleted.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => unlinkProduct(product.id)}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Unlink
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-destructive hover:text-white hover:border-destructive"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Unlink Product</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will remove "{product.name}" from this brand guide. The product itself will not be deleted.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => unlinkProduct(product.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Unlink
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+
+                {/* Product Info */}
+                <div className="p-4">
+                  <h3 className="font-semibold text-foreground text-lg truncate group-hover:text-primary transition-colors">
+                    {product.name}
+                  </h3>
+                  {tagline && (
+                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                      {tagline}
+                    </p>
+                  )}
+                  
+                  {/* Color swatches preview */}
+                  {guideData?.colors?.length > 0 && (
+                    <div className="flex gap-1 mt-3">
+                      {guideData.colors.slice(0, 5).map((color: any, i: number) => (
+                        <div 
+                          key={i}
+                          className="w-5 h-5 rounded-full border border-border shadow-sm"
+                          style={{ backgroundColor: color.hex }}
+                          title={color.name}
+                        />
+                      ))}
+                      {guideData.colors.length > 5 && (
+                        <span className="text-xs text-muted-foreground self-center ml-1">
+                          +{guideData.colors.length - 5}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-12 border-2 border-dashed border-border rounded-xl">
