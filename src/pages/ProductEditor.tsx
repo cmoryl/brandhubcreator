@@ -21,6 +21,7 @@ import { IconographySection } from '@/components/brand/IconographySection';
 import { SocialIconsSection } from '@/components/brand/SocialIconsSection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
 import { SocialSection } from '@/components/brand/SocialSection';
+import { WebsiteSection } from '@/components/brand/WebsiteSection';
 import { SignaturesSection } from '@/components/brand/SignaturesSection';
 import { QRSection } from '@/components/brand/QRSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
@@ -129,6 +130,7 @@ const ProductEditor = () => {
       case 'socialicons': return <SocialIconsSection socialIcons={currentProduct.socialIcons} onSocialIconsChange={(socialIcons) => handleUpdateProduct({ socialIcons })} />;
       case 'imagery': return <ImagerySection imagery={currentProduct.imagery} onImageryChange={(imagery) => handleUpdateProduct({ imagery })} />;
       case 'social': return <SocialSection social={currentProduct.social} onSocialChange={(social) => handleUpdateProduct({ social })} />;
+      case 'website': return <WebsiteSection websites={currentProduct.websites} onWebsitesChange={(websites) => handleUpdateProduct({ websites })} />;
       case 'signatures': return <SignaturesSection signatures={currentProduct.signatures} onSignaturesChange={(signatures) => handleUpdateProduct({ signatures })} />;
       case 'qr': return <QRSection qr={currentProduct.qr} onQRChange={(qr) => handleUpdateProduct({ qr })} />;
       case 'assets': return <AssetsSection assets={currentProduct.assets} onAssetsChange={(assets) => handleUpdateProduct({ assets })} />;
