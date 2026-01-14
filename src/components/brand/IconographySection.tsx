@@ -19,10 +19,10 @@ interface IconographySectionProps {
 
 type GridSize = 'compact' | 'medium' | 'large';
 
-const gridSizeConfig: Record<GridSize, { grid: string; padding: string; fontSize: string }> = {
-  compact: { grid: 'grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10', padding: 'p-2', fontSize: 'text-[8px]' },
-  medium: { grid: 'grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8', padding: 'p-3', fontSize: 'text-[10px]' },
-  large: { grid: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6', padding: 'p-4', fontSize: 'text-xs' },
+const gridSizeConfig: Record<GridSize, { grid: string; padding: string; fontSize: string; iconSize: string }> = {
+  compact: { grid: 'grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10', padding: 'p-2', fontSize: 'text-[8px]', iconSize: 'w-8 h-8' },
+  medium: { grid: 'grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8', padding: 'p-3', fontSize: 'text-[10px]', iconSize: 'w-10 h-10' },
+  large: { grid: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6', padding: 'p-4', fontSize: 'text-xs', iconSize: 'w-12 h-12' },
 };
 
 const categoryOptions = ['Navigation', 'Actions', 'Social', 'Status', 'Commerce', 'Media', 'Communication', 'Other'];
@@ -138,7 +138,7 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const renderIcon = (icon: BrandIconography) => {
+  const renderIcon = (icon: BrandIconography, sizeClass: string) => {
     const viewBox = icon.viewBox || '0 0 24 24';
     const isFullContent = icon.svgPath.includes('<');
     
@@ -146,7 +146,7 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
       // Render full SVG content with sanitization
       const sanitizedContent = DOMPurify.sanitize(icon.svgPath, { USE_PROFILES: { svg: true } });
       return (
-        <div className="w-full aspect-square flex items-center justify-center mb-2">
+        <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
           <svg
             className="w-full h-full text-foreground"
             viewBox={viewBox}
@@ -158,7 +158,7 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
     } else {
       // Render path-only SVG
       return (
-        <div className="w-full aspect-square flex items-center justify-center mb-2">
+        <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
           <svg
             className="w-full h-full text-foreground"
             viewBox={viewBox}
@@ -248,7 +248,7 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
                   style={{ animationDelay: `${index * 50}ms` }}
                   onClick={() => copySVG(icon)}
                 >
-                  {renderIcon(icon)}
+                  {renderIcon(icon, gridSizeConfig[gridSize].iconSize)}
                   <p className={`${gridSizeConfig[gridSize].fontSize} text-muted-foreground text-center truncate w-full leading-tight`}>{icon.name}</p>
 
                   <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
