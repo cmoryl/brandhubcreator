@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Plus, X, Quote, Sparkles, Palette } from 'lucide-react';
-import { BrandTagline } from '@/types/brand';
+import { useState, useEffect } from 'react';
+import { Plus, X, Quote, Sparkles, Palette, Type } from 'lucide-react';
+import { BrandTagline, TaglineFontSettings } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { GoogleFontPicker, DEFAULT_FONT_SETTINGS, FontSettings } from '@/components/ui/google-font-picker';
 
 type TaglineBackgroundStyle = 'floating' | 'gradient' | 'solid' | 'glass';
 
@@ -33,6 +34,18 @@ const DEFAULT_SETTINGS: TaglineSettings = {
   solidColor: '#6366f1',
 };
 
+// Load Google Font dynamically
+const loadGoogleFont = (fontFamily: string) => {
+  const fontId = `google-font-${fontFamily.replace(/\s+/g, '-').toLowerCase()}`;
+  if (document.getElementById(fontId)) return;
+  
+  const link = document.createElement('link');
+  link.id = fontId;
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@100;200;300;400;500;600;700;800;900&display=swap`;
+  document.head.appendChild(link);
+};
+
 export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSubtitleChange }: TaglineSectionProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newVariation, setNewVariation] = useState('');
@@ -41,11 +54,25 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
     return (tagline as any)._settings || DEFAULT_SETTINGS;
   });
 
+  // Font settings for primary tagline
+  const fontSettings: FontSettings = tagline.fontSettings || DEFAULT_FONT_SETTINGS;
+
+  // Load the font on mount
+  useEffect(() => {
+    if (fontSettings.fontFamily) {
+      loadGoogleFont(fontSettings.fontFamily);
+    }
+  }, [fontSettings.fontFamily]);
+
   const updateSettings = (newSettings: Partial<TaglineSettings>) => {
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
     // Store settings in tagline object for persistence
     onTaglineChange({ ...tagline, _settings: updated } as any);
+  };
+
+  const updateFontSettings = (newFontSettings: FontSettings) => {
+    onTaglineChange({ ...tagline, fontSettings: newFontSettings });
   };
 
   const addVariation = () => {
@@ -121,13 +148,35 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
           onEditToggle={() => setIsEditing(!isEditing)}
         />
         {isEditing && (
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Palette className="h-4 w-4" />
-                Style
-              </Button>
-            </PopoverTrigger>
+          <div className="flex items-center gap-2">
+            {/* Font Settings Button */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Type className="h-4 w-4" />
+                  Font
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 max-h-[80vh] overflow-y-auto" align="end">
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm">Primary Tagline Typography</h4>
+                  <GoogleFontPicker
+                    value={fontSettings}
+                    onChange={updateFontSettings}
+                    previewText={tagline.primary || 'Your tagline here'}
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
+            
+            {/* Style Button */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Palette className="h-4 w-4" />
+                  Style
+                </Button>
+              </PopoverTrigger>
             <PopoverContent className="w-80" align="end">
               <div className="space-y-4">
                 <div>
@@ -208,6 +257,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
               </div>
             </PopoverContent>
           </Popover>
+          </div>
         )}
       </div>
 
@@ -281,11 +331,23 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                 }`}
               />
             ) : (
-              <div className="flex flex-col items-center text-center">
+              <div className={`flex flex-col items-${fontSettings.textAlign === 'left' ? 'start' : fontSettings.textAlign === 'right' ? 'end' : 'center'}`}>
                 {settings.backgroundStyle !== 'floating' && (
                   <Quote className={`h-10 w-10 ${settings.backgroundStyle === 'glass' ? 'text-primary/40' : 'text-white/40'} mb-4 rotate-180`} />
                 )}
-                <p className={`text-2xl md:text-4xl lg:text-5xl font-serif font-bold ${bgStyles.textColor} tracking-tight leading-tight ${settings.backgroundStyle !== 'floating' ? 'drop-shadow-lg' : ''}`}>
+                <p 
+                  className={`${bgStyles.textColor} ${settings.backgroundStyle !== 'floating' ? 'drop-shadow-lg' : ''}`}
+                  style={{
+                    fontFamily: `"${fontSettings.fontFamily}", serif`,
+                    fontWeight: fontSettings.fontWeight,
+                    fontSize: `clamp(1.5rem, ${fontSettings.fontSize / 16}rem, ${fontSettings.fontSize}px)`,
+                    letterSpacing: `${fontSettings.letterSpacing}px`,
+                    lineHeight: fontSettings.lineHeight,
+                    textTransform: fontSettings.textTransform,
+                    textAlign: fontSettings.textAlign,
+                    fontStyle: fontSettings.fontStyle,
+                  }}
+                >
                   {tagline.primary || 'Add your primary tagline'}
                 </p>
                 {settings.backgroundStyle !== 'floating' && (
