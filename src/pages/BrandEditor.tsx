@@ -1,9 +1,10 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star } from 'lucide-react';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings } from '@/types/brand';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { useSEO } from '@/hooks/useSEO';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
@@ -61,6 +62,7 @@ const BrandEditor = () => {
   const navigate = useNavigate();
   const { getBrand, updateBrand: updateBrandContext, toggleFavorite, isLoading } = useBrands();
   const { user, isAdmin, signOut, isLoading: authLoading } = useAuth();
+  const { userRole: orgRole } = useOrganization();
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -68,7 +70,10 @@ const BrandEditor = () => {
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
 
   const brand = getBrand(brandId || '');
-  const canEdit = user && isAdmin;
+  
+  // Check if user can edit: global admin OR org member with appropriate role
+  const canEditOrg = orgRole && ['owner', 'admin', 'member'].includes(orgRole);
+  const canEdit = user && (isAdmin || canEditOrg);
   
   const sectionOrder = brand?.sectionOrder || DEFAULT_SECTION_ORDER;
   const hiddenSections = brand?.hiddenSections || [];
@@ -339,7 +344,7 @@ const BrandEditor = () => {
                   canEdit={canEdit || false}
                 />
                 <BrandAuditButton brand={brand} />
-                {isAdmin && (
+                {canEdit && (
                   <BrandPageSettingsEditor 
                     settings={pageSettings} 
                     onSettingsChange={handlePageSettingsChange} 
