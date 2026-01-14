@@ -17,7 +17,8 @@ export type HeroBackgroundType =
   | 'animated-aurora'
   | 'animated-geometric'
   | 'animated-spotlight'
-  | 'animated-mesh-waves';
+  | 'animated-mesh-waves'
+  | 'animated-dataflow';
 
 export interface HeroBackground {
   type: HeroBackgroundType;

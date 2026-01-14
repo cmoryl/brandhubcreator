@@ -42,6 +42,7 @@ const backgroundTypes: { type: BrandBackgroundType; name: string; icon: typeof I
   { type: 'animated-geometric', name: 'Geometric', icon: LayoutGrid, description: 'Floating geometric shapes' },
   { type: 'animated-spotlight', name: 'Spotlight', icon: Sparkles, description: 'Moving spotlight effect' },
   { type: 'animated-mesh-waves', name: 'Mesh Lines', icon: LayoutGrid, description: 'Animated mesh wave lines' },
+  { type: 'animated-dataflow', name: 'Data Flow', icon: Waves, description: 'Glowing data particle waves' },
 ];
 
 const headerStyles = [
@@ -154,6 +155,7 @@ export const BrandPageSettingsEditor = ({ settings, onSettingsChange }: BrandPag
                   type={getPreviewType()} 
                   image={formData.backgroundImage}
                   animationSpeed={formData.animationSpeed}
+                  tintColor={formData.animationTintColor || undefined}
                 />
               )}
               <div className="absolute inset-0 flex items-center justify-center">
@@ -249,24 +251,81 @@ export const BrandPageSettingsEditor = ({ settings, onSettingsChange }: BrandPag
             )}
 
             {!['inherit', 'solid', 'gradient', 'image'].includes(formData.backgroundType) && (
-              <div className="space-y-3">
-                <Label>Animation Speed</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['slow', 'medium', 'fast'] as const).map((speed) => (
-                    <button
-                      key={speed}
-                      onClick={() => setFormData(prev => ({ ...prev, animationSpeed: speed }))}
-                      className={`py-2 px-3 rounded-lg border-2 text-sm font-medium capitalize transition-colors ${
-                        formData.animationSpeed === speed
-                          ? 'border-accent bg-accent/10 text-accent'
-                          : 'border-border hover:border-accent/50'
-                      }`}
-                    >
-                      {speed}
-                    </button>
-                  ))}
+              <>
+                <div className="space-y-3">
+                  <Label>Animation Speed</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['slow', 'medium', 'fast'] as const).map((speed) => (
+                      <button
+                        key={speed}
+                        onClick={() => setFormData(prev => ({ ...prev, animationSpeed: speed }))}
+                        className={`py-2 px-3 rounded-lg border-2 text-sm font-medium capitalize transition-colors ${
+                          formData.animationSpeed === speed
+                            ? 'border-accent bg-accent/10 text-accent'
+                            : 'border-border hover:border-accent/50'
+                        }`}
+                      >
+                        {speed}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+
+                <div className="space-y-2">
+                  <Label>Animation Color Tint</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={formData.animationTintColor || '#00b4d8'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, animationTintColor: e.target.value }))}
+                      className="w-10 h-10 rounded border cursor-pointer"
+                    />
+                    <Input
+                      value={formData.animationTintColor || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, animationTintColor: e.target.value }))}
+                      placeholder="Leave empty for default accent"
+                      className="flex-1"
+                    />
+                    {formData.animationTintColor && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFormData(prev => ({ ...prev, animationTintColor: '' }))}
+                      >
+                        Reset
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Customize the glow and particle colors in animated backgrounds
+                  </p>
+                  {/* Color preset swatches */}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {[
+                      { color: '#00b4d8', name: 'Cyan' },
+                      { color: '#6366f1', name: 'Indigo' },
+                      { color: '#8b5cf6', name: 'Purple' },
+                      { color: '#ec4899', name: 'Pink' },
+                      { color: '#10b981', name: 'Emerald' },
+                      { color: '#f59e0b', name: 'Amber' },
+                      { color: '#ef4444', name: 'Red' },
+                      { color: '#3b82f6', name: 'Blue' },
+                    ].map((preset) => (
+                      <button
+                        key={preset.color}
+                        onClick={() => setFormData(prev => ({ ...prev, animationTintColor: preset.color }))}
+                        className={`w-8 h-8 rounded-full border-2 transition-all ${
+                          formData.animationTintColor === preset.color 
+                            ? 'border-foreground scale-110' 
+                            : 'border-transparent hover:scale-105'
+                        }`}
+                        style={{ backgroundColor: preset.color }}
+                        title={preset.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </>
             )}
 
             <div className="space-y-2">
