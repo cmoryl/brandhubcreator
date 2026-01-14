@@ -204,7 +204,11 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
         .replace(/stroke:'#[0-9a-fA-F]{3,6}'/gi, "stroke='currentColor'")
         .replace(/class="[^"]*"/gi, '');
       
-      const sanitizedContent = DOMPurify.sanitize(cleanedContent, { USE_PROFILES: { svg: true } });
+      const sanitizedContent = DOMPurify.sanitize(cleanedContent, { 
+        USE_PROFILES: { svg: true, svgFilters: true },
+        FORBID_TAGS: ['script', 'foreignObject', 'use', 'animate', 'animateTransform', 'set'],
+        FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onmouseout', 'onmousemove', 'onfocus', 'onblur', 'onanimationend', 'onanimationiteration', 'onanimationstart', 'ontransitionend']
+      });
       
       return (
         <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
