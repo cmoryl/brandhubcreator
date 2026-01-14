@@ -28,6 +28,7 @@ export interface BrandTypography {
   usage: string;
   role?: 'display' | 'body';
   downloadUrl?: string;
+  previewText?: string; // Custom preview text (e.g., company tagline)
 }
 
 export interface BrandLogo {
