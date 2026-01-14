@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Upload } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Download, Package } from 'lucide-react';
 import { BrandPattern } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SectionHeader } from './SectionHeader';
+import { toast } from 'sonner';
 
 interface PatternsSectionProps {
   patterns: BrandPattern[];
@@ -47,10 +48,38 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
     if (editingId === id) setEditingId(null);
   };
 
+  const downloadPattern = (pattern: BrandPattern) => {
+    const link = document.createElement('a');
+    link.href = pattern.url;
+    link.download = `${pattern.name}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success(`Downloaded ${pattern.name}`);
+  };
+
+  const downloadAllPatterns = async () => {
+    if (patterns.length === 0) {
+      toast.error('No patterns to download');
+      return;
+    }
+    
+    for (const pattern of patterns) {
+      const link = document.createElement('a');
+      link.href = pattern.url;
+      link.download = `pattern-${pattern.name}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+    toast.success(`Downloaded ${patterns.length} pattern(s)`);
+  };
+
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex-1 min-w-0">
           <SectionHeader
             title="Geometric Primitives"
             defaultSubtitle="Surface texture rules for visual continuity"
@@ -60,10 +89,18 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0">
-          <Upload className="h-4 w-4" />
-          Upload Pattern
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          {patterns.length > 0 && (
+            <Button onClick={downloadAllPatterns} variant="outline" size="sm" className="gap-2">
+              <Package className="h-4 w-4" />
+              Download All
+            </Button>
+          )}
+          <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2">
+            <Upload className="h-4 w-4" />
+            Upload Pattern
+          </Button>
+        </div>
       </div>
 
       <input
@@ -86,12 +123,21 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
               className="h-32 relative"
               style={{ backgroundImage: `url(${pattern.url})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             >
-              <button
-                onClick={() => deletePattern(pattern.id)}
-                className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => downloadPattern(pattern)}
+                  className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-secondary"
+                  title="Download"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => deletePattern(pattern.id)}
+                  className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
 
             {/* Pattern info */}

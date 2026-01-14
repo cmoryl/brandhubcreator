@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Upload, Image } from 'lucide-react';
+import { Plus, X, Upload, Image, Download, Package } from 'lucide-react';
 import { BrandLogo } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SectionHeader } from './SectionHeader';
+import { toast } from 'sonner';
 
 interface LogoSectionProps {
   logos: BrandLogo[];
@@ -64,6 +65,35 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
     if (editingId === id) setEditingId(null);
   };
 
+  const downloadLogo = (logo: BrandLogo) => {
+    const link = document.createElement('a');
+    link.href = logo.url;
+    link.download = `${logo.name}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success(`Downloaded ${logo.name}`);
+  };
+
+  const downloadAllLogos = async () => {
+    if (logos.length === 0) {
+      toast.error('No logos to download');
+      return;
+    }
+    
+    // Download each logo
+    for (const logo of logos) {
+      const link = document.createElement('a');
+      link.href = logo.url;
+      link.download = `${variantLabels[logo.variant]}-${logo.name}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      await new Promise(resolve => setTimeout(resolve, 300)); // Small delay between downloads
+    }
+    toast.success(`Downloaded ${logos.length} logo(s)`);
+  };
+
   const groupedLogos = logos.reduce((acc, logo) => {
     if (!acc[logo.variant]) acc[logo.variant] = [];
     acc[logo.variant].push(logo);
@@ -72,14 +102,24 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
 
   return (
     <section className="space-y-6">
-      <SectionHeader
-        title="Logos"
-        defaultSubtitle="Upload and organize your brand logos"
-        customSubtitle={customSubtitle}
-        onSubtitleChange={onSubtitleChange}
-        isEditing={isHeaderEditing}
-        onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
-      />
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex-1 min-w-0">
+          <SectionHeader
+            title="Logos"
+            defaultSubtitle="Upload and organize your brand logos"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            isEditing={isHeaderEditing}
+            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+          />
+        </div>
+        {logos.length > 0 && (
+          <Button onClick={downloadAllLogos} variant="outline" size="sm" className="gap-2 shrink-0">
+            <Package className="h-4 w-4" />
+            Download All Logos
+          </Button>
+        )}
+      </div>
 
       <input
         ref={fileInputRef}
@@ -141,6 +181,13 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-foreground">{logo.name}</span>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => downloadLogo(logo)}
+                            className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
+                            title="Download"
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                          </button>
                           <button
                             onClick={() => setEditingId(logo.id)}
                             className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"

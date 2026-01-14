@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid } from 'lucide-react';
+import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,7 +61,6 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
 
       try {
         const text = await file.text();
-        // Parse SVG to extract essential info
         const parser = new DOMParser();
         const doc = parser.parseFromString(text, 'image/svg+xml');
         const svgElement = doc.querySelector('svg');
@@ -71,28 +70,24 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
           continue;
         }
 
-        // Get viewBox from SVG element
         let viewBox = svgElement.getAttribute('viewBox') || '';
         
-        // If no viewBox, try to construct from width/height
         if (!viewBox) {
           const width = svgElement.getAttribute('width')?.replace(/[^0-9.]/g, '') || '24';
           const height = svgElement.getAttribute('height')?.replace(/[^0-9.]/g, '') || '24';
           viewBox = `0 0 ${width} ${height}`;
         }
 
-        // Detect fill mode by checking the SVG content
         const hasStrokeAttr = text.includes('stroke=') && !text.includes('stroke="none"');
         const hasFillAttr = text.includes('fill=') && !text.includes('fill="none"') && !text.includes('fill="transparent"');
         const fillMode: 'stroke' | 'fill' = hasStrokeAttr && !hasFillAttr ? 'stroke' : 'fill';
 
-        // Get the inner content of the SVG (all children)
         const svgContent = svgElement.innerHTML;
 
         newIcons.push({
           id: crypto.randomUUID(),
           name: file.name.replace('.svg', ''),
-          svgPath: svgContent, // Store full SVG inner content
+          svgPath: svgContent,
           category: 'Other',
           viewBox,
           fillMode,
@@ -108,7 +103,6 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
       toast.success(`Added ${newIcons.length} icon(s)`);
     }
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -123,43 +117,77 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
     if (editingId === id) setEditingId(null);
   };
 
-  const copySVG = async (icon: BrandIconography) => {
+  const getSVGString = (icon: BrandIconography) => {
     const viewBox = icon.viewBox || '0 0 24 24';
-    // Check if svgPath contains full SVG inner content or just path data
     const isFullContent = icon.svgPath.includes('<');
     const innerContent = isFullContent 
       ? icon.svgPath 
       : `<path d="${icon.svgPath}" ${icon.fillMode === 'fill' ? 'fill="currentColor"' : 'fill="none" stroke="currentColor" stroke-width="2"'}/>`;
     
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${innerContent}</svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${innerContent}</svg>`;
+  };
+
+  const copySVG = async (icon: BrandIconography) => {
+    const svg = getSVGString(icon);
     await navigator.clipboard.writeText(svg);
     setCopiedId(icon.id);
     toast.success('SVG copied to clipboard');
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const downloadIcon = (icon: BrandIconography) => {
+    const svg = getSVGString(icon);
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${icon.name}.svg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success(`Downloaded ${icon.name}.svg`);
+  };
+
+  const downloadAllIcons = async () => {
+    if (iconography.length === 0) {
+      toast.error('No icons to download');
+      return;
+    }
+
+    for (const icon of iconography) {
+      const svg = getSVGString(icon);
+      const blob = new Blob([svg], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${icon.category}-${icon.name}.svg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    toast.success(`Downloaded ${iconography.length} icon(s)`);
+  };
+
   const renderIcon = (icon: BrandIconography, sizeClass: string) => {
-    // Default viewBox if not specified - try to detect from path bounds or use default
     const viewBox = icon.viewBox || '0 0 100 100';
     const isFullContent = icon.svgPath.includes('<');
-    // Default fillMode to 'fill' if not specified
     const fillMode = icon.fillMode || 'fill';
     
     if (isFullContent) {
-      // Sanitize and clean SVG content
       let cleanedContent = icon.svgPath;
       
-      // Remove inline styles that set specific colors - we want to use currentColor
       cleanedContent = cleanedContent
-        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '') // Remove <style> tags
-        .replace(/style="[^"]*"/gi, '') // Remove inline style attributes
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+        .replace(/style="[^"]*"/gi, '')
         .replace(/fill="#[0-9a-fA-F]{3,6}"/gi, 'fill="currentColor"')
         .replace(/fill:'#[0-9a-fA-F]{3,6}'/gi, "fill='currentColor'")
         .replace(/stroke="#[0-9a-fA-F]{3,6}"/gi, 'stroke="currentColor"')
         .replace(/stroke:'#[0-9a-fA-F]{3,6}'/gi, "stroke='currentColor'")
-        .replace(/class="[^"]*"/gi, ''); // Remove class attributes that may reference removed styles
+        .replace(/class="[^"]*"/gi, '');
       
-      // Sanitize the cleaned content
       const sanitizedContent = DOMPurify.sanitize(cleanedContent, { USE_PROFILES: { svg: true } });
       
       return (
@@ -174,7 +202,6 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
         </div>
       );
     } else {
-      // Render path-only SVG
       const isFillMode = fillMode === 'fill';
       return (
         <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
@@ -203,8 +230,8 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex-1 min-w-0">
           <SectionHeader
             title="Iconography"
             defaultSubtitle="Custom UI glyph system with SVG path data"
@@ -214,7 +241,7 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <ToggleGroup
             type="single"
             value={gridSize}
@@ -231,6 +258,12 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
               <LayoutGrid className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>
+          {iconography.length > 0 && (
+            <Button onClick={downloadAllIcons} variant="outline" size="sm" className="gap-2">
+              <Package className="h-4 w-4" />
+              Download All
+            </Button>
+          )}
           <input
             ref={fileInputRef}
             type="file"
@@ -258,23 +291,35 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
       <div className="space-y-6">
         {Object.entries(groupedIcons).map(([category, icons]) => (
           <div key={category} className="space-y-3">
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{category}</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{category}</h3>
+              <span className="text-xs text-muted-foreground">{icons.length} icons</span>
+            </div>
             <div className={`grid ${gridSizeConfig[gridSize].grid} gap-3`}>
               {icons.map((icon, index) => (
                 <div
                   key={icon.id}
-                  className={`group relative bg-card rounded-xl ${gridSizeConfig[gridSize].padding} shadow-sm border border-border animate-scale-in flex flex-col items-center cursor-pointer`}
+                  className={`group relative bg-card rounded-xl ${gridSizeConfig[gridSize].padding} shadow-sm border border-border animate-scale-in flex flex-col items-center cursor-pointer hover:border-primary/50 transition-colors`}
                   style={{ animationDelay: `${index * 50}ms` }}
                   onClick={() => copySVG(icon)}
                 >
                   {renderIcon(icon, gridSizeConfig[gridSize].iconSize)}
                   <p className={`${gridSizeConfig[gridSize].fontSize} text-muted-foreground text-center truncate w-full leading-tight`}>{icon.name}</p>
 
-                  <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     {copiedId === icon.id ? (
                       <Check className="h-5 w-5 text-white" />
                     ) : (
-                      <Copy className="h-5 w-5 text-white" />
+                      <>
+                        <Copy className="h-4 w-4 text-white" />
+                        <button
+                          onClick={(e) => { e.stopPropagation(); downloadIcon(icon); }}
+                          className="p-1 rounded bg-white/20 hover:bg-white/30"
+                          title="Download SVG"
+                        >
+                          <Download className="h-4 w-4 text-white" />
+                        </button>
+                      </>
                     )}
                   </div>
 
