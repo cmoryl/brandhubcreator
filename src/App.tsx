@@ -7,6 +7,7 @@ import { BrandProvider } from "@/contexts/BrandContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppSettingsProvider } from "@/contexts/AppSettingsContext";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import BrandsIndex from "./pages/BrandsIndex";
 import BrandEditor from "./pages/BrandEditor";
 import ProductEditor from "./pages/ProductEditor";
@@ -31,27 +32,29 @@ const App = () => (
               <Toaster />
               <Sonner />
               <BrowserRouter>
-                <Routes>
-                  {/* Public landing page */}
-                  <Route path="/" element={<BrandsIndex />} />
+                <ErrorBoundary>
+                  <Routes>
+                    {/* Public landing page */}
+                    <Route path="/" element={<BrandsIndex />} />
 
-                  {/* Auth */}
-                  <Route path="/auth" element={<AuthPage />} />
+                    {/* Auth */}
+                    <Route path="/auth" element={<AuthPage />} />
 
-                  {/* Onboarding */}
-                  <Route path="/onboarding" element={<OnboardingPage />} />
+                    {/* Onboarding */}
+                    <Route path="/onboarding" element={<OnboardingPage />} />
 
-                  {/* Admin Dashboard - Protected */}
-                  <Route path="/admin" element={<AdminDashboard />} />
+                    {/* Admin Dashboard - Protected */}
+                    <Route path="/admin" element={<AdminDashboard />} />
 
-                  <Route path="/knowledge" element={<KnowledgeBase />} />
-                  <Route path="/org/:slug" element={<OrganizationPortal />} />
-                  <Route path="/org/settings" element={<OrganizationSettings />} />
-                  <Route path="/contact" element={<ContactUs />} />
-                  <Route path="/brand/:brandId" element={<BrandEditor />} />
-                  <Route path="/product/:productId" element={<ProductEditor />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                    <Route path="/knowledge" element={<KnowledgeBase />} />
+                    <Route path="/org/:slug" element={<OrganizationPortal />} />
+                    <Route path="/org/settings" element={<OrganizationSettings />} />
+                    <Route path="/contact" element={<ContactUs />} />
+                    <Route path="/brand/:brandId" element={<BrandEditor />} />
+                    <Route path="/product/:productId" element={<ProductEditor />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </ErrorBoundary>
               </BrowserRouter>
             </BrandProvider>
           </OrganizationProvider>
@@ -62,3 +65,4 @@ const App = () => (
 );
 
 export default App;
+
