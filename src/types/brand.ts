@@ -47,10 +47,22 @@ export interface BrandHero {
 }
 
 // TAGLINE - Corporate Tagline
+export interface TaglineFontSettings {
+  fontFamily: string;
+  fontWeight: string;
+  fontSize: number;
+  letterSpacing: number;
+  lineHeight: number;
+  textTransform: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+  textAlign: 'left' | 'center' | 'right';
+  fontStyle: 'normal' | 'italic';
+}
+
 export interface BrandTagline {
   primary: string;
   secondary?: string;
   variations?: string[];
+  fontSettings?: TaglineFontSettings;
 }
 
 // IDENTITY - Narrative Architecture
