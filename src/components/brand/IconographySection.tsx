@@ -1,14 +1,28 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package } from 'lucide-react';
+import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SectionHeader } from './SectionHeader';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
+
+const ICON_COLORS = [
+  { name: 'Default', value: 'currentColor', bg: 'bg-foreground' },
+  { name: 'Black', value: '#000000', bg: 'bg-black' },
+  { name: 'White', value: '#FFFFFF', bg: 'bg-white border' },
+  { name: 'Red', value: '#EF4444', bg: 'bg-red-500' },
+  { name: 'Orange', value: '#F97316', bg: 'bg-orange-500' },
+  { name: 'Yellow', value: '#EAB308', bg: 'bg-yellow-500' },
+  { name: 'Green', value: '#22C55E', bg: 'bg-green-500' },
+  { name: 'Blue', value: '#3B82F6', bg: 'bg-blue-500' },
+  { name: 'Purple', value: '#A855F7', bg: 'bg-purple-500' },
+  { name: 'Pink', value: '#EC4899', bg: 'bg-pink-500' },
+];
 
 interface IconographySectionProps {
   iconography: BrandIconography[];
@@ -32,6 +46,7 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [gridSize, setGridSize] = useState<GridSize>('medium');
+  const [iconColor, setIconColor] = useState<string>('currentColor');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addIcon = () => {
@@ -175,6 +190,7 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
     const viewBox = icon.viewBox || '0 0 100 100';
     const isFullContent = icon.svgPath.includes('<');
     const fillMode = icon.fillMode || 'fill';
+    const colorStyle = iconColor === 'currentColor' ? undefined : iconColor;
     
     if (isFullContent) {
       let cleanedContent = icon.svgPath;
@@ -193,7 +209,8 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
       return (
         <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
           <svg
-            className="w-full h-full text-foreground"
+            className="w-full h-full"
+            style={{ color: colorStyle }}
             viewBox={viewBox}
             preserveAspectRatio="xMidYMid meet"
             fill="currentColor"
@@ -206,7 +223,8 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
       return (
         <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
           <svg
-            className="w-full h-full text-foreground"
+            className="w-full h-full"
+            style={{ color: colorStyle }}
             viewBox={viewBox}
             preserveAspectRatio="xMidYMid meet"
             fill={isFillMode ? 'currentColor' : 'none'}
@@ -242,6 +260,43 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
           />
         </div>
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <div 
+                  className="w-4 h-4 rounded-full border" 
+                  style={{ backgroundColor: iconColor === 'currentColor' ? 'hsl(var(--foreground))' : iconColor }}
+                />
+                <Palette className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-3" align="end">
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">Icon Preview Color</p>
+                <div className="flex flex-wrap gap-2 max-w-[200px]">
+                  {ICON_COLORS.map((color) => (
+                    <button
+                      key={color.value}
+                      onClick={() => setIconColor(color.value)}
+                      className={`w-7 h-7 rounded-full ${color.bg} transition-transform hover:scale-110 ${
+                        iconColor === color.value ? 'ring-2 ring-primary ring-offset-2' : ''
+                      }`}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+                <div className="pt-2 border-t">
+                  <label className="text-xs text-muted-foreground block mb-1">Custom color</label>
+                  <input
+                    type="color"
+                    value={iconColor === 'currentColor' ? '#000000' : iconColor}
+                    onChange={(e) => setIconColor(e.target.value)}
+                    className="w-full h-8 rounded cursor-pointer"
+                  />
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
           <ToggleGroup
             type="single"
             value={gridSize}
