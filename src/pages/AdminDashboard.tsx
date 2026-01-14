@@ -205,15 +205,24 @@ export default function AdminDashboard() {
       return;
     }
 
-    // Get member counts
+    // Get member counts and owner user IDs
     const { data: members } = await supabase.from('organization_members').select('organization_id, role, user_id');
     const memberCount = new Map<string, number>();
-    const ownerMap = new Map<string, string>();
+    const ownerUserIdMap = new Map<string, string>();
     
     members?.forEach(m => {
       memberCount.set(m.organization_id, (memberCount.get(m.organization_id) || 0) + 1);
       if (m.role === 'owner' && m.user_id) {
-        ownerMap.set(m.organization_id, m.user_id);
+        ownerUserIdMap.set(m.organization_id, m.user_id);
+      }
+    });
+
+    // Get profiles to map user IDs to emails
+    const { data: profiles } = await supabase.from('profiles').select('user_id, email');
+    const emailMap = new Map<string, string>();
+    profiles?.forEach(p => {
+      if (p.user_id && p.email) {
+        emailMap.set(p.user_id, p.email);
       }
     });
 
@@ -235,16 +244,20 @@ export default function AdminDashboard() {
       }
     });
 
-    const orgData: OrgData[] = (orgs || []).map(o => ({
-      id: o.id,
-      name: o.name,
-      slug: o.slug,
-      created_at: o.created_at,
-      memberCount: memberCount.get(o.id) || 0,
-      brandCount: brandCount.get(o.id) || 0,
-      productCount: productCount.get(o.id) || 0,
-      owner: ownerMap.get(o.id) || 'Unknown',
-    }));
+    const orgData: OrgData[] = (orgs || []).map(o => {
+      const ownerUserId = ownerUserIdMap.get(o.id);
+      const ownerEmail = ownerUserId ? emailMap.get(ownerUserId) : undefined;
+      return {
+        id: o.id,
+        name: o.name,
+        slug: o.slug,
+        created_at: o.created_at,
+        memberCount: memberCount.get(o.id) || 0,
+        brandCount: brandCount.get(o.id) || 0,
+        productCount: productCount.get(o.id) || 0,
+        owner: ownerEmail || 'Unknown',
+      };
+    });
 
     setOrganizations(orgData);
   };
