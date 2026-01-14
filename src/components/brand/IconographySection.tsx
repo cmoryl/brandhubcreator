@@ -136,30 +136,32 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
       // Render full SVG content with sanitization
       const sanitizedContent = DOMPurify.sanitize(icon.svgPath, { USE_PROFILES: { svg: true } });
       return (
-        <svg
-          className="w-full h-full max-w-12 max-h-12 text-foreground mb-2"
-          viewBox={viewBox}
-          preserveAspectRatio="xMidYMid meet"
-          style={{ overflow: 'visible' }}
-          dangerouslySetInnerHTML={{ __html: sanitizedContent }}
-        />
+        <div className="w-full aspect-square flex items-center justify-center mb-2">
+          <svg
+            className="w-full h-full text-foreground"
+            viewBox={viewBox}
+            preserveAspectRatio="xMidYMid meet"
+            dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+          />
+        </div>
       );
     } else {
       // Render path-only SVG
       return (
-        <svg
-          className="w-full h-full max-w-12 max-h-12 text-foreground mb-2"
-          viewBox={viewBox}
-          preserveAspectRatio="xMidYMid meet"
-          style={{ overflow: 'visible' }}
-          fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
-          stroke={icon.fillMode === 'fill' ? 'none' : 'currentColor'}
-          strokeWidth={icon.fillMode === 'fill' ? undefined : '2'}
-          strokeLinecap={icon.fillMode === 'fill' ? undefined : 'round'}
-          strokeLinejoin={icon.fillMode === 'fill' ? undefined : 'round'}
-        >
-          <path d={icon.svgPath} />
-        </svg>
+        <div className="w-full aspect-square flex items-center justify-center mb-2">
+          <svg
+            className="w-full h-full text-foreground"
+            viewBox={viewBox}
+            preserveAspectRatio="xMidYMid meet"
+            fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
+            stroke={icon.fillMode === 'fill' ? 'none' : 'currentColor'}
+            strokeWidth={icon.fillMode === 'fill' ? undefined : '2'}
+            strokeLinecap={icon.fillMode === 'fill' ? undefined : 'round'}
+            strokeLinejoin={icon.fillMode === 'fill' ? undefined : 'round'}
+          >
+            <path d={icon.svgPath} />
+          </svg>
+        </div>
       );
     }
   };
@@ -216,12 +218,12 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
               {icons.map((icon, index) => (
                 <div
                   key={icon.id}
-                  className="group relative bg-card rounded-xl p-4 shadow-sm border border-border animate-scale-in flex flex-col items-center cursor-pointer"
+                  className="group relative bg-card rounded-xl p-3 shadow-sm border border-border animate-scale-in flex flex-col items-center cursor-pointer overflow-hidden"
                   style={{ animationDelay: `${index * 50}ms` }}
                   onClick={() => copySVG(icon)}
                 >
                   {renderIcon(icon)}
-                  <p className="text-xs text-muted-foreground text-center truncate w-full">{icon.name}</p>
+                  <p className="text-[10px] text-muted-foreground text-center truncate w-full leading-tight">{icon.name}</p>
 
                   <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     {copiedId === icon.id ? (
