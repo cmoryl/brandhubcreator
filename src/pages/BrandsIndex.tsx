@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink } from 'lucide-react';
+import { DemoBrandsShowcase } from '@/components/landing/DemoBrandsShowcase';
 import { InviteMembersDialog } from '@/components/organization/InviteMembersDialog';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -466,7 +467,13 @@ const BrandsIndex = () => {
         </section>
       )}
 
-      {/* Main Content */}
+      {/* Demo Brands Showcase for non-logged-in users */}
+      {!user && (
+        <DemoBrandsShowcase onLoginClick={() => navigate('/auth')} />
+      )}
+
+      {/* Main Content - Only show when logged in */}
+      {user && (
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <Tabs defaultValue="brands" className="w-full">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
@@ -960,6 +967,7 @@ const BrandsIndex = () => {
           </div>
         )}
       </main>
+      )}
 
       {/* Create New Dialog */}
       <Dialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen}>
