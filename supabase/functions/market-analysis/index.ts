@@ -1,4 +1,4 @@
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -41,6 +41,26 @@ interface AnalysisResult {
   };
   score: number;
   generatedAt: string;
+}
+
+// Extract only relevant fields from guide_data to reduce memory usage
+function extractRelevantBrandData(guideData: Record<string, unknown>): string {
+  const hero = guideData?.hero as Record<string, string> | undefined;
+  const identity = guideData?.identity as Record<string, unknown> | undefined;
+  const values = guideData?.values as Array<{ text: string }> | undefined;
+  const colors = guideData?.colors as Array<{ name: string; hex: string }> | undefined;
+  
+  const parts: string[] = [];
+  
+  if (hero?.name) parts.push(`Name: ${hero.name}`);
+  if (hero?.tagline) parts.push(`Tagline: ${hero.tagline}`);
+  if (identity?.missionStatement) parts.push(`Mission: ${identity.missionStatement}`);
+  if (identity?.archetype) parts.push(`Archetype: ${identity.archetype}`);
+  if (identity?.toneOfVoice) parts.push(`Tone: ${(identity.toneOfVoice as string[])?.join(', ')}`);
+  if (values?.length) parts.push(`Values: ${values.slice(0, 5).map(v => v.text).join(', ')}`);
+  if (colors?.length) parts.push(`Color palette: ${colors.slice(0, 5).map(c => c.name).join(', ')}`);
+  
+  return parts.join('\n') || 'No detailed data available';
 }
 
 Deno.serve(async (req) => {
@@ -86,7 +106,7 @@ Deno.serve(async (req) => {
     let entityName = '';
 
     if (type === 'platform' && isAdmin) {
-      // Fetch platform-wide stats for admin
+      // Fetch platform-wide stats for admin - use head: true to only get counts
       const [
         { count: usersCount },
         { count: brandsCount },
@@ -98,28 +118,22 @@ Deno.serve(async (req) => {
         supabaseClient.from('brands').select('*', { count: 'exact', head: true }),
         supabaseClient.from('products').select('*', { count: 'exact', head: true }),
         supabaseClient.from('organizations').select('*', { count: 'exact', head: true }),
-        supabaseClient.from('brands').select('name, guide_data, is_public, created_at').order('created_at', { ascending: false }).limit(20)
+        supabaseClient.from('brands').select('name, is_public, created_at').order('created_at', { ascending: false }).limit(10)
       ]);
 
       entityName = 'Platform Overview';
-      contextData = `
-Platform Statistics:
+      contextData = `Platform Statistics:
 - Total Users: ${usersCount || 0}
 - Total Brands: ${brandsCount || 0}
 - Total Products: ${productsCount || 0}
 - Total Organizations: ${orgsCount || 0}
 
-Recent Brand Activity (last 20):
-${recentBrands?.map(b => {
-  const guideData = b.guide_data as Record<string, unknown>;
-  const hero = guideData?.hero as Record<string, string>;
-  return `- ${b.name}: ${hero?.tagline || 'No tagline'} (${b.is_public ? 'Public' : 'Private'})`;
-}).join('\n') || 'No recent brands'}
-      `;
+Recent Brands (last 10):
+${recentBrands?.map(b => `- ${b.name} (${b.is_public ? 'Public' : 'Private'})`).join('\n') || 'No recent brands'}`;
     } else if (type === 'brand' && entityId) {
       const { data: brand } = await supabaseClient
         .from('brands')
-        .select('*')
+        .select('name, is_public, created_at, guide_data')
         .eq('id', entityId)
         .single();
 
@@ -132,18 +146,16 @@ ${recentBrands?.map(b => {
 
       entityName = brand.name;
       const guideData = brand.guide_data as Record<string, unknown>;
-      contextData = `
-Brand: ${brand.name}
+      contextData = `Brand: ${brand.name}
 Status: ${brand.is_public ? 'Public' : 'Private'}
 Created: ${brand.created_at}
 
 Brand Details:
-${JSON.stringify(guideData, null, 2)}
-      `;
+${extractRelevantBrandData(guideData)}`;
     } else if (type === 'product' && entityId) {
       const { data: product } = await supabaseClient
         .from('products')
-        .select('*')
+        .select('name, is_public, created_at, guide_data')
         .eq('id', entityId)
         .single();
 
@@ -156,18 +168,16 @@ ${JSON.stringify(guideData, null, 2)}
 
       entityName = product.name;
       const guideData = product.guide_data as Record<string, unknown>;
-      contextData = `
-Product: ${product.name}
+      contextData = `Product: ${product.name}
 Status: ${product.is_public ? 'Public' : 'Private'}
 Created: ${product.created_at}
 
 Product Details:
-${JSON.stringify(guideData, null, 2)}
-      `;
+${extractRelevantBrandData(guideData)}`;
     } else if (type === 'organization' && entityId) {
       const { data: org } = await supabaseClient
         .from('organizations')
-        .select('*')
+        .select('name, slug, created_at')
         .eq('id', entityId)
         .single();
 
@@ -178,24 +188,18 @@ ${JSON.stringify(guideData, null, 2)}
         );
       }
 
-      // Get org's brands and products
-      const [{ data: brands }, { data: products }] = await Promise.all([
-        supabaseClient.from('brands').select('name, guide_data, is_public').eq('organization_id', entityId),
-        supabaseClient.from('products').select('name, guide_data, is_public').eq('organization_id', entityId)
+      // Get org's brands and products counts
+      const [{ count: brandsCount }, { count: productsCount }] = await Promise.all([
+        supabaseClient.from('brands').select('*', { count: 'exact', head: true }).eq('organization_id', entityId),
+        supabaseClient.from('products').select('*', { count: 'exact', head: true }).eq('organization_id', entityId)
       ]);
 
       entityName = org.name;
-      contextData = `
-Organization: ${org.name}
+      contextData = `Organization: ${org.name}
 Slug: ${org.slug}
 Created: ${org.created_at}
-
-Brands (${brands?.length || 0}):
-${brands?.map(b => `- ${b.name} (${b.is_public ? 'Public' : 'Private'})`).join('\n') || 'None'}
-
-Products (${products?.length || 0}):
-${products?.map(p => `- ${p.name} (${p.is_public ? 'Public' : 'Private'})`).join('\n') || 'None'}
-      `;
+Total Brands: ${brandsCount || 0}
+Total Products: ${productsCount || 0}`;
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -203,55 +207,43 @@ ${products?.map(p => `- ${p.name} (${p.is_public ? 'Public' : 'Private'})`).join
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const systemPrompt = `You are a strategic business analyst and market research expert. Analyze the provided data and generate comprehensive market insights and strategic recommendations.
+    const systemPrompt = `You are a strategic business analyst. Analyze the provided data and generate market insights.
 
-Your analysis should be actionable, specific, and based on the data provided. Consider:
-- Current market trends in branding and digital presence
-- Competitive positioning strategies
-- Growth opportunities and potential risks
-- Industry best practices
-
-Respond with a JSON object matching this exact structure:
+Respond with a JSON object (no markdown, just raw JSON):
 {
   "title": "<Analysis title>",
   "summary": "<Executive summary in 2-3 sentences>",
   "marketPosition": {
-    "currentState": "<Current market position description>",
-    "opportunities": ["<opportunity 1>", "<opportunity 2>", "<opportunity 3>"],
+    "currentState": "<Current market position>",
+    "opportunities": ["<opportunity 1>", "<opportunity 2>"],
     "threats": ["<threat 1>", "<threat 2>"]
   },
   "competitiveAnalysis": {
     "strengths": ["<strength 1>", "<strength 2>"],
-    "differentiators": ["<differentiator 1>", "<differentiator 2>"],
-    "competitorInsights": ["<insight 1>", "<insight 2>"]
+    "differentiators": ["<differentiator 1>"],
+    "competitorInsights": ["<insight 1>"]
   },
   "growthRecommendations": {
     "shortTerm": ["<action 1>", "<action 2>"],
-    "longTerm": ["<action 1>", "<action 2>"],
+    "longTerm": ["<action 1>"],
     "metrics": ["<KPI 1>", "<KPI 2>"]
   },
   "trendAnalysis": {
     "industryTrends": ["<trend 1>", "<trend 2>"],
-    "emergingOpportunities": ["<opportunity 1>", "<opportunity 2>"],
-    "risksToWatch": ["<risk 1>", "<risk 2>"]
+    "emergingOpportunities": ["<opportunity 1>"],
+    "risksToWatch": ["<risk 1>"]
   },
   "actionPlan": {
-    "immediate": ["<action within 1 week>", "<action within 1 week>"],
-    "quarterly": ["<action for next quarter>", "<action for next quarter>"],
-    "annual": ["<strategic goal 1>", "<strategic goal 2>"]
+    "immediate": ["<action 1>"],
+    "quarterly": ["<action 1>"],
+    "annual": ["<goal 1>"]
   },
-  "score": <overall health score 0-100>
+  "score": <0-100>
 }`;
 
-    const userPrompt = `Perform a ${analysisType} analysis for: ${entityName}
+    const userPrompt = `${analysisType} analysis for: ${entityName}
 
-Analysis Type: ${analysisType}
-Entity Type: ${type}
-
-Data:
-${contextData}
-
-Provide specific, actionable insights based on this data. Be concrete in your recommendations.`;
+${contextData}`;
 
     console.log(`Running ${analysisType} analysis for ${entityName}`);
 
@@ -268,7 +260,7 @@ Provide specific, actionable insights based on this data. Be concrete in your re
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.4,
-        max_tokens: 3000,
+        max_tokens: 2000,
       }),
     });
 
@@ -297,12 +289,13 @@ Provide specific, actionable insights based on this data. Be concrete in your re
 
     let analysisResult: AnalysisResult;
     try {
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
-      const jsonStr = jsonMatch[1] || content;
-      analysisResult = JSON.parse(jsonStr.trim());
+      // Try to extract JSON from markdown code blocks or raw JSON
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+      const jsonStr = jsonMatch ? jsonMatch[1].trim() : content.trim();
+      analysisResult = JSON.parse(jsonStr);
       analysisResult.generatedAt = new Date().toISOString();
     } catch {
-      console.error('Failed to parse AI response:', content);
+      console.error('Failed to parse AI response:', content.substring(0, 500));
       return new Response(
         JSON.stringify({ error: 'Failed to parse analysis results' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
