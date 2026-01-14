@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Copy, Check, Upload } from 'lucide-react';
+import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { SectionHeader } from './SectionHeader';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
@@ -16,12 +17,21 @@ interface IconographySectionProps {
   onSubtitleChange?: (subtitle: string) => void;
 }
 
+type GridSize = 'compact' | 'medium' | 'large';
+
+const gridSizeConfig: Record<GridSize, { grid: string; padding: string; fontSize: string }> = {
+  compact: { grid: 'grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10', padding: 'p-2', fontSize: 'text-[8px]' },
+  medium: { grid: 'grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8', padding: 'p-3', fontSize: 'text-[10px]' },
+  large: { grid: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6', padding: 'p-4', fontSize: 'text-xs' },
+};
+
 const categoryOptions = ['Navigation', 'Actions', 'Social', 'Status', 'Commerce', 'Media', 'Communication', 'Other'];
 
 export const IconographySection = ({ iconography, onIconographyChange, customSubtitle, onSubtitleChange }: IconographySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const [gridSize, setGridSize] = useState<GridSize>('medium');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addIcon = () => {
@@ -185,7 +195,23 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
+          <ToggleGroup
+            type="single"
+            value={gridSize}
+            onValueChange={(value) => value && setGridSize(value as GridSize)}
+            className="border rounded-md"
+          >
+            <ToggleGroupItem value="compact" aria-label="Compact grid" className="px-2">
+              <Grid3X3 className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="medium" aria-label="Medium grid" className="px-2">
+              <Grid2X2 className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="large" aria-label="Large grid" className="px-2">
+              <LayoutGrid className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
           <input
             ref={fileInputRef}
             type="file"
@@ -214,16 +240,16 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
         {Object.entries(groupedIcons).map(([category, icons]) => (
           <div key={category} className="space-y-3">
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{category}</h3>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+            <div className={`grid ${gridSizeConfig[gridSize].grid} gap-3`}>
               {icons.map((icon, index) => (
                 <div
                   key={icon.id}
-                  className="group relative bg-card rounded-xl p-3 shadow-sm border border-border animate-scale-in flex flex-col items-center cursor-pointer overflow-hidden"
+                  className={`group relative bg-card rounded-xl ${gridSizeConfig[gridSize].padding} shadow-sm border border-border animate-scale-in flex flex-col items-center cursor-pointer overflow-hidden`}
                   style={{ animationDelay: `${index * 50}ms` }}
                   onClick={() => copySVG(icon)}
                 >
                   {renderIcon(icon)}
-                  <p className="text-[10px] text-muted-foreground text-center truncate w-full leading-tight">{icon.name}</p>
+                  <p className={`${gridSizeConfig[gridSize].fontSize} text-muted-foreground text-center truncate w-full leading-tight`}>{icon.name}</p>
 
                   <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     {copiedId === icon.id ? (
