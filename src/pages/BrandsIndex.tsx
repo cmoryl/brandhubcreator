@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink } from 'lucide-react';
 import { DemoBrandsShowcase } from '@/components/landing/DemoBrandsShowcase';
@@ -37,6 +37,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BaseGuide } from '@/types/brand';
 import { Organization } from '@/types/organization';
 import { OrganizationSwitcher } from '@/components/OrganizationSwitcher';
+import { BrandListSkeleton } from '@/components/LoadingScreen';
 
 const BrandsIndex = () => {
   const navigate = useNavigate();
@@ -102,19 +103,8 @@ const BrandsIndex = () => {
 
   // Onboarding redirect removed - users go straight to the main page
 
-  // Show loading state
-  if (authLoading || isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="p-4 bg-accent/10 rounded-2xl w-fit mx-auto animate-pulse">
-            <Sparkles className="h-8 w-8 text-accent" />
-          </div>
-          <p className="text-muted-foreground">Loading brand guides...</p>
-        </div>
-      </div>
-    );
-  }
+  // Content loading state - show skeleton in content area only, not full page block
+  const showContentSkeleton = isLoading;
 
   const handleCreateItem = async () => {
     if (newItemName.trim()) {
@@ -558,6 +548,9 @@ const BrandsIndex = () => {
 
           <TabsContent value="brands">
             {/* Brand Cards Grid */}
+            {showContentSkeleton ? (
+              <BrandListSkeleton />
+            ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {sortedBrands.map((brand, index) => (
                 <Card 
@@ -721,10 +714,14 @@ const BrandsIndex = () => {
                 </Card>
               )}
             </div>
+            )}
           </TabsContent>
 
           <TabsContent value="products">
             {/* Product Cards Grid */}
+            {showContentSkeleton ? (
+              <BrandListSkeleton />
+            ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {sortedProducts.map((product, index) => (
                 <Card 
@@ -885,10 +882,14 @@ const BrandsIndex = () => {
                 </div>
               )}
             </div>
+            )}
           </TabsContent>
 
           <TabsContent value="favorites">
             {/* Favorites Grid */}
+            {showContentSkeleton ? (
+              <BrandListSkeleton />
+            ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {favorites.map((item) => (
                 <Card 
@@ -999,6 +1000,7 @@ const BrandsIndex = () => {
                 </div>
               )}
             </div>
+            )}
           </TabsContent>
         </Tabs>
 
