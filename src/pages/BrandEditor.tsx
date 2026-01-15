@@ -72,6 +72,11 @@ const BrandEditor = () => {
   const [publicBrand, setPublicBrand] = useState<BrandGuide | null>(null);
   const [publicBrandLoading, setPublicBrandLoading] = useState(false);
 
+  // Scroll to top when brand changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [brandId]);
+
   const contextBrand = getBrand(brandId || '');
   
   // Fetch public brand directly if not in context (for logged-out users)

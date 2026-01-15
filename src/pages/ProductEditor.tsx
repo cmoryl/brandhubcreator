@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Package, Star } from 'lucide-react';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings } from '@/types/brand';
@@ -50,8 +50,13 @@ const ProductEditor = () => {
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('sections');
+  const [viewMode, setViewMode] = useState<ViewMode>('full');
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
+
+  // Scroll to top when product changes
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [productId]);
 
 const currentProduct = getProduct(productId || '');
   
