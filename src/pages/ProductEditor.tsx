@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Package, Star } from 'lucide-react';
-import { SectionId, DEFAULT_SECTION_ORDER } from '@/types/brand';
+import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings } from '@/types/brand';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
@@ -32,6 +32,7 @@ import { BrochuresSection } from '@/components/brand/BrochuresSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
+import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -52,10 +53,21 @@ const ProductEditor = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('sections');
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
 
-  const currentProduct = getProduct(productId || '');
+const currentProduct = getProduct(productId || '');
   
   const sectionOrder = currentProduct?.sectionOrder || DEFAULT_SECTION_ORDER;
   const hiddenSections = currentProduct?.hiddenSections || [];
+  
+  // Page settings with defaults
+  const pageSettings = useMemo(() => {
+    return currentProduct?.pageSettings ?? DEFAULT_PAGE_SETTINGS;
+  }, [currentProduct?.pageSettings]);
+
+  const handlePageSettingsChange = useCallback((newSettings: BrandPageSettings) => {
+    if (currentProduct) {
+      updateProduct(productId || '', { pageSettings: newSettings });
+    }
+  }, [currentProduct, productId, updateProduct]);
 
   // Show loading state
   if (authLoading || isLoading) {
@@ -230,6 +242,12 @@ const ProductEditor = () => {
                   canEdit={!!user && isAdmin}
                 />
                 <BrandAuditButton brand={currentProduct} />
+                {!!user && (
+                  <BrandPageSettingsEditor 
+                    settings={pageSettings} 
+                    onSettingsChange={handlePageSettingsChange}
+                  />
+                )}
                 <ExportPdfButton guide={currentProduct} />
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
                   <Tooltip>
