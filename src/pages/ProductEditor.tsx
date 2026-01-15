@@ -74,6 +74,34 @@ const currentProduct = getProduct(productId || '');
     }
   }, [currentProduct, productId, updateProduct]);
 
+  // Get content width class based on settings
+  const getContentWidthClass = () => {
+    switch (pageSettings.contentWidth) {
+      case 'wide': return 'max-w-6xl';
+      case 'full': return 'max-w-full px-4';
+      default: return 'max-w-5xl';
+    }
+  };
+
+  // Get section spacing class based on settings
+  const getSectionSpacingClass = () => {
+    switch (pageSettings.sectionSpacing) {
+      case 'compact': return 'space-y-4';
+      case 'spacious': return 'space-y-16';
+      default: return 'space-y-8';
+    }
+  };
+
+  // Get header style classes
+  const getHeaderClasses = () => {
+    const base = 'sticky top-0 z-40 animate-fade-in-down';
+    switch (pageSettings.headerStyle) {
+      case 'minimal': return `${base} bg-background border-b border-border`;
+      case 'transparent': return `${base} bg-transparent`;
+      default: return `${base} bg-background/80 backdrop-blur-lg border-b border-border`;
+    }
+  };
+
   // Show loading state
   if (authLoading || isLoading) {
     return (
@@ -196,7 +224,7 @@ const currentProduct = getProduct(productId || '');
         {/* Main content */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Header */}
-          <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
+          <header className={getHeaderClasses()}>
             <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
@@ -282,7 +310,7 @@ const currentProduct = getProduct(productId || '');
 
           {/* Content */}
           <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
-            <div className="max-w-5xl mx-auto animate-fade-in">
+            <div className={`${getContentWidthClass()} mx-auto animate-fade-in ${getSectionSpacingClass()}`}>
               {viewMode === 'sections' ? (
                 renderSection()
               ) : (
