@@ -1,4 +1,3 @@
-import { Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,23 +9,18 @@ import { AppSettingsProvider } from "@/contexts/AppSettingsContext";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { GlobalErrorLogger } from "@/components/GlobalErrorLogger";
-import { LoadingScreen } from "@/components/LoadingScreen";
-
-// Eagerly loaded - critical path
 import BrandsIndex from "./pages/BrandsIndex";
 import AuthPage from "./pages/AuthPage";
-
-// Lazy loaded - secondary routes
-const BrandEditor = lazy(() => import('./pages/BrandEditor'));
-const ProductEditor = lazy(() => import('./pages/ProductEditor'));
-const OrganizationPortal = lazy(() => import('./pages/OrganizationPortal'));
-const KnowledgeBase = lazy(() => import('./pages/KnowledgeBase'));
-const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
-const OrganizationSettings = lazy(() => import('./pages/OrganizationSettings'));
-const ContactUs = lazy(() => import('./pages/ContactUs'));
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const DemoBrandPreview = lazy(() => import('./pages/DemoBrandPreview'));
-const NotFound = lazy(() => import('./pages/NotFound'));
+import BrandEditor from "./pages/BrandEditor";
+import ProductEditor from "./pages/ProductEditor";
+import OrganizationPortal from "./pages/OrganizationPortal";
+import KnowledgeBase from "./pages/KnowledgeBase";
+import OnboardingPage from "./pages/OnboardingPage";
+import OrganizationSettings from "./pages/OrganizationSettings";
+import ContactUs from "./pages/ContactUs";
+import AdminDashboard from "./pages/AdminDashboard";
+import DemoBrandPreview from "./pages/DemoBrandPreview";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,27 +43,20 @@ const App = () => (
               <Sonner />
               <BrowserRouter>
                 <ErrorBoundary>
-                  <Suspense fallback={<LoadingScreen message="Loading page..." />}>
-                    <Routes>
-                      {/* Public landing page - eagerly loaded */}
-                      <Route path="/" element={<BrandsIndex />} />
-
-                      {/* Auth - eagerly loaded for fast login */}
-                      <Route path="/auth" element={<AuthPage />} />
-
-                      {/* Lazy loaded routes */}
-                      <Route path="/onboarding" element={<OnboardingPage />} />
-                      <Route path="/admin" element={<AdminDashboard />} />
-                      <Route path="/knowledge" element={<KnowledgeBase />} />
-                      <Route path="/org/:slug" element={<OrganizationPortal />} />
-                      <Route path="/org/settings" element={<OrganizationSettings />} />
-                      <Route path="/contact" element={<ContactUs />} />
-                      <Route path="/brand/:brandId" element={<BrandEditor />} />
-                      <Route path="/product/:productId" element={<ProductEditor />} />
-                      <Route path="/demo/:brandSlug" element={<DemoBrandPreview />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Suspense>
+                  <Routes>
+                    <Route path="/" element={<BrandsIndex />} />
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="/onboarding" element={<OnboardingPage />} />
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/knowledge" element={<KnowledgeBase />} />
+                    <Route path="/org/:slug" element={<OrganizationPortal />} />
+                    <Route path="/org/settings" element={<OrganizationSettings />} />
+                    <Route path="/contact" element={<ContactUs />} />
+                    <Route path="/brand/:brandId" element={<BrandEditor />} />
+                    <Route path="/product/:productId" element={<ProductEditor />} />
+                    <Route path="/demo/:brandSlug" element={<DemoBrandPreview />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
                 </ErrorBoundary>
               </BrowserRouter>
             </BrandProvider>
