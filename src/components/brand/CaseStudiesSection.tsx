@@ -4,20 +4,16 @@ import { BrandCaseStudy } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { SectionHeader } from './SectionHeader';
 
 interface CaseStudiesSectionProps {
   caseStudies: BrandCaseStudy[];
   onCaseStudiesChange: (caseStudies: BrandCaseStudy[]) => void;
-  customSubtitle?: string;
-  onSubtitleChange?: (subtitle: string) => void;
 }
 
-export const CaseStudiesSection = ({ caseStudies, onCaseStudiesChange, customSubtitle, onSubtitleChange }: CaseStudiesSectionProps) => {
+export const CaseStudiesSection = ({ caseStudies, onCaseStudiesChange }: CaseStudiesSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
-  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const addCaseStudy = () => {
     const newCase: BrandCaseStudy = {
@@ -63,18 +59,12 @@ export const CaseStudiesSection = ({ caseStudies, onCaseStudiesChange, customSub
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1">
-          <SectionHeader
-            title="Proof Shards"
-            defaultSubtitle="Repository of historical success models"
-            customSubtitle={customSubtitle}
-            onSubtitleChange={onSubtitleChange}
-            isEditing={isHeaderEditing}
-            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
-          />
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-serif font-semibold text-foreground">Proof Shards</h2>
+          <p className="text-muted-foreground mt-1">Repository of historical success models</p>
         </div>
-        <Button onClick={addCaseStudy} size="sm" className="gap-2 shrink-0">
+        <Button onClick={addCaseStudy} size="sm" className="gap-2">
           <Plus className="h-4 w-4" />
           Add Case Study
         </Button>

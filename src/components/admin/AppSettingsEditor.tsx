@@ -1,4 +1,4 @@
-import { useState, useRef, forwardRef } from 'react';
+import { useState, useRef } from 'react';
 import { Settings, Upload, X, Save, RotateCcw, Image, Sparkles, Waves, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,7 +48,7 @@ const backgroundTypes: { type: HeroBackgroundType; name: string; icon: typeof Im
   { type: 'animated-spotlight', name: 'Spotlight', icon: Sparkles, description: 'Moving spotlight effect' },
 ];
 
-export const AppSettingsEditor = forwardRef<HTMLDivElement>((_, ref) => {
+export const AppSettingsEditor = () => {
   const { settings, updateSettings, resetColors } = useAppSettings();
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState<AppSettings>(settings);
@@ -164,7 +164,6 @@ export const AppSettingsEditor = forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   return (
-    <div ref={ref}>
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" onClick={handleOpen} title="App Settings">
@@ -647,8 +646,5 @@ export const AppSettingsEditor = forwardRef<HTMLDivElement>((_, ref) => {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-    </div>
   );
-});
-
-AppSettingsEditor.displayName = 'AppSettingsEditor';
+};

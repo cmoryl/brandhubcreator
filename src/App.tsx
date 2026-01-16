@@ -10,10 +10,10 @@ import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { GlobalErrorLogger } from "@/components/GlobalErrorLogger";
 import BrandsIndex from "./pages/BrandsIndex";
-import AuthPage from "./pages/AuthPage";
 import BrandEditor from "./pages/BrandEditor";
 import ProductEditor from "./pages/ProductEditor";
 import OrganizationPortal from "./pages/OrganizationPortal";
+import AuthPage from "./pages/AuthPage";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import OnboardingPage from "./pages/OnboardingPage";
 import OrganizationSettings from "./pages/OrganizationSettings";
@@ -22,14 +22,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import DemoBrandPreview from "./pages/DemoBrandPreview";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -44,10 +37,18 @@ const App = () => (
               <BrowserRouter>
                 <ErrorBoundary>
                   <Routes>
+                    {/* Public landing page */}
                     <Route path="/" element={<BrandsIndex />} />
+
+                    {/* Auth */}
                     <Route path="/auth" element={<AuthPage />} />
+
+                    {/* Onboarding */}
                     <Route path="/onboarding" element={<OnboardingPage />} />
+
+                    {/* Admin Dashboard - Protected */}
                     <Route path="/admin" element={<AdminDashboard />} />
+
                     <Route path="/knowledge" element={<KnowledgeBase />} />
                     <Route path="/org/:slug" element={<OrganizationPortal />} />
                     <Route path="/org/settings" element={<OrganizationSettings />} />
@@ -68,3 +69,4 @@ const App = () => (
 );
 
 export default App;
+

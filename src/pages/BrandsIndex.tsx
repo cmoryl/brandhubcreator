@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink } from 'lucide-react';
 import { DemoBrandsShowcase } from '@/components/landing/DemoBrandsShowcase';
@@ -37,7 +37,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BaseGuide } from '@/types/brand';
 import { Organization } from '@/types/organization';
 import { OrganizationSwitcher } from '@/components/OrganizationSwitcher';
-import { BrandListSkeleton } from '@/components/LoadingScreen';
 
 const BrandsIndex = () => {
   const navigate = useNavigate();
@@ -103,8 +102,19 @@ const BrandsIndex = () => {
 
   // Onboarding redirect removed - users go straight to the main page
 
-  // Content loading state - show skeleton in content area only, not full page block
-  const showContentSkeleton = isLoading;
+  // Show loading state
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="p-4 bg-accent/10 rounded-2xl w-fit mx-auto animate-pulse">
+            <Sparkles className="h-8 w-8 text-accent" />
+          </div>
+          <p className="text-muted-foreground">Loading brand guides...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleCreateItem = async () => {
     if (newItemName.trim()) {
@@ -216,13 +226,13 @@ const BrandsIndex = () => {
               {user && organization && !isAdmin && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button type="button" className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg border border-border/50 cursor-default">
+                    <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg border border-border/50">
                       <Building2 className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm font-medium text-foreground max-w-32 truncate">{organization.name}</span>
                       <Badge variant="secondary" className="text-xs capitalize">
                         {userRole}
                       </Badge>
-                    </button>
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{organization.name} • {userRole}</p>
@@ -234,17 +244,23 @@ const BrandsIndex = () => {
                 <span className="hidden sm:inline">Help</span>
               </Button>
               {user && organization && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => window.open(`/org/${organization.slug}`, '_blank')}
-                  className="gap-2"
-                  title="View your organization's public portal"
-                >
-                  <Globe className="h-4 w-4" />
-                  <span className="hidden sm:inline">Public Portal</span>
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.open(`/org/${organization.slug}`, '_blank')}
+                      className="gap-2"
+                    >
+                      <Globe className="h-4 w-4" />
+                      <span className="hidden sm:inline">Public Portal</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>View your organization's public portal</p>
+                  </TooltipContent>
+                </Tooltip>
               )}
               <InviteMembersDialog />
               {canEdit && <AppSettingsEditor />}
@@ -542,9 +558,6 @@ const BrandsIndex = () => {
 
           <TabsContent value="brands">
             {/* Brand Cards Grid */}
-            {showContentSkeleton ? (
-              <BrandListSkeleton />
-            ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {sortedBrands.map((brand, index) => (
                 <Card 
@@ -708,14 +721,10 @@ const BrandsIndex = () => {
                 </Card>
               )}
             </div>
-            )}
           </TabsContent>
 
           <TabsContent value="products">
             {/* Product Cards Grid */}
-            {showContentSkeleton ? (
-              <BrandListSkeleton />
-            ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {sortedProducts.map((product, index) => (
                 <Card 
@@ -876,14 +885,10 @@ const BrandsIndex = () => {
                 </div>
               )}
             </div>
-            )}
           </TabsContent>
 
           <TabsContent value="favorites">
             {/* Favorites Grid */}
-            {showContentSkeleton ? (
-              <BrandListSkeleton />
-            ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {favorites.map((item) => (
                 <Card 
@@ -994,7 +999,6 @@ const BrandsIndex = () => {
                 </div>
               )}
             </div>
-            )}
           </TabsContent>
         </Tabs>
 

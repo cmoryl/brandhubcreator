@@ -8,13 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { BrandVideo } from '@/types/brand';
-import { SectionHeader } from './SectionHeader';
 
 interface VideosSectionProps {
   videos: BrandVideo[];
   onVideosChange: (videos: BrandVideo[]) => void;
-  customSubtitle?: string;
-  onSubtitleChange?: (subtitle: string) => void;
 }
 
 type VideoType = 'youtube' | 'vimeo' | 'direct';
@@ -56,9 +53,8 @@ const getThumbnail = (url: string, type: VideoType): string | null => {
   return null;
 };
 
-export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtitleChange }: VideosSectionProps) => {
+export const VideosSection = ({ videos, onVideosChange }: VideosSectionProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [newVideo, setNewVideo] = useState<Partial<BrandVideo>>({
     title: '',
     url: '',
@@ -98,16 +94,15 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1">
-          <SectionHeader
-            title="Videos"
-            defaultSubtitle="Brand video resources and tutorials"
-            customSubtitle={customSubtitle}
-            onSubtitleChange={onSubtitleChange}
-            isEditing={isHeaderEditing}
-            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
-          />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Video className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Videos</h2>
+            <p className="text-sm text-muted-foreground">Brand video resources and tutorials</p>
+          </div>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
