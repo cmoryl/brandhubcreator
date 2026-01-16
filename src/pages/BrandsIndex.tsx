@@ -216,13 +216,13 @@ const BrandsIndex = () => {
               {user && organization && !isAdmin && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg border border-border/50">
+                    <button type="button" className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg border border-border/50 cursor-default">
                       <Building2 className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm font-medium text-foreground max-w-32 truncate">{organization.name}</span>
                       <Badge variant="secondary" className="text-xs capitalize">
                         {userRole}
                       </Badge>
-                    </div>
+                    </button>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{organization.name} • {userRole}</p>
@@ -234,23 +234,17 @@ const BrandsIndex = () => {
                 <span className="hidden sm:inline">Help</span>
               </Button>
               {user && organization && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => window.open(`/org/${organization.slug}`, '_blank')}
-                      className="gap-2"
-                    >
-                      <Globe className="h-4 w-4" />
-                      <span className="hidden sm:inline">Public Portal</span>
-                      <ExternalLink className="h-3 w-3" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>View your organization's public portal</p>
-                  </TooltipContent>
-                </Tooltip>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.open(`/org/${organization.slug}`, '_blank')}
+                  className="gap-2"
+                  title="View your organization's public portal"
+                >
+                  <Globe className="h-4 w-4" />
+                  <span className="hidden sm:inline">Public Portal</span>
+                  <ExternalLink className="h-3 w-3" />
+                </Button>
               )}
               <InviteMembersDialog />
               {canEdit && <AppSettingsEditor />}
