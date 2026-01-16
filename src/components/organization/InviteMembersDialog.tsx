@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { UserPlus, Mail, Loader2, Users, Crown, Shield, Eye, Trash2 } from 'lucide-react';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ const roleColors = {
   viewer: 'bg-muted text-muted-foreground border-border',
 };
 
-export const InviteMembersDialog = () => {
+export const InviteMembersDialog = forwardRef<HTMLDivElement>((_, ref) => {
   const { organization, members, userRole, inviteMember, removeMember, updateMemberRole } = useOrganization();
   const { toast } = useToast();
   
@@ -143,6 +143,7 @@ export const InviteMembersDialog = () => {
   if (!organization || !canManageMembers) return null;
 
   return (
+    <div ref={ref}>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
@@ -259,5 +260,8 @@ export const InviteMembersDialog = () => {
         </div>
       </DialogContent>
     </Dialog>
+    </div>
   );
-};
+});
+
+InviteMembersDialog.displayName = 'InviteMembersDialog';
