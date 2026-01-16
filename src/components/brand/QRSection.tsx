@@ -4,14 +4,18 @@ import QRCode from 'qrcode';
 import { BrandQR } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SectionHeader } from './SectionHeader';
 
 interface QRSectionProps {
   qr: BrandQR;
   onQRChange: (qr: BrandQR) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
-export const QRSection = ({ qr, onQRChange }: QRSectionProps) => {
+export const QRSection = ({ qr, onQRChange, customSubtitle, onSubtitleChange }: QRSectionProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
 
@@ -67,19 +71,25 @@ export const QRSection = ({ qr, onQRChange }: QRSectionProps) => {
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Access Ports</h2>
-          <p className="text-muted-foreground mt-1">Physical-to-digital bridge - brand-compliant QR codes</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <SectionHeader
+            title="Access Ports"
+            defaultSubtitle="Physical-to-digital bridge - brand-compliant QR codes"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            isEditing={isHeaderEditing}
+            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+          />
         </div>
         <Button
           variant={isEditing ? "default" : "outline"}
           size="sm"
           onClick={() => setIsEditing(!isEditing)}
-          className="gap-2"
+          className="gap-2 shrink-0"
         >
           {isEditing ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-          {isEditing ? 'Done' : 'Edit'}
+          {isEditing ? 'Done' : 'Edit QR'}
         </Button>
       </div>
 

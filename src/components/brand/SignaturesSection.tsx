@@ -7,10 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { SectionHeader } from './SectionHeader';
 
 interface SignaturesSectionProps {
   signatures: BrandSignature[];
   onSignaturesChange: (signatures: BrandSignature[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
 const signatureTemplates = {
@@ -105,10 +108,11 @@ const signatureTemplates = {
 
 const defaultSignatureTemplate = signatureTemplates.classic.template;
 
-export const SignaturesSection = ({ signatures, onSignaturesChange }: SignaturesSectionProps) => {
+export const SignaturesSection = ({ signatures, onSignaturesChange, customSubtitle, onSubtitleChange }: SignaturesSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const addSignature = (templateKey: keyof typeof signatureTemplates = 'classic') => {
     const newSignature: BrandSignature = {
@@ -152,10 +156,16 @@ export const SignaturesSection = ({ signatures, onSignaturesChange }: Signatures
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Signature Protocol</h2>
-          <p className="text-muted-foreground mt-1">Dynamic HTML templates for email signatures</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <SectionHeader
+            title="Signature Protocol"
+            defaultSubtitle="Dynamic HTML templates for email signatures"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            isEditing={isHeaderEditing}
+            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+          />
         </div>
         <div className="flex gap-2">
           <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>

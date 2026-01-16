@@ -6,10 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SectionHeader } from './SectionHeader';
 
 interface AtmosphereSectionProps {
   atmosphere: BrandAtmosphere;
   onAtmosphereChange: (atmosphere: BrandAtmosphere) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
 const styleOptions = [
@@ -21,8 +24,9 @@ const styleOptions = [
   { value: 'minimal', label: 'Minimal' },
 ];
 
-export const AtmosphereSection = ({ atmosphere, onAtmosphereChange }: AtmosphereSectionProps) => {
+export const AtmosphereSection = ({ atmosphere, onAtmosphereChange, customSubtitle, onSubtitleChange }: AtmosphereSectionProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const getPreviewStyle = () => {
     const base = {
@@ -71,19 +75,25 @@ export const AtmosphereSection = ({ atmosphere, onAtmosphereChange }: Atmosphere
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Atmosphere Engine</h2>
-          <p className="text-muted-foreground mt-1">Environmental physics for 3D/Canvas backgrounds</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <SectionHeader
+            title="Atmosphere Engine"
+            defaultSubtitle="Environmental physics for 3D/Canvas backgrounds"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            isEditing={isHeaderEditing}
+            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+          />
         </div>
         <Button
           variant={isEditing ? "default" : "outline"}
           size="sm"
           onClick={() => setIsEditing(!isEditing)}
-          className="gap-2"
+          className="gap-2 shrink-0"
         >
           {isEditing ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-          {isEditing ? 'Done' : 'Edit'}
+          {isEditing ? 'Done' : 'Edit Settings'}
         </Button>
       </div>
 
