@@ -76,29 +76,38 @@ const BrandsIndex = () => {
   // For regular users: use their organization context
   const activeOrg = isAdmin ? viewingOrg : organization;
 
+  // NOTE: Many legacy items may have organizationId = null (personal).
+  // If the user is in an organization, we still show those personal items
+  // so they don't "disappear" from the index.
+  const belongsToActiveOrgOrPersonal = (orgId: string | null | undefined) => {
+    if (!activeOrg) return true;
+    return orgId === activeOrg.id || orgId == null;
+  };
+
   // Filter brands and products by active organization context
-  // If activeOrg is null (admin viewing all), show all brands
-  // Otherwise filter to just that organization's brands
-  const orgFilteredBrands = activeOrg 
-    ? brands.filter(b => b.organizationId === activeOrg.id)
-    : isAdmin ? brands : brands.filter(b => b.organizationId === organization?.id);
-  
+  // If activeOrg is null (admin viewing all), show all
+  // If activeOrg is set, show both org-scoped items and personal (null-org) items
+  const orgFilteredBrands = activeOrg
+    ? brands.filter(b => belongsToActiveOrgOrPersonal(b.organizationId))
+    : brands;
+
   const orgFilteredProducts = activeOrg
-    ? products.filter(p => p.organizationId === activeOrg.id)
-    : isAdmin ? products : products.filter(p => p.organizationId === organization?.id);
+    ? products.filter(p => belongsToActiveOrgOrPersonal(p.organizationId))
+    : products;
+
+  // Filter favorites by organization too (same rule as above)
+  const favorites = activeOrg
+    ? allFavorites.filter(f => belongsToActiveOrgOrPersonal(f.organizationId))
+    : allFavorites;
+
 
   // Sort brands and products by most recently updated
-  const sortedBrands = [...orgFilteredBrands].sort((a, b) => 
+  const sortedBrands = [...orgFilteredBrands].sort((a, b) =>
     new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
-  const sortedProducts = [...orgFilteredProducts].sort((a, b) => 
+  const sortedProducts = [...orgFilteredProducts].sort((a, b) =>
     new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
-
-  // Filter favorites by organization too
-  const favorites = activeOrg
-    ? allFavorites.filter(f => f.organizationId === activeOrg.id)
-    : isAdmin ? allFavorites : allFavorites.filter(f => f.organizationId === organization?.id);
 
   // Onboarding redirect removed - users go straight to the main page
 
