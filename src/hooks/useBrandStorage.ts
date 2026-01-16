@@ -325,11 +325,29 @@ export const useBrandStorage = () => {
     const currentUserId = user?.id ?? null;
     const currentOrgId = organization?.id ?? null;
 
-    // Avoid early double-fetch: wait for org to finish resolving (if user is logged in)
-    if (currentUserId && orgLoading) return;
+    // If no user, clear data immediately
+    if (!currentUserId) {
+      if (hasFetchedRef.current || lastUserIdRef.current !== null) {
+        hasFetchedRef.current = false;
+        lastUserIdRef.current = null;
+        lastOrgIdRef.current = null;
+        setBrands([]);
+        setProducts([]);
+        setIsLoading(false);
+      }
+      return;
+    }
 
-    // Only refetch if user or org actually changed
-    if (lastUserIdRef.current !== currentUserId || lastOrgIdRef.current !== currentOrgId) {
+    // Wait for org loading to complete before fetching (prevents double-fetch)
+    if (orgLoading) return;
+
+    // Force refetch if user or org changed, or if we haven't fetched yet
+    const shouldFetch =
+      !hasFetchedRef.current ||
+      lastUserIdRef.current !== currentUserId ||
+      lastOrgIdRef.current !== currentOrgId;
+
+    if (shouldFetch) {
       fetchData(true);
     }
   }, [fetchData, user?.id, organization?.id, orgLoading]);
