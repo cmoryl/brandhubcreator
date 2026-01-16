@@ -143,7 +143,8 @@ export const InviteMembersDialog = () => {
   if (!organization || !canManageMembers) return null;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <>
+      <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <UserPlus className="h-4 w-4" />
@@ -258,6 +259,7 @@ export const InviteMembersDialog = () => {
           })}
         </div>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 };
