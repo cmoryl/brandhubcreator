@@ -93,16 +93,25 @@ const createDefaultGuideData = (name: string, type: 'brand' | 'product') => ({
 // Merge section order with default to ensure new sections are included for existing brands
 const mergeSectionOrder = (dbOrder: string[] | null): BrandGuide['sectionOrder'] => {
   if (!dbOrder) return DEFAULT_SECTION_ORDER;
-  
+
   // Get any new sections that don't exist in the stored order
   const missingSections = DEFAULT_SECTION_ORDER.filter(s => !dbOrder.includes(s));
-  
+
   // Append missing sections to the end
   return [...dbOrder, ...missingSections] as BrandGuide['sectionOrder'];
 };
 
+// Defensive helpers: old/legacy guide_data can contain invalid shapes.
+// If we don't normalize, the UI can crash when it expects arrays/objects.
+const asArray = <T,>(value: unknown, fallback: T[] = []): T[] =>
+  Array.isArray(value) ? (value as T[]) : fallback;
+
+const asObject = <T extends object>(value: unknown, fallback: T): T =>
+  value && typeof value === 'object' && !Array.isArray(value) ? (value as T) : fallback;
+
 const dbToBrandGuide = (db: DbBrand): BrandGuide => {
-  const guideData = db.guide_data as Record<string, unknown>;
+  const guideData = asObject<Record<string, unknown>>(db.guide_data, {});
+
   return {
     id: db.id,
     type: 'brand',
@@ -110,43 +119,44 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     isFavorite: db.is_favorite,
     isPublic: db.is_public ?? false,
     sectionOrder: mergeSectionOrder(db.section_order),
-    hiddenSections: db.hidden_sections as BrandGuide['hiddenSections'] ?? [],
-    hero: (guideData.hero as BrandGuide['hero']) ?? { name: db.name, tagline: '', coverImage: '', logoUrl: '' },
-    tagline: (guideData.tagline as BrandGuide['tagline']) ?? { primary: '', secondary: '', variations: [] },
-    identity: (guideData.identity as BrandGuide['identity']) ?? { missionStatement: '', archetype: '', toneOfVoice: [] },
-    values: (guideData.values as BrandGuide['values']) ?? [],
-    logos: (guideData.logos as BrandGuide['logos']) ?? [],
-    brandIcons: (guideData.brandIcons as BrandGuide['brandIcons']) ?? [],
-    colors: (guideData.colors as BrandGuide['colors']) ?? [],
-    colorCombinations: (guideData.colorCombinations as BrandGuide['colorCombinations']) ?? [],
-    gradients: (guideData.gradients as BrandGuide['gradients']) ?? [],
-    patterns: (guideData.patterns as BrandGuide['patterns']) ?? [],
-    typography: (guideData.typography as BrandGuide['typography']) ?? [],
-    textStyles: (guideData.textStyles as BrandGuide['textStyles']) ?? [],
-    iconography: (guideData.iconography as BrandGuide['iconography']) ?? [],
-    socialIcons: (guideData.socialIcons as BrandGuide['socialIcons']) ?? [],
-    imagery: (guideData.imagery as BrandGuide['imagery']) ?? [],
-    social: (guideData.social as BrandGuide['social']) ?? [],
-    websites: (guideData.websites as BrandGuide['websites']) ?? [],
-    signatures: (guideData.signatures as BrandGuide['signatures']) ?? [],
-    qr: (guideData.qr as BrandGuide['qr']) ?? { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' },
-    videos: (guideData.videos as BrandGuide['videos']) ?? [],
-    assets: (guideData.assets as BrandGuide['assets']) ?? [],
-    misuse: (guideData.misuse as BrandGuide['misuse']) ?? [],
-    atmosphere: (guideData.atmosphere as BrandGuide['atmosphere']) ?? { style: 'gradient', animate: true, opacity: 0.5, blur: 0 },
-    caseStudies: (guideData.caseStudies as BrandGuide['caseStudies']) ?? [],
-    brochures: (guideData.brochures as BrandGuide['brochures']) ?? [],
-    templates: (guideData.templates as BrandGuide['templates']) ?? [],
-    services: (guideData.services as BrandGuide['services']) ?? [],
-    sectionSubtitles: (guideData.sectionSubtitles as BrandGuide['sectionSubtitles']) ?? {},
-    pageSettings: (guideData.pageSettings as BrandGuide['pageSettings']) ?? DEFAULT_PAGE_SETTINGS,
+    hiddenSections: asArray( db.hidden_sections, [] ) as BrandGuide['hiddenSections'],
+    hero: asObject(guideData.hero, { name: db.name, tagline: '', coverImage: '', logoUrl: '' }) as BrandGuide['hero'],
+    tagline: asObject(guideData.tagline, { primary: '', secondary: '', variations: [] }) as BrandGuide['tagline'],
+    identity: asObject(guideData.identity, { missionStatement: '', archetype: '', toneOfVoice: [] }) as BrandGuide['identity'],
+    values: asArray(guideData.values, []) as BrandGuide['values'],
+    logos: asArray(guideData.logos, []) as BrandGuide['logos'],
+    brandIcons: asArray(guideData.brandIcons, []) as BrandGuide['brandIcons'],
+    colors: asArray(guideData.colors, []) as BrandGuide['colors'],
+    colorCombinations: asArray(guideData.colorCombinations, []) as BrandGuide['colorCombinations'],
+    gradients: asArray(guideData.gradients, []) as BrandGuide['gradients'],
+    patterns: asArray(guideData.patterns, []) as BrandGuide['patterns'],
+    typography: asArray(guideData.typography, []) as BrandGuide['typography'],
+    textStyles: asArray(guideData.textStyles, []) as BrandGuide['textStyles'],
+    iconography: asArray(guideData.iconography, []) as BrandGuide['iconography'],
+    socialIcons: asArray(guideData.socialIcons, []) as BrandGuide['socialIcons'],
+    imagery: asArray(guideData.imagery, []) as BrandGuide['imagery'],
+    social: asArray(guideData.social, []) as BrandGuide['social'],
+    websites: asArray(guideData.websites, []) as BrandGuide['websites'],
+    signatures: asArray(guideData.signatures, []) as BrandGuide['signatures'],
+    qr: asObject(guideData.qr, { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' }) as BrandGuide['qr'],
+    videos: asArray(guideData.videos, []) as BrandGuide['videos'],
+    assets: asArray(guideData.assets, []) as BrandGuide['assets'],
+    misuse: asArray(guideData.misuse, []) as BrandGuide['misuse'],
+    atmosphere: asObject(guideData.atmosphere, { style: 'gradient', animate: true, opacity: 0.5, blur: 0 }) as BrandGuide['atmosphere'],
+    caseStudies: asArray(guideData.caseStudies, []) as BrandGuide['caseStudies'],
+    brochures: asArray(guideData.brochures, []) as BrandGuide['brochures'],
+    templates: asArray(guideData.templates, []) as BrandGuide['templates'],
+    services: asArray(guideData.services, []) as BrandGuide['services'],
+    sectionSubtitles: asObject(guideData.sectionSubtitles, {}) as BrandGuide['sectionSubtitles'],
+    pageSettings: asObject(guideData.pageSettings, DEFAULT_PAGE_SETTINGS) as BrandGuide['pageSettings'],
     createdAt: new Date(db.created_at),
     updatedAt: new Date(db.updated_at),
   };
 };
 
 const dbToProductGuide = (db: DbProduct): ProductGuide => {
-  const guideData = db.guide_data as Record<string, unknown>;
+  const guideData = asObject<Record<string, unknown>>(db.guide_data, {});
+
   return {
     id: db.id,
     type: 'product',
@@ -155,36 +165,36 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
     isFavorite: db.is_favorite,
     isPublic: db.is_public ?? false,
     sectionOrder: mergeSectionOrder(db.section_order),
-    hiddenSections: db.hidden_sections as ProductGuide['hiddenSections'] ?? [],
-    hero: (guideData.hero as ProductGuide['hero']) ?? { name: db.name, tagline: '', coverImage: '', logoUrl: '' },
-    tagline: (guideData.tagline as ProductGuide['tagline']) ?? { primary: '', secondary: '', variations: [] },
-    identity: (guideData.identity as ProductGuide['identity']) ?? { missionStatement: '', archetype: '', toneOfVoice: [] },
-    values: (guideData.values as ProductGuide['values']) ?? [],
-    logos: (guideData.logos as ProductGuide['logos']) ?? [],
-    brandIcons: (guideData.brandIcons as ProductGuide['brandIcons']) ?? [],
-    colors: (guideData.colors as ProductGuide['colors']) ?? [],
-    colorCombinations: (guideData.colorCombinations as ProductGuide['colorCombinations']) ?? [],
-    gradients: (guideData.gradients as ProductGuide['gradients']) ?? [],
-    patterns: (guideData.patterns as ProductGuide['patterns']) ?? [],
-    typography: (guideData.typography as ProductGuide['typography']) ?? [],
-    textStyles: (guideData.textStyles as ProductGuide['textStyles']) ?? [],
-    iconography: (guideData.iconography as ProductGuide['iconography']) ?? [],
-    socialIcons: (guideData.socialIcons as ProductGuide['socialIcons']) ?? [],
-    imagery: (guideData.imagery as ProductGuide['imagery']) ?? [],
-    social: (guideData.social as ProductGuide['social']) ?? [],
-    websites: (guideData.websites as ProductGuide['websites']) ?? [],
-    signatures: (guideData.signatures as ProductGuide['signatures']) ?? [],
-    qr: (guideData.qr as ProductGuide['qr']) ?? { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' },
-    videos: (guideData.videos as ProductGuide['videos']) ?? [],
-    assets: (guideData.assets as ProductGuide['assets']) ?? [],
-    misuse: (guideData.misuse as ProductGuide['misuse']) ?? [],
-    atmosphere: (guideData.atmosphere as ProductGuide['atmosphere']) ?? { style: 'gradient', animate: true, opacity: 0.5, blur: 0 },
-    caseStudies: (guideData.caseStudies as ProductGuide['caseStudies']) ?? [],
-    brochures: (guideData.brochures as ProductGuide['brochures']) ?? [],
-    templates: (guideData.templates as ProductGuide['templates']) ?? [],
-    services: (guideData.services as ProductGuide['services']) ?? [],
-    sectionSubtitles: (guideData.sectionSubtitles as ProductGuide['sectionSubtitles']) ?? {},
-    pageSettings: (guideData.pageSettings as ProductGuide['pageSettings']) ?? DEFAULT_PAGE_SETTINGS,
+    hiddenSections: asArray(db.hidden_sections, []) as ProductGuide['hiddenSections'],
+    hero: asObject(guideData.hero, { name: db.name, tagline: '', coverImage: '', logoUrl: '' }) as ProductGuide['hero'],
+    tagline: asObject(guideData.tagline, { primary: '', secondary: '', variations: [] }) as ProductGuide['tagline'],
+    identity: asObject(guideData.identity, { missionStatement: '', archetype: '', toneOfVoice: [] }) as ProductGuide['identity'],
+    values: asArray(guideData.values, []) as ProductGuide['values'],
+    logos: asArray(guideData.logos, []) as ProductGuide['logos'],
+    brandIcons: asArray(guideData.brandIcons, []) as ProductGuide['brandIcons'],
+    colors: asArray(guideData.colors, []) as ProductGuide['colors'],
+    colorCombinations: asArray(guideData.colorCombinations, []) as ProductGuide['colorCombinations'],
+    gradients: asArray(guideData.gradients, []) as ProductGuide['gradients'],
+    patterns: asArray(guideData.patterns, []) as ProductGuide['patterns'],
+    typography: asArray(guideData.typography, []) as ProductGuide['typography'],
+    textStyles: asArray(guideData.textStyles, []) as ProductGuide['textStyles'],
+    iconography: asArray(guideData.iconography, []) as ProductGuide['iconography'],
+    socialIcons: asArray(guideData.socialIcons, []) as ProductGuide['socialIcons'],
+    imagery: asArray(guideData.imagery, []) as ProductGuide['imagery'],
+    social: asArray(guideData.social, []) as ProductGuide['social'],
+    websites: asArray(guideData.websites, []) as ProductGuide['websites'],
+    signatures: asArray(guideData.signatures, []) as ProductGuide['signatures'],
+    qr: asObject(guideData.qr, { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' }) as ProductGuide['qr'],
+    videos: asArray(guideData.videos, []) as ProductGuide['videos'],
+    assets: asArray(guideData.assets, []) as ProductGuide['assets'],
+    misuse: asArray(guideData.misuse, []) as ProductGuide['misuse'],
+    atmosphere: asObject(guideData.atmosphere, { style: 'gradient', animate: true, opacity: 0.5, blur: 0 }) as ProductGuide['atmosphere'],
+    caseStudies: asArray(guideData.caseStudies, []) as ProductGuide['caseStudies'],
+    brochures: asArray(guideData.brochures, []) as ProductGuide['brochures'],
+    templates: asArray(guideData.templates, []) as ProductGuide['templates'],
+    services: asArray(guideData.services, []) as ProductGuide['services'],
+    sectionSubtitles: asObject(guideData.sectionSubtitles, {}) as ProductGuide['sectionSubtitles'],
+    pageSettings: asObject(guideData.pageSettings, DEFAULT_PAGE_SETTINGS) as ProductGuide['pageSettings'],
     createdAt: new Date(db.created_at),
     updatedAt: new Date(db.updated_at),
   };
