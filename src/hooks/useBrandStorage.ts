@@ -239,17 +239,33 @@ export const useBrandStorage = () => {
     productsRef.current = products;
   }, [products]);
 
+  // Track if initial fetch has been done to prevent double-fetching
+  const hasFetchedRef = useRef(false);
+  const lastUserIdRef = useRef<string | null>(null);
+  const lastOrgIdRef = useRef<string | null>(null);
+
   // Fetch brands and products - depends on user auth state for RLS
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (force = false) => {
+    // Skip if already fetched for same user/org (unless forced)
+    const currentUserId = user?.id ?? null;
+    const currentOrgId = organization?.id ?? null;
+    
+    if (!force && hasFetchedRef.current && 
+        lastUserIdRef.current === currentUserId && 
+        lastOrgIdRef.current === currentOrgId) {
+      return;
+    }
+
     setIsLoading(true);
     try {
       // Add timeout to prevent infinite loading on connection issues
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
+      // Fetch in parallel for faster loading
       const [brandsRes, productsRes] = await Promise.all([
-        supabase.from('brands').select('*').order('created_at', { ascending: false }),
-        supabase.from('products').select('*').order('created_at', { ascending: false }),
+        supabase.from('brands').select('*').order('updated_at', { ascending: false }).limit(100),
+        supabase.from('products').select('*').order('updated_at', { ascending: false }).limit(100),
       ]);
 
       clearTimeout(timeoutId);
@@ -259,6 +275,11 @@ export const useBrandStorage = () => {
 
       setBrands((brandsRes.data as DbBrand[]).map(dbToBrandGuide));
       setProducts((productsRes.data as DbProduct[]).map(dbToProductGuide));
+      
+      // Mark as fetched
+      hasFetchedRef.current = true;
+      lastUserIdRef.current = currentUserId;
+      lastOrgIdRef.current = currentOrgId;
     } catch (error) {
       console.error('Error fetching data:', error);
       // Set empty arrays on error so UI isn't stuck loading
@@ -267,11 +288,17 @@ export const useBrandStorage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user?.id, organization?.id]);
 
   // Refetch when user/org auth state changes to ensure RLS policies apply correctly
   useEffect(() => {
-    fetchData();
+    const currentUserId = user?.id ?? null;
+    const currentOrgId = organization?.id ?? null;
+    
+    // Only refetch if user or org actually changed
+    if (lastUserIdRef.current !== currentUserId || lastOrgIdRef.current !== currentOrgId) {
+      fetchData(true);
+    }
   }, [fetchData, user?.id, organization?.id]);
 
   const addBrand = async (name: string): Promise<BrandGuide | null> => {
@@ -554,6 +581,6 @@ export const useBrandStorage = () => {
     getRecentlyUpdated,
     toggleFavorite,
     getFavorites,
-    refetch: fetchData,
+    refetch: () => fetchData(true),
   };
 };

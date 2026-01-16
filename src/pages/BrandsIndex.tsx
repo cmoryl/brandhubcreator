@@ -102,19 +102,9 @@ const BrandsIndex = () => {
 
   // Onboarding redirect removed - users go straight to the main page
 
-  // Show loading state
-  if (authLoading || isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="p-4 bg-accent/10 rounded-2xl w-fit mx-auto animate-pulse">
-            <Sparkles className="h-8 w-8 text-accent" />
-          </div>
-          <p className="text-muted-foreground">Loading brand guides...</p>
-        </div>
-      </div>
-    );
-  }
+  // Show skeleton loading state during initial auth check
+  // But still render the page shell so users see something immediately
+  const showDataLoading = authLoading || (isLoading && brands.length === 0 && products.length === 0);
 
   const handleCreateItem = async () => {
     if (newItemName.trim()) {
