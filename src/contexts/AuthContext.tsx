@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -41,39 +41,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // Defer admin check with setTimeout to prevent deadlock
-        if (session?.user) {
-          setTimeout(() => {
-            checkAdminRole(session.user.id).then(setIsAdmin);
-          }, 0);
-        } else {
-          setIsAdmin(false);
-        }
-        
-        setIsLoading(false);
-      }
-    );
+  // Avoid duplicate admin-role checks (getSession + INITIAL_SESSION)
+  const lastAdminCheckUserIdRef = useRef<string | null>(null);
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        checkAdminRole(session.user.id).then(setIsAdmin);
+  useEffect(() => {
+    let cancelled = false;
+
+    const handleSession = (nextSession: Session | null) => {
+      if (cancelled) return;
+
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+
+      const nextUserId = nextSession?.user?.id ?? null;
+      if (!nextUserId) {
+        lastAdminCheckUserIdRef.current = null;
+        setIsAdmin(false);
+        setIsLoading(false);
+        return;
       }
-      
+
+      // Dedupe repeated checks for the same user during boot
+      if (lastAdminCheckUserIdRef.current === nextUserId) {
+        setIsLoading(false);
+        return;
+      }
+      lastAdminCheckUserIdRef.current = nextUserId;
+
+      setTimeout(() => {
+        checkAdminRole(nextUserId).then((val) => {
+          if (!cancelled) setIsAdmin(val);
+        });
+      }, 0);
+
       setIsLoading(false);
+    };
+
+    // 1) Get current session once
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleSession(session);
     });
 
-    return () => subscription.unsubscribe();
+    // 2) Subscribe for future changes (skip INITIAL_SESSION to avoid double-run)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === 'INITIAL_SESSION') return;
+      handleSession(nextSession);
+    });
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
