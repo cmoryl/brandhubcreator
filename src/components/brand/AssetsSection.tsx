@@ -2,10 +2,13 @@ import { useState, useRef } from 'react';
 import { Plus, X, Upload, File, Download, Folder } from 'lucide-react';
 import { BrandAsset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
+import { SectionHeader } from './SectionHeader';
 
 interface AssetsSectionProps {
   assets: BrandAsset[];
   onAssetsChange: (assets: BrandAsset[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -23,8 +26,9 @@ const getFileIcon = (type: string) => {
   return '📁';
 };
 
-export const AssetsSection = ({ assets, onAssetsChange }: AssetsSectionProps) => {
+export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtitleChange }: AssetsSectionProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -72,12 +76,18 @@ export const AssetsSection = ({ assets, onAssetsChange }: AssetsSectionProps) =>
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Operational Vault</h2>
-          <p className="text-muted-foreground mt-1">Direct storage for heavy assets - ZIP, RAW, High-Res</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <SectionHeader
+            title="Operational Vault"
+            defaultSubtitle="Direct storage for heavy assets - ZIP, RAW, High-Res"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            isEditing={isHeaderEditing}
+            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+          />
         </div>
-        <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2">
+        <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0">
           <Upload className="h-4 w-4" />
           Upload Assets
         </Button>
