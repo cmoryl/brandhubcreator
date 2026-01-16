@@ -243,6 +243,11 @@ export const useBrandStorage = () => {
   const hasFetchedRef = useRef(false);
   const lastUserIdRef = useRef<string | null>(null);
   const lastOrgIdRef = useRef<string | null>(null);
+  
+  // Prevent infinite refetch loops when the backend is slow/unreachable.
+  // If a fetch fails (e.g., timeout), we mark it as "fetched" so the effect
+  // doesn't immediately trigger another request on the next render.
+  const lastFetchFailedAtRef = useRef<number | null>(null);
 
   // Fetch brands and products - depends on user auth state for RLS
   const fetchData = useCallback(
@@ -295,7 +300,7 @@ export const useBrandStorage = () => {
               .order('updated_at', { ascending: false })
               .limit(100),
           ]),
-          10000
+          25000
         );
 
         if (brandsRes.error) throw brandsRes.error;
@@ -310,6 +315,14 @@ export const useBrandStorage = () => {
         lastOrgIdRef.current = currentOrgId;
       } catch (error) {
         console.error('Error fetching data:', error);
+
+        // IMPORTANT: If fetch fails (timeout / network), avoid an immediate refetch loop.
+        // We'll keep the UI responsive and allow users to retry via navigation or refresh.
+        hasFetchedRef.current = true;
+        lastUserIdRef.current = currentUserId;
+        lastOrgIdRef.current = currentOrgId;
+        lastFetchFailedAtRef.current = Date.now();
+
         // Set empty arrays on error so UI isn't stuck loading
         setBrands([]);
         setProducts([]);
@@ -348,7 +361,7 @@ export const useBrandStorage = () => {
       lastOrgIdRef.current !== currentOrgId;
 
     if (shouldFetch) {
-      fetchData(true);
+      fetchData(false);
     }
   }, [fetchData, user?.id, organization?.id, orgLoading]);
 
