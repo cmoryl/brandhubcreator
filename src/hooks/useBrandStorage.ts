@@ -221,7 +221,7 @@ const productGuideToDb = (product: Partial<ProductGuide>, userId: string, organi
 
 export const useBrandStorage = () => {
   const { user } = useAuth();
-  const { organization } = useOrganization();
+  const { organization, isLoading: orgLoading } = useOrganization();
   const [brands, setBrands] = useState<BrandGuide[]>([]);
   const [products, setProducts] = useState<ProductGuide[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -229,12 +229,12 @@ export const useBrandStorage = () => {
   // Refs to always have latest state in callbacks
   const brandsRef = useRef<BrandGuide[]>([]);
   const productsRef = useRef<ProductGuide[]>([]);
-  
+
   // Keep refs in sync with state
   useEffect(() => {
     brandsRef.current = brands;
   }, [brands]);
-  
+
   useEffect(() => {
     productsRef.current = products;
   }, [products]);
@@ -245,61 +245,94 @@ export const useBrandStorage = () => {
   const lastOrgIdRef = useRef<string | null>(null);
 
   // Fetch brands and products - depends on user auth state for RLS
-  const fetchData = useCallback(async (force = false) => {
-    // Skip if already fetched for same user/org (unless forced)
-    const currentUserId = user?.id ?? null;
-    const currentOrgId = organization?.id ?? null;
-    
-    if (!force && hasFetchedRef.current && 
-        lastUserIdRef.current === currentUserId && 
-        lastOrgIdRef.current === currentOrgId) {
-      return;
-    }
+  const fetchData = useCallback(
+    async (force = false) => {
+      const currentUserId = user?.id ?? null;
+      const currentOrgId = organization?.id ?? null;
 
-    setIsLoading(true);
-    try {
-      // Add timeout to prevent infinite loading on connection issues
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      // If signed out, clear immediately (don’t hit the backend)
+      if (!currentUserId) {
+        hasFetchedRef.current = true;
+        lastUserIdRef.current = null;
+        lastOrgIdRef.current = null;
+        setBrands([]);
+        setProducts([]);
+        setIsLoading(false);
+        return;
+      }
 
-      // Fetch in parallel for faster loading
-      const [brandsRes, productsRes] = await Promise.all([
-        supabase.from('brands').select('*').order('updated_at', { ascending: false }).limit(100),
-        supabase.from('products').select('*').order('updated_at', { ascending: false }).limit(100),
-      ]);
+      // Skip if already fetched for same user/org (unless forced)
+      if (
+        !force &&
+        hasFetchedRef.current &&
+        lastUserIdRef.current === currentUserId &&
+        lastOrgIdRef.current === currentOrgId
+      ) {
+        return;
+      }
 
-      clearTimeout(timeoutId);
+      setIsLoading(true);
+      try {
+        const withTimeout = <T,>(p: Promise<T>, ms: number) =>
+          Promise.race([
+            p,
+            new Promise<T>((_, reject) =>
+              setTimeout(() => reject(new Error('Request timeout')), ms)
+            ),
+          ]);
 
-      if (brandsRes.error) throw brandsRes.error;
-      if (productsRes.error) throw productsRes.error;
+        // Fetch in parallel for faster loading
+        const [brandsRes, productsRes] = await withTimeout(
+          Promise.all([
+            supabase
+              .from('brands')
+              .select('*')
+              .order('updated_at', { ascending: false })
+              .limit(100),
+            supabase
+              .from('products')
+              .select('*')
+              .order('updated_at', { ascending: false })
+              .limit(100),
+          ]),
+          10000
+        );
 
-      setBrands((brandsRes.data as DbBrand[]).map(dbToBrandGuide));
-      setProducts((productsRes.data as DbProduct[]).map(dbToProductGuide));
-      
-      // Mark as fetched
-      hasFetchedRef.current = true;
-      lastUserIdRef.current = currentUserId;
-      lastOrgIdRef.current = currentOrgId;
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      // Set empty arrays on error so UI isn't stuck loading
-      setBrands([]);
-      setProducts([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user?.id, organization?.id]);
+        if (brandsRes.error) throw brandsRes.error;
+        if (productsRes.error) throw productsRes.error;
+
+        setBrands((brandsRes.data as DbBrand[]).map(dbToBrandGuide));
+        setProducts((productsRes.data as DbProduct[]).map(dbToProductGuide));
+
+        // Mark as fetched
+        hasFetchedRef.current = true;
+        lastUserIdRef.current = currentUserId;
+        lastOrgIdRef.current = currentOrgId;
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        // Set empty arrays on error so UI isn't stuck loading
+        setBrands([]);
+        setProducts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [user?.id, organization?.id]
+  );
 
   // Refetch when user/org auth state changes to ensure RLS policies apply correctly
   useEffect(() => {
     const currentUserId = user?.id ?? null;
     const currentOrgId = organization?.id ?? null;
-    
+
+    // Avoid early double-fetch: wait for org to finish resolving (if user is logged in)
+    if (currentUserId && orgLoading) return;
+
     // Only refetch if user or org actually changed
     if (lastUserIdRef.current !== currentUserId || lastOrgIdRef.current !== currentOrgId) {
       fetchData(true);
     }
-  }, [fetchData, user?.id, organization?.id]);
+  }, [fetchData, user?.id, organization?.id, orgLoading]);
 
   const addBrand = async (name: string): Promise<BrandGuide | null> => {
     if (!user) {
