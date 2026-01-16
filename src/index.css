@@ -419,3 +419,12 @@
     }
   }
 }
+
+/* Hide the Lovable editor "live preview" notification UI injected at runtime */
+[aria-label="Notifications (F8)"],
+[aria-label="Notifications alt+T"],
+section[aria-label^="Notifications"],
+div[role="region"][aria-label^="Notifications"] {
+  display: none !important;
+}
+
