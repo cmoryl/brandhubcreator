@@ -320,13 +320,18 @@ export const useBrandStorage = () => {
         lastFetchFailedAtRef.current != null &&
         now - lastFetchFailedAtRef.current < FETCH_RETRY_COOLDOWN_MS;
 
-      // Skip if already fetched for same user/org (unless forced) and we're not retrying after a failure.
+      // If we recently failed, avoid retry-spam; the effect below will retry after cooldown.
+      if (inFailureCooldown) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Skip if already fetched for same user/org (unless forced).
       if (
         !force &&
         hasFetchedRef.current &&
         lastUserIdRef.current === currentUserId &&
-        lastOrgIdRef.current === currentOrgId &&
-        !inFailureCooldown
+        lastOrgIdRef.current === currentOrgId
       ) {
         return;
       }
