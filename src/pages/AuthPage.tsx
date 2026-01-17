@@ -69,24 +69,27 @@ const AuthPage = () => {
     }
 
     setIsLoading(true);
-    const { error } = await signIn(loginEmail, loginPassword);
-    setIsLoading(false);
+    try {
+      const { error } = await signIn(loginEmail, loginPassword);
 
-    if (error) {
-      // Use generic message to prevent user enumeration attacks
-      toast({
-        title: 'Sign In Failed',
-        description: 'Invalid credentials. Please check your email and password.',
-        variant: 'destructive',
-      });
-      // Log actual error for debugging (server-side only in production)
-      console.error('[AUTH] Login failed:', error.message);
-    } else {
-      toast({
-        title: 'Welcome back!',
-        description: 'You have successfully logged in.',
-      });
-      // The useEffect will handle navigation based on approval status
+      if (error) {
+        // Use generic message to prevent user enumeration attacks
+        toast({
+          title: 'Sign In Failed',
+          description: 'Invalid credentials. Please check your email and password.',
+          variant: 'destructive',
+        });
+        // Log actual error for debugging (server-side only in production)
+        console.error('[AUTH] Login failed:', error.message);
+      } else {
+        toast({
+          title: 'Welcome back!',
+          description: 'You have successfully logged in.',
+        });
+        // The useEffect will handle navigation based on approval status
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
