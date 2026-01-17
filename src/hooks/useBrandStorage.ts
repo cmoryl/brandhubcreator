@@ -230,7 +230,7 @@ const productGuideToDb = (product: Partial<ProductGuide>, userId: string, organi
 };
 
 export const useBrandStorage = () => {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { organization, isLoading: orgLoading } = useOrganization();
   const [brands, setBrands] = useState<BrandGuide[]>([]);
   const [products, setProducts] = useState<ProductGuide[]>([]);
@@ -403,6 +403,9 @@ export const useBrandStorage = () => {
     const currentUserId = user?.id ?? null;
     const currentOrgId = organization?.id ?? null;
 
+    // If auth is still loading, don't do anything yet
+    if (authLoading) return;
+
     // If no user, clear data immediately
     if (!currentUserId) {
       if (hasFetchedRef.current || lastUserIdRef.current !== null) {
@@ -435,7 +438,7 @@ export const useBrandStorage = () => {
     if (shouldFetch) {
       fetchData(false);
     }
-  }, [fetchData, user?.id, organization?.id, orgLoading]);
+  }, [fetchData, user?.id, organization?.id, authLoading, orgLoading]);
 
   const addBrand = async (name: string): Promise<BrandGuide | null> => {
     if (!user) {
