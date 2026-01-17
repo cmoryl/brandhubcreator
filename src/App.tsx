@@ -18,6 +18,7 @@ const BrandEditor = lazy(() => import("./pages/BrandEditor"));
 const ProductEditor = lazy(() => import("./pages/ProductEditor"));
 const OrganizationPortal = lazy(() => import("./pages/OrganizationPortal"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
+const PendingApprovalPage = lazy(() => import("./pages/PendingApprovalPage"));
 const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 const OrganizationSettings = lazy(() => import("./pages/OrganizationSettings"));
@@ -66,6 +67,16 @@ const App = () => (
                       element={
                         <Suspense fallback={<AuthPageSkeleton />}>
                           <AuthPage />
+                        </Suspense>
+                      } 
+                    />
+
+                    {/* Pending Approval */}
+                    <Route 
+                      path="/pending-approval" 
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <PendingApprovalPage />
                         </Suspense>
                       } 
                     />

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Mail, Lock, ArrowLeft, Loader2, Chrome } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,9 +19,20 @@ const authSchema = z.object({
 
 const AuthPage = () => {
   const navigate = useNavigate();
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { user, isApproved, isLoading: authLoading, signIn, signUp, signInWithGoogle } = useAuth();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  // Redirect authenticated users
+  useEffect(() => {
+    if (!authLoading && user) {
+      if (isApproved) {
+        navigate('/');
+      } else {
+        navigate('/pending-approval');
+      }
+    }
+  }, [user, isApproved, authLoading, navigate]);
   
   const [isLoading, setIsLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
@@ -64,7 +75,7 @@ const AuthPage = () => {
         title: 'Welcome back!',
         description: 'You have successfully logged in.',
       });
-      navigate('/');
+      // The useEffect will handle navigation based on approval status
     }
   };
 
@@ -109,9 +120,9 @@ const AuthPage = () => {
     } else {
       toast({
         title: 'Account Created!',
-        description: 'Your account has been created. You can now access the admin area.',
+        description: 'Your account is pending admin approval. You will be notified once approved.',
       });
-      navigate('/');
+      navigate('/pending-approval');
     }
   };
 

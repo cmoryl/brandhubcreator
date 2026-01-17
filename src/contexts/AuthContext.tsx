@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
+  isApproved: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -19,6 +20,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isApproved, setIsApproved] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const checkAdminRole = async (userId: string) => {
@@ -41,6 +43,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const checkApprovalStatus = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('is_approved')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking approval status:', error);
+        return false;
+      }
+      return data?.is_approved ?? false;
+    } catch (err) {
+      console.error('Error checking approval status:', err);
+      return false;
+    }
+  };
+
   // Avoid duplicate admin-role checks (getSession + INITIAL_SESSION)
   const lastAdminCheckUserIdRef = useRef<string | null>(null);
 
@@ -57,6 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!nextUserId) {
         lastAdminCheckUserIdRef.current = null;
         setIsAdmin(false);
+        setIsApproved(false);
         setIsLoading(false);
         return;
       }
@@ -69,8 +91,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       lastAdminCheckUserIdRef.current = nextUserId;
 
       setTimeout(() => {
-        checkAdminRole(nextUserId).then((val) => {
-          if (!cancelled) setIsAdmin(val);
+        Promise.all([
+          checkAdminRole(nextUserId),
+          checkApprovalStatus(nextUserId),
+        ]).then(([adminVal, approvedVal]) => {
+          if (!cancelled) {
+            setIsAdmin(adminVal);
+            // Admins are always considered approved
+            setIsApproved(adminVal || approvedVal);
+          }
         });
       }, 0);
 
@@ -130,13 +159,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setSession(null);
       setIsAdmin(false);
+      setIsApproved(false);
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, isLoading, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, isApproved, isLoading, signIn, signUp, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );

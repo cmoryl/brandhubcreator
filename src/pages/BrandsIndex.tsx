@@ -42,10 +42,17 @@ import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 const BrandsIndex = () => {
   const navigate = useNavigate();
   const { brands, products, addBrand, addProduct, deleteBrand, deleteProduct, updateBrand, updateProduct, getRecentlyUpdated, toggleFavorite, getFavorites, isLoading } = useBrands();
-  const { user, isAdmin, signOut, isLoading: authLoading } = useAuth();
+  const { user, isAdmin, isApproved, signOut, isLoading: authLoading } = useAuth();
   const { settings } = useAppSettings();
   const { resolvedTheme } = useTheme();
   const { organization, userRole, isLoading: orgLoading } = useOrganization();
+
+  // Redirect unapproved users to pending approval page
+  useEffect(() => {
+    if (!authLoading && user && !isApproved) {
+      navigate('/pending-approval');
+    }
+  }, [user, isApproved, authLoading, navigate]);
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'brand' | 'product' } | null>(null);

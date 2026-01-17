@@ -6,7 +6,7 @@ import {
   UserPlus, LogIn, Eye, Edit, Trash2, Download, RefreshCw,
   Settings, Database, HardDrive, AlertTriangle, CheckCircle,
   Crown, Search, Filter, MoreHorizontal, ArrowUpRight, Calendar,
-  FileText, Brain
+  FileText, Brain, UserCheck
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,6 +37,7 @@ import { BrandReportGenerator } from '@/components/admin/BrandReportGenerator';
 import { AIMarketAnalysis } from '@/components/admin/AIMarketAnalysis';
 import { DataInspector } from '@/components/admin/DataInspector';
 import { DemoGuidesManager } from '@/components/admin/DemoGuidesManager';
+import { UserApprovalManager } from '@/components/admin/UserApprovalManager';
 
 interface DashboardStats {
   totalUsers: number;
@@ -47,6 +48,7 @@ interface DashboardStats {
   newUsersThisWeek: number;
   publicBrands: number;
   storageUsed: string;
+  pendingApprovals: number;
 }
 
 interface UserData {
@@ -128,12 +130,14 @@ export default function AdminDashboard() {
       { count: brandsCount },
       { count: productsCount },
       { count: publicBrandsCount },
+      { count: pendingApprovalsCount },
     ] = await Promise.all([
       supabase.from('profiles').select('*', { count: 'exact', head: true }),
       supabase.from('organizations').select('*', { count: 'exact', head: true }),
       supabase.from('brands').select('*', { count: 'exact', head: true }),
       supabase.from('products').select('*', { count: 'exact', head: true }),
       supabase.from('brands').select('*', { count: 'exact', head: true }).eq('is_public', true),
+      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_approved', false),
     ]);
 
     // Get new users this week
@@ -152,6 +156,7 @@ export default function AdminDashboard() {
       newUsersThisWeek: newUsersCount || 0,
       publicBrands: publicBrandsCount || 0,
       storageUsed: 'N/A',
+      pendingApprovals: pendingApprovalsCount || 0,
     });
   };
 
@@ -419,10 +424,19 @@ export default function AdminDashboard() {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-9 lg:w-auto lg:inline-grid">
             <TabsTrigger value="overview" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
+            </TabsTrigger>
+            <TabsTrigger value="approvals" className="gap-2 relative">
+              <UserCheck className="h-4 w-4" />
+              Approvals
+              {(stats?.pendingApprovals ?? 0) > 0 && (
+                <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {stats?.pendingApprovals}
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
@@ -618,6 +632,11 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Approvals Tab */}
+          <TabsContent value="approvals" className="space-y-6">
+            <UserApprovalManager />
           </TabsContent>
 
           {/* Users Tab */}

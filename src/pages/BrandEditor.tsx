@@ -63,7 +63,7 @@ const BrandEditor = () => {
   const { brandId } = useParams<{ brandId: string }>();
   const navigate = useNavigate();
   const { getBrand, updateBrand: updateBrandContext, toggleFavorite, isLoading } = useBrands();
-  const { user, isAdmin, signOut, isLoading: authLoading } = useAuth();
+  const { user, isAdmin, isApproved, signOut, isLoading: authLoading } = useAuth();
   const { userRole: orgRole } = useOrganization();
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
@@ -72,6 +72,13 @@ const BrandEditor = () => {
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
   const [publicBrand, setPublicBrand] = useState<BrandGuide | null>(null);
   const [publicBrandLoading, setPublicBrandLoading] = useState(false);
+
+  // Redirect unapproved users to pending approval page
+  useEffect(() => {
+    if (!authLoading && user && !isApproved) {
+      navigate('/pending-approval');
+    }
+  }, [user, isApproved, authLoading, navigate]);
 
   // Scroll to top when brand changes
   useEffect(() => {
