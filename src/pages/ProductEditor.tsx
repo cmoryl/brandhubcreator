@@ -47,12 +47,19 @@ const ProductEditor = () => {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
   const { getProduct, updateProduct, toggleFavorite, isLoading } = useBrands();
-  const { user, isAdmin, isLoading: authLoading } = useAuth();
+  const { user, isAdmin, isApproved, isLoading: authLoading } = useAuth();
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('full');
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
+
+  // Redirect unapproved users to pending approval page
+  React.useEffect(() => {
+    if (!authLoading && user && !isApproved) {
+      navigate('/pending-approval');
+    }
+  }, [user, isApproved, authLoading, navigate]);
 
   // Scroll to top when product changes
   React.useEffect(() => {

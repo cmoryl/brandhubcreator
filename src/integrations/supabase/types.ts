@@ -301,26 +301,35 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           created_at: string
           display_name: string | null
           email: string | null
           id: string
+          is_approved: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
           id?: string
+          is_approved?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
           id?: string
+          is_approved?: boolean
           updated_at?: string
           user_id?: string
         }
