@@ -86,6 +86,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "brands_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "public_organization_info"
+            referencedColumns: ["id"]
+          },
         ]
       }
       demo_guides: {
@@ -172,6 +179,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "public_organization_info"
             referencedColumns: ["id"]
           },
         ]
@@ -291,6 +305,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "products_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "public_organization_info"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "products_parent_brand_id_fkey"
             columns: ["parent_brand_id"]
             isOneToOne: false
@@ -358,7 +379,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_organization_info: {
+        Row: {
+          accent_color: string | null
+          favicon_url: string | null
+          id: string | null
+          logo_url: string | null
+          name: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          slug: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          favicon_url?: string | null
+          id?: string | null
+          logo_url?: string | null
+          name?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          favicon_url?: string | null
+          id?: string | null
+          logo_url?: string | null
+          name?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cleanup_expired_invites: { Args: never; Returns: number }
