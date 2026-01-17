@@ -253,11 +253,10 @@ export const useBrandStorage = () => {
   const hasFetchedRef = useRef(false);
   const lastUserIdRef = useRef<string | null>(null);
   const lastOrgIdRef = useRef<string | null>(null);
-  
-  // Prevent infinite refetch loops when the backend is slow/unreachable.
-  // If a fetch fails (e.g., timeout), we mark it as "fetched" so the effect
-  // doesn't immediately trigger another request on the next render.
+
+  // If a fetch fails (e.g., timeout), we keep current data and allow a retry after a short cooldown.
   const lastFetchFailedAtRef = useRef<number | null>(null);
+  const FETCH_RETRY_COOLDOWN_MS = 4000;
 
   // Fetch brands and products - depends on user auth state for RLS
   const fetchData = useCallback(
@@ -270,18 +269,26 @@ export const useBrandStorage = () => {
         hasFetchedRef.current = true;
         lastUserIdRef.current = null;
         lastOrgIdRef.current = null;
+        lastFetchFailedAtRef.current = null;
         setBrands([]);
         setProducts([]);
         setIsLoading(false);
         return;
       }
 
-      // Skip if already fetched for same user/org (unless forced)
+      const now = Date.now();
+      const inFailureCooldown =
+        !force &&
+        lastFetchFailedAtRef.current != null &&
+        now - lastFetchFailedAtRef.current < FETCH_RETRY_COOLDOWN_MS;
+
+      // Skip if already fetched for same user/org (unless forced) and we're not retrying after a failure.
       if (
         !force &&
         hasFetchedRef.current &&
         lastUserIdRef.current === currentUserId &&
-        lastOrgIdRef.current === currentOrgId
+        lastOrgIdRef.current === currentOrgId &&
+        !inFailureCooldown
       ) {
         return;
       }
@@ -303,14 +310,14 @@ export const useBrandStorage = () => {
               .from('brands')
               .select('*')
               .order('updated_at', { ascending: false })
-              .limit(100),
+              .limit(250),
             supabase
               .from('products')
               .select('*')
               .order('updated_at', { ascending: false })
-              .limit(100),
+              .limit(250),
           ]),
-          25000
+          60000
         );
 
         if (brandsRes.error) throw brandsRes.error;
@@ -323,19 +330,18 @@ export const useBrandStorage = () => {
         hasFetchedRef.current = true;
         lastUserIdRef.current = currentUserId;
         lastOrgIdRef.current = currentOrgId;
+        lastFetchFailedAtRef.current = null;
       } catch (error) {
         console.error('Error fetching data:', error);
 
-        // IMPORTANT: If fetch fails (timeout / network), avoid an immediate refetch loop.
-        // We'll keep the UI responsive and allow users to retry via navigation or refresh.
-        hasFetchedRef.current = true;
-        lastUserIdRef.current = currentUserId;
-        lastOrgIdRef.current = currentOrgId;
+        // IMPORTANT: Do NOT clear existing data on transient failures.
+        // Just record failure time so we can retry after a short cooldown.
         lastFetchFailedAtRef.current = Date.now();
 
-        // Set empty arrays on error so UI isn't stuck loading
-        setBrands([]);
-        setProducts([]);
+        toast.error('Could not load your brands/products. Retrying…');
+
+        // Allow a retry soon; don’t lock into an empty state.
+        hasFetchedRef.current = false;
       } finally {
         setIsLoading(false);
       }
@@ -354,6 +360,7 @@ export const useBrandStorage = () => {
         hasFetchedRef.current = false;
         lastUserIdRef.current = null;
         lastOrgIdRef.current = null;
+        lastFetchFailedAtRef.current = null;
         setBrands([]);
         setProducts([]);
         setIsLoading(false);
@@ -364,11 +371,17 @@ export const useBrandStorage = () => {
     // Wait for org loading to complete before fetching (prevents double-fetch)
     if (orgLoading) return;
 
-    // Force refetch if user or org changed, or if we haven't fetched yet
+    const now = Date.now();
+    const shouldRetryAfterFailure =
+      lastFetchFailedAtRef.current != null &&
+      now - lastFetchFailedAtRef.current >= FETCH_RETRY_COOLDOWN_MS;
+
+    // Force refetch if user or org changed, or if we haven't fetched yet, or if a previous fetch failed.
     const shouldFetch =
       !hasFetchedRef.current ||
       lastUserIdRef.current !== currentUserId ||
-      lastOrgIdRef.current !== currentOrgId;
+      lastOrgIdRef.current !== currentOrgId ||
+      shouldRetryAfterFailure;
 
     if (shouldFetch) {
       fetchData(false);
