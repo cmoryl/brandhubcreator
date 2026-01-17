@@ -1,76 +1,37 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import { WifiOff, AlertTriangle, RefreshCw, LogIn } from "lucide-react";
+import { useBrands } from "@/contexts/BrandContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-
-// Lazy-import context hooks so we don't crash if providers aren't ready yet.
-let useBrandsHook: typeof import("@/contexts/BrandContext").useBrands | null = null;
-let useAuthHook: typeof import("@/contexts/AuthContext").useAuth | null = null;
-
-try {
-  // These may throw if used outside provider, we'll handle that gracefully.
-  useBrandsHook = require("@/contexts/BrandContext").useBrands;
-  useAuthHook = require("@/contexts/AuthContext").useAuth;
-} catch {
-  // Fallback – hooks not available yet.
-}
 
 /**
  * Global, lightweight banner that appears when the backend can't be reached.
- * This prevents "missing features" + "pending approval" false-positives during outages.
+ * IMPORTANT: On /auth we avoid touching BrandContext to prevent brand-sync calls
+ * from interfering with login flows during outages.
  */
 export function ConnectionBanner() {
-  const [ready, setReady] = useState(false);
+  const { pathname } = useLocation();
+  const isAuthRoute = pathname.startsWith("/auth");
 
-  // Wait a tick for providers to mount
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setReady(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
+  const { user, accessStatus, accessError, refreshAccess, isLoading } = useAuth();
 
-  if (!ready) return null;
-
-  return <ConnectionBannerInner />;
-}
-
-function ConnectionBannerInner() {
-  // Safe access to contexts – if provider not mounted, return null.
-  let syncStatus: "idle" | "syncing" | "offline" | "error" = "idle";
-  let isOnline = true;
-  let lastSyncError: string | null = null;
-  let refetch: (() => Promise<void>) | null = null;
-
-  let user: unknown = null;
-  let accessStatus: "idle" | "loading" | "ready" | "error" = "idle";
-  let accessError: string | null = null;
-  let refreshAccess: (() => void) | null = null;
-  let isLoading = false;
-
-  try {
-    if (useBrandsHook) {
-      const brands = useBrandsHook();
-      syncStatus = brands.syncStatus;
-      isOnline = brands.isOnline;
-      lastSyncError = brands.lastSyncError;
-      refetch = brands.refetch;
-    }
-  } catch {
-    // Context not available – skip brand info.
-  }
-
-  try {
-    if (useAuthHook) {
-      const auth = useAuthHook();
-      user = auth.user;
-      accessStatus = auth.accessStatus;
-      accessError = auth.accessError;
-      refreshAccess = auth.refreshAccess;
-      isLoading = auth.isLoading;
-    }
-  } catch {
-    // Context not available – skip auth info.
-  }
+  // Only read brand sync state when not on auth route.
+  const brands = isAuthRoute
+    ? null
+    : (() => {
+        try {
+          return useBrands();
+        } catch {
+          return null;
+        }
+      })();
 
   const state = useMemo(() => {
+    const syncStatus = brands?.syncStatus;
+    const isOnline = brands?.isOnline ?? true;
+    const lastSyncError = brands?.lastSyncError ?? null;
+
     // Network offline takes priority.
     if (!isOnline || syncStatus === "offline") {
       return {
@@ -90,7 +51,7 @@ function ConnectionBannerInner() {
     }
 
     // Data sync failures (brands/products/org/etc) generally present as "features missing".
-    if (syncStatus === "error") {
+    if (!isAuthRoute && syncStatus === "error") {
       return {
         kind: "data" as const,
         title: "Can't reach the backend",
@@ -99,7 +60,7 @@ function ConnectionBannerInner() {
     }
 
     return null;
-  }, [isOnline, syncStatus, lastSyncError, user, accessStatus, accessError]);
+  }, [brands?.syncStatus, brands?.isOnline, brands?.lastSyncError, user, accessStatus, accessError, isAuthRoute]);
 
   if (!state) return null;
 
@@ -118,7 +79,7 @@ function ConnectionBannerInner() {
         </div>
 
         <div className="flex shrink-0 flex-wrap items-center gap-2">
-          {user && state.kind === "auth" && refreshAccess && (
+          {user && state.kind === "auth" && (
             <Button
               type="button"
               size="sm"
@@ -132,13 +93,15 @@ function ConnectionBannerInner() {
             </Button>
           )}
 
-          {(state.kind === "data" || state.kind === "offline") && refetch && (
+          {!isAuthRoute && (state.kind === "data" || state.kind === "offline") && brands?.refetch && (
             <Button
               type="button"
               size="sm"
               variant="outline"
               className="gap-2"
-              onClick={() => refetch()}
+              onClick={() => {
+                void brands.refetch();
+              }}
             >
               <RefreshCw className="h-4 w-4" />
               Retry data
@@ -158,3 +121,4 @@ function ConnectionBannerInner() {
     </div>
   );
 }
+

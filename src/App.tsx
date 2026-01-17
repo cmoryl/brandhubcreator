@@ -42,6 +42,7 @@ const queryClient = new QueryClient({
 // Layout component that wraps all routes with providers that need router context
 const RootLayout = () => (
   <ErrorBoundary>
+    <ConnectionBanner />
     <Outlet />
   </ErrorBoundary>
 );
@@ -167,7 +168,6 @@ const App = () => (
           <OrganizationProvider>
             <BrandProvider>
               <GlobalErrorLogger />
-              <ConnectionBanner />
               <Toaster />
               <Sonner />
               <RouterProvider router={router} />
