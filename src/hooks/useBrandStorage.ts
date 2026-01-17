@@ -522,6 +522,14 @@ export const useBrandStorage = () => {
   const pendingBrandUpdates = useRef<Map<string, Partial<BrandGuide>>>(new Map());
   const pendingProductUpdates = useRef<Map<string, Partial<ProductGuide>>>(new Map());
 
+  // Keep user/org refs for flush callbacks (avoid stale closures)
+  const userRef = useRef(user);
+  const orgRef = useRef(organization);
+  useEffect(() => {
+    userRef.current = user;
+    orgRef.current = organization;
+  }, [user, organization]);
+
   const syncBrandToDb = useCallback(async (id: string, merged: BrandGuide) => {
     if (!user) return;
 
@@ -557,6 +565,90 @@ export const useBrandStorage = () => {
 
     pendingProductUpdates.current.delete(id);
   }, [user, organization?.id]);
+
+  // Flush all pending updates immediately (for unmount/beforeunload)
+  const flushPendingUpdates = useCallback(() => {
+    const currentUser = userRef.current;
+    if (!currentUser) return;
+
+    // Clear all pending timeouts and sync immediately
+    brandSyncTimeouts.current.forEach((timeout, id) => {
+      clearTimeout(timeout);
+      const brand = brandsRef.current.find(b => b.id === id);
+      const pending = pendingBrandUpdates.current.get(id);
+      if (brand && pending) {
+        const merged = { ...brand, ...pending };
+        const dbData = brandGuideToDb(merged, currentUser.id, orgRef.current?.id);
+        // Use sendBeacon for reliability during unload, fallback to fetch
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/brands?id=eq.${id}`;
+        const headers = {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'Prefer': 'return=minimal',
+        };
+        if (navigator.sendBeacon) {
+          const blob = new Blob([JSON.stringify(dbData)], { type: 'application/json' });
+          // sendBeacon doesn't support PATCH, so fall back to fetch with keepalive
+          fetch(url, {
+            method: 'PATCH',
+            headers,
+            body: JSON.stringify(dbData),
+            keepalive: true,
+          }).catch(() => {}); // Best effort
+        } else {
+          fetch(url, {
+            method: 'PATCH',
+            headers,
+            body: JSON.stringify(dbData),
+            keepalive: true,
+          }).catch(() => {});
+        }
+        pendingBrandUpdates.current.delete(id);
+      }
+    });
+    brandSyncTimeouts.current.clear();
+
+    productSyncTimeouts.current.forEach((timeout, id) => {
+      clearTimeout(timeout);
+      const product = productsRef.current.find(p => p.id === id);
+      const pending = pendingProductUpdates.current.get(id);
+      if (product && pending) {
+        const merged = { ...product, ...pending };
+        const dbData = productGuideToDb(merged, currentUser.id, orgRef.current?.id);
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/products?id=eq.${id}`;
+        const headers = {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'Prefer': 'return=minimal',
+        };
+        fetch(url, {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify(dbData),
+          keepalive: true,
+        }).catch(() => {});
+        pendingProductUpdates.current.delete(id);
+      }
+    });
+    productSyncTimeouts.current.clear();
+  }, []);
+
+  // Flush pending updates on unmount and beforeunload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      flushPendingUpdates();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Flush on unmount as well
+      flushPendingUpdates();
+    };
+  }, [flushPendingUpdates]);
 
   const updateBrand = useCallback((id: string, updates: Partial<BrandGuide>) => {
     if (!user) {
