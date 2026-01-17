@@ -569,6 +569,27 @@ const BrandsIndex = () => {
           <TabsContent value="brands">
             {/* Brand Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Loading Skeletons */}
+              {isLoading && sortedBrands.length === 0 && (
+                <>
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <Card key={`brand-skeleton-${i}`} className="overflow-hidden border-0 bg-card shadow-lg animate-pulse">
+                      <CardContent className="p-0">
+                        <div className="h-44 bg-muted" />
+                        <div className="p-5">
+                          <div className="h-6 w-3/4 bg-muted rounded mb-2" />
+                          <div className="h-4 w-1/2 bg-muted rounded mb-4" />
+                          <div className="flex gap-3">
+                            <div className="h-6 w-12 bg-muted rounded" />
+                            <div className="h-6 w-12 bg-muted rounded" />
+                            <div className="h-6 w-12 bg-muted rounded" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </>
+              )}
               {sortedBrands.map((brand, index) => (
                 <Card 
                   key={brand.id}
@@ -736,6 +757,27 @@ const BrandsIndex = () => {
           <TabsContent value="products">
             {/* Product Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Loading Skeletons */}
+              {isLoading && sortedProducts.length === 0 && (
+                <>
+                  {[1, 2, 3].map((i) => (
+                    <Card key={`product-skeleton-${i}`} className="overflow-hidden border-0 bg-card shadow-lg animate-pulse">
+                      <CardContent className="p-0">
+                        <div className="h-44 bg-muted" />
+                        <div className="p-5">
+                          <div className="h-6 w-3/4 bg-muted rounded mb-2" />
+                          <div className="h-4 w-1/2 bg-muted rounded mb-4" />
+                          <div className="flex gap-3">
+                            <div className="h-6 w-12 bg-muted rounded" />
+                            <div className="h-6 w-12 bg-muted rounded" />
+                            <div className="h-6 w-12 bg-muted rounded" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </>
+              )}
               {sortedProducts.map((product, index) => (
                 <Card 
                   key={product.id}
