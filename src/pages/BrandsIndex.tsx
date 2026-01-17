@@ -72,7 +72,8 @@ const BrandsIndex = () => {
 
   const handleSignOut = useCallback(async () => {
     await signOut();
-  }, [signOut]);
+    navigate('/');
+  }, [signOut, navigate]);
 
   // Allow editing if user is logged in AND either is a global admin OR is an org member with appropriate role
   const canEdit = user && (isAdmin || (organization && ['owner', 'admin', 'member'].includes(userRole || '')));

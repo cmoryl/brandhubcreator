@@ -21,7 +21,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+
+  // Split loading into: (1) session hydration, (2) access checks.
+  const [sessionLoading, setSessionLoading] = useState(true);
+  const [accessLoading, setAccessLoading] = useState(false);
+  const isLoading = sessionLoading || accessLoading;
 
   const checkAdminRole = async (userId: string) => {
     try {
@@ -62,65 +66,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Avoid duplicate admin-role checks (getSession + INITIAL_SESSION)
-  const lastAdminCheckUserIdRef = useRef<string | null>(null);
-
+  // 1) Hydrate session (must be synchronous inside auth callbacks)
   useEffect(() => {
     let cancelled = false;
 
-    const handleSession = async (nextSession: Session | null) => {
-      if (cancelled) return;
-
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
-
-      const nextUserId = nextSession?.user?.id ?? null;
-      if (!nextUserId) {
-        lastAdminCheckUserIdRef.current = null;
-        setIsAdmin(false);
-        setIsApproved(false);
-        setIsLoading(false);
-        return;
-      }
-
-      // Dedupe repeated checks for the same user during boot
-      if (lastAdminCheckUserIdRef.current === nextUserId) {
-        setIsLoading(false);
-        return;
-      }
-      lastAdminCheckUserIdRef.current = nextUserId;
-
-      // Wait for admin/approval checks to complete before setting isLoading to false
-      try {
-        const [adminVal, approvedVal] = await Promise.all([
-          checkAdminRole(nextUserId),
-          checkApprovalStatus(nextUserId),
-        ]);
-        if (!cancelled) {
-          setIsAdmin(adminVal);
-          // Admins are always considered approved
-          setIsApproved(adminVal || approvedVal);
-        }
-      } catch (err) {
-        console.error('Error checking user roles:', err);
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    // 1) Get current session once
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      handleSession(session);
-    });
-
-    // 2) Subscribe for future changes (skip INITIAL_SESSION to avoid double-run)
+    // Set up auth state listener FIRST
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (event === 'INITIAL_SESSION') return;
-      handleSession(nextSession);
+      if (cancelled) return;
+
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+    });
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      if (cancelled) return;
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
+      setSessionLoading(false);
     });
 
     return () => {
@@ -128,6 +94,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       subscription.unsubscribe();
     };
   }, []);
+
+  // 2) Fetch access flags AFTER user is known (defer Supabase calls)
+  const lastAccessCheckUserIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const userId = user?.id ?? null;
+
+    if (!userId) {
+      lastAccessCheckUserIdRef.current = null;
+      setIsAdmin(false);
+      setIsApproved(false);
+      setAccessLoading(false);
+      return;
+    }
+
+    // Avoid redundant checks for same user
+    if (lastAccessCheckUserIdRef.current === userId) return;
+    lastAccessCheckUserIdRef.current = userId;
+
+    setAccessLoading(true);
+    setTimeout(() => {
+      Promise.all([checkAdminRole(userId), checkApprovalStatus(userId)])
+        .then(([adminVal, approvedVal]) => {
+          if (cancelled) return;
+          setIsAdmin(adminVal);
+          // Admins are always considered approved
+          setIsApproved(adminVal || approvedVal);
+        })
+        .catch((err) => {
+          console.error('Error checking user access:', err);
+        })
+        .finally(() => {
+          if (!cancelled) setAccessLoading(false);
+        });
+    }, 0);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -160,15 +166,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
+      // State will also be cleared by the auth listener, but we clear eagerly for UI.
       setUser(null);
       setSession(null);
       setIsAdmin(false);
       setIsApproved(false);
-      lastAdminCheckUserIdRef.current = null;
-      // Force navigation to landing page after sign out
-      if (typeof window !== 'undefined') {
-        window.location.href = '/';
-      }
+      lastAccessCheckUserIdRef.current = null;
     } catch (error) {
       console.error('Error signing out:', error);
     }
