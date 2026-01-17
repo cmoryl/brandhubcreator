@@ -27,7 +27,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [accessLoading, setAccessLoading] = useState(false);
   const isLoading = sessionLoading || accessLoading;
 
-  const checkAdminRole = async (userId: string) => {
+  type CheckResult = { ok: true; value: boolean } | { ok: false; error: unknown };
+
+  const checkAdminRole = async (userId: string): Promise<CheckResult> => {
     try {
       const { data, error } = await supabase
         .from('user_roles')
@@ -36,18 +38,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq('role', 'admin')
         .maybeSingle();
 
-      if (error) {
-        console.error('Error checking admin role:', error);
-        return false;
-      }
-      return !!data;
+      if (error) return { ok: false, error };
+      return { ok: true, value: !!data };
     } catch (err) {
-      console.error('Error checking admin role:', err);
-      return false;
+      return { ok: false, error: err };
     }
   };
 
-  const checkApprovalStatus = async (userId: string) => {
+  const checkApprovalStatus = async (userId: string): Promise<CheckResult> => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -55,14 +53,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error checking approval status:', error);
-        return false;
-      }
-      return data?.is_approved ?? false;
+      if (error) return { ok: false, error };
+      return { ok: true, value: data?.is_approved ?? false };
     } catch (err) {
-      console.error('Error checking approval status:', err);
-      return false;
+      return { ok: false, error: err };
     }
   };
 
@@ -109,29 +103,78 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Avoid redundant checks for same user
-    if (lastAccessCheckUserIdRef.current === userId) return;
-    lastAccessCheckUserIdRef.current = userId;
+    let attempt = 0;
+    const MAX_ATTEMPTS = 5;
+    const RETRY_MS = 1500;
 
+    // Mark "auth still settling" immediately so pages don't route to /pending-approval
+    // during the tiny window between session hydration and access checks.
     setAccessLoading(true);
-    setTimeout(() => {
+
+    const runCheck = () => {
+      if (cancelled) return;
+
+      // If we already successfully checked this user, don't repeat.
+      if (lastAccessCheckUserIdRef.current === userId) return;
+
+      attempt += 1;
+
       Promise.all([checkAdminRole(userId), checkApprovalStatus(userId)])
-        .then(([adminVal, approvedVal]) => {
+        .then(([adminRes, approvedRes]) => {
           if (cancelled) return;
+
+          const allOk = adminRes.ok && approvedRes.ok;
+          if (!allOk) {
+            console.warn('[AUTH] Access check failed', {
+              attempt,
+              adminOk: adminRes.ok,
+              approvedOk: approvedRes.ok,
+            });
+
+            // Keep previous flags on transient failure.
+            if (attempt < MAX_ATTEMPTS) {
+              setTimeout(runCheck, RETRY_MS);
+            } else {
+              // Stop "loading" so the UI remains usable; user can refresh/focus to retry.
+              setAccessLoading(false);
+            }
+            return;
+          }
+
+          const adminVal = adminRes.value;
+          const approvedVal = approvedRes.value;
+
           setIsAdmin(adminVal);
-          // Admins are always considered approved
           setIsApproved(adminVal || approvedVal);
+          lastAccessCheckUserIdRef.current = userId;
+          setAccessLoading(false);
         })
         .catch((err) => {
           console.error('Error checking user access:', err);
-        })
-        .finally(() => {
-          if (!cancelled) setAccessLoading(false);
+          if (attempt < MAX_ATTEMPTS) {
+            setTimeout(runCheck, RETRY_MS);
+          } else {
+            setAccessLoading(false);
+          }
         });
-    }, 0);
+    };
+
+    // Initial check
+    setTimeout(runCheck, 0);
+
+    // Also retry when the tab regains focus (useful after waking from sleep / network hiccups)
+    const onFocus = () => {
+      // Only re-run if we haven't successfully checked yet.
+      if (lastAccessCheckUserIdRef.current !== userId) {
+        setAccessLoading(true);
+        runCheck();
+      }
+    };
+    window.addEventListener('focus', onFocus);
 
     return () => {
       cancelled = true;
+      window.removeEventListener('focus', onFocus);
     };
   }, [user?.id]);
 
