@@ -24,6 +24,8 @@ interface BrandContextType {
   getRecentlyUpdated: () => BaseGuide[];
   toggleFavorite: (id: string, type: 'brand' | 'product') => Promise<void>;
   getFavorites: () => BaseGuide[];
+  hasPendingChanges: () => boolean;
+  saveNow: () => Promise<void>;
   refetch: () => Promise<void>;
 }
 
