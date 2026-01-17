@@ -33,6 +33,7 @@ import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
+import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -250,6 +251,7 @@ const currentProduct = getProduct(productId || '');
                     Product
                   </Badge>
                   <span className="font-medium text-foreground">{currentProduct.hero.name}</span>
+                  <SyncStatusIndicator compact />
                 </div>
               </div>
               <div className="flex items-center gap-3">

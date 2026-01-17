@@ -39,6 +39,7 @@ import { ProductsSection } from '@/components/brand/ProductsSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
+import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { HeroBackground } from '@/components/HeroBackground';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Button } from '@/components/ui/button';
@@ -407,6 +408,7 @@ const BrandEditor = () => {
                       Editing
                     </Badge>
                   )}
+                  {canEdit && <SyncStatusIndicator compact />}
                 </div>
               </div>
               <div className="flex items-center gap-3">
