@@ -1,7 +1,7 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, Globe,
-  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase
+  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -57,7 +57,6 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   videos: { label: 'Video Resources', icon: Video, category: 'Resources' },
   assets: { label: 'Operational Vault', icon: FolderArchive, category: 'Resources' },
   misuse: { label: 'Anti-Patterns', icon: Ban, category: 'Resources' },
-  atmosphere: { label: 'Atmosphere Engine', icon: Sparkles, category: 'Resources' },
   casestudies: { label: 'Proof Shards', icon: FileText, category: 'Collateral' },
   brochures: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
   templates: { label: 'Master Scaffolds', icon: FileType, category: 'Collateral' },

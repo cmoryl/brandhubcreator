@@ -501,21 +501,6 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
           </div>
         );
 
-      case 'atmosphere':
-        return (
-          <div className={cn("py-8 border-b", t.border)} key="atmosphere">
-            <h2 className={cn("text-2xl font-bold mb-4", t.text)}>Atmosphere Settings</h2>
-            <div className={cn("p-4 rounded-lg", t.card)}>
-              <div className="grid grid-cols-2 gap-4">
-                <p className={t.text}><span className="font-medium">Style:</span> {guide.atmosphere.style}</p>
-                <p className={t.text}><span className="font-medium">Animated:</span> {guide.atmosphere.animate ? 'Yes' : 'No'}</p>
-                <p className={t.text}><span className="font-medium">Opacity:</span> {guide.atmosphere.opacity}</p>
-                <p className={t.text}><span className="font-medium">Blur:</span> {guide.atmosphere.blur}px</p>
-              </div>
-            </div>
-          </div>
-        );
-
       case 'casestudies':
         if (guide.caseStudies.length === 0) return null;
         return (

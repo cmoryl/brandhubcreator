@@ -24,7 +24,6 @@ import { QRSection } from '@/components/brand/QRSection';
 import { VideosSection } from '@/components/brand/VideosSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
-import { AtmosphereSection } from '@/components/brand/AtmosphereSection';
 import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
 import { BrochuresSection } from '@/components/brand/BrochuresSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
@@ -154,7 +153,6 @@ const Index = () => {
       case 'videos': return <VideosSection videos={currentBrand.videos} onVideosChange={(videos) => updateBrand({ videos })} />;
       case 'assets': return <AssetsSection assets={currentBrand.assets} onAssetsChange={(assets) => updateBrand({ assets })} />;
       case 'misuse': return <MisuseSection misuse={currentBrand.misuse} onMisuseChange={(misuse) => updateBrand({ misuse })} />;
-      case 'atmosphere': return <AtmosphereSection atmosphere={currentBrand.atmosphere} onAtmosphereChange={(atmosphere) => updateBrand({ atmosphere })} />;
       case 'casestudies': return <CaseStudiesSection caseStudies={currentBrand.caseStudies} onCaseStudiesChange={(caseStudies) => updateBrand({ caseStudies })} />;
       case 'brochures': return <BrochuresSection brochures={currentBrand.brochures} onBrochuresChange={(brochures) => updateBrand({ brochures })} />;
       case 'templates': return <TemplatesSection templates={currentBrand.templates} onTemplatesChange={(templates) => updateBrand({ templates })} />;

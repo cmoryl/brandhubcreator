@@ -22,7 +22,6 @@ import { QRSection } from './QRSection';
 import { VideosSection } from './VideosSection';
 import { AssetsSection } from './AssetsSection';
 import { MisuseSection } from './MisuseSection';
-import { AtmosphereSection } from './AtmosphereSection';
 import { CaseStudiesSection } from './CaseStudiesSection';
 import { BrochuresSection } from './BrochuresSection';
 import { TemplatesSection } from './TemplatesSection';
@@ -173,7 +172,6 @@ export const FullBrandPage = ({
       case 'videos': return <VideosSection videos={brand.videos} onVideosChange={(videos) => onBrandUpdate({ videos })} />;
       case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={(assets) => onBrandUpdate({ assets })} />;
       case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={(misuse) => onBrandUpdate({ misuse })} />;
-      case 'atmosphere': return <AtmosphereSection atmosphere={brand.atmosphere} onAtmosphereChange={(atmosphere) => onBrandUpdate({ atmosphere })} />;
       case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies} onCaseStudiesChange={(caseStudies) => onBrandUpdate({ caseStudies })} />;
       case 'brochures': return <BrochuresSection brochures={brand.brochures} onBrochuresChange={(brochures) => onBrandUpdate({ brochures })} />;
       case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={(templates) => onBrandUpdate({ templates })} />;

@@ -1,7 +1,7 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, Globe,
-  FolderArchive, Ban, Sparkles, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase
+  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase
 } from 'lucide-react';
 import { SectionId } from '@/types/brand';
 import { cn } from '@/lib/utils';
@@ -36,7 +36,6 @@ const sections: { id: SectionId; label: string; icon: React.ElementType; categor
   { id: 'videos', label: 'Video Resources', icon: Video, category: 'Resources' },
   { id: 'assets', label: 'Operational Vault', icon: FolderArchive, category: 'Resources' },
   { id: 'misuse', label: 'Anti-Patterns', icon: Ban, category: 'Resources' },
-  { id: 'atmosphere', label: 'Atmosphere Engine', icon: Sparkles, category: 'Resources' },
   { id: 'casestudies', label: 'Proof Shards', icon: FileText, category: 'Collateral' },
   { id: 'brochures', label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
   { id: 'templates', label: 'Master Scaffolds', icon: FileType, category: 'Collateral' },

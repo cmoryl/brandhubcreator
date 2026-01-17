@@ -357,7 +357,7 @@ export interface BaseGuide {
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'tagline', 'identity', 'values', 'services', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
-  'imagery', 'social', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse', 'atmosphere',
+  'imagery', 'social', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
   'casestudies', 'brochures', 'templates', 'products'
 ];
 
@@ -396,7 +396,6 @@ export type SectionId =
   | 'videos'
   | 'assets'
   | 'misuse'
-  | 'atmosphere'
   | 'casestudies'
   | 'brochures'
   | 'templates'
