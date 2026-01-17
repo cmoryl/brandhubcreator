@@ -70,12 +70,9 @@ const BrandsIndex = () => {
     ? (settings.appLogoDark || settings.appLogoLight || settings.appLogo)
     : (settings.appLogoLight || settings.appLogoDark || settings.appLogo);
 
-  const handleSignOut = useCallback(async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleSignOut = useCallback(async () => {
     await signOut();
-    navigate('/');
-  }, [signOut, navigate]);
+  }, [signOut]);
 
   // Allow editing if user is logged in AND either is a global admin OR is an org member with appropriate role
   const canEdit = user && (isAdmin || (organization && ['owner', 'admin', 'member'].includes(userRole || '')));
