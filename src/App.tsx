@@ -10,6 +10,7 @@ import { AppSettingsProvider } from "@/contexts/AppSettingsContext";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { GlobalErrorLogger } from "@/components/GlobalErrorLogger";
+import { ConnectionBanner } from "@/components/ConnectionBanner";
 import { PageSkeleton, BrandEditorSkeleton, AuthPageSkeleton } from "@/components/PageSkeleton";
 
 // Lazy load pages for faster initial load
@@ -166,6 +167,7 @@ const App = () => (
           <OrganizationProvider>
             <BrandProvider>
               <GlobalErrorLogger />
+              <ConnectionBanner />
               <Toaster />
               <Sonner />
               <RouterProvider router={router} />
