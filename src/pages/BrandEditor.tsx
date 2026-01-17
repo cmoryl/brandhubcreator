@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star } from 'lucide-react';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, BrandGuide } from '@/types/brand';
+import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { supabase } from '@/integrations/supabase/client';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -318,6 +319,7 @@ const BrandEditor = () => {
 
   return (
     <TooltipProvider>
+      <UnsavedChangesBlocker />
       <div className="min-h-screen bg-background flex relative">
         {/* Brand-specific Background */}
         {pageSettings.backgroundType !== 'inherit' && pageSettings.backgroundType !== 'solid' && (

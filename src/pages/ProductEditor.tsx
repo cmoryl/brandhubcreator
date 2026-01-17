@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Package, Star } from 'lucide-react';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings } from '@/types/brand';
+import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
@@ -188,6 +189,7 @@ const currentProduct = getProduct(productId || '');
 
   return (
     <TooltipProvider>
+      <UnsavedChangesBlocker />
       <div className="min-h-screen bg-background flex">
         {/* Desktop Sidebar */}
         <div className="hidden lg:block sticky top-0 h-screen">

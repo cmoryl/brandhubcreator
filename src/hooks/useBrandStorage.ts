@@ -802,6 +802,45 @@ export const useBrandStorage = () => {
     return all.filter(item => item.isFavorite);
   };
 
+  // Check if there are pending unsaved changes
+  const hasPendingChanges = useCallback(() => {
+    return pendingBrandUpdates.current.size > 0 || 
+           pendingProductUpdates.current.size > 0 ||
+           brandSyncTimeouts.current.size > 0 ||
+           productSyncTimeouts.current.size > 0;
+  }, []);
+
+  // Force save all pending changes immediately (returns promise)
+  const saveNow = useCallback(async () => {
+    // Clear all timeouts and sync immediately using Supabase client
+    const brandPromises: Promise<void>[] = [];
+    const productPromises: Promise<void>[] = [];
+
+    brandSyncTimeouts.current.forEach((timeout, id) => {
+      clearTimeout(timeout);
+      const brand = brandsRef.current.find(b => b.id === id);
+      const pending = pendingBrandUpdates.current.get(id);
+      if (brand && pending && user) {
+        const merged = { ...brand, ...pending } as BrandGuide;
+        brandPromises.push(syncBrandToDb(id, merged));
+      }
+    });
+    brandSyncTimeouts.current.clear();
+
+    productSyncTimeouts.current.forEach((timeout, id) => {
+      clearTimeout(timeout);
+      const product = productsRef.current.find(p => p.id === id);
+      const pending = pendingProductUpdates.current.get(id);
+      if (product && pending && user) {
+        const merged = { ...product, ...pending } as ProductGuide;
+        productPromises.push(syncProductToDb(id, merged));
+      }
+    });
+    productSyncTimeouts.current.clear();
+
+    await Promise.all([...brandPromises, ...productPromises]);
+  }, [user, syncBrandToDb, syncProductToDb]);
+
   return {
     brands,
     products,
@@ -823,6 +862,8 @@ export const useBrandStorage = () => {
     getRecentlyUpdated,
     toggleFavorite,
     getFavorites,
+    hasPendingChanges,
+    saveNow,
     refetch: () => fetchData(true),
   };
 };
