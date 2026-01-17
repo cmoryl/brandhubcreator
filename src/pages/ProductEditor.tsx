@@ -54,12 +54,12 @@ const ProductEditor = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('full');
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
 
-  // Redirect unapproved users to pending approval page
+  // Redirect unapproved users to pending approval page (admins are always allowed)
   React.useEffect(() => {
-    if (!authLoading && user && !isApproved) {
+    if (!authLoading && user && !isApproved && !isAdmin) {
       navigate('/pending-approval');
     }
-  }, [user, isApproved, authLoading, navigate]);
+  }, [user, isApproved, isAdmin, authLoading, navigate]);
 
   // Scroll to top when product changes
   React.useEffect(() => {
