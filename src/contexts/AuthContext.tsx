@@ -7,7 +7,16 @@ interface AuthContextType {
   session: Session | null;
   isAdmin: boolean;
   isApproved: boolean;
+  /**
+   * 'idle' = no user
+   * 'loading' = verifying approval/admin
+   * 'ready' = verified
+   * 'error' = couldn't verify (network/RLS/etc)
+   */
+  accessStatus: 'idle' | 'loading' | 'ready' | 'error';
+  accessError: string | null;
   isLoading: boolean;
+  refreshAccess: () => void;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
@@ -21,6 +30,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
+  const [accessStatus, setAccessStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const [accessError, setAccessError] = useState<string | null>(null);
+  const [accessCheckVersion, setAccessCheckVersion] = useState(0);
 
   // Split loading into: (1) session hydration, (2) access checks.
   const [sessionLoading, setSessionLoading] = useState(true);
@@ -99,6 +111,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       lastAccessCheckUserIdRef.current = null;
       setIsAdmin(false);
       setIsApproved(false);
+      setAccessError(null);
+      setAccessStatus('idle');
       setAccessLoading(false);
       return;
     }
@@ -109,6 +123,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Mark "auth still settling" immediately so pages don't route to /pending-approval
     // during the tiny window between session hydration and access checks.
+    setAccessError(null);
+    setAccessStatus('loading');
     setAccessLoading(true);
 
     const runCheck = () => {
@@ -136,6 +152,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               setTimeout(runCheck, RETRY_MS);
             } else {
               // Stop "loading" so the UI remains usable; user can refresh/focus to retry.
+              setAccessError('Unable to verify your access right now. Please check your connection and try again.');
+              setAccessStatus('error');
               setAccessLoading(false);
             }
             return;
@@ -146,6 +164,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
           setIsAdmin(adminVal);
           setIsApproved(adminVal || approvedVal);
+          setAccessError(null);
+          setAccessStatus('ready');
           lastAccessCheckUserIdRef.current = userId;
           setAccessLoading(false);
         })
@@ -154,6 +174,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (attempt < MAX_ATTEMPTS) {
             setTimeout(runCheck, RETRY_MS);
           } else {
+            setAccessError('Unable to verify your access right now. Please check your connection and try again.');
+            setAccessStatus('error');
             setAccessLoading(false);
           }
         });
@@ -176,7 +198,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       cancelled = true;
       window.removeEventListener('focus', onFocus);
     };
-  }, [user?.id]);
+  }, [user?.id, accessCheckVersion]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -220,8 +242,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const refreshAccess = () => {
+    // Force the access-check effect to run again for the current user.
+    lastAccessCheckUserIdRef.current = null;
+    setAccessCheckVersion((v) => v + 1);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, isApproved, isLoading, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        isAdmin,
+        isApproved,
+        accessStatus,
+        accessError,
+        isLoading,
+        refreshAccess,
+        signIn,
+        signUp,
+        signInWithGoogle,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

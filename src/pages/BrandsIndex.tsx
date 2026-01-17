@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
 import { useTheme } from 'next-themes';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -42,18 +43,25 @@ import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 const BrandsIndex = () => {
   const navigate = useNavigate();
   const { brands, products, addBrand, addProduct, deleteBrand, deleteProduct, updateBrand, updateProduct, getRecentlyUpdated, toggleFavorite, getFavorites, isLoading } = useBrands();
-  const { user, isAdmin, isApproved, signOut, isLoading: authLoading } = useAuth();
+  const { user, isAdmin, isApproved, accessStatus, accessError, signOut, isLoading: authLoading } = useAuth();
   const { settings } = useAppSettings();
   const { resolvedTheme } = useTheme();
   const { organization, userRole, isLoading: orgLoading } = useOrganization();
 
   // Redirect unapproved users to pending approval page
-  // Admins are always considered approved, so we check isAdmin as well
+  // Only do this once access has been VERIFIED (otherwise a backend/network hiccup looks like "pending approval").
   useEffect(() => {
-    if (!authLoading && user && !isApproved && !isAdmin) {
+    if (!authLoading && user && accessStatus === 'ready' && !isApproved && !isAdmin) {
       navigate('/pending-approval');
     }
-  }, [user, isApproved, isAdmin, authLoading, navigate]);
+  }, [user, isApproved, isAdmin, accessStatus, authLoading, navigate]);
+
+  // If we can't verify access, notify the user (do NOT redirect).
+  useEffect(() => {
+    if (!authLoading && user && accessStatus === 'error') {
+      toast.error(accessError || 'Unable to verify access. Please refresh.');
+    }
+  }, [authLoading, user, accessStatus, accessError]);
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'brand' | 'product' } | null>(null);

@@ -19,21 +19,31 @@ const authSchema = z.object({
 
 const AuthPage = () => {
   const navigate = useNavigate();
-  const { user, isAdmin, isApproved, isLoading: authLoading, signIn, signUp, signInWithGoogle } = useAuth();
+  const { user, isAdmin, isApproved, accessStatus, accessError, isLoading: authLoading, signIn, signUp, signInWithGoogle } = useAuth();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   // Redirect authenticated users
   useEffect(() => {
     if (!authLoading && user) {
-      // Admins are always allowed in
-      if (isAdmin || isApproved) {
+      // If we can't verify approval/admin right now, don't shove users into /pending-approval.
+      if (accessStatus === 'error') {
+        toast({
+          title: 'Signed in, but access could not be verified',
+          description: accessError || 'Please refresh and try again.',
+          variant: 'destructive',
+        });
         navigate('/');
-      } else {
-        navigate('/pending-approval');
+        return;
+      }
+
+      // Only route based on approval once the access checks are verified.
+      if (accessStatus === 'ready') {
+        if (isAdmin || isApproved) navigate('/');
+        else navigate('/pending-approval');
       }
     }
-  }, [user, isAdmin, isApproved, authLoading, navigate]);
+  }, [user, isAdmin, isApproved, accessStatus, accessError, authLoading, navigate, toast]);
   
   const [isLoading, setIsLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');

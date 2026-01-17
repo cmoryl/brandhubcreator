@@ -8,14 +8,14 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 
 const PendingApprovalPage = () => {
   const navigate = useNavigate();
-  const { user, isAdmin, isApproved, isLoading: authLoading, signOut } = useAuth();
+  const { user, isAdmin, isApproved, accessStatus, accessError, isLoading: authLoading, refreshAccess, signOut } = useAuth();
 
   // If the user becomes approved (or is an admin), immediately return them to the landing page.
   useEffect(() => {
-    if (!authLoading && user && (isAdmin || isApproved)) {
+    if (!authLoading && user && accessStatus === 'ready' && (isAdmin || isApproved)) {
       navigate('/');
     }
-  }, [authLoading, user, isAdmin, isApproved, navigate]);
+  }, [authLoading, user, accessStatus, isAdmin, isApproved, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -23,6 +23,7 @@ const PendingApprovalPage = () => {
   };
 
   const handleRefresh = () => {
+    refreshAccess();
     window.location.reload();
   };
 
@@ -54,9 +55,13 @@ const PendingApprovalPage = () => {
             <div className="mx-auto p-4 bg-amber-500/10 rounded-full w-fit mb-4">
               <Clock className="h-12 w-12 text-amber-500" />
             </div>
-            <CardTitle className="text-2xl">Account Pending Approval</CardTitle>
+            <CardTitle className="text-2xl">
+              {accessStatus === 'error' ? 'Unable to Verify Access' : 'Account Pending Approval'}
+            </CardTitle>
             <CardDescription className="text-base">
-              Your account is awaiting administrator approval
+              {accessStatus === 'error'
+                ? (accessError || 'We could not reach the backend to confirm your approval status.')
+                : 'Your account is awaiting administrator approval'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -69,18 +74,31 @@ const PendingApprovalPage = () => {
             </div>
 
             <div className="space-y-3 text-sm text-muted-foreground">
-              <p>
-                Thank you for signing up! An administrator will review your account shortly.
-              </p>
-              <p>
-                You'll receive full access once your account has been approved.
-              </p>
+              {accessStatus === 'error' ? (
+                <>
+                  <p>
+                    You are signed in, but we couldn't verify your approval/admin access due to a connection issue.
+                  </p>
+                  <p>
+                    Try again in a moment, or sign out and sign back in.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p>
+                    Thank you for signing up! An administrator will review your account shortly.
+                  </p>
+                  <p>
+                    You'll receive full access once your account has been approved.
+                  </p>
+                </>
+              )}
             </div>
 
             <div className="flex flex-col gap-3">
               <Button onClick={handleRefresh} variant="default" className="w-full gap-2">
                 <RefreshCw className="h-4 w-4" />
-                Check Approval Status
+                {accessStatus === 'error' ? 'Retry Connection' : 'Check Approval Status'}
               </Button>
               <Button onClick={handleSignOut} variant="outline" className="w-full gap-2">
                 <LogOut className="h-4 w-4" />
