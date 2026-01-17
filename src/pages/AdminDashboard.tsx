@@ -36,6 +36,7 @@ import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { BrandReportGenerator } from '@/components/admin/BrandReportGenerator';
 import { AIMarketAnalysis } from '@/components/admin/AIMarketAnalysis';
 import { DataInspector } from '@/components/admin/DataInspector';
+import { DemoGuidesManager } from '@/components/admin/DemoGuidesManager';
 
 interface DashboardStats {
   totalUsers: number;
@@ -761,6 +762,9 @@ export default function AdminDashboard() {
 
           {/* Content Tab */}
           <TabsContent value="content" className="space-y-6">
+            {/* Demo Guides Manager */}
+            <DemoGuidesManager />
+            
             <div className="grid md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>

@@ -88,6 +88,47 @@ export type Database = {
           },
         ]
       }
+      demo_guides: {
+        Row: {
+          brand_id: string | null
+          created_at: string
+          display_order: number
+          gradient_class: string | null
+          id: string
+          industry_label: string | null
+          is_featured: boolean
+          updated_at: string
+        }
+        Insert: {
+          brand_id?: string | null
+          created_at?: string
+          display_order?: number
+          gradient_class?: string | null
+          id?: string
+          industry_label?: string | null
+          is_featured?: boolean
+          updated_at?: string
+        }
+        Update: {
+          brand_id?: string | null
+          created_at?: string
+          display_order?: number
+          gradient_class?: string | null
+          id?: string
+          industry_label?: string | null
+          is_featured?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demo_guides_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: true
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           created_at: string
