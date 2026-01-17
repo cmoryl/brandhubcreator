@@ -433,6 +433,7 @@ export type Database = {
         Returns: boolean
       }
       is_slug_taken: { Args: { check_slug: string }; Returns: boolean }
+      org_has_public_brands: { Args: { _org_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
