@@ -236,6 +236,30 @@ export const useBrandStorage = () => {
   const [products, setProducts] = useState<ProductGuide[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Sync state (for UI indicator)
+  const [isOnline, setIsOnline] = useState<boolean>(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'offline' | 'error'>('idle');
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+  const [lastSyncError, setLastSyncError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const onOnline = () => {
+      setIsOnline(true);
+      setSyncStatus((s) => (s === 'offline' ? 'idle' : s));
+    };
+    const onOffline = () => {
+      setIsOnline(false);
+      setSyncStatus('offline');
+    };
+
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
+  }, []);
+
   // Refs to always have latest state in callbacks
   const brandsRef = useRef<BrandGuide[]>([]);
   const productsRef = useRef<ProductGuide[]>([]);
@@ -273,6 +297,20 @@ export const useBrandStorage = () => {
         setBrands([]);
         setProducts([]);
         setIsLoading(false);
+        setSyncStatus('idle');
+        setLastSyncError(null);
+        return;
+      }
+
+      // Offline: don't clear; just mark and avoid request spam
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        setIsOnline(false);
+        setSyncStatus('offline');
+        lastFetchFailedAtRef.current = Date.now();
+        hasFetchedRef.current = true;
+        lastUserIdRef.current = currentUserId;
+        lastOrgIdRef.current = currentOrgId;
+        setIsLoading(false);
         return;
       }
 
@@ -294,6 +332,9 @@ export const useBrandStorage = () => {
       }
 
       setIsLoading(true);
+      setSyncStatus('syncing');
+      setLastSyncError(null);
+
       try {
         const withTimeout = <T,>(p: Promise<T>, ms: number) =>
           Promise.race([
@@ -326,13 +367,21 @@ export const useBrandStorage = () => {
         setBrands((brandsRes.data as DbBrand[]).map(dbToBrandGuide));
         setProducts((productsRes.data as DbProduct[]).map(dbToProductGuide));
 
+        setIsOnline(true);
+        setSyncStatus('idle');
+        setLastSyncError(null);
+        setLastSyncedAt(new Date());
+
         // Mark as fetched
         hasFetchedRef.current = true;
         lastUserIdRef.current = currentUserId;
         lastOrgIdRef.current = currentOrgId;
         lastFetchFailedAtRef.current = null;
-      } catch (error) {
-        console.error('Error fetching data:', error);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+
+        setSyncStatus('error');
+        setLastSyncError(err instanceof Error ? err.message : 'Unknown error');
 
         // IMPORTANT: Do NOT clear existing data on transient failures.
         // Just record failure time so we can retry after a short cooldown.
@@ -657,6 +706,12 @@ export const useBrandStorage = () => {
     brands,
     products,
     isLoading,
+
+    syncStatus,
+    lastSyncedAt,
+    isOnline,
+    lastSyncError,
+
     addBrand,
     addProduct,
     updateBrand,

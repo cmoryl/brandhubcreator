@@ -6,6 +6,13 @@ interface BrandContextType {
   brands: BrandGuide[];
   products: ProductGuide[];
   isLoading: boolean;
+
+  /** Background sync state for backend persistence */
+  syncStatus: 'idle' | 'syncing' | 'offline' | 'error';
+  lastSyncedAt: Date | null;
+  isOnline: boolean;
+  lastSyncError: string | null;
+
   addBrand: (name: string) => Promise<BrandGuide | null>;
   addProduct: (name: string, parentBrandId?: string) => Promise<ProductGuide | null>;
   updateBrand: (id: string, updates: Partial<BrandGuide>) => void;
