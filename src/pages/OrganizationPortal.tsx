@@ -66,9 +66,9 @@ const OrganizationPortal = () => {
     }
 
     try {
-      // Fetch organization by slug
+      // Fetch organization by slug from secure public view (exposes only branding fields)
       const { data: orgData, error: orgError } = await supabase
-        .from('organizations')
+        .from('public_organization_info')
         .select('id, name, slug, logo_url, primary_color, secondary_color, accent_color')
         .eq('slug', slug)
         .single();
