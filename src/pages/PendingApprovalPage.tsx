@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, LogOut, Mail, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,11 +8,18 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 
 const PendingApprovalPage = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, isAdmin, isApproved, isLoading: authLoading, signOut } = useAuth();
+
+  // If the user becomes approved (or is an admin), immediately return them to the landing page.
+  useEffect(() => {
+    if (!authLoading && user && (isAdmin || isApproved)) {
+      navigate('/');
+    }
+  }, [authLoading, user, isAdmin, isApproved, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/auth');
+    navigate('/');
   };
 
   const handleRefresh = () => {

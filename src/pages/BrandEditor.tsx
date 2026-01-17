@@ -73,12 +73,12 @@ const BrandEditor = () => {
   const [publicBrand, setPublicBrand] = useState<BrandGuide | null>(null);
   const [publicBrandLoading, setPublicBrandLoading] = useState(false);
 
-  // Redirect unapproved users to pending approval page
+  // Redirect unapproved users to pending approval page (admins are always allowed)
   useEffect(() => {
-    if (!authLoading && user && !isApproved) {
+    if (!authLoading && user && !isApproved && !isAdmin) {
       navigate('/pending-approval');
     }
-  }, [user, isApproved, authLoading, navigate]);
+  }, [user, isApproved, isAdmin, authLoading, navigate]);
 
   // Scroll to top when brand changes
   useEffect(() => {

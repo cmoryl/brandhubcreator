@@ -19,20 +19,21 @@ const authSchema = z.object({
 
 const AuthPage = () => {
   const navigate = useNavigate();
-  const { user, isApproved, isLoading: authLoading, signIn, signUp, signInWithGoogle } = useAuth();
+  const { user, isAdmin, isApproved, isLoading: authLoading, signIn, signUp, signInWithGoogle } = useAuth();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   // Redirect authenticated users
   useEffect(() => {
     if (!authLoading && user) {
-      if (isApproved) {
+      // Admins are always allowed in
+      if (isAdmin || isApproved) {
         navigate('/');
       } else {
         navigate('/pending-approval');
       }
     }
-  }, [user, isApproved, authLoading, navigate]);
+  }, [user, isAdmin, isApproved, authLoading, navigate]);
   
   const [isLoading, setIsLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
