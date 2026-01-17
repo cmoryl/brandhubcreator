@@ -48,11 +48,12 @@ const BrandsIndex = () => {
   const { organization, userRole, isLoading: orgLoading } = useOrganization();
 
   // Redirect unapproved users to pending approval page
+  // Admins are always considered approved, so we check isAdmin as well
   useEffect(() => {
-    if (!authLoading && user && !isApproved) {
+    if (!authLoading && user && !isApproved && !isAdmin) {
       navigate('/pending-approval');
     }
-  }, [user, isApproved, authLoading, navigate]);
+  }, [user, isApproved, isAdmin, authLoading, navigate]);
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'brand' | 'product' } | null>(null);
