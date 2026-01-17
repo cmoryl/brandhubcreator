@@ -35,6 +35,7 @@ import { toast } from 'sonner';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { BrandReportGenerator } from '@/components/admin/BrandReportGenerator';
 import { AIMarketAnalysis } from '@/components/admin/AIMarketAnalysis';
+import { DataInspector } from '@/components/admin/DataInspector';
 
 interface DashboardStats {
   totalUsers: number;
@@ -417,7 +418,7 @@ export default function AdminDashboard() {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 lg:w-auto lg:inline-grid">
             <TabsTrigger value="overview" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
@@ -433,6 +434,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="content" className="gap-2">
               <Palette className="h-4 w-4" />
               Content
+            </TabsTrigger>
+            <TabsTrigger value="inspector" className="gap-2">
+              <Database className="h-4 w-4" />
+              Inspector
             </TabsTrigger>
             <TabsTrigger value="reports" className="gap-2">
               <FileText className="h-4 w-4" />
@@ -803,6 +808,11 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Data Inspector Tab */}
+          <TabsContent value="inspector" className="space-y-6">
+            <DataInspector />
           </TabsContent>
 
           {/* Reports Tab */}
