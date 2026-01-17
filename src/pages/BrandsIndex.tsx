@@ -37,6 +37,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BaseGuide } from '@/types/brand';
 import { Organization } from '@/types/organization';
 import { OrganizationSwitcher } from '@/components/OrganizationSwitcher';
+import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 
 const BrandsIndex = () => {
   const navigate = useNavigate();
@@ -242,6 +243,9 @@ const BrandsIndex = () => {
                 <HelpCircle className="h-4 w-4" />
                 <span className="hidden sm:inline">Help</span>
               </Button>
+
+              <SyncStatusIndicator />
+
               {user && organization && (
                 <Tooltip>
                   <TooltipTrigger asChild>
