@@ -160,6 +160,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(null);
       setIsAdmin(false);
       setIsApproved(false);
+      lastAdminCheckUserIdRef.current = null;
+      // Force navigation to landing page after sign out
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
     } catch (error) {
       console.error('Error signing out:', error);
     }
