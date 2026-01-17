@@ -41,15 +41,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   type CheckResult = { ok: true; value: boolean } | { ok: false; error: unknown };
 
+  const
+  withTimeout = <T,>(p: PromiseLike<T>, ms = 12000): Promise<T> => {
+    const asPromise = new Promise<T>((resolve, reject) => {
+      // Postgrest builders are PromiseLike (thenable) but not typed as Promise.
+      (p as unknown as { then: (onFulfilled: (v: T) => void, onRejected: (e: unknown) => void) => void }).then(resolve, reject);
+    });
+
+    return Promise.race([
+      asPromise,
+      new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Request timeout')), ms)),
+    ]);
+  };
+
   const checkAdminRole = async (userId: string): Promise<CheckResult> => {
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .maybeSingle();
+      const res = await withTimeout(
+        supabase.from('user_roles').select('role').eq('user_id', userId).eq('role', 'admin').maybeSingle(),
+        12000
+      );
 
+      const { data, error } = res as unknown as { data: unknown; error: unknown };
       if (error) return { ok: false, error };
       return { ok: true, value: !!data };
     } catch (err) {
@@ -59,12 +71,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkApprovalStatus = async (userId: string): Promise<CheckResult> => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('is_approved')
-        .eq('user_id', userId)
-        .maybeSingle();
+      const res = await withTimeout(
+        supabase.from('profiles').select('is_approved').eq('user_id', userId).maybeSingle(),
+        12000
+      );
 
+      const { data, error } = res as unknown as { data: { is_approved?: boolean } | null; error: unknown };
       if (error) return { ok: false, error };
       return { ok: true, value: data?.is_approved ?? false };
     } catch (err) {
@@ -88,12 +100,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      if (cancelled) return;
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
-      setSessionLoading(false);
-    });
+    (async () => {
+      try {
+        const { data: { session: initialSession } } = await withTimeout(supabase.auth.getSession(), 12000);
+        if (cancelled) return;
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
+      } catch (err) {
+        // If the backend/network is temporarily unreachable, don't deadlock the app in "loading".
+        if (cancelled) return;
+        console.warn('[AUTH] getSession failed', err);
+        setSession(null);
+        setUser(null);
+      } finally {
+        if (!cancelled) setSessionLoading(false);
+      }
+    })();
 
     return () => {
       cancelled = true;
