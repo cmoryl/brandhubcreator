@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { BrandProvider } from "@/contexts/BrandContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppSettingsProvider } from "@/contexts/AppSettingsContext";
@@ -39,7 +39,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// Layout component that wraps all routes with providers that need router context
+// Layout component that wraps all routes
 const RootLayout = () => (
   <ErrorBoundary>
     <ConnectionBanner />
@@ -47,134 +47,130 @@ const RootLayout = () => (
   </ErrorBoundary>
 );
 
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <RootLayout />,
-    children: [
-      {
-        index: true,
-        element: (
-          <Suspense fallback={<PageSkeleton />}>
-            <BrandsIndex />
-          </Suspense>
-        ),
-      },
-      {
-        path: "auth",
-        element: (
-          <Suspense fallback={<AuthPageSkeleton />}>
-            <AuthPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "pending-approval",
-        element: (
-          <Suspense fallback={<PageSkeleton />}>
-            <PendingApprovalPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "onboarding",
-        element: (
-          <Suspense fallback={<PageSkeleton />}>
-            <OnboardingPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "admin",
-        element: (
-          <Suspense fallback={<PageSkeleton />}>
-            <AdminDashboard />
-          </Suspense>
-        ),
-      },
-      {
-        path: "knowledge",
-        element: (
-          <Suspense fallback={<PageSkeleton />}>
-            <KnowledgeBase />
-          </Suspense>
-        ),
-      },
-      {
-        path: "org/:slug",
-        element: (
-          <Suspense fallback={<PageSkeleton />}>
-            <OrganizationPortal />
-          </Suspense>
-        ),
-      },
-      {
-        path: "org/settings",
-        element: (
-          <Suspense fallback={<PageSkeleton />}>
-            <OrganizationSettings />
-          </Suspense>
-        ),
-      },
-      {
-        path: "contact",
-        element: (
-          <Suspense fallback={<PageSkeleton />}>
-            <ContactUs />
-          </Suspense>
-        ),
-      },
-      {
-        path: "brand/:brandId",
-        element: (
-          <Suspense fallback={<BrandEditorSkeleton />}>
-            <BrandEditor />
-          </Suspense>
-        ),
-      },
-      {
-        path: "product/:productId",
-        element: (
-          <Suspense fallback={<BrandEditorSkeleton />}>
-            <ProductEditor />
-          </Suspense>
-        ),
-      },
-      {
-        path: "demo/:brandSlug",
-        element: (
-          <Suspense fallback={<PageSkeleton />}>
-            <DemoBrandPreview />
-          </Suspense>
-        ),
-      },
-      {
-        path: "*",
-        element: (
-          <Suspense fallback={<PageSkeleton />}>
-            <NotFound />
-          </Suspense>
-        ),
-      },
-    ],
-  },
-]);
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider>
-        <AppSettingsProvider>
-          <OrganizationProvider>
-            <BrandProvider>
-              <GlobalErrorLogger />
-              <Toaster />
-              <Sonner />
-              <RouterProvider router={router} />
-            </BrandProvider>
-          </OrganizationProvider>
-        </AppSettingsProvider>
-      </AuthProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppSettingsProvider>
+            <OrganizationProvider>
+              <BrandProvider>
+                <GlobalErrorLogger />
+                <Toaster />
+                <Sonner />
+                <Routes>
+                  <Route element={<RootLayout />}>
+                    <Route
+                      index
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <BrandsIndex />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="auth"
+                      element={
+                        <Suspense fallback={<AuthPageSkeleton />}>
+                          <AuthPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="pending-approval"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <PendingApprovalPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="onboarding"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <OnboardingPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="admin"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <AdminDashboard />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="knowledge"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <KnowledgeBase />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="org/:slug"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <OrganizationPortal />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="org/settings"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <OrganizationSettings />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="contact"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <ContactUs />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="brand/:brandId"
+                      element={
+                        <Suspense fallback={<BrandEditorSkeleton />}>
+                          <BrandEditor />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="product/:productId"
+                      element={
+                        <Suspense fallback={<BrandEditorSkeleton />}>
+                          <ProductEditor />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="demo/:brandSlug"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <DemoBrandPreview />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="*"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <NotFound />
+                        </Suspense>
+                      }
+                    />
+                  </Route>
+                </Routes>
+              </BrandProvider>
+            </OrganizationProvider>
+          </AppSettingsProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
