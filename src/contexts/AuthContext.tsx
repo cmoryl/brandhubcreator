@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let cancelled = false;
 
-    const handleSession = (nextSession: Session | null) => {
+    const handleSession = async (nextSession: Session | null) => {
       if (cancelled) return;
 
       setSession(nextSession);
@@ -90,20 +90,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       lastAdminCheckUserIdRef.current = nextUserId;
 
-      setTimeout(() => {
-        Promise.all([
+      // Wait for admin/approval checks to complete before setting isLoading to false
+      try {
+        const [adminVal, approvedVal] = await Promise.all([
           checkAdminRole(nextUserId),
           checkApprovalStatus(nextUserId),
-        ]).then(([adminVal, approvedVal]) => {
-          if (!cancelled) {
-            setIsAdmin(adminVal);
-            // Admins are always considered approved
-            setIsApproved(adminVal || approvedVal);
-          }
-        });
-      }, 0);
-
-      setIsLoading(false);
+        ]);
+        if (!cancelled) {
+          setIsAdmin(adminVal);
+          // Admins are always considered approved
+          setIsApproved(adminVal || approvedVal);
+        }
+      } catch (err) {
+        console.error('Error checking user roles:', err);
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
     };
 
     // 1) Get current session once
