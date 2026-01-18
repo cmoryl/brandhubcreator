@@ -90,6 +90,9 @@ const AuthPage = () => {
   }, [user, isAdmin, isApproved, accessStatus, accessError, authLoading, navigate, toast]);
   
   const [isLoading, setIsLoading] = useState(false);
+  const [isResetLoading, setIsResetLoading] = useState(false);
+  const [showResetForm, setShowResetForm] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
@@ -139,6 +142,51 @@ const AuthPage = () => {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!resetEmail || !z.string().email().safeParse(resetEmail).success) {
+      toast({
+        title: 'Invalid Email',
+        description: 'Please enter a valid email address.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsResetLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth?reset=true`,
+      });
+
+      if (error) {
+        console.error('[AUTH] Password reset failed:', error.message);
+        // Generic message to prevent email enumeration
+        toast({
+          title: 'Reset Email Sent',
+          description: 'If an account exists with this email, you will receive a password reset link.',
+        });
+      } else {
+        toast({
+          title: 'Reset Email Sent',
+          description: 'Check your inbox for a password reset link.',
+        });
+      }
+      setShowResetForm(false);
+      setResetEmail('');
+    } catch (err) {
+      console.error('[AUTH] Password reset error:', err);
+      toast({
+        title: 'Error',
+        description: 'Unable to send reset email. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsResetLoading(false);
     }
   };
 
@@ -252,6 +300,45 @@ const AuthPage = () => {
             )}
           </CardHeader>
           <CardContent>
+            {/* Password Reset Form */}
+            {showResetForm ? (
+              <form onSubmit={handlePasswordReset} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      className="pl-10"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+                <Button type="submit" className="w-full" disabled={isResetLoading}>
+                  {isResetLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Send Reset Link'
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => setShowResetForm(false)}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to login
+                </Button>
+              </form>
+            ) : (
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="login">Login</TabsTrigger>
@@ -276,7 +363,19 @@ const AuthPage = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="login-password">Password</Label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowResetForm(true);
+                          setResetEmail(loginEmail);
+                        }}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -437,6 +536,7 @@ const AuthPage = () => {
                 </form>
               </TabsContent>
             </Tabs>
+            )}
           </CardContent>
         </Card>
       </div>
