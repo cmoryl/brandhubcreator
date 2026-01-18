@@ -59,15 +59,21 @@ export function ConnectivityDiagnostics({
 
   const testNetwork = useCallback(async (): Promise<DiagnosticResult> => {
     const start = performance.now();
-    try {
-      // Test basic internet connectivity with a lightweight request
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
 
-      await fetch("https://www.google.com/generate_204", {
-        mode: "no-cors",
-        signal: controller.signal,
-      });
+    // Fast fail if the browser knows we're offline.
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      return { status: "fail", error: "Browser reports you are offline." };
+    }
+
+    try {
+      // Test reachability to the backend host specifically (most common cause is corporate/VPN blocking).
+      const backendOrigin = new URL(import.meta.env.VITE_SUPABASE_URL).origin;
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+
+      // no-cors yields an opaque response, but will still fail on DNS/TCP blocks.
+      await fetch(backendOrigin, { mode: "no-cors", signal: controller.signal });
 
       clearTimeout(timeout);
       const latency = Math.round(performance.now() - start);
@@ -76,7 +82,9 @@ export function ConnectivityDiagnostics({
       return {
         status: "fail",
         error:
-          error instanceof Error ? error.message : "Network request failed",
+          error instanceof Error
+            ? error.message
+            : "Unable to reach the backend host",
       };
     }
   }, []);
@@ -204,23 +212,22 @@ export function ConnectivityDiagnostics({
 
     if (results.network.status === "fail") {
       steps.push("Check your internet connection");
-      steps.push("Try switching between Wi-Fi and mobile data");
-      steps.push("Restart your router or modem");
+      steps.push("If you're on a corporate network, try a hotspot to confirm it's not a firewall restriction");
     }
 
     if (results.auth.status === "fail" || results.database.status === "fail") {
-      steps.push("Disable VPN, proxy, or ad-blockers temporarily");
-      steps.push("Try opening in an Incognito/Private browser window");
-      steps.push("Clear browser cache and cookies");
-      steps.push("Try a different browser (Chrome, Firefox, Safari)");
-      steps.push("Check if your network blocks certain domains");
+      steps.push("Disable VPN / proxy temporarily");
+      steps.push("Disable ad-blockers / privacy extensions for this site");
+      steps.push("Try an Incognito/Private window");
+      steps.push("Try a different network (hotspot) to rule out firewall blocks");
+      steps.push("Ask your IT/security team to allowlist the app's backend domain");
     }
 
     if (
-      results.auth.error?.includes("timeout") ||
-      results.database.error?.includes("timeout")
+      results.auth.error?.toLowerCase().includes("timeout") ||
+      results.database.error?.toLowerCase().includes("timeout")
     ) {
-      steps.push("The backend may be experiencing high load - try again in a few minutes");
+      steps.push("Backend may be under load — wait 1–2 minutes and retry");
     }
 
     return steps.length > 0 ? steps : null;

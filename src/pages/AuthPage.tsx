@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Mail, Lock, ArrowLeft, Loader2, Chrome, RotateCcw } from 'lucide-react';
+import { Sparkles, Mail, Lock, ArrowLeft, Loader2, Chrome, RotateCcw, Activity } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
+import { ConnectivityDiagnostics } from '@/components/ConnectivityDiagnostics';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 
@@ -222,20 +223,31 @@ const AuthPage = () => {
             
             {/* Session recovery option */}
             {showSessionRecovery && (
-              <div className="mt-4 p-3 bg-muted rounded-lg text-sm">
-                <p className="text-muted-foreground mb-2">
+              <div className="mt-4 p-3 bg-muted rounded-lg text-sm space-y-2">
+                <p className="text-muted-foreground">
                   Having trouble signing in? Your session may be stale.
                 </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearSession}
-                  className="gap-2"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Clear session &amp; retry
-                </Button>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearSession}
+                    className="gap-2"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Clear session
+                  </Button>
+
+                  <ConnectivityDiagnostics
+                    trigger={
+                      <Button type="button" variant="outline" size="sm" className="gap-2">
+                        <Activity className="h-4 w-4" />
+                        Run diagnostics
+                      </Button>
+                    }
+                  />
+                </div>
               </div>
             )}
           </CardHeader>
