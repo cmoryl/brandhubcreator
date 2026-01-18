@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { useLocation } from "react-router-dom";
-import { WifiOff, AlertTriangle, RefreshCw, LogIn } from "lucide-react";
+import { WifiOff, AlertTriangle, RefreshCw, LogIn, Activity } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { ConnectivityDiagnostics } from "@/components/ConnectivityDiagnostics";
 
 /**
  * Global, lightweight banner that appears when the backend can't be reached.
@@ -56,6 +57,16 @@ export function ConnectionBanner() {
         </div>
 
         <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {/* Diagnostics button */}
+          <ConnectivityDiagnostics
+            trigger={
+              <Button type="button" size="sm" variant="outline" className="gap-2">
+                <Activity className="h-4 w-4" />
+                Run Diagnostics
+              </Button>
+            }
+          />
+
           {user && state.kind === "auth" && (
             <Button
               type="button"
