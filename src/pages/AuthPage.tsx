@@ -116,14 +116,19 @@ const AuthPage = () => {
       const { error } = await signIn(loginEmail, loginPassword);
 
       if (error) {
-        // Use generic message to prevent user enumeration attacks
+        const message = error.message || 'Unable to sign in.';
+        const isNetwork = /failed to fetch|network error/i.test(message);
+
         toast({
           title: 'Sign In Failed',
-          description: 'Invalid credentials. Please check your email and password.',
+          description: isNetwork
+            ? 'Network error: the app cannot reach the backend right now. Try disabling VPN/proxy/ad-blockers, switching networks, or using an incognito window.'
+            : 'Invalid credentials. Please check your email and password.',
           variant: 'destructive',
         });
-        // Log actual error for debugging (server-side only in production)
-        console.error('[AUTH] Login failed:', error.message);
+
+        // Avoid logging sensitive details; keep minimal.
+        console.error('[AUTH] Login failed:', message);
       } else {
         toast({
           title: 'Welcome back!',

@@ -236,6 +236,44 @@ export const useBrandStorage = () => {
   const [products, setProducts] = useState<ProductGuide[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Lightweight local cache to keep the UI usable during temporary backend/network issues.
+  // NOTE: This is not a source of truth; it only helps with resilience.
+  const CACHE_KEY = 'brandhub_guides_cache_v1';
+  const saveCache = useCallback((nextBrands: BrandGuide[], nextProducts: ProductGuide[]) => {
+    try {
+      const payload = {
+        savedAt: Date.now(),
+        userId: user?.id ?? null,
+        brands: nextBrands,
+        products: nextProducts,
+      };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+    } catch {
+      // ignore
+    }
+  }, [user?.id]);
+
+  const loadCache = useCallback((): { brands: BrandGuide[]; products: ProductGuide[] } | null => {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as {
+        savedAt?: number;
+        userId?: string | null;
+        brands?: BrandGuide[];
+        products?: ProductGuide[];
+      };
+      // Only load cache for the current user.
+      if ((parsed.userId ?? null) !== (user?.id ?? null)) return null;
+      return {
+        brands: Array.isArray(parsed.brands) ? parsed.brands : [],
+        products: Array.isArray(parsed.products) ? parsed.products : [],
+      };
+    } catch {
+      return null;
+    }
+  }, [user?.id]);
+
   // Sync state (for UI indicator)
   const [isOnline, setIsOnline] = useState<boolean>(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'offline' | 'error'>('idle');
@@ -369,8 +407,12 @@ export const useBrandStorage = () => {
         if (brandsRes.error) throw brandsRes.error;
         if (productsRes.error) throw productsRes.error;
 
-        setBrands((brandsRes.data as DbBrand[]).map(dbToBrandGuide));
-        setProducts((productsRes.data as DbProduct[]).map(dbToProductGuide));
+        const nextBrands = (brandsRes.data as DbBrand[]).map(dbToBrandGuide);
+        const nextProducts = (productsRes.data as DbProduct[]).map(dbToProductGuide);
+
+        setBrands(nextBrands);
+        setProducts(nextProducts);
+        saveCache(nextBrands, nextProducts);
 
         setIsOnline(true);
         setSyncStatus('idle');
@@ -386,13 +428,23 @@ export const useBrandStorage = () => {
         console.error('Error fetching data:', err);
 
         setSyncStatus('error');
-        setLastSyncError(err instanceof Error ? err.message : 'Unknown error');
+        const msg = err instanceof Error ? err.message : 'Unknown error';
+        setLastSyncError(msg);
+
+        // If we have nothing in memory yet, try a last-known-good cache so the UI isn't blank.
+        if (brandsRef.current.length === 0 && productsRef.current.length === 0) {
+          const cached = loadCache();
+          if (cached && (cached.brands.length > 0 || cached.products.length > 0)) {
+            setBrands(cached.brands);
+            setProducts(cached.products);
+          }
+        }
 
         // IMPORTANT: Do NOT clear existing data on transient failures.
         // Just record failure time so we can retry after a short cooldown.
         lastFetchFailedAtRef.current = Date.now();
 
-        toast.error('Could not load your brands/products. Retrying…');
+        toast.error('Could not load your brands/products from the backend. Retrying…');
 
         // Allow a retry soon; don’t lock into an empty state.
         hasFetchedRef.current = false;
@@ -400,7 +452,7 @@ export const useBrandStorage = () => {
         setIsLoading(false);
       }
     },
-    [user?.id, organization?.id]
+    [user?.id, organization?.id, saveCache, loadCache]
   );
 
   // Refetch when user/org auth state changes to ensure RLS policies apply correctly
