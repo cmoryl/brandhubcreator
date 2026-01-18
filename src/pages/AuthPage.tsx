@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Mail, Lock, ArrowLeft, Loader2, Chrome } from 'lucide-react';
+import { Sparkles, Mail, Lock, ArrowLeft, Loader2, Chrome, RotateCcw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +23,48 @@ const AuthPage = () => {
   const { user, isAdmin, isApproved, accessStatus, accessError, isLoading: authLoading, signIn, signUp, signInWithGoogle } = useAuth();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showSessionRecovery, setShowSessionRecovery] = useState(false);
+
+  // Detect stale session issues - if auth is loading for too long, offer recovery
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (authLoading) {
+        setShowSessionRecovery(true);
+      }
+    }, 8000); // Show recovery option after 8 seconds of loading
+
+    return () => clearTimeout(timer);
+  }, [authLoading]);
+
+  // Clear session recovery option when auth finishes
+  useEffect(() => {
+    if (!authLoading) {
+      setShowSessionRecovery(false);
+    }
+  }, [authLoading]);
+
+  const handleClearSession = async () => {
+    try {
+      // Sign out to clear any stale tokens
+      await supabase.auth.signOut();
+      // Clear all Supabase-related localStorage keys
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('sb-') || key.includes('supabase')) {
+          localStorage.removeItem(key);
+        }
+      });
+      toast({
+        title: 'Session cleared',
+        description: 'Please try signing in again.',
+      });
+      // Reload to get a fresh state
+      window.location.reload();
+    } catch (error) {
+      console.error('Error clearing session:', error);
+      // Force reload anyway
+      window.location.reload();
+    }
+  };
 
   // Redirect authenticated users
   useEffect(() => {
@@ -171,6 +214,25 @@ const AuthPage = () => {
             <CardDescription>
               Sign in to manage and publish brand guides
             </CardDescription>
+            
+            {/* Session recovery option */}
+            {showSessionRecovery && (
+              <div className="mt-4 p-3 bg-muted rounded-lg text-sm">
+                <p className="text-muted-foreground mb-2">
+                  Having trouble signing in? Your session may be stale.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearSession}
+                  className="gap-2"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Clear session &amp; retry
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
