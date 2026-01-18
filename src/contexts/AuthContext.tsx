@@ -222,12 +222,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [user?.id, accessCheckVersion]);
 
+  const toSafeAuthError = (err: unknown): Error => {
+    if (err instanceof Error) {
+      // Browser/network layer errors often surface as TypeError("Failed to fetch").
+      if (err.name === 'TypeError' && /failed to fetch/i.test(err.message)) {
+        return new Error('Network error: Unable to reach the backend. Please check your connection, VPN/proxy, or browser extensions blocking requests.');
+      }
+      if (/request timeout/i.test(err.message)) {
+        return new Error('Request timed out while contacting the backend. Please try again.');
+      }
+      return err;
+    }
+    return new Error('Unexpected authentication error. Please try again.');
+  };
+
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      return { error: error as Error | null };
+      const { error } = await withTimeout(supabase.auth.signInWithPassword({ email, password }), 15000);
+      return { error: error ? (toSafeAuthError(error) as Error) : null };
     } catch (err) {
-      return { error: err as Error };
+      return { error: toSafeAuthError(err) as Error };
     }
   };
 
@@ -235,36 +249,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const redirectUrl = `${window.location.origin}/`;
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-        },
-      });
-      return { error: error as Error | null };
+      const { error } = await withTimeout(
+        supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: redirectUrl,
+          },
+        }),
+        20000
+      );
+
+      return { error: error ? (toSafeAuthError(error) as Error) : null };
     } catch (err) {
-      return { error: err as Error };
+      return { error: toSafeAuthError(err) as Error };
     }
   };
 
   const signInWithGoogle = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/`,
-        },
-      });
-      return { error: error as Error | null };
+      const { error } = await withTimeout(
+        supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/`,
+          },
+        }),
+        15000
+      );
+      return { error: error ? (toSafeAuthError(error) as Error) : null };
     } catch (err) {
-      return { error: err as Error };
+      return { error: toSafeAuthError(err) as Error };
     }
   };
 
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
+      await withTimeout(supabase.auth.signOut(), 15000);
       // State will also be cleared by the auth listener, but we clear eagerly for UI.
       setUser(null);
       setSession(null);
