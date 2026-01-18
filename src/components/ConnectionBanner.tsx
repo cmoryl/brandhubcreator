@@ -1,14 +1,12 @@
 import { useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { WifiOff, AlertTriangle, RefreshCw, LogIn } from "lucide-react";
-import { useBrands } from "@/contexts/BrandContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 
 /**
  * Global, lightweight banner that appears when the backend can't be reached.
- * IMPORTANT: On /auth we avoid touching BrandContext to prevent brand-sync calls
- * from interfering with login flows during outages.
+ * Shows connectivity and access issues to help users understand what's happening.
  */
 export function ConnectionBanner() {
   const { pathname } = useLocation();
@@ -16,24 +14,12 @@ export function ConnectionBanner() {
 
   const { user, accessStatus, accessError, refreshAccess, isLoading } = useAuth();
 
-  // Only read brand sync state when not on auth route.
-  const brands = isAuthRoute
-    ? null
-    : (() => {
-        try {
-          return useBrands();
-        } catch {
-          return null;
-        }
-      })();
-
   const state = useMemo(() => {
-    const syncStatus = brands?.syncStatus;
-    const isOnline = brands?.isOnline ?? true;
-    const lastSyncError = brands?.lastSyncError ?? null;
+    // Check browser online status
+    const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
 
     // Network offline takes priority.
-    if (!isOnline || syncStatus === "offline") {
+    if (!isOnline) {
       return {
         kind: "offline" as const,
         title: "You're offline",
@@ -50,17 +36,8 @@ export function ConnectionBanner() {
       };
     }
 
-    // Data sync failures (brands/products/org/etc) generally present as "features missing".
-    if (!isAuthRoute && syncStatus === "error") {
-      return {
-        kind: "data" as const,
-        title: "Can't reach the backend",
-        description: lastSyncError || "Some data couldn't be loaded. Please retry in a moment.",
-      };
-    }
-
     return null;
-  }, [brands?.syncStatus, brands?.isOnline, brands?.lastSyncError, user, accessStatus, accessError, isAuthRoute]);
+  }, [user, accessStatus, accessError]);
 
   if (!state) return null;
 
@@ -93,22 +70,20 @@ export function ConnectionBanner() {
             </Button>
           )}
 
-          {!isAuthRoute && (state.kind === "data" || state.kind === "offline") && brands?.refetch && (
+          {state.kind === "offline" && (
             <Button
               type="button"
               size="sm"
               variant="outline"
               className="gap-2"
-              onClick={() => {
-                void brands.refetch();
-              }}
+              onClick={() => window.location.reload()}
             >
               <RefreshCw className="h-4 w-4" />
-              Retry data
+              Reload
             </Button>
           )}
 
-          {!user && (
+          {!user && !isAuthRoute && (
             <Button type="button" size="sm" variant="outline" className="gap-2" asChild>
               <a href="/auth">
                 <LogIn className="h-4 w-4" />
@@ -121,4 +96,3 @@ export function ConnectionBanner() {
     </div>
   );
 }
-
