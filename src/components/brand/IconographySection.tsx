@@ -11,6 +11,13 @@ import { SectionHeader } from './SectionHeader';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 
+// SVG sanitization config - used at upload time for defense-in-depth
+const SVG_SANITIZE_CONFIG = {
+  USE_PROFILES: { svg: true, svgFilters: true },
+  FORBID_TAGS: ['script', 'foreignObject', 'use', 'animate', 'animateTransform', 'set'],
+  FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onmouseout', 'onfocus', 'onblur', 'onkeydown', 'onkeyup', 'onkeypress'],
+};
+
 const ICON_COLORS = [
   { name: 'Default', value: 'currentColor', bg: 'bg-foreground' },
   { name: 'Black', value: '#000000', bg: 'bg-black' },
@@ -97,12 +104,15 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
         const hasFillAttr = text.includes('fill=') && !text.includes('fill="none"') && !text.includes('fill="transparent"');
         const fillMode: 'stroke' | 'fill' = hasStrokeAttr && !hasFillAttr ? 'stroke' : 'fill';
 
-        const svgContent = svgElement.innerHTML;
+        const rawSvgContent = svgElement.innerHTML;
+        
+        // SECURITY: Sanitize SVG content at upload time (defense-in-depth)
+        const sanitizedSvgContent = DOMPurify.sanitize(rawSvgContent, SVG_SANITIZE_CONFIG);
 
         newIcons.push({
           id: crypto.randomUUID(),
           name: file.name.replace('.svg', ''),
-          svgPath: svgContent,
+          svgPath: sanitizedSvgContent,
           category: 'Other',
           viewBox,
           fillMode,
@@ -135,9 +145,13 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
   const getSVGString = (icon: BrandIconography) => {
     const viewBox = icon.viewBox || '0 0 24 24';
     const isFullContent = icon.svgPath.includes('<');
+    
+    // SECURITY: Sanitize content before export (belt-and-suspenders)
+    const sanitizedPath = DOMPurify.sanitize(icon.svgPath, SVG_SANITIZE_CONFIG);
+    
     const innerContent = isFullContent 
-      ? icon.svgPath 
-      : `<path d="${icon.svgPath}" ${icon.fillMode === 'fill' ? 'fill="currentColor"' : 'fill="none" stroke="currentColor" stroke-width="2"'}/>`;
+      ? sanitizedPath 
+      : `<path d="${sanitizedPath}" ${icon.fillMode === 'fill' ? 'fill="currentColor"' : 'fill="none" stroke="currentColor" stroke-width="2"'}/>`;
     
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${innerContent}</svg>`;
   };
