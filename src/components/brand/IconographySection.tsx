@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { SectionHeader } from './SectionHeader';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
+import JSZip from 'jszip';
 
 // SVG sanitization config - used at upload time for defense-in-depth
 const SVG_SANITIZE_CONFIG = {
@@ -178,26 +179,116 @@ export const IconographySection = ({ iconography, onIconographyChange, customSub
     toast.success(`Downloaded ${icon.name}.svg`);
   };
 
+  const svgToPng = async (svgString: string, size: number = 512): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'));
+        return;
+      }
+
+      const img = new Image();
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      img.onload = () => {
+        ctx.clearRect(0, 0, size, size);
+        ctx.drawImage(img, 0, 0, size, size);
+        URL.revokeObjectURL(url);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Could not create PNG blob'));
+          }
+        }, 'image/png');
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Could not load SVG'));
+      };
+
+      img.src = url;
+    });
+  };
+
+  const getFullSvgForExport = (icon: BrandIconography): string => {
+    const viewBox = icon.viewBox || '0 0 24 24';
+    const isFullContent = icon.svgPath.includes('<');
+    const sanitizedPath = DOMPurify.sanitize(icon.svgPath, SVG_SANITIZE_CONFIG);
+    
+    // Build a complete, standalone SVG with proper styling for export
+    let innerContent: string;
+    if (isFullContent) {
+      // Replace currentColor with black for standalone export
+      innerContent = sanitizedPath.replace(/currentColor/gi, '#000000');
+    } else {
+      innerContent = icon.fillMode === 'fill' 
+        ? `<path d="${sanitizedPath}" fill="#000000"/>`
+        : `<path d="${sanitizedPath}" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+    
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="512" height="512">
+${innerContent}
+</svg>`;
+  };
+
   const downloadAllIcons = async () => {
     if (iconography.length === 0) {
       toast.error('No icons to download');
       return;
     }
 
-    for (const icon of iconography) {
-      const svg = getSVGString(icon);
-      const blob = new Blob([svg], { type: 'image/svg+xml' });
-      const url = URL.createObjectURL(blob);
+    const loadingToast = toast.loading('Creating icon package...');
+    
+    try {
+      const zip = new JSZip();
+      const svgFolder = zip.folder('svg');
+      const pngFolder = zip.folder('png');
+      
+      if (!svgFolder || !pngFolder) {
+        throw new Error('Could not create zip folders');
+      }
+
+      for (const icon of iconography) {
+        const safeName = `${icon.category}-${icon.name}`.replace(/[^a-z0-9-_]/gi, '_');
+        const svgString = getFullSvgForExport(icon);
+        
+        // Add SVG to zip
+        svgFolder.file(`${safeName}.svg`, svgString);
+        
+        // Convert to PNG and add to zip
+        try {
+          const pngBlob = await svgToPng(svgString, 512);
+          pngFolder.file(`${safeName}.png`, pngBlob);
+        } catch (pngError) {
+          console.warn(`Could not convert ${icon.name} to PNG:`, pngError);
+        }
+      }
+
+      // Generate and download zip
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(zipBlob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${icon.category}-${icon.name}.svg`;
+      link.download = 'brand-icons.zip';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      toast.dismiss(loadingToast);
+      toast.success(`Downloaded ${iconography.length} icons (SVG + PNG)`);
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error('Failed to create icon package');
+      console.error('Download error:', error);
     }
-    toast.success(`Downloaded ${iconography.length} icon(s)`);
   };
 
   const renderIcon = (icon: BrandIconography, sizeClass: string) => {
