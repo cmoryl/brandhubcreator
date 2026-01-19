@@ -74,9 +74,20 @@ Deno.serve(async (req) => {
 
     const { brandId, entityType = 'brand' } = await req.json();
     
-    if (!brandId) {
+    // Validate UUID format to prevent enumeration attacks
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!brandId || typeof brandId !== 'string' || !uuidRegex.test(brandId)) {
       return new Response(
-        JSON.stringify({ error: 'Brand ID is required' }),
+        JSON.stringify({ error: 'Invalid request' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate entityType to only allow expected values
+    const validEntityTypes = ['brand', 'product'];
+    if (!validEntityTypes.includes(entityType)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid entity type' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
