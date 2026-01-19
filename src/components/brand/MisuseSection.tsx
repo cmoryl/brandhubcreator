@@ -3,15 +3,19 @@ import { Plus, X, Upload, AlertTriangle } from 'lucide-react';
 import { BrandMisuse } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SectionHeader } from './SectionHeader';
 
 interface MisuseSectionProps {
   misuse: BrandMisuse[];
   onMisuseChange: (misuse: BrandMisuse[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
-export const MisuseSection = ({ misuse, onMisuseChange }: MisuseSectionProps) => {
+export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtitleChange }: MisuseSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -46,12 +50,18 @@ export const MisuseSection = ({ misuse, onMisuseChange }: MisuseSectionProps) =>
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Anti-Patterns</h2>
-          <p className="text-muted-foreground mt-1">Registry of forbidden transformations and violations</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <SectionHeader
+            title="Anti-Patterns"
+            defaultSubtitle="Registry of forbidden transformations and violations"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            isEditing={isHeaderEditing}
+            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+          />
         </div>
-        <Button onClick={() => fileInputRef.current?.click()} size="sm" variant="destructive" className="gap-2">
+        <Button onClick={() => fileInputRef.current?.click()} size="sm" variant="destructive" className="gap-2 shrink-0">
           <Upload className="h-4 w-4" />
           Add Example
         </Button>

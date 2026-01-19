@@ -167,14 +167,14 @@ export const FullBrandPage = ({
       case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={(imagery) => onBrandUpdate({ imagery })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'social': return <SocialSection social={brand.social} onSocialChange={(social) => onBrandUpdate({ social })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={(websites) => onBrandUpdate({ websites })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
-      case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={(signatures) => onBrandUpdate({ signatures })} />;
-      case 'qr': return <QRSection qr={brand.qr} onQRChange={(qr) => onBrandUpdate({ qr })} />;
-      case 'videos': return <VideosSection videos={brand.videos} onVideosChange={(videos) => onBrandUpdate({ videos })} />;
-      case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={(assets) => onBrandUpdate({ assets })} />;
-      case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={(misuse) => onBrandUpdate({ misuse })} />;
-      case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies} onCaseStudiesChange={(caseStudies) => onBrandUpdate({ caseStudies })} />;
-      case 'brochures': return <BrochuresSection brochures={brand.brochures} onBrochuresChange={(brochures) => onBrandUpdate({ brochures })} />;
-      case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={(templates) => onBrandUpdate({ templates })} />;
+      case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={(signatures) => onBrandUpdate({ signatures })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'qr': return <QRSection qr={brand.qr} onQRChange={(qr) => onBrandUpdate({ qr })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'videos': return <VideosSection videos={brand.videos} onVideosChange={(videos) => onBrandUpdate({ videos })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={(assets) => onBrandUpdate({ assets })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={(misuse) => onBrandUpdate({ misuse })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies} onCaseStudiesChange={(caseStudies) => onBrandUpdate({ caseStudies })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'brochures': return <BrochuresSection brochures={brand.brochures} onBrochuresChange={(brochures) => onBrandUpdate({ brochures })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={(templates) => onBrandUpdate({ templates })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'products': return brand.type === 'brand' ? <ProductsSection brandId={brandId} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} /> : null;
       default: return null;
     }

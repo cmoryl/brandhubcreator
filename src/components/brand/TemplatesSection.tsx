@@ -3,10 +3,13 @@ import { Plus, X, Pencil, Upload, Download, FileType } from 'lucide-react';
 import { BrandTemplate } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SectionHeader } from './SectionHeader';
 
 interface TemplatesSectionProps {
   templates: BrandTemplate[];
   onTemplatesChange: (templates: BrandTemplate[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -25,10 +28,11 @@ const getFileTypeIcon = (type: string) => {
   return '📄';
 };
 
-export const TemplatesSection = ({ templates, onTemplatesChange }: TemplatesSectionProps) => {
+export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle, onSubtitleChange }: TemplatesSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileData, setFileData] = useState<Record<string, string>>({});
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -86,12 +90,18 @@ export const TemplatesSection = ({ templates, onTemplatesChange }: TemplatesSect
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Master Scaffolds</h2>
-          <p className="text-muted-foreground mt-1">Presentation decks, document templates, and design files</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <SectionHeader
+            title="Master Scaffolds"
+            defaultSubtitle="Presentation decks, document templates, and design files"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            isEditing={isHeaderEditing}
+            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+          />
         </div>
-        <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2">
+        <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0">
           <Upload className="h-4 w-4" />
           Upload Template
         </Button>
