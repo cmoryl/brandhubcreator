@@ -320,6 +320,8 @@ export interface BaseGuide {
   textStyles: BrandTextStyle[];
   // Iconography (Neural Vectors)
   iconography: BrandIconography[];
+  // Default icon color for iconography display
+  defaultIconColor?: string;
   // Social Icons (Platform Markers)
   socialIcons: BrandSocialIcon[];
   // Imagery (Visual Direction)
