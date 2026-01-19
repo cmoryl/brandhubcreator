@@ -9,6 +9,8 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { HeroBackground } from '@/components/HeroBackground';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSEO } from '@/hooks/useSEO';
+import { OrganizationPortalSettings, DEFAULT_PORTAL_SETTINGS } from '@/types/organization';
+
 interface OrganizationData {
   id: string;
   name: string;
@@ -17,6 +19,7 @@ interface OrganizationData {
   primary_color: string | null;
   secondary_color: string | null;
   accent_color: string | null;
+  portal_settings: OrganizationPortalSettings | null;
 }
 
 interface PublicBrand {
@@ -66,10 +69,10 @@ const OrganizationPortal = () => {
     }
 
     try {
-      // Fetch organization by slug from secure public view (exposes only branding fields)
+      // Fetch organization by slug - need full org data for portal_settings
       const { data: orgData, error: orgError } = await supabase
-        .from('public_organization_info')
-        .select('id, name, slug, logo_url, primary_color, secondary_color, accent_color')
+        .from('organizations')
+        .select('id, name, slug, logo_url, primary_color, secondary_color, accent_color, portal_settings')
         .eq('slug', slug)
         .single();
 
@@ -79,7 +82,10 @@ const OrganizationPortal = () => {
         return;
       }
 
-      setOrganization(orgData);
+      setOrganization({
+        ...orgData,
+        portal_settings: orgData.portal_settings as OrganizationPortalSettings | null,
+      });
 
       // Fetch public brands for this organization
       const { data: brandsData, error: brandsError } = await supabase
@@ -157,10 +163,13 @@ const OrganizationPortal = () => {
     );
   }
 
+  const portalSettings = organization.portal_settings || DEFAULT_PORTAL_SETTINGS;
+  const heroFullWidth = portalSettings.heroFullWidth ?? false;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
+      <div className={`relative overflow-hidden ${heroFullWidth ? '' : ''}`}>
         <HeroBackground />
 
         {/* Header */}
@@ -211,7 +220,7 @@ const OrganizationPortal = () => {
         </header>
 
         {/* Hero Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-24">
+        <div className={`relative z-10 ${heroFullWidth ? 'px-4 sm:px-6 lg:px-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} pt-12 pb-24`}>
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <div 

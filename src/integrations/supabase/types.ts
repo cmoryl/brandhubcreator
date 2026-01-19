@@ -206,6 +206,7 @@ export type Database = {
           name: string
           onboarding_completed: boolean | null
           onboarding_step: number | null
+          portal_settings: Json | null
           primary_color: string | null
           secondary_color: string | null
           slug: string
@@ -226,6 +227,7 @@ export type Database = {
           name: string
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
+          portal_settings?: Json | null
           primary_color?: string | null
           secondary_color?: string | null
           slug: string
@@ -246,6 +248,7 @@ export type Database = {
           name?: string
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
+          portal_settings?: Json | null
           primary_color?: string | null
           secondary_color?: string | null
           slug?: string

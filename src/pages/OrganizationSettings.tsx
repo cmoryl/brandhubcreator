@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Building2, Upload, Loader2, Palette, Globe, Eye, EyeOff, Trash2, Users, Mail, Crown, Shield, UserPlus } from 'lucide-react';
+import { ArrowLeft, Building2, Upload, Loader2, Palette, Globe, Eye, EyeOff, Trash2, Users, Mail, Crown, Shield, UserPlus, Layout } from 'lucide-react';
 import { z } from 'zod';
 
 const emailSchema = z.string().email('Please enter a valid email address');
@@ -65,6 +65,7 @@ const OrganizationSettings = () => {
   const [accentColor, setAccentColor] = useState(organization?.accentColor || '#f59e0b');
   const [hidePlatformBranding, setHidePlatformBranding] = useState(organization?.hidePlatformBranding || false);
   const [logoUrl, setLogoUrl] = useState(organization?.logoUrl || '');
+  const [portalHeroFullWidth, setPortalHeroFullWidth] = useState(organization?.portalSettings?.heroFullWidth || false);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -84,6 +85,7 @@ const OrganizationSettings = () => {
       setAccentColor(organization.accentColor || '#f59e0b');
       setHidePlatformBranding(organization.hidePlatformBranding || false);
       setLogoUrl(organization.logoUrl || '');
+      setPortalHeroFullWidth(organization.portalSettings?.heroFullWidth || false);
     }
   });
 
@@ -233,6 +235,9 @@ const OrganizationSettings = () => {
         accentColor,
         hidePlatformBranding,
         logoUrl: logoUrl || null,
+        portalSettings: {
+          heroFullWidth: portalHeroFullWidth,
+        },
       });
 
       toast({
@@ -543,6 +548,31 @@ const OrganizationSettings = () => {
                   style={{ backgroundColor: accentColor }}
                 />
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Portal Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Layout className="h-5 w-5" />
+              Portal Settings
+            </CardTitle>
+            <CardDescription>Customize your public portal appearance</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between p-4 rounded-lg border border-border">
+              <div className="space-y-0.5">
+                <Label>Full Width Hero</Label>
+                <p className="text-sm text-muted-foreground">
+                  Expand the portal hero section to full page width
+                </p>
+              </div>
+              <Switch
+                checked={portalHeroFullWidth}
+                onCheckedChange={setPortalHeroFullWidth}
+              />
             </div>
           </CardContent>
         </Card>
