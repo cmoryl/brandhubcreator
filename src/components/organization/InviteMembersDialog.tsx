@@ -165,7 +165,8 @@ export const InviteMembersDialog = ({ asButton = false }: InviteMembersDialogPro
 
   if (!organization || !canManageMembers) return null;
 
-  const dialogContent = (
+  // Only render dialog content when open to prevent ref warnings
+  const dialogContent = open ? (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
@@ -276,7 +277,7 @@ export const InviteMembersDialog = ({ asButton = false }: InviteMembersDialogPro
         </div>
       </DialogContent>
     </Dialog>
-  );
+  ) : null;
 
   return (
     <>
