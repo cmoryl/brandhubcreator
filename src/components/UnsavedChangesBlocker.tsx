@@ -1,28 +1,17 @@
-import { useEffect, useCallback, useState } from 'react';
-import { useBlocker } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useBrands } from '@/contexts/BrandContext';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Loader2 } from 'lucide-react';
 
+/**
+ * Component that prevents accidental navigation when there are unsaved changes.
+ * Uses the browser's native beforeunload event to show a confirmation dialog.
+ * 
+ * Note: useBlocker from react-router-dom requires a data router (createBrowserRouter),
+ * but this app uses BrowserRouter. So we rely on beforeunload for protection.
+ * The debounced sync (500ms) and flush on unmount in useBrandStorage ensure
+ * data is saved even without explicit user confirmation on internal navigation.
+ */
 export const UnsavedChangesBlocker = () => {
   const { hasPendingChanges, saveNow } = useBrands();
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Check for pending changes
-  const shouldBlock = useCallback(() => {
-    return hasPendingChanges();
-  }, [hasPendingChanges]);
-
-  const blocker = useBlocker(shouldBlock);
 
   // Handle browser beforeunload with a native prompt
   useEffect(() => {
@@ -39,64 +28,18 @@ export const UnsavedChangesBlocker = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasPendingChanges]);
 
-  const handleSaveAndLeave = async () => {
-    setIsSaving(true);
-    try {
-      await saveNow();
-      blocker.proceed?.();
-    } catch (error) {
-      console.error('Failed to save:', error);
-      // Still proceed even if save fails - the flush mechanism will retry
-      blocker.proceed?.();
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  // Flush pending changes on unmount (when navigating away within the app)
+  useEffect(() => {
+    return () => {
+      // If there are pending changes when this component unmounts,
+      // the useBrandStorage hook's own cleanup will handle flushing them.
+      // This is a safety net that triggers an immediate save attempt.
+      if (hasPendingChanges()) {
+        saveNow().catch(console.error);
+      }
+    };
+  }, [hasPendingChanges, saveNow]);
 
-  const handleLeaveWithoutSaving = () => {
-    blocker.proceed?.();
-  };
-
-  const handleStay = () => {
-    blocker.reset?.();
-  };
-
-  if (blocker.state !== 'blocked') {
-    return null;
-  }
-
-  return (
-    <AlertDialog open={true}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
-          <AlertDialogDescription>
-            You have unsaved changes that are still syncing. What would you like to do?
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-          <AlertDialogCancel onClick={handleStay} disabled={isSaving}>
-            Stay on Page
-          </AlertDialogCancel>
-          <button 
-            onClick={handleLeaveWithoutSaving} 
-            disabled={isSaving}
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground h-10 px-4 py-2"
-          >
-            Leave Without Saving
-          </button>
-          <AlertDialogAction onClick={handleSaveAndLeave} disabled={isSaving}>
-            {isSaving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              'Save & Leave'
-            )}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
+  // This component doesn't render anything - it just provides protection
+  return null;
 };
