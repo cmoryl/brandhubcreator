@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Mail, Lock, ArrowLeft, Loader2, Chrome, RotateCcw, Activity } from 'lucide-react';
+import { Sparkles, Mail, Lock, ArrowLeft, Loader2, Chrome, RotateCcw, Activity, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,7 @@ const AuthPage = () => {
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showSessionRecovery, setShowSessionRecovery] = useState(false);
-
+  const [authNetworkIssue, setAuthNetworkIssue] = useState<string | null>(null);
   // Detect stale session issues - if auth is loading for too long, offer recovery
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -121,12 +121,18 @@ const AuthPage = () => {
 
       if (error) {
         const message = error.message || 'Unable to sign in.';
-        const isNetwork = /failed to fetch|network error/i.test(message);
+        const isNetwork = /failed to fetch|network error|timeout|unreachable/i.test(message);
+
+        if (isNetwork) {
+          setAuthNetworkIssue(message);
+          // Show recovery tools immediately for connectivity issues.
+          setShowSessionRecovery(true);
+        }
 
         toast({
           title: 'Sign In Failed',
           description: isNetwork
-            ? 'Network error: the app cannot reach the backend right now. Try disabling VPN/proxy/ad-blockers, switching networks, or using an incognito window.'
+            ? 'Network error: the app cannot reach the backend right now. Try disabling VPN/proxy/ad-blockers, switching networks, or using an incognito window. Then run diagnostics below.'
             : 'Invalid credentials. Please check your email and password.',
           variant: 'destructive',
         });
@@ -134,6 +140,7 @@ const AuthPage = () => {
         // Avoid logging sensitive details; keep minimal.
         console.error('[AUTH] Login failed:', message);
       } else {
+        setAuthNetworkIssue(null);
         toast({
           title: 'Welcome back!',
           description: 'You have successfully logged in.',
@@ -268,6 +275,36 @@ const AuthPage = () => {
             <CardDescription>
               Sign in to manage and publish brand guides
             </CardDescription>
+
+            {/* Connectivity issue callout */}
+            {authNetworkIssue && (
+              <div className="mt-4 rounded-lg border border-border bg-muted/50 p-3 text-sm">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground">Backend not reachable</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Your browser can’t reach the authentication service (requests are failing to fetch). This is usually caused by a VPN/proxy,
+                      ad-blocker/privacy extension, corporate firewall, or a backend outage.
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <ConnectivityDiagnostics
+                        trigger={
+                          <Button type="button" variant="outline" size="sm" className="gap-2">
+                            <Activity className="h-4 w-4" />
+                            Run diagnostics
+                          </Button>
+                        }
+                      />
+                      <Button type="button" variant="outline" size="sm" className="gap-2" onClick={handleClearSession}>
+                        <RotateCcw className="h-4 w-4" />
+                        Clear session
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             
             {/* Session recovery option */}
             {showSessionRecovery && (
@@ -417,14 +454,24 @@ const AuthPage = () => {
                       setIsGoogleLoading(true);
                       const { error } = await signInWithGoogle();
                       if (error) {
+                        const message = error.message || 'Unable to sign in with Google.';
+                        const isNetwork = /failed to fetch|network error|timeout|unreachable/i.test(message);
+                        if (isNetwork) {
+                          setAuthNetworkIssue(message);
+                          setShowSessionRecovery(true);
+                        }
                         // Use generic message for security
-                        console.error('[AUTH] Google sign-in failed:', error.message);
+                        console.error('[AUTH] Google sign-in failed:', message);
                         toast({
                           title: 'Sign-In Failed',
-                          description: 'Unable to sign in with Google. Please try again.',
+                          description: isNetwork
+                            ? 'Network error: the app cannot reach the backend right now. Run diagnostics and try disabling VPN/proxy/ad-blockers.'
+                            : 'Unable to sign in with Google. Please try again.',
                           variant: 'destructive',
                         });
                         setIsGoogleLoading(false);
+                      } else {
+                        setAuthNetworkIssue(null);
                       }
                     }}
                     disabled={isGoogleLoading}
