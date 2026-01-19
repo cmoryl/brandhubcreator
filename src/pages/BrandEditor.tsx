@@ -1,5 +1,6 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTheme } from 'next-themes';
 import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star } from 'lucide-react';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, BrandGuide } from '@/types/brand';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
@@ -62,6 +63,8 @@ type ViewMode = 'sections' | 'full';
 const BrandEditor = () => {
   const { brandId } = useParams<{ brandId: string }>();
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
+  const previousThemeRef = useRef<string | undefined>(undefined);
   const { getBrand, updateBrand: updateBrandContext, toggleFavorite, isLoading } = useBrands();
   const { user, isAdmin, isApproved, signOut, isLoading: authLoading } = useAuth();
   const { userRole: orgRole } = useOrganization();
@@ -173,6 +176,28 @@ const BrandEditor = () => {
   const sectionOrder = brand?.sectionOrder || DEFAULT_SECTION_ORDER;
   const hiddenSections = brand?.hiddenSections || [];
   const pageSettings = brand?.pageSettings || DEFAULT_PAGE_SETTINGS;
+
+  // Apply brand-specific theme on mount and revert on unmount
+  useEffect(() => {
+    const brandDefaultTheme = pageSettings.defaultTheme;
+    
+    // Only apply if brand has a specific theme preference (not system)
+    if (brandDefaultTheme && brandDefaultTheme !== 'system') {
+      // Save current theme to restore later
+      if (!previousThemeRef.current) {
+        previousThemeRef.current = theme;
+      }
+      setTheme(brandDefaultTheme);
+    }
+    
+    // Cleanup: revert to previous theme when leaving the brand page
+    return () => {
+      if (previousThemeRef.current) {
+        setTheme(previousThemeRef.current);
+        previousThemeRef.current = undefined;
+      }
+    };
+  }, [pageSettings.defaultTheme, setTheme]);
 
   // SEO metadata for brand page
   useSEO({
@@ -523,6 +548,7 @@ const BrandEditor = () => {
                   sectionOrder={sectionOrder}
                   hiddenSections={hiddenSections}
                   isAdmin={isAdmin}
+                  heroFullWidth={pageSettings.heroFullWidth}
                 />
               )}
             </div>

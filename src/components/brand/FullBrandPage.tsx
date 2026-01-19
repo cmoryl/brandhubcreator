@@ -80,6 +80,7 @@ interface FullBrandPageProps {
   sectionOrder?: SectionId[];
   hiddenSections?: SectionId[];
   isAdmin?: boolean;
+  heroFullWidth?: boolean;
 }
 
 export const FullBrandPage = ({ 
@@ -90,7 +91,8 @@ export const FullBrandPage = ({
   onSectionVisible,
   sectionOrder = DEFAULT_SECTION_ORDER,
   hiddenSections = [],
-  isAdmin = false
+  isAdmin = false,
+  heroFullWidth = false
 }: FullBrandPageProps) => {
   const sectionRefs = useRef<Map<SectionId, HTMLDivElement>>(new Map());
 
@@ -150,7 +152,7 @@ export const FullBrandPage = ({
     const onSubtitleChange = handleSubtitleChange(sectionId);
 
     switch (sectionId) {
-      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={(hero) => onBrandUpdate({ hero })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={(hero) => onBrandUpdate({ hero })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} fullWidth={heroFullWidth} />;
       case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={(tagline) => onBrandUpdate({ tagline })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={(identity) => onBrandUpdate({ identity })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => onBrandUpdate({ values })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
