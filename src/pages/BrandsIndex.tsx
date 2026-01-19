@@ -543,7 +543,8 @@ const BrandsIndex = () => {
       )}
 
       {/* Demo Brands Showcase for non-logged-in users */}
-      {!user && (
+      {/* Demo Brands Showcase - shown based on settings */}
+      {settings.pageSections?.demoBrands !== false && (
         <Suspense fallback={<div className="py-20 flex justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>
           <DemoBrandsShowcase onLoginClick={() => navigate('/auth')} />
         </Suspense>

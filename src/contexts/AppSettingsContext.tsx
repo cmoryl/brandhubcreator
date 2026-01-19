@@ -31,6 +31,7 @@ export interface HeroBackground {
 }
 
 export interface PageSectionVisibility {
+  demoBrands: boolean;
   features: boolean;
   howItWorks: boolean;
   faqPreview: boolean;
@@ -70,6 +71,7 @@ const defaultHeroBackground: HeroBackground = {
 };
 
 const defaultPageSections: PageSectionVisibility = {
+  demoBrands: true,
   features: true,
   howItWorks: true,
   faqPreview: true,
