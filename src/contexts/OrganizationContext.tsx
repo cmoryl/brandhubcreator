@@ -284,38 +284,32 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
   const acceptInvite = async (inviteToken: string): Promise<boolean> => {
     if (!user) return false;
 
-    // Find the invite - check for valid, non-expired token
-    // SECURITY: Only select needed fields and check expiration
-    const { data: invite, error: fetchError } = await supabase
-      .from('organization_members')
-      .select('id, organization_id, role, invited_email')
-      .eq('invite_token', inviteToken)
-      .is('user_id', null)
-      .gt('invite_expires_at', new Date().toISOString())
-      .maybeSingle();
+    try {
+      // Use secure RPC function to validate and accept invite
+      // This prevents invite_token from being exposed to client queries
+      const { data, error } = await supabase
+        .rpc('validate_and_accept_invite', {
+          p_invite_token: inviteToken,
+          p_user_id: user.id
+        });
 
-    if (fetchError || !invite) {
-      console.error('Error finding invite or invite has expired:', fetchError);
+      if (error) {
+        console.error('Error accepting invite:', error);
+        return false;
+      }
+
+      // If no rows returned, the token was invalid or expired
+      if (!data || data.length === 0) {
+        console.error('Invalid or expired invite token');
+        return false;
+      }
+
+      await fetchOrganization();
+      return true;
+    } catch (error) {
+      console.error('Error in acceptInvite:', error);
       return false;
     }
-
-    // Accept the invite by setting user_id
-    const { error: updateError } = await supabase
-      .from('organization_members')
-      .update({
-        user_id: user.id,
-        invite_accepted_at: new Date().toISOString(),
-        invite_token: null, // Clear token after use
-      })
-      .eq('id', invite.id);
-
-    if (updateError) {
-      console.error('Error accepting invite:', updateError);
-      return false;
-    }
-
-    await fetchOrganization();
-    return true;
   };
 
   const checkPendingInvite = async (): Promise<OrganizationMember | null> => {
