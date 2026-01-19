@@ -43,7 +43,9 @@ const queryClient = new QueryClient({
 const RootLayout = () => (
   <ErrorBoundary>
     <ConnectionBanner />
-    <Outlet />
+    <main>
+      <Outlet />
+    </main>
   </ErrorBoundary>
 );
 
