@@ -12,7 +12,7 @@ interface SyncStatusIndicatorProps {
 }
 
 export const SyncStatusIndicator = ({ compact = false }: SyncStatusIndicatorProps) => {
-  const { syncStatus, lastSyncedAt, isOnline, lastSyncError, refetch, hasPendingChanges } = useBrands();
+  const { syncStatus, lastSyncedAt, isOnline, lastSyncError, refetch, hasPendingChanges, isLoading } = useBrands();
   
   // Track if we have pending changes (poll every 200ms for responsiveness)
   const [isPending, setIsPending] = useState(false);
@@ -36,6 +36,10 @@ export const SyncStatusIndicator = ({ compact = false }: SyncStatusIndicatorProp
     return () => clearInterval(interval);
   }, [hasPendingChanges, isPending]);
 
+  // Don't show "Saving..." during initial data load - that's just fetching, not saving
+  // Only show syncing status when there are actual pending changes being saved
+  const isActuallySaving = (isPending || syncStatus === 'syncing') && !isLoading;
+
   // Compact mode for editor headers
   if (compact) {
     if (!isOnline) {
@@ -47,7 +51,7 @@ export const SyncStatusIndicator = ({ compact = false }: SyncStatusIndicatorProp
       );
     }
     
-    if (isPending || syncStatus === 'syncing') {
+    if (isActuallySaving) {
       return (
         <Badge variant="outline" className="gap-1.5 text-xs bg-primary/5 border-primary/20 text-primary">
           <Loader2 className="h-3 w-3 animate-spin" />
@@ -88,20 +92,20 @@ export const SyncStatusIndicator = ({ compact = false }: SyncStatusIndicatorProp
   // Full mode (original behavior)
   const label = useMemo(() => {
     if (!isOnline || syncStatus === 'offline') return 'Offline';
-    if (isPending || syncStatus === 'syncing') return 'Saving…';
+    if (isActuallySaving) return 'Saving…';
     if (syncStatus === 'error') return 'Sync error';
     if (showSaved) return 'Saved';
     if (lastSyncedAt) return `Synced ${formatDistanceToNow(lastSyncedAt, { addSuffix: true })}`;
     return 'All changes saved';
-  }, [isOnline, syncStatus, lastSyncedAt, isPending, showSaved]);
+  }, [isOnline, syncStatus, lastSyncedAt, isActuallySaving, showSaved]);
 
   const Icon = useMemo(() => {
     if (!isOnline || syncStatus === 'offline') return WifiOff;
-    if (isPending || syncStatus === 'syncing') return Loader2;
+    if (isActuallySaving) return Loader2;
     if (syncStatus === 'error') return AlertTriangle;
     if (showSaved) return Check;
     return Cloud;
-  }, [isOnline, syncStatus, isPending, showSaved]);
+  }, [isOnline, syncStatus, isActuallySaving, showSaved]);
 
   const variant = useMemo(() => {
     if (!isOnline || syncStatus === 'offline') return 'secondary' as const;
@@ -111,10 +115,10 @@ export const SyncStatusIndicator = ({ compact = false }: SyncStatusIndicatorProp
   }, [isOnline, syncStatus, showSaved]);
 
   const iconClass = useMemo(() => {
-    if (isPending || syncStatus === 'syncing') return 'h-3.5 w-3.5 animate-spin';
+    if (isActuallySaving) return 'h-3.5 w-3.5 animate-spin';
     if (showSaved) return 'h-3.5 w-3.5 text-green-600 dark:text-green-400';
     return 'h-3.5 w-3.5';
-  }, [isPending, syncStatus, showSaved]);
+  }, [isActuallySaving, showSaved]);
 
   return (
     <div className="flex items-center gap-2">
