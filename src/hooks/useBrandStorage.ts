@@ -632,98 +632,177 @@ export const useBrandStorage = () => {
   }, []);
 
   const syncBrandToDb = useCallback(async (id: string, merged: BrandGuide) => {
-    if (!user) return;
-
-    // IMPORTANT: only include organization_id when we actually have one,
-    // otherwise we risk overwriting an existing org association with null.
-    const dbData = brandGuideToDb(merged, user.id, organization?.id);
-    const { error } = await supabase
-      .from('brands')
-      .update(dbData)
-      .eq('id', id);
-
-    if (error) {
-      console.error('Error updating brand:', error);
-      toast.error('Failed to save changes. Please try again.');
+    if (!user) {
+      console.warn('[SYNC] syncBrandToDb: No user, skipping');
+      return;
     }
 
-    pendingBrandUpdates.current.delete(id);
+    try {
+      console.log('[SYNC] syncBrandToDb: Starting sync for brand', id);
+      
+      // Validate merged data before sending
+      if (!merged || typeof merged !== 'object') {
+        console.error('[SYNC] syncBrandToDb: Invalid merged data', merged);
+        pendingBrandUpdates.current.delete(id);
+        return;
+      }
+
+      // IMPORTANT: only include organization_id when we actually have one,
+      // otherwise we risk overwriting an existing org association with null.
+      const dbData = brandGuideToDb(merged, user.id, organization?.id);
+      
+      console.log('[SYNC] syncBrandToDb: Sending update', { id, name: dbData.name });
+      
+      const { error } = await supabase
+        .from('brands')
+        .update(dbData)
+        .eq('id', id);
+
+      if (error) {
+        console.error('[SYNC] syncBrandToDb: Error updating brand:', error);
+        setSyncStatus('error');
+        setLastSyncError(error.message || 'Failed to save brand changes');
+        toast.error('Failed to save changes. Please try again.');
+      } else {
+        console.log('[SYNC] syncBrandToDb: Success for brand', id);
+        setSyncStatus('idle');
+        setLastSyncedAt(new Date());
+      }
+    } catch (err) {
+      console.error('[SYNC] syncBrandToDb: Caught exception:', err);
+      setSyncStatus('error');
+      setLastSyncError(err instanceof Error ? err.message : 'Unknown sync error');
+    } finally {
+      pendingBrandUpdates.current.delete(id);
+    }
   }, [user, organization?.id]);
 
   const syncProductToDb = useCallback(async (id: string, merged: ProductGuide) => {
-    if (!user) return;
-
-    const dbData = productGuideToDb(merged, user.id, organization?.id);
-    const { error } = await supabase
-      .from('products')
-      .update(dbData)
-      .eq('id', id);
-
-    if (error) {
-      console.error('Error updating product:', error);
-      toast.error('Failed to save changes. Please try again.');
+    if (!user) {
+      console.warn('[SYNC] syncProductToDb: No user, skipping');
+      return;
     }
 
-    pendingProductUpdates.current.delete(id);
+    try {
+      console.log('[SYNC] syncProductToDb: Starting sync for product', id);
+      
+      // Validate merged data before sending
+      if (!merged || typeof merged !== 'object') {
+        console.error('[SYNC] syncProductToDb: Invalid merged data', merged);
+        pendingProductUpdates.current.delete(id);
+        return;
+      }
+
+      const dbData = productGuideToDb(merged, user.id, organization?.id);
+      
+      console.log('[SYNC] syncProductToDb: Sending update', { id, name: dbData.name });
+      
+      const { error } = await supabase
+        .from('products')
+        .update(dbData)
+        .eq('id', id);
+
+      if (error) {
+        console.error('[SYNC] syncProductToDb: Error updating product:', error);
+        setSyncStatus('error');
+        setLastSyncError(error.message || 'Failed to save product changes');
+        toast.error('Failed to save changes. Please try again.');
+      } else {
+        console.log('[SYNC] syncProductToDb: Success for product', id);
+        setSyncStatus('idle');
+        setLastSyncedAt(new Date());
+      }
+    } catch (err) {
+      console.error('[SYNC] syncProductToDb: Caught exception:', err);
+      setSyncStatus('error');
+      setLastSyncError(err instanceof Error ? err.message : 'Unknown sync error');
+    } finally {
+      pendingProductUpdates.current.delete(id);
+    }
   }, [user, organization?.id]);
 
   // Flush all pending updates immediately (for unmount/beforeunload)
   const flushPendingUpdates = useCallback(() => {
-    const currentUser = userRef.current;
-    const accessToken = accessTokenRef.current;
-    if (!currentUser || !accessToken) return;
-
-    // Clear all pending timeouts and sync immediately
-    brandSyncTimeouts.current.forEach((timeout, id) => {
-      clearTimeout(timeout);
-      const brand = brandsRef.current.find(b => b.id === id);
-      const pending = pendingBrandUpdates.current.get(id);
-      if (brand && pending) {
-        const merged = { ...brand, ...pending };
-        const dbData = brandGuideToDb(merged, currentUser.id, orgRef.current?.id);
-        // Use fetch with keepalive for reliability during unload
-        const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/brands?id=eq.${id}`;
-        const headers = {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Authorization': `Bearer ${accessToken}`,
-          'Prefer': 'return=minimal',
-        };
-        fetch(url, {
-          method: 'PATCH',
-          headers,
-          body: JSON.stringify(dbData),
-          keepalive: true,
-        }).catch(() => {}); // Best effort
-        pendingBrandUpdates.current.delete(id);
+    try {
+      const currentUser = userRef.current;
+      const accessToken = accessTokenRef.current;
+      
+      if (!currentUser || !accessToken) {
+        console.log('[SYNC] flushPendingUpdates: No user or token, skipping');
+        return;
       }
-    });
-    brandSyncTimeouts.current.clear();
 
-    productSyncTimeouts.current.forEach((timeout, id) => {
-      clearTimeout(timeout);
-      const product = productsRef.current.find(p => p.id === id);
-      const pending = pendingProductUpdates.current.get(id);
-      if (product && pending) {
-        const merged = { ...product, ...pending };
-        const dbData = productGuideToDb(merged, currentUser.id, orgRef.current?.id);
-        const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/products?id=eq.${id}`;
-        const headers = {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Authorization': `Bearer ${accessToken}`,
-          'Prefer': 'return=minimal',
-        };
-        fetch(url, {
-          method: 'PATCH',
-          headers,
-          body: JSON.stringify(dbData),
-          keepalive: true,
-        }).catch(() => {});
-        pendingProductUpdates.current.delete(id);
-      }
-    });
-    productSyncTimeouts.current.clear();
+      console.log('[SYNC] flushPendingUpdates: Flushing', {
+        brands: brandSyncTimeouts.current.size,
+        products: productSyncTimeouts.current.size,
+      });
+
+      // Clear all pending timeouts and sync immediately
+      brandSyncTimeouts.current.forEach((timeout, id) => {
+        try {
+          clearTimeout(timeout);
+          const brand = brandsRef.current.find(b => b.id === id);
+          const pending = pendingBrandUpdates.current.get(id);
+          if (brand && pending) {
+            const merged = { ...brand, ...pending };
+            const dbData = brandGuideToDb(merged, currentUser.id, orgRef.current?.id);
+            // Use fetch with keepalive for reliability during unload
+            const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/brands?id=eq.${id}`;
+            const headers = {
+              'Content-Type': 'application/json',
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              'Authorization': `Bearer ${accessToken}`,
+              'Prefer': 'return=minimal',
+            };
+            fetch(url, {
+              method: 'PATCH',
+              headers,
+              body: JSON.stringify(dbData),
+              keepalive: true,
+            }).catch((err) => {
+              console.error('[SYNC] flushPendingUpdates: Brand fetch error', err);
+            });
+            pendingBrandUpdates.current.delete(id);
+          }
+        } catch (err) {
+          console.error('[SYNC] flushPendingUpdates: Error processing brand', id, err);
+        }
+      });
+      brandSyncTimeouts.current.clear();
+
+      productSyncTimeouts.current.forEach((timeout, id) => {
+        try {
+          clearTimeout(timeout);
+          const product = productsRef.current.find(p => p.id === id);
+          const pending = pendingProductUpdates.current.get(id);
+          if (product && pending) {
+            const merged = { ...product, ...pending };
+            const dbData = productGuideToDb(merged, currentUser.id, orgRef.current?.id);
+            const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/products?id=eq.${id}`;
+            const headers = {
+              'Content-Type': 'application/json',
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              'Authorization': `Bearer ${accessToken}`,
+              'Prefer': 'return=minimal',
+            };
+            fetch(url, {
+              method: 'PATCH',
+              headers,
+              body: JSON.stringify(dbData),
+              keepalive: true,
+            }).catch((err) => {
+              console.error('[SYNC] flushPendingUpdates: Product fetch error', err);
+            });
+            pendingProductUpdates.current.delete(id);
+          }
+        } catch (err) {
+          console.error('[SYNC] flushPendingUpdates: Error processing product', id, err);
+        }
+      });
+      productSyncTimeouts.current.clear();
+    } catch (err) {
+      console.error('[SYNC] flushPendingUpdates: Critical error', err);
+    }
   }, []);
 
   // Flush pending updates on unmount and beforeunload
@@ -742,91 +821,133 @@ export const useBrandStorage = () => {
   }, [flushPendingUpdates]);
 
   const updateBrand = useCallback((id: string, updates: Partial<BrandGuide>) => {
-    if (!user) {
-      toast.error('Please sign in to save changes');
-      return;
-    }
+    try {
+      if (!user) {
+        toast.error('Please sign in to save changes');
+        return;
+      }
 
-    // Get current brand state using ref to avoid stale closure issues
-    const currentBrand = brandsRef.current.find(b => b.id === id);
-    if (!currentBrand) {
-      console.warn('Brand not found in local state, attempting update anyway:', id);
-    }
+      if (!id || typeof id !== 'string') {
+        console.error('[SYNC] updateBrand: Invalid id', id);
+        return;
+      }
 
-    // Merge with any pending updates
-    const existingPending = pendingBrandUpdates.current.get(id) || {};
-    const allUpdates = { ...existingPending, ...updates };
-    pendingBrandUpdates.current.set(id, allUpdates);
+      if (!updates || typeof updates !== 'object') {
+        console.error('[SYNC] updateBrand: Invalid updates', updates);
+        return;
+      }
 
-    // Optimistic update - update UI immediately
-    setBrands(prev => prev.map(brand =>
-      brand.id === id ? { ...brand, ...updates, updatedAt: new Date() } : brand
-    ));
+      console.log('[SYNC] updateBrand: Scheduling update for', id);
 
-    // Clear existing timeout for this brand
-    const existingTimeout = brandSyncTimeouts.current.get(id);
-    if (existingTimeout) {
-      clearTimeout(existingTimeout);
-    }
+      // Get current brand state using ref to avoid stale closure issues
+      const currentBrand = brandsRef.current.find(b => b.id === id);
+      if (!currentBrand) {
+        console.warn('[SYNC] updateBrand: Brand not found in local state, attempting update anyway:', id);
+      }
 
-    // Set new debounced sync
-    const timeout = setTimeout(() => {
-      const latestBrand = brandsRef.current.find(b => b.id === id);
-      const finalUpdates = pendingBrandUpdates.current.get(id) || {};
+      // Merge with any pending updates
+      const existingPending = pendingBrandUpdates.current.get(id) || {};
+      const allUpdates = { ...existingPending, ...updates };
+      pendingBrandUpdates.current.set(id, allUpdates);
+
+      // Optimistic update - update UI immediately
+      setBrands(prev => prev.map(brand =>
+        brand.id === id ? { ...brand, ...updates, updatedAt: new Date() } : brand
+      ));
+
+      // Clear existing timeout for this brand
+      const existingTimeout = brandSyncTimeouts.current.get(id);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+      }
+
+      // Set new debounced sync
+      const timeout = setTimeout(() => {
+        try {
+          const latestBrand = brandsRef.current.find(b => b.id === id);
+          const finalUpdates = pendingBrandUpdates.current.get(id) || {};
+          
+          // Even if brand not in local state, sync using pending updates with a base object
+          const baseData = latestBrand || currentBrand || { id } as BrandGuide;
+          const merged = { ...baseData, ...finalUpdates };
+          syncBrandToDb(id, merged as BrandGuide);
+          
+          brandSyncTimeouts.current.delete(id);
+        } catch (err) {
+          console.error('[SYNC] updateBrand: Error in debounced sync', err);
+          brandSyncTimeouts.current.delete(id);
+        }
+      }, SYNC_DEBOUNCE_MS);
       
-      // Even if brand not in local state, sync using pending updates with a base object
-      const baseData = latestBrand || currentBrand || { id } as BrandGuide;
-      const merged = { ...baseData, ...finalUpdates };
-      syncBrandToDb(id, merged as BrandGuide);
-      
-      brandSyncTimeouts.current.delete(id);
-    }, SYNC_DEBOUNCE_MS);
-    
-    brandSyncTimeouts.current.set(id, timeout);
+      brandSyncTimeouts.current.set(id, timeout);
+    } catch (err) {
+      console.error('[SYNC] updateBrand: Critical error', err);
+    }
   }, [user, syncBrandToDb]);
 
   const updateProduct = useCallback((id: string, updates: Partial<ProductGuide>) => {
-    if (!user) {
-      toast.error('Please sign in to save changes');
-      return;
-    }
+    try {
+      if (!user) {
+        toast.error('Please sign in to save changes');
+        return;
+      }
 
-    // Get current product state using ref to avoid stale closure issues
-    const currentProduct = productsRef.current.find(p => p.id === id);
-    if (!currentProduct) {
-      console.warn('Product not found in local state, attempting update anyway:', id);
-    }
+      if (!id || typeof id !== 'string') {
+        console.error('[SYNC] updateProduct: Invalid id', id);
+        return;
+      }
 
-    // Merge with any pending updates
-    const existingPending = pendingProductUpdates.current.get(id) || {};
-    const allUpdates = { ...existingPending, ...updates };
-    pendingProductUpdates.current.set(id, allUpdates);
+      if (!updates || typeof updates !== 'object') {
+        console.error('[SYNC] updateProduct: Invalid updates', updates);
+        return;
+      }
 
-    // Optimistic update - update UI immediately
-    setProducts(prev => prev.map(product =>
-      product.id === id ? { ...product, ...updates, updatedAt: new Date() } : product
-    ));
+      console.log('[SYNC] updateProduct: Scheduling update for', id);
 
-    // Clear existing timeout for this product
-    const existingTimeout = productSyncTimeouts.current.get(id);
-    if (existingTimeout) {
-      clearTimeout(existingTimeout);
-    }
+      // Get current product state using ref to avoid stale closure issues
+      const currentProduct = productsRef.current.find(p => p.id === id);
+      if (!currentProduct) {
+        console.warn('[SYNC] updateProduct: Product not found in local state, attempting update anyway:', id);
+      }
 
-    // Set new debounced sync
-    const timeout = setTimeout(() => {
-      const latestProduct = productsRef.current.find(p => p.id === id);
-      const finalUpdates = pendingProductUpdates.current.get(id) || {};
+      // Merge with any pending updates
+      const existingPending = pendingProductUpdates.current.get(id) || {};
+      const allUpdates = { ...existingPending, ...updates };
+      pendingProductUpdates.current.set(id, allUpdates);
+
+      // Optimistic update - update UI immediately
+      setProducts(prev => prev.map(product =>
+        product.id === id ? { ...product, ...updates, updatedAt: new Date() } : product
+      ));
+
+      // Clear existing timeout for this product
+      const existingTimeout = productSyncTimeouts.current.get(id);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+      }
+
+      // Set new debounced sync
+      const timeout = setTimeout(() => {
+        try {
+          const latestProduct = productsRef.current.find(p => p.id === id);
+          const finalUpdates = pendingProductUpdates.current.get(id) || {};
+          
+          // Even if product not in local state, sync using pending updates with a base object
+          const baseData = latestProduct || currentProduct || { id } as ProductGuide;
+          const merged = { ...baseData, ...finalUpdates };
+          syncProductToDb(id, merged as ProductGuide);
+          
+          productSyncTimeouts.current.delete(id);
+        } catch (err) {
+          console.error('[SYNC] updateProduct: Error in debounced sync', err);
+          productSyncTimeouts.current.delete(id);
+        }
+      }, SYNC_DEBOUNCE_MS);
       
-      // Even if product not in local state, sync using pending updates with a base object
-      const baseData = latestProduct || currentProduct || { id } as ProductGuide;
-      const merged = { ...baseData, ...finalUpdates };
-      syncProductToDb(id, merged as ProductGuide);
-      
-      productSyncTimeouts.current.delete(id);
-    }, SYNC_DEBOUNCE_MS);
-    
-    productSyncTimeouts.current.set(id, timeout);
+      productSyncTimeouts.current.set(id, timeout);
+    } catch (err) {
+      console.error('[SYNC] updateProduct: Critical error', err);
+    }
   }, [user, syncProductToDb]);
 
   const deleteBrand = async (id: string) => {
