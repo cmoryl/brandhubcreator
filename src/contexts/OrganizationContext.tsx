@@ -75,13 +75,27 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       // First check if user is a member of any organization
-      const { data: memberData, error: memberError } = await supabase
+      // Add timeout to prevent indefinite hanging
+      const memberPromise = supabase
         .from('organization_members')
         .select('*, organizations(*)')
         .eq('user_id', user.id)
         .maybeSingle();
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Organization fetch timeout')), 15000)
+      );
+
+      const { data: memberData, error: memberError } = await Promise.race([
+        memberPromise,
+        timeoutPromise as Promise<never>
+      ]).catch(err => {
+        console.warn('[ORG] Fetch timed out or failed:', err);
+        return { data: null, error: err };
+      }) as any;
 
       if (memberError && memberError.code !== 'PGRST116') {
+        // Don't block on backend errors - allow user to proceed
         console.error('Error fetching organization membership:', memberError);
         setIsLoading(false);
         return;

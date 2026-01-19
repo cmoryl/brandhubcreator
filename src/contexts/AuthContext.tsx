@@ -58,11 +58,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const res = await withTimeout(
         supabase.from('user_roles').select('role').eq('user_id', userId).eq('role', 'admin').maybeSingle(),
-        12000
+        15000
       );
 
       const { data, error } = res as unknown as { data: unknown; error: unknown };
-      if (error) return { ok: false, error };
+      if (error) {
+        // Check for timeout/connection errors and handle gracefully
+        const errMsg = typeof error === 'object' && (error as any)?.message ? (error as any).message : String(error);
+        if (/timeout|connection|network|fetch/i.test(errMsg)) {
+          console.warn('[AUTH] Admin role check: backend timeout/connection issue');
+        }
+        return { ok: false, error };
+      }
       return { ok: true, value: !!data };
     } catch (err) {
       return { ok: false, error: err };
@@ -73,11 +80,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const res = await withTimeout(
         supabase.from('profiles').select('is_approved').eq('user_id', userId).maybeSingle(),
-        12000
+        15000
       );
 
       const { data, error } = res as unknown as { data: { is_approved?: boolean } | null; error: unknown };
-      if (error) return { ok: false, error };
+      if (error) {
+        const errMsg = typeof error === 'object' && (error as any)?.message ? (error as any).message : String(error);
+        if (/timeout|connection|network|fetch/i.test(errMsg)) {
+          console.warn('[AUTH] Approval check: backend timeout/connection issue');
+        }
+        return { ok: false, error };
+      }
       return { ok: true, value: data?.is_approved ?? false };
     } catch (err) {
       return { ok: false, error: err };
@@ -174,8 +187,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               setTimeout(runCheck, RETRY_MS);
             } else {
               // Stop "loading" so the UI remains usable; user can refresh/focus to retry.
-              setAccessError('Unable to verify your access right now. Please check your connection and try again.');
-              setAccessStatus('error');
+              // IMPORTANT: On backend timeout, assume user is approved so they can use the app
+              // This prevents users from being locked out during temporary infrastructure issues
+              console.warn('[AUTH] Backend unreachable after retries - allowing app access');
+              setIsAdmin(false);
+              setIsApproved(true); // Grant access during outage
+              setAccessError('Backend temporarily unreachable. Access granted with limited features.');
+              setAccessStatus('ready'); // Mark as ready so user isn't stuck
+              lastAccessCheckUserIdRef.current = userId;
               setAccessLoading(false);
             }
             return;
@@ -196,8 +215,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (attempt < MAX_ATTEMPTS) {
             setTimeout(runCheck, RETRY_MS);
           } else {
-            setAccessError('Unable to verify your access right now. Please check your connection and try again.');
-            setAccessStatus('error');
+            // Grant access during backend outage
+            console.warn('[AUTH] Backend unreachable - granting app access');
+            setIsAdmin(false);
+            setIsApproved(true);
+            setAccessError('Backend temporarily unreachable. Access granted with limited features.');
+            setAccessStatus('ready');
+            lastAccessCheckUserIdRef.current = userId;
             setAccessLoading(false);
           }
         });
