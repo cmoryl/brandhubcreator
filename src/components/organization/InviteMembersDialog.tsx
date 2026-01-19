@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { UserPlus, Mail, Loader2, Users, Crown, Shield, Eye, Trash2 } from 'lucide-react';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Input } from '@/components/ui/input';
@@ -48,8 +49,8 @@ interface InviteMembersDialogProps {
 /**
  * InviteMembersDialog - A dialog for managing team members
  * 
- * This component can render either as a menu-item-style button (for dropdowns)
- * or as a standalone button. It manages its own dialog state internally.
+ * This component renders a trigger (menu item or button) and portals the Dialog
+ * to document.body to avoid ref conflicts with parent dropdown menus.
  */
 export const InviteMembersDialog = ({ asButton = false }: InviteMembersDialogProps) => {
   const { organization, members, userRole, inviteMember, removeMember, updateMemberRole } = useOrganization();
@@ -59,6 +60,12 @@ export const InviteMembersDialog = ({ asButton = false }: InviteMembersDialogPro
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<MemberRole>('member');
   const [isLoading, setIsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Ensure we only portal after mount (SSR safety)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const canManageMembers = userRole === 'owner' || userRole === 'admin';
 
@@ -158,6 +165,119 @@ export const InviteMembersDialog = ({ asButton = false }: InviteMembersDialogPro
 
   if (!organization || !canManageMembers) return null;
 
+  const dialogContent = (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Team Members</DialogTitle>
+          <DialogDescription>
+            Invite people to collaborate on {organization.name}
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Invite Form */}
+        <form onSubmit={handleInvite} className="space-y-4">
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <Label htmlFor="invite-email" className="sr-only">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="invite-email"
+                  type="email"
+                  placeholder="colleague@company.com"
+                  className="pl-10"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <Select value={role} onValueChange={(v) => setRole(v as MemberRole)}>
+              <SelectTrigger className="w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="member">Member</SelectItem>
+                <SelectItem value="viewer">Viewer</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Invite'}
+            </Button>
+          </div>
+        </form>
+
+        {/* Members List */}
+        <div className="space-y-2 max-h-64 overflow-y-auto">
+          <Label className="text-xs text-muted-foreground uppercase tracking-wide">
+            Members ({members.length})
+          </Label>
+          {members.map((member) => {
+            const RoleIcon = roleIcons[member.role];
+            const isPending = !member.inviteAcceptedAt && member.invitedEmail;
+            
+            return (
+              <div
+                key={member.id}
+                className="flex items-center justify-between p-3 rounded-lg border bg-card"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                    <RoleIcon className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">
+                      {member.invitedEmail || member.userId}
+                      {isPending && (
+                        <Badge variant="outline" className="ml-2 text-xs">
+                          Pending
+                        </Badge>
+                      )}
+                    </p>
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs capitalize ${roleColors[member.role]}`}
+                    >
+                      {member.role}
+                    </Badge>
+                  </div>
+                </div>
+
+                {member.role !== 'owner' && canManageMembers && (
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={member.role}
+                      onValueChange={(v) => handleRoleChange(member.id, v as MemberRole)}
+                    >
+                      <SelectTrigger className="w-24 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="member">Member</SelectItem>
+                        <SelectItem value="viewer">Viewer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() => handleRemove(member.id, member.role)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <>
       {/* Trigger - either button or menu item style */}
@@ -182,117 +302,8 @@ export const InviteMembersDialog = ({ asButton = false }: InviteMembersDialogPro
         </button>
       )}
 
-      {/* Dialog - rendered outside any portal context */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Team Members</DialogTitle>
-            <DialogDescription>
-              Invite people to collaborate on {organization.name}
-            </DialogDescription>
-          </DialogHeader>
-
-          {/* Invite Form */}
-          <form onSubmit={handleInvite} className="space-y-4">
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Label htmlFor="invite-email" className="sr-only">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="invite-email"
-                    type="email"
-                    placeholder="colleague@company.com"
-                    className="pl-10"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              <Select value={role} onValueChange={(v) => setRole(v as MemberRole)}>
-                <SelectTrigger className="w-28">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="member">Member</SelectItem>
-                  <SelectItem value="viewer">Viewer</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Invite'}
-              </Button>
-            </div>
-          </form>
-
-          {/* Members List */}
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            <Label className="text-xs text-muted-foreground uppercase tracking-wide">
-              Members ({members.length})
-            </Label>
-            {members.map((member) => {
-              const RoleIcon = roleIcons[member.role];
-              const isPending = !member.inviteAcceptedAt && member.invitedEmail;
-              
-              return (
-                <div
-                  key={member.id}
-                  className="flex items-center justify-between p-3 rounded-lg border bg-card"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                      <RoleIcon className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">
-                        {member.invitedEmail || member.userId}
-                        {isPending && (
-                          <Badge variant="outline" className="ml-2 text-xs">
-                            Pending
-                          </Badge>
-                        )}
-                      </p>
-                      <Badge 
-                        variant="outline" 
-                        className={`text-xs capitalize ${roleColors[member.role]}`}
-                      >
-                        {member.role}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  {member.role !== 'owner' && canManageMembers && (
-                    <div className="flex items-center gap-2">
-                      <Select
-                        value={member.role}
-                        onValueChange={(v) => handleRoleChange(member.id, v as MemberRole)}
-                      >
-                        <SelectTrigger className="w-24 h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="member">Member</SelectItem>
-                          <SelectItem value="viewer">Viewer</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => handleRemove(member.id, member.role)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Portal the dialog to body to avoid ref conflicts with dropdown */}
+      {mounted && createPortal(dialogContent, document.body)}
     </>
   );
 };
