@@ -1,3 +1,11 @@
+export interface OrganizationPortalSettings {
+  heroFullWidth?: boolean;
+}
+
+export const DEFAULT_PORTAL_SETTINGS: OrganizationPortalSettings = {
+  heroFullWidth: false,
+};
+
 export interface Organization {
   id: string;
   name: string;
@@ -12,6 +20,7 @@ export interface Organization {
   emailFromAddress: string | null;
   hidePlatformBranding: boolean;
   features: OrganizationFeatures;
+  portalSettings: OrganizationPortalSettings;
   onboardingCompleted: boolean;
   onboardingStep: number;
   createdAt: string;
