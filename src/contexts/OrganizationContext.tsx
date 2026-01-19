@@ -76,9 +76,10 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     try {
       // First check if user is a member of any organization
       // Add timeout to prevent indefinite hanging
+      // SECURITY: Explicitly select columns, excluding invite_token
       const memberPromise = supabase
         .from('organization_members')
-        .select('*, organizations(*)')
+        .select('id, organization_id, user_id, role, invited_email, invite_accepted_at, invite_expires_at, created_at, updated_at, organizations(*)')
         .eq('user_id', user.id)
         .maybeSingle();
       
