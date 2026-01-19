@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pencil, Check } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { RichTextEditor, RichTextDisplay } from '@/components/ui/rich-text-editor';
 
 interface SectionHeaderProps {
   title: string;
@@ -28,20 +28,21 @@ export const SectionHeader = ({
       <div className="flex-1 min-w-0">
         <h2 className="text-2xl font-serif font-semibold text-foreground">{title}</h2>
         {editingSubtitle && onSubtitleChange ? (
-          <div className="flex items-center gap-2 mt-1">
-            <Input
+          <div className="mt-2 space-y-2">
+            <RichTextEditor
               value={customSubtitle ?? ''}
-              onChange={(e) => onSubtitleChange(e.target.value)}
+              onChange={onSubtitleChange}
               placeholder={defaultSubtitle}
-              className="text-sm h-8"
+              minHeight="50px"
             />
             <Button
-              variant="ghost"
+              variant="secondary"
               size="sm"
               onClick={() => setEditingSubtitle(false)}
-              className="h-8 px-2"
+              className="gap-1.5"
             >
               <Check className="h-3 w-3" />
+              Done Editing
             </Button>
           </div>
         ) : (
@@ -50,7 +51,11 @@ export const SectionHeader = ({
             onClick={() => onSubtitleChange && setEditingSubtitle(true)}
             title={onSubtitleChange ? "Click to edit subtitle" : undefined}
           >
-            {displaySubtitle}
+            {customSubtitle ? (
+              <RichTextDisplay html={customSubtitle} />
+            ) : (
+              displaySubtitle
+            )}
             {onSubtitleChange && (
               <Pencil className="inline-block h-3 w-3 ml-2 opacity-0 group-hover:opacity-50 transition-opacity" />
             )}
