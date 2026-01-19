@@ -10,9 +10,10 @@ interface HeroSectionProps {
   onHeroChange: (hero: BrandHero) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  fullWidth?: boolean;
 }
 
-export const HeroSection = ({ hero, onHeroChange }: HeroSectionProps) => {
+export const HeroSection = ({ hero, onHeroChange, fullWidth = false }: HeroSectionProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -46,8 +47,8 @@ export const HeroSection = ({ hero, onHeroChange }: HeroSectionProps) => {
         className="hidden"
       />
 
-      {/* Full-bleed hero container */}
-      <div className="relative -mx-4 sm:-mx-6 lg:-mx-8 overflow-hidden">
+      {/* Full-bleed hero container - expands based on fullWidth prop */}
+      <div className={`relative overflow-hidden ${fullWidth ? '-mx-4 sm:-mx-6 lg:-mx-8 xl:-mx-12 2xl:-mx-16' : '-mx-4 sm:-mx-6 lg:-mx-8'}`}>
         {/* Cover Image - Full Width */}
         <div
           className="relative h-64 sm:h-80 lg:h-96 cursor-pointer group"

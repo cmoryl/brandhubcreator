@@ -362,6 +362,17 @@ export const BrandPageSettingsEditor = ({ settings, onSettingsChange }: BrandPag
           <TabsContent value="layout" className="space-y-4 py-4">
             <div className="flex items-center justify-between p-3 rounded-lg border border-border">
               <div className="space-y-0.5">
+                <Label>Full Width Hero</Label>
+                <p className="text-xs text-muted-foreground">Expand hero section to full page width</p>
+              </div>
+              <Switch
+                checked={formData.heroFullWidth ?? false}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, heroFullWidth: checked }))}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border">
+              <div className="space-y-0.5">
                 <Label>Show Header</Label>
                 <p className="text-xs text-muted-foreground">Display the page header</p>
               </div>
@@ -497,6 +508,33 @@ export const BrandPageSettingsEditor = ({ settings, onSettingsChange }: BrandPag
                   <span className="font-medium">Soft & Elegant</span>
                   <span className="text-xs text-muted-foreground">Mesh gradient, elegant feel</span>
                 </Button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label>Default Theme Mode</Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Set a default theme for this brand page. Users can still toggle, but it will default to this.
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { value: 'system', label: 'System', description: 'Follow user preference' },
+                  { value: 'light', label: 'Light', description: 'Light mode default' },
+                  { value: 'dark', label: 'Dark', description: 'Dark mode default' },
+                ] as const).map((mode) => (
+                  <button
+                    key={mode.value}
+                    onClick={() => setFormData(prev => ({ ...prev, defaultTheme: mode.value }))}
+                    className={`p-3 rounded-lg border-2 transition-colors text-left ${
+                      (formData.defaultTheme ?? 'system') === mode.value
+                        ? 'border-accent bg-accent/10'
+                        : 'border-border hover:border-accent/50'
+                    }`}
+                  >
+                    <span className="text-sm font-medium block">{mode.label}</span>
+                    <span className="text-xs text-muted-foreground">{mode.description}</span>
+                  </button>
+                ))}
               </div>
             </div>
 

@@ -229,6 +229,8 @@ export interface BrandPageSettings {
   headerStyle: 'default' | 'minimal' | 'transparent';
   contentWidth: 'default' | 'wide' | 'full';
   sectionSpacing: 'compact' | 'default' | 'spacious';
+  heroFullWidth?: boolean; // Full width hero option
+  defaultTheme?: 'light' | 'dark' | 'system'; // Per-brand default theme
 }
 
 // CASESTUDIES - Proof Shards
@@ -277,6 +279,8 @@ export const DEFAULT_PAGE_SETTINGS: BrandPageSettings = {
   headerStyle: 'default',
   contentWidth: 'default',
   sectionSpacing: 'default',
+  heroFullWidth: false,
+  defaultTheme: 'system',
 };
 
 // Base Guide interface shared by Brands and Products
