@@ -231,6 +231,8 @@ export interface BrandPageSettings {
   sectionSpacing: 'compact' | 'default' | 'spacious';
   heroFullWidth?: boolean; // Full width hero option
   defaultTheme?: 'light' | 'dark' | 'system'; // Per-brand default theme
+  customPrimaryColor?: string; // Override primary color for this brand
+  customSecondaryColor?: string; // Override secondary color for this brand
 }
 
 // CASESTUDIES - Proof Shards
@@ -281,6 +283,8 @@ export const DEFAULT_PAGE_SETTINGS: BrandPageSettings = {
   sectionSpacing: 'default',
   heroFullWidth: false,
   defaultTheme: 'system',
+  customPrimaryColor: '',
+  customSecondaryColor: '',
 };
 
 // Base Guide interface shared by Brands and Products

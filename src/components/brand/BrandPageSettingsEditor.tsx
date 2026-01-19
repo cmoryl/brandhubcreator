@@ -538,6 +538,68 @@ export const BrandPageSettingsEditor = ({ settings, onSettingsChange }: BrandPag
               </div>
             </div>
 
+            {/* Custom Primary Color */}
+            <div className="space-y-2">
+              <Label>Custom Primary Color (Optional)</Label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={formData.customPrimaryColor || '#1a1a2e'}
+                  onChange={(e) => setFormData(prev => ({ ...prev, customPrimaryColor: e.target.value }))}
+                  className="w-10 h-10 rounded border cursor-pointer"
+                />
+                <Input
+                  value={formData.customPrimaryColor || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, customPrimaryColor: e.target.value }))}
+                  placeholder="Leave empty for default"
+                  className="flex-1"
+                />
+                {formData.customPrimaryColor && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFormData(prev => ({ ...prev, customPrimaryColor: '' }))}
+                  >
+                    Reset
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Override the primary color (text, buttons) for this brand
+              </p>
+            </div>
+
+            {/* Custom Secondary Color */}
+            <div className="space-y-2">
+              <Label>Custom Secondary Color (Optional)</Label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={formData.customSecondaryColor || '#2d2d44'}
+                  onChange={(e) => setFormData(prev => ({ ...prev, customSecondaryColor: e.target.value }))}
+                  className="w-10 h-10 rounded border cursor-pointer"
+                />
+                <Input
+                  value={formData.customSecondaryColor || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, customSecondaryColor: e.target.value }))}
+                  placeholder="Leave empty for default"
+                  className="flex-1"
+                />
+                {formData.customSecondaryColor && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFormData(prev => ({ ...prev, customSecondaryColor: '' }))}
+                  >
+                    Reset
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Override the secondary color (backgrounds, cards) for this brand
+              </p>
+            </div>
+
             <div className="p-4 rounded-lg border border-dashed border-accent/50 bg-accent/5">
               <h4 className="font-medium mb-2 flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-accent" />
