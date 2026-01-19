@@ -468,6 +468,19 @@ export type Database = {
       cleanup_expired_invites: { Args: never; Returns: number }
       cleanup_old_audit_logs: { Args: never; Returns: number }
       get_auth_email: { Args: never; Returns: string }
+      get_public_organization_info: {
+        Args: { _org_id?: string; _slug?: string }
+        Returns: {
+          accent_color: string
+          favicon_url: string
+          id: string
+          logo_url: string
+          name: string
+          primary_color: string
+          secondary_color: string
+          slug: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
