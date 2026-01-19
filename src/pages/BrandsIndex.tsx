@@ -231,10 +231,6 @@ const BrandsIndex = () => {
               <span className="font-semibold text-2xl text-foreground">{settings.appName}</span>
             </div>
             <div className="flex items-center gap-3">
-              {/* Organization Switcher for Admins */}
-              {isAdmin && (
-                <OrganizationSwitcher onSwitch={(org) => setViewingOrg(org)} />
-              )}
               
               {/* Organization Badge for non-admins */}
               {user && organization && !isAdmin && (
@@ -294,9 +290,15 @@ const BrandsIndex = () => {
                       <span className="hidden sm:inline text-sm">{user.email}</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-64">
+                    {/* Organization Switcher for Admins - at the top */}
                     {isAdmin && (
                       <>
+                        <div className="p-2">
+                          <p className="text-xs text-muted-foreground mb-2 px-2">Switch Organization</p>
+                          <OrganizationSwitcher onSwitch={(org) => setViewingOrg(org)} />
+                        </div>
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => navigate('/admin')} className="gap-2 text-accent">
                           <Shield className="h-4 w-4" />
                           Admin Dashboard
