@@ -1,4 +1,4 @@
-import { useState, forwardRef } from 'react';
+import { useState } from 'react';
 import { UserPlus, Mail, Loader2, Users, Crown, Shield, Eye, Trash2 } from 'lucide-react';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Input } from '@/components/ui/input';
@@ -40,13 +40,18 @@ const roleColors = {
   viewer: 'bg-muted text-muted-foreground border-border',
 };
 
+interface InviteMembersDialogProps {
+  /** If true, renders as a standalone button instead of a dropdown menu item */
+  asButton?: boolean;
+}
+
 /**
  * InviteMembersDialog - A dialog for managing team members
  * 
- * This component renders as a menu-item-style button that opens a dialog.
- * It's designed to work inside dropdown menus without ref conflicts.
+ * This component can render either as a menu-item-style button (for dropdowns)
+ * or as a standalone button. It manages its own dialog state internally.
  */
-export const InviteMembersDialog = forwardRef<HTMLDivElement>((_, ref) => {
+export const InviteMembersDialog = ({ asButton = false }: InviteMembersDialogProps) => {
   const { organization, members, userRole, inviteMember, removeMember, updateMemberRole } = useOrganization();
   const { toast } = useToast();
   
@@ -145,21 +150,39 @@ export const InviteMembersDialog = forwardRef<HTMLDivElement>((_, ref) => {
     }
   };
 
+  const handleTriggerClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpen(true);
+  };
+
   if (!organization || !canManageMembers) return null;
 
   return (
-    <div ref={ref}>
-      {/* Trigger button styled as menu item */}
-      <button 
-        type="button"
-        onClick={() => setOpen(true)}
-        className="relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground w-full"
-      >
-        <UserPlus className="h-4 w-4" />
-        Invite Members
-      </button>
+    <>
+      {/* Trigger - either button or menu item style */}
+      {asButton ? (
+        <Button 
+          type="button"
+          variant="outline"
+          onClick={handleTriggerClick}
+          className="gap-2"
+        >
+          <UserPlus className="h-4 w-4" />
+          Invite Members
+        </Button>
+      ) : (
+        <button 
+          type="button"
+          onClick={handleTriggerClick}
+          className="relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground w-full text-left"
+        >
+          <UserPlus className="h-4 w-4" />
+          Invite Members
+        </button>
+      )}
 
-      {/* Dialog controlled by state */}
+      {/* Dialog - rendered outside any portal context */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -270,8 +293,6 @@ export const InviteMembersDialog = forwardRef<HTMLDivElement>((_, ref) => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
-});
-
-InviteMembersDialog.displayName = 'InviteMembersDialog';
+};
