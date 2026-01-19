@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Organization, OrganizationMember, OrganizationFeatures } from '@/types/organization';
+import { Organization, OrganizationMember, OrganizationFeatures, OrganizationPortalSettings, DEFAULT_PORTAL_SETTINGS } from '@/types/organization';
 
 interface OrganizationContextType {
   organization: Organization | null;
@@ -36,6 +36,7 @@ const dbToOrganization = (db: any): Organization => ({
   emailFromAddress: db.email_from_address,
   hidePlatformBranding: db.hide_platform_branding,
   features: db.features as OrganizationFeatures,
+  portalSettings: (db.portal_settings as OrganizationPortalSettings) || DEFAULT_PORTAL_SETTINGS,
   onboardingCompleted: db.onboarding_completed,
   onboardingStep: db.onboarding_step,
   createdAt: db.created_at,
@@ -243,6 +244,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     if (updates.emailFromAddress !== undefined) dbUpdates.email_from_address = updates.emailFromAddress;
     if (updates.hidePlatformBranding !== undefined) dbUpdates.hide_platform_branding = updates.hidePlatformBranding;
     if (updates.features !== undefined) dbUpdates.features = updates.features;
+    if (updates.portalSettings !== undefined) dbUpdates.portal_settings = updates.portalSettings;
     if (updates.onboardingCompleted !== undefined) dbUpdates.onboarding_completed = updates.onboardingCompleted;
     if (updates.onboardingStep !== undefined) dbUpdates.onboarding_step = updates.onboardingStep;
 

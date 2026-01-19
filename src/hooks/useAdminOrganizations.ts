@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Organization, OrganizationFeatures } from '@/types/organization';
+import { Organization, OrganizationFeatures, OrganizationPortalSettings, DEFAULT_PORTAL_SETTINGS } from '@/types/organization';
 
 const dbToOrganization = (db: any): Organization => ({
   id: db.id,
@@ -17,6 +17,7 @@ const dbToOrganization = (db: any): Organization => ({
   emailFromAddress: db.email_from_address,
   hidePlatformBranding: db.hide_platform_branding,
   features: db.features as OrganizationFeatures,
+  portalSettings: (db.portal_settings as OrganizationPortalSettings) || DEFAULT_PORTAL_SETTINGS,
   onboardingCompleted: db.onboarding_completed,
   onboardingStep: db.onboarding_step,
   createdAt: db.created_at,
