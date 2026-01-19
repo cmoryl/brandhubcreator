@@ -41,12 +41,13 @@ export const OrganizationSwitcher = ({ onSwitch }: OrganizationSwitcherProps) =>
       <DropdownMenuTrigger asChild>
         <Button 
           variant="outline" 
-          className="gap-2 min-w-[200px] justify-between"
+          size="sm"
+          className="w-full gap-2 justify-between"
           disabled={isLoading}
         >
           <div className="flex items-center gap-2 truncate">
             <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <span className="truncate">
+            <span className="truncate text-sm">
               {displayOrg ? displayOrg.name : 'All Organizations'}
             </span>
           </div>
