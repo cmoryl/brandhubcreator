@@ -348,6 +348,20 @@ export const AppSettingsEditor = () => {
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 rounded-lg border border-border">
                 <div className="space-y-0.5">
+                  <p className="text-sm font-medium">Demo Brands Showcase</p>
+                  <p className="text-xs text-muted-foreground">Featured brand examples for visitors</p>
+                </div>
+                <Switch
+                  checked={formData.pageSections?.demoBrands ?? true}
+                  onCheckedChange={(checked) => setFormData(prev => ({
+                    ...prev,
+                    pageSections: { ...prev.pageSections, demoBrands: checked }
+                  }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-lg border border-border">
+                <div className="space-y-0.5">
                   <p className="text-sm font-medium">What We Offer</p>
                   <p className="text-xs text-muted-foreground">Services banner with 4 feature cards</p>
                 </div>
