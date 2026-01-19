@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette } from 'lucide-react';
+import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -64,7 +64,22 @@ export const IconographySection = ({
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [gridSize, setGridSize] = useState<GridSize>('medium');
   const [iconColor, setIconColor] = useState<string>(defaultIconColor || 'currentColor');
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const ICONS_PREVIEW_LIMIT = 8;
+  
+  const toggleCategoryExpanded = (category: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(category)) {
+        next.delete(category);
+      } else {
+        next.add(category);
+      }
+      return next;
+    });
+  };
   
   // Handle color change and persist to brand settings
   const handleColorChange = (color: string) => {
@@ -468,59 +483,86 @@ ${innerContent}
       </div>
 
       <div className="space-y-6">
-        {Object.entries(groupedIcons).map(([category, icons]) => (
-          <div key={category} className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{category}</h3>
-              <span className="text-xs text-muted-foreground">{icons.length} icons</span>
-            </div>
-            <div className={`grid ${gridSizeConfig[gridSize].grid} gap-3`}>
-              {icons.map((icon, index) => (
-                <div
-                  key={icon.id}
-                  className={`group relative bg-card rounded-xl ${gridSizeConfig[gridSize].padding} shadow-sm border border-border animate-scale-in flex flex-col items-center cursor-pointer hover:border-primary/50 transition-colors`}
-                  style={{ animationDelay: `${index * 50}ms` }}
-                  onClick={() => copySVG(icon)}
+        {Object.entries(groupedIcons).map(([category, icons]) => {
+          const isExpanded = expandedCategories.has(category);
+          const hasMore = icons.length > ICONS_PREVIEW_LIMIT;
+          const displayedIcons = isExpanded ? icons : icons.slice(0, ICONS_PREVIEW_LIMIT);
+          const hiddenCount = icons.length - ICONS_PREVIEW_LIMIT;
+          
+          return (
+            <div key={category} className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{category}</h3>
+                <span className="text-xs text-muted-foreground">{icons.length} icons</span>
+              </div>
+              <div className={`grid ${gridSizeConfig[gridSize].grid} gap-3`}>
+                {displayedIcons.map((icon, index) => (
+                  <div
+                    key={icon.id}
+                    className={`group relative bg-card rounded-xl ${gridSizeConfig[gridSize].padding} shadow-sm border border-border animate-scale-in flex flex-col items-center cursor-pointer hover:border-primary/50 transition-colors`}
+                    style={{ animationDelay: `${index * 50}ms` }}
+                    onClick={() => copySVG(icon)}
+                  >
+                    {renderIcon(icon, gridSizeConfig[gridSize].iconSize)}
+                    <p className={`${gridSizeConfig[gridSize].fontSize} text-muted-foreground text-center truncate w-full leading-tight`}>{icon.name}</p>
+
+                    <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {copiedId === icon.id ? (
+                        <Check className="h-5 w-5 text-white" />
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4 text-white" />
+                          <button
+                            onClick={(e) => { e.stopPropagation(); downloadIcon(icon); }}
+                            className="p-1 rounded bg-white/20 hover:bg-white/30"
+                            title="Download SVG"
+                          >
+                            <Download className="h-4 w-4 text-white" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setEditingId(icon.id); }}
+                        className="p-1 rounded bg-background/80"
+                      >
+                        <Pencil className="h-2.5 w-2.5" />
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteIcon(icon.id); }}
+                        className="p-1 rounded bg-background/80 hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {hasMore && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleCategoryExpanded(category)}
+                  className="w-full text-muted-foreground hover:text-foreground"
                 >
-                  {renderIcon(icon, gridSizeConfig[gridSize].iconSize)}
-                  <p className={`${gridSizeConfig[gridSize].fontSize} text-muted-foreground text-center truncate w-full leading-tight`}>{icon.name}</p>
-
-                  <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {copiedId === icon.id ? (
-                      <Check className="h-5 w-5 text-white" />
-                    ) : (
-                      <>
-                        <Copy className="h-4 w-4 text-white" />
-                        <button
-                          onClick={(e) => { e.stopPropagation(); downloadIcon(icon); }}
-                          className="p-1 rounded bg-white/20 hover:bg-white/30"
-                          title="Download SVG"
-                        >
-                          <Download className="h-4 w-4 text-white" />
-                        </button>
-                      </>
-                    )}
-                  </div>
-
-                  <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setEditingId(icon.id); }}
-                      className="p-1 rounded bg-background/80"
-                    >
-                      <Pencil className="h-2.5 w-2.5" />
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); deleteIcon(icon.id); }}
-                      className="p-1 rounded bg-background/80 hover:bg-destructive hover:text-destructive-foreground"
-                    >
-                      <X className="h-2.5 w-2.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                  {isExpanded ? (
+                    <>
+                      <ChevronUp className="h-4 w-4 mr-2" />
+                      Show Less
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4 mr-2" />
+                      View All ({hiddenCount} more)
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {iconography.length === 0 && (
           <button
