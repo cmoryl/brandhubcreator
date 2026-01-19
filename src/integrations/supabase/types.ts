@@ -379,6 +379,57 @@ export type Database = {
       }
     }
     Views: {
+      organization_members_safe: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          invite_accepted_at: string | null
+          invite_expires_at: string | null
+          invited_email: string | null
+          organization_id: string | null
+          role: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          invite_accepted_at?: string | null
+          invite_expires_at?: string | null
+          invited_email?: string | null
+          organization_id?: string | null
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          invite_accepted_at?: string | null
+          invite_expires_at?: string | null
+          invited_email?: string | null
+          organization_id?: string | null
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "public_organization_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_organization_info: {
         Row: {
           accent_color: string | null
@@ -433,7 +484,24 @@ export type Database = {
         Returns: boolean
       }
       is_slug_taken: { Args: { check_slug: string }; Returns: boolean }
+      is_valid_invite_token: {
+        Args: { p_token: string }
+        Returns: {
+          invited_email: string
+          invited_role: string
+          is_valid: boolean
+          org_name: string
+        }[]
+      }
       org_has_public_brands: { Args: { _org_id: string }; Returns: boolean }
+      validate_and_accept_invite: {
+        Args: { p_invite_token: string; p_user_id: string }
+        Returns: {
+          member_id: string
+          member_role: string
+          org_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "user"
