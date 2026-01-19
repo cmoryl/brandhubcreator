@@ -37,6 +37,8 @@ interface IconographySectionProps {
   onIconographyChange: (iconography: BrandIconography[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  defaultIconColor?: string;
+  onDefaultIconColorChange?: (color: string) => void;
 }
 
 type GridSize = 'compact' | 'medium' | 'large';
@@ -49,13 +51,26 @@ const gridSizeConfig: Record<GridSize, { grid: string; padding: string; fontSize
 
 const categoryOptions = ['Navigation', 'Actions', 'Social', 'Status', 'Commerce', 'Media', 'Communication', 'Other'];
 
-export const IconographySection = ({ iconography, onIconographyChange, customSubtitle, onSubtitleChange }: IconographySectionProps) => {
+export const IconographySection = ({ 
+  iconography, 
+  onIconographyChange, 
+  customSubtitle, 
+  onSubtitleChange,
+  defaultIconColor,
+  onDefaultIconColorChange 
+}: IconographySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [gridSize, setGridSize] = useState<GridSize>('medium');
-  const [iconColor, setIconColor] = useState<string>('currentColor');
+  const [iconColor, setIconColor] = useState<string>(defaultIconColor || 'currentColor');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Handle color change and persist to brand settings
+  const handleColorChange = (color: string) => {
+    setIconColor(color);
+    onDefaultIconColorChange?.(color);
+  };
 
   const addIcon = () => {
     const newIcon: BrandIconography = {
@@ -386,7 +401,7 @@ ${innerContent}
                   {ICON_COLORS.map((color) => (
                     <button
                       key={color.value}
-                      onClick={() => setIconColor(color.value)}
+                      onClick={() => handleColorChange(color.value)}
                       className={`w-7 h-7 rounded-full ${color.bg} transition-transform hover:scale-110 ${
                         iconColor === color.value ? 'ring-2 ring-primary ring-offset-2' : ''
                       }`}
@@ -399,7 +414,7 @@ ${innerContent}
                   <input
                     type="color"
                     value={iconColor === 'currentColor' ? '#000000' : iconColor}
-                    onChange={(e) => setIconColor(e.target.value)}
+                    onChange={(e) => handleColorChange(e.target.value)}
                     className="w-full h-8 rounded cursor-pointer"
                   />
                 </div>
