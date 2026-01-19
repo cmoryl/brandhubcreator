@@ -427,9 +427,14 @@ export const useBrandStorage = () => {
       } catch (err) {
         console.error('Error fetching data:', err);
 
-        setSyncStatus('error');
         const msg = err instanceof Error ? err.message : 'Unknown error';
-        setLastSyncError(msg);
+        const isTimeout = /timeout|connection|network|fetch/i.test(msg);
+        
+        setSyncStatus('error');
+        setLastSyncError(isTimeout 
+          ? 'Backend temporarily unreachable. Your data is cached locally.' 
+          : msg
+        );
 
         // If we have nothing in memory yet, try a last-known-good cache so the UI isn't blank.
         if (brandsRef.current.length === 0 && productsRef.current.length === 0) {
@@ -437,6 +442,7 @@ export const useBrandStorage = () => {
           if (cached && (cached.brands.length > 0 || cached.products.length > 0)) {
             setBrands(cached.brands);
             setProducts(cached.products);
+            console.log('[STORAGE] Loaded from cache during backend outage');
           }
         }
 
@@ -444,9 +450,15 @@ export const useBrandStorage = () => {
         // Just record failure time so we can retry after a short cooldown.
         lastFetchFailedAtRef.current = Date.now();
 
-        toast.error('Could not load your brands/products from the backend. Retrying…');
+        // Only show toast on first failure, not on every retry
+        if (!hasFetchedRef.current) {
+          toast.error(isTimeout 
+            ? 'Backend is temporarily unreachable. Using cached data.' 
+            : 'Could not load your data. Will retry automatically.'
+          );
+        }
 
-        // Allow a retry soon; don’t lock into an empty state.
+        // Allow a retry soon; don't lock into an empty state.
         hasFetchedRef.current = false;
       } finally {
         setIsLoading(false);
