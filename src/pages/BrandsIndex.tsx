@@ -275,7 +275,7 @@ const BrandsIndex = () => {
                   </TooltipContent>
                 </Tooltip>
               )}
-              <InviteMembersDialog />
+              
               {canEdit && <AppSettingsEditor />}
               <ThemeToggle />
               {user ? (
@@ -308,7 +308,6 @@ const BrandsIndex = () => {
                     )}
                     {organization && (
                       <>
-                        <DropdownMenuSeparator />
                         <DropdownMenuItem 
                           onClick={() => navigate(`/org/${organization.slug}`)} 
                           className="gap-2"
@@ -317,14 +316,18 @@ const BrandsIndex = () => {
                           View Public Portal
                         </DropdownMenuItem>
                         {(userRole === 'owner' || userRole === 'admin') && (
-                          <DropdownMenuItem 
-                            onClick={() => navigate('/org/settings')} 
-                            className="gap-2"
-                          >
-                            <Settings className="h-4 w-4" />
-                            Organization Settings
-                          </DropdownMenuItem>
+                          <>
+                            <DropdownMenuItem 
+                              onClick={() => navigate('/org/settings')} 
+                              className="gap-2"
+                            >
+                              <Settings className="h-4 w-4" />
+                              Organization Settings
+                            </DropdownMenuItem>
+                            <InviteMembersDialog />
+                          </>
                         )}
+                        <DropdownMenuSeparator />
                       </>
                     )}
                     <DropdownMenuSeparator />

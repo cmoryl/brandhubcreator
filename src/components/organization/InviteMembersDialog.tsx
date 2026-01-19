@@ -143,13 +143,14 @@ export const InviteMembersDialog = () => {
   if (!organization || !canManageMembers) return null;
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <button 
+          className="relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground w-full"
+        >
           <UserPlus className="h-4 w-4" />
-          <span className="hidden sm:inline">Invite Members</span>
-        </Button>
+          Invite Members
+        </button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
@@ -259,7 +260,6 @@ export const InviteMembersDialog = () => {
           })}
         </div>
       </DialogContent>
-      </Dialog>
-    </>
+    </Dialog>
   );
 };
