@@ -1,8 +1,6 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink } from 'lucide-react';
-import { DemoBrandsShowcase } from '@/components/landing/DemoBrandsShowcase';
-import { InviteMembersDialog } from '@/components/organization/InviteMembersDialog';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
@@ -31,14 +29,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { AppSettingsEditor } from '@/components/admin/AppSettingsEditor';
 import { HeroBackground } from '@/components/HeroBackground';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BaseGuide } from '@/types/brand';
 import { Organization } from '@/types/organization';
-import { OrganizationSwitcher } from '@/components/OrganizationSwitcher';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
+
+// Lazy load components that are not needed on initial render
+const DemoBrandsShowcase = lazy(() => import('@/components/landing/DemoBrandsShowcase').then(m => ({ default: m.DemoBrandsShowcase })));
+const InviteMembersDialog = lazy(() => import('@/components/organization/InviteMembersDialog').then(m => ({ default: m.InviteMembersDialog })));
+const AppSettingsEditor = lazy(() => import('@/components/admin/AppSettingsEditor').then(m => ({ default: m.AppSettingsEditor })));
+const OrganizationSwitcher = lazy(() => import('@/components/OrganizationSwitcher').then(m => ({ default: m.OrganizationSwitcher })));
 
 const BrandsIndex = () => {
   const navigate = useNavigate();
@@ -276,7 +278,7 @@ const BrandsIndex = () => {
                 </Tooltip>
               )}
               
-              {canEdit && <AppSettingsEditor />}
+              {canEdit && <Suspense fallback={null}><AppSettingsEditor /></Suspense>}
               <ThemeToggle />
               {user ? (
                 <DropdownMenu>
@@ -296,7 +298,7 @@ const BrandsIndex = () => {
                       <>
                         <div className="p-2">
                           <p className="text-xs text-muted-foreground mb-2 px-2">Switch Organization</p>
-                          <OrganizationSwitcher onSwitch={(org) => setViewingOrg(org)} />
+                          <Suspense fallback={null}><OrganizationSwitcher onSwitch={(org) => setViewingOrg(org)} /></Suspense>
                         </div>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => navigate('/admin')} className="gap-2 text-accent">
@@ -324,7 +326,7 @@ const BrandsIndex = () => {
                               <Settings className="h-4 w-4" />
                               Organization Settings
                             </DropdownMenuItem>
-                            <InviteMembersDialog />
+                            <Suspense fallback={null}><InviteMembersDialog /></Suspense>
                           </>
                         )}
                         <DropdownMenuSeparator />
@@ -542,7 +544,9 @@ const BrandsIndex = () => {
 
       {/* Demo Brands Showcase for non-logged-in users */}
       {!user && (
-        <DemoBrandsShowcase onLoginClick={() => navigate('/auth')} />
+        <Suspense fallback={<div className="py-20 flex justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>
+          <DemoBrandsShowcase onLoginClick={() => navigate('/auth')} />
+        </Suspense>
       )}
 
       {/* Main Content - Only show when logged in */}
