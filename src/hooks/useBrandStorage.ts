@@ -265,9 +265,17 @@ export const useBrandStorage = () => {
       };
       // Only load cache for the current user.
       if ((parsed.userId ?? null) !== (user?.id ?? null)) return null;
+      
+      // Rehydrate Date objects that were serialized as strings
+      const rehydrateDates = <T extends { createdAt?: unknown; updatedAt?: unknown }>(item: T): T => ({
+        ...item,
+        createdAt: item.createdAt ? new Date(item.createdAt as string) : new Date(),
+        updatedAt: item.updatedAt ? new Date(item.updatedAt as string) : new Date(),
+      });
+      
       return {
-        brands: Array.isArray(parsed.brands) ? parsed.brands : [],
-        products: Array.isArray(parsed.products) ? parsed.products : [],
+        brands: Array.isArray(parsed.brands) ? parsed.brands.map(rehydrateDates) : [],
+        products: Array.isArray(parsed.products) ? parsed.products.map(rehydrateDates) : [],
       };
     } catch {
       return null;
@@ -316,9 +324,17 @@ export const useBrandStorage = () => {
   const lastUserIdRef = useRef<string | null>(null);
   const lastOrgIdRef = useRef<string | null>(null);
 
-  // If a fetch fails (e.g., timeout), we keep current data and allow a retry after a short cooldown.
+  // If a fetch fails (e.g., timeout), we keep current data and allow a retry after cooldown with exponential backoff.
   const lastFetchFailedAtRef = useRef<number | null>(null);
-  const FETCH_RETRY_COOLDOWN_MS = 4000;
+  const failureCountRef = useRef<number>(0);
+  const BASE_RETRY_COOLDOWN_MS = 4000;
+  const MAX_RETRY_COOLDOWN_MS = 60000; // Cap at 1 minute
+  
+  const getRetryCooldown = useCallback(() => {
+    // Exponential backoff: 4s, 8s, 16s, 32s, 60s (capped)
+    const cooldown = BASE_RETRY_COOLDOWN_MS * Math.pow(2, failureCountRef.current);
+    return Math.min(cooldown, MAX_RETRY_COOLDOWN_MS);
+  }, []);
 
   // Fetch brands and products - depends on user auth state for RLS
   const fetchData = useCallback(
@@ -353,10 +369,11 @@ export const useBrandStorage = () => {
       }
 
       const now = Date.now();
+      const retryCooldown = getRetryCooldown();
       const inFailureCooldown =
         !force &&
         lastFetchFailedAtRef.current != null &&
-        now - lastFetchFailedAtRef.current < FETCH_RETRY_COOLDOWN_MS;
+        now - lastFetchFailedAtRef.current < retryCooldown;
 
       // If we recently failed, avoid retry-spam; the effect below will retry after cooldown.
       if (inFailureCooldown) {
@@ -419,11 +436,12 @@ export const useBrandStorage = () => {
         setLastSyncError(null);
         setLastSyncedAt(new Date());
 
-        // Mark as fetched
+        // Mark as fetched and reset failure tracking
         hasFetchedRef.current = true;
         lastUserIdRef.current = currentUserId;
         lastOrgIdRef.current = currentOrgId;
         lastFetchFailedAtRef.current = null;
+        failureCountRef.current = 0; // Reset on success
       } catch (err) {
         console.error('Error fetching data:', err);
 
@@ -447,8 +465,9 @@ export const useBrandStorage = () => {
         }
 
         // IMPORTANT: Do NOT clear existing data on transient failures.
-        // Just record failure time so we can retry after a short cooldown.
+        // Just record failure time and increment counter for exponential backoff.
         lastFetchFailedAtRef.current = Date.now();
+        failureCountRef.current = Math.min(failureCountRef.current + 1, 5); // Cap at 5 for max 60s backoff
 
         // Only show toast on first failure, not on every retry
         if (!hasFetchedRef.current) {
@@ -464,7 +483,7 @@ export const useBrandStorage = () => {
         setIsLoading(false);
       }
     },
-    [user?.id, organization?.id, saveCache, loadCache]
+    [user?.id, organization?.id, saveCache, loadCache, getRetryCooldown]
   );
 
   // Refetch when user/org auth state changes to ensure RLS policies apply correctly
@@ -493,9 +512,10 @@ export const useBrandStorage = () => {
     if (orgLoading) return;
 
     const now = Date.now();
+    const retryCooldown = getRetryCooldown();
     const shouldRetryAfterFailure =
       lastFetchFailedAtRef.current != null &&
-      now - lastFetchFailedAtRef.current >= FETCH_RETRY_COOLDOWN_MS;
+      now - lastFetchFailedAtRef.current >= retryCooldown;
 
     // Force refetch if user or org changed, or if we haven't fetched yet, or if a previous fetch failed.
     const shouldFetch =
@@ -589,10 +609,27 @@ export const useBrandStorage = () => {
   // Keep user/org refs for flush callbacks (avoid stale closures)
   const userRef = useRef(user);
   const orgRef = useRef(organization);
+  const accessTokenRef = useRef<string | null>(null);
+  
   useEffect(() => {
     userRef.current = user;
     orgRef.current = organization;
   }, [user, organization]);
+  
+  // Keep access token updated for flushPendingUpdates
+  useEffect(() => {
+    const updateToken = async () => {
+      const { data } = await supabase.auth.getSession();
+      accessTokenRef.current = data.session?.access_token ?? null;
+    };
+    updateToken();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      accessTokenRef.current = session?.access_token ?? null;
+    });
+    
+    return () => subscription.unsubscribe();
+  }, []);
 
   const syncBrandToDb = useCallback(async (id: string, merged: BrandGuide) => {
     if (!user) return;
@@ -633,7 +670,8 @@ export const useBrandStorage = () => {
   // Flush all pending updates immediately (for unmount/beforeunload)
   const flushPendingUpdates = useCallback(() => {
     const currentUser = userRef.current;
-    if (!currentUser) return;
+    const accessToken = accessTokenRef.current;
+    if (!currentUser || !accessToken) return;
 
     // Clear all pending timeouts and sync immediately
     brandSyncTimeouts.current.forEach((timeout, id) => {
@@ -643,31 +681,20 @@ export const useBrandStorage = () => {
       if (brand && pending) {
         const merged = { ...brand, ...pending };
         const dbData = brandGuideToDb(merged, currentUser.id, orgRef.current?.id);
-        // Use sendBeacon for reliability during unload, fallback to fetch
+        // Use fetch with keepalive for reliability during unload
         const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/brands?id=eq.${id}`;
         const headers = {
           'Content-Type': 'application/json',
           'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Prefer': 'return=minimal',
         };
-        if (navigator.sendBeacon) {
-          const blob = new Blob([JSON.stringify(dbData)], { type: 'application/json' });
-          // sendBeacon doesn't support PATCH, so fall back to fetch with keepalive
-          fetch(url, {
-            method: 'PATCH',
-            headers,
-            body: JSON.stringify(dbData),
-            keepalive: true,
-          }).catch(() => {}); // Best effort
-        } else {
-          fetch(url, {
-            method: 'PATCH',
-            headers,
-            body: JSON.stringify(dbData),
-            keepalive: true,
-          }).catch(() => {});
-        }
+        fetch(url, {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify(dbData),
+          keepalive: true,
+        }).catch(() => {}); // Best effort
         pendingBrandUpdates.current.delete(id);
       }
     });
@@ -684,7 +711,7 @@ export const useBrandStorage = () => {
         const headers = {
           'Content-Type': 'application/json',
           'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Prefer': 'return=minimal',
         };
         fetch(url, {
