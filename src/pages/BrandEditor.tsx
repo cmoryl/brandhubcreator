@@ -174,6 +174,10 @@ const BrandEditor = () => {
   // Check if user can edit: global admin OR org member with appropriate role
   const canEditOrg = orgRole && ['owner', 'admin', 'member'].includes(orgRole);
   const canEdit = user && (isAdmin || canEditOrg);
+
+  // Treat organization owners/admins as "admins" within the guide as well.
+  // Otherwise they are treated as viewers and hiddenSections can hide key areas (e.g., Social sections).
+  const isGuideAdmin = Boolean(isAdmin || (orgRole && ['owner', 'admin'].includes(orgRole)));
   
   const sectionOrder = brand?.sectionOrder || DEFAULT_SECTION_ORDER;
   const hiddenSections = brand?.hiddenSections || [];
@@ -445,7 +449,7 @@ const BrandEditor = () => {
             onSectionOrderChange={handleSectionOrderChange}
             hiddenSections={hiddenSections}
             onHiddenSectionsChange={handleHiddenSectionsChange}
-            isAdmin={isAdmin}
+            isAdmin={isGuideAdmin}
           />
         </div>
 
@@ -460,7 +464,7 @@ const BrandEditor = () => {
               onSectionOrderChange={handleSectionOrderChange}
               hiddenSections={hiddenSections}
               onHiddenSectionsChange={handleHiddenSectionsChange}
-              isAdmin={isAdmin}
+              isAdmin={isGuideAdmin}
             />
           </SheetContent>
         </Sheet>
@@ -630,7 +634,7 @@ const BrandEditor = () => {
                   onSectionVisible={handleSectionVisible}
                   sectionOrder={sectionOrder}
                   hiddenSections={hiddenSections}
-                  isAdmin={isAdmin}
+                  isAdmin={isGuideAdmin}
                   heroFullWidth={pageSettings.heroFullWidth}
                 />
               )}
