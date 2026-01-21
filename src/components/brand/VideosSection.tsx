@@ -193,7 +193,7 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
                     />
                   ) : thumbnail ? (
                     <div className="relative w-full h-full">
-                      <img src={thumbnail} alt={video.title} className="w-full h-full object-cover" />
+                      <img src={thumbnail} alt={video.title} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                       <button
                         onClick={() => openVideo(video)}
                         className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors"

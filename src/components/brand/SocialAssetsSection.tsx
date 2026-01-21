@@ -415,6 +415,8 @@ const SocialAssetPreviewUpload = ({
           src={asset.previewImageUrl} 
           alt={`${asset.platform} example`}
           className="w-full h-32 object-cover rounded-lg"
+          loading="lazy"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/preview:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
           <Button 

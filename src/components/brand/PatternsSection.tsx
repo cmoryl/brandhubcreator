@@ -7,6 +7,7 @@ import { SectionHeader } from './SectionHeader';
 import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
 import { toast } from 'sonner';
 import { useDropZone } from '@/components/ui/drop-zone';
+import { OptimizedImage } from '@/components/ui/optimized-image';
 
 interface PatternsSectionProps {
   patterns: BrandPattern[];

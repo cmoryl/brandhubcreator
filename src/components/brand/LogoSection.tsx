@@ -146,6 +146,8 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
                       src={logo.url}
                       alt={logo.name}
                       className="max-h-full max-w-full object-contain"
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
                   

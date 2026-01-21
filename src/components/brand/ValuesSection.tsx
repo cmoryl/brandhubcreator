@@ -368,6 +368,8 @@ export const ValuesSection = ({ values, onValuesChange, customSubtitle, onSubtit
                               src={extValue.imageUrl} 
                               alt="Value" 
                               className="w-full h-24 object-cover rounded-lg"
+                              loading="lazy"
+                              decoding="async"
                             />
                             <button
                               onClick={() => triggerImageUpload(value.id)}
@@ -413,6 +415,8 @@ export const ValuesSection = ({ values, onValuesChange, customSubtitle, onSubtit
                           src={extValue.imageUrl} 
                           alt={value.text} 
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
                     ) : (

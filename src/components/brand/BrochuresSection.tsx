@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { SectionHeader } from './SectionHeader';
+import { OptimizedImage } from '@/components/ui/optimized-image';
 
 import { LayoutSelector, useLayoutClasses, LayoutPreset } from './LayoutSelector';
 
@@ -170,10 +171,10 @@ export const BrochuresSection = ({ brochures, onBrochuresChange, customSubtitle,
                     <div className="aspect-[3/4] bg-muted relative flex items-center justify-center overflow-hidden">
                       {brochure.thumbnailUrl ? (
                         // Show thumbnail if available
-                        <img src={brochure.thumbnailUrl} alt={brochure.title} className="w-full h-full object-cover" />
+                        <OptimizedImage src={brochure.thumbnailUrl} alt={brochure.title} className="w-full h-full" objectFit="cover" />
                       ) : brochure.previewUrl.includes('image') || brochure.previewUrl.includes('data:image') ? (
                         // Show image preview for image files
-                        <img src={brochure.previewUrl} alt={brochure.title} className="w-full h-full object-cover" />
+                        <OptimizedImage src={brochure.previewUrl} alt={brochure.title} className="w-full h-full" objectFit="cover" />
                       ) : (
                         // Show file icon for PDFs without thumbnail
                         <div className="flex flex-col items-center gap-2">
