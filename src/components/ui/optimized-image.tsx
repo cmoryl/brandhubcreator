@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, ImgHTMLAttributes } from 'react';
+import { useState, useRef, useEffect, forwardRef, ImgHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
 interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'onLoad' | 'onError'> {
@@ -20,7 +20,7 @@ interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 
  * - Error fallback handling
  * - Aspect ratio preservation
  */
-export const OptimizedImage = ({
+export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
   src,
   alt,
   fallbackSrc = '/placeholder.svg',
@@ -33,7 +33,7 @@ export const OptimizedImage = ({
   onLoadError,
   style,
   ...props
-}: OptimizedImageProps) => {
+}, ref) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isInView, setIsInView] = useState(priority);
@@ -102,7 +102,15 @@ export const OptimizedImage = ({
 
   return (
     <div
-      ref={containerRef}
+      ref={(node) => {
+        // Handle both refs
+        containerRef.current = node;
+        if (typeof ref === 'function') {
+          ref(node);
+        } else if (ref) {
+          ref.current = node;
+        }
+      }}
       className={cn(
         'relative overflow-hidden',
         aspectRatio && `aspect-[${aspectRatio}]`,
@@ -144,7 +152,9 @@ export const OptimizedImage = ({
       )}
     </div>
   );
-};
+});
+
+OptimizedImage.displayName = 'OptimizedImage';
 
 /**
  * BackgroundImage - Optimized background image with lazy loading
@@ -161,7 +171,7 @@ interface BackgroundImageProps {
   onClick?: () => void;
 }
 
-export const BackgroundImage = ({
+export const BackgroundImage = forwardRef<HTMLDivElement, BackgroundImageProps>(({
   src,
   fallbackSrc,
   children,
@@ -171,7 +181,7 @@ export const BackgroundImage = ({
   parallax = false,
   parallaxOffset = 0,
   onClick,
-}: BackgroundImageProps) => {
+}, ref) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isInView, setIsInView] = useState(priority);
@@ -219,7 +229,14 @@ export const BackgroundImage = ({
 
   return (
     <div 
-      ref={containerRef} 
+      ref={(node) => {
+        containerRef.current = node;
+        if (typeof ref === 'function') {
+          ref(node);
+        } else if (ref) {
+          ref.current = node;
+        }
+      }}
       className={cn('relative overflow-hidden', className)}
       onClick={onClick}
     >
@@ -254,6 +271,8 @@ export const BackgroundImage = ({
       )}
     </div>
   );
-};
+});
+
+BackgroundImage.displayName = 'BackgroundImage';
 
 export default OptimizedImage;

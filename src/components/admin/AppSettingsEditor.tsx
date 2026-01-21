@@ -164,8 +164,7 @@ export const AppSettingsEditor = () => {
   };
 
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" onClick={handleOpen} title="App Settings">
           <Settings className="h-5 w-5" />
@@ -660,7 +659,6 @@ export const AppSettingsEditor = () => {
           </Button>
         </DialogFooter>
       </DialogContent>
-      </Dialog>
-    </>
+    </Dialog>
   );
 };
