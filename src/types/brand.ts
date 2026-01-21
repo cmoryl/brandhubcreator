@@ -258,6 +258,9 @@ export interface BrandTemplate {
   name: string;
   fileType: string;
   fileSize: string;
+  externalUrl?: string; // External link (Dropbox, Google Drive, etc.)
+  thumbnailUrl?: string; // Preview thumbnail for the asset
+  description?: string; // Optional description
 }
 
 // SERVICES - Service Offerings
