@@ -290,8 +290,16 @@ export const ValuesSection = ({ values, onValuesChange, customSubtitle, onSubtit
           return (
             <div
               key={value.id}
-              className="group relative bg-card rounded-xl p-6 shadow-sm border border-border animate-scale-in hover:shadow-md transition-shadow"
-              style={{ animationDelay: `${index * 50}ms` }}
+              className={`group relative bg-card rounded-xl p-6 shadow-sm border border-border 
+                transition-all duration-500 ease-out
+                hover:shadow-xl hover:-translate-y-2 hover:border-accent/30
+                hover:bg-gradient-to-br hover:from-card hover:to-accent/5
+                ${!isEditing ? 'cursor-pointer' : ''}
+              `}
+              style={{ 
+                animationDelay: `${index * 50}ms`,
+                transformStyle: 'preserve-3d',
+              }}
             >
               {isEditing ? (
                 <div className="space-y-4">
@@ -400,19 +408,19 @@ export const ValuesSection = ({ values, onValuesChange, customSubtitle, onSubtit
                 <>
                   <div className="flex items-start justify-between mb-4">
                     {extValue.useImage && extValue.imageUrl ? (
-                      <div className="w-14 h-14 rounded-xl overflow-hidden shadow-md">
+                      <div className="w-14 h-14 rounded-xl overflow-hidden shadow-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
                         <img 
                           src={extValue.imageUrl} 
                           alt={value.text} 
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                       </div>
                     ) : (
-                      <div className="p-3 bg-accent/10 rounded-xl">
+                      <div className="p-3 bg-accent/10 rounded-xl transition-all duration-300 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg group-hover:shadow-accent/20">
                         {IconComponent ? (
-                          <IconComponent className="h-6 w-6 text-accent" />
+                          <IconComponent className="h-6 w-6 text-accent transition-transform duration-300 group-hover:scale-110" />
                         ) : (
-                          <Heart className="h-6 w-6 text-accent" />
+                          <Heart className="h-6 w-6 text-accent transition-transform duration-300 group-hover:scale-110" />
                         )}
                       </div>
                     )}
@@ -431,8 +439,12 @@ export const ValuesSection = ({ values, onValuesChange, customSubtitle, onSubtit
                       </button>
                     </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">{value.text}</h3>
-                  <p className="text-sm text-muted-foreground">{value.description}</p>
+                  <h3 className="text-lg font-semibold text-foreground mb-2 transition-colors duration-300 group-hover:text-accent">{value.text}</h3>
+                  <p className="text-sm text-muted-foreground transition-all duration-300 group-hover:text-foreground/80">{value.description}</p>
+                  
+                  {/* Hover glow effect */}
+                  <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-accent/5 via-transparent to-accent/10" />
+                  <div className="absolute -inset-0.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-r from-accent/20 via-transparent to-accent/20 blur-sm -z-10" />
                 </>
               )}
             </div>
