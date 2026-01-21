@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Upload, Image, Pencil, Check, TrendingUp, Eye, Users, Share2, Heart, BarChart3, Sparkles } from 'lucide-react';
+import { Upload, Image, Pencil, Check, TrendingUp, Eye, Users, Share2, Heart, BarChart3, Sparkles, Brain } from 'lucide-react';
 import { BrandHero } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,6 +25,8 @@ interface HeroSectionProps {
   stats?: HeroStats;
   showStats?: boolean;
   enhancedMode?: boolean;
+  /** Callback when user clicks the Brain icon in the hero (opens intelligence panel) */
+  onOpenIntelligence?: () => void;
 }
 
 export const HeroSection = ({ 
@@ -34,6 +36,7 @@ export const HeroSection = ({
   stats,
   showStats = true,
   enhancedMode = true,
+  onOpenIntelligence,
 }: HeroSectionProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [parallaxOffset, setParallaxOffset] = useState(0);
@@ -261,6 +264,17 @@ export const HeroSection = ({
                 <Sparkles className="h-3 w-3 mr-1" />
                 Brand Guide Active
               </Badge>
+              {/* Brain / Intelligence quick-access */}
+              {onOpenIntelligence && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onOpenIntelligence(); }}
+                  className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 shadow-lg hover:bg-white/20 transition-colors text-white text-sm font-medium"
+                >
+                  <Brain className="h-4 w-4" />
+                  <span className="hidden sm:inline">Intelligence</span>
+                </button>
+              )}
             </div>
           )}
 

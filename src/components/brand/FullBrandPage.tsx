@@ -125,6 +125,8 @@ interface FullBrandPageProps {
   hiddenSections?: SectionId[];
   isAdmin?: boolean;
   heroFullWidth?: boolean;
+  /** Callback to open the Intelligence panel from the hero */
+  onOpenIntelligence?: () => void;
 }
 
 export const FullBrandPage = ({ 
@@ -136,7 +138,8 @@ export const FullBrandPage = ({
   sectionOrder = DEFAULT_SECTION_ORDER,
   hiddenSections = [],
   isAdmin = false,
-  heroFullWidth = false
+  heroFullWidth = false,
+  onOpenIntelligence,
 }: FullBrandPageProps) => {
   const sectionRefs = useRef<Map<SectionId, HTMLDivElement>>(new Map());
 
@@ -208,7 +211,7 @@ export const FullBrandPage = ({
     const onLayoutChange = handleLayoutChange(sectionId);
 
     switch (sectionId) {
-      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={(hero) => onBrandUpdate({ hero })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} fullWidth={heroFullWidth} />;
+      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={(hero) => onBrandUpdate({ hero })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} fullWidth={heroFullWidth} onOpenIntelligence={onOpenIntelligence} />;
       case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={(tagline) => onBrandUpdate({ tagline })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={(identity) => onBrandUpdate({ identity })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => onBrandUpdate({ values })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
@@ -237,7 +240,7 @@ export const FullBrandPage = ({
       case 'products': return brand.type === 'brand' ? <ProductsSection brandId={brandId} linkedGuides={brand.linkedGuides || []} onLinkedGuidesChange={(linkedGuides) => onBrandUpdate({ linkedGuides })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} /> : null;
       default: return null;
     }
-  }, [brand, brandId, onBrandUpdate, sectionSubtitles, sectionLayouts, handleSubtitleChange, handleLayoutChange, heroFullWidth]);
+  }, [brand, brandId, onBrandUpdate, sectionSubtitles, sectionLayouts, handleSubtitleChange, handleLayoutChange, heroFullWidth, onOpenIntelligence]);
 
   // Filter out hidden sections for non-admin users - memoized
   const visibleSections = useMemo(() => 

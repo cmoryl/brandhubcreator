@@ -78,6 +78,7 @@ const BrandEditor = () => {
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
   const [publicBrand, setPublicBrand] = useState<BrandGuide | null>(null);
   const [publicBrandLoading, setPublicBrandLoading] = useState(false);
+  const [intelligenceOpen, setIntelligenceOpen] = useState(false);
 
   // Redirect unapproved users to pending approval page (admins are always allowed)
   useEffect(() => {
@@ -412,7 +413,7 @@ const BrandEditor = () => {
 
   const renderSection = () => {
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={(hero) => updateBrand({ hero })} />;
+      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={(hero) => updateBrand({ hero })} onOpenIntelligence={() => setIntelligenceOpen(true)} />;
       case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={(tagline) => updateBrand({ tagline })} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={(identity) => updateBrand({ identity })} />;
       case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => updateBrand({ values })} />;
@@ -566,7 +567,7 @@ const BrandEditor = () => {
                 />
                 <BrandAuditButton brand={brand} />
                 {canEdit && (
-                  <Sheet>
+                  <Sheet open={intelligenceOpen} onOpenChange={setIntelligenceOpen}>
                     <SheetTrigger asChild>
                       <Button variant="ghost" size="icon" className="relative">
                         <Brain className="h-5 w-5" />
@@ -668,6 +669,7 @@ const BrandEditor = () => {
                   hiddenSections={hiddenSections}
                   isAdmin={isGuideAdmin}
                   heroFullWidth={pageSettings.heroFullWidth}
+                  onOpenIntelligence={() => setIntelligenceOpen(true)}
                 />
               )}
             </div>
