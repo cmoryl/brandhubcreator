@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Upload, Download, FileType, Link, ExternalLink, Image, FileText } from 'lucide-react';
+import { X, Pencil, Upload, Download, FileType, Link, ExternalLink, Image, FileText, FolderOpen, Maximize2, Minimize2 } from 'lucide-react';
 import { BrandTemplate } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 
 interface TemplatesSectionProps {
   templates: BrandTemplate[];
@@ -47,8 +48,11 @@ const getFileTypeIcon = (type: string) => {
   if (lowerType.includes('pdf')) return '📕';
   if (lowerType.includes('image') || lowerType.includes('png') || lowerType.includes('jpg') || lowerType.includes('jpeg')) return '🖼️';
   if (lowerType.includes('video') || lowerType.includes('mp4')) return '🎬';
+  if (lowerType.includes('dropbox-folder')) return '📂';
   if (lowerType.includes('dropbox')) return '📦';
+  if (lowerType.includes('drive-folder')) return '📂';
   if (lowerType.includes('drive')) return '☁️';
+  if (lowerType.includes('folder')) return '📂';
   if (lowerType.includes('link')) return '🔗';
   return '📄';
 };
@@ -65,12 +69,43 @@ const FILE_TYPES = [
   { value: 'image', label: 'Image (PNG/JPG)' },
   { value: 'video', label: 'Video' },
   { value: 'dropbox', label: 'Dropbox Link' },
+  { value: 'dropbox-folder', label: 'Dropbox Folder (Embedded)' },
   { value: 'drive', label: 'Google Drive Link' },
+  { value: 'drive-folder', label: 'Google Drive Folder (Embedded)' },
   { value: 'link', label: 'External Link' },
 ];
 
+// Convert Dropbox share URL to embeddable URL
+const getDropboxEmbedUrl = (url: string): string => {
+  // Convert www.dropbox.com/scl/fo/... or dropbox.com/sh/... to embeddable format
+  let embedUrl = url
+    .replace('www.dropbox.com', 'www.dropbox.com')
+    .replace('?dl=0', '')
+    .replace('?dl=1', '');
+  
+  // Add embed parameter
+  if (embedUrl.includes('?')) {
+    embedUrl += '&raw=1';
+  } else {
+    embedUrl += '?raw=1';
+  }
+  
+  return embedUrl;
+};
+
+// Convert Google Drive folder URL to embeddable URL
+const getDriveEmbedUrl = (url: string): string => {
+  // Extract folder ID from various Drive URL formats
+  const folderIdMatch = url.match(/folders\/([a-zA-Z0-9_-]+)/);
+  if (folderIdMatch) {
+    return `https://drive.google.com/embeddedfolderview?id=${folderIdMatch[1]}#list`;
+  }
+  return url;
+};
+
 export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle, onSubtitleChange }: TemplatesSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [expandedFolderId, setExpandedFolderId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const [fileData, setFileData] = useState<Record<string, string>>({});
@@ -84,6 +119,7 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
     externalUrl: '',
     fileType: 'link',
     description: '',
+    isEmbeddedFolder: false,
   });
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,17 +165,20 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
   const handleAddExternalLink = () => {
     if (!linkForm.name.trim() || !linkForm.externalUrl.trim()) return;
 
+    const isFolder = linkForm.fileType.includes('folder');
+    
     const newTemplate: BrandTemplate = {
       id: crypto.randomUUID(),
       name: linkForm.name.trim(),
       fileType: linkForm.fileType,
-      fileSize: 'External',
+      fileSize: isFolder ? 'Folder' : 'External',
       externalUrl: linkForm.externalUrl.trim(),
       description: linkForm.description.trim() || undefined,
+      isEmbeddedFolder: isFolder,
     };
 
     onTemplatesChange([...templates, newTemplate]);
-    setLinkForm({ name: '', externalUrl: '', fileType: 'link', description: '' });
+    setLinkForm({ name: '', externalUrl: '', fileType: 'link', description: '', isEmbeddedFolder: false });
     setIsLinkDialogOpen(false);
   };
 
@@ -154,6 +193,7 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
       return rest;
     });
     if (editingId === id) setEditingId(null);
+    if (expandedFolderId === id) setExpandedFolderId(null);
   };
 
   const downloadTemplate = (template: BrandTemplate) => {
@@ -176,8 +216,24 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
     thumbnailInputRef.current?.click();
   };
 
-  // Group by file type
-  const groupedTemplates = templates.reduce((acc, template) => {
+  const getEmbedUrl = (template: BrandTemplate): string => {
+    if (!template.externalUrl) return '';
+    
+    if (template.fileType.includes('dropbox')) {
+      return getDropboxEmbedUrl(template.externalUrl);
+    }
+    if (template.fileType.includes('drive')) {
+      return getDriveEmbedUrl(template.externalUrl);
+    }
+    return template.externalUrl;
+  };
+
+  // Separate embedded folders from regular templates
+  const embeddedFolders = templates.filter(t => t.isEmbeddedFolder);
+  const regularTemplates = templates.filter(t => !t.isEmbeddedFolder);
+
+  // Group regular templates by file type
+  const groupedTemplates = regularTemplates.reduce((acc, template) => {
     const category = template.externalUrl ? 'EXTERNAL LINKS' : template.fileType.toUpperCase();
     if (!acc[category]) acc[category] = [];
     acc[category].push(template);
@@ -209,7 +265,7 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
               <DialogHeader>
                 <DialogTitle>Add External Resource</DialogTitle>
                 <DialogDescription>
-                  Link to Dropbox, Google Drive, or any external resource
+                  Link to Dropbox, Google Drive, or any external resource. Choose a folder type to embed and browse files directly.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
@@ -217,7 +273,7 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
                   <Label htmlFor="link-name">Name</Label>
                   <Input
                     id="link-name"
-                    placeholder="e.g., Brand Guidelines PDF"
+                    placeholder="e.g., Brand Assets Folder"
                     value={linkForm.name}
                     onChange={(e) => setLinkForm(prev => ({ ...prev, name: e.target.value }))}
                   />
@@ -226,16 +282,23 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
                   <Label htmlFor="link-url">URL</Label>
                   <Input
                     id="link-url"
-                    placeholder="https://dropbox.com/... or https://drive.google.com/..."
+                    placeholder="https://www.dropbox.com/scl/fo/... or https://drive.google.com/drive/folders/..."
                     value={linkForm.externalUrl}
                     onChange={(e) => setLinkForm(prev => ({ ...prev, externalUrl: e.target.value }))}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    For Dropbox folders, use the shared folder link. For Google Drive, use the folder URL.
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="link-type">Resource Type</Label>
                   <Select
                     value={linkForm.fileType}
-                    onValueChange={(value) => setLinkForm(prev => ({ ...prev, fileType: value }))}
+                    onValueChange={(value) => setLinkForm(prev => ({ 
+                      ...prev, 
+                      fileType: value,
+                      isEmbeddedFolder: value.includes('folder')
+                    }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select type..." />
@@ -248,6 +311,11 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
                       ))}
                     </SelectContent>
                   </Select>
+                  {linkForm.fileType.includes('folder') && (
+                    <p className="text-xs text-accent">
+                      📂 This will show an embedded folder browser in your brand guide
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="link-description">Description (optional)</Label>
@@ -294,6 +362,134 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
         className="hidden"
       />
 
+      {/* Embedded Folders Section */}
+      {embeddedFolders.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <FolderOpen className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Embedded Folders
+            </h3>
+            <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded">
+              {embeddedFolders.length}
+            </span>
+          </div>
+          
+          <div className="space-y-4">
+            {embeddedFolders.map((folder) => (
+              <div
+                key={folder.id}
+                className="bg-card rounded-xl border border-border overflow-hidden"
+              >
+                {/* Folder Header */}
+                <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{getFileTypeIcon(folder.fileType)}</span>
+                    <div>
+                      {editingId === folder.id ? (
+                        <Input
+                          value={folder.name}
+                          onChange={(e) => updateTemplate(folder.id, { name: e.target.value })}
+                          onBlur={() => setEditingId(null)}
+                          onKeyDown={(e) => e.key === 'Enter' && setEditingId(null)}
+                          className="h-8 w-64"
+                          autoFocus
+                        />
+                      ) : (
+                        <p className="font-medium text-foreground">{folder.name}</p>
+                      )}
+                      {folder.description && (
+                        <p className="text-sm text-muted-foreground">{folder.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setExpandedFolderId(expandedFolderId === folder.id ? null : folder.id)}
+                      className="gap-2"
+                    >
+                      {expandedFolderId === folder.id ? (
+                        <>
+                          <Minimize2 className="h-4 w-4" />
+                          Collapse
+                        </>
+                      ) : (
+                        <>
+                          <Maximize2 className="h-4 w-4" />
+                          Expand
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(folder.externalUrl, '_blank')}
+                      className="gap-2"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Open in {folder.fileType.includes('dropbox') ? 'Dropbox' : 'Drive'}
+                    </Button>
+                    <button
+                      onClick={() => setEditingId(folder.id)}
+                      className="p-2 rounded-md hover:bg-secondary transition-colors"
+                    >
+                      <Pencil className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                    <button
+                      onClick={() => deleteTemplate(folder.id)}
+                      className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Embedded Folder View */}
+                <div 
+                  className={`transition-all duration-300 overflow-hidden ${
+                    expandedFolderId === folder.id ? 'h-[500px]' : 'h-48'
+                  }`}
+                >
+                  {folder.fileType.includes('dropbox') ? (
+                    <div className="w-full h-full bg-muted/20 flex flex-col items-center justify-center p-6 text-center">
+                      <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
+                      <p className="font-medium text-foreground mb-2">Dropbox Folder</p>
+                      <p className="text-sm text-muted-foreground mb-4 max-w-md">
+                        Due to Dropbox's embed limitations, click the button below to view this folder's contents in a new tab.
+                      </p>
+                      <Button
+                        onClick={() => window.open(folder.externalUrl, '_blank')}
+                        className="gap-2"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Open in Dropbox
+                      </Button>
+                    </div>
+                  ) : folder.fileType.includes('drive') ? (
+                    <iframe
+                      src={getEmbedUrl(folder)}
+                      className="w-full h-full border-0"
+                      title={folder.name}
+                      sandbox="allow-scripts allow-same-origin allow-popups"
+                    />
+                  ) : (
+                    <iframe
+                      src={folder.externalUrl}
+                      className="w-full h-full border-0"
+                      title={folder.name}
+                      sandbox="allow-scripts allow-same-origin allow-popups"
+                    />
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Regular Templates */}
       {Object.keys(groupedTemplates).length > 0 ? (
         <div className="space-y-6">
           {Object.entries(groupedTemplates).map(([type, typeTemplates]) => (
@@ -414,7 +610,7 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
             </div>
           ))}
         </div>
-      ) : (
+      ) : embeddedFolders.length === 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button
             onClick={() => fileInputRef.current?.click()}
@@ -430,14 +626,14 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
             onClick={() => setIsLinkDialogOpen(true)}
             className="h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-3 text-muted-foreground hover:border-accent hover:text-accent transition-colors"
           >
-            <Link className="h-10 w-10" />
+            <FolderOpen className="h-10 w-10" />
             <div className="text-center">
-              <p className="font-medium">Add external resources</p>
-              <p className="text-sm">Dropbox, Google Drive, or any URL</p>
+              <p className="font-medium">Connect a folder</p>
+              <p className="text-sm">Dropbox or Google Drive folders</p>
             </div>
           </button>
         </div>
-      )}
+      ) : null}
     </section>
   );
 };
