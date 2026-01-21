@@ -83,6 +83,7 @@ export const ProductsSection = ({
   const [availableGuides, setAvailableGuides] = useState<GuideItem[]>([]);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newProductName, setNewProductName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
@@ -90,34 +91,41 @@ export const ProductsSection = ({
   const { addProduct, brands } = useBrands();
 
   useEffect(() => {
-    fetchGuides();
-  }, [brandId, linkedGuides]);
+    fetchGuides({ initial: true });
+    // NOTE: We intentionally *don't* depend on linkedGuides here.
+    // Linking/unlinking performs an optimistic UI update so cards appear instantly.
+    // A full refetch on each linkedGuides change caused noticeable loading flicker.
+  }, [brandId]);
 
-  const fetchGuides = async () => {
-    setIsLoading(true);
+  const fetchGuides = async ({ initial = false }: { initial?: boolean } = {}) => {
+    if (initial) {
+      setIsLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
     try {
-      // Fetch products linked via parent_brand_id
-      const { data: linkedByParent, error: linkedError } = await supabase
-        .from('products')
-        .select('id, name, guide_data')
-        .eq('parent_brand_id', brandId);
+      // Run queries in parallel to reduce perceived latency
+      const [
+        { data: linkedByParent, error: linkedError },
+        { data: availableProducts, error: availableError },
+        { data: allBrands, error: brandsError },
+      ] = await Promise.all([
+        supabase
+          .from('products')
+          .select('id, name, guide_data')
+          .eq('parent_brand_id', brandId),
+        supabase
+          .from('products')
+          .select('id, name, guide_data')
+          .is('parent_brand_id', null),
+        supabase
+          .from('brands')
+          .select('id, name, guide_data')
+          .neq('id', brandId),
+      ]);
 
       if (linkedError) throw linkedError;
-
-      // Fetch all products not linked to any brand (available to link)
-      const { data: availableProducts, error: availableError } = await supabase
-        .from('products')
-        .select('id, name, guide_data')
-        .is('parent_brand_id', null);
-
       if (availableError) throw availableError;
-
-      // Fetch all brands except current one
-      const { data: allBrands, error: brandsError } = await supabase
-        .from('brands')
-        .select('id, name, guide_data')
-        .neq('id', brandId);
-
       if (brandsError) throw brandsError;
 
       // Combine linked products with manually linked guides
@@ -170,6 +178,7 @@ export const ProductsSection = ({
       toast.error('Failed to load guides');
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -183,7 +192,8 @@ export const ProductsSection = ({
         toast.success('Product guide created and linked');
         setNewProductName('');
         setIsCreateDialogOpen(false);
-        fetchGuides();
+        // Keep cards visible; refresh in the background
+        fetchGuides({ initial: false });
       }
     } catch (error) {
       console.error('Error creating product:', error);
@@ -266,7 +276,10 @@ export const ProductsSection = ({
 
           if (error) throw error;
           toast.success('Product guide unlinked');
-          fetchGuides();
+          // Optimistic UI: remove immediately
+          setLinkedProducts(prev => prev.filter(p => p.id !== guide.id));
+          // Refresh available list quietly
+          fetchGuides({ initial: false });
         } catch (error) {
           console.error('Error unlinking product:', error);
           toast.error('Failed to unlink product guide');
@@ -492,6 +505,12 @@ export const ProductsSection = ({
             </p>
           )}
         </div>
+      )}
+
+      {isRefreshing && !isLoading && (
+        <p className="text-xs text-muted-foreground">
+          Updating linked guides…
+        </p>
       )}
     </section>
   );
