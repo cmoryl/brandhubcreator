@@ -38,6 +38,81 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_intelligence: {
+        Row: {
+          analysis_count: number
+          analysis_history: Json
+          brand_summary: string | null
+          brand_voice_profile: Json | null
+          competitive_advantages: Json | null
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          growth_recommendations: Json | null
+          id: string
+          knowledge_entries: Json
+          last_analyzed_at: string | null
+          market_position: string | null
+          organization_id: string | null
+          target_audience: Json | null
+          updated_at: string
+        }
+        Insert: {
+          analysis_count?: number
+          analysis_history?: Json
+          brand_summary?: string | null
+          brand_voice_profile?: Json | null
+          competitive_advantages?: Json | null
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_type: string
+          growth_recommendations?: Json | null
+          id?: string
+          knowledge_entries?: Json
+          last_analyzed_at?: string | null
+          market_position?: string | null
+          organization_id?: string | null
+          target_audience?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          analysis_count?: number
+          analysis_history?: Json
+          brand_summary?: string | null
+          brand_voice_profile?: Json | null
+          competitive_advantages?: Json | null
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          growth_recommendations?: Json | null
+          id?: string
+          knowledge_entries?: Json
+          last_analyzed_at?: string | null
+          market_position?: string | null
+          organization_id?: string | null
+          target_audience?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_intelligence_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brand_intelligence_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "public_organization_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brands: {
         Row: {
           created_at: string
