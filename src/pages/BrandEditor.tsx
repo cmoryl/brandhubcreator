@@ -27,6 +27,7 @@ import { IconographySection } from '@/components/brand/IconographySection';
 import { SocialIconsSection } from '@/components/brand/SocialIconsSection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
 import { SocialSection } from '@/components/brand/SocialSection';
+import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
 import { WebsiteSection } from '@/components/brand/WebsiteSection';
 import { SignaturesSection } from '@/components/brand/SignaturesSection';
 import { QRSection } from '@/components/brand/QRSection';
@@ -390,6 +391,14 @@ const BrandEditor = () => {
       case 'socialicons': return <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={(socialIcons) => updateBrand({ socialIcons })} />;
       case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={(imagery) => updateBrand({ imagery })} />;
       case 'social': return <SocialSection social={brand.social} onSocialChange={(social) => updateBrand({ social })} />;
+      case 'socialassets': return (
+        <SocialAssetsSection
+          socialAssets={brand.socialAssets || []}
+          onSocialAssetsChange={(socialAssets) => updateBrand({ socialAssets })}
+          displayBanners={brand.displayBanners || []}
+          onDisplayBannersChange={(displayBanners) => updateBrand({ displayBanners })}
+        />
+      );
       case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={(websites) => updateBrand({ websites })} />;
       case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={(signatures) => updateBrand({ signatures })} />;
       case 'qr': return <QRSection qr={brand.qr} onQRChange={(qr) => updateBrand({ qr })} />;

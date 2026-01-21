@@ -23,6 +23,7 @@ import { IconographySection } from '@/components/brand/IconographySection';
 import { SocialIconsSection } from '@/components/brand/SocialIconsSection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
 import { SocialSection } from '@/components/brand/SocialSection';
+import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
 import { WebsiteSection } from '@/components/brand/WebsiteSection';
 import { SignaturesSection } from '@/components/brand/SignaturesSection';
 import { QRSection } from '@/components/brand/QRSection';
@@ -186,6 +187,15 @@ const currentProduct = getProduct(productId || '');
       case 'socialicons': return <SocialIconsSection socialIcons={currentProduct.socialIcons} onSocialIconsChange={(socialIcons) => handleUpdateProduct({ socialIcons })} />;
       case 'imagery': return <ImagerySection imagery={currentProduct.imagery} onImageryChange={(imagery) => handleUpdateProduct({ imagery })} />;
       case 'social': return <SocialSection social={currentProduct.social} onSocialChange={(social) => handleUpdateProduct({ social })} />;
+      case 'socialassets':
+        return (
+          <SocialAssetsSection
+            socialAssets={currentProduct.socialAssets || []}
+            onSocialAssetsChange={(socialAssets) => handleUpdateProduct({ socialAssets })}
+            displayBanners={currentProduct.displayBanners || []}
+            onDisplayBannersChange={(displayBanners) => handleUpdateProduct({ displayBanners })}
+          />
+        );
       case 'website': return <WebsiteSection websites={currentProduct.websites} onWebsitesChange={(websites) => handleUpdateProduct({ websites })} />;
       case 'signatures': return <SignaturesSection signatures={currentProduct.signatures} onSignaturesChange={(signatures) => handleUpdateProduct({ signatures })} />;
       case 'qr': return <QRSection qr={currentProduct.qr} onQRChange={(qr) => handleUpdateProduct({ qr })} />;
