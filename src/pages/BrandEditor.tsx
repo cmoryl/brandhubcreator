@@ -59,6 +59,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { normalizeHiddenSections, normalizeSectionOrder } from '@/lib/sectionOrder';
 
 type ViewMode = 'sections' | 'full';
 
@@ -179,8 +180,15 @@ const BrandEditor = () => {
   // Otherwise they are treated as viewers and hiddenSections can hide key areas (e.g., Social sections).
   const isGuideAdmin = Boolean(isAdmin || (orgRole && ['owner', 'admin'].includes(orgRole)));
   
-  const sectionOrder = brand?.sectionOrder || DEFAULT_SECTION_ORDER;
-  const hiddenSections = brand?.hiddenSections || [];
+  // Forward-compat: older guides may have persisted sectionOrder without newly-added sections (e.g., socialassets)
+  const sectionOrder = useMemo(
+    () => normalizeSectionOrder(brand?.sectionOrder),
+    [brand?.sectionOrder]
+  );
+  const hiddenSections = useMemo(
+    () => normalizeHiddenSections(brand?.hiddenSections, sectionOrder),
+    [brand?.hiddenSections, sectionOrder]
+  );
   const pageSettings = brand?.pageSettings || DEFAULT_PAGE_SETTINGS;
 
   // Apply brand-specific theme on mount and revert on unmount
@@ -320,11 +328,35 @@ const BrandEditor = () => {
     }
   }, [brand, updateBrandContext]);
 
+  // Auto-heal persisted sectionOrder when new sections are introduced
+  useEffect(() => {
+    if (!brand || !isGuideAdmin) return;
+    const current = Array.isArray(brand.sectionOrder) ? brand.sectionOrder : [];
+    const normalized = normalizeSectionOrder(current);
+    const isDifferent =
+      current.length !== normalized.length || current.some((id, i) => id !== normalized[i]);
+    if (isDifferent) {
+      updateBrandContext(brand.id, { sectionOrder: normalized });
+    }
+  }, [brand?.id, brand?.sectionOrder, isGuideAdmin, updateBrandContext]);
+
   const handleHiddenSectionsChange = useCallback((newHiddenSections: SectionId[]) => {
     if (brand) {
       updateBrandContext(brand.id, { hiddenSections: newHiddenSections });
     }
   }, [brand, updateBrandContext]);
+
+  // Auto-heal invalid hidden sections (e.g., ids removed/renamed)
+  useEffect(() => {
+    if (!brand || !isGuideAdmin) return;
+    const current = Array.isArray(brand.hiddenSections) ? brand.hiddenSections : [];
+    const normalized = normalizeHiddenSections(current, sectionOrder);
+    const isDifferent =
+      current.length !== normalized.length || current.some((id, i) => id !== normalized[i]);
+    if (isDifferent) {
+      updateBrandContext(brand.id, { hiddenSections: normalized });
+    }
+  }, [brand?.id, brand?.hiddenSections, sectionOrder, isGuideAdmin, updateBrandContext]);
 
   const handleSignOut = async () => {
     await signOut();
