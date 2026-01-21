@@ -35,6 +35,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BaseGuide } from '@/types/brand';
 import { Organization } from '@/types/organization';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
+import { OptimizedImage } from '@/components/ui/optimized-image';
 
 // Lazy load components that are not needed on initial render
 const DemoBrandsShowcase = lazy(() => import('@/components/landing/DemoBrandsShowcase').then(m => ({ default: m.DemoBrandsShowcase })));
@@ -627,10 +628,12 @@ const BrandsIndex = () => {
                     {/* Cover Image / Color Preview */}
                     <div className="relative h-44 overflow-hidden">
                       {brand.hero.coverImage ? (
-                        <img 
+                        <OptimizedImage 
                           src={brand.hero.coverImage} 
                           alt={brand.hero.name}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          className="w-full h-full transition-transform duration-500 group-hover:scale-105"
+                          objectFit="cover"
+                          priority={index < 3}
                         />
                       ) : (
                         <div className="w-full h-full flex">
@@ -699,6 +702,8 @@ const BrandsIndex = () => {
                             src={brand.hero.logoUrl} 
                             alt="Logo" 
                             className="h-8 w-auto"
+                            loading="lazy"
+                            decoding="async"
                           />
                         </div>
                       )}
@@ -815,10 +820,12 @@ const BrandsIndex = () => {
                     {/* Cover Image / Color Preview */}
                     <div className="relative h-44 overflow-hidden">
                       {product.hero.coverImage ? (
-                        <img 
+                        <OptimizedImage 
                           src={product.hero.coverImage} 
                           alt={product.hero.name}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          className="w-full h-full transition-transform duration-500 group-hover:scale-105"
+                          objectFit="cover"
+                          priority={index < 3}
                         />
                       ) : (
                         <div className="w-full h-full flex">

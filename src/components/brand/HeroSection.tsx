@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { BackgroundImage } from '@/components/ui/optimized-image';
 
 interface HeroStats {
   views?: number;
@@ -165,25 +166,25 @@ export const HeroSection = ({
         ref={heroRef}
         className={`relative overflow-hidden ${fullWidth ? '-mx-4 sm:-mx-6 lg:-mx-8 xl:-mx-12 2xl:-mx-16' : '-mx-4 sm:-mx-6 lg:-mx-8'}`}
       >
-        {/* Cover Image - Enhanced Height with Parallax */}
-        <div
+        {/* Cover Image - Enhanced Height with Parallax and optimized loading */}
+        <BackgroundImage
+          src={hero.coverImage || ''}
+          fallbackSrc=""
           className={`relative ${heroHeight} cursor-pointer group`}
+          priority={true}
+          parallax={true}
+          parallaxOffset={parallaxOffset}
           onClick={() => isEditing && coverInputRef.current?.click()}
         >
-          {/* Background with gradient fallback - Parallax layer */}
-          <div 
-            className="absolute inset-0 will-change-transform transition-transform duration-100 ease-out"
-            style={{ 
-              transform: `translateY(${parallaxOffset}px) scale(1.15)`,
-              ...(hero.coverImage ? { 
-                backgroundImage: `url(${hero.coverImage})`, 
-                backgroundSize: 'cover', 
-                backgroundPosition: 'center' 
-              } : {
+          {/* Fallback gradient when no image */}
+          {!hero.coverImage && (
+            <div 
+              className="absolute inset-0 -z-10"
+              style={{
                 background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 50%, hsl(var(--accent)) 100%)'
-              })
-            }}
-          />
+              }}
+            />
+          )}
           
           {/* Multi-layer overlays for depth */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
@@ -278,7 +279,13 @@ export const HeroSection = ({
                     }}
                   >
                     {hero.logoUrl ? (
-                      <img src={hero.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain p-4 lg:p-6" />
+                      <img 
+                        src={hero.logoUrl} 
+                        alt="Logo" 
+                        className="max-h-full max-w-full object-contain p-4 lg:p-6"
+                        loading="eager"
+                        decoding="async"
+                      />
                     ) : (
                       <Image className="h-12 w-12 lg:h-16 lg:w-16 text-muted-foreground" />
                     )}
@@ -371,7 +378,7 @@ export const HeroSection = ({
               </div>
             </div>
           </div>
-        </div>
+        </BackgroundImage>
       </div>
       
       {/* Floating animation keyframes */}
