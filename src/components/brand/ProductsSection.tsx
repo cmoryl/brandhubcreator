@@ -1,13 +1,29 @@
-import { useState, useEffect } from 'react';
-import { Plus, ExternalLink, Trash2, Package, Layers, BookOpen } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Plus, Package, Layers, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
+import { LinkedGuideCard } from './LinkedGuideCard';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useBrands } from '@/contexts/BrandContext';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
 import {
   Select,
   SelectContent,
@@ -26,25 +42,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
 
-interface GuideItem {
+export interface GuideItem {
   id: string;
   name: string;
   guide_data: unknown;
@@ -256,16 +255,60 @@ export const ProductsSection = ({
     }
   };
 
-  const openGuide = (guide: GuideItem) => {
+  const openGuide = useCallback((guide: GuideItem) => {
     if (guide.type === 'brand') {
       navigate(`/brand/${guide.id}`);
     } else {
       navigate(`/product/${guide.id}`);
     }
-  };
+  }, [navigate]);
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle drag end - reorder the guides
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = linkedProducts.findIndex(g => g.id === active.id);
+      const newIndex = linkedProducts.findIndex(g => g.id === over.id);
+
+      const reordered = arrayMove(linkedProducts, oldIndex, newIndex);
+      setLinkedProducts(reordered);
+
+      // Persist the order to linkedGuides
+      if (onLinkedGuidesChange) {
+        // Create new linkedGuides array with proper order
+        const newLinkedGuides: LinkedGuide[] = reordered.map(guide => {
+          // Check if this guide is already in linkedGuides
+          const existing = linkedGuides.find(lg => lg.guideId === guide.id);
+          if (existing) {
+            return existing;
+          }
+          // For products linked via parent_brand_id, create a reference
+          return {
+            id: crypto.randomUUID(),
+            guideId: guide.id,
+            guideType: guide.type,
+          };
+        });
+        onLinkedGuidesChange(newLinkedGuides);
+      }
+    }
+  }, [linkedProducts, linkedGuides, onLinkedGuidesChange]);
 
   const availableBrands = availableGuides.filter(g => g.type === 'brand');
-  const availableProducts = availableGuides.filter(g => g.type === 'product');
+  const availableProductsList = availableGuides.filter(g => g.type === 'product');
 
   return (
     <section className="space-y-6">
@@ -304,13 +347,13 @@ export const ProductsSection = ({
                     ))}
                   </SelectGroup>
                 )}
-                {availableProducts.length > 0 && (
+                {availableProductsList.length > 0 && (
                   <SelectGroup>
                     <SelectLabel className="flex items-center gap-2">
                       <Package className="h-3 w-3" />
                       Product Guides
                     </SelectLabel>
-                    {availableProducts.map((guide) => (
+                    {availableProductsList.map((guide) => (
                       <SelectItem key={guide.id} value={guide.id}>
                         <span className="flex items-center gap-2">
                           <Badge variant="secondary" className="text-xs px-1.5 py-0">Product</Badge>
@@ -369,135 +412,28 @@ export const ProductsSection = ({
           ))}
         </div>
       ) : linkedProducts.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {linkedProducts.map((guide, index) => {
-            const guideData = guide.guide_data as any;
-            const heroImage = guideData?.hero?.coverImage || guideData?.hero?.logoUrl;
-            const logoUrl = guideData?.hero?.logoUrl;
-            const tagline = guideData?.hero?.tagline;
-            const primaryColor = guideData?.colors?.[0]?.hex;
-            
-            return (
-              <div
-                key={guide.id}
-                className="group relative bg-card rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-xl hover:border-primary/30 transition-all duration-300 cursor-pointer animate-scale-in"
-                style={{ animationDelay: `${index * 50}ms` }}
-                onClick={() => openGuide(guide)}
-              >
-                {/* Guide Image/Cover */}
-                <div 
-                  className="relative h-40 overflow-hidden"
-                  style={{ 
-                    background: heroImage 
-                      ? `url(${heroImage}) center/cover` 
-                      : primaryColor 
-                        ? `linear-gradient(135deg, ${primaryColor}, ${primaryColor}88)` 
-                        : 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))'
-                  }}
-                >
-                  {/* Overlay gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  
-                  {/* Type badge */}
-                  <div className="absolute top-2 left-2">
-                    <Badge 
-                      variant={guide.type === 'brand' ? 'default' : 'secondary'}
-                      className="text-xs"
-                    >
-                      {guide.type === 'brand' ? (
-                        <><Layers className="h-3 w-3 mr-1" />Brand</>
-                      ) : (
-                        <><Package className="h-3 w-3 mr-1" />Product</>
-                      )}
-                    </Badge>
-                  </div>
-                  
-                  {/* Logo overlay if different from cover */}
-                  {logoUrl && heroImage !== logoUrl && (
-                    <div className="absolute bottom-3 left-3 w-12 h-12 bg-background/90 backdrop-blur-sm rounded-xl p-2 shadow-lg">
-                      <img src={logoUrl} alt="" className="w-full h-full object-contain" />
-                    </div>
-                  )}
-                  
-                  {/* Hover actions */}
-                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openGuide(guide);
-                      }}
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-destructive hover:text-white hover:border-destructive"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Unlink {guide.type === 'brand' ? 'Brand' : 'Product'} Guide</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This will remove "{guide.name}" from this brand guide. The {guide.type} guide itself will not be deleted.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => unlinkGuide(guide)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Unlink
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
-
-                {/* Guide Info */}
-                <div className="p-4">
-                  <h3 className="font-semibold text-foreground text-lg truncate group-hover:text-primary transition-colors">
-                    {guide.name}
-                  </h3>
-                  {tagline && (
-                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                      {tagline}
-                    </p>
-                  )}
-                  
-                  {/* Color swatches preview */}
-                  {guideData?.colors?.length > 0 && (
-                    <div className="flex gap-1 mt-3">
-                      {guideData.colors.slice(0, 5).map((color: any, i: number) => (
-                        <div 
-                          key={i}
-                          className="w-5 h-5 rounded-full border border-border shadow-sm"
-                          style={{ backgroundColor: color.hex }}
-                          title={color.name}
-                        />
-                      ))}
-                      {guideData.colors.length > 5 && (
-                        <span className="text-xs text-muted-foreground self-center ml-1">
-                          +{guideData.colors.length - 5}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={linkedProducts.map(g => g.id)}
+            strategy={rectSortingStrategy}
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {linkedProducts.map((guide, index) => (
+                <LinkedGuideCard
+                  key={guide.id}
+                  guide={guide}
+                  index={index}
+                  onOpen={openGuide}
+                  onUnlink={unlinkGuide}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       ) : (
         <div className="text-center py-12 border-2 border-dashed border-border rounded-xl">
           <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />

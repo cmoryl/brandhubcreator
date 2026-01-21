@@ -1,0 +1,189 @@
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { ExternalLink, Trash2, GripVertical, Layers, Package } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
+interface GuideItem {
+  id: string;
+  name: string;
+  guide_data: unknown;
+  type: 'brand' | 'product';
+}
+
+interface LinkedGuideCardProps {
+  guide: GuideItem;
+  index: number;
+  onOpen: (guide: GuideItem) => void;
+  onUnlink: (guide: GuideItem) => void;
+}
+
+export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideCardProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: guide.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  const guideData = guide.guide_data as any;
+  const heroImage = guideData?.hero?.coverImage || guideData?.hero?.logoUrl;
+  const logoUrl = guideData?.hero?.logoUrl;
+  const tagline = guideData?.hero?.tagline;
+  const primaryColor = guideData?.colors?.[0]?.hex;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`group relative bg-card rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-xl hover:border-primary/30 transition-all duration-300 animate-scale-in ${
+        isDragging ? 'opacity-90 shadow-2xl ring-2 ring-primary/50' : ''
+      }`}
+      {...attributes}
+    >
+      {/* Drag Handle */}
+      <div
+        {...listeners}
+        className="absolute top-2 left-2 z-20 p-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/20"
+      >
+        <GripVertical className="h-4 w-4 text-white" />
+      </div>
+
+      {/* Clickable card area */}
+      <div 
+        className="cursor-pointer"
+        onClick={() => onOpen(guide)}
+      >
+        {/* Guide Image/Cover */}
+        <div 
+          className="relative h-40 overflow-hidden"
+          style={{ 
+            background: heroImage 
+              ? `url(${heroImage}) center/cover` 
+              : primaryColor 
+                ? `linear-gradient(135deg, ${primaryColor}, ${primaryColor}88)` 
+                : 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))'
+          }}
+        >
+          {/* Overlay gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          
+          {/* Type badge */}
+          <div className="absolute top-2 left-12">
+            <Badge 
+              variant={guide.type === 'brand' ? 'default' : 'secondary'}
+              className="text-xs"
+            >
+              {guide.type === 'brand' ? (
+                <><Layers className="h-3 w-3 mr-1" />Brand</>
+              ) : (
+                <><Package className="h-3 w-3 mr-1" />Product</>
+              )}
+            </Badge>
+          </div>
+          
+          {/* Logo overlay if different from cover */}
+          {logoUrl && heroImage !== logoUrl && (
+            <div className="absolute bottom-3 left-3 w-12 h-12 bg-background/90 backdrop-blur-sm rounded-xl p-2 shadow-lg">
+              <img src={logoUrl} alt="" className="w-full h-full object-contain" />
+            </div>
+          )}
+          
+          {/* Hover actions */}
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpen(guide);
+              }}
+            >
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-destructive hover:text-white hover:border-destructive"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Unlink {guide.type === 'brand' ? 'Brand' : 'Product'} Guide</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will remove "{guide.name}" from this brand guide. The {guide.type} guide itself will not be deleted.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => onUnlink(guide)}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Unlink
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+
+        {/* Guide Info */}
+        <div className="p-4">
+          <h3 className="font-semibold text-foreground text-lg truncate group-hover:text-primary transition-colors">
+            {guide.name}
+          </h3>
+          {tagline && (
+            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+              {tagline}
+            </p>
+          )}
+          
+          {/* Color swatches preview */}
+          {guideData?.colors?.length > 0 && (
+            <div className="flex gap-1 mt-3">
+              {guideData.colors.slice(0, 5).map((color: any, i: number) => (
+                <div 
+                  key={i}
+                  className="w-5 h-5 rounded-full border border-border shadow-sm"
+                  style={{ backgroundColor: color.hex }}
+                  title={color.name}
+                />
+              ))}
+              {guideData.colors.length > 5 && (
+                <span className="text-xs text-muted-foreground self-center ml-1">
+                  +{guideData.colors.length - 5}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
