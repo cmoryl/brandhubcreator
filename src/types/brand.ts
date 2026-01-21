@@ -86,6 +86,8 @@ export interface BrandIcon {
   name: string;
   url: string;
   settings: string;
+  isPrimary?: boolean; // Mark as the main/primary symbol
+  isVariation?: boolean; // Mark as a variation of the primary
 }
 
 // GRADIENTS - Gradients
