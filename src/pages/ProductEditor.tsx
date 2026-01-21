@@ -62,6 +62,7 @@ const ProductEditor = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('full');
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
+  const [intelligenceOpen, setIntelligenceOpen] = useState(false);
 
   // Redirect unapproved users to pending approval page (admins are always allowed)
   React.useEffect(() => {
@@ -209,7 +210,7 @@ const currentProduct = getProduct(productId || '');
 
   const renderSection = () => {
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={(hero) => handleUpdateProduct({ hero })} />;
+      case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={(hero) => handleUpdateProduct({ hero })} onOpenIntelligence={() => setIntelligenceOpen(true)} />;
       case 'identity': return <IdentitySection identity={currentProduct.identity} onIdentityChange={(identity) => handleUpdateProduct({ identity })} />;
       case 'values': return <ValuesSection values={currentProduct.values} onValuesChange={(values) => handleUpdateProduct({ values })} />;
       case 'logos': return <LogoSection logos={currentProduct.logos} onLogosChange={(logos) => handleUpdateProduct({ logos })} />;
@@ -334,7 +335,7 @@ const currentProduct = getProduct(productId || '');
                 />
                 <BrandAuditButton brand={currentProduct} />
                 {!!user && (
-                  <Sheet>
+                  <Sheet open={intelligenceOpen} onOpenChange={setIntelligenceOpen}>
                     <SheetTrigger asChild>
                       <Button variant="ghost" size="icon" className="relative">
                         <Brain className="h-5 w-5" />
@@ -401,6 +402,7 @@ const currentProduct = getProduct(productId || '');
                   sectionOrder={sectionOrder}
                   hiddenSections={hiddenSections}
                   isAdmin={isGuideAdmin}
+                  onOpenIntelligence={() => setIntelligenceOpen(true)}
                 />
               )}
             </div>
