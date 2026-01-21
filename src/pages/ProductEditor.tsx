@@ -177,7 +177,7 @@ const currentProduct = getProduct(productId || '');
       case 'values': return <ValuesSection values={currentProduct.values} onValuesChange={(values) => handleUpdateProduct({ values })} />;
       case 'logos': return <LogoSection logos={currentProduct.logos} onLogosChange={(logos) => handleUpdateProduct({ logos })} />;
       case 'brandicon': return <BrandIconsSection brandIcons={currentProduct.brandIcons} onBrandIconsChange={(brandIcons) => handleUpdateProduct({ brandIcons })} />;
-      case 'colors': return <ColorPaletteSection colors={currentProduct.colors} onColorsChange={(colors) => handleUpdateProduct({ colors })} colorCombinations={currentProduct.colorCombinations} onColorCombinationsChange={(colorCombinations) => handleUpdateProduct({ colorCombinations })} />;
+      case 'colors': return <ColorPaletteSection colors={currentProduct.colors} onColorsChange={(colors) => handleUpdateProduct({ colors })} colorCombinations={currentProduct.colorCombinations} onColorCombinationsChange={(colorCombinations) => handleUpdateProduct({ colorCombinations })} brandName={currentProduct.hero.name} />;
       case 'gradients': return <GradientsSection gradients={currentProduct.gradients} onGradientsChange={(gradients) => handleUpdateProduct({ gradients })} />;
       case 'patterns': return <PatternsSection patterns={currentProduct.patterns} onPatternsChange={(patterns) => handleUpdateProduct({ patterns })} />;
       case 'typography': return <TypographySection typography={currentProduct.typography} onTypographyChange={(typography) => handleUpdateProduct({ typography })} />;
