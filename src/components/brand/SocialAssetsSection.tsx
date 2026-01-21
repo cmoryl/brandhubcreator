@@ -12,6 +12,18 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useDropZone } from '@/components/ui/drop-zone';
 
+// Some environments (older Safari / hardened iframes) may not support crypto.randomUUID.
+// If ID generation throws, this section can fail to render and appear "blank".
+const safeUUID = (): string => {
+  try {
+    const c = globalThis.crypto as Crypto | undefined;
+    if (c?.randomUUID) return c.randomUUID();
+  } catch {
+    // ignore
+  }
+  return `id_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`;
+};
+
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];
   onSocialAssetsChange: (assets: BrandSocialAssetSpec[]) => void;
@@ -730,7 +742,7 @@ export const SocialAssetsSection = ({
       hasSocialInitialized.current = true;
       const presetsWithIds = platformPresets.map(preset => ({
         ...preset,
-        id: crypto.randomUUID(),
+        id: safeUUID(),
         templates: [],
       }));
       onSocialAssetsChange(presetsWithIds);
@@ -743,7 +755,7 @@ export const SocialAssetsSection = ({
       hasBannerInitialized.current = true;
       const bannersWithIds = bannerPresets.map(preset => ({
         ...preset,
-        id: crypto.randomUUID(),
+        id: safeUUID(),
       }));
       onDisplayBannersChange(bannersWithIds);
     }
@@ -763,7 +775,7 @@ export const SocialAssetsSection = ({
   const initializeWithPresets = () => {
     const presetsWithIds = platformPresets.map(preset => ({
       ...preset,
-      id: crypto.randomUUID(),
+      id: safeUUID(),
       templates: [],
     }));
     onSocialAssetsChange(presetsWithIds);
@@ -773,16 +785,16 @@ export const SocialAssetsSection = ({
   const initializeBannerPresets = () => {
     const bannersWithIds = bannerPresets.map(preset => ({
       ...preset,
-      id: crypto.randomUUID(),
+      id: safeUUID(),
     }));
     onDisplayBannersChange(bannersWithIds);
   };
 
   const addSocialAsset = (preset?: BrandSocialAssetSpec) => {
     const newAsset: BrandSocialAssetSpec = preset
-      ? { ...preset, id: crypto.randomUUID(), templates: [] }
+      ? { ...preset, id: safeUUID(), templates: [] }
       : {
-          id: crypto.randomUUID(),
+          id: safeUUID(),
           platform: 'LinkedIn',
           postSize: '1200 x 627 px',
           altSize: '',
@@ -809,7 +821,7 @@ export const SocialAssetsSection = ({
     if (!newTemplate.name || !newTemplate.url) return;
     
     const template: SocialAssetTemplate = {
-      id: crypto.randomUUID(),
+      id: safeUUID(),
       name: newTemplate.name,
       fileType: (newTemplate.fileType as SocialAssetTemplate['fileType']) || 'other',
       url: newTemplate.url,
@@ -838,9 +850,9 @@ export const SocialAssetsSection = ({
 
   const addDisplayBanner = (preset?: BrandDisplayBannerSpec) => {
     const newBanner: BrandDisplayBannerSpec = preset
-      ? { ...preset, id: crypto.randomUUID() }
+      ? { ...preset, id: safeUUID() }
       : {
-          id: crypto.randomUUID(),
+          id: safeUUID(),
           name: 'Custom Banner',
           dimensions: '300 x 250 px',
           maxMessaging: '12 Words',
