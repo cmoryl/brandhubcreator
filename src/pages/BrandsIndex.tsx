@@ -219,26 +219,26 @@ const BrandsIndex = () => {
         {/* Dynamic Background */}
         <HeroBackground />
 
-        {/* Header */}
+        {/* Header - Mobile optimized */}
         <header className="relative z-10 animate-fade-in-down">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               {currentLogo ? (
-                <img src={currentLogo} alt={settings.appName} className="h-10 w-auto" />
+                <img src={currentLogo} alt={settings.appName} className="h-8 sm:h-10 w-auto flex-shrink-0" />
               ) : (
-                <div className="p-2.5 bg-accent/10 rounded-xl border border-accent/20 hover-scale cursor-pointer animate-bounce-gentle">
-                  <Sparkles className="h-6 w-6 text-accent" />
+                <div className="p-2 sm:p-2.5 bg-accent/10 rounded-xl border border-accent/20 hover-scale cursor-pointer animate-bounce-gentle flex-shrink-0">
+                  <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
                 </div>
               )}
-              <span className="font-semibold text-2xl text-foreground">{settings.appName}</span>
+              <span className="font-semibold text-lg sm:text-2xl text-foreground truncate">{settings.appName}</span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               
-              {/* Organization Badge for non-admins */}
+              {/* Organization Badge for non-admins - hidden on mobile */}
               {user && organization && !isAdmin && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg border border-border/50">
+                    <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg border border-border/50">
                       <Building2 className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm font-medium text-foreground max-w-32 truncate">{organization.name}</span>
                       <Badge variant="secondary" className="text-xs capitalize">
@@ -251,13 +251,16 @@ const BrandsIndex = () => {
                   </TooltipContent>
                 </Tooltip>
               )}
-              <Button variant="ghost" onClick={() => navigate('/knowledge')} className="gap-2 text-muted-foreground hover:text-foreground">
-                <HelpCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">Help</span>
+              
+              {/* Help button - icon only on mobile */}
+              <Button variant="ghost" onClick={() => navigate('/knowledge')} className="gap-2 text-muted-foreground hover:text-foreground p-2 sm:px-3" size="sm">
+                <HelpCircle className="h-5 w-5 sm:h-4 sm:w-4" />
+                <span className="hidden md:inline">Help</span>
               </Button>
 
               <SyncStatusIndicator />
 
+              {/* Public Portal - icon only on mobile */}
               {user && organization && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -265,11 +268,11 @@ const BrandsIndex = () => {
                       variant="outline" 
                       size="sm"
                       onClick={() => window.open(`/org/${organization.slug}`, '_blank')}
-                      className="gap-2"
+                      className="gap-2 p-2 sm:px-3"
                     >
-                      <Globe className="h-4 w-4" />
-                      <span className="hidden sm:inline">Public Portal</span>
-                      <ExternalLink className="h-3 w-3" />
+                      <Globe className="h-5 w-5 sm:h-4 sm:w-4" />
+                      <span className="hidden md:inline">Public Portal</span>
+                      <ExternalLink className="h-3 w-3 hidden sm:block" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -349,32 +352,32 @@ const BrandsIndex = () => {
           </div>
         </header>
 
-        {/* Hero Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-24">
+        {/* Hero Content - Mobile optimized */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-12 pb-16 sm:pb-24">
           <div className="max-w-3xl">
-            <div className="flex items-center gap-2 mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <div className="px-3 py-1 bg-accent/10 rounded-full border border-accent/20">
+            <div className="flex flex-wrap items-center gap-2 mb-4 sm:mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+              <div className="px-2.5 sm:px-3 py-1 bg-accent/10 rounded-full border border-accent/20">
                 <span className="text-xs font-medium text-accent">{settings.heroBadgeText}</span>
               </div>
               {canEdit && (
-                <div className="px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20">
+                <div className="px-2.5 sm:px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20">
                   <span className="text-xs font-medium text-green-600 dark:text-green-400">Edit Mode</span>
                 </div>
               )}
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-foreground mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold text-foreground mb-4 sm:mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               {settings.heroTitle}<br />
               <span className="text-accent">{settings.heroHighlight}</span>
             </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
               {settings.heroDescription}
             </p>
-            <div className="flex flex-wrap gap-4 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
               {canEdit ? (
                 <>
                   <Button 
                     size="lg" 
-                    className="gap-2"
+                    className="gap-2 w-full sm:w-auto touch-manipulation"
                     onClick={() => { setNewItemType('brand'); setIsNewDialogOpen(true); }}
                   >
                     <Plus className="h-5 w-5" />
@@ -383,7 +386,7 @@ const BrandsIndex = () => {
                   <Button 
                     size="lg" 
                     variant="outline"
-                    className="gap-2"
+                    className="gap-2 w-full sm:w-auto touch-manipulation"
                     onClick={() => { setNewItemType('product'); setIsNewDialogOpen(true); }}
                   >
                     <Package className="h-5 w-5" />
@@ -393,7 +396,7 @@ const BrandsIndex = () => {
               ) : (
                 <Button 
                   size="lg" 
-                  className="gap-2"
+                  className="gap-2 w-full sm:w-auto touch-manipulation"
                   onClick={() => navigate('/auth')}
                 >
                   <Lock className="h-5 w-5" />
@@ -419,19 +422,19 @@ const BrandsIndex = () => {
               </div>
             )}
 
-            {/* Stats */}
-            <div className="flex items-center gap-8 mt-12 pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+            {/* Stats - Mobile optimized */}
+            <div className="flex items-center gap-6 sm:gap-8 mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
               <div>
-                <p className="text-3xl font-semibold text-foreground">{sortedBrands.length}</p>
-                <p className="text-sm text-muted-foreground">Brand Guides</p>
+                <p className="text-2xl sm:text-3xl font-semibold text-foreground">{sortedBrands.length}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Brand Guides</p>
               </div>
               <div>
-                <p className="text-3xl font-semibold text-foreground">{sortedProducts.length}</p>
-                <p className="text-sm text-muted-foreground">Product Guides</p>
+                <p className="text-2xl sm:text-3xl font-semibold text-foreground">{sortedProducts.length}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Product Guides</p>
               </div>
               <div>
-                <p className="text-3xl font-semibold text-foreground">∞</p>
-                <p className="text-sm text-muted-foreground">Possibilities</p>
+                <p className="text-2xl sm:text-3xl font-semibold text-foreground">∞</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Possibilities</p>
               </div>
             </div>
           </div>
@@ -554,30 +557,36 @@ const BrandsIndex = () => {
       {user && (
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <Tabs defaultValue="brands" className="w-full">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <TabsList className="w-full sm:w-auto overflow-x-auto">
-              <TabsTrigger value="brands" className="gap-2 text-xs sm:text-sm">
-                <Sparkles className="h-4 w-4" />
-                <span className="hidden xs:inline">Brands</span> ({sortedBrands.length})
+          <div className="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8">
+            {/* Tabs - Full width scrollable on mobile */}
+            <TabsList className="w-full sm:w-auto overflow-x-auto justify-start sm:justify-center">
+              <TabsTrigger value="brands" className="gap-2 text-xs sm:text-sm flex-1 sm:flex-none min-w-0">
+                <Sparkles className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">Brands</span>
+                <span className="text-muted-foreground">({sortedBrands.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="products" className="gap-2 text-xs sm:text-sm">
-                <Package className="h-4 w-4" />
-                <span className="hidden xs:inline">Products</span> ({sortedProducts.length})
+              <TabsTrigger value="products" className="gap-2 text-xs sm:text-sm flex-1 sm:flex-none min-w-0">
+                <Package className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">Products</span>
+                <span className="text-muted-foreground">({sortedProducts.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="favorites" className="gap-2 text-xs sm:text-sm">
-                <Star className="h-4 w-4" />
-                <span className="hidden xs:inline">Favorites</span> ({favorites.length})
+              <TabsTrigger value="favorites" className="gap-2 text-xs sm:text-sm flex-1 sm:flex-none min-w-0">
+                <Star className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">Favorites</span>
+                <span className="text-muted-foreground">({favorites.length})</span>
               </TabsTrigger>
             </TabsList>
+            
+            {/* Action buttons - Full width on mobile */}
             {canEdit && (
-              <div className="flex gap-2 w-full sm:w-auto">
-                <Button onClick={() => { setNewItemType('brand'); setIsNewDialogOpen(true); }} variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none">
+              <div className="flex gap-2 w-full sm:w-auto sm:self-end">
+                <Button onClick={() => { setNewItemType('brand'); setIsNewDialogOpen(true); }} variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none touch-manipulation">
                   <Plus className="h-4 w-4" />
-                  <span className="sm:inline">New Brand</span>
+                  <span>New Brand</span>
                 </Button>
-                <Button onClick={() => { setNewItemType('product'); setIsNewDialogOpen(true); }} size="sm" className="gap-2 flex-1 sm:flex-none">
+                <Button onClick={() => { setNewItemType('product'); setIsNewDialogOpen(true); }} size="sm" className="gap-2 flex-1 sm:flex-none touch-manipulation">
                   <Package className="h-4 w-4" />
-                  <span className="sm:inline">New Product</span>
+                  <span>New Product</span>
                 </Button>
               </div>
             )}

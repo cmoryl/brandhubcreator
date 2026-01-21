@@ -355,8 +355,9 @@ export const ProductsSection = ({
   const availableProductsList = availableGuides.filter(g => g.type === 'product');
 
   return (
-    <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+    <section className="space-y-4 sm:space-y-6">
+      {/* Mobile-optimized header with stacked layout */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <SectionHeader
             title="Product Guides"
@@ -368,7 +369,8 @@ export const ProductsSection = ({
           />
         </div>
         
-        <div className="flex items-center gap-2 flex-wrap">
+        {/* Controls - stack on mobile, inline on desktop */}
+        <div className="flex flex-wrap items-center gap-2">
           {onLayoutChange && (
             <LayoutSelector
               value={layout}
@@ -421,9 +423,9 @@ export const ProductsSection = ({
           
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
+              <Button className="gap-2 w-full sm:w-auto">
                 <Plus className="h-4 w-4" />
-                New Product Guide
+                <span className="sm:inline">New Product Guide</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -458,9 +460,9 @@ export const ProductsSection = ({
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-32 bg-muted animate-pulse rounded-xl" />
+            <div key={i} className="h-40 sm:h-32 bg-muted animate-pulse rounded-xl" />
           ))}
         </div>
       ) : linkedProducts.length > 0 ? (
