@@ -16,6 +16,7 @@ import { IconographySection } from './IconographySection';
 import { SocialIconsSection } from './SocialIconsSection';
 import { ImagerySection } from './ImagerySection';
 import { SocialSection } from './SocialSection';
+import { SocialAssetsSection } from './SocialAssetsSection';
 import { WebsiteSection } from './WebsiteSection';
 import { SignaturesSection } from './SignaturesSection';
 import { QRSection } from './QRSection';
@@ -47,6 +48,7 @@ const sectionAnimations: Record<string, AnimationType> = {
   socialicons: 'fade-up',
   imagery: 'blur-in',
   social: 'fade-left',
+  socialassets: 'fade-up',
   website: 'fade-right',
   signatures: 'fade-up',
   qr: 'zoom-in',
@@ -222,6 +224,7 @@ export const FullBrandPage = ({
       case 'socialicons': return <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={(socialIcons) => onBrandUpdate({ socialIcons })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={(imagery) => onBrandUpdate({ imagery })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'social': return <SocialSection social={brand.social} onSocialChange={(social) => onBrandUpdate({ social })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'socialassets': return <SocialAssetsSection socialAssets={brand.socialAssets || []} onSocialAssetsChange={(socialAssets) => onBrandUpdate({ socialAssets })} displayBanners={brand.displayBanners || []} onDisplayBannersChange={(displayBanners) => onBrandUpdate({ displayBanners })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />;
       case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={(websites) => onBrandUpdate({ websites })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={(signatures) => onBrandUpdate({ signatures })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'qr': return <QRSection qr={brand.qr} onQRChange={(qr) => onBrandUpdate({ qr })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
