@@ -261,6 +261,7 @@ export interface BrandTemplate {
   externalUrl?: string; // External link (Dropbox, Google Drive, etc.)
   thumbnailUrl?: string; // Preview thumbnail for the asset
   description?: string; // Optional description
+  isEmbeddedFolder?: boolean; // If true, shows as embedded folder browser
 }
 
 // SERVICES - Service Offerings
