@@ -40,6 +40,7 @@ import { DemoGuidesManager } from '@/components/admin/DemoGuidesManager';
 import { UserApprovalManager } from '@/components/admin/UserApprovalManager';
 import { BrandAnalyticsHub } from '@/components/admin/BrandAnalyticsHub';
 import { BulkRepairTool } from '@/components/admin/BulkRepairTool';
+import { HiddenSectionsScanner } from '@/components/admin/HiddenSectionsScanner';
 
 interface DashboardStats {
   totalUsers: number;
@@ -1070,6 +1071,7 @@ export default function AdminDashboard() {
 
           {/* Repair Tab */}
           <TabsContent value="repair" className="space-y-6">
+            <HiddenSectionsScanner />
             <BulkRepairTool />
           </TabsContent>
         </Tabs>
