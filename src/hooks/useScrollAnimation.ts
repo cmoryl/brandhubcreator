@@ -37,6 +37,14 @@ export function useScrollAnimation<T extends HTMLElement = HTMLDivElement>({
     const element = ref.current;
     if (!element) return;
 
+    // If IntersectionObserver isn't available, show content immediately.
+    // Otherwise sections can stay invisible (opacity: 0) and appear "blank".
+    if (typeof IntersectionObserver === 'undefined') {
+      setIsVisible(true);
+      setHasAnimated(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
