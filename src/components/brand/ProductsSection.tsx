@@ -3,12 +3,14 @@ import { Plus, Package, Layers, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
 import { LinkedGuideCard } from './LinkedGuideCard';
+import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useBrands } from '@/contexts/BrandContext';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { LayoutPreset } from '@/types/brand';
 import {
   DndContext,
   closestCenter,
@@ -62,6 +64,8 @@ interface ProductsSectionProps {
   onLinkedGuidesChange?: (guides: LinkedGuide[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  layout?: LayoutPreset;
+  onLayoutChange?: (layout: LayoutPreset) => void;
 }
 
 export const ProductsSection = ({ 
@@ -69,10 +73,13 @@ export const ProductsSection = ({
   linkedGuides = [],
   onLinkedGuidesChange,
   customSubtitle, 
-  onSubtitleChange 
+  onSubtitleChange,
+  layout = 'grid-4',
+  onLayoutChange
 }: ProductsSectionProps) => {
   const [allGuides, setAllGuides] = useState<GuideItem[]>([]);
   const [linkedProducts, setLinkedProducts] = useState<GuideItem[]>([]);
+  const { gridClass } = useLayoutClasses(layout);
   const [availableGuides, setAvailableGuides] = useState<GuideItem[]>([]);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -324,7 +331,15 @@ export const ProductsSection = ({
           />
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {onLayoutChange && (
+            <LayoutSelector
+              value={layout}
+              onChange={onLayoutChange}
+              availableLayouts={['grid-2', 'grid-3', 'grid-4', 'large-cards']}
+              size="sm"
+            />
+          )}
           {availableGuides.length > 0 && (
             <Select onValueChange={linkGuide}>
               <SelectTrigger className="w-[220px]">
@@ -421,7 +436,7 @@ export const ProductsSection = ({
             items={linkedProducts.map(g => g.id)}
             strategy={rectSortingStrategy}
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className={gridClass}>
               {linkedProducts.map((guide, index) => (
                 <LinkedGuideCard
                   key={guide.id}

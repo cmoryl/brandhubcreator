@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
 import { Plus, X, Pencil, Upload, Download, Package } from 'lucide-react';
-import { BrandPattern } from '@/types/brand';
+import { BrandPattern, LayoutPreset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SectionHeader } from './SectionHeader';
+import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
 import { toast } from 'sonner';
 
 interface PatternsSectionProps {
@@ -11,12 +12,15 @@ interface PatternsSectionProps {
   onPatternsChange: (patterns: BrandPattern[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  layout?: LayoutPreset;
+  onLayoutChange?: (layout: LayoutPreset) => void;
 }
 
-export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, onSubtitleChange }: PatternsSectionProps) => {
+export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, onSubtitleChange, layout = 'grid-3', onLayoutChange }: PatternsSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { gridClass } = useLayoutClasses(layout);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -90,6 +94,14 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
           />
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          {onLayoutChange && (
+            <LayoutSelector
+              value={layout}
+              onChange={onLayoutChange}
+              availableLayouts={['grid-2', 'grid-3', 'grid-4', 'compact']}
+              size="sm"
+            />
+          )}
           {patterns.length > 0 && (
             <Button onClick={downloadAllPatterns} variant="outline" size="sm" className="gap-2">
               <Package className="h-4 w-4" />
@@ -111,7 +123,7 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
         className="hidden"
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className={gridClass}>
         {patterns.map((pattern, index) => (
           <div
             key={pattern.id}

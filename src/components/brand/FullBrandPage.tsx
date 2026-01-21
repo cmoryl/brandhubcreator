@@ -1,5 +1,5 @@
 import { useRef, useEffect, memo, useMemo, useCallback } from 'react';
-import { BaseGuide, SectionId, DEFAULT_SECTION_ORDER } from '@/types/brand';
+import { BaseGuide, SectionId, DEFAULT_SECTION_ORDER, LayoutPreset } from '@/types/brand';
 import { HeroSection } from './HeroSection';
 import { TaglineSection } from './TaglineSection';
 import { IdentitySection } from './IdentitySection';
@@ -136,6 +136,7 @@ export const FullBrandPage = ({
   }, []);
 
   const sectionSubtitles = brand.sectionSubtitles || {};
+  const sectionLayouts = brand.sectionLayouts || {};
 
   const handleSubtitleChange = useCallback((sectionId: SectionId) => (subtitle: string) => {
     onBrandUpdate({
@@ -146,10 +147,21 @@ export const FullBrandPage = ({
     });
   }, [onBrandUpdate, sectionSubtitles]);
 
+  const handleLayoutChange = useCallback((sectionId: SectionId) => (layout: LayoutPreset) => {
+    onBrandUpdate({
+      sectionLayouts: {
+        ...sectionLayouts,
+        [sectionId]: layout,
+      },
+    });
+  }, [onBrandUpdate, sectionLayouts]);
+
   // Memoize section content to prevent unnecessary re-renders
   const renderSection = useCallback((sectionId: SectionId) => {
     const customSubtitle = sectionSubtitles[sectionId];
     const onSubtitleChange = handleSubtitleChange(sectionId);
+    const layout = sectionLayouts[sectionId];
+    const onLayoutChange = handleLayoutChange(sectionId);
 
     switch (sectionId) {
       case 'hero': return <HeroSection hero={brand.hero} onHeroChange={(hero) => onBrandUpdate({ hero })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} fullWidth={heroFullWidth} />;
@@ -160,8 +172,8 @@ export const FullBrandPage = ({
       case 'logos': return <LogoSection logos={brand.logos} onLogosChange={(logos) => onBrandUpdate({ logos })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={(brandIcons) => onBrandUpdate({ brandIcons })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={(colors) => onBrandUpdate({ colors })} colorCombinations={brand.colorCombinations} onColorCombinationsChange={(colorCombinations) => onBrandUpdate({ colorCombinations })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
-      case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={(gradients) => onBrandUpdate({ gradients })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
-      case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={(patterns) => onBrandUpdate({ patterns })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={(gradients) => onBrandUpdate({ gradients })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />;
+      case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={(patterns) => onBrandUpdate({ patterns })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />;
       case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={(typography) => onBrandUpdate({ typography })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={(textStyles) => onBrandUpdate({ textStyles })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={(iconography) => onBrandUpdate({ iconography })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} defaultIconColor={brand.defaultIconColor} onDefaultIconColorChange={(defaultIconColor) => onBrandUpdate({ defaultIconColor })} />;
@@ -177,10 +189,10 @@ export const FullBrandPage = ({
       case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies} onCaseStudiesChange={(caseStudies) => onBrandUpdate({ caseStudies })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'brochures': return <BrochuresSection brochures={brand.brochures} onBrochuresChange={(brochures) => onBrandUpdate({ brochures })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={(templates) => onBrandUpdate({ templates })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
-      case 'products': return brand.type === 'brand' ? <ProductsSection brandId={brandId} linkedGuides={brand.linkedGuides || []} onLinkedGuidesChange={(linkedGuides) => onBrandUpdate({ linkedGuides })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} /> : null;
+      case 'products': return brand.type === 'brand' ? <ProductsSection brandId={brandId} linkedGuides={brand.linkedGuides || []} onLinkedGuidesChange={(linkedGuides) => onBrandUpdate({ linkedGuides })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} /> : null;
       default: return null;
     }
-  }, [brand, brandId, onBrandUpdate, sectionSubtitles, handleSubtitleChange]);
+  }, [brand, brandId, onBrandUpdate, sectionSubtitles, sectionLayouts, handleSubtitleChange, handleLayoutChange, heroFullWidth]);
 
   // Filter out hidden sections for non-admin users - memoized
   const visibleSections = useMemo(() => 

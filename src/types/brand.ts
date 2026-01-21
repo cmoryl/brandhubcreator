@@ -280,6 +280,18 @@ export interface BrandService {
   imageUrl?: string; // Optional custom image
 }
 
+// SECTION LAYOUTS - Per-section layout preferences
+export type LayoutPreset = 
+  | 'grid-2'      // 2 columns
+  | 'grid-3'      // 3 columns  
+  | 'grid-4'      // 4 columns
+  | 'list'        // Horizontal list view
+  | 'large-cards' // Large 2-column cards
+  | 'compact';    // Compact small cards (5+ columns)
+
+// Section layout settings stored per-section
+export type SectionLayoutSettings = Partial<Record<SectionId, LayoutPreset>>;
+
 // Default page settings
 export const DEFAULT_PAGE_SETTINGS: BrandPageSettings = {
   backgroundType: 'inherit',
@@ -311,6 +323,8 @@ export interface BaseGuide {
   hiddenSections?: SectionId[];
   // Section subtitles (custom descriptions for each section)
   sectionSubtitles?: Partial<Record<SectionId, string>>;
+  // Section layout settings (per-section layout preferences)
+  sectionLayouts?: SectionLayoutSettings;
   // Page display settings (individual brand customization)
   pageSettings?: BrandPageSettings;
   // Hero
