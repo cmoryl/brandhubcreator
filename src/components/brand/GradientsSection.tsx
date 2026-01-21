@@ -1,22 +1,26 @@
 import { useState } from 'react';
 import { Plus, X, Pencil, Copy, Check } from 'lucide-react';
-import { BrandGradient } from '@/types/brand';
+import { BrandGradient, LayoutPreset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { SectionHeader } from './SectionHeader';
+import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
 
 interface GradientsSectionProps {
   gradients: BrandGradient[];
   onGradientsChange: (gradients: BrandGradient[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  layout?: LayoutPreset;
+  onLayoutChange?: (layout: LayoutPreset) => void;
 }
 
-export const GradientsSection = ({ gradients, onGradientsChange, customSubtitle, onSubtitleChange }: GradientsSectionProps) => {
+export const GradientsSection = ({ gradients, onGradientsChange, customSubtitle, onSubtitleChange, layout = 'grid-3', onLayoutChange }: GradientsSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const { gridClass, cardClass, isListView } = useLayoutClasses(layout);
 
   const addGradient = () => {
     const newGradient: BrandGradient = {
@@ -45,8 +49,8 @@ export const GradientsSection = ({ gradients, onGradientsChange, customSubtitle,
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex-1 min-w-0">
           <SectionHeader
             title="Gradients"
             defaultSubtitle="Define atmospheric depth with CSS gradients"
@@ -56,25 +60,35 @@ export const GradientsSection = ({ gradients, onGradientsChange, customSubtitle,
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button onClick={addGradient} size="sm" className="gap-2 shrink-0">
-          <Plus className="h-4 w-4" />
-          Add Gradient
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          {onLayoutChange && (
+            <LayoutSelector
+              value={layout}
+              onChange={onLayoutChange}
+              availableLayouts={['grid-2', 'grid-3', 'grid-4', 'compact']}
+              size="sm"
+            />
+          )}
+          <Button onClick={addGradient} size="sm" className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Gradient
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className={gridClass}>
         {gradients.map((gradient, index) => (
           <div
             key={gradient.id}
             className="group relative bg-card rounded-xl overflow-hidden shadow-sm border border-border animate-scale-in"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-            {/* Gradient preview */}
-            <div
-              className="h-32 relative cursor-pointer"
-              style={{ background: gradient.css }}
-              onClick={() => copyCSS(gradient.css, gradient.id)}
-            >
+          {/* Gradient preview */}
+          <div
+            className={`${isListView ? 'w-24 h-full' : 'h-32'} relative cursor-pointer`}
+            style={{ background: gradient.css }}
+            onClick={() => copyCSS(gradient.css, gradient.id)}
+          >
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
                 {copiedId === gradient.id ? (
                   <div className="flex items-center gap-1 text-white text-sm font-medium">
