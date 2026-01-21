@@ -38,6 +38,7 @@ import { AIMarketAnalysis } from '@/components/admin/AIMarketAnalysis';
 import { DataInspector } from '@/components/admin/DataInspector';
 import { DemoGuidesManager } from '@/components/admin/DemoGuidesManager';
 import { UserApprovalManager } from '@/components/admin/UserApprovalManager';
+import { BrandAnalyticsHub } from '@/components/admin/BrandAnalyticsHub';
 
 interface DashboardStats {
   totalUsers: number;
@@ -458,6 +459,10 @@ export default function AdminDashboard() {
               <FileText className="h-4 w-4" />
               Reports
             </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </TabsTrigger>
             <TabsTrigger value="ai-analysis" className="gap-2">
               <Brain className="h-4 w-4" />
               AI Analysis
@@ -841,6 +846,11 @@ export default function AdminDashboard() {
           {/* Reports Tab */}
           <TabsContent value="reports" className="space-y-6">
             <BrandReportGenerator />
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <BrandAnalyticsHub />
           </TabsContent>
 
           {/* AI Analysis Tab */}
