@@ -56,17 +56,18 @@ export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideC
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative bg-card rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-xl hover:border-primary/30 transition-all duration-300 animate-scale-in ${
+      className={`group relative bg-card rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-xl hover:border-primary/30 transition-all duration-300 animate-scale-in touch-manipulation ${
         isDragging ? 'opacity-90 shadow-2xl ring-2 ring-primary/50' : ''
       }`}
       {...attributes}
     >
-      {/* Drag Handle */}
+      {/* Drag Handle - Always visible on mobile for better discoverability */}
       <div
         {...listeners}
-        className="absolute top-2 left-2 z-20 p-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/20"
+        className="absolute top-2 left-2 z-20 p-2 sm:p-1.5 bg-white/20 sm:bg-white/10 backdrop-blur-sm border border-white/30 sm:border-white/20 rounded-lg cursor-grab active:cursor-grabbing opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/30 active:bg-white/40"
+        aria-label="Drag to reorder"
       >
-        <GripVertical className="h-4 w-4 text-white" />
+        <GripVertical className="h-5 w-5 sm:h-4 sm:w-4 text-white" />
       </div>
 
       {/* Clickable card area */}
@@ -74,9 +75,9 @@ export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideC
         className="cursor-pointer"
         onClick={() => onOpen(guide)}
       >
-        {/* Guide Image/Cover */}
+        {/* Guide Image/Cover - Taller on mobile for better visual impact */}
         <div 
-          className="relative h-40 overflow-hidden"
+          className="relative h-48 sm:h-40 overflow-hidden"
           style={{ 
             background: heroImage 
               ? `url(${heroImage}) center/cover` 
@@ -109,28 +110,30 @@ export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideC
             </div>
           )}
           
-          {/* Hover actions */}
-          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Actions - Always visible on mobile, hover on desktop */}
+          <div className="absolute top-2 right-2 flex gap-1.5 sm:gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20"
+              className="h-10 w-10 sm:h-8 sm:w-8 bg-white/20 sm:bg-white/10 backdrop-blur-sm border border-white/30 sm:border-white/20 text-white hover:bg-white/30 active:bg-white/40"
               onClick={(e) => {
                 e.stopPropagation();
                 onOpen(guide);
               }}
+              aria-label="Open guide"
             >
-              <ExternalLink className="h-4 w-4" />
+              <ExternalLink className="h-5 w-5 sm:h-4 sm:w-4" />
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-destructive hover:text-white hover:border-destructive"
+                  className="h-10 w-10 sm:h-8 sm:w-8 bg-white/20 sm:bg-white/10 backdrop-blur-sm border border-white/30 sm:border-white/20 text-white hover:bg-destructive active:bg-destructive hover:text-white hover:border-destructive"
                   onClick={(e) => e.stopPropagation()}
+                  aria-label="Unlink guide"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-5 w-5 sm:h-4 sm:w-4" />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent onClick={(e) => e.stopPropagation()}>
@@ -154,13 +157,13 @@ export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideC
           </div>
         </div>
 
-        {/* Guide Info */}
-        <div className="p-4">
-          <h3 className="font-semibold text-foreground text-lg truncate group-hover:text-primary transition-colors">
+        {/* Guide Info - Better spacing on mobile */}
+        <div className="p-5 sm:p-4">
+          <h3 className="font-semibold text-foreground text-lg sm:text-base truncate group-hover:text-primary transition-colors">
             {guide.name}
           </h3>
           {tagline && (
-            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+            <p className="text-sm text-muted-foreground line-clamp-2 mt-1.5 sm:mt-1">
               {tagline}
             </p>
           )}
