@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Package, Star } from 'lucide-react';
+import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain } from 'lucide-react';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings } from '@/types/brand';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { ShareButton } from '@/components/brand/ShareButton';
@@ -33,6 +34,7 @@ import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
+import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -48,6 +50,7 @@ const ProductEditor = () => {
   const navigate = useNavigate();
   const { getProduct, updateProduct, toggleFavorite, isLoading } = useBrands();
   const { user, isAdmin, isApproved, isLoading: authLoading } = useAuth();
+  const { userRole: orgRole } = useOrganization();
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -284,6 +287,26 @@ const currentProduct = getProduct(productId || '');
                   canEdit={!!user && isAdmin}
                 />
                 <BrandAuditButton brand={currentProduct} />
+                {!!user && (
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon" className="relative">
+                        <Brain className="h-5 w-5" />
+                        <span className="sr-only">Product Intelligence</span>
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="w-full sm:w-[540px] sm:max-w-xl p-0 overflow-y-auto">
+                      <div className="p-6">
+                        <BrandIntelligencePanel
+                          entityType="product"
+                          entityId={currentProduct.id}
+                          entityName={currentProduct.hero.name}
+                          organizationId={currentProduct.organizationId}
+                        />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                )}
                 {!!user && (
                   <BrandPageSettingsEditor 
                     settings={pageSettings} 

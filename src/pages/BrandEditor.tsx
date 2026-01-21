@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star } from 'lucide-react';
+import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Brain } from 'lucide-react';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, BrandGuide } from '@/types/brand';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,6 +40,7 @@ import { ProductsSection } from '@/components/brand/ProductsSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
+import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { HeroBackground } from '@/components/HeroBackground';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
@@ -520,7 +521,27 @@ const BrandEditor = () => {
                 />
                 <BrandAuditButton brand={brand} />
                 {canEdit && (
-                  <BrandPageSettingsEditor 
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon" className="relative">
+                        <Brain className="h-5 w-5" />
+                        <span className="sr-only">Brand Intelligence</span>
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="w-full sm:w-[540px] sm:max-w-xl p-0 overflow-y-auto">
+                      <div className="p-6">
+                        <BrandIntelligencePanel
+                          entityType="brand"
+                          entityId={brand.id}
+                          entityName={brand.hero.name}
+                          organizationId={brand.organizationId}
+                        />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                )}
+                {canEdit && (
+                  <BrandPageSettingsEditor
                     settings={pageSettings} 
                     onSettingsChange={handlePageSettingsChange} 
                   />
