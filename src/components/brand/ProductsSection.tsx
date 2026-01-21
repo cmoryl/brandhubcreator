@@ -195,7 +195,10 @@ export const ProductsSection = ({
 
   const linkGuide = async (guideId: string) => {
     const guide = availableGuides.find(g => g.id === guideId);
-    if (!guide) return;
+    if (!guide) {
+      console.error('Guide not found:', guideId);
+      return;
+    }
 
     if (guide.type === 'product') {
       // For products, update parent_brand_id
@@ -206,8 +209,22 @@ export const ProductsSection = ({
           .eq('id', guideId);
 
         if (error) throw error;
+        
+        // Immediately update local state for instant UI feedback
+        setLinkedProducts(prev => [...prev, guide]);
+        setAvailableGuides(prev => prev.filter(g => g.id !== guideId));
+        
+        // Also add to linkedGuides for persistence
+        if (onLinkedGuidesChange) {
+          const newLinkedGuide: LinkedGuide = {
+            id: crypto.randomUUID(),
+            guideId: guideId,
+            guideType: 'product'
+          };
+          onLinkedGuidesChange([...linkedGuides, newLinkedGuide]);
+        }
+        
         toast.success('Product guide linked');
-        fetchGuides();
       } catch (error) {
         console.error('Error linking product:', error);
         toast.error('Failed to link product guide');
@@ -221,7 +238,14 @@ export const ProductsSection = ({
           guideType: 'brand'
         };
         onLinkedGuidesChange([...linkedGuides, newLinkedGuide]);
+        
+        // Immediately update local state for instant UI feedback
+        setLinkedProducts(prev => [...prev, guide]);
+        setAvailableGuides(prev => prev.filter(g => g.id !== guideId));
+        
         toast.success('Brand guide linked');
+      } else {
+        toast.error('Unable to link guide - handler not available');
       }
     }
   };
