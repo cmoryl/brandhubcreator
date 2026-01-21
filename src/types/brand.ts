@@ -264,6 +264,13 @@ export interface BrandTemplate {
   isEmbeddedFolder?: boolean; // If true, shows as embedded folder browser
 }
 
+// LINKED GUIDES - References to other brand/product guides
+export interface LinkedGuideReference {
+  id: string;
+  guideId: string;
+  guideType: 'brand' | 'product';
+}
+
 // SERVICES - Service Offerings
 export interface BrandService {
   id: string;
@@ -362,6 +369,8 @@ export interface BaseGuide {
   templates: BrandTemplate[];
   // Services (Service Offerings)
   services: BrandService[];
+  // Linked Guides (for Product Guides section - links to other brand/product guides)
+  linkedGuides?: LinkedGuideReference[];
   // Metadata
   createdAt: Date;
   updatedAt: Date;
