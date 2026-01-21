@@ -16,24 +16,39 @@ export type Database = {
     Tables: {
       audit_logs: {
         Row: {
+          action_type: string
           brand_id: string
           created_at: string
+          details: Json | null
+          entity_name: string | null
           entity_type: string
           id: string
+          ip_address: string | null
+          user_email: string | null
           user_id: string
         }
         Insert: {
+          action_type?: string
           brand_id: string
           created_at?: string
+          details?: Json | null
+          entity_name?: string | null
           entity_type?: string
           id?: string
+          ip_address?: string | null
+          user_email?: string | null
           user_id: string
         }
         Update: {
+          action_type?: string
           brand_id?: string
           created_at?: string
+          details?: Json | null
+          entity_name?: string | null
           entity_type?: string
           id?: string
+          ip_address?: string | null
+          user_email?: string | null
           user_id?: string
         }
         Relationships: []
