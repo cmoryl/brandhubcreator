@@ -35,27 +35,14 @@ const platformIcons: Record<string, React.ElementType> = {
   'Snapchat': Smartphone,
 };
 
-const fileTypeIcons: Record<string, { icon: React.ElementType; color: string; label: string }> = {
-  'psd': { icon: FileType, color: 'text-blue-500', label: 'Photoshop' },
-  'figma': { icon: Figma, color: 'text-purple-500', label: 'Figma' },
-  'canva': { icon: FileType, color: 'text-cyan-500', label: 'Canva' },
-  'ai': { icon: FileType, color: 'text-orange-500', label: 'Illustrator' },
-  'sketch': { icon: FileType, color: 'text-yellow-500', label: 'Sketch' },
-  'xd': { icon: FileType, color: 'text-pink-500', label: 'Adobe XD' },
-  'other': { icon: FileType, color: 'text-muted-foreground', label: 'Other' },
-};
-
-// Platform brand colors for visual identification
-const platformColors: Record<string, string> = {
-  'LinkedIn': '#0A66C2',
-  'X (Twitter)': '#000000',
-  'Instagram': '#E4405F',
-  'Facebook': '#1877F2',
-  'YouTube': '#FF0000',
-  'TikTok': '#000000',
-  'Pinterest': '#BD081C',
-  'Threads': '#000000',
-  'Snapchat': '#FFFC00',
+const fileTypeIcons: Record<string, { icon: React.ElementType; className: string; label: string }> = {
+  psd: { icon: FileType, className: 'text-primary', label: 'Photoshop' },
+  figma: { icon: Figma, className: 'text-accent', label: 'Figma' },
+  canva: { icon: FileType, className: 'text-primary', label: 'Canva' },
+  ai: { icon: FileType, className: 'text-accent', label: 'Illustrator' },
+  sketch: { icon: FileType, className: 'text-muted-foreground', label: 'Sketch' },
+  xd: { icon: FileType, className: 'text-muted-foreground', label: 'Adobe XD' },
+  other: { icon: FileType, className: 'text-muted-foreground', label: 'Other' },
 };
 
 // Default background images for each platform
@@ -72,7 +59,7 @@ const platformDefaultImages: Record<string, string> = {
 
 const platformPresets: BrandSocialAssetSpec[] = [
   {
-    id: crypto.randomUUID(),
+    id: 'preset-linkedin',
     platform: 'LinkedIn',
     postSize: '1200 x 627 px',
     altSize: '1584 x 396 px (Banner)',
@@ -84,7 +71,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     previewImageUrl: '/images/social-defaults/linkedin-default.jpg',
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-x',
     platform: 'X (Twitter)',
     postSize: '1600 x 900 px',
     altSize: '1500 x 500 px (Header)',
@@ -96,7 +83,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     previewImageUrl: '/images/social-defaults/twitter-default.jpg',
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-instagram',
     platform: 'Instagram',
     postSize: '1080 x 1080 px (1:1)',
     altSize: '1080 x 566 px (Landscape)',
@@ -109,7 +96,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     previewImageUrl: '/images/social-defaults/instagram-default.jpg',
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-facebook',
     platform: 'Facebook',
     postSize: '1200 x 630 px',
     altSize: '1200 x 1200 px (Square)',
@@ -121,7 +108,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     previewImageUrl: '/images/social-defaults/facebook-default.jpg',
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-youtube',
     platform: 'YouTube',
     postSize: '1280 x 720 px (Thumbnail)',
     altSize: '2560 x 1440 px (Channel Art)',
@@ -134,7 +121,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     previewImageUrl: '/images/social-defaults/youtube-default.jpg',
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-tiktok',
     platform: 'TikTok',
     postSize: '1080 x 1920 px (9:16)',
     altSize: 'N/A',
@@ -147,7 +134,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     previewImageUrl: '/images/social-defaults/tiktok-default.jpg',
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-pinterest',
     platform: 'Pinterest',
     postSize: '1000 x 1500 px (2:3)',
     altSize: '1000 x 1000 px (Square)',
@@ -159,7 +146,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     previewImageUrl: '/images/social-defaults/pinterest-default.jpg',
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-threads',
     platform: 'Threads',
     postSize: '1080 x 1080 px',
     altSize: '1080 x 566 px (Landscape)',
@@ -176,7 +163,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
 const bannerPresets: BrandDisplayBannerSpec[] = [
   // Desktop/Universal Banners
   {
-    id: crypto.randomUUID(),
+    id: 'preset-mrec',
     name: 'Medium Rectangle (MREC)',
     dimensions: '300 x 250 px',
     maxMessaging: 'Headline: 25 chars | Body: 70 chars | CTA: 15 chars',
@@ -185,7 +172,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 1.2,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-leaderboard',
     name: 'Leaderboard',
     dimensions: '728 x 90 px',
     maxMessaging: 'Headline: 30 chars | Body: 50 chars | CTA: 12 chars',
@@ -194,7 +181,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 8.09,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-wide-skyscraper',
     name: 'Wide Skyscraper',
     dimensions: '160 x 600 px',
     maxMessaging: 'Headline: 20 chars | Body: 60 chars | CTA: 10 chars',
@@ -203,7 +190,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 0.27,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-large-rectangle',
     name: 'Large Rectangle',
     dimensions: '336 x 280 px',
     maxMessaging: 'Headline: 30 chars | Body: 90 chars | CTA: 15 chars',
@@ -212,7 +199,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 1.2,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-billboard',
     name: 'Billboard',
     dimensions: '970 x 250 px',
     maxMessaging: 'Headline: 40 chars | Body: 100 chars | CTA: 15 chars',
@@ -221,7 +208,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 3.88,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-large-leaderboard',
     name: 'Large Leaderboard',
     dimensions: '970 x 90 px',
     maxMessaging: 'Headline: 35 chars | Body: 60 chars | CTA: 12 chars',
@@ -230,7 +217,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 10.78,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-half-page',
     name: 'Half Page (Monster)',
     dimensions: '300 x 600 px',
     maxMessaging: 'Headline: 30 chars | Body: 120 chars | CTA: 15 chars',
@@ -239,7 +226,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 0.5,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-portrait',
     name: 'Portrait',
     dimensions: '300 x 1050 px',
     maxMessaging: 'Headline: 25 chars | Body: 150 chars | CTA: 12 chars (multiple CTAs allowed)',
@@ -248,7 +235,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 0.29,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-skyscraper',
     name: 'Skyscraper',
     dimensions: '120 x 600 px',
     maxMessaging: 'Headline: 15 chars | Body: 40 chars | CTA: 8 chars',
@@ -257,7 +244,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 0.2,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-square',
     name: 'Square',
     dimensions: '250 x 250 px',
     maxMessaging: 'Headline: 20 chars | Body: 50 chars | CTA: 12 chars',
@@ -266,7 +253,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 1.0,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-small-square',
     name: 'Small Square',
     dimensions: '200 x 200 px',
     maxMessaging: 'Headline: 15 chars | CTA: 10 chars (no body copy)',
@@ -275,7 +262,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 1.0,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-button-1',
     name: 'Button 1',
     dimensions: '120 x 90 px',
     maxMessaging: 'CTA only: 8 chars max',
@@ -284,7 +271,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 1.33,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-button-2',
     name: 'Button 2',
     dimensions: '120 x 60 px',
     maxMessaging: 'CTA only: 8 chars max',
@@ -294,7 +281,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
   },
   // Mobile Banners
   {
-    id: crypto.randomUUID(),
+    id: 'preset-mobile-leaderboard',
     name: 'Mobile Leaderboard',
     dimensions: '320 x 50 px',
     maxMessaging: 'Headline: 20 chars | CTA: 8 chars (no body)',
@@ -303,7 +290,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 6.4,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-mobile-banner',
     name: 'Mobile Banner',
     dimensions: '300 x 50 px',
     maxMessaging: 'Headline: 18 chars | CTA: 8 chars',
@@ -312,7 +299,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 6.0,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-large-mobile-banner',
     name: 'Large Mobile Banner',
     dimensions: '320 x 100 px',
     maxMessaging: 'Headline: 25 chars | Body: 35 chars | CTA: 10 chars',
@@ -321,7 +308,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 3.2,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-smartphone-banner',
     name: 'Smartphone Banner',
     dimensions: '300 x 250 px (Mobile MREC)',
     maxMessaging: 'Headline: 25 chars | Body: 60 chars | CTA: 12 chars',
@@ -330,7 +317,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 1.2,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-mobile-interstitial',
     name: 'Mobile Interstitial',
     dimensions: '320 x 480 px',
     maxMessaging: 'Headline: 30 chars | Body: 80 chars | CTA: 15 chars',
@@ -339,7 +326,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 0.67,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-tablet-interstitial',
     name: 'Tablet Interstitial',
     dimensions: '768 x 1024 px',
     maxMessaging: 'Headline: 40 chars | Body: 120 chars | CTA: 18 chars',
@@ -349,7 +336,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
   },
   // Video/Rich Media Banners
   {
-    id: crypto.randomUUID(),
+    id: 'preset-video-rectangle',
     name: 'Video Rectangle',
     dimensions: '640 x 360 px (16:9)',
     maxMessaging: 'Overlay: 20 chars | End card: 30 chars + CTA',
@@ -358,7 +345,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 1.78,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-video-skyscraper',
     name: 'Video Skyscraper',
     dimensions: '300 x 600 px (Video)',
     maxMessaging: 'Overlay: 15 chars | End card: 25 chars + CTA',
@@ -368,7 +355,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
   },
   // Native/Social Banners
   {
-    id: crypto.randomUUID(),
+    id: 'preset-native-ad-unit',
     name: 'Native Ad Unit',
     dimensions: '1200 x 627 px',
     maxMessaging: 'Headline: 50 chars | Description: 150 chars | CTA: 15 chars',
@@ -377,7 +364,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     aspectRatio: 1.91,
   },
   {
-    id: crypto.randomUUID(),
+    id: 'preset-sponsored-content-card',
     name: 'Sponsored Content Card',
     dimensions: '600 x 600 px',
     maxMessaging: 'Headline: 40 chars | Body: 100 chars | CTA: 12 chars',
@@ -410,7 +397,8 @@ const SocialAssetPreviewUpload = ({
     maxSize: 10 * 1024 * 1024, // 10MB
   });
 
-  const platformColor = platformColors[asset.platform] || '#6366f1';
+  // Use design tokens (no hardcoded brand colors) for consistent theming.
+  const platformColor = 'hsl(var(--primary))';
   const defaultImage = platformDefaultImages[asset.platform];
   const isUsingDefaultImage = asset.previewImageUrl === defaultImage;
 
@@ -487,10 +475,11 @@ const SocialAssetPreviewUpload = ({
       }`}
     >
       {/* Platform-colored gradient background */}
-      <div 
+      <div
         className="absolute inset-0 opacity-10"
-        style={{ 
-          background: `linear-gradient(135deg, ${platformColor}40 0%, transparent 50%, ${platformColor}20 100%)` 
+        style={{
+          background:
+            'linear-gradient(135deg, hsl(var(--primary) / 0.25) 0%, transparent 50%, hsl(var(--primary) / 0.12) 100%)',
         }}
       />
       
@@ -957,7 +946,7 @@ export const SocialAssetsSection = ({
                               className="flex items-center justify-between gap-2 bg-background/50 rounded-lg p-2 border border-border/30 group/template"
                             >
                               <div className="flex items-center gap-2 min-w-0">
-                                <div className={`w-6 h-6 rounded flex items-center justify-center bg-muted/50 ${typeInfo.color}`}>
+                                <div className={`w-6 h-6 rounded flex items-center justify-center bg-muted/50 ${typeInfo.className}`}>
                                   <TypeIcon className="h-3 w-3" />
                                 </div>
                                 <div className="min-w-0">

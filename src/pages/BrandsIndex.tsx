@@ -985,10 +985,11 @@ const BrandsIndex = () => {
                     {/* Cover Image / Color Preview */}
                     <div className="relative h-44 overflow-hidden">
                       {item.hero.coverImage ? (
-                        <img 
-                          src={item.hero.coverImage} 
+                        <OptimizedImage
+                          src={item.hero.coverImage}
                           alt={item.hero.name}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          className="w-full h-full transition-transform duration-500 group-hover:scale-105"
+                          objectFit="cover"
                         />
                       ) : (
                         <div className="w-full h-full flex">
