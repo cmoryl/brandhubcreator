@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Link2, Figma, Upload, Image } from 'lucide-react';
 import { BrandSocialAssetSpec, BrandDisplayBannerSpec, SocialAssetTemplate } from '@/types/brand';
 import { Button } from '@/components/ui/button';
@@ -58,6 +58,18 @@ const platformColors: Record<string, string> = {
   'Snapchat': '#FFFC00',
 };
 
+// Default background images for each platform
+const platformDefaultImages: Record<string, string> = {
+  'LinkedIn': '/images/social-defaults/linkedin-default.jpg',
+  'X (Twitter)': '/images/social-defaults/twitter-default.jpg',
+  'Instagram': '/images/social-defaults/instagram-default.jpg',
+  'Facebook': '/images/social-defaults/facebook-default.jpg',
+  'YouTube': '/images/social-defaults/youtube-default.jpg',
+  'TikTok': '/images/social-defaults/tiktok-default.jpg',
+  'Pinterest': '/images/social-defaults/pinterest-default.jpg',
+  'Threads': '/images/social-defaults/threads-default.jpg',
+};
+
 const platformPresets: BrandSocialAssetSpec[] = [
   {
     id: crypto.randomUUID(),
@@ -69,7 +81,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     textLegibility: '24pt for Headlines, 14pt for Body',
     directive: 'Center 1200px (Avoid edges for text). Logo placement: top-left or bottom-left. Maintain 60px padding from all edges.',
     templates: [],
-    previewImageUrl: '',
+    previewImageUrl: '/images/social-defaults/linkedin-default.jpg',
   },
   {
     id: crypto.randomUUID(),
@@ -81,7 +93,20 @@ const platformPresets: BrandSocialAssetSpec[] = [
     textLegibility: '32pt for Headlines, 18pt for Body',
     directive: 'Center 1000px horizontally. Profile pic overlaps header on left. Keep important content right-of-center.',
     templates: [],
-    previewImageUrl: '',
+    previewImageUrl: '/images/social-defaults/twitter-default.jpg',
+  },
+  {
+    id: crypto.randomUUID(),
+    platform: 'Instagram',
+    postSize: '1080 x 1080 px (1:1)',
+    altSize: '1080 x 566 px (Landscape)',
+    storySize: '1080 x 1920 px (9:16)',
+    reelSize: '1080 x 1920 px (9:16)',
+    coverSize: 'N/A',
+    textLegibility: '48pt for Stories, 24pt for Posts',
+    directive: 'Keep text within inner 80% to avoid UI overlays. Stories: avoid top 150px (username) and bottom 200px (CTA buttons).',
+    templates: [],
+    previewImageUrl: '/images/social-defaults/instagram-default.jpg',
   },
   {
     id: crypto.randomUUID(),
@@ -106,7 +131,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     textLegibility: '30pt for Headlines, 16pt for Body',
     directive: 'Center 640px to accommodate mobile crop. Cover: profile pic overlaps left side, keep key content centered.',
     templates: [],
-    previewImageUrl: '',
+    previewImageUrl: '/images/social-defaults/facebook-default.jpg',
   },
   {
     id: crypto.randomUUID(),
@@ -119,7 +144,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     textLegibility: '96pt for Thumbnails, 48pt for Overlays',
     directive: 'Thumbnails: faces and bold text perform best. Channel art safe area: 1546 x 423 px center. Avoid corners.',
     templates: [],
-    previewImageUrl: '',
+    previewImageUrl: '/images/social-defaults/youtube-default.jpg',
   },
   {
     id: crypto.randomUUID(),
@@ -132,7 +157,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     textLegibility: '48pt minimum for in-video text',
     directive: 'Avoid top 150px (username/music) and bottom 280px (engagement buttons/description). Center text in middle 60%.',
     templates: [],
-    previewImageUrl: '',
+    previewImageUrl: '/images/social-defaults/tiktok-default.jpg',
   },
   {
     id: crypto.randomUUID(),
@@ -144,7 +169,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     textLegibility: '36pt for Headlines, 18pt for Body',
     directive: 'Vertical pins perform best. Text overlay in top or bottom third. High-contrast colors for readability.',
     templates: [],
-    previewImageUrl: '',
+    previewImageUrl: '/images/social-defaults/pinterest-default.jpg',
   },
   {
     id: crypto.randomUUID(),
@@ -156,7 +181,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     textLegibility: '24pt for Post Images',
     directive: 'Similar to Instagram feed. Keep important content centered. Text-based posts often outperform images.',
     templates: [],
-    previewImageUrl: '',
+    previewImageUrl: '/images/social-defaults/threads-default.jpg',
   },
 ];
 
@@ -241,6 +266,14 @@ const SocialAssetPreviewUpload = ({
   });
 
   const platformColor = platformColors[asset.platform] || '#6366f1';
+  const defaultImage = platformDefaultImages[asset.platform];
+  const isUsingDefaultImage = asset.previewImageUrl === defaultImage;
+
+  const handleResetToDefault = () => {
+    if (defaultImage) {
+      onUpdate({ previewImageUrl: defaultImage });
+    }
+  };
 
   if (asset.previewImageUrl) {
     return (
@@ -260,6 +293,16 @@ const SocialAssetPreviewUpload = ({
             <Upload className="h-3 w-3 mr-1" />
             Replace
           </Button>
+          {!isUsingDefaultImage && defaultImage && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={handleResetToDefault}
+              className="h-7 text-xs bg-white/10 border-white/20 hover:bg-white/20"
+            >
+              Reset
+            </Button>
+          )}
           <Button 
             size="sm" 
             variant="destructive" 
@@ -343,6 +386,20 @@ export const SocialAssetsSection = ({
   const [addingTemplateFor, setAddingTemplateFor] = useState<string | null>(null);
   const [newTemplate, setNewTemplate] = useState<Partial<SocialAssetTemplate>>({});
   const { gridClass } = useLayoutClasses(layout);
+  const hasInitialized = useRef(false);
+
+  // Auto-populate with all platform presets on first render if empty
+  useEffect(() => {
+    if (!hasInitialized.current && socialAssets.length === 0) {
+      hasInitialized.current = true;
+      const presetsWithIds = platformPresets.map(preset => ({
+        ...preset,
+        id: crypto.randomUUID(),
+        templates: [],
+      }));
+      onSocialAssetsChange(presetsWithIds);
+    }
+  }, [socialAssets.length, onSocialAssetsChange]);
 
   const toggleTemplateExpand = (id: string) => {
     const newSet = new Set(expandedTemplates);
@@ -354,7 +411,7 @@ export const SocialAssetsSection = ({
     setExpandedTemplates(newSet);
   };
 
-  // Initialize with all presets if no social assets exist
+  // Initialize with all presets (manual button)
   const initializeWithPresets = () => {
     const presetsWithIds = platformPresets.map(preset => ({
       ...preset,
@@ -375,6 +432,7 @@ export const SocialAssetsSection = ({
           textLegibility: '',
           directive: '',
           templates: [],
+          previewImageUrl: platformDefaultImages['LinkedIn'] || '',
         };
     onSocialAssetsChange([...socialAssets, newAsset]);
     if (!preset) setEditingId(newAsset.id);
