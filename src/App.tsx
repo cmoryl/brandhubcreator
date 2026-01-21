@@ -11,6 +11,7 @@ import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { GlobalErrorLogger } from "@/components/GlobalErrorLogger";
 import { ConnectionBanner } from "@/components/ConnectionBanner";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { PageSkeleton, BrandEditorSkeleton, AuthPageSkeleton } from "@/components/PageSkeleton";
 
 // Lazy load pages for faster initial load
@@ -57,6 +58,7 @@ const App = () => (
           <AppSettingsProvider>
             <OrganizationProvider>
               <BrandProvider>
+                <ScrollToTop />
                 <GlobalErrorLogger />
                 <Toaster />
                 <Sonner />
