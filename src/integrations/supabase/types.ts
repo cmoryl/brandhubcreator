@@ -119,13 +119,6 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "brand_intelligence_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "public_organization_info"
-            referencedColumns: ["id"]
-          },
         ]
       }
       brands: {
@@ -174,13 +167,6 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "brands_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "public_organization_info"
             referencedColumns: ["id"]
           },
         ]
@@ -269,13 +255,6 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "organization_members_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "public_organization_info"
             referencedColumns: ["id"]
           },
         ]
@@ -398,13 +377,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "products_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "public_organization_info"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "products_parent_brand_id_fkey"
             columns: ["parent_brand_id"]
             isOneToOne: false
@@ -472,92 +444,25 @@ export type Database = {
       }
     }
     Views: {
-      organization_members_safe: {
-        Row: {
-          created_at: string | null
-          id: string | null
-          invite_accepted_at: string | null
-          invite_expires_at: string | null
-          invited_email: string | null
-          organization_id: string | null
-          role: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string | null
-          invite_accepted_at?: string | null
-          invite_expires_at?: string | null
-          invited_email?: string | null
-          organization_id?: string | null
-          role?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string | null
-          invite_accepted_at?: string | null
-          invite_expires_at?: string | null
-          invited_email?: string | null
-          organization_id?: string | null
-          role?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "organization_members_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "organization_members_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "public_organization_info"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      public_organization_info: {
-        Row: {
-          accent_color: string | null
-          favicon_url: string | null
-          id: string | null
-          logo_url: string | null
-          name: string | null
-          primary_color: string | null
-          secondary_color: string | null
-          slug: string | null
-        }
-        Insert: {
-          accent_color?: string | null
-          favicon_url?: string | null
-          id?: string | null
-          logo_url?: string | null
-          name?: string | null
-          primary_color?: string | null
-          secondary_color?: string | null
-          slug?: string | null
-        }
-        Update: {
-          accent_color?: string | null
-          favicon_url?: string | null
-          id?: string | null
-          logo_url?: string | null
-          name?: string | null
-          primary_color?: string | null
-          secondary_color?: string | null
-          slug?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       cleanup_expired_invites: { Args: never; Returns: number }
       cleanup_old_audit_logs: { Args: never; Returns: number }
       get_auth_email: { Args: never; Returns: string }
+      get_organization_members_safe: {
+        Args: { p_org_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          invite_accepted_at: string
+          invite_expires_at: string
+          invited_email: string
+          organization_id: string
+          role: string
+          user_id: string
+        }[]
+      }
       get_public_organization_info: {
         Args: { _org_id?: string; _slug?: string }
         Returns: {
@@ -566,6 +471,20 @@ export type Database = {
           id: string
           logo_url: string
           name: string
+          primary_color: string
+          secondary_color: string
+          slug: string
+        }[]
+      }
+      get_public_portal_org: {
+        Args: { p_slug: string }
+        Returns: {
+          accent_color: string
+          favicon_url: string
+          id: string
+          logo_url: string
+          name: string
+          portal_settings: Json
           primary_color: string
           secondary_color: string
           slug: string
