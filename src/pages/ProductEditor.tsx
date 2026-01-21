@@ -43,6 +43,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Badge } from '@/components/ui/badge';
+import { normalizeHiddenSections, normalizeSectionOrder } from '@/lib/sectionOrder';
 
 type ViewMode = 'sections' | 'full';
 
@@ -76,8 +77,15 @@ const ProductEditor = () => {
 
 const currentProduct = getProduct(productId || '');
   
-  const sectionOrder = currentProduct?.sectionOrder || DEFAULT_SECTION_ORDER;
-  const hiddenSections = currentProduct?.hiddenSections || [];
+  // Forward-compat: older products may have persisted sectionOrder without newly-added sections (e.g., socialassets)
+  const sectionOrder = useMemo(
+    () => normalizeSectionOrder(currentProduct?.sectionOrder),
+    [currentProduct?.sectionOrder]
+  );
+  const hiddenSections = useMemo(
+    () => normalizeHiddenSections(currentProduct?.hiddenSections, sectionOrder),
+    [currentProduct?.hiddenSections, sectionOrder]
+  );
   
   // Page settings with defaults
   const pageSettings = useMemo(() => {
@@ -138,11 +146,35 @@ const currentProduct = getProduct(productId || '');
     }
   }, [productId, currentProduct, updateProduct]);
 
+  // Auto-heal persisted sectionOrder when new sections are introduced
+  React.useEffect(() => {
+    if (!productId || !currentProduct || !isGuideAdmin) return;
+    const current = Array.isArray(currentProduct.sectionOrder) ? currentProduct.sectionOrder : [];
+    const normalized = normalizeSectionOrder(current);
+    const isDifferent =
+      current.length !== normalized.length || current.some((id, i) => id !== normalized[i]);
+    if (isDifferent) {
+      updateProduct(productId, { sectionOrder: normalized });
+    }
+  }, [productId, currentProduct?.sectionOrder, isGuideAdmin, updateProduct]);
+
   const handleHiddenSectionsChange = useCallback((newHiddenSections: SectionId[]) => {
     if (productId && currentProduct) {
       updateProduct(productId, { hiddenSections: newHiddenSections });
     }
   }, [productId, currentProduct, updateProduct]);
+
+  // Auto-heal invalid hidden sections
+  React.useEffect(() => {
+    if (!productId || !currentProduct || !isGuideAdmin) return;
+    const current = Array.isArray(currentProduct.hiddenSections) ? currentProduct.hiddenSections : [];
+    const normalized = normalizeHiddenSections(current, sectionOrder);
+    const isDifferent =
+      current.length !== normalized.length || current.some((id, i) => id !== normalized[i]);
+    if (isDifferent) {
+      updateProduct(productId, { hiddenSections: normalized });
+    }
+  }, [productId, currentProduct?.hiddenSections, sectionOrder, isGuideAdmin, updateProduct]);
 
   if (!currentProduct) {
     return (
