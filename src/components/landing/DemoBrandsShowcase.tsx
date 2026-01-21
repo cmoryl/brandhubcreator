@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Palette, Star, ExternalLink, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,7 +23,7 @@ interface DemoGuideData {
   } | null;
 }
 
-export function DemoBrandsShowcase({ onLoginClick }: { onLoginClick: () => void }) {
+const DemoBrandsShowcase = React.forwardRef<HTMLElement, { onLoginClick: () => void }>(({ onLoginClick }, ref) => {
   const navigate = useNavigate();
   const [demoGuides, setDemoGuides] = useState<DemoGuideData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -229,4 +229,8 @@ export function DemoBrandsShowcase({ onLoginClick }: { onLoginClick: () => void 
       </div>
     </section>
   );
-}
+});
+
+DemoBrandsShowcase.displayName = 'DemoBrandsShowcase';
+
+export { DemoBrandsShowcase };
