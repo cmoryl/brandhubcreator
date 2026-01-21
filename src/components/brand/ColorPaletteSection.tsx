@@ -1,12 +1,20 @@
 import { useState } from 'react';
-import { Plus, Copy, Check, X, Pencil, ThumbsUp, ThumbsDown, FlaskConical } from 'lucide-react';
+import { Plus, Copy, Check, X, Pencil, ThumbsUp, ThumbsDown, FlaskConical, Download, FileSpreadsheet, FileJson, Palette } from 'lucide-react';
 import { BrandColor, ColorCombination } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { getAllColorFormats, getContrastColor } from '@/lib/colorUtils';
+import { getAllColorFormats, getContrastColor, downloadColorPalette, ColorExportData } from '@/lib/colorUtils';
 import { toast } from 'sonner';
 import { SectionHeader } from './SectionHeader';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
 
 interface ColorPaletteSectionProps {
   colors: BrandColor[];
@@ -15,6 +23,7 @@ interface ColorPaletteSectionProps {
   onColorCombinationsChange?: (combinations: ColorCombination[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  brandName?: string;
 }
 
 export const ColorPaletteSection = ({ 
@@ -23,7 +32,8 @@ export const ColorPaletteSection = ({
   colorCombinations = [],
   onColorCombinationsChange,
   customSubtitle,
-  onSubtitleChange
+  onSubtitleChange,
+  brandName = 'Brand'
 }: ColorPaletteSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedValue, setCopiedValue] = useState<string | null>(null);
@@ -55,6 +65,30 @@ export const ColorPaletteSection = ({
     setCopiedValue(value);
     toast.success(`${label} copied!`);
     setTimeout(() => setCopiedValue(null), 2000);
+  };
+
+  // Export color palette
+  const handleExport = (format: 'csv' | 'json' | 'ase') => {
+    if (colors.length === 0) {
+      toast.error('No colors to export');
+      return;
+    }
+
+    const exportData: ColorExportData[] = colors.map(color => {
+      const formats = getAllColorFormats(color.hex);
+      return {
+        name: color.name,
+        hex: formats.hex,
+        rgb: formats.rgb,
+        cmyk: formats.cmyk,
+        hsv: formats.hsv,
+        pantone: color.pantone || formats.pantone,
+        usage: color.usage,
+      };
+    });
+
+    downloadColorPalette(exportData, format, brandName);
+    toast.success(`Color palette exported as ${format.toUpperCase()}`);
   };
 
   // Color Combinations A/B Testing
@@ -105,10 +139,41 @@ export const ColorPaletteSection = ({
               onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
             />
           </div>
-          <Button onClick={addColor} size="sm" className="gap-2 shrink-0">
-            <Plus className="h-4 w-4" />
-            Add Color
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            {colors.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Download className="h-4 w-4" />
+                    Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel className="flex items-center gap-2">
+                    <Palette className="h-4 w-4" />
+                    Export Color Palette
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => handleExport('csv')} className="gap-2">
+                    <FileSpreadsheet className="h-4 w-4" />
+                    Export as CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExport('json')} className="gap-2">
+                    <FileJson className="h-4 w-4" />
+                    Export as JSON
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExport('ase')} className="gap-2">
+                    <Palette className="h-4 w-4" />
+                    Export for Adobe (ASE)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            <Button onClick={addColor} size="sm" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Color
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -226,15 +291,13 @@ export const ColorPaletteSection = ({
                             onCopy={() => copyValue(formats.hsv, 'HSV')}
                             isCopied={copiedValue === formats.hsv}
                           />
-                          {color.pantone && (
-                            <ColorCodeItem 
-                              label="Pantone" 
-                              value={color.pantone} 
-                              onCopy={() => copyValue(color.pantone!, 'Pantone')}
-                              isCopied={copiedValue === color.pantone}
-                              className="col-span-2"
-                            />
-                          )}
+                          <ColorCodeItem 
+                            label="Pantone" 
+                            value={color.pantone || formats.pantone} 
+                            onCopy={() => copyValue(color.pantone || formats.pantone, 'Pantone')}
+                            isCopied={copiedValue === (color.pantone || formats.pantone)}
+                            className="col-span-2"
+                          />
                         </div>
 
                         {color.usage && (
