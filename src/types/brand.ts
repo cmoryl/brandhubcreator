@@ -282,6 +282,27 @@ export interface BrandService {
   imageUrl?: string; // Optional custom image
 }
 
+// SOCIAL ASSETS - Platform Specifications
+export interface BrandSocialAssetSpec {
+  id: string;
+  platform: string;
+  postSize: string;
+  altSize?: string;
+  textLegibility: string;
+  directive: string;
+}
+
+// DISPLAY BANNERS - Industry Standard Specs
+export interface BrandDisplayBannerSpec {
+  id: string;
+  name: string;
+  dimensions: string;
+  maxMessaging: string;
+  textLegibility: string;
+  safeZonePolicy: string;
+  aspectRatio: number;
+}
+
 // SECTION LAYOUTS - Per-section layout preferences
 export type LayoutPreset = 
   | 'grid-2'      // 2 columns
@@ -385,6 +406,10 @@ export interface BaseGuide {
   templates: BrandTemplate[];
   // Services (Service Offerings)
   services: BrandService[];
+  // Social Assets (Platform Specifications)
+  socialAssets?: BrandSocialAssetSpec[];
+  // Display Banners (Industry Standard Specs)
+  displayBanners?: BrandDisplayBannerSpec[];
   // Linked Guides (for Product Guides section - links to other brand/product guides)
   linkedGuides?: LinkedGuideReference[];
   // Metadata
@@ -396,7 +421,7 @@ export interface BaseGuide {
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'tagline', 'identity', 'values', 'services', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
-  'imagery', 'social', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
+  'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
   'casestudies', 'brochures', 'templates', 'products'
 ];
 
@@ -429,6 +454,7 @@ export type SectionId =
   | 'socialicons'
   | 'imagery'
   | 'social'
+  | 'socialassets'
   | 'website'
   | 'signatures'
   | 'qr'
