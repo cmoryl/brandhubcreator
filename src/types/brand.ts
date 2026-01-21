@@ -161,6 +161,26 @@ export interface BrandSignature {
   name: string;
   role: string;
   html: string;
+  // Extended fields
+  company?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  address?: string;
+  logoUrl?: string;
+  variant?: 'full' | 'reply' | 'minimal';
+  confidentialityNotice?: string;
+}
+
+// EMAIL BANNERS - Promotional banners below signatures
+export interface BrandEmailBanner {
+  id: string;
+  name: string;
+  imageUrl: string;
+  linkUrl?: string;
+  width: number;
+  height: number;
+  description?: string;
 }
 
 // QR - Access Ports
@@ -388,6 +408,8 @@ export interface BaseGuide {
   websites: BrandWebsiteLink[];
   // Signatures (Signature Protocol)
   signatures: BrandSignature[];
+  // Email Banners (Promotional banners below signatures)
+  emailBanners?: BrandEmailBanner[];
   // QR (Access Ports)
   qr: BrandQR;
   // Videos (Video Resources)
