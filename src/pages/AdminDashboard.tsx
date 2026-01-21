@@ -75,10 +75,13 @@ interface OrgData {
 
 interface ActivityLog {
   id: string;
-  type: 'user_signup' | 'brand_created' | 'org_created' | 'brand_published' | 'user_login';
+  type: 'create' | 'update' | 'delete' | 'view' | 'publish' | 'unpublish' | 'export' | 'login' | 'logout' | 'invite' | 'join';
+  entityType: string;
+  entityName: string;
   description: string;
   timestamp: string;
   user?: string;
+  details?: Record<string, unknown>;
 }
 
 export default function AdminDashboard() {
@@ -105,6 +108,13 @@ export default function AdminDashboard() {
       fetchDashboardData();
     }
   }, [user, isAdmin, authLoading, navigate]);
+
+  // Re-fetch activity logs when date range changes
+  useEffect(() => {
+    if (user && isAdmin && !isLoading) {
+      generateActivityLogs();
+    }
+  }, [dateRange]);
 
   const fetchDashboardData = async () => {
     setIsLoading(true);
@@ -274,61 +284,175 @@ export default function AdminDashboard() {
   };
 
   const generateActivityLogs = async () => {
-    // Generate recent activity based on actual data
     const logs: ActivityLog[] = [];
     
-    // Recent profiles (signups)
-    const { data: recentProfiles } = await supabase
-      .from('profiles')
-      .select('user_id, email, created_at')
-      .order('created_at', { ascending: false })
-      .limit(10);
+    // Calculate date filter based on dateRange
+    const now = new Date();
+    let dateFilter: string | null = null;
+    switch (dateRange) {
+      case '24h':
+        dateFilter = subDays(now, 1).toISOString();
+        break;
+      case '7d':
+        dateFilter = subDays(now, 7).toISOString();
+        break;
+      case '30d':
+        dateFilter = subDays(now, 30).toISOString();
+        break;
+      default:
+        dateFilter = null;
+    }
 
-    recentProfiles?.forEach(p => {
+    // Fetch real audit logs from the database
+    let auditQuery = supabase
+      .from('audit_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    
+    if (dateFilter) {
+      auditQuery = auditQuery.gte('created_at', dateFilter);
+    }
+
+    const { data: auditLogs } = await auditQuery;
+
+    // Convert audit logs to ActivityLog format
+    auditLogs?.forEach(log => {
+      const actionDescriptions: Record<string, string> = {
+        create: 'created',
+        update: 'updated',
+        delete: 'deleted',
+        view: 'viewed',
+        publish: 'published',
+        unpublish: 'unpublished',
+        export: 'exported',
+        login: 'logged in',
+        logout: 'logged out',
+        invite: 'invited member to',
+        join: 'joined',
+      };
+
+      const actionText = actionDescriptions[log.action_type] || log.action_type;
+      const entityName = log.entity_name || 'Unknown';
+      const userEmail = log.user_email || 'Unknown user';
+
       logs.push({
-        id: `signup-${p.user_id}`,
-        type: 'user_signup',
-        description: `New user registered: ${p.email}`,
-        timestamp: p.created_at,
-        user: p.email || undefined,
+        id: log.id,
+        type: log.action_type as ActivityLog['type'],
+        entityType: log.entity_type,
+        entityName,
+        description: `${userEmail} ${actionText} ${log.entity_type}: ${entityName}`,
+        timestamp: log.created_at,
+        user: userEmail,
+        details: typeof log.details === 'object' ? log.details as Record<string, unknown> : {},
       });
     });
 
-    // Recent brands
-    const { data: recentBrands } = await supabase
-      .from('brands')
-      .select('id, name, created_at, is_public')
-      .order('created_at', { ascending: false })
-      .limit(10);
+    // If no audit logs exist yet, fall back to generated activity from entity creation dates
+    if (logs.length === 0) {
+      // Recent profiles (signups)
+      let profilesQuery = supabase
+        .from('profiles')
+        .select('user_id, email, created_at')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (dateFilter) {
+        profilesQuery = profilesQuery.gte('created_at', dateFilter);
+      }
+      
+      const { data: recentProfiles } = await profilesQuery;
 
-    recentBrands?.forEach(b => {
-      logs.push({
-        id: `brand-${b.id}`,
-        type: b.is_public ? 'brand_published' : 'brand_created',
-        description: b.is_public ? `Brand published: ${b.name}` : `Brand created: ${b.name}`,
-        timestamp: b.created_at,
+      recentProfiles?.forEach(p => {
+        logs.push({
+          id: `signup-${p.user_id}`,
+          type: 'create',
+          entityType: 'user',
+          entityName: p.email || 'Unknown',
+          description: `New user registered: ${p.email}`,
+          timestamp: p.created_at,
+          user: p.email || undefined,
+        });
       });
-    });
 
-    // Recent organizations
-    const { data: recentOrgs } = await supabase
-      .from('organizations')
-      .select('id, name, created_at')
-      .order('created_at', { ascending: false })
-      .limit(5);
+      // Recent brands
+      let brandsQuery = supabase
+        .from('brands')
+        .select('id, name, created_at, updated_at, is_public')
+        .order('updated_at', { ascending: false })
+        .limit(15);
+      
+      if (dateFilter) {
+        brandsQuery = brandsQuery.gte('updated_at', dateFilter);
+      }
 
-    recentOrgs?.forEach(o => {
-      logs.push({
-        id: `org-${o.id}`,
-        type: 'org_created',
-        description: `Organization created: ${o.name}`,
-        timestamp: o.created_at,
+      const { data: recentBrands } = await brandsQuery;
+
+      recentBrands?.forEach(b => {
+        // Check if this is a create or update based on timestamps
+        const isCreate = new Date(b.created_at).getTime() === new Date(b.updated_at).getTime();
+        
+        if (isCreate) {
+          logs.push({
+            id: `brand-create-${b.id}`,
+            type: 'create',
+            entityType: 'brand',
+            entityName: b.name,
+            description: `Brand created: ${b.name}`,
+            timestamp: b.created_at,
+          });
+        } else {
+          logs.push({
+            id: `brand-update-${b.id}-${b.updated_at}`,
+            type: 'update',
+            entityType: 'brand',
+            entityName: b.name,
+            description: `Brand updated: ${b.name}`,
+            timestamp: b.updated_at,
+          });
+        }
+
+        // If published, add a publish event
+        if (b.is_public) {
+          logs.push({
+            id: `brand-publish-${b.id}`,
+            type: 'publish',
+            entityType: 'brand',
+            entityName: b.name,
+            description: `Brand published: ${b.name}`,
+            timestamp: b.updated_at,
+          });
+        }
       });
-    });
+
+      // Recent organizations
+      let orgsQuery = supabase
+        .from('organizations')
+        .select('id, name, created_at')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      if (dateFilter) {
+        orgsQuery = orgsQuery.gte('created_at', dateFilter);
+      }
+
+      const { data: recentOrgs } = await orgsQuery;
+
+      recentOrgs?.forEach(o => {
+        logs.push({
+          id: `org-${o.id}`,
+          type: 'create',
+          entityType: 'organization',
+          entityName: o.name,
+          description: `Organization created: ${o.name}`,
+          timestamp: o.created_at,
+        });
+      });
+    }
 
     // Sort by timestamp
     logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    setActivityLogs(logs.slice(0, 20));
+    setActivityLogs(logs.slice(0, 30));
   };
 
   const promoteToAdmin = async (userId: string) => {
@@ -360,13 +484,22 @@ export default function AdminDashboard() {
     fetchUsers();
   };
 
-  const getActivityIcon = (type: ActivityLog['type']) => {
+  const getActivityIcon = (type: ActivityLog['type'], entityType?: string) => {
     switch (type) {
-      case 'user_signup': return <UserPlus className="h-4 w-4 text-green-500" />;
-      case 'brand_created': return <Palette className="h-4 w-4 text-blue-500" />;
-      case 'org_created': return <Building2 className="h-4 w-4 text-purple-500" />;
-      case 'brand_published': return <Eye className="h-4 w-4 text-amber-500" />;
-      case 'user_login': return <LogIn className="h-4 w-4 text-gray-500" />;
+      case 'create': 
+        if (entityType === 'user') return <UserPlus className="h-4 w-4 text-green-500" />;
+        if (entityType === 'organization') return <Building2 className="h-4 w-4 text-purple-500" />;
+        return <Palette className="h-4 w-4 text-blue-500" />;
+      case 'update': return <Edit className="h-4 w-4 text-amber-500" />;
+      case 'delete': return <Trash2 className="h-4 w-4 text-red-500" />;
+      case 'view': return <Eye className="h-4 w-4 text-gray-500" />;
+      case 'publish': return <Eye className="h-4 w-4 text-green-500" />;
+      case 'unpublish': return <Eye className="h-4 w-4 text-orange-500" />;
+      case 'export': return <Download className="h-4 w-4 text-blue-500" />;
+      case 'login': return <LogIn className="h-4 w-4 text-gray-500" />;
+      case 'logout': return <LogIn className="h-4 w-4 text-gray-400" />;
+      case 'invite': return <UserPlus className="h-4 w-4 text-purple-500" />;
+      case 'join': return <UserPlus className="h-4 w-4 text-green-500" />;
       default: return <Activity className="h-4 w-4" />;
     }
   };
@@ -885,25 +1018,45 @@ export default function AdminDashboard() {
               <CardContent>
                 <ScrollArea className="h-[500px]">
                   <div className="space-y-4">
-                    {activityLogs.map((log) => (
-                      <div 
-                        key={log.id} 
-                        className="flex items-start gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="p-2 bg-background rounded-full">
-                          {getActivityIcon(log.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium">{log.description}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(log.timestamp), 'EEEE, MMMM d, yyyy \'at\' h:mm a')}
-                          </p>
-                        </div>
-                        <Badge variant="outline" className="shrink-0">
-                          {log.type.replace('_', ' ')}
-                        </Badge>
+                    {activityLogs.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                        <Activity className="h-12 w-12 mb-4 opacity-50" />
+                        <p className="text-lg font-medium">No activity recorded yet</p>
+                        <p className="text-sm">Activity will appear here as users interact with the platform</p>
                       </div>
-                    ))}
+                    ) : (
+                      activityLogs.map((log) => (
+                        <div 
+                          key={log.id} 
+                          className="flex items-start gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="p-2 bg-background rounded-full">
+                            {getActivityIcon(log.type, log.entityType)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium">{log.description}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <p className="text-sm text-muted-foreground">
+                                {format(new Date(log.timestamp), 'EEEE, MMMM d, yyyy \'at\' h:mm a')}
+                              </p>
+                              {log.user && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {log.user}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            <Badge variant="outline">
+                              {log.type}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground capitalize">
+                              {log.entityType}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </ScrollArea>
               </CardContent>
