@@ -11,18 +11,9 @@ import { LayoutPreset } from '@/types/brand';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useDropZone } from '@/components/ui/drop-zone';
+import { safeUUID } from '@/lib/safeUUID';
 
-// Some environments (older Safari / hardened iframes) may not support crypto.randomUUID.
-// If ID generation throws, this section can fail to render and appear "blank".
-const safeUUID = (): string => {
-  try {
-    const c = globalThis.crypto as Crypto | undefined;
-    if (c?.randomUUID) return c.randomUUID();
-  } catch {
-    // ignore
-  }
-  return `id_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`;
-};
+
 
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];

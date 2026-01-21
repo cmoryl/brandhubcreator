@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SectionHeader } from './SectionHeader';
+import { safeUUID } from '@/lib/safeUUID';
 
 interface SocialSectionProps {
   social: BrandSocialProfile[];
@@ -32,7 +33,7 @@ export const SocialSection = ({ social, onSocialChange, customSubtitle, onSubtit
 
   const addProfile = () => {
     const newProfile: BrandSocialProfile = {
-      id: crypto.randomUUID(),
+      id: safeUUID(),
       platform: 'LinkedIn',
       handle: '@yourbrand',
       url: 'https://linkedin.com/company/yourbrand',

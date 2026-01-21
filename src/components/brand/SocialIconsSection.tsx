@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SectionHeader } from './SectionHeader';
+import { safeUUID } from '@/lib/safeUUID';
 
 interface SocialIconsSectionProps {
   socialIcons: BrandSocialIcon[];
@@ -30,7 +31,7 @@ export const SocialIconsSection = ({ socialIcons, onSocialIconsChange, customSub
 
   const addIcon = (platform?: string) => {
     const newIcon: BrandSocialIcon = {
-      id: crypto.randomUUID(),
+      id: safeUUID(),
       platform: platform || 'Custom',
       svgPath: platform ? defaultIcons[platform] || 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' : 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
     };
