@@ -27,8 +27,39 @@ import { BrochuresSection } from './BrochuresSection';
 import { TemplatesSection } from './TemplatesSection';
 import { ProductsSection } from './ProductsSection';
 import { Separator } from '@/components/ui/separator';
+import { ScrollAnimate, AnimationType } from '@/components/ui/scroll-animate';
 
-// Memoized section wrapper to prevent unnecessary re-renders
+// Animation patterns for different section types
+const sectionAnimations: Record<string, AnimationType> = {
+  hero: 'fade-up',
+  tagline: 'blur-in',
+  identity: 'fade-left',
+  values: 'fade-up',
+  services: 'fade-right',
+  logos: 'zoom-in',
+  brandicon: 'zoom-in',
+  colors: 'fade-up',
+  gradients: 'fade-left',
+  patterns: 'fade-right',
+  typography: 'flip-up',
+  textstyles: 'fade-up',
+  iconography: 'zoom-in',
+  socialicons: 'fade-up',
+  imagery: 'blur-in',
+  social: 'fade-left',
+  website: 'fade-right',
+  signatures: 'fade-up',
+  qr: 'zoom-in',
+  videos: 'blur-in',
+  assets: 'fade-up',
+  misuse: 'fade-left',
+  casestudies: 'fade-right',
+  brochures: 'fade-up',
+  templates: 'zoom-in',
+  products: 'fade-up'
+};
+
+// Memoized section wrapper with scroll animations
 interface SectionWrapperProps {
   sectionId: SectionId;
   children: React.ReactNode;
@@ -47,30 +78,41 @@ const SectionWrapper = memo(({
   index, 
   isLast,
   setRef 
-}: SectionWrapperProps) => (
-  <div 
-    key={sectionId} 
-    className={`section-reveal ${isHidden && isAdmin ? 'opacity-50 relative' : ''}`}
-    style={{ animationDelay: `${index * 0.1}s` }}
-  >
-    {isHidden && isAdmin && (
-      <div className="absolute -top-2 right-0 text-xs bg-muted px-2 py-1 rounded text-muted-foreground animate-fade-in">
-        Hidden from viewers
-      </div>
-    )}
+}: SectionWrapperProps) => {
+  const animation = sectionAnimations[sectionId] || 'fade-up';
+  
+  return (
     <div 
-      ref={setRef} 
-      data-section={sectionId} 
-      className="scroll-mt-24 hover-lift rounded-xl transition-all duration-300"
+      key={sectionId} 
+      className={`${isHidden && isAdmin ? 'opacity-50 relative' : ''}`}
     >
-      {children}
+      {isHidden && isAdmin && (
+        <div className="absolute -top-2 right-0 text-xs bg-muted px-2 py-1 rounded text-muted-foreground z-10">
+          Hidden from viewers
+        </div>
+      )}
+      <ScrollAnimate 
+        animation={animation} 
+        delay={index * 50} 
+        duration={700}
+        threshold={0.15}
+      >
+        <div 
+          ref={setRef} 
+          data-section={sectionId} 
+          className="scroll-mt-24 rounded-xl transition-all duration-300"
+        >
+          {children}
+        </div>
+      </ScrollAnimate>
+      {!isLast && (
+        <ScrollAnimate animation="fade-up" delay={100} duration={400}>
+          <Separator className="my-12" />
+        </ScrollAnimate>
+      )}
     </div>
-    {!isLast && (
-      <Separator className="my-12 animate-fade-in" style={{ animationDelay: `${index * 0.1 + 0.3}s` }} />
-    )}
-  </div>
-));
-
+  );
+});
 interface FullBrandPageProps {
   brand: BaseGuide;
   brandId: string;
