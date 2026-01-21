@@ -320,6 +320,10 @@ export interface BrandSocialAssetSpec {
   textLegibility: string;
   directive: string;
   templates?: SocialAssetTemplate[]; // Downloadable design templates
+  previewImageUrl?: string; // Example/preview image for this platform
+  storySize?: string; // Story/vertical format size
+  reelSize?: string; // Reel/video format size
+  coverSize?: string; // Cover/banner format size
 }
 
 // DISPLAY BANNERS - Industry Standard Specs
