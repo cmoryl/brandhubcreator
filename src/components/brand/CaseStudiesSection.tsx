@@ -111,15 +111,37 @@ export const CaseStudiesSection = ({ caseStudies, onCaseStudiesChange, customSub
             className="group relative bg-card rounded-xl overflow-hidden shadow-sm border border-border animate-scale-in"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-            {/* Preview Image */}
+            {/* Preview Image with Drag & Drop */}
             <div
-              className="aspect-video bg-muted relative cursor-pointer"
+              className="aspect-video bg-muted relative cursor-pointer transition-colors"
               onClick={() => triggerUpload(study.id)}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.add('ring-2', 'ring-primary');
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.remove('ring-2', 'ring-primary');
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.remove('ring-2', 'ring-primary');
+                const file = e.dataTransfer.files?.[0];
+                if (file && file.type.startsWith('image/')) {
+                  setPendingId(study.id);
+                  const reader = new FileReader();
+                  reader.onload = (event) => {
+                    updateCaseStudy(study.id, { previewUrl: event.target?.result as string });
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }}
               style={study.previewUrl ? { backgroundImage: `url(${study.previewUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
             >
               {!study.previewUrl && (
-                <div className="absolute inset-0 flex items-center justify-center text-muted-foreground hover:text-accent transition-colors">
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground hover:text-accent transition-colors gap-1">
                   <Upload className="h-8 w-8" />
+                  <span className="text-xs">Drop image or click</span>
                 </div>
               )}
               <button

@@ -1,9 +1,11 @@
+import { useCallback } from 'react';
 import { Palette, ArrowRight, ArrowLeft, Loader2, Upload } from 'lucide-react';
 import { OnboardingData } from '@/types/organization';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useDropZone } from '@/components/ui/drop-zone';
 
 interface OnboardingStep2Props {
   data: OnboardingData;
@@ -14,16 +16,18 @@ interface OnboardingStep2Props {
 }
 
 export const OnboardingStep2 = ({ data, onUpdate, onBack, onNext, isLoading }: OnboardingStep2Props) => {
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        onUpdate({ logoUrl: e.target?.result as string });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  const handleFileDrop = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      onUpdate({ logoUrl: e.target?.result as string });
+    };
+    reader.readAsDataURL(file);
+  }, [onUpdate]);
+
+  const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
+    onFileDrop: handleFileDrop,
+    accept: 'image/*',
+  });
 
   return (
     <Card className="border-0 shadow-xl bg-card/80 backdrop-blur">
@@ -41,22 +45,33 @@ export const OnboardingStep2 = ({ data, onUpdate, onBack, onNext, isLoading }: O
         <div className="space-y-2">
           <Label className="text-base">Organization Logo</Label>
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-muted/50 overflow-hidden">
+            <div 
+              className={`w-20 h-20 rounded-xl border-2 border-dashed flex items-center justify-center bg-muted/50 overflow-hidden cursor-pointer transition-colors ${
+                isDragging ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+              }`}
+              onClick={openFilePicker}
+              {...dragHandlers}
+            >
               {data.logoUrl ? (
                 <img src={data.logoUrl} alt="Logo" className="w-full h-full object-contain p-2" />
               ) : (
-                <Upload className="h-8 w-8 text-muted-foreground" />
+                <Upload className={`h-8 w-8 ${isDragging ? 'text-primary' : 'text-muted-foreground'}`} />
               )}
             </div>
             <div className="flex-1">
-              <Input
+              <input
+                ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                onChange={handleLogoUpload}
-                className="cursor-pointer"
+                onChange={handleInputChange}
+                className="hidden"
               />
+              <Button variant="outline" size="sm" onClick={openFilePicker} className="gap-2">
+                <Upload className="h-4 w-4" />
+                {data.logoUrl ? 'Change Logo' : 'Upload Logo'}
+              </Button>
               <p className="text-sm text-muted-foreground mt-1">
-                PNG, SVG, or JPG (recommended: 200x200px)
+                PNG, SVG, or JPG (recommended: 200x200px) - or drag & drop
               </p>
             </div>
           </div>

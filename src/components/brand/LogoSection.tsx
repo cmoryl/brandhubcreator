@@ -1,11 +1,12 @@
-import { useState, useRef } from 'react';
-import { Plus, X, Upload, Image, Download, Package } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { X, Image, Download, Package, Upload } from 'lucide-react';
 import { BrandLogo } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SectionHeader } from './SectionHeader';
 import { toast } from 'sonner';
+import { useDropZone } from '@/components/ui/drop-zone';
 
 interface LogoSectionProps {
   logos: BrandLogo[];
@@ -26,13 +27,9 @@ const variantLabels: Record<BrandLogo['variant'], string> = {
 export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleChange }: LogoSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingVariant, setPendingVariant] = useState<BrandLogo['variant']>('primary');
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleFileDrop = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const url = event.target?.result as string;
@@ -45,15 +42,16 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
       onLogosChange([...logos, newLogo]);
     };
     reader.readAsDataURL(file);
-    
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
+  }, [logos, onLogosChange, pendingVariant]);
+
+  const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
+    onFileDrop: handleFileDrop,
+    accept: 'image/*',
+  });
 
   const triggerUpload = (variant: BrandLogo['variant']) => {
     setPendingVariant(variant);
-    fileInputRef.current?.click();
+    openFilePicker();
   };
 
   const updateLogo = (id: string, updates: Partial<BrandLogo>) => {
@@ -125,7 +123,7 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        onChange={handleFileUpload}
+        onChange={handleInputChange}
         className="hidden"
       />
 
@@ -209,10 +207,19 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
 
               <button
                 onClick={() => triggerUpload(variant)}
-                className="w-full h-32 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors"
+                onDragOver={(e) => { setPendingVariant(variant); dragHandlers.onDragOver(e); }}
+                onDragLeave={dragHandlers.onDragLeave}
+                onDrop={(e) => { setPendingVariant(variant); dragHandlers.onDrop(e); }}
+                className={`w-full h-32 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-2 transition-colors ${
+                  isDragging && pendingVariant === variant
+                    ? 'border-primary bg-primary/5 text-primary'
+                    : 'border-border text-muted-foreground hover:border-accent hover:text-accent'
+                }`}
               >
                 <Upload className="h-6 w-6" />
-                <span className="text-sm font-medium">Upload {variantLabels[variant]}</span>
+                <span className="text-sm font-medium">
+                  {isDragging && pendingVariant === variant ? 'Drop to upload' : `Upload ${variantLabels[variant]}`}
+                </span>
               </button>
             </div>
           </div>

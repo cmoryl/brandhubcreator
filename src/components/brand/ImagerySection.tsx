@@ -1,11 +1,12 @@
-import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Upload, ThumbsUp, ThumbsDown, Grid2X2, Grid3X3, LayoutGrid, Rows3 } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { X, Pencil, Upload, ThumbsUp, ThumbsDown, Grid2X2, Grid3X3, LayoutGrid, Rows3 } from 'lucide-react';
 import { BrandImagery } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { SectionHeader } from './SectionHeader';
+import { useDropZone } from '@/components/ui/drop-zone';
 
 interface ImagerySectionProps {
   imagery: BrandImagery[];
@@ -21,12 +22,8 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
   const [pendingType, setPendingType] = useState<'do' | 'dont'>('do');
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('split');
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleFileDrop = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const url = event.target?.result as string;
@@ -39,15 +36,16 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
       onImageryChange([...imagery, newImagery]);
     };
     reader.readAsDataURL(file);
+  }, [imagery, onImageryChange, pendingType]);
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
+  const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
+    onFileDrop: handleFileDrop,
+    accept: 'image/*',
+  });
 
   const triggerUpload = (type: 'do' | 'dont') => {
     setPendingType(type);
-    fileInputRef.current?.click();
+    openFilePicker();
   };
 
   const updateImagery = (id: string, updates: Partial<BrandImagery>) => {
@@ -169,7 +167,7 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        onChange={handleFileUpload}
+        onChange={handleInputChange}
         className="hidden"
       />
 
@@ -187,10 +185,17 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
               {doImages.map((img, index) => renderImageCard(img, index, 'border-green-200', 'hover:bg-green-50'))}
               <button
                 onClick={() => triggerUpload('do')}
-                className="w-full h-24 border-2 border-dashed border-green-300 rounded-xl flex items-center justify-center gap-2 text-green-600 hover:bg-green-50 transition-colors"
+                onDragOver={(e) => { setPendingType('do'); dragHandlers.onDragOver(e); }}
+                onDragLeave={dragHandlers.onDragLeave}
+                onDrop={(e) => { setPendingType('do'); dragHandlers.onDrop(e); }}
+                className={`w-full h-24 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors ${
+                  isDragging && pendingType === 'do'
+                    ? 'border-green-500 bg-green-50 text-green-600'
+                    : 'border-green-300 text-green-600 hover:bg-green-50'
+                }`}
               >
                 <Upload className="h-5 w-5" />
-                <span className="text-sm font-medium">Add example</span>
+                <span className="text-sm font-medium">{isDragging && pendingType === 'do' ? 'Drop to add' : 'Add example'}</span>
               </button>
             </div>
           </div>
@@ -206,10 +211,17 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
               {dontImages.map((img, index) => renderImageCard(img, index, 'border-red-200', 'hover:bg-red-50'))}
               <button
                 onClick={() => triggerUpload('dont')}
-                className="w-full h-24 border-2 border-dashed border-red-300 rounded-xl flex items-center justify-center gap-2 text-red-600 hover:bg-red-50 transition-colors"
+                onDragOver={(e) => { setPendingType('dont'); dragHandlers.onDragOver(e); }}
+                onDragLeave={dragHandlers.onDragLeave}
+                onDrop={(e) => { setPendingType('dont'); dragHandlers.onDrop(e); }}
+                className={`w-full h-24 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors ${
+                  isDragging && pendingType === 'dont'
+                    ? 'border-red-500 bg-red-50 text-red-600'
+                    : 'border-red-300 text-red-600 hover:bg-red-50'
+                }`}
               >
                 <Upload className="h-5 w-5" />
-                <span className="text-sm font-medium">Add example</span>
+                <span className="text-sm font-medium">{isDragging && pendingType === 'dont' ? 'Drop to add' : 'Add example'}</span>
               </button>
             </div>
           </div>

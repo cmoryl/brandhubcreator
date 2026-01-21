@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react';
-import { Plus, X, Upload, File, Download, Folder } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { X, Download, Folder, File, Upload } from 'lucide-react';
 import { BrandAsset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
+import { useDropZone } from '@/components/ui/drop-zone';
 
 interface AssetsSectionProps {
   assets: BrandAsset[];
@@ -27,33 +28,29 @@ const getFileIcon = (type: string) => {
 };
 
 export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtitleChange }: AssetsSectionProps) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const url = event.target?.result as string;
-        const newAsset: BrandAsset = {
-          id: crypto.randomUUID(),
-          name: file.name,
-          type: file.type || 'unknown',
-          url,
-          size: formatFileSize(file.size),
-        };
-        onAssetsChange([...assets, newAsset]);
+  const handleFileDrop = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const url = event.target?.result as string;
+      const newAsset: BrandAsset = {
+        id: crypto.randomUUID(),
+        name: file.name,
+        type: file.type || 'unknown',
+        url,
+        size: formatFileSize(file.size),
       };
-      reader.readAsDataURL(file);
-    });
+      onAssetsChange([...assets, newAsset]);
+    };
+    reader.readAsDataURL(file);
+  }, [assets, onAssetsChange]);
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
+  const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
+    onFileDrop: handleFileDrop,
+    accept: '*',
+    maxSize: 50 * 1024 * 1024, // 50MB for assets
+  });
 
   const deleteAsset = (id: string) => {
     onAssetsChange(assets.filter(a => a.id !== id));
@@ -87,7 +84,7 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0">
+        <Button onClick={openFilePicker} size="sm" className="gap-2 shrink-0">
           <Upload className="h-4 w-4" />
           Upload Assets
         </Button>
@@ -97,7 +94,7 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
         ref={fileInputRef}
         type="file"
         multiple
-        onChange={handleFileUpload}
+        onChange={handleInputChange}
         className="hidden"
       />
 
@@ -153,12 +150,19 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
         </div>
       ) : (
         <button
-          onClick={() => fileInputRef.current?.click()}
-          className="w-full h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-3 text-muted-foreground hover:border-accent hover:text-accent transition-colors"
+          onClick={openFilePicker}
+          onDragOver={dragHandlers.onDragOver}
+          onDragLeave={dragHandlers.onDragLeave}
+          onDrop={dragHandlers.onDrop}
+          className={`w-full h-48 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-3 transition-colors ${
+            isDragging 
+              ? 'border-primary bg-primary/5 text-primary' 
+              : 'border-border text-muted-foreground hover:border-accent hover:text-accent'
+          }`}
         >
           <File className="h-10 w-10" />
           <div className="text-center">
-            <p className="font-medium">Upload brand assets</p>
+            <p className="font-medium">{isDragging ? 'Drop files to upload' : 'Upload brand assets'}</p>
             <p className="text-sm">ZIP, RAW, PDF, and other heavy files</p>
           </div>
         </button>

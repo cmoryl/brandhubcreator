@@ -532,6 +532,35 @@ export const SignaturesSection = ({
                           </div>
                         )}
                         
+                        {/* Drag & Drop Zone for Logo */}
+                        {!signature.logoUrl && (
+                          <div 
+                            className="relative border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary/50 transition-colors"
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.currentTarget.classList.add('border-primary', 'bg-primary/5');
+                            }}
+                            onDragLeave={(e) => {
+                              e.preventDefault();
+                              e.currentTarget.classList.remove('border-primary', 'bg-primary/5');
+                            }}
+                            onDrop={async (e) => {
+                              e.preventDefault();
+                              e.currentTarget.classList.remove('border-primary', 'bg-primary/5');
+                              const file = e.dataTransfer.files?.[0];
+                              if (file && file.type.startsWith('image/')) {
+                                const fakeEvent = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
+                                handleLogoUpload(fakeEvent, signature.id);
+                              }
+                            }}
+                          >
+                            <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
+                            <p className="text-xs text-muted-foreground">
+                              Drag & drop logo here, or use buttons below
+                            </p>
+                          </div>
+                        )}
+                        
                         {/* Upload/Link Options */}
                         <div className="flex gap-2">
                           {/* Upload Button */}
@@ -734,13 +763,30 @@ export const SignaturesSection = ({
                     </div>
                   </div>
 
-                  {/* Banner Preview */}
+                  {/* Banner Preview with Drag & Drop */}
                   <div className="px-4 py-4">
                     <div 
-                      className="relative bg-muted/30 rounded-lg border border-dashed border-primary/30 flex items-center justify-center overflow-hidden"
+                      className="relative bg-muted/30 rounded-lg border-2 border-dashed border-primary/30 flex items-center justify-center overflow-hidden transition-colors"
                       style={{ 
                         aspectRatio: aspectRatio > 3 ? 4 : aspectRatio,
                         maxHeight: '200px'
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.add('border-primary', 'bg-primary/10');
+                      }}
+                      onDragLeave={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.remove('border-primary', 'bg-primary/10');
+                      }}
+                      onDrop={async (e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.remove('border-primary', 'bg-primary/10');
+                        const file = e.dataTransfer.files?.[0];
+                        if (file && file.type.startsWith('image/') && onEmailBannersChange) {
+                          const fakeEvent = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
+                          handleBannerUpload(fakeEvent, banner.id);
+                        }
                       }}
                     >
                       {banner.imageUrl ? (
@@ -752,7 +798,7 @@ export const SignaturesSection = ({
                       ) : (
                         <div className="flex flex-col items-center gap-2 text-muted-foreground">
                           <ImagePlus className="h-8 w-8 opacity-50" />
-                          <span className="text-xs">Add banner image</span>
+                          <span className="text-xs">Drop image here or click edit</span>
                         </div>
                       )}
                     </div>

@@ -260,11 +260,28 @@ export const BrochuresSection = ({ brochures, onBrochuresChange, customSubtitle,
       ) : (
         <button
           onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.currentTarget.classList.add('border-primary', 'bg-primary/5', 'text-primary');
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.currentTarget.classList.remove('border-primary', 'bg-primary/5', 'text-primary');
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.currentTarget.classList.remove('border-primary', 'bg-primary/5', 'text-primary');
+            const file = e.dataTransfer.files?.[0];
+            if (file) {
+              const fakeEvent = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
+              handleFileUpload(fakeEvent);
+            }
+          }}
           className="w-full h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-3 text-muted-foreground hover:border-accent hover:text-accent transition-colors"
         >
           <FileText className="h-10 w-10" />
           <div className="text-center">
-            <p className="font-medium">Upload marketing collateral</p>
+            <p className="font-medium">Drop files or click to upload</p>
             <p className="text-sm">PDFs, brochures, whitepapers</p>
           </div>
         </button>

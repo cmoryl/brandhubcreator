@@ -1,11 +1,12 @@
-import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Upload, Download, Package } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { X, Pencil, Upload, Download, Package } from 'lucide-react';
 import { BrandPattern, LayoutPreset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SectionHeader } from './SectionHeader';
 import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
 import { toast } from 'sonner';
+import { useDropZone } from '@/components/ui/drop-zone';
 
 interface PatternsSectionProps {
   patterns: BrandPattern[];
@@ -19,13 +20,9 @@ interface PatternsSectionProps {
 export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, onSubtitleChange, layout = 'grid-3', onLayoutChange }: PatternsSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { gridClass } = useLayoutClasses(layout);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleFileDrop = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const url = event.target?.result as string;
@@ -37,11 +34,12 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
       onPatternsChange([...patterns, newPattern]);
     };
     reader.readAsDataURL(file);
+  }, [patterns, onPatternsChange]);
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
+  const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
+    onFileDrop: handleFileDrop,
+    accept: 'image/*',
+  });
 
   const updatePattern = (id: string, updates: Partial<BrandPattern>) => {
     onPatternsChange(patterns.map(p => p.id === id ? { ...p, ...updates } : p));
@@ -108,7 +106,7 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
               Download All
             </Button>
           )}
-          <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2">
+          <Button onClick={openFilePicker} size="sm" className="gap-2">
             <Upload className="h-4 w-4" />
             Upload Pattern
           </Button>
@@ -119,11 +117,14 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        onChange={handleFileUpload}
+        onChange={handleInputChange}
         className="hidden"
       />
 
-      <div className={gridClass}>
+      <div 
+        className={`${gridClass} ${isDragging ? 'ring-2 ring-primary ring-offset-2 rounded-xl' : ''}`}
+        {...dragHandlers}
+      >
         {patterns.map((pattern, index) => (
           <div
             key={pattern.id}
@@ -183,14 +184,29 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
 
         {patterns.length === 0 && (
           <button
-            onClick={() => fileInputRef.current?.click()}
-            className="h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors"
+            onClick={openFilePicker}
+            className={`h-48 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-2 transition-colors ${
+              isDragging 
+                ? 'border-primary bg-primary/5 text-primary' 
+                : 'border-border text-muted-foreground hover:border-accent hover:text-accent'
+            }`}
           >
             <Upload className="h-8 w-8" />
-            <span className="text-sm font-medium">Upload your first pattern</span>
+            <span className="text-sm font-medium">{isDragging ? 'Drop to upload' : 'Upload your first pattern'}</span>
           </button>
         )}
       </div>
+
+      {isDragging && patterns.length > 0 && (
+        <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
+          <div className="bg-background/90 backdrop-blur-sm px-6 py-3 rounded-xl shadow-lg border border-primary">
+            <div className="flex items-center gap-3">
+              <Upload className="h-5 w-5 text-primary" />
+              <span className="font-medium">Drop to upload pattern</span>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
