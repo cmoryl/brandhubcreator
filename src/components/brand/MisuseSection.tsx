@@ -1,9 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { Plus, X, Upload, AlertTriangle } from 'lucide-react';
 import { BrandMisuse } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SectionHeader } from './SectionHeader';
+import { useDropZone } from '@/components/ui/drop-zone';
 
 interface MisuseSectionProps {
   misuse: BrandMisuse[];
@@ -14,13 +15,9 @@ interface MisuseSectionProps {
 
 export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtitleChange }: MisuseSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleFileDrop = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const url = event.target?.result as string;
@@ -33,11 +30,12 @@ export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtit
       setEditingId(newMisuse.id);
     };
     reader.readAsDataURL(file);
+  }, [misuse, onMisuseChange]);
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
+  const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
+    onFileDrop: handleFileDrop,
+    accept: 'image/*',
+  });
 
   const updateMisuse = (id: string, updates: Partial<BrandMisuse>) => {
     onMisuseChange(misuse.map(m => m.id === id ? { ...m, ...updates } : m));
@@ -61,7 +59,7 @@ export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtit
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button onClick={() => fileInputRef.current?.click()} size="sm" variant="destructive" className="gap-2 shrink-0">
+        <Button onClick={openFilePicker} size="sm" variant="destructive" className="gap-2 shrink-0">
           <Upload className="h-4 w-4" />
           Add Example
         </Button>
@@ -71,16 +69,23 @@ export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtit
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        onChange={handleFileUpload}
+        onChange={handleInputChange}
         className="hidden"
       />
 
-      <div className="bg-destructive/5 border-2 border-dashed border-destructive/30 rounded-xl p-6">
+      <div 
+        className={`bg-destructive/5 border-2 border-dashed rounded-xl p-6 transition-colors ${
+          isDragging ? 'border-destructive bg-destructive/10' : 'border-destructive/30'
+        }`}
+        {...dragHandlers}
+      >
         <div className="flex items-center gap-3 mb-6">
           <AlertTriangle className="h-6 w-6 text-destructive" />
           <div>
             <h3 className="font-semibold text-destructive">Logo Misuse Examples</h3>
-            <p className="text-sm text-muted-foreground">Document incorrect usage to protect brand integrity</p>
+            <p className="text-sm text-muted-foreground">
+              {isDragging ? 'Drop image to add misuse example' : 'Document incorrect usage to protect brand integrity'}
+            </p>
           </div>
         </div>
 
@@ -130,11 +135,18 @@ export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtit
           ))}
 
           <button
-            onClick={() => fileInputRef.current?.click()}
-            className="aspect-video border-2 border-dashed border-red-300 rounded-xl flex flex-col items-center justify-center gap-2 text-red-400 hover:bg-red-50 transition-colors"
+            onClick={openFilePicker}
+            onDragOver={dragHandlers.onDragOver}
+            onDragLeave={dragHandlers.onDragLeave}
+            onDrop={dragHandlers.onDrop}
+            className={`aspect-video border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-2 transition-colors ${
+              isDragging 
+                ? 'border-destructive bg-destructive/10 text-destructive' 
+                : 'border-red-300 text-red-400 hover:bg-red-50'
+            }`}
           >
             <Plus className="h-6 w-6" />
-            <span className="text-sm font-medium">Add misuse example</span>
+            <span className="text-sm font-medium">{isDragging ? 'Drop to add' : 'Add misuse example'}</span>
           </button>
         </div>
       </div>
