@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Link2, Figma } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Link2, Figma, Upload, Image } from 'lucide-react';
 import { BrandSocialAssetSpec, BrandDisplayBannerSpec, SocialAssetTemplate } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
 import { LayoutPreset } from '@/types/brand';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useDropZone } from '@/components/ui/drop-zone';
 
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];
@@ -29,6 +30,9 @@ const platformIcons: Record<string, React.ElementType> = {
   'Facebook': Facebook,
   'YouTube': Youtube,
   'TikTok': Monitor,
+  'Pinterest': Image,
+  'Threads': Monitor,
+  'Snapchat': Smartphone,
 };
 
 const fileTypeIcons: Record<string, { icon: React.ElementType; color: string; label: string }> = {
@@ -41,42 +45,118 @@ const fileTypeIcons: Record<string, { icon: React.ElementType; color: string; la
   'other': { icon: FileType, color: 'text-muted-foreground', label: 'Other' },
 };
 
+// Platform brand colors for visual identification
+const platformColors: Record<string, string> = {
+  'LinkedIn': '#0A66C2',
+  'X (Twitter)': '#000000',
+  'Instagram': '#E4405F',
+  'Facebook': '#1877F2',
+  'YouTube': '#FF0000',
+  'TikTok': '#000000',
+  'Pinterest': '#BD081C',
+  'Threads': '#000000',
+  'Snapchat': '#FFFC00',
+};
+
 const platformPresets: BrandSocialAssetSpec[] = [
   {
     id: crypto.randomUUID(),
     platform: 'LinkedIn',
     postSize: '1200 x 627 px',
-    altSize: '1584 x 396 px',
+    altSize: '1584 x 396 px (Banner)',
+    storySize: 'N/A',
+    coverSize: '1128 x 191 px',
     textLegibility: '24pt for Headlines, 14pt for Body',
-    directive: 'Center 1200px (Avoid edges for text)',
+    directive: 'Center 1200px (Avoid edges for text). Logo placement: top-left or bottom-left. Maintain 60px padding from all edges.',
     templates: [],
+    previewImageUrl: '',
   },
   {
     id: crypto.randomUUID(),
     platform: 'X (Twitter)',
     postSize: '1600 x 900 px',
-    altSize: '1500 x 500 px',
+    altSize: '1500 x 500 px (Header)',
+    storySize: 'N/A',
+    coverSize: '1500 x 500 px',
     textLegibility: '32pt for Headlines, 18pt for Body',
-    directive: 'Center 1000px horizontally',
+    directive: 'Center 1000px horizontally. Profile pic overlaps header on left. Keep important content right-of-center.',
     templates: [],
+    previewImageUrl: '',
   },
   {
     id: crypto.randomUUID(),
     platform: 'Instagram',
     postSize: '1080 x 1080 px (1:1)',
-    altSize: 'N/A (Grid Focus)',
+    altSize: '1080 x 566 px (Landscape)',
+    storySize: '1080 x 1920 px (9:16)',
+    reelSize: '1080 x 1920 px (9:16)',
+    coverSize: 'N/A',
     textLegibility: '48pt for Stories, 24pt for Posts',
-    directive: 'Keep text within inner 80% to avoid UI overlays',
+    directive: 'Keep text within inner 80% to avoid UI overlays. Stories: avoid top 150px (username) and bottom 200px (CTA buttons).',
     templates: [],
+    previewImageUrl: '',
   },
   {
     id: crypto.randomUUID(),
     platform: 'Facebook',
     postSize: '1200 x 630 px',
-    altSize: '820 x 312 px',
+    altSize: '1200 x 1200 px (Square)',
+    storySize: '1080 x 1920 px',
+    coverSize: '820 x 312 px',
     textLegibility: '30pt for Headlines, 16pt for Body',
-    directive: 'Center 640px to accommodate mobile crop',
+    directive: 'Center 640px to accommodate mobile crop. Cover: profile pic overlaps left side, keep key content centered.',
     templates: [],
+    previewImageUrl: '',
+  },
+  {
+    id: crypto.randomUUID(),
+    platform: 'YouTube',
+    postSize: '1280 x 720 px (Thumbnail)',
+    altSize: '2560 x 1440 px (Channel Art)',
+    storySize: '1080 x 1920 px (Shorts)',
+    reelSize: '1080 x 1920 px (Shorts)',
+    coverSize: '2560 x 1440 px',
+    textLegibility: '96pt for Thumbnails, 48pt for Overlays',
+    directive: 'Thumbnails: faces and bold text perform best. Channel art safe area: 1546 x 423 px center. Avoid corners.',
+    templates: [],
+    previewImageUrl: '',
+  },
+  {
+    id: crypto.randomUUID(),
+    platform: 'TikTok',
+    postSize: '1080 x 1920 px (9:16)',
+    altSize: 'N/A',
+    storySize: '1080 x 1920 px',
+    reelSize: '1080 x 1920 px',
+    coverSize: 'N/A',
+    textLegibility: '48pt minimum for in-video text',
+    directive: 'Avoid top 150px (username/music) and bottom 280px (engagement buttons/description). Center text in middle 60%.',
+    templates: [],
+    previewImageUrl: '',
+  },
+  {
+    id: crypto.randomUUID(),
+    platform: 'Pinterest',
+    postSize: '1000 x 1500 px (2:3)',
+    altSize: '1000 x 1000 px (Square)',
+    storySize: '1080 x 1920 px (Idea Pins)',
+    coverSize: 'N/A',
+    textLegibility: '36pt for Headlines, 18pt for Body',
+    directive: 'Vertical pins perform best. Text overlay in top or bottom third. High-contrast colors for readability.',
+    templates: [],
+    previewImageUrl: '',
+  },
+  {
+    id: crypto.randomUUID(),
+    platform: 'Threads',
+    postSize: '1080 x 1080 px',
+    altSize: '1080 x 566 px (Landscape)',
+    storySize: 'N/A',
+    coverSize: 'N/A',
+    textLegibility: '24pt for Post Images',
+    directive: 'Similar to Instagram feed. Keep important content centered. Text-based posts often outperform images.',
+    templates: [],
+    previewImageUrl: '',
   },
 ];
 
@@ -137,6 +217,116 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
   },
 ];
 
+// Image upload component for social asset preview
+const SocialAssetPreviewUpload = ({ 
+  asset, 
+  onUpdate 
+}: { 
+  asset: BrandSocialAssetSpec; 
+  onUpdate: (updates: Partial<BrandSocialAssetSpec>) => void;
+}) => {
+  const handleFileDrop = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const url = event.target?.result as string;
+      onUpdate({ previewImageUrl: url });
+    };
+    reader.readAsDataURL(file);
+  }, [onUpdate]);
+
+  const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
+    onFileDrop: handleFileDrop,
+    accept: 'image/*',
+    maxSize: 10 * 1024 * 1024, // 10MB
+  });
+
+  const platformColor = platformColors[asset.platform] || '#6366f1';
+
+  if (asset.previewImageUrl) {
+    return (
+      <div className="relative group/preview">
+        <img 
+          src={asset.previewImageUrl} 
+          alt={`${asset.platform} example`}
+          className="w-full h-32 object-cover rounded-lg"
+        />
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/preview:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+          <Button 
+            size="sm" 
+            variant="secondary" 
+            onClick={openFilePicker}
+            className="h-7 text-xs"
+          >
+            <Upload className="h-3 w-3 mr-1" />
+            Replace
+          </Button>
+          <Button 
+            size="sm" 
+            variant="destructive" 
+            onClick={() => onUpdate({ previewImageUrl: '' })}
+            className="h-7 text-xs"
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+        {/* Safe zone overlay */}
+        <div className="absolute inset-4 border-2 border-dashed border-white/40 rounded pointer-events-none">
+          <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[9px] font-medium uppercase tracking-widest text-white/60 bg-black/30 px-2 py-0.5 rounded">
+            Safe Zone
+          </span>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleInputChange}
+          className="hidden"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={openFilePicker}
+      onDragOver={dragHandlers.onDragOver}
+      onDragLeave={dragHandlers.onDragLeave}
+      onDrop={dragHandlers.onDrop}
+      className={`relative w-full h-32 rounded-lg border-2 border-dashed transition-all overflow-hidden ${
+        isDragging 
+          ? 'border-primary bg-primary/10' 
+          : 'border-border/50 hover:border-primary/50 bg-muted/30'
+      }`}
+    >
+      {/* Platform-colored gradient background */}
+      <div 
+        className="absolute inset-0 opacity-10"
+        style={{ 
+          background: `linear-gradient(135deg, ${platformColor}40 0%, transparent 50%, ${platformColor}20 100%)` 
+        }}
+      />
+      
+      {/* Safe zone indicator */}
+      <div className="absolute inset-4 border border-primary/30 rounded flex items-center justify-center">
+        <div className="text-center">
+          <Image className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+          <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+            {isDragging ? 'Drop Image' : 'Add Example'}
+          </span>
+        </div>
+      </div>
+      
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleInputChange}
+        className="hidden"
+      />
+    </button>
+  );
+};
+
 export const SocialAssetsSection = ({
   socialAssets,
   onSocialAssetsChange,
@@ -162,6 +352,16 @@ export const SocialAssetsSection = ({
       newSet.add(id);
     }
     setExpandedTemplates(newSet);
+  };
+
+  // Initialize with all presets if no social assets exist
+  const initializeWithPresets = () => {
+    const presetsWithIds = platformPresets.map(preset => ({
+      ...preset,
+      id: crypto.randomUUID(),
+      templates: [],
+    }));
+    onSocialAssetsChange(presetsWithIds);
   };
 
   const addSocialAsset = (preset?: BrandSocialAssetSpec) => {
@@ -281,12 +481,18 @@ export const SocialAssetsSection = ({
 
       {/* Social Platform Protocols */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-primary" />
             Social Platform Protocols
           </h3>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            {socialAssets.length === 0 && (
+              <Button onClick={initializeWithPresets} size="sm" variant="default" className="gap-1.5 h-8">
+                <Plus className="h-3.5 w-3.5" />
+                Add All Platforms
+              </Button>
+            )}
             <Select onValueChange={(platform) => {
               const preset = platformPresets.find(p => p.platform === platform);
               if (preset) addSocialAsset(preset);
@@ -295,11 +501,17 @@ export const SocialAssetsSection = ({
                 <SelectValue placeholder="Add preset..." />
               </SelectTrigger>
               <SelectContent>
-                {platformPresets.map((preset) => (
-                  <SelectItem key={preset.platform} value={preset.platform}>
-                    {preset.platform}
-                  </SelectItem>
-                ))}
+                {platformPresets.map((preset) => {
+                  const IconComp = platformIcons[preset.platform] || Monitor;
+                  return (
+                    <SelectItem key={preset.platform} value={preset.platform}>
+                      <div className="flex items-center gap-2">
+                        <IconComp className="h-3.5 w-3.5" />
+                        {preset.platform}
+                      </div>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
             <Button onClick={() => addSocialAsset()} size="sm" variant="outline" className="gap-1.5 h-8">
@@ -376,20 +588,18 @@ export const SocialAssetsSection = ({
                   </div>
                 </div>
 
-                {/* Safe Zone Preview */}
-                <div className="px-4 py-4">
-                  <div className="relative bg-muted/30 rounded-lg border border-dashed border-primary/30 h-28 flex items-center justify-center overflow-hidden">
-                    <div className="absolute inset-4 border border-primary/40 rounded flex items-center justify-center">
-                      <span className="text-[10px] font-medium uppercase tracking-widest text-primary/60">
-                        Safe Zone
-                      </span>
-                    </div>
-                  </div>
+                {/* Preview Image Upload Area */}
+                <div className="px-4 py-3">
+                  <SocialAssetPreviewUpload 
+                    asset={asset} 
+                    onUpdate={(updates) => updateSocialAsset(asset.id, updates)} 
+                  />
                 </div>
 
                 {/* Specs */}
                 <div className="px-4 pb-4 space-y-3">
-                  <div className="grid grid-cols-2 gap-4 text-xs">
+                  {/* Size Specifications Grid */}
+                  <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
                         Post Size
@@ -401,35 +611,87 @@ export const SocialAssetsSection = ({
                           className="h-7 text-xs"
                         />
                       ) : (
-                        <p className="font-medium text-foreground">{asset.postSize}</p>
+                        <p className="font-medium text-foreground text-[11px]">{asset.postSize}</p>
                       )}
                     </div>
                     <div>
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
-                        Text Legibility
+                        Banner/Cover
                       </p>
                       {isEditing ? (
                         <Input
-                          value={asset.textLegibility}
-                          onChange={(e) => updateSocialAsset(asset.id, { textLegibility: e.target.value })}
+                          value={asset.coverSize || asset.altSize || ''}
+                          onChange={(e) => updateSocialAsset(asset.id, { coverSize: e.target.value })}
                           className="h-7 text-xs"
+                          placeholder="e.g., 1500 x 500 px"
                         />
                       ) : (
-                        <p className="font-medium text-foreground">{asset.textLegibility || '—'}</p>
+                        <p className="font-medium text-foreground text-[11px]">{asset.coverSize || asset.altSize || '—'}</p>
                       )}
                     </div>
+                    {(asset.storySize || isEditing) && (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                          Story Size
+                        </p>
+                        {isEditing ? (
+                          <Input
+                            value={asset.storySize || ''}
+                            onChange={(e) => updateSocialAsset(asset.id, { storySize: e.target.value })}
+                            className="h-7 text-xs"
+                            placeholder="e.g., 1080 x 1920 px"
+                          />
+                        ) : (
+                          <p className="font-medium text-foreground text-[11px]">{asset.storySize}</p>
+                        )}
+                      </div>
+                    )}
+                    {(asset.reelSize || isEditing) && (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                          Reel/Short Size
+                        </p>
+                        {isEditing ? (
+                          <Input
+                            value={asset.reelSize || ''}
+                            onChange={(e) => updateSocialAsset(asset.id, { reelSize: e.target.value })}
+                            className="h-7 text-xs"
+                            placeholder="e.g., 1080 x 1920 px"
+                          />
+                        ) : (
+                          <p className="font-medium text-foreground text-[11px]">{asset.reelSize}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Text Legibility */}
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                      Text Legibility
+                    </p>
+                    {isEditing ? (
+                      <Input
+                        value={asset.textLegibility}
+                        onChange={(e) => updateSocialAsset(asset.id, { textLegibility: e.target.value })}
+                        className="h-7 text-xs"
+                      />
+                    ) : (
+                      <p className="font-medium text-foreground text-[11px]">{asset.textLegibility || '—'}</p>
+                    )}
                   </div>
 
                   {/* Directive */}
                   <div className="bg-muted/50 rounded-lg p-3">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
-                      Directive
+                      Platform Directive
                     </p>
                     {isEditing ? (
                       <Textarea
                         value={asset.directive}
                         onChange={(e) => updateSocialAsset(asset.id, { directive: e.target.value })}
-                        className="min-h-[60px] text-xs resize-none"
+                        className="min-h-[80px] text-xs resize-none"
+                        placeholder="Enter safe zone guidelines, logo placement rules, etc."
                       />
                     ) : (
                       <p className="text-xs text-muted-foreground leading-relaxed">
