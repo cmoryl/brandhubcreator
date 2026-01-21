@@ -52,6 +52,10 @@ const ProductEditor = () => {
   const { getProduct, updateProduct, toggleFavorite, isLoading } = useBrands();
   const { user, isAdmin, isApproved, isLoading: authLoading } = useAuth();
   const { userRole: orgRole } = useOrganization();
+
+  // Treat organization owners/admins as "admins" within the guide as well.
+  // Otherwise they are treated as viewers and hiddenSections can hide key areas (e.g., Social sections).
+  const isGuideAdmin = Boolean(isAdmin || (orgRole && ['owner', 'admin'].includes(orgRole)));
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -222,7 +226,7 @@ const currentProduct = getProduct(productId || '');
             onSectionOrderChange={handleSectionOrderChange}
             hiddenSections={hiddenSections}
             onHiddenSectionsChange={handleHiddenSectionsChange}
-            isAdmin={isAdmin}
+            isAdmin={isGuideAdmin}
           />
         </div>
 
@@ -237,7 +241,7 @@ const currentProduct = getProduct(productId || '');
               onSectionOrderChange={handleSectionOrderChange}
               hiddenSections={hiddenSections}
               onHiddenSectionsChange={handleHiddenSectionsChange}
-              isAdmin={isAdmin}
+              isAdmin={isGuideAdmin}
             />
           </SheetContent>
         </Sheet>
@@ -364,7 +368,7 @@ const currentProduct = getProduct(productId || '');
                   onSectionVisible={handleSectionVisible}
                   sectionOrder={sectionOrder}
                   hiddenSections={hiddenSections}
-                  isAdmin={isAdmin}
+                  isAdmin={isGuideAdmin}
                 />
               )}
             </div>
