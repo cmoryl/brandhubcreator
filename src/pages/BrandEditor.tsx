@@ -177,9 +177,9 @@ const BrandEditor = () => {
   const canEditOrg = orgRole && ['owner', 'admin', 'member'].includes(orgRole);
   const canEdit = user && (isAdmin || canEditOrg);
 
-  // Treat organization owners/admins as "admins" within the guide as well.
-  // Otherwise they are treated as viewers and hiddenSections can hide key areas (e.g., Social sections).
-  const isGuideAdmin = Boolean(isAdmin || (orgRole && ['owner', 'admin'].includes(orgRole)));
+  // In the editor experience, anyone who can edit should be able to see (and manage) all sections.
+  // Otherwise, `hiddenSections` can unintentionally hide important areas (e.g. Social Assets) for org members.
+  const isGuideAdmin = Boolean(isAdmin || canEditOrg);
   
   // Forward-compat: older guides may have persisted sectionOrder without newly-added sections (e.g., socialassets)
   const sectionOrder = useMemo(
