@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone } from 'lucide-react';
-import { BrandSocialAssetSpec, BrandDisplayBannerSpec } from '@/types/brand';
+import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Link2, Figma } from 'lucide-react';
+import { BrandSocialAssetSpec, BrandDisplayBannerSpec, SocialAssetTemplate } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SectionHeader } from './SectionHeader';
 import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
 import { LayoutPreset } from '@/types/brand';
+import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];
@@ -29,6 +31,16 @@ const platformIcons: Record<string, React.ElementType> = {
   'TikTok': Monitor,
 };
 
+const fileTypeIcons: Record<string, { icon: React.ElementType; color: string; label: string }> = {
+  'psd': { icon: FileType, color: 'text-blue-500', label: 'Photoshop' },
+  'figma': { icon: Figma, color: 'text-purple-500', label: 'Figma' },
+  'canva': { icon: FileType, color: 'text-cyan-500', label: 'Canva' },
+  'ai': { icon: FileType, color: 'text-orange-500', label: 'Illustrator' },
+  'sketch': { icon: FileType, color: 'text-yellow-500', label: 'Sketch' },
+  'xd': { icon: FileType, color: 'text-pink-500', label: 'Adobe XD' },
+  'other': { icon: FileType, color: 'text-muted-foreground', label: 'Other' },
+};
+
 const platformPresets: BrandSocialAssetSpec[] = [
   {
     id: crypto.randomUUID(),
@@ -37,6 +49,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     altSize: '1584 x 396 px',
     textLegibility: '24pt for Headlines, 14pt for Body',
     directive: 'Center 1200px (Avoid edges for text)',
+    templates: [],
   },
   {
     id: crypto.randomUUID(),
@@ -45,6 +58,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     altSize: '1500 x 500 px',
     textLegibility: '32pt for Headlines, 18pt for Body',
     directive: 'Center 1000px horizontally',
+    templates: [],
   },
   {
     id: crypto.randomUUID(),
@@ -53,6 +67,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     altSize: 'N/A (Grid Focus)',
     textLegibility: '48pt for Stories, 24pt for Posts',
     directive: 'Keep text within inner 80% to avoid UI overlays',
+    templates: [],
   },
   {
     id: crypto.randomUUID(),
@@ -61,6 +76,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
     altSize: '820 x 312 px',
     textLegibility: '30pt for Headlines, 16pt for Body',
     directive: 'Center 640px to accommodate mobile crop',
+    templates: [],
   },
 ];
 
@@ -133,11 +149,24 @@ export const SocialAssetsSection = ({
 }: SocialAssetsProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const [expandedTemplates, setExpandedTemplates] = useState<Set<string>>(new Set());
+  const [addingTemplateFor, setAddingTemplateFor] = useState<string | null>(null);
+  const [newTemplate, setNewTemplate] = useState<Partial<SocialAssetTemplate>>({});
   const { gridClass } = useLayoutClasses(layout);
+
+  const toggleTemplateExpand = (id: string) => {
+    const newSet = new Set(expandedTemplates);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setExpandedTemplates(newSet);
+  };
 
   const addSocialAsset = (preset?: BrandSocialAssetSpec) => {
     const newAsset: BrandSocialAssetSpec = preset
-      ? { ...preset, id: crypto.randomUUID() }
+      ? { ...preset, id: crypto.randomUUID(), templates: [] }
       : {
           id: crypto.randomUUID(),
           platform: 'LinkedIn',
@@ -145,6 +174,7 @@ export const SocialAssetsSection = ({
           altSize: '',
           textLegibility: '',
           directive: '',
+          templates: [],
         };
     onSocialAssetsChange([...socialAssets, newAsset]);
     if (!preset) setEditingId(newAsset.id);
@@ -157,6 +187,38 @@ export const SocialAssetsSection = ({
   const deleteSocialAsset = (id: string) => {
     onSocialAssetsChange(socialAssets.filter((a) => a.id !== id));
     if (editingId === id) setEditingId(null);
+  };
+
+  // Template management
+  const addTemplate = (assetId: string) => {
+    if (!newTemplate.name || !newTemplate.url) return;
+    
+    const template: SocialAssetTemplate = {
+      id: crypto.randomUUID(),
+      name: newTemplate.name,
+      fileType: (newTemplate.fileType as SocialAssetTemplate['fileType']) || 'other',
+      url: newTemplate.url,
+      description: newTemplate.description,
+    };
+    
+    const asset = socialAssets.find(a => a.id === assetId);
+    if (asset) {
+      updateSocialAsset(assetId, {
+        templates: [...(asset.templates || []), template]
+      });
+    }
+    
+    setNewTemplate({});
+    setAddingTemplateFor(null);
+  };
+
+  const deleteTemplate = (assetId: string, templateId: string) => {
+    const asset = socialAssets.find(a => a.id === assetId);
+    if (asset) {
+      updateSocialAsset(assetId, {
+        templates: (asset.templates || []).filter(t => t.id !== templateId)
+      });
+    }
   };
 
   const addDisplayBanner = (preset?: BrandDisplayBannerSpec) => {
@@ -185,10 +247,9 @@ export const SocialAssetsSection = ({
   };
 
   const getSafeZoneHeight = (aspectRatio: number) => {
-    // Scale height based on aspect ratio, with min/max bounds
-    if (aspectRatio > 4) return 'h-12'; // Wide banners
+    if (aspectRatio > 4) return 'h-12';
     if (aspectRatio > 2) return 'h-16';
-    if (aspectRatio < 0.5) return 'h-48'; // Tall banners
+    if (aspectRatio < 0.5) return 'h-48';
     return 'h-28';
   };
 
@@ -199,7 +260,7 @@ export const SocialAssetsSection = ({
         <div className="flex-1 min-w-0">
           <SectionHeader
             title="Social Assets & Guidelines"
-            defaultSubtitle="Platform specifications, safe zones, and display banner rules"
+            defaultSubtitle="Platform specifications, safe zones, and downloadable design templates"
             customSubtitle={customSubtitle}
             onSubtitleChange={onSubtitleChange}
             isEditing={isHeaderEditing}
@@ -252,6 +313,9 @@ export const SocialAssetsSection = ({
           {socialAssets.map((asset, index) => {
             const IconComponent = platformIcons[asset.platform] || Monitor;
             const isEditing = editingId === asset.id;
+            const hasTemplates = (asset.templates?.length || 0) > 0;
+            const isTemplateExpanded = expandedTemplates.has(asset.id);
+            const isAddingTemplate = addingTemplateFor === asset.id;
 
             return (
               <div
@@ -286,6 +350,12 @@ export const SocialAssetsSection = ({
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
+                    {hasTemplates && (
+                      <Badge variant="secondary" className="text-[9px] gap-1">
+                        <Download className="h-2.5 w-2.5" />
+                        {asset.templates?.length}
+                      </Badge>
+                    )}
                     <span className="text-[10px] font-mono bg-muted/80 px-2 py-0.5 rounded text-muted-foreground">
                       {asset.altSize || asset.postSize.split(' ')[0]}
                     </span>
@@ -367,6 +437,143 @@ export const SocialAssetsSection = ({
                       </p>
                     )}
                   </div>
+
+                  {/* Templates Section */}
+                  <Collapsible open={isTemplateExpanded} onOpenChange={() => toggleTemplateExpand(asset.id)}>
+                    <div className="border-t border-border/30 pt-3 mt-3">
+                      <CollapsibleTrigger className="flex items-center justify-between w-full group/trigger">
+                        <div className="flex items-center gap-2">
+                          <Download className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                            Design Templates
+                          </span>
+                          {hasTemplates && (
+                            <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                              {asset.templates?.length} files
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-muted-foreground group-hover/trigger:text-foreground transition-colors">
+                          {isTemplateExpanded ? 'Hide' : 'Show'}
+                        </span>
+                      </CollapsibleTrigger>
+
+                      <CollapsibleContent className="mt-3 space-y-2">
+                        {/* Template List */}
+                        {asset.templates?.map((template) => {
+                          const typeInfo = fileTypeIcons[template.fileType] || fileTypeIcons.other;
+                          const TypeIcon = typeInfo.icon;
+                          
+                          return (
+                            <div 
+                              key={template.id}
+                              className="flex items-center justify-between gap-2 bg-background/50 rounded-lg p-2 border border-border/30 group/template"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className={`w-6 h-6 rounded flex items-center justify-center bg-muted/50 ${typeInfo.color}`}>
+                                  <TypeIcon className="h-3 w-3" />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-xs font-medium truncate">{template.name}</p>
+                                  <p className="text-[10px] text-muted-foreground">{typeInfo.label}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <a
+                                  href={template.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1.5 rounded hover:bg-primary/10 text-primary transition-colors"
+                                  title="Open template"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                                <button
+                                  onClick={() => deleteTemplate(asset.id, template.id)}
+                                  className="p-1.5 rounded hover:bg-destructive/10 text-destructive opacity-0 group-hover/template:opacity-100 transition-all"
+                                  title="Remove template"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* Add Template Form */}
+                        {isAddingTemplate ? (
+                          <div className="bg-background/50 rounded-lg p-3 border border-primary/30 space-y-2">
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input
+                                value={newTemplate.name || ''}
+                                onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+                                placeholder="Template name"
+                                className="h-7 text-xs"
+                              />
+                              <Select
+                                value={newTemplate.fileType || 'figma'}
+                                onValueChange={(val) => setNewTemplate({ ...newTemplate, fileType: val as SocialAssetTemplate['fileType'] })}
+                              >
+                                <SelectTrigger className="h-7 text-xs">
+                                  <SelectValue placeholder="Type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="figma">Figma</SelectItem>
+                                  <SelectItem value="canva">Canva</SelectItem>
+                                  <SelectItem value="psd">Photoshop</SelectItem>
+                                  <SelectItem value="ai">Illustrator</SelectItem>
+                                  <SelectItem value="sketch">Sketch</SelectItem>
+                                  <SelectItem value="xd">Adobe XD</SelectItem>
+                                  <SelectItem value="other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <Input
+                              value={newTemplate.url || ''}
+                              onChange={(e) => setNewTemplate({ ...newTemplate, url: e.target.value })}
+                              placeholder="Template URL (Figma, Canva, Dropbox, etc.)"
+                              className="h-7 text-xs"
+                            />
+                            <Input
+                              value={newTemplate.description || ''}
+                              onChange={(e) => setNewTemplate({ ...newTemplate, description: e.target.value })}
+                              placeholder="Description (optional)"
+                              className="h-7 text-xs"
+                            />
+                            <div className="flex gap-2 pt-1">
+                              <Button 
+                                size="sm" 
+                                onClick={() => addTemplate(asset.id)} 
+                                disabled={!newTemplate.name || !newTemplate.url}
+                                className="h-7 text-xs gap-1"
+                              >
+                                <Plus className="h-3 w-3" />
+                                Add Template
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                onClick={() => { setAddingTemplateFor(null); setNewTemplate({}); }}
+                                className="h-7 text-xs"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setAddingTemplateFor(asset.id)}
+                            className="w-full h-8 text-xs gap-1.5 border-dashed"
+                          >
+                            <Link2 className="h-3 w-3" />
+                            Add Template Link
+                          </Button>
+                        )}
+                      </CollapsibleContent>
+                    </div>
+                  </Collapsible>
                 </div>
               </div>
             );
