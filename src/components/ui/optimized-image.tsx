@@ -246,9 +246,9 @@ export const BackgroundImage = ({
         <div className={cn('absolute inset-0', overlayClassName)} />
       )}
       
-      {/* Content */}
+      {/* Content - Use absolute positioning to fill container for proper child positioning */}
       {children && (
-        <div className="relative z-10">
+        <div className="absolute inset-0 z-10">
           {children}
         </div>
       )}
