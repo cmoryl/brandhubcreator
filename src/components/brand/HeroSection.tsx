@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Upload, Image, Pencil, Check } from 'lucide-react';
 import { BrandHero } from '@/types/brand';
 import { Input } from '@/components/ui/input';
@@ -15,8 +15,33 @@ interface HeroSectionProps {
 
 export const HeroSection = ({ hero, onHeroChange, fullWidth = false }: HeroSectionProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [parallaxOffset, setParallaxOffset] = useState(0);
+  const heroRef = useRef<HTMLDivElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
+
+  // Parallax scroll effect for hero image
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!heroRef.current) return;
+      
+      const rect = heroRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      
+      // Only apply parallax when hero is in view
+      if (rect.bottom > 0 && rect.top < viewportHeight) {
+        // Calculate parallax offset based on scroll position
+        const scrollProgress = (viewportHeight - rect.top) / (viewportHeight + rect.height);
+        const offset = (scrollProgress - 0.5) * 80; // Max 40px movement
+        setParallaxOffset(offset);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial calculation
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'coverImage' | 'logoUrl') => {
     const file = e.target.files?.[0];
@@ -48,20 +73,28 @@ export const HeroSection = ({ hero, onHeroChange, fullWidth = false }: HeroSecti
       />
 
       {/* Full-bleed hero container - expands based on fullWidth prop */}
-      <div className={`relative overflow-hidden ${fullWidth ? '-mx-4 sm:-mx-6 lg:-mx-8 xl:-mx-12 2xl:-mx-16' : '-mx-4 sm:-mx-6 lg:-mx-8'}`}>
-        {/* Cover Image - Full Width */}
+      <div 
+        ref={heroRef}
+        className={`relative overflow-hidden ${fullWidth ? '-mx-4 sm:-mx-6 lg:-mx-8 xl:-mx-12 2xl:-mx-16' : '-mx-4 sm:-mx-6 lg:-mx-8'}`}
+      >
+        {/* Cover Image - Full Width with Parallax */}
         <div
           className="relative h-64 sm:h-80 lg:h-96 cursor-pointer group"
           onClick={() => isEditing && coverInputRef.current?.click()}
         >
-          {/* Background with gradient fallback */}
+          {/* Background with gradient fallback - Parallax layer */}
           <div 
-            className="absolute inset-0 bg-gradient-to-br from-primary via-primary/80 to-accent"
-            style={hero.coverImage ? { 
-              backgroundImage: `url(${hero.coverImage})`, 
-              backgroundSize: 'cover', 
-              backgroundPosition: 'center' 
-            } : undefined}
+            className="absolute inset-0 will-change-transform transition-transform duration-100 ease-out"
+            style={{ 
+              transform: `translateY(${parallaxOffset}px) scale(1.15)`,
+              ...(hero.coverImage ? { 
+                backgroundImage: `url(${hero.coverImage})`, 
+                backgroundSize: 'cover', 
+                backgroundPosition: 'center' 
+              } : {
+                background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 50%, hsl(var(--accent)) 100%)'
+              })
+            }}
           />
           
           {/* Overlay gradient for depth */}
