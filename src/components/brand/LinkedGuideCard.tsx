@@ -46,7 +46,8 @@ export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideC
   };
 
   const guideData = guide.guide_data as any;
-  const heroImage = guideData?.hero?.coverImage || guideData?.hero?.logoUrl;
+  const cardImage = guideData?.hero?.cardImage;
+  const heroImage = cardImage || guideData?.hero?.coverImage || guideData?.hero?.logoUrl;
   const logoUrl = guideData?.hero?.logoUrl;
   const tagline = guideData?.hero?.tagline;
   const primaryColor = guideData?.colors?.[0]?.hex;
