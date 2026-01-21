@@ -437,9 +437,14 @@ const SocialAssetPreviewUpload = ({
         <img 
           src={asset.previewImageUrl} 
           alt={`${asset.platform} example`}
-          className="w-full h-32 object-cover rounded-lg"
+          className="w-full h-32 object-cover rounded-lg bg-muted"
           loading="lazy"
           decoding="async"
+          onError={(e) => {
+            // If image fails to load, show placeholder
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+          }}
         />
         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/preview:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
           <Button 
@@ -580,9 +585,13 @@ const BannerPreviewUpload = ({
         <img 
           src={banner.previewImageUrl} 
           alt={`${banner.name} example`}
-          className={`w-full ${getPreviewHeight()} object-cover rounded-lg`}
+          className={`w-full ${getPreviewHeight()} object-cover rounded-lg bg-muted`}
           loading="lazy"
           decoding="async"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+          }}
         />
         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/preview:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
           <Button 
@@ -689,8 +698,31 @@ export const SocialAssetsSection = ({
   const [addingTemplateFor, setAddingTemplateFor] = useState<string | null>(null);
   const [newTemplate, setNewTemplate] = useState<Partial<SocialAssetTemplate>>({});
   const { gridClass } = useLayoutClasses(layout);
+  // Track if this component instance has initialized - use stable refs
   const hasSocialInitialized = useRef(false);
   const hasBannerInitialized = useRef(false);
+  const lastSocialAssetsLength = useRef(socialAssets.length);
+  const lastBannersLength = useRef(displayBanners.length);
+
+  // Reset initialization flags when data changes externally (e.g., brand switch)
+  useEffect(() => {
+    if (socialAssets.length !== lastSocialAssetsLength.current) {
+      lastSocialAssetsLength.current = socialAssets.length;
+      // If we got data from outside, mark as initialized
+      if (socialAssets.length > 0) {
+        hasSocialInitialized.current = true;
+      }
+    }
+  }, [socialAssets.length]);
+
+  useEffect(() => {
+    if (displayBanners.length !== lastBannersLength.current) {
+      lastBannersLength.current = displayBanners.length;
+      if (displayBanners.length > 0) {
+        hasBannerInitialized.current = true;
+      }
+    }
+  }, [displayBanners.length]);
 
   // Auto-populate with all platform presets on first render if empty
   useEffect(() => {
