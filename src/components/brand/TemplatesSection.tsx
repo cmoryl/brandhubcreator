@@ -24,11 +24,15 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 
+import { LayoutSelector, useLayoutClasses, LayoutPreset } from './LayoutSelector';
+
 interface TemplatesSectionProps {
   templates: BrandTemplate[];
   onTemplatesChange: (templates: BrandTemplate[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  layout?: LayoutPreset;
+  onLayoutChange?: (layout: LayoutPreset) => void;
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -103,7 +107,7 @@ const getDriveEmbedUrl = (url: string): string => {
   return url;
 };
 
-export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle, onSubtitleChange }: TemplatesSectionProps) => {
+export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle, onSubtitleChange, layout = 'grid-2', onLayoutChange }: TemplatesSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedFolderId, setExpandedFolderId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -112,6 +116,8 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [pendingThumbnailId, setPendingThumbnailId] = useState<string | null>(null);
+  
+  const { gridClass } = useLayoutClasses(layout);
   
   // Link form state
   const [linkForm, setLinkForm] = useState({
@@ -254,6 +260,14 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
           />
         </div>
         <div className="flex items-center gap-2">
+          {onLayoutChange && (
+            <LayoutSelector
+              value={layout}
+              onChange={onLayoutChange}
+              availableLayouts={['grid-2', 'grid-3', 'grid-4', 'list']}
+              size="sm"
+            />
+          )}
           <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
@@ -507,7 +521,7 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
                   {typeTemplates.length}
                 </span>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className={gridClass}>
                 {typeTemplates.map((template, index) => (
                   <div
                     key={template.id}
