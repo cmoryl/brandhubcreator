@@ -116,7 +116,9 @@ export const BrandIconsSection = ({ brandIcons, onBrandIconsChange, customSubtit
           <img 
             src={icon.url} 
             alt={icon.name} 
-            className={`${size === 'large' ? 'max-h-24 max-w-24' : size === 'small' ? 'max-h-8 max-w-8' : 'max-h-12 max-w-12'} object-contain transition-transform duration-300 group-hover:scale-110`} 
+            className={`${size === 'large' ? 'max-h-24 max-w-24' : size === 'small' ? 'max-h-8 max-w-8' : 'max-h-12 max-w-12'} object-contain transition-transform duration-300 group-hover:scale-110`}
+            loading="lazy"
+            decoding="async"
           />
         </div>
 

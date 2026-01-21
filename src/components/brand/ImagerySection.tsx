@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
+import { OptimizedImage } from '@/components/ui/optimized-image';
 
 interface ImagerySectionProps {
   imagery: BrandImagery[];
@@ -76,8 +77,8 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
       style={{ animationDelay: `${index * 50}ms` }}
     >
       <div className={`${viewMode === 'split' ? 'aspect-video' : 'aspect-square'} relative`}>
-        <img src={img.url} alt={img.description} className="w-full h-full object-cover" />
-        {img.type === 'dont' && <div className="absolute inset-0 bg-red-500/10" />}
+        <OptimizedImage src={img.url} alt={img.description} className="w-full h-full" objectFit="cover" />
+        {img.type === 'dont' && <div className="absolute inset-0 bg-destructive/10" />}
         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={() => setEditingId(img.id)}

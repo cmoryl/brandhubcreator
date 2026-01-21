@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
+import { OptimizedImage } from '@/components/ui/optimized-image';
 
 interface MisuseSectionProps {
   misuse: BrandMisuse[];
@@ -97,8 +98,8 @@ export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtit
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <div className="aspect-video relative">
-                <img src={item.url} alt={item.description} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-red-500/20" />
+                <OptimizedImage src={item.url} alt={item.description} className="w-full h-full" objectFit="cover" />
+                <div className="absolute inset-0 bg-destructive/20" />
                 <div className="absolute top-2 left-2 bg-destructive text-destructive-foreground text-xs font-bold px-2 py-1 rounded">
                   ✕ DON'T
                 </div>

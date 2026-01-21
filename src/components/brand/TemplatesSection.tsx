@@ -535,6 +535,8 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
                           src={template.thumbnailUrl} 
                           alt={template.name}
                           className="w-full h-full object-cover"
+                          loading="lazy"
+                          decoding="async"
                         />
                       ) : (
                         <span className="text-5xl">{getFileTypeIcon(template.fileType)}</span>

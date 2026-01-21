@@ -277,7 +277,7 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
               </div>
               {formData.imageUrl && (
                 <div className="w-16 h-16 rounded-lg overflow-hidden border mt-2">
-                  <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                 </div>
               )}
             </div>
