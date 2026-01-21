@@ -186,10 +186,10 @@ export const HeroSection = ({
             />
           )}
           
-          {/* Multi-layer overlays for depth */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-accent/10 mix-blend-overlay" />
+          {/* Multi-layer overlays for depth - z-10 to be above background, below content */}
+          <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+          <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
+          <div className="absolute inset-0 z-10 bg-gradient-to-b from-primary/10 via-transparent to-accent/10 mix-blend-overlay" />
           
           {/* Animated ambient glow */}
           {enhancedMode && (
@@ -221,7 +221,7 @@ export const HeroSection = ({
             </div>
           )}
           
-          {/* Edit button */}
+          {/* Edit button - z-30 to be above everything */}
           <Button
             variant="ghost"
             size="icon"
@@ -229,7 +229,7 @@ export const HeroSection = ({
               e.stopPropagation();
               setIsEditing(!isEditing);
             }}
-            className="absolute top-4 right-4 z-20 bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 hover:text-white shadow-lg"
+            className="absolute top-4 right-4 z-30 bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 hover:text-white shadow-lg"
           >
             {isEditing ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
           </Button>
@@ -244,9 +244,9 @@ export const HeroSection = ({
             </div>
           )}
 
-          {/* Stats Panel - Top Right */}
+          {/* Stats Panel - Top Left - z-20 to be above overlays */}
           {showStats && enhancedMode && (
-            <div className={`absolute top-4 left-4 sm:top-6 sm:left-6 flex flex-col gap-2 transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}>
+            <div className={`absolute top-4 left-4 sm:top-6 sm:left-6 z-20 flex flex-col gap-2 transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}>
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 shadow-lg">
                 <div className="flex items-center gap-1.5">
                   <BarChart3 className="h-4 w-4 text-white" />
@@ -264,8 +264,8 @@ export const HeroSection = ({
             </div>
           )}
 
-          {/* Main Content Area */}
-          <div className="absolute inset-0 flex items-end">
+          {/* Main Content Area - z-20 to be above overlays */}
+          <div className="absolute inset-0 flex items-end z-20">
             <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 pb-6 sm:pb-8 lg:pb-12">
               <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start lg:items-end justify-between">
                 {/* Left: Logo & Brand Info */}
