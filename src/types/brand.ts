@@ -302,6 +302,15 @@ export interface BrandService {
   imageUrl?: string; // Optional custom image
 }
 
+// SOCIAL ASSET TEMPLATE - Downloadable design files for social platforms
+export interface SocialAssetTemplate {
+  id: string;
+  name: string;
+  fileType: 'psd' | 'figma' | 'canva' | 'ai' | 'sketch' | 'xd' | 'other';
+  url: string;
+  description?: string;
+}
+
 // SOCIAL ASSETS - Platform Specifications
 export interface BrandSocialAssetSpec {
   id: string;
@@ -310,6 +319,7 @@ export interface BrandSocialAssetSpec {
   altSize?: string;
   textLegibility: string;
   directive: string;
+  templates?: SocialAssetTemplate[]; // Downloadable design templates
 }
 
 // DISPLAY BANNERS - Industry Standard Specs
