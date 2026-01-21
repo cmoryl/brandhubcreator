@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, X, Pencil, Copy, Check, Code, LayoutTemplate, Mail, Phone, Globe, MapPin, Building2, Image, ExternalLink, ImagePlus } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Plus, X, Pencil, Copy, Check, Code, LayoutTemplate, Mail, Phone, Globe, MapPin, Building2, Image, ExternalLink, ImagePlus, Upload, Link2, Loader2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { BrandSignature, BrandEmailBanner } from '@/types/brand';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SectionHeader } from './SectionHeader';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface SignaturesSectionProps {
   signatures: BrandSignature[];
@@ -117,6 +120,9 @@ export const SignaturesSection = ({
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'signatures' | 'banners'>('signatures');
+  const [uploadingLogoId, setUploadingLogoId] = useState<string | null>(null);
+  const [logoInputMode, setLogoInputMode] = useState<'url' | 'upload'>('url');
+  const logoFileInputRef = useRef<HTMLInputElement>(null);
 
   const addSignature = (templateKey: keyof typeof signatureTemplates = 'full') => {
     const template = signatureTemplates[templateKey];
@@ -178,6 +184,93 @@ export const SignaturesSection = ({
     await navigator.clipboard.writeText(html);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, signatureId: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image must be less than 2MB');
+      return;
+    }
+
+    setUploadingLogoId(signatureId);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `signature-logos/${signatureId}-${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('organization-assets')
+        .upload(fileName, file, { upsert: true });
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('organization-assets')
+        .getPublicUrl(fileName);
+
+      updateSignature(signatureId, { logoUrl: urlData.publicUrl });
+      toast.success('Logo uploaded successfully');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload logo');
+    } finally {
+      setUploadingLogoId(null);
+      if (logoFileInputRef.current) {
+        logoFileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const [uploadingBannerId, setUploadingBannerId] = useState<string | null>(null);
+
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>, bannerId: string) => {
+    const file = e.target.files?.[0];
+    if (!file || !onEmailBannersChange) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image must be less than 2MB');
+      return;
+    }
+
+    setUploadingBannerId(bannerId);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `email-banners/${bannerId}-${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('organization-assets')
+        .upload(fileName, file, { upsert: true });
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('organization-assets')
+        .getPublicUrl(fileName);
+
+      updateEmailBanner(bannerId, { imageUrl: urlData.publicUrl });
+      toast.success('Banner uploaded successfully');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload banner');
+    } finally {
+      setUploadingBannerId(null);
+    }
   };
 
   const renderPreview = (signature: BrandSignature) => {
@@ -409,15 +502,92 @@ export const SignaturesSection = ({
                         placeholder="www.company.com"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 sm:col-span-2">
                       <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                        <Image className="h-3 w-3" /> Logo URL
+                        <Image className="h-3 w-3" /> Signature Logo
                       </label>
-                      <Input
-                        value={signature.logoUrl || ''}
-                        onChange={(e) => updateSignature(signature.id, { logoUrl: e.target.value })}
-                        placeholder="https://..."
-                      />
+                      <div className="space-y-3">
+                        {/* Logo Preview */}
+                        {signature.logoUrl && (
+                          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border border-border">
+                            <img 
+                              src={signature.logoUrl} 
+                              alt="Logo preview" 
+                              className="h-12 w-12 object-contain rounded bg-white p-1"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-muted-foreground truncate">{signature.logoUrl}</p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => updateSignature(signature.id, { logoUrl: '' })}
+                              className="text-destructive hover:text-destructive h-8"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                        
+                        {/* Upload/Link Options */}
+                        <div className="flex gap-2">
+                          {/* Upload Button */}
+                          <div className="relative">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleLogoUpload(e, signature.id)}
+                              className="absolute inset-0 opacity-0 cursor-pointer"
+                              disabled={uploadingLogoId === signature.id}
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-2 pointer-events-none"
+                              disabled={uploadingLogoId === signature.id}
+                            >
+                              {uploadingLogoId === signature.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Upload className="h-4 w-4" />
+                              )}
+                              Upload Logo
+                            </Button>
+                          </div>
+                          
+                          {/* URL Input with Popover */}
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm" className="gap-2">
+                                <Link2 className="h-4 w-4" />
+                                Link URL
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80" align="start">
+                              <div className="space-y-3">
+                                <div className="space-y-1">
+                                  <label className="text-xs font-medium">Logo URL</label>
+                                  <Input
+                                    value={signature.logoUrl || ''}
+                                    onChange={(e) => updateSignature(signature.id, { logoUrl: e.target.value })}
+                                    placeholder="https://example.com/logo.png"
+                                  />
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  Enter a direct link to your logo image (PNG, JPG, SVG)
+                                </p>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        
+                        <p className="text-xs text-muted-foreground">
+                          Recommended: 100×100px, PNG or SVG with transparent background
+                        </p>
+                      </div>
                     </div>
                   </div>
 
@@ -612,14 +782,58 @@ export const SignaturesSection = ({
                             />
                           </div>
                         </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Image URL</label>
-                          <Input
-                            value={banner.imageUrl}
-                            onChange={(e) => updateEmailBanner(banner.id, { imageUrl: e.target.value })}
-                            placeholder="https://..."
-                            className="h-8 text-xs"
-                          />
+                        <div className="space-y-2">
+                          <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Banner Image</label>
+                          <div className="flex gap-2">
+                            {/* Upload Button */}
+                            <div className="relative flex-1">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleBannerUpload(e, banner.id)}
+                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                disabled={uploadingBannerId === banner.id}
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full gap-2 pointer-events-none h-8 text-xs"
+                                disabled={uploadingBannerId === banner.id}
+                              >
+                                {uploadingBannerId === banner.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Upload className="h-3 w-3" />
+                                )}
+                                Upload
+                              </Button>
+                            </div>
+                            
+                            {/* URL Input with Popover */}
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="outline" size="sm" className="gap-2 h-8 text-xs">
+                                  <Link2 className="h-3 w-3" />
+                                  URL
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80" align="start">
+                                <div className="space-y-3">
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-medium">Image URL</label>
+                                    <Input
+                                      value={banner.imageUrl}
+                                      onChange={(e) => updateEmailBanner(banner.id, { imageUrl: e.target.value })}
+                                      placeholder="https://example.com/banner.jpg"
+                                    />
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                          {banner.imageUrl && (
+                            <p className="text-[10px] text-muted-foreground truncate">{banner.imageUrl}</p>
+                          )}
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Link URL (optional)</label>
