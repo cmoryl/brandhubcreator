@@ -117,12 +117,10 @@ export function ConnectivityDiagnostics({
   const testDatabase = useCallback(async (): Promise<DiagnosticResult> => {
     const start = performance.now();
     try {
-      // Test database connectivity with a simple query to a known public table
+      // Test database connectivity with the secure RPC function
       const { error } = await supabase
-        .from("public_organization_info")
-        .select("id")
-        .limit(1)
-        .maybeSingle();
+        .rpc("get_public_organization_info")
+        .limit(1);
 
       const latency = Math.round(performance.now() - start);
 

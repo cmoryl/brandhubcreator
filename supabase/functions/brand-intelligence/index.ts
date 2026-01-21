@@ -43,13 +43,70 @@ serve(async (req) => {
   }
 
   try {
+    // Authentication check - must have valid auth header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { action, entityType, entityId, entry, organizationId } = await req.json();
     
+    // Validate entityId is a valid UUID to prevent enumeration
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (entityId && !uuidRegex.test(entityId)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid entityId format' }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    // Validate entityType whitelist
+    if (entityType && !['brand', 'product'].includes(entityType)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid entityType' }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
     
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Create client with user's auth token to respect RLS
+    const userSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+    
+    // Verify the user's authentication
+    const { data: { user }, error: authError } = await userSupabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication token' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    // Verify user has access to the entity before proceeding
+    const tableName = entityType === 'brand' ? 'brands' : 'products';
+    const { data: entityData, error: entityError } = await userSupabase
+      .from(tableName)
+      .select('id, user_id, organization_id')
+      .eq('id', entityId)
+      .maybeSingle();
+    
+    if (entityError || !entityData) {
+      return new Response(
+        JSON.stringify({ error: 'Entity not found or access denied' }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    // Use service role client for intelligence operations (after access verified)
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get or create intelligence record
     let { data: intelligence, error: fetchError } = await supabase
