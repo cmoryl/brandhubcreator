@@ -226,8 +226,8 @@ export const BrandIntelligencePanel = ({
   }
 
   return (
-    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
-      <CardHeader className="pb-4">
+    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5 flex flex-col max-h-[calc(100vh-4rem)]">
+      <CardHeader className="pb-4 shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-xl">
@@ -271,7 +271,8 @@ export const BrandIntelligencePanel = ({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <ScrollArea className="flex-1 min-h-0">
+        <CardContent className="space-y-6 pb-6">
         {/* AI Analysis Summary */}
         {intelligence?.brand_summary && (
           <Collapsible 
@@ -536,7 +537,8 @@ export const BrandIntelligencePanel = ({
             </ScrollArea>
           </CollapsibleContent>
         </Collapsible>
-      </CardContent>
+        </CardContent>
+      </ScrollArea>
     </Card>
   );
 };
