@@ -158,8 +158,8 @@ export const ProductsSection = ({
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1 min-w-0">
           <SectionHeader
-            title="Products"
-            defaultSubtitle="Products associated with this brand"
+            title="Product Guides"
+            defaultSubtitle="Product-specific brand guidelines linked to this brand"
             customSubtitle={customSubtitle}
             onSubtitleChange={onSubtitleChange}
             isEditing={isHeaderEditing}
@@ -170,8 +170,8 @@ export const ProductsSection = ({
         <div className="flex items-center gap-2">
           {availableProducts.length > 0 && (
             <Select onValueChange={linkProduct}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Link existing..." />
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Link existing guide..." />
               </SelectTrigger>
               <SelectContent>
                 {availableProducts.map((product) => (
@@ -187,19 +187,19 @@ export const ProductsSection = ({
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus className="h-4 w-4" />
-                New Product
+                New Product Guide
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create New Product</DialogTitle>
+                <DialogTitle>Create New Product Guide</DialogTitle>
                 <DialogDescription>
-                  Create a new product that will be automatically linked to this brand.
+                  Create a new product brand guide that will be automatically linked to this brand.
                 </DialogDescription>
               </DialogHeader>
               <div className="py-4">
                 <Input
-                  placeholder="Enter product name..."
+                  placeholder="Enter product guide name..."
                   value={newProductName}
                   onChange={(e) => setNewProductName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleCreateProduct()}
@@ -213,7 +213,7 @@ export const ProductsSection = ({
                   onClick={handleCreateProduct} 
                   disabled={!newProductName.trim() || isCreating}
                 >
-                  {isCreating ? 'Creating...' : 'Create Product'}
+                  {isCreating ? 'Creating...' : 'Create Guide'}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -290,7 +290,7 @@ export const ProductsSection = ({
                       </AlertDialogTrigger>
                       <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Unlink Product</AlertDialogTitle>
+                          <AlertDialogTitle>Unlink Product Guide</AlertDialogTitle>
                           <AlertDialogDescription>
                             This will remove "{product.name}" from this brand guide. The product itself will not be deleted.
                           </AlertDialogDescription>
@@ -346,17 +346,17 @@ export const ProductsSection = ({
       ) : (
         <div className="text-center py-12 border-2 border-dashed border-border rounded-xl">
           <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-2">No products linked</h3>
+          <h3 className="text-lg font-medium text-foreground mb-2">No product guides linked</h3>
           <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-            Create a new product or link existing ones to associate with this brand.
+            Create a new product brand guide or link existing ones to this brand.
           </p>
           <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" />
-            Create Product
+            Create Product Guide
           </Button>
           {availableProducts.length > 0 && (
             <p className="text-sm text-muted-foreground mt-4">
-              Or use the dropdown above to link an existing product.
+              Or use the dropdown above to link an existing product guide.
             </p>
           )}
         </div>
