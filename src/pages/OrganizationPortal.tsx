@@ -10,6 +10,7 @@ import { HeroBackground } from '@/components/HeroBackground';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSEO } from '@/hooks/useSEO';
 import { OrganizationPortalSettings, DEFAULT_PORTAL_SETTINGS } from '@/types/organization';
+import { OptimizedImage } from '@/components/ui/optimized-image';
 
 interface OrganizationData {
   id: string;
@@ -293,10 +294,12 @@ const OrganizationPortal = () => {
                     {/* Cover Image / Color Preview */}
                     <div className="relative h-44 overflow-hidden">
                       {hero.coverImage ? (
-                        <img 
+                        <OptimizedImage 
                           src={hero.coverImage} 
                           alt={hero.name}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          className="w-full h-full transition-transform duration-500 group-hover:scale-105"
+                          objectFit="cover"
+                          priority={index < 3}
                         />
                       ) : (
                         <div className="w-full h-full flex">

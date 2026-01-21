@@ -3,6 +3,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { ExternalLink, Trash2, GripVertical, Layers, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { BackgroundImage } from '@/components/ui/optimized-image';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +30,24 @@ interface LinkedGuideCardProps {
   onUnlink: (guide: GuideItem) => void;
 }
 
+// Helper to resolve image paths - handles both public and src/assets paths
+const resolveImagePath = (path: string | undefined): string | undefined => {
+  if (!path) return undefined;
+  
+  // If it's already a full URL or data URL, return as-is
+  if (path.startsWith('http') || path.startsWith('data:') || path.startsWith('blob:')) {
+    return path;
+  }
+  
+  // If it starts with /, it's a public folder path - use as-is
+  if (path.startsWith('/')) {
+    return path;
+  }
+  
+  // Otherwise, assume it's relative and add leading slash
+  return `/${path}`;
+};
+
 export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideCardProps) => {
   const {
     attributes,
@@ -46,9 +65,10 @@ export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideC
   };
 
   const guideData = guide.guide_data as any;
-  const cardImage = guideData?.hero?.cardImage;
-  const heroImage = cardImage || guideData?.hero?.coverImage || guideData?.hero?.logoUrl;
-  const logoUrl = guideData?.hero?.logoUrl;
+  const cardImage = resolveImagePath(guideData?.hero?.cardImage);
+  const coverImage = resolveImagePath(guideData?.hero?.coverImage);
+  const logoUrl = resolveImagePath(guideData?.hero?.logoUrl);
+  const heroImage = cardImage || coverImage || logoUrl;
   const tagline = guideData?.hero?.tagline;
   const primaryColor = guideData?.colors?.[0]?.hex;
 
@@ -75,22 +95,27 @@ export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideC
         className="cursor-pointer"
         onClick={() => onOpen(guide)}
       >
-        {/* Guide Image/Cover - Taller on mobile for better visual impact */}
-        <div 
-          className="relative h-48 sm:h-40 overflow-hidden"
-          style={{ 
-            background: heroImage 
-              ? `url(${heroImage}) center/cover` 
-              : primaryColor 
-                ? `linear-gradient(135deg, ${primaryColor}, ${primaryColor}88)` 
-                : 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))'
-          }}
+        {/* Guide Image/Cover - Optimized with lazy loading */}
+        <BackgroundImage
+          src={heroImage || ''}
+          fallbackSrc="/placeholder.svg"
+          className="relative h-48 sm:h-40"
+          overlayClassName="bg-gradient-to-t from-black/60 via-transparent to-transparent"
         >
-          {/* Overlay gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          {/* Fallback gradient if no image */}
+          {!heroImage && (
+            <div 
+              className="absolute inset-0 -z-10"
+              style={{ 
+                background: primaryColor 
+                  ? `linear-gradient(135deg, ${primaryColor}, ${primaryColor}88)` 
+                  : 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))'
+              }}
+            />
+          )}
           
           {/* Type badge */}
-          <div className="absolute top-2 left-12">
+          <div className="absolute top-2 left-12 z-20">
             <Badge 
               variant={guide.type === 'brand' ? 'default' : 'secondary'}
               className="text-xs"
@@ -105,8 +130,14 @@ export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideC
           
           {/* Logo overlay if different from cover */}
           {logoUrl && heroImage !== logoUrl && (
-            <div className="absolute bottom-3 left-3 w-12 h-12 bg-background/90 backdrop-blur-sm rounded-xl p-2 shadow-lg">
-              <img src={logoUrl} alt="" className="w-full h-full object-contain" />
+            <div className="absolute bottom-3 left-3 w-12 h-12 bg-background/90 backdrop-blur-sm rounded-xl p-2 shadow-lg z-20">
+              <img 
+                src={logoUrl} 
+                alt="" 
+                className="w-full h-full object-contain" 
+                loading="lazy"
+                decoding="async"
+              />
             </div>
           )}
           
@@ -155,7 +186,7 @@ export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideC
               </AlertDialogContent>
             </AlertDialog>
           </div>
-        </div>
+        </BackgroundImage>
 
         {/* Guide Info - Better spacing on mobile */}
         <div className="p-5 sm:p-4">
