@@ -6,7 +6,7 @@ import {
   UserPlus, LogIn, Eye, Edit, Trash2, Download, RefreshCw,
   Settings, Database, HardDrive, AlertTriangle, CheckCircle,
   Crown, Search, Filter, MoreHorizontal, ArrowUpRight, Calendar,
-  FileText, Brain, UserCheck
+  FileText, Brain, UserCheck, Wrench
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,6 +39,7 @@ import { DataInspector } from '@/components/admin/DataInspector';
 import { DemoGuidesManager } from '@/components/admin/DemoGuidesManager';
 import { UserApprovalManager } from '@/components/admin/UserApprovalManager';
 import { BrandAnalyticsHub } from '@/components/admin/BrandAnalyticsHub';
+import { BulkRepairTool } from '@/components/admin/BulkRepairTool';
 
 interface DashboardStats {
   totalUsers: number;
@@ -605,6 +606,10 @@ export default function AdminDashboard() {
               <Activity className="h-4 w-4" />
               Activity
             </TabsTrigger>
+            <TabsTrigger value="repair" className="gap-2 shrink-0">
+              <Wrench className="h-4 w-4" />
+              Repair
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -1061,6 +1066,11 @@ export default function AdminDashboard() {
                 </ScrollArea>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Repair Tab */}
+          <TabsContent value="repair" className="space-y-6">
+            <BulkRepairTool />
           </TabsContent>
         </Tabs>
       </main>
