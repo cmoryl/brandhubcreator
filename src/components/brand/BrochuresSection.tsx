@@ -7,21 +7,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { SectionHeader } from './SectionHeader';
 
+import { LayoutSelector, useLayoutClasses, LayoutPreset } from './LayoutSelector';
+
 interface BrochuresSectionProps {
   brochures: BrandBrochure[];
   onBrochuresChange: (brochures: BrandBrochure[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  layout?: LayoutPreset;
+  onLayoutChange?: (layout: LayoutPreset) => void;
 }
 
 const categoryOptions = ['Whitepaper', 'Capability Statement', 'Product Brochure', 'Company Overview', 'Pitch Deck', 'Annual Report', 'Other'];
 
-export const BrochuresSection = ({ brochures, onBrochuresChange, customSubtitle, onSubtitleChange }: BrochuresSectionProps) => {
+export const BrochuresSection = ({ brochures, onBrochuresChange, customSubtitle, onSubtitleChange, layout = 'grid-3', onLayoutChange }: BrochuresSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const [uploadingThumbnailFor, setUploadingThumbnailFor] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  
+  const { gridClass } = useLayoutClasses(layout);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -104,7 +110,7 @@ export const BrochuresSection = ({ brochures, onBrochuresChange, customSubtitle,
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1">
           <SectionHeader
             title="Digital Collateral"
@@ -115,10 +121,20 @@ export const BrochuresSection = ({ brochures, onBrochuresChange, customSubtitle,
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0">
-          <Upload className="h-4 w-4" />
-          Upload Brochure
-        </Button>
+        <div className="flex items-center gap-2">
+          {onLayoutChange && (
+            <LayoutSelector
+              value={layout}
+              onChange={onLayoutChange}
+              availableLayouts={['grid-2', 'grid-3', 'grid-4', 'list']}
+              size="sm"
+            />
+          )}
+          <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0">
+            <Upload className="h-4 w-4" />
+            Upload Brochure
+          </Button>
+        </div>
       </div>
 
       <input
@@ -143,7 +159,7 @@ export const BrochuresSection = ({ brochures, onBrochuresChange, customSubtitle,
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 {category}
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className={gridClass}>
                 {categoryBrochures.map((brochure, index) => (
                   <div
                     key={brochure.id}

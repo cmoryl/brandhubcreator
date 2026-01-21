@@ -6,18 +6,24 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { SectionHeader } from './SectionHeader';
 
+import { LayoutSelector, useLayoutClasses, LayoutPreset } from './LayoutSelector';
+
 interface CaseStudiesSectionProps {
   caseStudies: BrandCaseStudy[];
   onCaseStudiesChange: (caseStudies: BrandCaseStudy[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  layout?: LayoutPreset;
+  onLayoutChange?: (layout: LayoutPreset) => void;
 }
 
-export const CaseStudiesSection = ({ caseStudies, onCaseStudiesChange, customSubtitle, onSubtitleChange }: CaseStudiesSectionProps) => {
+export const CaseStudiesSection = ({ caseStudies, onCaseStudiesChange, customSubtitle, onSubtitleChange, layout = 'grid-3', onLayoutChange }: CaseStudiesSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  
+  const { gridClass } = useLayoutClasses(layout);
 
   const addCaseStudy = () => {
     const newCase: BrandCaseStudy = {
@@ -63,7 +69,7 @@ export const CaseStudiesSection = ({ caseStudies, onCaseStudiesChange, customSub
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1">
           <SectionHeader
             title="Proof Shards"
@@ -74,10 +80,20 @@ export const CaseStudiesSection = ({ caseStudies, onCaseStudiesChange, customSub
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button onClick={addCaseStudy} size="sm" className="gap-2 shrink-0">
-          <Plus className="h-4 w-4" />
-          Add Case Study
-        </Button>
+        <div className="flex items-center gap-2">
+          {onLayoutChange && (
+            <LayoutSelector
+              value={layout}
+              onChange={onLayoutChange}
+              availableLayouts={['grid-2', 'grid-3', 'grid-4', 'list']}
+              size="sm"
+            />
+          )}
+          <Button onClick={addCaseStudy} size="sm" className="gap-2 shrink-0">
+            <Plus className="h-4 w-4" />
+            Add Case Study
+          </Button>
+        </div>
       </div>
 
       <input
@@ -88,7 +104,7 @@ export const CaseStudiesSection = ({ caseStudies, onCaseStudiesChange, customSub
         className="hidden"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className={gridClass}>
         {caseStudies.map((study, index) => (
           <div
             key={study.id}
