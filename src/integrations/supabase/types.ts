@@ -481,7 +481,6 @@ export type Database = {
           invited_email: string | null
           organization_id: string | null
           role: string | null
-          updated_at: string | null
           user_id: string | null
         }
         Insert: {
@@ -492,7 +491,6 @@ export type Database = {
           invited_email?: string | null
           organization_id?: string | null
           role?: string | null
-          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
@@ -503,7 +501,6 @@ export type Database = {
           invited_email?: string | null
           organization_id?: string | null
           role?: string | null
-          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -580,6 +577,16 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      insert_audit_log: {
+        Args: {
+          p_action_type?: string
+          p_brand_id?: string
+          p_details?: Json
+          p_entity_name?: string
+          p_entity_type?: string
+        }
+        Returns: string
       }
       is_org_admin: {
         Args: { _org_id: string; _user_id: string }

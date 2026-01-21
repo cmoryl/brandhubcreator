@@ -25,8 +25,8 @@ export interface AuditLogEntry {
 }
 
 /**
- * Log an activity to the audit_logs table
- * Call this whenever important actions occur in the app
+ * Log an activity to the audit_logs table using the secure SECURITY DEFINER function
+ * This ensures proper access validation and prevents unauthorized log insertion
  */
 export const logActivity = async (entry: AuditLogEntry): Promise<void> => {
   try {
@@ -37,19 +37,18 @@ export const logActivity = async (entry: AuditLogEntry): Promise<void> => {
       return;
     }
 
-    const { error } = await supabase
-      .from('audit_logs')
-      .insert([{
-        user_id: user.id,
-        brand_id: entry.entityId,
-        entity_type: entry.entityType,
-        action_type: entry.actionType,
-        entity_name: entry.entityName || null,
-        details: entry.details || {},
-      }]);
+    // Use the secure RPC function instead of direct insert
+    const { error } = await supabase.rpc('insert_audit_log', {
+      p_brand_id: entry.entityId || null,
+      p_entity_type: entry.entityType,
+      p_action_type: entry.actionType,
+      p_entity_name: entry.entityName || null,
+      p_details: entry.details || {},
+    });
 
     if (error) {
-      console.error('[AUDIT] Failed to log activity:', error);
+      // Silently fail for non-critical audit logging - don't break user flow
+      console.error('[AUDIT] Failed to log activity:', error.message);
     } else {
       console.log('[AUDIT] Activity logged:', entry.actionType, entry.entityType, entry.entityName);
     }
