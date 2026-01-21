@@ -425,12 +425,13 @@ export default function AdminDashboard() {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-9 lg:w-auto lg:inline-grid">
-            <TabsTrigger value="overview" className="gap-2">
+          {/* Tabs: horizontally scrollable on small screens, wraps on larger to prevent misalignment */}
+          <TabsList className="w-full justify-start gap-1 overflow-x-auto flex flex-nowrap md:flex-wrap md:overflow-visible">
+            <TabsTrigger value="overview" className="gap-2 shrink-0">
               <BarChart3 className="h-4 w-4" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="approvals" className="gap-2 relative">
+            <TabsTrigger value="approvals" className="gap-2 relative shrink-0">
               <UserCheck className="h-4 w-4" />
               Approvals
               {(stats?.pendingApprovals ?? 0) > 0 && (
@@ -439,35 +440,35 @@ export default function AdminDashboard() {
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="users" className="gap-2">
+            <TabsTrigger value="users" className="gap-2 shrink-0">
               <Users className="h-4 w-4" />
               Users
             </TabsTrigger>
-            <TabsTrigger value="organizations" className="gap-2">
+            <TabsTrigger value="organizations" className="gap-2 shrink-0">
               <Building2 className="h-4 w-4" />
               Organizations
             </TabsTrigger>
-            <TabsTrigger value="content" className="gap-2">
+            <TabsTrigger value="content" className="gap-2 shrink-0">
               <Palette className="h-4 w-4" />
               Content
             </TabsTrigger>
-            <TabsTrigger value="inspector" className="gap-2">
+            <TabsTrigger value="inspector" className="gap-2 shrink-0">
               <Database className="h-4 w-4" />
               Inspector
             </TabsTrigger>
-            <TabsTrigger value="reports" className="gap-2">
+            <TabsTrigger value="reports" className="gap-2 shrink-0">
               <FileText className="h-4 w-4" />
               Reports
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-2">
+            <TabsTrigger value="analytics" className="gap-2 shrink-0">
               <BarChart3 className="h-4 w-4" />
               Analytics
             </TabsTrigger>
-            <TabsTrigger value="ai-analysis" className="gap-2">
+            <TabsTrigger value="ai-analysis" className="gap-2 shrink-0">
               <Brain className="h-4 w-4" />
               AI Analysis
             </TabsTrigger>
-            <TabsTrigger value="activity" className="gap-2">
+            <TabsTrigger value="activity" className="gap-2 shrink-0">
               <Activity className="h-4 w-4" />
               Activity
             </TabsTrigger>
