@@ -47,20 +47,35 @@ interface AnalysisResult {
 function extractRelevantBrandData(guideData: Record<string, unknown>): string {
   const hero = guideData?.hero as Record<string, string> | undefined;
   const identity = guideData?.identity as Record<string, unknown> | undefined;
-  const values = guideData?.values as Array<{ text: string }> | undefined;
-  const colors = guideData?.colors as Array<{ name: string; hex: string }> | undefined;
+  const values = guideData?.values as Array<{ text: string; description: string }> | undefined;
+  const colors = guideData?.colors as Array<{ name: string; hex: string; usage?: string }> | undefined;
+  const services = guideData?.services as Array<{ name: string; description: string }> | undefined;
+  const social = guideData?.social as Array<{ platform: string; handle: string }> | undefined;
+  const tagline = guideData?.tagline as Record<string, unknown> | undefined;
   
   const parts: string[] = [];
   
-  if (hero?.name) parts.push(`Name: ${hero.name}`);
-  if (hero?.tagline) parts.push(`Tagline: ${hero.tagline}`);
-  if (identity?.missionStatement) parts.push(`Mission: ${identity.missionStatement}`);
-  if (identity?.archetype) parts.push(`Archetype: ${identity.archetype}`);
-  if (identity?.toneOfVoice) parts.push(`Tone: ${(identity.toneOfVoice as string[])?.join(', ')}`);
-  if (values?.length) parts.push(`Values: ${values.slice(0, 5).map(v => v.text).join(', ')}`);
-  if (colors?.length) parts.push(`Color palette: ${colors.slice(0, 5).map(c => c.name).join(', ')}`);
+  if (hero?.name) parts.push(`Brand Name: ${hero.name}`);
+  if (hero?.tagline) parts.push(`Hero Tagline: ${hero.tagline}`);
+  if (tagline?.primary) parts.push(`Primary Tagline: ${tagline.primary}`);
+  if (tagline?.secondary) parts.push(`Secondary Tagline: ${tagline.secondary}`);
+  if (identity?.missionStatement) parts.push(`Mission Statement: ${identity.missionStatement}`);
+  if (identity?.archetype) parts.push(`Brand Archetype: ${identity.archetype}`);
+  if (identity?.toneOfVoice) parts.push(`Tone of Voice: ${(identity.toneOfVoice as string[])?.join(', ')}`);
+  if (values?.length) {
+    parts.push(`Core Values:\n${values.slice(0, 6).map(v => `  - ${v.text}: ${v.description || ''}`).join('\n')}`);
+  }
+  if (services?.length) {
+    parts.push(`Services/Products:\n${services.slice(0, 6).map(s => `  - ${s.name}: ${s.description || ''}`).join('\n')}`);
+  }
+  if (colors?.length) {
+    parts.push(`Brand Colors: ${colors.slice(0, 5).map(c => `${c.name} (${c.hex})`).join(', ')}`);
+  }
+  if (social?.length) {
+    parts.push(`Social Presence: ${social.slice(0, 5).map(s => `${s.platform}: ${s.handle}`).join(', ')}`);
+  }
   
-  return parts.join('\n') || 'No detailed data available';
+  return parts.join('\n\n') || 'No detailed data available';
 }
 
 Deno.serve(async (req) => {
@@ -207,43 +222,60 @@ Total Products: ${productsCount || 0}`;
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const systemPrompt = `You are a strategic business analyst. Analyze the provided data and generate market insights.
+    const systemPrompt = `You are a strategic business and brand analyst specializing in market intelligence. Analyze the provided brand/company data and generate comprehensive market insights.
+
+Your analysis should be based on the brand's positioning data including:
+- Brand identity (mission, archetype, tone of voice)
+- Value proposition and core values
+- Services/products offered
+- Visual identity (colors, imagery style)
+- Social media presence
+
+Focus on providing actionable insights for:
+1. Market positioning relative to industry standards
+2. Competitive differentiation opportunities
+3. Social media and marketing sentiment indicators
+4. Growth strategies aligned with brand values
+5. Industry trends relevant to the brand's positioning
 
 Respond with a JSON object (no markdown, just raw JSON):
 {
-  "title": "<Analysis title>",
-  "summary": "<Executive summary in 2-3 sentences>",
+  "title": "<Analysis title based on brand name and analysis type>",
+  "summary": "<Executive summary in 2-3 sentences highlighting key findings>",
   "marketPosition": {
-    "currentState": "<Current market position>",
-    "opportunities": ["<opportunity 1>", "<opportunity 2>"],
+    "currentState": "<Assessment of current market position based on brand data>",
+    "opportunities": ["<opportunity 1>", "<opportunity 2>", "<opportunity 3>"],
     "threats": ["<threat 1>", "<threat 2>"]
   },
   "competitiveAnalysis": {
-    "strengths": ["<strength 1>", "<strength 2>"],
-    "differentiators": ["<differentiator 1>"],
-    "competitorInsights": ["<insight 1>"]
+    "strengths": ["<strength based on brand values/identity>", "<strength 2>"],
+    "differentiators": ["<unique differentiator 1>", "<differentiator 2>"],
+    "competitorInsights": ["<market insight 1>", "<insight about competitive landscape>"]
   },
   "growthRecommendations": {
-    "shortTerm": ["<action 1>", "<action 2>"],
-    "longTerm": ["<action 1>"],
-    "metrics": ["<KPI 1>", "<KPI 2>"]
+    "shortTerm": ["<1-3 month action>", "<action 2>"],
+    "longTerm": ["<6-12 month strategic goal>", "<goal 2>"],
+    "metrics": ["<KPI to track>", "<KPI 2>", "<KPI 3>"]
   },
   "trendAnalysis": {
-    "industryTrends": ["<trend 1>", "<trend 2>"],
-    "emergingOpportunities": ["<opportunity 1>"],
-    "risksToWatch": ["<risk 1>"]
+    "industryTrends": ["<relevant trend 1>", "<trend 2>"],
+    "emergingOpportunities": ["<opportunity aligned with brand>"],
+    "risksToWatch": ["<risk 1>", "<risk 2>"]
   },
   "actionPlan": {
-    "immediate": ["<action 1>"],
-    "quarterly": ["<action 1>"],
-    "annual": ["<goal 1>"]
+    "immediate": ["<this week priority>", "<priority 2>"],
+    "quarterly": ["<90-day goal>", "<goal 2>"],
+    "annual": ["<yearly strategic objective>"]
   },
-  "score": <0-100>
+  "score": <0-100 based on brand completeness and market readiness>
 }`;
 
-    const userPrompt = `${analysisType} analysis for: ${entityName}
+    const userPrompt = `Perform a ${analysisType} analysis for: ${entityName}
 
-${contextData}`;
+Brand/Company Data:
+${contextData}
+
+Provide insights that are specific to this brand's positioning, values, and market context. Make recommendations actionable and aligned with the brand's identity.`;
 
     console.log(`Running ${analysisType} analysis for ${entityName}`);
 
