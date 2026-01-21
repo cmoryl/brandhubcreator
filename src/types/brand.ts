@@ -335,6 +335,8 @@ export interface BrandDisplayBannerSpec {
   textLegibility: string;
   safeZonePolicy: string;
   aspectRatio: number;
+  previewImageUrl?: string; // Brand-specific example image for this banner size
+  category?: 'desktop' | 'mobile' | 'video' | 'native'; // Banner category for grouping
 }
 
 // SECTION LAYOUTS - Per-section layout preferences

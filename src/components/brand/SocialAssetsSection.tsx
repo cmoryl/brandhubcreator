@@ -170,6 +170,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 18-24pt Bold | Body: 12-14pt | CTA: 14pt Bold',
     safeZonePolicy: '15px padding all edges. Logo in corner (max 60x40px). CTA button bottom-right or center-bottom.',
     aspectRatio: 1.2,
+    category: 'desktop',
   },
   {
     id: 'preset-leaderboard',
@@ -179,6 +180,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 24-28pt Bold | Body: 14-16pt | CTA: 14pt Bold',
     safeZonePolicy: 'Center content in 650px. Logo left (max 80x50px). CTA right side. Avoid outer 40px edges.',
     aspectRatio: 8.09,
+    category: 'desktop',
   },
   {
     id: 'preset-wide-skyscraper',
@@ -188,6 +190,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 18-22pt Bold | Body: 11-13pt | CTA: 12pt Bold',
     safeZonePolicy: '10px horizontal padding. Logo top (max 120x40px). Stack content vertically. CTA bottom 80px.',
     aspectRatio: 0.27,
+    category: 'desktop',
   },
   {
     id: 'preset-large-rectangle',
@@ -197,6 +200,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 20-26pt Bold | Body: 13-15pt | CTA: 14pt Bold',
     safeZonePolicy: '20px padding all edges. Logo top-left or top-right. CTA center-bottom with 25px margin.',
     aspectRatio: 1.2,
+    category: 'desktop',
   },
   {
     id: 'preset-billboard',
@@ -206,6 +210,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 32-40pt Bold | Body: 16-18pt | CTA: 16pt Bold',
     safeZonePolicy: 'Center content in 800px. Logo on left or integrated. Multiple CTAs allowed. Avoid outer 85px.',
     aspectRatio: 3.88,
+    category: 'desktop',
   },
   {
     id: 'preset-large-leaderboard',
@@ -215,6 +220,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 26-32pt Bold | Body: 14-16pt | CTA: 14pt Bold',
     safeZonePolicy: 'Center content in 850px. Logo left (max 100x60px). CTA right. Keep text vertically centered.',
     aspectRatio: 10.78,
+    category: 'desktop',
   },
   {
     id: 'preset-half-page',
@@ -224,6 +230,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 24-30pt Bold | Body: 14-16pt | CTA: 16pt Bold',
     safeZonePolicy: '20px padding all edges. Logo top (max 150x50px). Stack content. CTA bottom 60px with full width.',
     aspectRatio: 0.5,
+    category: 'desktop',
   },
   {
     id: 'preset-portrait',
@@ -233,6 +240,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 22-28pt Bold | Body: 13-15pt | CTA: 14pt Bold',
     safeZonePolicy: '20px horizontal padding. Divide into 3-4 visual sections. Logo top, CTA bottom 80px.',
     aspectRatio: 0.29,
+    category: 'desktop',
   },
   {
     id: 'preset-skyscraper',
@@ -242,6 +250,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 14-18pt Bold | Body: 10-12pt | CTA: 11pt Bold',
     safeZonePolicy: '8px horizontal padding. Very limited space—prioritize logo + single message + CTA.',
     aspectRatio: 0.2,
+    category: 'desktop',
   },
   {
     id: 'preset-square',
@@ -251,6 +260,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 18-22pt Bold | Body: 12-14pt | CTA: 13pt Bold',
     safeZonePolicy: '15px padding all edges. Logo top-left (max 50x35px). CTA bottom center.',
     aspectRatio: 1.0,
+    category: 'desktop',
   },
   {
     id: 'preset-small-square',
@@ -260,6 +270,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 16-20pt Bold | CTA: 12pt Bold',
     safeZonePolicy: '12px padding. Minimal elements only—logo + headline + CTA. No body text.',
     aspectRatio: 1.0,
+    category: 'desktop',
   },
   {
     id: 'preset-button-1',
@@ -269,6 +280,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'CTA: 11-13pt Bold',
     safeZonePolicy: 'Logo OR text only. 5px padding. Single action focus.',
     aspectRatio: 1.33,
+    category: 'desktop',
   },
   {
     id: 'preset-button-2',
@@ -278,6 +290,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'CTA: 10-12pt Bold',
     safeZonePolicy: 'Extremely limited. Logo or text, not both. 4px padding.',
     aspectRatio: 2.0,
+    category: 'desktop',
   },
   // Mobile Banners
   {
@@ -288,6 +301,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 14-16pt Bold | CTA: 12pt Bold',
     safeZonePolicy: 'Logo left (max 40x30px). Text center. CTA right. 8px edge padding.',
     aspectRatio: 6.4,
+    category: 'mobile',
   },
   {
     id: 'preset-mobile-banner',
@@ -297,6 +311,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 13-15pt Bold | CTA: 11pt Bold',
     safeZonePolicy: 'Logo left (max 35x28px). Single line text. CTA far right.',
     aspectRatio: 6.0,
+    category: 'mobile',
   },
   {
     id: 'preset-large-mobile-banner',
@@ -306,6 +321,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 16-18pt Bold | Body: 12pt | CTA: 13pt Bold',
     safeZonePolicy: 'Logo top-left. Two-line layout allowed. CTA bottom-right. 10px padding.',
     aspectRatio: 3.2,
+    category: 'mobile',
   },
   {
     id: 'preset-smartphone-banner',
@@ -315,6 +331,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 20-24pt Bold | Body: 13-15pt | CTA: 14pt Bold',
     safeZonePolicy: 'Same as desktop MREC. 15px padding. Design for touch—CTA min 44px height.',
     aspectRatio: 1.2,
+    category: 'mobile',
   },
   {
     id: 'preset-mobile-interstitial',
@@ -324,6 +341,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 28-34pt Bold | Body: 16-18pt | CTA: 18pt Bold',
     safeZonePolicy: 'Full screen. Close button space top-right (50x50px). CTA center-bottom 80px. 25px margins.',
     aspectRatio: 0.67,
+    category: 'mobile',
   },
   {
     id: 'preset-tablet-interstitial',
@@ -333,6 +351,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 36-44pt Bold | Body: 18-22pt | CTA: 20pt Bold',
     safeZonePolicy: 'Full screen. Close button top-right (60x60px). Center content in 600px width. CTA bottom 100px.',
     aspectRatio: 0.75,
+    category: 'mobile',
   },
   // Video/Rich Media Banners
   {
@@ -343,6 +362,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Overlay: 18-22pt Bold (high contrast) | End card: 24-28pt',
     safeZonePolicy: 'Video controls bottom 50px. Logo watermark top-left (subtle). End card CTA center.',
     aspectRatio: 1.78,
+    category: 'video',
   },
   {
     id: 'preset-video-skyscraper',
@@ -352,6 +372,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Overlay: 16-20pt Bold | End card: 22-26pt',
     safeZonePolicy: 'Vertical video format. Controls bottom 60px. Logo top. End card CTA bottom third.',
     aspectRatio: 0.5,
+    category: 'video',
   },
   // Native/Social Banners
   {
@@ -362,6 +383,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 24-30pt Bold | Description: 16-18pt | CTA: 16pt Bold',
     safeZonePolicy: 'Image-focused. Text overlay bottom 30% with gradient. Logo bottom-left. CTA bottom-right.',
     aspectRatio: 1.91,
+    category: 'native',
   },
   {
     id: 'preset-sponsored-content-card',
@@ -371,6 +393,7 @@ const bannerPresets: BrandDisplayBannerSpec[] = [
     textLegibility: 'Headline: 26-32pt Bold | Body: 16-18pt | CTA: 16pt Bold',
     safeZonePolicy: 'Square format. Image top 60%. Text bottom 40%. Logo corner. CTA below text.',
     aspectRatio: 1.0,
+    category: 'native',
   },
 ];
 
@@ -492,6 +515,150 @@ const SocialAssetPreviewUpload = ({
           <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
             {isDragging ? 'Drop Image' : 'Add Example'}
           </span>
+        </div>
+      </div>
+      
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleInputChange}
+        className="hidden"
+      />
+    </button>
+  );
+};
+
+// Image upload component for display banner preview
+const BannerPreviewUpload = ({ 
+  banner, 
+  onUpdate 
+}: { 
+  banner: BrandDisplayBannerSpec; 
+  onUpdate: (updates: Partial<BrandDisplayBannerSpec>) => void;
+}) => {
+  const handleFileDrop = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const url = event.target?.result as string;
+      onUpdate({ previewImageUrl: url });
+    };
+    reader.readAsDataURL(file);
+  }, [onUpdate]);
+
+  const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
+    onFileDrop: handleFileDrop,
+    accept: 'image/*',
+    maxSize: 10 * 1024 * 1024, // 10MB
+  });
+
+  // Parse dimensions for aspect ratio display
+  const parseDimensions = (dims: string) => {
+    const match = dims.match(/(\d+)\s*x\s*(\d+)/);
+    if (match) {
+      return { width: parseInt(match[1]), height: parseInt(match[2]) };
+    }
+    return { width: 300, height: 250 };
+  };
+
+  const dims = parseDimensions(banner.dimensions);
+  const aspectRatio = dims.width / dims.height;
+  
+  // Dynamic height based on aspect ratio for preview
+  const getPreviewHeight = () => {
+    if (aspectRatio > 4) return 'h-16';
+    if (aspectRatio > 2) return 'h-20';
+    if (aspectRatio > 1.5) return 'h-24';
+    if (aspectRatio < 0.4) return 'h-56';
+    if (aspectRatio < 0.7) return 'h-44';
+    return 'h-32';
+  };
+
+  if (banner.previewImageUrl) {
+    return (
+      <div className="relative group/preview">
+        <img 
+          src={banner.previewImageUrl} 
+          alt={`${banner.name} example`}
+          className={`w-full ${getPreviewHeight()} object-cover rounded-lg`}
+          loading="lazy"
+          decoding="async"
+        />
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/preview:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+          <Button 
+            size="sm" 
+            variant="secondary" 
+            onClick={openFilePicker}
+            className="h-7 text-xs"
+          >
+            <Upload className="h-3 w-3 mr-1" />
+            Replace
+          </Button>
+          <Button 
+            size="sm" 
+            variant="destructive" 
+            onClick={() => onUpdate({ previewImageUrl: '' })}
+            className="h-7 text-xs"
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+        {/* Safe zone overlay */}
+        <div className="absolute inset-3 border-2 border-dashed border-white/50 rounded pointer-events-none">
+          <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[8px] font-medium uppercase tracking-widest text-white/70 bg-black/40 px-1.5 py-0.5 rounded">
+            Safe Zone
+          </span>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleInputChange}
+          className="hidden"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={openFilePicker}
+      onDragOver={dragHandlers.onDragOver}
+      onDragLeave={dragHandlers.onDragLeave}
+      onDrop={dragHandlers.onDrop}
+      className={`relative w-full ${getPreviewHeight()} rounded-lg border-2 border-dashed transition-all overflow-hidden ${
+        isDragging 
+          ? 'border-accent bg-accent/10' 
+          : 'border-border/50 hover:border-accent/50 bg-muted/30'
+      }`}
+    >
+      {/* Gradient background hint */}
+      <div
+        className="absolute inset-0 opacity-10"
+        style={{
+          background:
+            'linear-gradient(135deg, hsl(var(--accent) / 0.25) 0%, transparent 50%, hsl(var(--accent) / 0.12) 100%)',
+        }}
+      />
+      
+      {/* Safe zone indicator with proper aspect ratio visualization */}
+      <div 
+        className="absolute border border-accent/40 rounded flex items-center justify-center"
+        style={{
+          left: '12%',
+          right: '12%',
+          top: aspectRatio > 3 ? '15%' : '10%',
+          bottom: aspectRatio > 3 ? '15%' : '10%',
+        }}
+      >
+        <div className="text-center">
+          <Image className="h-4 w-4 mx-auto mb-0.5 text-muted-foreground" />
+          <span className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground">
+            {isDragging ? 'Drop' : 'Add Banner'}
+          </span>
+          <div className="text-[8px] text-muted-foreground/70 font-mono mt-0.5">
+            {banner.dimensions.replace(' px', '')}
+          </div>
         </div>
       </div>
       
@@ -662,12 +829,6 @@ export const SocialAssetsSection = ({
     if (editingId === id) setEditingId(null);
   };
 
-  const getSafeZoneHeight = (aspectRatio: number) => {
-    if (aspectRatio > 4) return 'h-12';
-    if (aspectRatio > 2) return 'h-16';
-    if (aspectRatio < 0.5) return 'h-48';
-    return 'h-28';
-  };
 
   return (
     <section className="space-y-8">
@@ -1159,7 +1320,6 @@ export const SocialAssetsSection = ({
         <div className={gridClass}>
           {displayBanners.map((banner, index) => {
             const isEditing = editingId === banner.id;
-            const safeZoneHeight = getSafeZoneHeight(banner.aspectRatio);
 
             return (
               <div
@@ -1177,7 +1337,7 @@ export const SocialAssetsSection = ({
                       <Input
                         value={banner.name}
                         onChange={(e) => updateDisplayBanner(banner.id, { name: e.target.value })}
-                        className="h-7 text-xs w-[140px]"
+                        className="h-7 text-xs w-[160px]"
                       />
                     ) : (
                       <span className="font-semibold text-sm uppercase tracking-wide text-foreground">
@@ -1186,19 +1346,27 @@ export const SocialAssetsSection = ({
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-mono bg-muted/80 px-2 py-0.5 rounded text-muted-foreground">
-                      {banner.dimensions.replace(' px', '')}
-                    </span>
-                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {isEditing ? (
+                      <Input
+                        value={banner.dimensions}
+                        onChange={(e) => updateDisplayBanner(banner.id, { dimensions: e.target.value })}
+                        className="h-6 text-[10px] font-mono w-[100px]"
+                      />
+                    ) : (
+                      <span className="text-[10px] font-mono bg-muted/80 px-2 py-0.5 rounded text-muted-foreground">
+                        {banner.dimensions.replace(' px', '')}
+                      </span>
+                    )}
+                    <div className="flex gap-0.5">
                       <button
                         onClick={() => setEditingId(isEditing ? null : banner.id)}
-                        className="p-1 rounded hover:bg-secondary transition-colors"
+                        className={`p-1 rounded transition-colors ${isEditing ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary opacity-0 group-hover:opacity-100'}`}
                       >
-                        <Pencil className="h-3 w-3 text-muted-foreground" />
+                        <Pencil className="h-3 w-3" />
                       </button>
                       <button
                         onClick={() => deleteDisplayBanner(banner.id)}
-                        className="p-1 rounded hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                        className="p-1 rounded hover:bg-destructive hover:text-destructive-foreground transition-colors opacity-0 group-hover:opacity-100"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -1206,73 +1374,82 @@ export const SocialAssetsSection = ({
                   </div>
                 </div>
 
-                {/* Safe Zone Preview */}
-                <div className="px-4 py-4">
-                  <div className={`relative bg-muted/30 rounded-lg border border-dashed border-accent/30 ${safeZoneHeight} flex items-center justify-center overflow-hidden`}>
-                    <div 
-                      className="border border-accent/40 rounded flex items-center justify-center"
-                      style={{
-                        width: banner.aspectRatio > 2 ? '60%' : banner.aspectRatio < 0.5 ? '50%' : '40%',
-                        height: banner.aspectRatio > 2 ? '60%' : banner.aspectRatio < 0.5 ? '30%' : '50%',
-                      }}
-                    >
-                      <span className="text-[9px] font-medium uppercase tracking-widest text-accent/60">
-                        Safe
-                      </span>
-                    </div>
-                  </div>
+                {/* Banner Preview Image Upload */}
+                <div className="px-4 py-3">
+                  <BannerPreviewUpload 
+                    banner={banner} 
+                    onUpdate={(updates) => updateDisplayBanner(banner.id, updates)} 
+                  />
                 </div>
 
-                {/* Specs */}
+                {/* Expanded Specs Grid */}
                 <div className="px-4 pb-4 space-y-3">
-                  <div className="grid grid-cols-2 gap-4 text-xs">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
-                        Max Messaging
-                      </p>
-                      {isEditing ? (
-                        <Input
-                          value={banner.maxMessaging}
-                          onChange={(e) => updateDisplayBanner(banner.id, { maxMessaging: e.target.value })}
-                          className="h-7 text-xs"
-                        />
-                      ) : (
-                        <p className="font-medium text-foreground">{banner.maxMessaging}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
-                        Text Legibility
-                      </p>
-                      {isEditing ? (
-                        <Input
-                          value={banner.textLegibility}
-                          onChange={(e) => updateDisplayBanner(banner.id, { textLegibility: e.target.value })}
-                          className="h-7 text-xs"
-                        />
-                      ) : (
-                        <p className="font-medium text-foreground">{banner.textLegibility}</p>
-                      )}
-                    </div>
+                  {/* Max Messaging */}
+                  <div className="bg-muted/30 rounded-lg p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5 flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-accent" />
+                      Max Messaging
+                    </p>
+                    {isEditing ? (
+                      <Textarea
+                        value={banner.maxMessaging}
+                        onChange={(e) => updateDisplayBanner(banner.id, { maxMessaging: e.target.value })}
+                        className="min-h-[50px] text-xs resize-none"
+                        placeholder="Headline: 25 chars | Body: 70 chars | CTA: 15 chars"
+                      />
+                    ) : (
+                      <p className="text-xs text-foreground leading-relaxed">{banner.maxMessaging}</p>
+                    )}
+                  </div>
+
+                  {/* Text Legibility */}
+                  <div className="bg-muted/30 rounded-lg p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5 flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-primary" />
+                      Text Legibility
+                    </p>
+                    {isEditing ? (
+                      <Textarea
+                        value={banner.textLegibility}
+                        onChange={(e) => updateDisplayBanner(banner.id, { textLegibility: e.target.value })}
+                        className="min-h-[50px] text-xs resize-none"
+                        placeholder="Headline: 18-24pt Bold | Body: 12-14pt | CTA: 14pt Bold"
+                      />
+                    ) : (
+                      <p className="text-xs text-foreground leading-relaxed">{banner.textLegibility}</p>
+                    )}
                   </div>
 
                   {/* Safe Zone Policy */}
-                  <div className="bg-muted/50 rounded-lg p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                  <div className="bg-accent/5 border border-accent/20 rounded-lg p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-accent font-semibold mb-1.5 flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-accent" />
                       Safe Zone Policy
                     </p>
                     {isEditing ? (
                       <Textarea
                         value={banner.safeZonePolicy}
                         onChange={(e) => updateDisplayBanner(banner.id, { safeZonePolicy: e.target.value })}
-                        className="min-h-[60px] text-xs resize-none"
+                        className="min-h-[70px] text-xs resize-none"
+                        placeholder="15px padding all edges. Logo in corner (max 60x40px). CTA button bottom-right or center-bottom."
                       />
                     ) : (
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        {banner.safeZonePolicy || 'No specific policy'}
+                        {banner.safeZonePolicy || 'No specific policy defined'}
                       </p>
                     )}
                   </div>
+
+                  {/* Done Editing Button */}
+                  {isEditing && (
+                    <Button 
+                      size="sm" 
+                      onClick={() => setEditingId(null)}
+                      className="w-full h-8 text-xs"
+                    >
+                      Done Editing
+                    </Button>
+                  )}
                 </div>
               </div>
             );
