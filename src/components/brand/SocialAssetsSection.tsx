@@ -110,19 +110,6 @@ const platformPresets: BrandSocialAssetSpec[] = [
   },
   {
     id: crypto.randomUUID(),
-    platform: 'Instagram',
-    postSize: '1080 x 1080 px (1:1)',
-    altSize: '1080 x 566 px (Landscape)',
-    storySize: '1080 x 1920 px (9:16)',
-    reelSize: '1080 x 1920 px (9:16)',
-    coverSize: 'N/A',
-    textLegibility: '48pt for Stories, 24pt for Posts',
-    directive: 'Keep text within inner 80% to avoid UI overlays. Stories: avoid top 150px (username) and bottom 200px (CTA buttons).',
-    templates: [],
-    previewImageUrl: '',
-  },
-  {
-    id: crypto.randomUUID(),
     platform: 'Facebook',
     postSize: '1200 x 630 px',
     altSize: '1200 x 1200 px (Square)',
@@ -185,60 +172,218 @@ const platformPresets: BrandSocialAssetSpec[] = [
   },
 ];
 
+// Comprehensive IAB Standard Display Banner Presets with detailed guidelines
 const bannerPresets: BrandDisplayBannerSpec[] = [
+  // Desktop/Universal Banners
   {
     id: crypto.randomUUID(),
-    name: 'Medium Rectangle',
+    name: 'Medium Rectangle (MREC)',
     dimensions: '300 x 250 px',
-    maxMessaging: '12 Words',
-    textLegibility: '12pt Min',
-    safeZonePolicy: '15px padding from all edges',
+    maxMessaging: 'Headline: 25 chars | Body: 70 chars | CTA: 15 chars',
+    textLegibility: 'Headline: 18-24pt Bold | Body: 12-14pt | CTA: 14pt Bold',
+    safeZonePolicy: '15px padding all edges. Logo in corner (max 60x40px). CTA button bottom-right or center-bottom.',
     aspectRatio: 1.2,
   },
   {
     id: crypto.randomUUID(),
     name: 'Leaderboard',
     dimensions: '728 x 90 px',
-    maxMessaging: '15 Words',
-    textLegibility: '14pt Min',
-    safeZonePolicy: 'Center 90%. (Avoid 36px from left/right)',
+    maxMessaging: 'Headline: 30 chars | Body: 50 chars | CTA: 12 chars',
+    textLegibility: 'Headline: 24-28pt Bold | Body: 14-16pt | CTA: 14pt Bold',
+    safeZonePolicy: 'Center content in 650px. Logo left (max 80x50px). CTA right side. Avoid outer 40px edges.',
     aspectRatio: 8.09,
   },
   {
     id: crypto.randomUUID(),
     name: 'Wide Skyscraper',
     dimensions: '160 x 600 px',
-    maxMessaging: '10 Words',
-    textLegibility: '14pt Min',
-    safeZonePolicy: '10px horizontal padding, avoid bottom 50px',
+    maxMessaging: 'Headline: 20 chars | Body: 60 chars | CTA: 10 chars',
+    textLegibility: 'Headline: 18-22pt Bold | Body: 11-13pt | CTA: 12pt Bold',
+    safeZonePolicy: '10px horizontal padding. Logo top (max 120x40px). Stack content vertically. CTA bottom 80px.',
     aspectRatio: 0.27,
   },
   {
     id: crypto.randomUUID(),
     name: 'Large Rectangle',
     dimensions: '336 x 280 px',
-    maxMessaging: '15 Words',
-    textLegibility: '14pt Min',
-    safeZonePolicy: '20px padding from all edges',
+    maxMessaging: 'Headline: 30 chars | Body: 90 chars | CTA: 15 chars',
+    textLegibility: 'Headline: 20-26pt Bold | Body: 13-15pt | CTA: 14pt Bold',
+    safeZonePolicy: '20px padding all edges. Logo top-left or top-right. CTA center-bottom with 25px margin.',
     aspectRatio: 1.2,
   },
   {
     id: crypto.randomUUID(),
     name: 'Billboard',
     dimensions: '970 x 250 px',
-    maxMessaging: '20 Words',
-    textLegibility: '18pt Min',
-    safeZonePolicy: 'Center 800px horizontally',
+    maxMessaging: 'Headline: 40 chars | Body: 100 chars | CTA: 15 chars',
+    textLegibility: 'Headline: 32-40pt Bold | Body: 16-18pt | CTA: 16pt Bold',
+    safeZonePolicy: 'Center content in 800px. Logo on left or integrated. Multiple CTAs allowed. Avoid outer 85px.',
     aspectRatio: 3.88,
   },
   {
     id: crypto.randomUUID(),
+    name: 'Large Leaderboard',
+    dimensions: '970 x 90 px',
+    maxMessaging: 'Headline: 35 chars | Body: 60 chars | CTA: 12 chars',
+    textLegibility: 'Headline: 26-32pt Bold | Body: 14-16pt | CTA: 14pt Bold',
+    safeZonePolicy: 'Center content in 850px. Logo left (max 100x60px). CTA right. Keep text vertically centered.',
+    aspectRatio: 10.78,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Half Page (Monster)',
+    dimensions: '300 x 600 px',
+    maxMessaging: 'Headline: 30 chars | Body: 120 chars | CTA: 15 chars',
+    textLegibility: 'Headline: 24-30pt Bold | Body: 14-16pt | CTA: 16pt Bold',
+    safeZonePolicy: '20px padding all edges. Logo top (max 150x50px). Stack content. CTA bottom 60px with full width.',
+    aspectRatio: 0.5,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Portrait',
+    dimensions: '300 x 1050 px',
+    maxMessaging: 'Headline: 25 chars | Body: 150 chars | CTA: 12 chars (multiple CTAs allowed)',
+    textLegibility: 'Headline: 22-28pt Bold | Body: 13-15pt | CTA: 14pt Bold',
+    safeZonePolicy: '20px horizontal padding. Divide into 3-4 visual sections. Logo top, CTA bottom 80px.',
+    aspectRatio: 0.29,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Skyscraper',
+    dimensions: '120 x 600 px',
+    maxMessaging: 'Headline: 15 chars | Body: 40 chars | CTA: 8 chars',
+    textLegibility: 'Headline: 14-18pt Bold | Body: 10-12pt | CTA: 11pt Bold',
+    safeZonePolicy: '8px horizontal padding. Very limited space—prioritize logo + single message + CTA.',
+    aspectRatio: 0.2,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Square',
+    dimensions: '250 x 250 px',
+    maxMessaging: 'Headline: 20 chars | Body: 50 chars | CTA: 12 chars',
+    textLegibility: 'Headline: 18-22pt Bold | Body: 12-14pt | CTA: 13pt Bold',
+    safeZonePolicy: '15px padding all edges. Logo top-left (max 50x35px). CTA bottom center.',
+    aspectRatio: 1.0,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Small Square',
+    dimensions: '200 x 200 px',
+    maxMessaging: 'Headline: 15 chars | CTA: 10 chars (no body copy)',
+    textLegibility: 'Headline: 16-20pt Bold | CTA: 12pt Bold',
+    safeZonePolicy: '12px padding. Minimal elements only—logo + headline + CTA. No body text.',
+    aspectRatio: 1.0,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Button 1',
+    dimensions: '120 x 90 px',
+    maxMessaging: 'CTA only: 8 chars max',
+    textLegibility: 'CTA: 11-13pt Bold',
+    safeZonePolicy: 'Logo OR text only. 5px padding. Single action focus.',
+    aspectRatio: 1.33,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Button 2',
+    dimensions: '120 x 60 px',
+    maxMessaging: 'CTA only: 8 chars max',
+    textLegibility: 'CTA: 10-12pt Bold',
+    safeZonePolicy: 'Extremely limited. Logo or text, not both. 4px padding.',
+    aspectRatio: 2.0,
+  },
+  // Mobile Banners
+  {
+    id: crypto.randomUUID(),
     name: 'Mobile Leaderboard',
     dimensions: '320 x 50 px',
-    maxMessaging: '6 Words',
-    textLegibility: '11pt Min',
-    safeZonePolicy: 'Logo on left, 10px text padding',
+    maxMessaging: 'Headline: 20 chars | CTA: 8 chars (no body)',
+    textLegibility: 'Headline: 14-16pt Bold | CTA: 12pt Bold',
+    safeZonePolicy: 'Logo left (max 40x30px). Text center. CTA right. 8px edge padding.',
     aspectRatio: 6.4,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Mobile Banner',
+    dimensions: '300 x 50 px',
+    maxMessaging: 'Headline: 18 chars | CTA: 8 chars',
+    textLegibility: 'Headline: 13-15pt Bold | CTA: 11pt Bold',
+    safeZonePolicy: 'Logo left (max 35x28px). Single line text. CTA far right.',
+    aspectRatio: 6.0,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Large Mobile Banner',
+    dimensions: '320 x 100 px',
+    maxMessaging: 'Headline: 25 chars | Body: 35 chars | CTA: 10 chars',
+    textLegibility: 'Headline: 16-18pt Bold | Body: 12pt | CTA: 13pt Bold',
+    safeZonePolicy: 'Logo top-left. Two-line layout allowed. CTA bottom-right. 10px padding.',
+    aspectRatio: 3.2,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Smartphone Banner',
+    dimensions: '300 x 250 px (Mobile MREC)',
+    maxMessaging: 'Headline: 25 chars | Body: 60 chars | CTA: 12 chars',
+    textLegibility: 'Headline: 20-24pt Bold | Body: 13-15pt | CTA: 14pt Bold',
+    safeZonePolicy: 'Same as desktop MREC. 15px padding. Design for touch—CTA min 44px height.',
+    aspectRatio: 1.2,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Mobile Interstitial',
+    dimensions: '320 x 480 px',
+    maxMessaging: 'Headline: 30 chars | Body: 80 chars | CTA: 15 chars',
+    textLegibility: 'Headline: 28-34pt Bold | Body: 16-18pt | CTA: 18pt Bold',
+    safeZonePolicy: 'Full screen. Close button space top-right (50x50px). CTA center-bottom 80px. 25px margins.',
+    aspectRatio: 0.67,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Tablet Interstitial',
+    dimensions: '768 x 1024 px',
+    maxMessaging: 'Headline: 40 chars | Body: 120 chars | CTA: 18 chars',
+    textLegibility: 'Headline: 36-44pt Bold | Body: 18-22pt | CTA: 20pt Bold',
+    safeZonePolicy: 'Full screen. Close button top-right (60x60px). Center content in 600px width. CTA bottom 100px.',
+    aspectRatio: 0.75,
+  },
+  // Video/Rich Media Banners
+  {
+    id: crypto.randomUUID(),
+    name: 'Video Rectangle',
+    dimensions: '640 x 360 px (16:9)',
+    maxMessaging: 'Overlay: 20 chars | End card: 30 chars + CTA',
+    textLegibility: 'Overlay: 18-22pt Bold (high contrast) | End card: 24-28pt',
+    safeZonePolicy: 'Video controls bottom 50px. Logo watermark top-left (subtle). End card CTA center.',
+    aspectRatio: 1.78,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Video Skyscraper',
+    dimensions: '300 x 600 px (Video)',
+    maxMessaging: 'Overlay: 15 chars | End card: 25 chars + CTA',
+    textLegibility: 'Overlay: 16-20pt Bold | End card: 22-26pt',
+    safeZonePolicy: 'Vertical video format. Controls bottom 60px. Logo top. End card CTA bottom third.',
+    aspectRatio: 0.5,
+  },
+  // Native/Social Banners
+  {
+    id: crypto.randomUUID(),
+    name: 'Native Ad Unit',
+    dimensions: '1200 x 627 px',
+    maxMessaging: 'Headline: 50 chars | Description: 150 chars | CTA: 15 chars',
+    textLegibility: 'Headline: 24-30pt Bold | Description: 16-18pt | CTA: 16pt Bold',
+    safeZonePolicy: 'Image-focused. Text overlay bottom 30% with gradient. Logo bottom-left. CTA bottom-right.',
+    aspectRatio: 1.91,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Sponsored Content Card',
+    dimensions: '600 x 600 px',
+    maxMessaging: 'Headline: 40 chars | Body: 100 chars | CTA: 12 chars',
+    textLegibility: 'Headline: 26-32pt Bold | Body: 16-18pt | CTA: 16pt Bold',
+    safeZonePolicy: 'Square format. Image top 60%. Text bottom 40%. Logo corner. CTA below text.',
+    aspectRatio: 1.0,
   },
 ];
 
@@ -386,12 +531,13 @@ export const SocialAssetsSection = ({
   const [addingTemplateFor, setAddingTemplateFor] = useState<string | null>(null);
   const [newTemplate, setNewTemplate] = useState<Partial<SocialAssetTemplate>>({});
   const { gridClass } = useLayoutClasses(layout);
-  const hasInitialized = useRef(false);
+  const hasSocialInitialized = useRef(false);
+  const hasBannerInitialized = useRef(false);
 
   // Auto-populate with all platform presets on first render if empty
   useEffect(() => {
-    if (!hasInitialized.current && socialAssets.length === 0) {
-      hasInitialized.current = true;
+    if (!hasSocialInitialized.current && socialAssets.length === 0) {
+      hasSocialInitialized.current = true;
       const presetsWithIds = platformPresets.map(preset => ({
         ...preset,
         id: crypto.randomUUID(),
@@ -400,6 +546,18 @@ export const SocialAssetsSection = ({
       onSocialAssetsChange(presetsWithIds);
     }
   }, [socialAssets.length, onSocialAssetsChange]);
+
+  // Auto-populate display banners with all IAB standard presets on first render if empty
+  useEffect(() => {
+    if (!hasBannerInitialized.current && displayBanners.length === 0) {
+      hasBannerInitialized.current = true;
+      const bannersWithIds = bannerPresets.map(preset => ({
+        ...preset,
+        id: crypto.randomUUID(),
+      }));
+      onDisplayBannersChange(bannersWithIds);
+    }
+  }, [displayBanners.length, onDisplayBannersChange]);
 
   const toggleTemplateExpand = (id: string) => {
     const newSet = new Set(expandedTemplates);
@@ -419,6 +577,15 @@ export const SocialAssetsSection = ({
       templates: [],
     }));
     onSocialAssetsChange(presetsWithIds);
+  };
+
+  // Initialize with all banner presets (manual button)
+  const initializeBannerPresets = () => {
+    const bannersWithIds = bannerPresets.map(preset => ({
+      ...preset,
+      id: crypto.randomUUID(),
+    }));
+    onDisplayBannersChange(bannersWithIds);
   };
 
   const addSocialAsset = (preset?: BrandSocialAssetSpec) => {
@@ -913,23 +1080,60 @@ export const SocialAssetsSection = ({
 
       {/* Display Banner Specs */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-            Industry Display Banner Specs
+            IAB Standard Display Banner Specs
           </h3>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {displayBanners.length === 0 && (
+              <Button onClick={initializeBannerPresets} size="sm" variant="secondary" className="gap-1.5 h-8 text-xs">
+                <Plus className="h-3.5 w-3.5" />
+                Add All {bannerPresets.length} IAB Sizes
+              </Button>
+            )}
             <Select onValueChange={(name) => {
               const preset = bannerPresets.find(p => p.name === name);
               if (preset) addDisplayBanner(preset);
             }}>
-              <SelectTrigger className="w-[180px] h-8 text-xs">
-                <SelectValue placeholder="Add preset..." />
+              <SelectTrigger className="w-[200px] h-8 text-xs">
+                <SelectValue placeholder="Add specific size..." />
               </SelectTrigger>
-              <SelectContent>
-                {bannerPresets.map((preset) => (
-                  <SelectItem key={preset.name} value={preset.name}>
-                    {preset.name}
+              <SelectContent className="max-h-[400px]">
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-b">Desktop/Universal</div>
+                {bannerPresets.filter(p => !p.name.includes('Mobile') && !p.name.includes('Smartphone') && !p.name.includes('Tablet') && !p.name.includes('Video') && !p.name.includes('Native') && !p.name.includes('Sponsored')).map((preset) => (
+                  <SelectItem key={preset.name} value={preset.name} className="text-xs">
+                    <span className="flex items-center gap-2">
+                      <span>{preset.name}</span>
+                      <span className="text-muted-foreground font-mono">{preset.dimensions.replace(' px', '')}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-b border-t mt-1">Mobile</div>
+                {bannerPresets.filter(p => p.name.includes('Mobile') || p.name.includes('Smartphone') || p.name.includes('Tablet')).map((preset) => (
+                  <SelectItem key={preset.name} value={preset.name} className="text-xs">
+                    <span className="flex items-center gap-2">
+                      <span>{preset.name}</span>
+                      <span className="text-muted-foreground font-mono">{preset.dimensions.replace(' px', '')}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-b border-t mt-1">Video/Rich Media</div>
+                {bannerPresets.filter(p => p.name.includes('Video')).map((preset) => (
+                  <SelectItem key={preset.name} value={preset.name} className="text-xs">
+                    <span className="flex items-center gap-2">
+                      <span>{preset.name}</span>
+                      <span className="text-muted-foreground font-mono">{preset.dimensions.replace(' px', '')}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-b border-t mt-1">Native/Social</div>
+                {bannerPresets.filter(p => p.name.includes('Native') || p.name.includes('Sponsored')).map((preset) => (
+                  <SelectItem key={preset.name} value={preset.name} className="text-xs">
+                    <span className="flex items-center gap-2">
+                      <span>{preset.name}</span>
+                      <span className="text-muted-foreground font-mono">{preset.dimensions.replace(' px', '')}</span>
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -938,6 +1142,26 @@ export const SocialAssetsSection = ({
               <Plus className="h-3.5 w-3.5" />
               Custom
             </Button>
+          </div>
+        </div>
+
+        {/* Banner Categories Info */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+          <div className="bg-muted/30 rounded-lg px-3 py-2 text-center">
+            <div className="font-semibold text-foreground">Desktop/Universal</div>
+            <div className="text-muted-foreground">{bannerPresets.filter(p => !p.name.includes('Mobile') && !p.name.includes('Smartphone') && !p.name.includes('Tablet') && !p.name.includes('Video') && !p.name.includes('Native') && !p.name.includes('Sponsored')).length} sizes</div>
+          </div>
+          <div className="bg-muted/30 rounded-lg px-3 py-2 text-center">
+            <div className="font-semibold text-foreground">Mobile</div>
+            <div className="text-muted-foreground">{bannerPresets.filter(p => p.name.includes('Mobile') || p.name.includes('Smartphone') || p.name.includes('Tablet')).length} sizes</div>
+          </div>
+          <div className="bg-muted/30 rounded-lg px-3 py-2 text-center">
+            <div className="font-semibold text-foreground">Video/Rich Media</div>
+            <div className="text-muted-foreground">{bannerPresets.filter(p => p.name.includes('Video')).length} sizes</div>
+          </div>
+          <div className="bg-muted/30 rounded-lg px-3 py-2 text-center">
+            <div className="font-semibold text-foreground">Native/Social</div>
+            <div className="text-muted-foreground">{bannerPresets.filter(p => p.name.includes('Native') || p.name.includes('Sponsored')).length} sizes</div>
           </div>
         </div>
 
@@ -1065,11 +1289,12 @@ export const SocialAssetsSection = ({
 
           {displayBanners.length === 0 && (
             <button
-              onClick={() => addDisplayBanner(bannerPresets[0])}
+              onClick={initializeBannerPresets}
               className="h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors col-span-full"
             >
-              <Smartphone className="h-6 w-6" />
-              <span className="text-sm font-medium">Add display banner spec</span>
+              <Monitor className="h-6 w-6" />
+              <span className="text-sm font-medium">Load All {bannerPresets.length} IAB Standard Banner Sizes</span>
+              <span className="text-xs text-muted-foreground">Desktop, Mobile, Video & Native formats</span>
             </button>
           )}
         </div>
