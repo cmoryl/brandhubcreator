@@ -246,25 +246,14 @@ const ProductEditor = () => {
   };
 
   // Show loading state
+  // Always use enhanced loading screen with organization context when available
   if (authLoading || isLoading || publicProductLoading) {
-    // Use enhanced loading for public/anonymous access
-    if (!user) {
-      return <PublicLoadingScreen type="product" />;
-    }
-    // Simple loading for authenticated users
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="p-4 bg-accent/10 rounded-2xl w-fit mx-auto animate-pulse">
-            <img 
-              src={theme === 'light' ? tpLogoColor : tpLogoWhite} 
-              alt="TransPerfect" 
-              className="h-8 w-auto"
-            />
-          </div>
-          <p className="text-muted-foreground">Loading product...</p>
-        </div>
-      </div>
+      <PublicLoadingScreen 
+        type="product" 
+        name={currentProduct?.hero?.name}
+        organizationName={organization?.name}
+      />
     );
   }
 

@@ -98,7 +98,9 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   imagery: [
     { id: 'im1', url: '/images/demos/imagery-nexus-do-1.jpg', type: 'do', description: 'Use high-quality abstract tech imagery with blue tones and glowing elements' },
     { id: 'im2', url: '/images/demos/imagery-nexus-do-2.jpg', type: 'do', description: 'Digital circuit patterns and futuristic geometric designs work well' },
-    { id: 'im3', url: '', type: 'dont', description: 'Avoid cluttered or outdated technology images' },
+    { id: 'im3', url: '/images/demos/social-nexus-linkedin.jpg', type: 'do', description: 'LinkedIn company page with tech-forward banner and professional layout' },
+    { id: 'im4', url: '/images/demos/social-nexus-twitter.jpg', type: 'do', description: 'Twitter/X profile showcasing dark mode tech aesthetic with circuit patterns' },
+    { id: 'im5', url: '', type: 'dont', description: 'Avoid cluttered or outdated technology images' },
   ],
   social: [
     { id: 's1', platform: 'LinkedIn', handle: '@nexustech', url: 'https://linkedin.com/company/nexustech', color: '#0A66C2' },
@@ -262,7 +264,9 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   imagery: [
     { id: 'im1', url: '/images/demos/imagery-bloom-do-1.jpg', type: 'do', description: 'Use serene botanical close-ups with soft natural lighting' },
     { id: 'im2', url: '/images/demos/imagery-bloom-do-2.jpg', type: 'do', description: 'Organic flat lays with herbs and natural textures' },
-    { id: 'im3', url: '', type: 'dont', description: 'Avoid artificial or overly processed imagery' },
+    { id: 'im3', url: '/images/demos/social-bloom-instagram.jpg', type: 'do', description: 'Instagram profile with botanical aesthetic and wellness lifestyle grid' },
+    { id: 'im4', url: '/images/demos/social-bloom-linkedin.jpg', type: 'do', description: 'LinkedIn company page with professional green botanical theme' },
+    { id: 'im5', url: '', type: 'dont', description: 'Avoid artificial or overly processed imagery' },
   ],
   social: [
     { id: 's1', platform: 'Instagram', handle: '@bloomwellness', url: 'https://instagram.com/bloomwellness', color: '#E4405F' },
