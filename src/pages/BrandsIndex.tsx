@@ -406,8 +406,7 @@ const BrandsIndex = () => {
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold text-foreground mb-4 sm:mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               Create stunning<br />
-              <span className="text-digital-live text-accent" data-text="Live">Live</span>{' '}
-              <span className="text-accent">{settings.heroHighlight}</span>
+              <span className="text-digital-live text-accent" data-text={settings.heroHighlight}>{settings.heroHighlight}</span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
               {settings.heroDescription}
