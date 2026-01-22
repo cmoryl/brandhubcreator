@@ -118,13 +118,14 @@ serve(async (req) => {
             changes: ['Rolled back to original values'],
           });
         } catch (err) {
+          console.error(`[bulk-repair-guides] Rollback error for ${entry.id}:`, err);
           results.push({
             id: entry.id,
             name: '',
             type: entry.type,
             status: 'error',
             changes: [],
-            error: err instanceof Error ? err.message : 'Unknown error',
+            error: 'Rollback failed',
           });
         }
       }
@@ -227,13 +228,14 @@ serve(async (req) => {
           changes,
         });
       } catch (err) {
+        console.error(`[bulk-repair-guides] Brand repair error for ${brand.name}:`, err);
         results.push({
           id: brand.id,
           name: brand.name,
           type: 'brand',
           status: 'error',
           changes: [],
-          error: err instanceof Error ? err.message : 'Unknown error',
+          error: 'Repair failed',
         });
       }
     }
@@ -308,13 +310,14 @@ serve(async (req) => {
           changes,
         });
       } catch (err) {
+        console.error(`[bulk-repair-guides] Product repair error for ${product.name}:`, err);
         results.push({
           id: product.id,
           name: product.name,
           type: 'product',
           status: 'error',
           changes: [],
-          error: err instanceof Error ? err.message : 'Unknown error',
+          error: 'Repair failed',
         });
       }
     }
@@ -333,9 +336,9 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error("Error in bulk-repair-guides:", error);
+    console.error("[bulk-repair-guides] Error:", error);
     return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : "Internal server error" 
+      error: "Operation failed" 
     }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

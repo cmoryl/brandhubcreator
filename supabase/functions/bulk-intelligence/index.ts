@@ -104,10 +104,9 @@ Deno.serve(async (req) => {
     );
 
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Bulk intelligence error:', errorMessage);
+    console.error('[bulk-intelligence] Error:', error);
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: 'Operation failed' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
@@ -257,7 +256,8 @@ Be specific, actionable, and insightful. Base analysis on the actual brand data 
         .eq('id', existingIntel.id);
 
       if (updateError) {
-        return { entity: entityName, status: 'failed', error: updateError.message };
+        console.error(`[bulk-intelligence] Update error for ${entityName}:`, updateError);
+        return { entity: entityName, status: 'failed', error: 'Update failed' };
       }
     } else {
       const { error: insertError } = await supabaseAdmin
@@ -268,7 +268,8 @@ Be specific, actionable, and insightful. Base analysis on the actual brand data 
         });
 
       if (insertError) {
-        return { entity: entityName, status: 'failed', error: insertError.message };
+        console.error(`[bulk-intelligence] Insert error for ${entityName}:`, insertError);
+        return { entity: entityName, status: 'failed', error: 'Insert failed' };
       }
     }
 
@@ -276,9 +277,8 @@ Be specific, actionable, and insightful. Base analysis on the actual brand data 
     return { entity: entityName, status: 'success' };
 
   } catch (entityError) {
-    const errorMsg = entityError instanceof Error ? entityError.message : 'Unknown error';
-    console.error(`Error processing ${entityName}:`, errorMsg);
-    return { entity: entityName, status: 'failed', error: errorMsg };
+    console.error(`[bulk-intelligence] Error processing ${entityName}:`, entityError);
+    return { entity: entityName, status: 'failed', error: 'Processing failed' };
   }
 }
 
