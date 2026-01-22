@@ -59,7 +59,8 @@ interface LinkedGuide {
 }
 
 interface ProductsSectionProps {
-  brandId: string;
+  brandId?: string;
+  productId?: string;
   linkedGuides?: LinkedGuide[];
   onLinkedGuidesChange?: (guides: LinkedGuide[]) => void;
   customSubtitle?: string;
@@ -69,7 +70,8 @@ interface ProductsSectionProps {
 }
 
 export const ProductsSection = ({ 
-  brandId, 
+  brandId,
+  productId,
   linkedGuides = [],
   onLinkedGuidesChange,
   customSubtitle, 
@@ -77,6 +79,9 @@ export const ProductsSection = ({
   layout = 'grid-4',
   onLayoutChange
 }: ProductsSectionProps) => {
+  // Determine the entity ID and type
+  const entityId = brandId || productId || '';
+  const entityType: 'brand' | 'product' = brandId ? 'brand' : 'product';
   const [allGuides, setAllGuides] = useState<GuideItem[]>([]);
   const [linkedProducts, setLinkedProducts] = useState<GuideItem[]>([]);
   const { gridClass } = useLayoutClasses(layout);
@@ -95,7 +100,7 @@ export const ProductsSection = ({
     // NOTE: We intentionally *don't* depend on linkedGuides here.
     // Linking/unlinking performs an optimistic UI update so cards appear instantly.
     // A full refetch on each linkedGuides change caused noticeable loading flicker.
-  }, [brandId]);
+  }, [entityId]);
 
   const fetchGuides = async ({ initial = false }: { initial?: boolean } = {}) => {
     if (initial) {
@@ -104,24 +109,25 @@ export const ProductsSection = ({
       setIsRefreshing(true);
     }
     try {
-      // Run queries in parallel to reduce perceived latency
+      // For products, we primarily use linkedGuides from guide_data
+      // For brands, we also check parent_brand_id relationships
       const [
         { data: linkedByParent, error: linkedError },
         { data: availableProducts, error: availableError },
         { data: allBrands, error: brandsError },
       ] = await Promise.all([
+        // Only fetch by parent_brand_id if we're on a brand
+        entityType === 'brand' 
+          ? supabase.from('products').select('id, name, guide_data').eq('parent_brand_id', entityId)
+          : Promise.resolve({ data: [], error: null }),
         supabase
           .from('products')
           .select('id, name, guide_data')
-          .eq('parent_brand_id', brandId),
-        supabase
-          .from('products')
-          .select('id, name, guide_data')
-          .is('parent_brand_id', null),
+          .neq('id', entityId), // Exclude current product/brand
         supabase
           .from('brands')
           .select('id, name, guide_data')
-          .neq('id', brandId),
+          .neq('id', entityId),
       ]);
 
       if (linkedError) throw linkedError;
@@ -187,8 +193,19 @@ export const ProductsSection = ({
     
     setIsCreating(true);
     try {
-      const product = await addProduct(newProductName.trim(), brandId);
+      // For brands, use brandId; for products, pass undefined (no parent link via DB)
+      const parentBrandId = entityType === 'brand' ? entityId : undefined;
+      const product = await addProduct(newProductName.trim(), parentBrandId);
       if (product) {
+        // If we're on a product, manually link the new product via linkedGuides
+        if (entityType === 'product' && onLinkedGuidesChange) {
+          const newLinkedGuide: LinkedGuide = {
+            id: crypto.randomUUID(),
+            guideId: product.id,
+            guideType: 'product'
+          };
+          onLinkedGuidesChange([...linkedGuides, newLinkedGuide]);
+        }
         toast.success('Product guide created and linked');
         setNewProductName('');
         setIsCreateDialogOpen(false);
@@ -210,12 +227,32 @@ export const ProductsSection = ({
       return;
     }
 
-    if (guide.type === 'product') {
-      // For products, update parent_brand_id
+    // For products as parent, always use linkedGuides (no parent_brand_id relationship)
+    // For brands as parent, use parent_brand_id for product links + linkedGuides for brands
+    if (entityType === 'product' || guide.type === 'brand') {
+      // Use linkedGuides for all links when parent is a product, or for brand-to-brand links
+      if (onLinkedGuidesChange) {
+        const newLinkedGuide: LinkedGuide = {
+          id: crypto.randomUUID(),
+          guideId: guideId,
+          guideType: guide.type
+        };
+        onLinkedGuidesChange([...linkedGuides, newLinkedGuide]);
+        
+        // Immediately update local state for instant UI feedback
+        setLinkedProducts(prev => [...prev, guide]);
+        setAvailableGuides(prev => prev.filter(g => g.id !== guideId));
+        
+        toast.success(`${guide.type === 'brand' ? 'Brand' : 'Product'} guide linked`);
+      } else {
+        toast.error('Unable to link guide - handler not available');
+      }
+    } else {
+      // Brand -> Product: use parent_brand_id
       try {
         const { error } = await supabase
           .from('products')
-          .update({ parent_brand_id: brandId })
+          .update({ parent_brand_id: entityId })
           .eq('id', guideId);
 
         if (error) throw error;
@@ -238,24 +275,6 @@ export const ProductsSection = ({
       } catch (error) {
         console.error('Error linking product:', error);
         toast.error('Failed to link product guide');
-      }
-    } else {
-      // For brands, add to linkedGuides
-      if (onLinkedGuidesChange) {
-        const newLinkedGuide: LinkedGuide = {
-          id: crypto.randomUUID(),
-          guideId: guideId,
-          guideType: 'brand'
-        };
-        onLinkedGuidesChange([...linkedGuides, newLinkedGuide]);
-        
-        // Immediately update local state for instant UI feedback
-        setLinkedProducts(prev => [...prev, guide]);
-        setAvailableGuides(prev => prev.filter(g => g.id !== guideId));
-        
-        toast.success('Brand guide linked');
-      } else {
-        toast.error('Unable to link guide - handler not available');
       }
     }
   };

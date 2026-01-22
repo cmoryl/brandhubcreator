@@ -35,6 +35,7 @@ import { MisuseSection } from '@/components/brand/MisuseSection';
 import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
 import { BrochuresSection } from '@/components/brand/BrochuresSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
+import { ProductsSection } from '@/components/brand/ProductsSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
@@ -247,6 +248,7 @@ const currentProduct = getProduct(productId || '');
       case 'casestudies': return <CaseStudiesSection caseStudies={currentProduct.caseStudies} onCaseStudiesChange={(caseStudies) => handleUpdateProduct({ caseStudies })} />;
       case 'brochures': return <BrochuresSection brochures={currentProduct.brochures} onBrochuresChange={(brochures) => handleUpdateProduct({ brochures })} />;
       case 'templates': return <TemplatesSection templates={currentProduct.templates} onTemplatesChange={(templates) => handleUpdateProduct({ templates })} />;
+      case 'products': return <ProductsSection productId={currentProduct.id} linkedGuides={currentProduct.linkedGuides || []} onLinkedGuidesChange={(linkedGuides) => handleUpdateProduct({ linkedGuides })} />;
       default: return null;
     }
   };
