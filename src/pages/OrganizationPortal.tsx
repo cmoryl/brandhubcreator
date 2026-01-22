@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowRight, Globe, Lock, Building2, ArrowLeft, Search, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { HeroBackground } from '@/components/HeroBackground';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { useSEO } from '@/hooks/useSEO';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { OrganizationPortalSettings, DEFAULT_PORTAL_SETTINGS } from '@/types/organization';
@@ -64,7 +65,9 @@ interface PublicProduct {
 const OrganizationPortal = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
+  const { organization: contextOrg, isLoading: orgContextLoading } = useOrganization();
+  
   const [organization, setOrganization] = useState<OrganizationData | null>(null);
   const [brands, setBrands] = useState<PublicBrand[]>([]);
   const [products, setProducts] = useState<PublicProduct[]>([]);
@@ -72,6 +75,9 @@ const OrganizationPortal = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'brands' | 'products'>('all');
+  
+  // Track if we've already fetched for this slug to avoid duplicate calls
+  const hasFetchedRef = useRef<string | null>(null);
 
   // Filter brands and products based on search
   const filteredBrands = useMemo(() => {
@@ -119,7 +125,7 @@ const OrganizationPortal = () => {
     ogType: 'website',
   });
 
-  // Main data fetching effect - optimized with parallel fetches
+  // Main data fetching effect - optimized to use context when available
   useEffect(() => {
     let cancelled = false;
 
@@ -130,51 +136,77 @@ const OrganizationPortal = () => {
         return;
       }
 
+      // Check if we've already fetched for THIS slug
+      if (hasFetchedRef.current === slug) return;
+
       try {
-        // First, fetch organization by slug (required for subsequent queries)
-        const { data: orgData, error: orgError } = await supabase
-          .from('organizations')
-          .select('id, name, slug, logo_url, primary_color, secondary_color, accent_color, portal_settings')
-          .eq('slug', slug)
-          .maybeSingle();
+        let orgId: string;
+        let orgData: OrganizationData;
+
+        // If user's context org matches the slug, use it directly (skip network call)
+        if (contextOrg && contextOrg.slug === slug && !orgContextLoading) {
+          orgData = {
+            id: contextOrg.id,
+            name: contextOrg.name,
+            slug: contextOrg.slug,
+            logo_url: contextOrg.logoUrl,
+            primary_color: contextOrg.primaryColor,
+            secondary_color: contextOrg.secondaryColor,
+            accent_color: contextOrg.accentColor,
+            portal_settings: contextOrg.portalSettings as OrganizationPortalSettings | null,
+          };
+          orgId = contextOrg.id;
+        } else {
+          // Fetch organization by slug (required for public/different org access)
+          const { data: fetchedOrg, error: orgError } = await supabase
+            .from('organizations')
+            .select('id, name, slug, logo_url, primary_color, secondary_color, accent_color, portal_settings')
+            .eq('slug', slug)
+            .maybeSingle();
+
+          if (cancelled) return;
+
+          if (orgError) {
+            console.error('Error fetching organization:', orgError);
+            setError('Unable to load organization');
+            setIsLoading(false);
+            return;
+          }
+
+          if (!fetchedOrg) {
+            setError('Organization not found');
+            setIsLoading(false);
+            return;
+          }
+
+          orgData = {
+            ...fetchedOrg,
+            portal_settings: fetchedOrg.portal_settings as OrganizationPortalSettings | null,
+          };
+          orgId = fetchedOrg.id;
+        }
 
         if (cancelled) return;
-
-        if (orgError) {
-          console.error('Error fetching organization:', orgError);
-          setError('Unable to load organization');
-          setIsLoading(false);
-          return;
-        }
-
-        if (!orgData) {
-          setError('Organization not found');
-          setIsLoading(false);
-          return;
-        }
-
-        setOrganization({
-          ...orgData,
-          portal_settings: orgData.portal_settings as OrganizationPortalSettings | null,
-        });
+        setOrganization(orgData);
 
         // Fetch brands and products in PARALLEL for faster loading
         const [brandsRes, productsRes] = await Promise.all([
           supabase
             .from('brands')
             .select('id, name, slug, is_public, guide_data, updated_at')
-            .eq('organization_id', orgData.id)
+            .eq('organization_id', orgId)
             .eq('is_public', true)
             .order('updated_at', { ascending: false }),
           supabase
             .from('products')
             .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
-            .eq('organization_id', orgData.id)
+            .eq('organization_id', orgId)
             .eq('is_public', true)
             .order('updated_at', { ascending: false }),
         ]);
 
         if (cancelled) return;
+        hasFetchedRef.current = slug; // Track which slug we fetched
 
         if (brandsRes.error) {
           console.error('Error fetching brands:', brandsRes.error);
@@ -200,13 +232,17 @@ const OrganizationPortal = () => {
       }
     };
 
+    // Start fetching immediately for all cases.
+    // If user is logged in AND their org context matches the slug, we might be able to skip a network call,
+    // but we still start immediately and use whatever data is available.
+    // Don't block on orgContextLoading - just fetch with the current state
     setIsLoading(true);
     fetchData();
 
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, contextOrg, orgContextLoading, user]);
 
   // Refetch on tab focus
   const refetch = useCallback(async () => {
@@ -235,23 +271,32 @@ const OrganizationPortal = () => {
     }
   }, [slug, organization]);
 
+  // Debounced refetch on tab focus (prevents duplicate calls from focus + visibility events)
   useEffect(() => {
-    const onFocus = () => refetch();
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    
+    const debouncedRefetch = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => refetch(), 300);
+    };
+
+    const onFocus = () => debouncedRefetch();
     const onVisibility = () => {
-      if (document.visibilityState === 'visible') refetch();
+      if (document.visibilityState === 'visible') debouncedRefetch();
     };
 
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [refetch]);
 
-  // Stabilize loading to prevent flickers (reduced from 250ms to 100ms for faster perceived load)
-  const stableLoading = useStableLoading(isLoading, 100);
+  // Stabilize loading to prevent flickers - minimal delay for fast perceived load
+  const stableLoading = useStableLoading(isLoading, 80);
 
   if (stableLoading) {
     // Capitalize first letter of slug for display
