@@ -1,12 +1,13 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain } from 'lucide-react';
-import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings } from '@/types/brand';
+import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, ProductGuide } from '@/types/brand';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { supabase } from '@/integrations/supabase/client';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { ShareButton } from '@/components/brand/ShareButton';
@@ -69,6 +70,10 @@ const ProductEditor = () => {
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
 
+  // Public product fallback (for logged-out users / public URLs)
+  const [publicProduct, setPublicProduct] = useState<ProductGuide | null>(null);
+  const [publicProductLoading, setPublicProductLoading] = useState(false);
+
   // Redirect unapproved users to pending approval page (admins are always allowed)
   React.useEffect(() => {
     if (!authLoading && user && !isApproved && !isAdmin) {
@@ -85,7 +90,7 @@ const ProductEditor = () => {
   const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
   // Try to get product from context by ID (for UUID) or by slug
-  const currentProduct = React.useMemo(() => {
+  const contextProduct = React.useMemo(() => {
     if (!productSlug) return undefined;
     // First try as UUID for backwards compatibility
     if (isUUID(productSlug)) {
@@ -94,6 +99,98 @@ const ProductEditor = () => {
     // Try by slug
     return getProductBySlug ? getProductBySlug(productSlug) : undefined;
   }, [productSlug, getProduct, getProductBySlug]);
+
+  // Fetch public product directly if not in context
+  React.useEffect(() => {
+    const fetchPublicProduct = async () => {
+      if (!productSlug || contextProduct || authLoading || isLoading) return;
+
+      setPublicProductLoading(true);
+      try {
+        let query = supabase
+          .from('products')
+          .select('*')
+          .eq('is_public', true);
+
+        if (isUUID(productSlug)) {
+          query = query.eq('id', productSlug);
+        } else {
+          query = query.eq('slug', productSlug);
+        }
+
+        const { data, error } = await query.maybeSingle();
+        if (error) throw error;
+
+        if (data) {
+          const asArray = <T,>(value: unknown, fallback: T[] = []): T[] =>
+            Array.isArray(value) ? (value as T[]) : fallback;
+
+          const asObject = <T extends object>(value: unknown, fallback: T): T =>
+            value && typeof value === 'object' && !Array.isArray(value) ? (value as T) : fallback;
+
+          const guideData = asObject<Record<string, unknown>>(data.guide_data, {});
+
+          const product: ProductGuide = {
+            id: data.id,
+            type: 'product',
+            slug: data.slug,
+            organizationId: data.organization_id,
+            parentBrandId: data.parent_brand_id ?? undefined,
+            isFavorite: data.is_favorite ?? false,
+            isPublic: data.is_public ?? false,
+            sectionOrder: (Array.isArray(data.section_order) ? (data.section_order as SectionId[]) : DEFAULT_SECTION_ORDER),
+            hiddenSections: (Array.isArray(data.hidden_sections) ? (data.hidden_sections as SectionId[]) : []),
+            hero: asObject(guideData.hero, { name: data.name, tagline: '', coverImage: '', logoUrl: '' }) as ProductGuide['hero'],
+            tagline: asObject(guideData.tagline, { primary: '', secondary: '', variations: [] }) as ProductGuide['tagline'],
+            identity: asObject(guideData.identity, { missionStatement: '', archetype: '', toneOfVoice: [] }) as ProductGuide['identity'],
+            values: asArray(guideData.values, []) as ProductGuide['values'],
+            logos: asArray(guideData.logos, []) as ProductGuide['logos'],
+            brandIcons: asArray(guideData.brandIcons, []) as ProductGuide['brandIcons'],
+            colors: asArray(guideData.colors, []) as ProductGuide['colors'],
+            colorCombinations: asArray(guideData.colorCombinations, []) as ProductGuide['colorCombinations'],
+            gradients: asArray(guideData.gradients, []) as ProductGuide['gradients'],
+            patterns: asArray(guideData.patterns, []) as ProductGuide['patterns'],
+            typography: asArray(guideData.typography, []) as ProductGuide['typography'],
+            textStyles: asArray(guideData.textStyles, []) as ProductGuide['textStyles'],
+            iconography: asArray(guideData.iconography, []) as ProductGuide['iconography'],
+            socialIcons: asArray(guideData.socialIcons, []) as ProductGuide['socialIcons'],
+            imagery: asArray(guideData.imagery, []) as ProductGuide['imagery'],
+            social: asArray(guideData.social, []) as ProductGuide['social'],
+            socialAssets: asArray(guideData.socialAssets, []) as ProductGuide['socialAssets'],
+            displayBanners: asArray(guideData.displayBanners, []) as ProductGuide['displayBanners'],
+            websites: asArray(guideData.websites, []) as ProductGuide['websites'],
+            signatures: asArray(guideData.signatures, []) as ProductGuide['signatures'],
+            emailBanners: asArray(guideData.emailBanners, []) as ProductGuide['emailBanners'],
+            qr: asObject(guideData.qr, { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' }) as ProductGuide['qr'],
+            videos: asArray(guideData.videos, []) as ProductGuide['videos'],
+            assets: asArray(guideData.assets, []) as ProductGuide['assets'],
+            misuse: asArray(guideData.misuse, []) as ProductGuide['misuse'],
+            atmosphere: asObject(guideData.atmosphere, { style: 'gradient', animate: true, opacity: 0.5, blur: 0 }) as ProductGuide['atmosphere'],
+            caseStudies: asArray(guideData.caseStudies, []) as ProductGuide['caseStudies'],
+            brochures: asArray(guideData.brochures, []) as ProductGuide['brochures'],
+            templates: asArray(guideData.templates, []) as ProductGuide['templates'],
+            services: asArray(guideData.services, []) as ProductGuide['services'],
+            linkedGuides: asArray(guideData.linkedGuides, []) as ProductGuide['linkedGuides'],
+            sectionSubtitles: asObject(guideData.sectionSubtitles, {}) as ProductGuide['sectionSubtitles'],
+            pageSettings: asObject(guideData.pageSettings, DEFAULT_PAGE_SETTINGS) as ProductGuide['pageSettings'],
+            createdAt: new Date(data.created_at),
+            updatedAt: new Date(data.updated_at),
+          };
+
+          setPublicProduct(product);
+        }
+      } catch (err) {
+        console.error('Error fetching public product:', err);
+      } finally {
+        setPublicProductLoading(false);
+      }
+    };
+
+    fetchPublicProduct();
+  }, [productSlug, contextProduct, authLoading, isLoading]);
+
+  // Use context product if available, otherwise use fetched public product
+  const currentProduct = contextProduct || publicProduct;
   
   // Forward-compat: older products may have persisted sectionOrder without newly-added sections (e.g., socialassets)
   const sectionOrder = useMemo(
@@ -145,7 +242,7 @@ const ProductEditor = () => {
   };
 
   // Show loading state
-  if (authLoading || isLoading) {
+  if (authLoading || isLoading || publicProductLoading) {
     // Use enhanced loading for public/anonymous access
     if (!user) {
       return <PublicLoadingScreen type="product" />;

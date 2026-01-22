@@ -523,15 +523,17 @@ export const useBrandStorage = () => {
 
     // If no user, clear data immediately
     if (!currentUserId) {
-      if (hasFetchedRef.current || lastUserIdRef.current !== null) {
-        hasFetchedRef.current = false;
-        lastUserIdRef.current = null;
-        lastOrgIdRef.current = null;
-        lastFetchFailedAtRef.current = null;
-        setBrands([]);
-        setProducts([]);
-        setIsLoading(false);
-      }
+      // IMPORTANT: anonymous/public visitors should never be stuck in a loading state.
+      // Even if we've never fetched anything, we must mark loading as complete.
+      hasFetchedRef.current = false;
+      lastUserIdRef.current = null;
+      lastOrgIdRef.current = null;
+      lastFetchFailedAtRef.current = null;
+      setBrands([]);
+      setProducts([]);
+      setIsLoading(false);
+      setSyncStatus('idle');
+      setLastSyncError(null);
       return;
     }
 
