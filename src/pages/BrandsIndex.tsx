@@ -6,6 +6,7 @@ import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { AnimatedHeroCanvas } from '@/components/AnimatedHeroCanvas';
 import { HierarchicalProductList } from '@/components/HierarchicalProductList';
 import { useParallax } from '@/hooks/useParallax';
+import { useStableLoading } from '@/hooks/useStableLoading';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
@@ -150,7 +151,8 @@ const BrandsIndex = () => {
 
   // Show skeleton loading state during initial auth check
   // But still render the page shell so users see something immediately
-  const showDataLoading = authLoading || (isLoading && brands.length === 0 && products.length === 0);
+  const rawDataLoading = authLoading || (isLoading && brands.length === 0 && products.length === 0);
+  const showDataLoading = useStableLoading(rawDataLoading, 200);
 
   const handleCreateItem = async () => {
     if (newItemName.trim()) {

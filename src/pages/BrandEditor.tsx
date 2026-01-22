@@ -8,6 +8,7 @@ import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSetti
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { supabase } from '@/integrations/supabase/client';
+import { useStableLoading } from '@/hooks/useStableLoading';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -407,9 +408,13 @@ const BrandEditor = () => {
     }
   }, [viewMode]);
 
+  // Consolidate loading states with stability to prevent flickers
+  const rawLoading = authLoading || isLoading || publicBrandLoading;
+  const stableLoading = useStableLoading(rawLoading, 250);
+
   // Show loading state - AFTER all hooks
   // Always use enhanced loading screen with organization context when available
-  if (authLoading || isLoading || publicBrandLoading) {
+  if (stableLoading) {
     return (
       <PublicLoadingScreen 
         type="brand" 
