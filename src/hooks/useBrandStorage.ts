@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { BrandGuide, ProductGuide, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS } from '@/types/brand';
+import { BrandGuide, ProductGuide, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, DEFAULT_TEMPLATE_SPECS } from '@/types/brand';
 import { DEFAULT_SOCIAL_ASSETS, DEFAULT_DISPLAY_BANNERS } from '@/lib/socialAssetDefaults';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -90,6 +90,7 @@ const createDefaultGuideData = (name: string, type: 'brand' | 'product') => ({
   caseStudies: [],
   brochures: [],
   templates: [],
+  templateSpecs: DEFAULT_TEMPLATE_SPECS, // Pre-populated 8-zone case study template
   sectionSubtitles: {},
   pageSettings: DEFAULT_PAGE_SETTINGS,
 });

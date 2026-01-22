@@ -390,11 +390,96 @@ export const DEFAULT_PAGE_SETTINGS: BrandPageSettings = {
   headerStyle: 'default',
   contentWidth: 'default',
   sectionSpacing: 'default',
-  heroFullWidth: false,
+  heroFullWidth: true, // Default to full width hero
   defaultTheme: 'system',
   customPrimaryColor: '',
   customSecondaryColor: '',
 };
+
+// Default Template Specs - TransPerfect Case Study 8-Zone Template
+export const DEFAULT_TEMPLATE_SPECS: TemplateSpec[] = [
+  {
+    id: 'case-study-default',
+    name: 'TransPerfect Case Study Template',
+    category: 'case-study',
+    previewImageUrl: '',
+    items: [
+      {
+        id: 'zone-1',
+        number: 1,
+        title: 'Client Logo',
+        description: 'High-resolution client logo placement area. Use approved client brand assets only.',
+        dimensions: '300 x 150 pixels',
+        fileFormats: 'PNG or SVG (transparent background preferred)',
+        position: { x: 10, y: 8 }
+      },
+      {
+        id: 'zone-2',
+        number: 2,
+        title: 'Cover Image',
+        description: 'Hero cover image showcasing the client project or visual metaphor.',
+        dimensions: '1500 x 500 pixels',
+        fileFormats: 'JPEG or PNG under 2MB',
+        position: { x: 50, y: 25 }
+      },
+      {
+        id: 'zone-3',
+        number: 3,
+        title: 'Spotlight Header',
+        description: 'Section header introducing the client spotlight content.',
+        dimensions: 'Auto width, 48px height',
+        fileFormats: 'Text element - use brand typography',
+        position: { x: 15, y: 45 }
+      },
+      {
+        id: 'zone-4',
+        number: 4,
+        title: 'Client Spotlight Copy',
+        description: 'Main narrative block describing the client challenge, solution, and outcomes.',
+        dimensions: '600 x auto (max 200 words)',
+        fileFormats: 'Text - 16px body, 1.6 line height',
+        position: { x: 25, y: 55 }
+      },
+      {
+        id: 'zone-5',
+        number: 5,
+        title: 'TransPerfect Logo',
+        description: 'Corporate logo placement. Use approved variant only.',
+        dimensions: '180 x 60 pixels',
+        fileFormats: 'SVG or PNG (transparent)',
+        position: { x: 85, y: 8 }
+      },
+      {
+        id: 'zone-6',
+        number: 6,
+        title: 'Page Identifier',
+        description: 'Page number and document reference marker.',
+        dimensions: '50 x 20 pixels',
+        fileFormats: 'Text element - 10px caption',
+        position: { x: 90, y: 92 }
+      },
+      {
+        id: 'zone-7',
+        number: 7,
+        title: 'Headline',
+        description: 'Primary headline communicating the key result or impact statement.',
+        dimensions: 'Full width, 72px height',
+        fileFormats: 'Text - Display font, 36-48px',
+        position: { x: 50, y: 75 }
+      },
+      {
+        id: 'zone-8',
+        number: 8,
+        title: 'Body Copy',
+        description: 'Supporting narrative text with detailed project information and metrics.',
+        dimensions: '800 x auto (max 300 words)',
+        fileFormats: 'Text - 14px body, 1.5 line height',
+        position: { x: 50, y: 85 }
+      }
+    ],
+    notes: 'This template follows TransPerfect brand guidelines. Ensure all imagery meets quality standards and text follows the approved tone of voice.'
+  }
+];
 
 // Base Guide interface shared by Brands and Products
 export interface BaseGuide {
