@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useState, useRef, useEffect, useCallback, lazy, Suspense, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink } from 'lucide-react';
+import { HierarchicalProductList } from '@/components/HierarchicalProductList';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
@@ -786,190 +787,87 @@ const BrandsIndex = () => {
           </TabsContent>
 
           <TabsContent value="products">
-            {/* Product Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Loading Skeletons */}
-              {isLoading && sortedProducts.length === 0 && (
-                <>
-                  {[1, 2, 3].map((i) => (
-                    <Card key={`product-skeleton-${i}`} className="overflow-hidden border-0 bg-card shadow-lg animate-pulse">
-                      <CardContent className="p-0">
-                        <div className="h-44 bg-muted" />
-                        <div className="p-5">
-                          <div className="h-6 w-3/4 bg-muted rounded mb-2" />
-                          <div className="h-4 w-1/2 bg-muted rounded mb-4" />
-                          <div className="flex gap-3">
-                            <div className="h-6 w-12 bg-muted rounded" />
-                            <div className="h-6 w-12 bg-muted rounded" />
-                            <div className="h-6 w-12 bg-muted rounded" />
-                          </div>
+            {/* Loading Skeletons */}
+            {isLoading && sortedProducts.length === 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3].map((i) => (
+                  <Card key={`product-skeleton-${i}`} className="overflow-hidden border-0 bg-card shadow-lg animate-pulse">
+                    <CardContent className="p-0">
+                      <div className="h-44 bg-muted" />
+                      <div className="p-5">
+                        <div className="h-6 w-3/4 bg-muted rounded mb-2" />
+                        <div className="h-4 w-1/2 bg-muted rounded mb-4" />
+                        <div className="flex gap-3">
+                          <div className="h-6 w-12 bg-muted rounded" />
+                          <div className="h-6 w-12 bg-muted rounded" />
+                          <div className="h-6 w-12 bg-muted rounded" />
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </>
-              )}
-              {sortedProducts.map((product, index) => (
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Hierarchical Product List */}
+            {sortedProducts.length > 0 && (
+              <HierarchicalProductList
+                products={sortedProducts}
+                canEdit={canEdit || false}
+                isRecentlyUpdated={isRecentlyUpdated}
+                toggleFavorite={toggleFavorite}
+                onDeleteClick={handleDeleteClick}
+                onImageUpload={handleProductImageUpload}
+                fileInputRefs={fileInputRefs}
+              />
+            )}
+
+            {/* New Product Card - Only show for admins when there are products */}
+            {canEdit && sortedProducts.length > 0 && (
+              <div className="mt-8">
                 <Card 
-                  key={product.id}
-                  className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg hover-lift card-animate"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                  onClick={() => navigate(`/product/${product.id}`)}
-                >
-                  <CardContent className="p-0">
-                    {/* Cover Image / Color Preview */}
-                    <div className="relative h-44 overflow-hidden">
-                      {product.hero.coverImage ? (
-                        <OptimizedImage 
-                          src={product.hero.coverImage} 
-                          alt={product.hero.name}
-                          className="w-full h-full transition-transform duration-500 group-hover:scale-105"
-                          objectFit="cover"
-                          priority={index < 3}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex">
-                          {product.colors.length > 0 ? (
-                            product.colors.slice(0, 4).map((color) => (
-                              <div 
-                                key={color.id} 
-                                className="flex-1 transition-all duration-500 group-hover:flex-[1.1]"
-                                style={{ backgroundColor: color.hex }}
-                              />
-                            ))
-                          ) : (
-                            <div className="flex-1 bg-gradient-to-br from-muted to-muted/50" />
-                          )}
-                        </div>
-                      )}
-                      
-                      {/* Recently Updated Badge */}
-                      {isRecentlyUpdated(product) && (
-                        <Badge className="absolute top-3 right-12 gap-1 bg-accent text-accent-foreground">
-                          <Clock className="h-3 w-3" />
-                          Recently Updated
-                        </Badge>
-                      )}
-
-                      {/* Favorite Button */}
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className={`absolute top-3 right-3 h-8 w-8 ${product.isFavorite ? 'bg-yellow-100 text-yellow-500 hover:bg-yellow-200' : 'bg-white/90 hover:bg-white'}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(product.id, 'product');
-                        }}
-                      >
-                        <Star className={`h-4 w-4 ${product.isFavorite ? 'fill-current' : ''}`} />
-                      </Button>
-
-                      {/* Product Badge */}
-                      <Badge variant="secondary" className="absolute top-3 left-3 gap-1">
-                        <Package className="h-3 w-3" />
-                        Product
-                      </Badge>
-
-                      {/* Overlay Actions - Only show for admins */}
-                      {canEdit && (
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                          <input
-                            ref={(el) => { if (el) fileInputRefs.current.set(product.id, el); }}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => handleProductImageUpload(product.id, e)}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            className="gap-1.5"
-                            onClick={(e) => triggerImageUpload(product.id, e)}
-                          >
-                            <Upload className="h-3.5 w-3.5" />
-                            {product.hero.coverImage ? 'Change' : 'Add'} Cover
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Card Info */}
-                    <div className="p-5">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-semibold text-foreground truncate text-xl">
-                            {product.hero.name}
-                          </h3>
-                          <p className="text-sm text-muted-foreground truncate mt-1">
-                            {product.hero.tagline}
-                          </p>
-                        </div>
-                        {canEdit && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 -mr-2"
-                            onClick={(e) => handleDeleteClick(product.id, 'product', e)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        )}
-                      </div>
-
-                      {/* Stats */}
-                      <div className="flex items-center gap-3 text-xs">
-                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
-                          <Palette className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-muted-foreground">{product.colors.length}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
-                          <Type className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-muted-foreground">{product.typography.length}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md">
-                          <Image className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-muted-foreground">{product.logos.length}</span>
-                        </div>
-                      </div>
-
-                      {/* Footer */}
-                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-                        <p className="text-xs text-muted-foreground">
-                          Updated {product.updatedAt.toLocaleDateString()}
-                        </p>
-                        <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-1 transition-all" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-
-              {/* New Product Card - Only show for admins */}
-              {canEdit && (
-                <Card 
-                  className="group cursor-pointer border-2 border-dashed border-border hover:border-accent/50 bg-transparent hover:bg-accent/5 transition-all duration-300"
+                  className="group cursor-pointer border-2 border-dashed border-border hover:border-accent/50 bg-transparent hover:bg-accent/5 transition-all duration-300 max-w-sm"
                   onClick={() => { setNewItemType('product'); setIsNewDialogOpen(true); }}
                 >
-                  <CardContent className="flex flex-col items-center justify-center h-full min-h-[320px] text-center">
-                    <div className="p-5 bg-muted rounded-2xl mb-5 group-hover:bg-accent/10 group-hover:scale-110 transition-all duration-300">
-                      <Package className="h-10 w-10 text-muted-foreground group-hover:text-accent transition-colors" />
+                  <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="p-4 bg-muted rounded-2xl mb-4 group-hover:bg-accent/10 group-hover:scale-110 transition-all duration-300">
+                      <Package className="h-8 w-8 text-muted-foreground group-hover:text-accent transition-colors" />
                     </div>
-                    <h3 className="font-semibold text-lg text-foreground mb-2">Create New Product</h3>
-                    <p className="text-sm text-muted-foreground max-w-[200px]">
-                      Start building a fresh product identity guide
+                    <h3 className="font-semibold text-foreground mb-1">Create New Product</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Start a new product guide
                     </p>
                   </CardContent>
                 </Card>
-              )}
+              </div>
+            )}
 
-              {products.length === 0 && !canEdit && (
-                <div className="col-span-full text-center py-12">
-                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No product guides yet</p>
-                </div>
-              )}
-            </div>
+            {/* Empty state */}
+            {sortedProducts.length === 0 && !isLoading && (
+              <div className="text-center py-12">
+                {canEdit ? (
+                  <Card 
+                    className="group cursor-pointer border-2 border-dashed border-border hover:border-accent/50 bg-transparent hover:bg-accent/5 transition-all duration-300 max-w-sm mx-auto"
+                    onClick={() => { setNewItemType('product'); setIsNewDialogOpen(true); }}
+                  >
+                    <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                      <div className="p-5 bg-muted rounded-2xl mb-5 group-hover:bg-accent/10 group-hover:scale-110 transition-all duration-300">
+                        <Package className="h-10 w-10 text-muted-foreground group-hover:text-accent transition-colors" />
+                      </div>
+                      <h3 className="font-semibold text-lg text-foreground mb-2">Create Your First Product</h3>
+                      <p className="text-sm text-muted-foreground max-w-[200px]">
+                        Start building a product identity guide
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <>
+                    <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No product guides yet</p>
+                  </>
+                )}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="favorites">
