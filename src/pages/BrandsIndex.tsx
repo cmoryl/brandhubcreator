@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { HeroBackground } from '@/components/HeroBackground';
+import { ParticleEmbers } from '@/components/ParticleEmbers';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BaseGuide } from '@/types/brand';
@@ -220,6 +221,9 @@ const BrandsIndex = () => {
       <div className="relative overflow-hidden">
         {/* Dynamic Background */}
         <HeroBackground />
+        
+        {/* Particle Embers Effect */}
+        <ParticleEmbers count={35} color="hsl(199 89% 58%)" />
 
         {/* Header - Mobile optimized */}
         <header className="relative z-10 animate-fade-in-down">
@@ -368,7 +372,8 @@ const BrandsIndex = () => {
               )}
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold text-foreground mb-4 sm:mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              {settings.heroTitle}<br />
+              Create stunning<br />
+              <span className="text-digital-live text-accent" data-text="Live">Live</span>{' '}
               <span className="text-accent">{settings.heroHighlight}</span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
