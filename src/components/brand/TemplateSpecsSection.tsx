@@ -1,5 +1,5 @@
-import { useState, useRef, useMemo } from 'react';
-import { Plus, Trash2, Edit2, Check, X, Upload, GripVertical, Eye, EyeOff, FileText, BookOpen, File, Newspaper, Settings2 } from 'lucide-react';
+import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import { Plus, Trash2, Edit2, Check, X, Upload, GripVertical, Eye, EyeOff, FileText, BookOpen, File, Newspaper, Settings2, Move } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -40,6 +40,77 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+
+// Draggable callout component for the preview image
+interface DraggableCalloutProps {
+  item: TemplateSpecItem;
+  primaryColor: string;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  onPositionChange: (itemId: string, position: { x: number; y: number }) => void;
+}
+
+const DraggableCallout = ({ item, primaryColor, containerRef, onPositionChange }: DraggableCalloutProps) => {
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  // Use useEffect for global event listeners during drag
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!containerRef.current) return;
+
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const x = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+      const y = ((e.clientY - containerRect.top) / containerRect.height) * 100;
+
+      // Clamp to bounds
+      const clampedX = Math.max(2, Math.min(98, x));
+      const clampedY = Math.max(2, Math.min(98, y));
+
+      onPositionChange(item.id, { x: clampedX, y: clampedY });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, containerRef, item.id, onPositionChange]);
+
+  const pos = item.position || { x: 5, y: 10 };
+
+  return (
+    <div
+      className={cn(
+        "absolute w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg cursor-grab transition-all select-none",
+        isDragging ? "cursor-grabbing scale-125 ring-2 ring-white/50 z-50" : "hover:scale-110 hover:ring-2 hover:ring-white/30"
+      )}
+      style={{
+        backgroundColor: primaryColor,
+        left: `${pos.x}%`,
+        top: `${pos.y}%`,
+        transform: 'translate(-50%, -50%)',
+        boxShadow: isDragging ? '0 8px 20px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.2)',
+      }}
+      title={`${item.number}. ${item.title} — Drag to reposition`}
+      onMouseDown={handleMouseDown}
+    >
+      {item.number}
+    </div>
+  );
+};
 
 interface TemplateSpecsSectionProps {
   templateSpecs: TemplateSpec[];
@@ -193,7 +264,9 @@ export const TemplateSpecsSection = ({
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
+  const [isDragMode, setIsDragMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
   
   const [newSpecForm, setNewSpecForm] = useState({
     name: '',
@@ -334,6 +407,19 @@ export const TemplateSpecsSection = ({
 
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  // Handle callout position change from drag
+  const handleCalloutPositionChange = useCallback((itemId: string, position: { x: number; y: number }) => {
+    if (!selectedSpec) return;
+
+    const updatedSpec = {
+      ...selectedSpec,
+      items: selectedSpec.items.map(item => 
+        item.id === itemId ? { ...item, position } : item
+      ),
+    };
+    onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
+  }, [selectedSpec, templateSpecs, onTemplateSpecsChange]);
 
   return (
     <section className="space-y-6">
@@ -488,6 +574,17 @@ export const TemplateSpecsSection = ({
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-lg">Visual Preview</h3>
                 <div className="flex gap-2">
+                  {selectedSpec.previewImageUrl && (
+                    <Button
+                      size="sm"
+                      variant={isDragMode ? "default" : "outline"}
+                      onClick={() => setIsDragMode(!isDragMode)}
+                      className="gap-1"
+                    >
+                      <Move className="h-3 w-3" />
+                      {isDragMode ? 'Done Positioning' : 'Position Callouts'}
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="outline"
@@ -517,23 +614,55 @@ export const TemplateSpecsSection = ({
               />
 
               {showPreview && (
-                <div className="relative bg-muted rounded-lg overflow-hidden min-h-[400px]">
+                <div 
+                  ref={previewContainerRef}
+                  className={cn(
+                    "relative bg-muted rounded-lg overflow-hidden min-h-[400px]",
+                    isDragMode && "ring-2 ring-primary ring-offset-2"
+                  )}
+                >
                   {selectedSpec.previewImageUrl ? (
                     <div className="relative">
                       <img
                         src={selectedSpec.previewImageUrl}
                         alt={selectedSpec.name}
-                        className="w-full h-auto"
+                        className="w-full h-auto pointer-events-none select-none"
+                        draggable={false}
                       />
-                      {/* Overlay callout badges */}
+                      {/* Hint overlay when in drag mode */}
+                      {isDragMode && (
+                        <div className="absolute inset-0 bg-primary/5 pointer-events-none flex items-end justify-center pb-4">
+                          <div className="bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium text-muted-foreground shadow-sm">
+                            Drag callouts to reposition them
+                          </div>
+                        </div>
+                      )}
+                      {/* Overlay callout badges - draggable when in drag mode */}
                       {selectedSpec.items.map((item, idx) => {
                         // Default positions spread vertically on the left side
                         const defaultY = 10 + (idx * (80 / Math.max(selectedSpec.items.length, 1)));
-                        const pos = item.position || { x: 5, y: defaultY };
+                        const itemWithDefaultPos = {
+                          ...item,
+                          position: item.position || { x: 5 + (idx % 3) * 5, y: defaultY }
+                        };
+                        
+                        if (isDragMode) {
+                          return (
+                            <DraggableCallout
+                              key={item.id}
+                              item={itemWithDefaultPos}
+                              primaryColor={primaryColor}
+                              containerRef={previewContainerRef}
+                              onPositionChange={handleCalloutPositionChange}
+                            />
+                          );
+                        }
+                        
+                        const pos = itemWithDefaultPos.position;
                         return (
                           <div
                             key={item.id}
-                            className="absolute w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg cursor-pointer hover:scale-110 transition-transform"
+                            className="absolute w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg transition-transform hover:scale-110"
                             style={{
                               backgroundColor: primaryColor,
                               left: `${pos.x}%`,
