@@ -1,7 +1,7 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, Globe,
-  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase, LayoutGrid
+  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase, LayoutGrid, TrendingUp
 } from 'lucide-react';
 import { SectionId } from '@/types/brand';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,7 @@ const sections: { id: SectionId; label: string; icon: React.ElementType; categor
   { id: 'identity', label: 'Narrative Architecture', icon: Scroll, category: 'Identity' },
   { id: 'values', label: 'Philosophical Pillars', icon: Heart, category: 'Identity' },
   { id: 'services', label: 'Our Services', icon: Briefcase, category: 'Identity' },
+  { id: 'revenue', label: 'Revenue Growth', icon: TrendingUp, category: 'Identity' },
   { id: 'logos', label: 'Mark Repository', icon: Image, category: 'Visual' },
   { id: 'brandicon', label: 'Symbol Standards', icon: Bookmark, category: 'Visual' },
   { id: 'colors', label: 'Prismatic Lab', icon: Palette, category: 'Visual' },
