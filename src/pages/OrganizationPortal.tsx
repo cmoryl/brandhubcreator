@@ -119,7 +119,7 @@ const OrganizationPortal = () => {
     ogType: 'website',
   });
 
-  // Main data fetching effect
+  // Main data fetching effect - optimized with parallel fetches
   useEffect(() => {
     let cancelled = false;
 
@@ -131,7 +131,7 @@ const OrganizationPortal = () => {
       }
 
       try {
-        // Fetch organization by slug
+        // First, fetch organization by slug (required for subsequent queries)
         const { data: orgData, error: orgError } = await supabase
           .from('organizations')
           .select('id, name, slug, logo_url, primary_color, secondary_color, accent_color, portal_settings')
@@ -158,36 +158,34 @@ const OrganizationPortal = () => {
           portal_settings: orgData.portal_settings as OrganizationPortalSettings | null,
         });
 
-        // Fetch public brands for this organization
-        const { data: brandsData, error: brandsError } = await supabase
-          .from('brands')
-          .select('id, name, slug, is_public, guide_data, updated_at')
-          .eq('organization_id', orgData.id)
-          .eq('is_public', true)
-          .order('updated_at', { ascending: false });
+        // Fetch brands and products in PARALLEL for faster loading
+        const [brandsRes, productsRes] = await Promise.all([
+          supabase
+            .from('brands')
+            .select('id, name, slug, is_public, guide_data, updated_at')
+            .eq('organization_id', orgData.id)
+            .eq('is_public', true)
+            .order('updated_at', { ascending: false }),
+          supabase
+            .from('products')
+            .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
+            .eq('organization_id', orgData.id)
+            .eq('is_public', true)
+            .order('updated_at', { ascending: false }),
+        ]);
 
         if (cancelled) return;
 
-        if (brandsError) {
-          console.error('Error fetching brands:', brandsError);
+        if (brandsRes.error) {
+          console.error('Error fetching brands:', brandsRes.error);
         } else {
-          setBrands((brandsData as PublicBrand[]) || []);
+          setBrands((brandsRes.data as PublicBrand[]) || []);
         }
 
-        // Fetch public products for this organization
-        const { data: productsData, error: productsError } = await supabase
-          .from('products')
-          .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
-          .eq('organization_id', orgData.id)
-          .eq('is_public', true)
-          .order('updated_at', { ascending: false });
-
-        if (cancelled) return;
-
-        if (productsError) {
-          console.error('Error fetching products:', productsError);
+        if (productsRes.error) {
+          console.error('Error fetching products:', productsRes.error);
         } else {
-          setProducts((productsData as PublicProduct[]) || []);
+          setProducts((productsRes.data as PublicProduct[]) || []);
         }
 
         setError(null);
@@ -252,8 +250,8 @@ const OrganizationPortal = () => {
     };
   }, [refetch]);
 
-  // Stabilize loading to prevent flickers
-  const stableLoading = useStableLoading(isLoading, 250);
+  // Stabilize loading to prevent flickers (reduced from 250ms to 100ms for faster perceived load)
+  const stableLoading = useStableLoading(isLoading, 100);
 
   if (stableLoading) {
     // Capitalize first letter of slug for display
