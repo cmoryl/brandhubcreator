@@ -424,7 +424,7 @@ const BrandEditor = () => {
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={(identity) => updateBrand({ identity })} />;
       case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => updateBrand({ values })} />;
       case 'services': return <ServicesSection services={brand.services || []} onServicesChange={(services) => updateBrand({ services })} />;
-      case 'revenue': return <RevenueChartSection />;
+      case 'revenue': return <RevenueChartSection revenueData={brand.revenueData} onRevenueDataChange={(revenueData) => updateBrand({ revenueData })} brandName={brand.hero.name} />;
       case 'logos': return <LogoSection logos={brand.logos} onLogosChange={(logos) => updateBrand({ logos })} />;
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={(brandIcons) => updateBrand({ brandIcons })} />;
       case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={(colors) => updateBrand({ colors })} colorCombinations={brand.colorCombinations} onColorCombinationsChange={(colorCombinations) => updateBrand({ colorCombinations })} brandName={brand.hero.name} />;

@@ -209,6 +209,13 @@ export interface BrandAsset {
   size: string;
 }
 
+// REVENUE - Revenue Data for Charts
+export interface RevenueDataPoint {
+  year: number;
+  revenue: number; // In millions USD
+  facts?: string[];
+}
+
 // MISUSE - Anti-Patterns
 export interface BrandMisuse {
   id: string;
@@ -450,6 +457,8 @@ export interface BaseGuide {
   displayBanners?: BrandDisplayBannerSpec[];
   // Linked Guides (for Product Guides section - links to other brand/product guides)
   linkedGuides?: LinkedGuideReference[];
+  // Revenue Data (for Revenue Growth chart)
+  revenueData?: RevenueDataPoint[];
   // Metadata
   createdAt: Date;
   updatedAt: Date;

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 import { SectionHeader } from './SectionHeader';
 import { Button } from '@/components/ui/button';
@@ -6,16 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Download, X, TrendingUp, TrendingDown, Calendar, DollarSign, BarChart3, Target } from 'lucide-react';
+import { Download, TrendingUp, TrendingDown, DollarSign, BarChart3, Target } from 'lucide-react';
 import { toast } from 'sonner';
+import { RevenueDataPoint } from '@/types/brand';
 
 interface RevenueChartSectionProps {
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  revenueData?: RevenueDataPoint[];
+  onRevenueDataChange?: (data: RevenueDataPoint[]) => void;
+  brandName?: string;
 }
 
-// TransPerfect revenue data 1992-2025
-const REVENUE_DATA = [
+// TransPerfect revenue data 1992-2025 (default)
+const DEFAULT_REVENUE_DATA: RevenueDataPoint[] = [
   { year: 1992, revenue: 0.3, facts: ['TransPerfect founded in NYU dorm room', 'First year of operations'] },
   { year: 1993, revenue: 0.8, facts: ['Early growth phase', 'Building client base'] },
   { year: 1994, revenue: 1.5, facts: ['Expanding services', 'Growing team'] },
@@ -73,50 +77,67 @@ const calculateCAGR = (startValue: number, endValue: number, years: number): str
   return `${cagr.toFixed(1)}%`;
 };
 
-export const RevenueChartSection = ({ customSubtitle, onSubtitleChange }: RevenueChartSectionProps) => {
+export const RevenueChartSection = ({ 
+  customSubtitle, 
+  onSubtitleChange, 
+  revenueData,
+  onRevenueDataChange,
+  brandName = 'TransPerfect'
+}: RevenueChartSectionProps) => {
+  // Use custom data if provided, otherwise fall back to TransPerfect defaults
+  const chartData = useMemo(() => {
+    const data = revenueData && revenueData.length > 0 ? revenueData : DEFAULT_REVENUE_DATA;
+    return [...data].sort((a, b) => a.year - b.year);
+  }, [revenueData]);
+
+  const minYear = chartData.length > 0 ? chartData[0].year : 1992;
+  const maxYear = chartData.length > 0 ? chartData[chartData.length - 1].year : 2025;
+
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
-  const [yearRange, setYearRange] = useState<[number, number]>([1992, 2025]);
+  const [yearRange, setYearRange] = useState<[number, number]>([minYear, maxYear]);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
 
-  const minYear = 1992;
-  const maxYear = 2025;
+  // Update range when data changes
+  useEffect(() => {
+    setYearRange([minYear, maxYear]);
+  }, [minYear, maxYear]);
 
   const filteredData = useMemo(() => {
-    return REVENUE_DATA.filter(d => d.year >= yearRange[0] && d.year <= yearRange[1]);
-  }, [yearRange]);
+    return chartData.filter(d => d.year >= yearRange[0] && d.year <= yearRange[1]);
+  }, [chartData, yearRange]);
 
   const selectedYearData = useMemo(() => {
     if (!selectedYear) return null;
-    const idx = REVENUE_DATA.findIndex(d => d.year === selectedYear);
+    const idx = chartData.findIndex(d => d.year === selectedYear);
     if (idx === -1) return null;
     
-    const current = REVENUE_DATA[idx];
-    const previous = idx > 0 ? REVENUE_DATA[idx - 1] : null;
+    const current = chartData[idx];
+    const previous = idx > 0 ? chartData[idx - 1] : null;
     const yoyChange = previous ? formatChange(current.revenue, previous.revenue) : null;
     
     // Calculate 3Y, 5Y, 10Y metrics
-    const idx3y = REVENUE_DATA.findIndex(d => d.year === selectedYear - 3);
-    const idx5y = REVENUE_DATA.findIndex(d => d.year === selectedYear - 5);
-    const idx10y = REVENUE_DATA.findIndex(d => d.year === selectedYear - 10);
+    const idx3y = chartData.findIndex(d => d.year === selectedYear - 3);
+    const idx5y = chartData.findIndex(d => d.year === selectedYear - 5);
+    const idx10y = chartData.findIndex(d => d.year === selectedYear - 10);
     
-    const cagr3y = idx3y >= 0 ? calculateCAGR(REVENUE_DATA[idx3y].revenue, current.revenue, 3) : 'N/A';
-    const cagr5y = idx5y >= 0 ? calculateCAGR(REVENUE_DATA[idx5y].revenue, current.revenue, 5) : 'N/A';
-    const cagr10y = idx10y >= 0 ? calculateCAGR(REVENUE_DATA[idx10y].revenue, current.revenue, 10) : 'N/A';
+    const cagr3y = idx3y >= 0 ? calculateCAGR(chartData[idx3y].revenue, current.revenue, 3) : 'N/A';
+    const cagr5y = idx5y >= 0 ? calculateCAGR(chartData[idx5y].revenue, current.revenue, 5) : 'N/A';
+    const cagr10y = idx10y >= 0 ? calculateCAGR(chartData[idx10y].revenue, current.revenue, 10) : 'N/A';
     
     const growth10y = idx10y >= 0 
-      ? `${(((current.revenue - REVENUE_DATA[idx10y].revenue) / REVENUE_DATA[idx10y].revenue) * 100).toFixed(0)}%`
+      ? `${(((current.revenue - chartData[idx10y].revenue) / chartData[idx10y].revenue) * 100).toFixed(0)}%`
       : 'N/A';
     
     // Calculate averages
-    const last3 = REVENUE_DATA.slice(Math.max(0, idx - 2), idx + 1);
-    const last5 = REVENUE_DATA.slice(Math.max(0, idx - 4), idx + 1);
+    const last3 = chartData.slice(Math.max(0, idx - 2), idx + 1);
+    const last5 = chartData.slice(Math.max(0, idx - 4), idx + 1);
     const avg3y = last3.length >= 3 ? formatRevenue(last3.reduce((a, b) => a + b.revenue, 0) / last3.length) : 'N/A';
     const avg5y = last5.length >= 5 ? formatRevenue(last5.reduce((a, b) => a + b.revenue, 0) / last5.length) : 'N/A';
     
     // Rank
-    const sorted = [...REVENUE_DATA].sort((a, b) => b.revenue - a.revenue);
+    const sorted = [...chartData].sort((a, b) => b.revenue - a.revenue);
     const rank = sorted.findIndex(d => d.year === selectedYear) + 1;
     
     return {
@@ -129,9 +150,9 @@ export const RevenueChartSection = ({ customSubtitle, onSubtitleChange }: Revenu
       avg3y,
       avg5y,
       rank,
-      total: REVENUE_DATA.length
+      total: chartData.length
     };
-  }, [selectedYear]);
+  }, [selectedYear, chartData]);
 
   const handleBarClick = useCallback((data: any) => {
     if (data?.activePayload?.[0]?.payload) {
@@ -153,11 +174,11 @@ export const RevenueChartSection = ({ customSubtitle, onSubtitleChange }: Revenu
     toast.info('Chart export ready - right-click to save image');
   };
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = useCallback(({ active, payload }: any) => {
     if (!active || !payload?.[0]) return null;
     const data = payload[0].payload;
-    const idx = REVENUE_DATA.findIndex(d => d.year === data.year);
-    const prev = idx > 0 ? REVENUE_DATA[idx - 1] : null;
+    const idx = chartData.findIndex(d => d.year === data.year);
+    const prev = idx > 0 ? chartData[idx - 1] : null;
     const change = prev ? formatChange(data.revenue, prev.revenue) : null;
     
     return (
@@ -171,7 +192,7 @@ export const RevenueChartSection = ({ customSubtitle, onSubtitleChange }: Revenu
         )}
       </div>
     );
-  };
+  }, [chartData]);
 
   return (
     <section className="space-y-6">
@@ -369,7 +390,7 @@ export const RevenueChartSection = ({ customSubtitle, onSubtitleChange }: Revenu
 
                 <div className="bg-card border border-border rounded-xl p-4">
                   <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">
-                    <Calendar className="h-3.5 w-3.5" />
+                    <Target className="h-3.5 w-3.5" />
                     Rank
                   </div>
                   <div className="text-lg font-bold text-foreground">#{selectedYearData.rank} of {selectedYearData.total}</div>
@@ -404,10 +425,10 @@ export const RevenueChartSection = ({ customSubtitle, onSubtitleChange }: Revenu
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {REVENUE_DATA
+                    {chartData
                       .filter(d => Math.abs(d.year - selectedYear!) <= 2)
                       .map((d, i, arr) => {
-                        const prev = i > 0 ? arr[i - 1] : REVENUE_DATA[REVENUE_DATA.findIndex(x => x.year === d.year) - 1];
+                        const prev = i > 0 ? arr[i - 1] : chartData[chartData.findIndex(x => x.year === d.year) - 1];
                         const change = prev ? formatChange(d.revenue, prev.revenue) : null;
                         return (
                           <tr key={d.year} className={d.year === selectedYear ? 'bg-primary/5' : ''}>
