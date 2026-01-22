@@ -293,6 +293,26 @@ export interface BrandTemplate {
   isEmbeddedFolder?: boolean; // If true, shows as embedded folder browser
 }
 
+// TEMPLATE SPECIFICATIONS - Visual Template Annotation System
+export interface TemplateSpecItem {
+  id: string;
+  number: number;
+  title: string;
+  description: string;
+  dimensions?: string; // e.g., "1500 x 500 pixels"
+  fileFormats?: string; // e.g., "JPEG or PNG under 2MB"
+  position?: { x: number; y: number }; // Position on preview (0-100 percentage)
+}
+
+export interface TemplateSpec {
+  id: string;
+  name: string;
+  category: 'case-study' | 'brochure' | 'whitepaper' | 'template' | 'other';
+  previewImageUrl?: string;
+  items: TemplateSpecItem[];
+  notes?: string;
+}
+
 // LINKED GUIDES - References to other brand/product guides
 export interface LinkedGuideReference {
   id: string;
@@ -457,6 +477,8 @@ export interface BaseGuide {
   displayBanners?: BrandDisplayBannerSpec[];
   // Linked Guides (for Product Guides section - links to other brand/product guides)
   linkedGuides?: LinkedGuideReference[];
+  // Template Specifications (Visual annotation system for templates)
+  templateSpecs?: TemplateSpec[];
   // Revenue Data (for Revenue Growth chart)
   revenueData?: RevenueDataPoint[];
   // Statistics (By the Numbers infographic section)
@@ -473,7 +495,7 @@ export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
   'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
-  'casestudies', 'brochures', 'templates', 'products'
+  'casestudies', 'brochures', 'templates', 'templatespecs', 'products'
 ];
 
 // Main Brand Guide interface (extends base)
@@ -517,6 +539,7 @@ export type SectionId =
   | 'casestudies'
   | 'brochures'
   | 'templates'
+  | 'templatespecs'
   | 'products';
 
 // Statistic item for By the Numbers section
