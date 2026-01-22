@@ -440,7 +440,7 @@ const BrandEditor = () => {
 
   const renderSection = () => {
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={(hero) => updateBrand({ hero })} onOpenIntelligence={() => setIntelligenceOpen(true)} />;
+      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={(hero) => updateBrand({ hero })} onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined} />;
       case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={(tagline) => updateBrand({ tagline })} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={(identity) => updateBrand({ identity })} />;
       case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => updateBrand({ values })} />;
@@ -703,7 +703,7 @@ const BrandEditor = () => {
                   hiddenSections={hiddenSections}
                   isAdmin={isGuideAdmin}
                   heroFullWidth={pageSettings.heroFullWidth}
-                  onOpenIntelligence={() => setIntelligenceOpen(true)}
+                  onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined}
                 />
               )}
             </div>
