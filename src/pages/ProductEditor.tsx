@@ -10,8 +10,11 @@ import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSide
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { ShareButton } from '@/components/brand/ShareButton';
 import { HeroSection } from '@/components/brand/HeroSection';
+import { TaglineSection } from '@/components/brand/TaglineSection';
 import { IdentitySection } from '@/components/brand/IdentitySection';
 import { ValuesSection } from '@/components/brand/ValuesSection';
+import { ServicesSection } from '@/components/brand/ServicesSection';
+import { VideosSection } from '@/components/brand/VideosSection';
 import { LogoSection } from '@/components/brand/LogoSection';
 import { BrandIconsSection } from '@/components/brand/BrandIconsSection';
 import { ColorPaletteSection } from '@/components/brand/ColorPaletteSection';
@@ -211,8 +214,10 @@ const currentProduct = getProduct(productId || '');
   const renderSection = () => {
     switch (activeSection) {
       case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={(hero) => handleUpdateProduct({ hero })} onOpenIntelligence={() => setIntelligenceOpen(true)} />;
+      case 'tagline': return <TaglineSection tagline={currentProduct.tagline} onTaglineChange={(tagline) => handleUpdateProduct({ tagline })} />;
       case 'identity': return <IdentitySection identity={currentProduct.identity} onIdentityChange={(identity) => handleUpdateProduct({ identity })} />;
       case 'values': return <ValuesSection values={currentProduct.values} onValuesChange={(values) => handleUpdateProduct({ values })} />;
+      case 'services': return <ServicesSection services={currentProduct.services || []} onServicesChange={(services) => handleUpdateProduct({ services })} />;
       case 'logos': return <LogoSection logos={currentProduct.logos} onLogosChange={(logos) => handleUpdateProduct({ logos })} />;
       case 'brandicon': return <BrandIconsSection brandIcons={currentProduct.brandIcons} onBrandIconsChange={(brandIcons) => handleUpdateProduct({ brandIcons })} />;
       case 'colors': return <ColorPaletteSection colors={currentProduct.colors} onColorsChange={(colors) => handleUpdateProduct({ colors })} colorCombinations={currentProduct.colorCombinations} onColorCombinationsChange={(colorCombinations) => handleUpdateProduct({ colorCombinations })} brandName={currentProduct.hero.name} />;
@@ -236,6 +241,7 @@ const currentProduct = getProduct(productId || '');
       case 'website': return <WebsiteSection websites={currentProduct.websites} onWebsitesChange={(websites) => handleUpdateProduct({ websites })} />;
       case 'signatures': return <SignaturesSection signatures={currentProduct.signatures} onSignaturesChange={(signatures) => handleUpdateProduct({ signatures })} />;
       case 'qr': return <QRSection qr={currentProduct.qr} onQRChange={(qr) => handleUpdateProduct({ qr })} />;
+      case 'videos': return <VideosSection videos={currentProduct.videos} onVideosChange={(videos) => handleUpdateProduct({ videos })} />;
       case 'assets': return <AssetsSection assets={currentProduct.assets} onAssetsChange={(assets) => handleUpdateProduct({ assets })} />;
       case 'misuse': return <MisuseSection misuse={currentProduct.misuse} onMisuseChange={(misuse) => handleUpdateProduct({ misuse })} />;
       case 'casestudies': return <CaseStudiesSection caseStudies={currentProduct.caseStudies} onCaseStudiesChange={(caseStudies) => handleUpdateProduct({ caseStudies })} />;
