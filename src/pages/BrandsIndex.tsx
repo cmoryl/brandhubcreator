@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, lazy, Suspense, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink } from 'lucide-react';
+import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink, BarChart3, Users, FolderCheck, TrendingUp, FileSearch, ShieldCheck } from 'lucide-react';
+import { AnimatedHeroCanvas } from '@/components/AnimatedHeroCanvas';
 import { HierarchicalProductList } from '@/components/HierarchicalProductList';
 import { useParallax } from '@/hooks/useParallax';
 import { useBrands } from '@/contexts/BrandContext';
@@ -223,20 +224,21 @@ const BrandsIndex = () => {
     <div className="min-h-screen bg-background">
       {/* Hero Section with Parallax */}
       <div className="relative overflow-hidden">
-        {/* Dynamic Background with Parallax */}
+        {/* Animated Canvas Background */}
         <div 
           className="absolute inset-0 transition-transform duration-100 ease-out"
           style={{ transform: `translateY(${parallaxOffset * 0.5}px)` }}
         >
-          <HeroBackground />
+          <AnimatedHeroCanvas />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background pointer-events-none" />
         </div>
         
         {/* Particle Embers Effect with Parallax */}
         <div 
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0"
           style={{ transform: `translateY(${parallaxOffset * 0.2}px)` }}
         >
-          <ParticleEmbers count={40} color="hsl(199 89% 58%)" />
+          <ParticleEmbers count={50} color="hsl(199 89% 58%)" />
         </div>
 
         {/* Header - Mobile optimized */}
@@ -1087,37 +1089,96 @@ const BrandsIndex = () => {
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
-                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors group">
+                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
                   <Palette className="h-6 w-6 text-accent" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">Color Systems</h3>
                 <p className="text-sm text-muted-foreground">Define primary, secondary, and accent colors with hex, RGB, and HSL values.</p>
               </Card>
               
-              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
-                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
+              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors group">
+                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
                   <Type className="h-6 w-6 text-accent" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">Typography</h3>
                 <p className="text-sm text-muted-foreground">Document fonts, sizes, weights, and usage guidelines for consistent text styling.</p>
               </Card>
               
-              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
-                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
+              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors group">
+                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
                   <Image className="h-6 w-6 text-accent" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">Logo & Assets</h3>
                 <p className="text-sm text-muted-foreground">Upload logos, icons, and brand assets with usage guidelines and variations.</p>
               </Card>
               
-              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors">
-                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4">
+              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors group">
+                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
                   <Share2 className="h-6 w-6 text-accent" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">Easy Sharing</h3>
                 <p className="text-sm text-muted-foreground">Share brand guides publicly with a link. No login required for viewers.</p>
+              </Card>
+            </div>
+
+            {/* Admin & Reporting Features */}
+            <div className="text-center mb-8">
+              <Badge variant="secondary" className="mb-4">For Administrators</Badge>
+              <h3 className="text-2xl font-bold text-foreground mb-3">Powerful Admin Controls & Analytics</h3>
+              <p className="text-muted-foreground max-w-xl mx-auto">
+                Comprehensive tools for managing teams, monitoring brand health, and generating strategic reports.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="p-6 border-border/50 bg-gradient-to-br from-card to-accent/5 hover:shadow-lg transition-all group">
+                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                  <BarChart3 className="h-6 w-6 text-accent" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Brand Analytics Hub</h3>
+                <p className="text-sm text-muted-foreground">Track brand health scores, consistency audits, and completeness metrics across all your guides.</p>
+              </Card>
+
+              <Card className="p-6 border-border/50 bg-gradient-to-br from-card to-primary/5 hover:shadow-lg transition-all group">
+                <div className="p-3 bg-primary/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                  <TrendingUp className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">AI Market Intelligence</h3>
+                <p className="text-sm text-muted-foreground">Get AI-powered competitor analysis, trend forecasting, and strategic growth recommendations.</p>
+              </Card>
+
+              <Card className="p-6 border-border/50 bg-gradient-to-br from-card to-accent/5 hover:shadow-lg transition-all group">
+                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                  <Users className="h-6 w-6 text-accent" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">User Management</h3>
+                <p className="text-sm text-muted-foreground">Approve new users, manage team permissions, and control access across organizations.</p>
+              </Card>
+
+              <Card className="p-6 border-border/50 bg-gradient-to-br from-card to-primary/5 hover:shadow-lg transition-all group">
+                <div className="p-3 bg-primary/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                  <FolderCheck className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Bulk Repair Tools</h3>
+                <p className="text-sm text-muted-foreground">Normalize section orders, fix hidden sections, and ensure platform-wide consistency with preview/rollback.</p>
+              </Card>
+
+              <Card className="p-6 border-border/50 bg-gradient-to-br from-card to-accent/5 hover:shadow-lg transition-all group">
+                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                  <FileSearch className="h-6 w-6 text-accent" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Activity Logging</h3>
+                <p className="text-sm text-muted-foreground">Infographic-style audit logs tracking all changes across brands, products, and user actions.</p>
+              </Card>
+
+              <Card className="p-6 border-border/50 bg-gradient-to-br from-card to-primary/5 hover:shadow-lg transition-all group">
+                <div className="p-3 bg-primary/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                  <ShieldCheck className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Hidden Sections Scanner</h3>
+                <p className="text-sm text-muted-foreground">Identify and bulk-fix guides missing critical branding sections like logos, colors, and social assets.</p>
               </Card>
             </div>
           </div>
@@ -1140,26 +1201,41 @@ const BrandsIndex = () => {
             </div>
             
             <div className="grid gap-4 mb-8">
-              <Card className="p-6 border-border/50">
+              <Card className="p-6 border-border/50 hover:border-accent/30 transition-colors">
                 <h3 className="font-semibold text-foreground mb-2">What is BrandHub?</h3>
-                <p className="text-muted-foreground">BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines.</p>
+                <p className="text-muted-foreground">BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines with live previews, version control, and team collaboration features.</p>
               </Card>
               
-              <Card className="p-6 border-border/50">
+              <Card className="p-6 border-border/50 hover:border-accent/30 transition-colors">
+                <h3 className="font-semibold text-foreground mb-2">What admin features are available?</h3>
+                <p className="text-muted-foreground">Administrators get access to the Admin Dashboard with user approvals, AI-powered market intelligence, brand health analytics, bulk repair tools, activity logging, and hidden sections scanning for platform-wide consistency.</p>
+              </Card>
+
+              <Card className="p-6 border-border/50 hover:border-accent/30 transition-colors">
+                <h3 className="font-semibold text-foreground mb-2">Can I generate reports on my brands?</h3>
+                <p className="text-muted-foreground">Yes! The Brand Analytics Hub provides health scores, consistency audits, and completeness metrics. AI Market Intelligence offers competitor analysis, trend forecasting, and growth recommendations based on your brand data.</p>
+              </Card>
+              
+              <Card className="p-6 border-border/50 hover:border-accent/30 transition-colors">
                 <h3 className="font-semibold text-foreground mb-2">Can I share my brand guide publicly?</h3>
-                <p className="text-muted-foreground">Yes! All brand guides are publicly viewable by default. Share the link with your team, clients, or stakeholders.</p>
+                <p className="text-muted-foreground">Yes! All brand guides can be made publicly viewable. Share the link with your team, clients, or stakeholders—no login required for viewers.</p>
               </Card>
               
-              <Card className="p-6 border-border/50">
+              <Card className="p-6 border-border/50 hover:border-accent/30 transition-colors">
                 <h3 className="font-semibold text-foreground mb-2">What sections can I include?</h3>
-                <p className="text-muted-foreground">Colors, typography, logos, imagery, patterns, gradients, icons, social media guidelines, templates, and much more.</p>
+                <p className="text-muted-foreground">Over 25 sections available: colors, typography, logos, imagery, patterns, gradients, icons, social media guidelines, templates, revenue charts, services, case studies, QR codes, and much more.</p>
+              </Card>
+
+              <Card className="p-6 border-border/50 hover:border-accent/30 transition-colors">
+                <h3 className="font-semibold text-foreground mb-2">How do organizations work?</h3>
+                <p className="text-muted-foreground">Organizations allow teams to collaborate on brand guides together. Owners and admins can invite members, manage roles, customize the public portal, and control access to all organization brands.</p>
               </Card>
             </div>
             
             <div className="text-center">
               <Button variant="outline" onClick={() => navigate('/knowledge')} className="gap-2">
                 <BookOpen className="h-4 w-4" />
-                View All FAQs
+                View All FAQs & Tutorials
               </Button>
             </div>
           </div>
