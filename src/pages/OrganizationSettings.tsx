@@ -53,7 +53,7 @@ const roleColors = {
 const OrganizationSettings = () => {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
-  const { organization, members, userRole, updateOrganization, inviteMember, removeMember, updateMemberRole, isLoading: orgLoading } = useOrganization();
+  const { organization, members, userRole, updateOrganization, deleteOrganization, inviteMember, removeMember, updateMemberRole, isLoading: orgLoading } = useOrganization();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -73,7 +73,7 @@ const OrganizationSettings = () => {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<MemberRole>('member');
   const [isInviting, setIsInviting] = useState(false);
-
+  const [isDeleting, setIsDeleting] = useState(false);
   // Update local state when organization loads
   useState(() => {
     if (organization) {
@@ -757,6 +757,85 @@ const OrganizationSettings = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Danger Zone - Only visible to owners */}
+        {userRole === 'owner' && (
+          <Card className="border-destructive/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <Trash2 className="h-5 w-5" />
+                Danger Zone
+              </CardTitle>
+              <CardDescription>Irreversible actions that affect your entire organization</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between p-4 bg-destructive/5 rounded-lg border border-destructive/20">
+                <div className="space-y-0.5">
+                  <p className="font-medium">Delete Organization</p>
+                  <p className="text-sm text-muted-foreground">
+                    Permanently delete this organization and all associated data. This action cannot be undone.
+                  </p>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="gap-2">
+                      <Trash2 className="h-4 w-4" />
+                      Delete Organization
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete <strong>{organization?.name}</strong> and all associated data including:
+                        <ul className="list-disc list-inside mt-2 space-y-1">
+                          <li>All organization members and invitations</li>
+                          <li>Organization settings and branding</li>
+                          <li>Portal configurations</li>
+                        </ul>
+                        <p className="mt-3 font-medium text-destructive">This action cannot be undone.</p>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={async () => {
+                          setIsDeleting(true);
+                          const success = await deleteOrganization();
+                          setIsDeleting(false);
+                          if (success) {
+                            toast({
+                              title: 'Organization deleted',
+                              description: 'Your organization has been permanently deleted.',
+                            });
+                            navigate('/');
+                          } else {
+                            toast({
+                              title: 'Deletion failed',
+                              description: 'Failed to delete organization. Please try again.',
+                              variant: 'destructive',
+                            });
+                          }
+                        }}
+                        disabled={isDeleting}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {isDeleting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            Deleting...
+                          </>
+                        ) : (
+                          'Delete Organization'
+                        )}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Save Button */}
         <div className="flex justify-end gap-4">
