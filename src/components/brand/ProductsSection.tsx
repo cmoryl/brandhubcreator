@@ -48,6 +48,7 @@ import {
 export interface GuideItem {
   id: string;
   name: string;
+  slug?: string | null;
   guide_data: unknown;
   type: 'brand' | 'product';
 }
@@ -320,9 +321,9 @@ export const ProductsSection = ({
 
   const openGuide = useCallback((guide: GuideItem) => {
     if (guide.type === 'brand') {
-      navigate(`/brand/${guide.id}`);
+      navigate(`/brand/${guide.slug || guide.id}`);
     } else {
-      navigate(`/product/${guide.id}`);
+      navigate(`/product/${guide.slug || guide.id}`);
     }
   }, [navigate]);
 

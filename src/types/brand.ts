@@ -485,6 +485,7 @@ export const DEFAULT_TEMPLATE_SPECS: TemplateSpec[] = [
 export interface BaseGuide {
   id: string;
   type: 'brand' | 'product';
+  slug?: string; // URL-friendly slug for clean URLs
   organizationId?: string | null; // Organization this guide belongs to
   isFavorite?: boolean;
   isPublic?: boolean;
