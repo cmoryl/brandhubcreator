@@ -19,8 +19,8 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   hero: {
     name: 'Nexus Tech',
     tagline: 'Building tomorrow\'s digital infrastructure today',
-    coverImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80',
-    logoUrl: '',
+    coverImage: '/images/demos/hero-nexus-tech.jpg',
+    logoUrl: '/images/demos/logo-nexus-tech.png',
   },
   tagline: {
     primary: 'Innovate. Connect. Transform.',
@@ -49,14 +49,14 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'v4', text: 'Collaboration', description: 'Great things happen when talented people work together towards a common goal.', icon: 'Users' },
   ],
   logos: [
-    { id: 'l1', name: 'Primary Logo', url: '', variant: 'primary' },
-    { id: 'l2', name: 'Icon Mark', url: '', variant: 'icon' },
+    { id: 'l1', name: 'Primary Logo', url: '/images/demos/logo-nexus-tech.png', variant: 'primary' },
+    { id: 'l2', name: 'Icon Mark', url: '/images/demos/logo-nexus-tech.png', variant: 'icon' },
     { id: 'l3', name: 'Wordmark', url: '', variant: 'wordmark' },
     { id: 'l4', name: 'Reversed', url: '', variant: 'reversed' },
   ],
   brandIcons: [
-    { id: 'bi1', name: 'Primary Symbol', url: '', settings: 'Main brand mark', isPrimary: true },
-    { id: 'bi2', name: 'App Icon', url: '', settings: 'For mobile applications', isVariation: true },
+    { id: 'bi1', name: 'Primary Symbol', url: '/images/demos/logo-nexus-tech.png', settings: 'Main brand mark', isPrimary: true },
+    { id: 'bi2', name: 'App Icon', url: '/images/demos/logo-nexus-tech.png', settings: 'For mobile applications', isVariation: true },
   ],
   colors: [
     { id: 'c1', name: 'Nexus Blue', hex: '#0066FF', rgb: 'rgb(0, 102, 255)', usage: 'Primary brand color, CTAs, key elements', role: 'primary' },
@@ -96,9 +96,9 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   ],
   socialIcons: [],
   imagery: [
-    { id: 'im1', url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80', type: 'do', description: 'Use high-quality tech imagery with blue tones' },
-    { id: 'im2', url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80', type: 'do', description: 'Modern, clean product shots work well' },
-    { id: 'im3', url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80', type: 'dont', description: 'Avoid cluttered or outdated technology images' },
+    { id: 'im1', url: '/images/demos/imagery-nexus-do-1.jpg', type: 'do', description: 'Use high-quality abstract tech imagery with blue tones and glowing elements' },
+    { id: 'im2', url: '/images/demos/imagery-nexus-do-2.jpg', type: 'do', description: 'Digital circuit patterns and futuristic geometric designs work well' },
+    { id: 'im3', url: '', type: 'dont', description: 'Avoid cluttered or outdated technology images' },
   ],
   social: [
     { id: 's1', platform: 'LinkedIn', handle: '@nexustech', url: 'https://linkedin.com/company/nexustech', color: '#0A66C2' },
@@ -193,8 +193,8 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   hero: {
     name: 'Bloom Wellness',
     tagline: 'Nurturing your journey to holistic well-being',
-    coverImage: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=1920&q=80',
-    logoUrl: '',
+    coverImage: '/images/demos/hero-bloom-wellness.jpg',
+    logoUrl: '/images/demos/logo-bloom-wellness.png',
   },
   tagline: {
     primary: 'Grow into your best self',
@@ -223,11 +223,13 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'v4', text: 'Community', description: 'Building a supportive community of wellness seekers.', icon: 'Users' },
   ],
   logos: [
-    { id: 'l1', name: 'Primary Logo', url: '', variant: 'primary' },
-    { id: 'l2', name: 'Leaf Mark', url: '', variant: 'icon' },
+    { id: 'l1', name: 'Primary Logo', url: '/images/demos/logo-bloom-wellness.png', variant: 'primary' },
+    { id: 'l2', name: 'Leaf Mark', url: '/images/demos/logo-bloom-wellness.png', variant: 'icon' },
     { id: 'l3', name: 'Wordmark', url: '', variant: 'wordmark' },
   ],
-  brandIcons: [],
+  brandIcons: [
+    { id: 'bi1', name: 'Bloom Symbol', url: '/images/demos/logo-bloom-wellness.png', settings: 'Main brand mark', isPrimary: true },
+  ],
   colors: [
     { id: 'c1', name: 'Sage Green', hex: '#7CB342', rgb: 'rgb(124, 179, 66)', usage: 'Primary brand color, natural elements', role: 'primary' },
     { id: 'c2', name: 'Warm Earth', hex: '#8D6E63', rgb: 'rgb(141, 110, 99)', usage: 'Grounding elements, organic feel', role: 'secondary' },
@@ -255,8 +257,9 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   iconography: [],
   socialIcons: [],
   imagery: [
-    { id: 'im1', url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80', type: 'do', description: 'Use serene nature imagery' },
-    { id: 'im2', url: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80', type: 'do', description: 'Wellness and mindfulness moments' },
+    { id: 'im1', url: '/images/demos/imagery-bloom-do-1.jpg', type: 'do', description: 'Use serene botanical close-ups with soft natural lighting' },
+    { id: 'im2', url: '/images/demos/imagery-bloom-do-2.jpg', type: 'do', description: 'Organic flat lays with herbs and natural textures' },
+    { id: 'im3', url: '', type: 'dont', description: 'Avoid artificial or overly processed imagery' },
   ],
   social: [
     { id: 's1', platform: 'Instagram', handle: '@bloomwellness', url: 'https://instagram.com/bloomwellness', color: '#E4405F' },
@@ -310,8 +313,8 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
   hero: {
     name: 'Nexus Cloud',
     tagline: 'Enterprise cloud infrastructure that scales with you',
-    coverImage: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=1920&q=80',
-    logoUrl: '',
+    coverImage: '/images/demos/hero-nexus-cloud.jpg',
+    logoUrl: '/images/demos/logo-nexus-cloud.png',
   },
   tagline: {
     primary: 'Scale without limits',
@@ -329,10 +332,12 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
     { id: 'v3', text: 'Security', description: 'Enterprise-grade security by default', icon: 'Lock' },
   ],
   logos: [
-    { id: 'l1', name: 'Nexus Cloud Logo', url: '', variant: 'primary' },
-    { id: 'l2', name: 'Cloud Icon', url: '', variant: 'icon' },
+    { id: 'l1', name: 'Nexus Cloud Logo', url: '/images/demos/logo-nexus-cloud.png', variant: 'primary' },
+    { id: 'l2', name: 'Cloud Icon', url: '/images/demos/logo-nexus-cloud.png', variant: 'icon' },
   ],
-  brandIcons: [],
+  brandIcons: [
+    { id: 'bi1', name: 'Cloud Symbol', url: '/images/demos/logo-nexus-cloud.png', settings: 'Product icon', isPrimary: true },
+  ],
   colors: [
     { id: 'c1', name: 'Cloud Blue', hex: '#3B82F6', rgb: 'rgb(59, 130, 246)', usage: 'Primary product color', role: 'primary' },
     { id: 'c2', name: 'Deep Space', hex: '#1E293B', rgb: 'rgb(30, 41, 59)', usage: 'Dark UI elements', role: 'secondary' },
@@ -407,8 +412,8 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
   hero: {
     name: 'Bloom Essential Oils',
     tagline: 'Pure botanical essences for everyday wellness',
-    coverImage: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1920&q=80',
-    logoUrl: '',
+    coverImage: '/images/demos/hero-bloom-oils.jpg',
+    logoUrl: '/images/demos/logo-bloom-oils.png',
   },
   tagline: {
     primary: 'Nature\'s essence, bottled',
@@ -425,9 +430,12 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
     { id: 'v2', text: 'Sustainability', description: 'Ethically sourced from sustainable farms', icon: 'Leaf' },
   ],
   logos: [
-    { id: 'l1', name: 'Essential Oils Logo', url: '', variant: 'primary' },
+    { id: 'l1', name: 'Essential Oils Logo', url: '/images/demos/logo-bloom-oils.png', variant: 'primary' },
+    { id: 'l2', name: 'Droplet Icon', url: '/images/demos/logo-bloom-oils.png', variant: 'icon' },
   ],
-  brandIcons: [],
+  brandIcons: [
+    { id: 'bi1', name: 'Oils Symbol', url: '/images/demos/logo-bloom-oils.png', settings: 'Product icon', isPrimary: true },
+  ],
   colors: [
     { id: 'c1', name: 'Lavender', hex: '#9575CD', rgb: 'rgb(149, 117, 205)', usage: 'Primary product color', role: 'primary' },
     { id: 'c2', name: 'Eucalyptus', hex: '#4DB6AC', rgb: 'rgb(77, 182, 172)', usage: 'Freshness, vitality', role: 'secondary' },
