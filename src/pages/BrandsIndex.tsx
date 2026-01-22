@@ -59,6 +59,14 @@ const BrandsIndex = () => {
   const { resolvedTheme } = useTheme();
   const { organization, userRole, isLoading: orgLoading } = useOrganization();
 
+  // Redirect authenticated users to their organization portal
+  useEffect(() => {
+    if (!authLoading && !orgLoading && user && accessStatus === 'ready' && organization) {
+      // User has an organization - redirect to their org portal
+      navigate(`/org/${organization.slug}`, { replace: true });
+    }
+  }, [user, organization, accessStatus, authLoading, orgLoading, navigate]);
+
   // Redirect unapproved users to pending approval page
   // Only do this once access has been VERIFIED (otherwise a backend/network hiccup looks like "pending approval").
   useEffect(() => {
