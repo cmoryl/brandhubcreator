@@ -461,6 +461,8 @@ export interface BaseGuide {
   revenueData?: RevenueDataPoint[];
   // Statistics (By the Numbers infographic section)
   statistics?: StatisticItem[];
+  // Infographic layout for By the Numbers section
+  infographicLayout?: InfographicLayout;
   // Metadata
   createdAt: Date;
   updatedAt: Date;
@@ -526,4 +528,25 @@ export interface StatisticItem {
   label: string;
   description?: string;
   icon?: string; // Lucide icon name
+  category?: 'primary' | 'secondary' | 'highlight'; // For layout grouping
 }
+
+// Infographic layout options for By the Numbers
+export type InfographicLayout = 
+  | 'cards'           // Default card grid
+  | 'pills'           // Overlapping pill/oval shapes (TransPerfect style)
+  | 'vertical-list'   // Vertical list with large numbers (GlobalLink style)
+  | 'split-panel'     // Two-panel layout
+  | 'hero-stats'      // Large hero numbers with supporting stats
+  | 'circular';       // Circular/radial layout
+
+// Default statistics for brands
+export const DEFAULT_STATISTICS: StatisticItem[] = [
+  { id: 'stat-cities', value: '140', suffix: '+', label: 'Cities Worldwide', icon: 'MapPin', category: 'primary' },
+  { id: 'stat-countries', value: '50', suffix: '+', label: 'Countries', icon: 'Globe', category: 'primary' },
+  { id: 'stat-years', value: '30', suffix: '+', label: 'Years of Growth', icon: 'TrendingUp', category: 'primary' },
+  { id: 'stat-languages', value: '200', suffix: '+', label: 'Languages Supported', icon: 'Globe', category: 'primary' },
+  { id: 'stat-revenue', value: '1.22', prefix: '$', suffix: 'B', label: 'Billion & Growing', icon: 'DollarSign', category: 'secondary' },
+  { id: 'stat-team', value: '10,000', label: 'Global Team Members', icon: 'Users', category: 'secondary' },
+  { id: 'stat-acquisitions', value: '10', label: 'Strategic Acquisitions', icon: 'Building2', category: 'secondary' },
+];

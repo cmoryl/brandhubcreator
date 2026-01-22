@@ -1,5 +1,5 @@
 import { useRef, useEffect, memo, useMemo, useCallback } from 'react';
-import { BaseGuide, SectionId, DEFAULT_SECTION_ORDER, LayoutPreset } from '@/types/brand';
+import { BaseGuide, SectionId, DEFAULT_SECTION_ORDER, LayoutPreset, InfographicLayout } from '@/types/brand';
 import { HeroSection } from './HeroSection';
 import { TaglineSection } from './TaglineSection';
 import { IdentitySection } from './IdentitySection';
@@ -219,7 +219,7 @@ export const FullBrandPage = ({
       case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={(tagline) => onBrandUpdate({ tagline })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={(identity) => onBrandUpdate({ identity })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => onBrandUpdate({ values })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
-      case 'bythenumbers': return <ByTheNumbersSection statistics={brand.statistics || []} onStatisticsChange={(statistics) => onBrandUpdate({ statistics })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} />;
+      case 'bythenumbers': return <ByTheNumbersSection statistics={brand.statistics || []} onStatisticsChange={(statistics) => onBrandUpdate({ statistics })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} infographicLayout={brand.infographicLayout || 'pills'} onLayoutChange={(infographicLayout: InfographicLayout) => onBrandUpdate({ infographicLayout })} primaryColor={brand.colors?.[0]?.hex} secondaryColor={brand.colors?.[1]?.hex} />;
       case 'services': return <ServicesSection services={brand.services || []} onServicesChange={(services) => onBrandUpdate({ services })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'revenue': return <RevenueChartSection revenueData={brand.revenueData} onRevenueDataChange={(revenueData) => onBrandUpdate({ revenueData })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} />;
       case 'logos': return <LogoSection logos={brand.logos} onLogosChange={(logos) => onBrandUpdate({ logos })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
