@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, lazy, Suspense, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink, BarChart3, Users, FolderCheck, TrendingUp, FileSearch, ShieldCheck } from 'lucide-react';
+import { Plus, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink, BarChart3, Users, FolderCheck, TrendingUp, FileSearch, ShieldCheck, CheckCircle } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { AnimatedHeroCanvas } from '@/components/AnimatedHeroCanvas';
@@ -48,6 +48,8 @@ const DemoBrandsShowcase = lazy(() => import('@/components/landing/DemoBrandsSho
 const InviteMembersDialog = lazy(() => import('@/components/organization/InviteMembersDialog').then(m => ({ default: m.InviteMembersDialog })));
 const AppSettingsEditor = lazy(() => import('@/components/admin/AppSettingsEditor').then(m => ({ default: m.AppSettingsEditor })));
 const OrganizationSwitcher = lazy(() => import('@/components/OrganizationSwitcher').then(m => ({ default: m.OrganizationSwitcher })));
+const FeaturesShowcase = lazy(() => import('@/components/landing/FeaturesShowcase').then(m => ({ default: m.FeaturesShowcase })));
+const LearnMoreCard = lazy(() => import('@/components/landing/LearnMoreForm').then(m => ({ default: m.LearnMoreCard })));
 
 const BrandsIndex = () => {
   const navigate = useNavigate();
@@ -1082,111 +1084,11 @@ const BrandsIndex = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Features Section */}
+      {/* Features Showcase - New Interactive Section */}
       {settings.pageSections?.features !== false && (
-        <section className="py-20 px-4 sm:px-6 lg:px-8 border-t border-border/30">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">Everything you need for brand consistency</h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Create comprehensive brand guides that keep your team aligned and your brand consistent across every touchpoint.
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors group">
-                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <Palette className="h-6 w-6 text-accent" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">Color Systems</h3>
-                <p className="text-sm text-muted-foreground">Define primary, secondary, and accent colors with hex, RGB, and HSL values.</p>
-              </Card>
-              
-              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors group">
-                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <Type className="h-6 w-6 text-accent" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">Typography</h3>
-                <p className="text-sm text-muted-foreground">Document fonts, sizes, weights, and usage guidelines for consistent text styling.</p>
-              </Card>
-              
-              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors group">
-                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <Image className="h-6 w-6 text-accent" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">Logo & Assets</h3>
-                <p className="text-sm text-muted-foreground">Upload logos, icons, and brand assets with usage guidelines and variations.</p>
-              </Card>
-              
-              <Card className="p-6 border-border/50 bg-card/50 hover:bg-card transition-colors group">
-                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <Share2 className="h-6 w-6 text-accent" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">Easy Sharing</h3>
-                <p className="text-sm text-muted-foreground">Share brand guides publicly with a link. No login required for viewers.</p>
-              </Card>
-            </div>
-
-            {/* Admin & Reporting Features */}
-            <div className="text-center mb-8">
-              <Badge variant="secondary" className="mb-4">For Administrators</Badge>
-              <h3 className="text-2xl font-bold text-foreground mb-3">Powerful Admin Controls & Analytics</h3>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                Comprehensive tools for managing teams, monitoring brand health, and generating strategic reports.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="p-6 border-border/50 bg-gradient-to-br from-card to-accent/5 hover:shadow-lg transition-all group">
-                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <BarChart3 className="h-6 w-6 text-accent" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">Brand Analytics Hub</h3>
-                <p className="text-sm text-muted-foreground">Track brand health scores, consistency audits, and completeness metrics across all your guides.</p>
-              </Card>
-
-              <Card className="p-6 border-border/50 bg-gradient-to-br from-card to-primary/5 hover:shadow-lg transition-all group">
-                <div className="p-3 bg-primary/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <TrendingUp className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">AI Market Intelligence</h3>
-                <p className="text-sm text-muted-foreground">Get AI-powered competitor analysis, trend forecasting, and strategic growth recommendations.</p>
-              </Card>
-
-              <Card className="p-6 border-border/50 bg-gradient-to-br from-card to-accent/5 hover:shadow-lg transition-all group">
-                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <Users className="h-6 w-6 text-accent" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">User Management</h3>
-                <p className="text-sm text-muted-foreground">Approve new users, manage team permissions, and control access across organizations.</p>
-              </Card>
-
-              <Card className="p-6 border-border/50 bg-gradient-to-br from-card to-primary/5 hover:shadow-lg transition-all group">
-                <div className="p-3 bg-primary/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <FolderCheck className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">Bulk Repair Tools</h3>
-                <p className="text-sm text-muted-foreground">Normalize section orders, fix hidden sections, and ensure platform-wide consistency with preview/rollback.</p>
-              </Card>
-
-              <Card className="p-6 border-border/50 bg-gradient-to-br from-card to-accent/5 hover:shadow-lg transition-all group">
-                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <FileSearch className="h-6 w-6 text-accent" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">Activity Logging</h3>
-                <p className="text-sm text-muted-foreground">Infographic-style audit logs tracking all changes across brands, products, and user actions.</p>
-              </Card>
-
-              <Card className="p-6 border-border/50 bg-gradient-to-br from-card to-primary/5 hover:shadow-lg transition-all group">
-                <div className="p-3 bg-primary/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <ShieldCheck className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">Hidden Sections Scanner</h3>
-                <p className="text-sm text-muted-foreground">Identify and bulk-fix guides missing critical branding sections like logos, colors, and social assets.</p>
-              </Card>
-            </div>
-          </div>
-        </section>
+        <Suspense fallback={<div className="py-24 text-center text-muted-foreground">Loading features...</div>}>
+          <FeaturesShowcase />
+        </Suspense>
       )}
 
 
@@ -1274,39 +1176,61 @@ const BrandsIndex = () => {
         </section>
       )}
 
-      {/* Contact Section */}
+      {/* Learn More Section - Interactive Form */}
+      {!user && (
+        <section id="learn-more" className="py-20 px-4 sm:px-6 lg:px-8 border-t border-border/30">
+          <div className="max-w-2xl mx-auto">
+            <Suspense fallback={<div className="text-center text-muted-foreground">Loading...</div>}>
+              <LearnMoreCard />
+            </Suspense>
+          </div>
+        </section>
+      )}
+
+      {/* Contact & Support Section */}
       {!user && settings.pageSections?.contact !== false && (
-        <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 border-t border-border/30">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">Get in Touch</h2>
-              <p className="text-lg text-muted-foreground">
-                Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card className="p-6 border-border/50">
-                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <HelpCircle className="h-5 w-5 text-accent" />
-                  Support
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  Need help with your brand guide? Our support team is here to assist you.
+        <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/20">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="p-6 border-border/50 hover:border-accent/30 transition-all hover:shadow-lg group">
+                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                  <HelpCircle className="h-6 w-6 text-accent" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Help Center</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Browse tutorials, FAQs, and documentation.
                 </p>
-                <Button variant="outline" onClick={() => navigate('/knowledge')} className="w-full">
+                <Button variant="ghost" onClick={() => navigate('/knowledge')} className="gap-2 p-0 h-auto text-accent hover:text-accent/80">
                   Visit Help Center
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </Card>
-              <Card className="p-6 border-border/50">
-                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-accent" />
-                  Enterprise
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  Looking for team features or custom solutions? Let's talk about your needs.
+              
+              <Card className="p-6 border-border/50 hover:border-accent/30 transition-all hover:shadow-lg group">
+                <div className="p-3 bg-primary/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                  <Building2 className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Enterprise</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Custom solutions for large organizations.
                 </p>
-                <Button variant="outline" onClick={() => navigate('/contact')} className="w-full">
+                <Button variant="ghost" onClick={() => navigate('/contact')} className="gap-2 p-0 h-auto text-primary hover:text-primary/80">
                   Contact Sales
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Card>
+              
+              <Card className="p-6 border-border/50 hover:border-accent/30 transition-all hover:shadow-lg group">
+                <div className="p-3 bg-green-500/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                  <Globe className="h-6 w-6 text-green-500" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Public Portal</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  See how organization portals work.
+                </p>
+                <Button variant="ghost" onClick={() => navigate('/org/transperfect')} className="gap-2 p-0 h-auto text-green-600 hover:text-green-500">
+                  View Example
+                  <ExternalLink className="h-4 w-4" />
                 </Button>
               </Card>
             </div>
@@ -1316,24 +1240,49 @@ const BrandsIndex = () => {
 
       {/* Sign Up CTA Section */}
       {!user && settings.pageSections?.signupCta !== false && (
-        <section id="signup" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-t border-border/30">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Ready to build your brand?</h2>
-            <p className="text-lg text-muted-foreground mb-8">
-              Join thousands of teams creating professional brand guidelines. Start free today.
+        <section id="signup" className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+          {/* Animated background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/10 to-primary/5" />
+          <div className="absolute inset-0">
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          </div>
+          
+          <div className="relative max-w-3xl mx-auto text-center">
+            <Badge variant="secondary" className="mb-4 gap-1">
+              <Zap className="h-3 w-3" />
+              Get Started Free
+            </Badge>
+            <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">
+              Ready to transform your
+              <span className="block text-accent">brand management?</span>
+            </h2>
+            <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
+              Join teams creating professional brand guidelines with AI-powered analytics and seamless collaboration.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" onClick={() => navigate('/auth')} className="gap-2">
-                <Plus className="h-5 w-5" />
+              <Button size="lg" onClick={() => navigate('/auth')} className="gap-2 group text-base h-12 px-8">
+                <Plus className="h-5 w-5 group-hover:rotate-90 transition-transform" />
                 Create Free Account
               </Button>
-              <Button size="lg" variant="outline" onClick={() => navigate('/auth')} className="gap-2">
+              <Button size="lg" variant="outline" onClick={() => navigate('/auth')} className="gap-2 text-base h-12 px-8">
                 <Lock className="h-5 w-5" />
                 Sign In
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground mt-6">
-              No credit card required • Free tier available • Cancel anytime
+            <p className="text-sm text-muted-foreground mt-8 flex items-center justify-center gap-4 flex-wrap">
+              <span className="flex items-center gap-1.5">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                No credit card required
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                Free tier available
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                Cancel anytime
+              </span>
             </p>
           </div>
         </section>
