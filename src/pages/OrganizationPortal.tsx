@@ -82,79 +82,128 @@ const OrganizationPortal = () => {
     ogType: 'website',
   });
 
-  const fetchOrganizationAndBrands = useCallback(async () => {
-    if (!slug) {
-      setError('Organization not found');
-      setIsLoading(false);
-      return;
-    }
+  // Main data fetching effect
+  useEffect(() => {
+    let cancelled = false;
 
-    try {
-      // Fetch organization by slug - need full org data for portal_settings
-      const { data: orgData, error: orgError } = await supabase
-        .from('organizations')
-        .select('id, name, slug, logo_url, primary_color, secondary_color, accent_color, portal_settings')
-        .eq('slug', slug)
-        .single();
-
-      if (orgError || !orgData) {
+    const fetchData = async () => {
+      if (!slug) {
         setError('Organization not found');
         setIsLoading(false);
         return;
       }
 
-      setOrganization({
-        ...orgData,
-        portal_settings: orgData.portal_settings as OrganizationPortalSettings | null,
-      });
+      try {
+        // Fetch organization by slug
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .select('id, name, slug, logo_url, primary_color, secondary_color, accent_color, portal_settings')
+          .eq('slug', slug)
+          .maybeSingle();
 
-      // Fetch public brands for this organization
-      const { data: brandsData, error: brandsError } = await supabase
-        .from('brands')
-        .select('id, name, slug, is_public, guide_data, updated_at')
-        .eq('organization_id', orgData.id)
-        .eq('is_public', true)
-        .order('updated_at', { ascending: false });
+        if (cancelled) return;
 
-      if (brandsError) {
-        console.error('Error fetching brands:', brandsError);
-      } else {
-        setBrands((brandsData as PublicBrand[]) || []);
+        if (orgError) {
+          console.error('Error fetching organization:', orgError);
+          setError('Unable to load organization');
+          setIsLoading(false);
+          return;
+        }
+
+        if (!orgData) {
+          setError('Organization not found');
+          setIsLoading(false);
+          return;
+        }
+
+        setOrganization({
+          ...orgData,
+          portal_settings: orgData.portal_settings as OrganizationPortalSettings | null,
+        });
+
+        // Fetch public brands for this organization
+        const { data: brandsData, error: brandsError } = await supabase
+          .from('brands')
+          .select('id, name, slug, is_public, guide_data, updated_at')
+          .eq('organization_id', orgData.id)
+          .eq('is_public', true)
+          .order('updated_at', { ascending: false });
+
+        if (cancelled) return;
+
+        if (brandsError) {
+          console.error('Error fetching brands:', brandsError);
+        } else {
+          setBrands((brandsData as PublicBrand[]) || []);
+        }
+
+        // Fetch public products for this organization
+        const { data: productsData, error: productsError } = await supabase
+          .from('products')
+          .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
+          .eq('organization_id', orgData.id)
+          .eq('is_public', true)
+          .order('updated_at', { ascending: false });
+
+        if (cancelled) return;
+
+        if (productsError) {
+          console.error('Error fetching products:', productsError);
+        } else {
+          setProducts((productsData as PublicProduct[]) || []);
+        }
+
+        setError(null);
+      } catch (err) {
+        if (cancelled) return;
+        console.error('Error:', err);
+        setError('Something went wrong');
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
+    };
 
-      // Fetch public products for this organization
-      const { data: productsData, error: productsError } = await supabase
-        .from('products')
-        .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
-        .eq('organization_id', orgData.id)
-        .eq('is_public', true)
-        .order('updated_at', { ascending: false });
+    setIsLoading(true);
+    fetchData();
 
-      if (productsError) {
-        console.error('Error fetching products:', productsError);
-      } else {
-        setProducts((productsData as PublicProduct[]) || []);
-      }
-
-      setError(null);
-    } catch (err) {
-      console.error('Error:', err);
-      setError('Something went wrong');
-    } finally {
-      setIsLoading(false);
-    }
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
-  useEffect(() => {
-    setIsLoading(true);
-    fetchOrganizationAndBrands();
-  }, [fetchOrganizationAndBrands]);
+  // Refetch on tab focus
+  const refetch = useCallback(async () => {
+    if (!slug || !organization) return;
+    
+    try {
+      const [brandsRes, productsRes] = await Promise.all([
+        supabase
+          .from('brands')
+          .select('id, name, slug, is_public, guide_data, updated_at')
+          .eq('organization_id', organization.id)
+          .eq('is_public', true)
+          .order('updated_at', { ascending: false }),
+        supabase
+          .from('products')
+          .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
+          .eq('organization_id', organization.id)
+          .eq('is_public', true)
+          .order('updated_at', { ascending: false }),
+      ]);
 
-  // Keep portal fresh when user switches tabs / returns from editing
+      if (!brandsRes.error) setBrands((brandsRes.data as PublicBrand[]) || []);
+      if (!productsRes.error) setProducts((productsRes.data as PublicProduct[]) || []);
+    } catch (err) {
+      console.error('Error refetching:', err);
+    }
+  }, [slug, organization]);
+
   useEffect(() => {
-    const onFocus = () => fetchOrganizationAndBrands();
+    const onFocus = () => refetch();
     const onVisibility = () => {
-      if (document.visibilityState === 'visible') fetchOrganizationAndBrands();
+      if (document.visibilityState === 'visible') refetch();
     };
 
     window.addEventListener('focus', onFocus);
@@ -164,7 +213,7 @@ const OrganizationPortal = () => {
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [fetchOrganizationAndBrands]);
+  }, [refetch]);
 
   if (isLoading) {
     return (
