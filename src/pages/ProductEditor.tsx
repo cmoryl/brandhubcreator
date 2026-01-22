@@ -8,6 +8,7 @@ import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSetti
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { useBrands } from '@/contexts/BrandContext';
+import { useStableLoading } from '@/hooks/useStableLoading';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -245,9 +246,13 @@ const ProductEditor = () => {
     }
   };
 
+  // Consolidate loading states with stability to prevent flickers
+  const rawLoading = authLoading || isLoading || publicProductLoading;
+  const stableLoading = useStableLoading(rawLoading, 250);
+
   // Show loading state
   // Always use enhanced loading screen with organization context when available
-  if (authLoading || isLoading || publicProductLoading) {
+  if (stableLoading) {
     return (
       <PublicLoadingScreen 
         type="product" 

@@ -9,6 +9,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { HeroBackground } from '@/components/HeroBackground';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSEO } from '@/hooks/useSEO';
+import { useStableLoading } from '@/hooks/useStableLoading';
 import { OrganizationPortalSettings, DEFAULT_PORTAL_SETTINGS } from '@/types/organization';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
@@ -251,7 +252,10 @@ const OrganizationPortal = () => {
     };
   }, [refetch]);
 
-  if (isLoading) {
+  // Stabilize loading to prevent flickers
+  const stableLoading = useStableLoading(isLoading, 250);
+
+  if (stableLoading) {
     // Capitalize first letter of slug for display
     const displayName = slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : undefined;
     return <PublicLoadingScreen type="portal" organizationName={displayName} />;
