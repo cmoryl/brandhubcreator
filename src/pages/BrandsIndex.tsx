@@ -61,8 +61,12 @@ const BrandsIndex = () => {
   const { organization, userRole, isLoading: orgLoading } = useOrganization();
 
   // Redirect authenticated users to their organization portal
+  // Only redirect once auth and org context are fully loaded to avoid flickering
   useEffect(() => {
-    if (!authLoading && !orgLoading && user && accessStatus === 'ready' && organization) {
+    if (authLoading || orgLoading) return; // Wait for both to settle
+    if (accessStatus !== 'ready') return; // Wait for access verification
+    
+    if (user && organization) {
       // User has an organization - redirect to their org portal
       navigate(`/org/${organization.slug}`, { replace: true });
     }

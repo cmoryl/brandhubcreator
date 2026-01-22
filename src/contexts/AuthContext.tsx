@@ -170,6 +170,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       attempt += 1;
 
+      // Run both checks in parallel for faster resolution
       Promise.all([checkAdminRole(userId), checkApprovalStatus(userId)])
         .then(([adminRes, approvedRes]) => {
           if (cancelled) return;
