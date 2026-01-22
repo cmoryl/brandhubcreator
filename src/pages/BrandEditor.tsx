@@ -554,9 +554,11 @@ const BrandEditor = () => {
                   <TooltipContent>Back to Brands</TooltipContent>
                 </Tooltip>
                 <div className="flex items-center gap-2">
-                  <div className="h-6 w-6 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold text-[10px]">BH</span>
-                  </div>
+                  <img 
+                    src={theme === 'dark' ? tpLogoWhite : tpLogoColor} 
+                    alt="BrandHUB" 
+                    className="h-6 w-6 object-contain flex-shrink-0" 
+                  />
                   <span className="font-semibold text-foreground hidden sm:inline">
                     Brand<span className="text-accent">HUB</span>
                   </span>
