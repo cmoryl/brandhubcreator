@@ -75,7 +75,7 @@ const BrandEditor = () => {
   const previousThemeRef = useRef<string | undefined>(undefined);
   const { getBrand, updateBrand: updateBrandContext, toggleFavorite, isLoading } = useBrands();
   const { user, isAdmin, isApproved, signOut, isLoading: authLoading } = useAuth();
-  const { userRole: orgRole } = useOrganization();
+  const { userRole: orgRole, organization } = useOrganization();
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -609,6 +609,7 @@ const BrandEditor = () => {
                   isPublic={brand.isPublic}
                   onPublicChange={(isPublic) => updateBrand({ isPublic })}
                   canEdit={canEdit || false}
+                  organizationSlug={organization?.slug}
                 />
                 {canEdit && <BrandAuditButton brand={brand} />}
                 {canEdit && (
