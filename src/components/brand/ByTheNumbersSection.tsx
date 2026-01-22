@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Check, BarChart3, DollarSign, TrendingUp, Users, Globe, Building2, Award, Target, Zap, Clock, Calendar, CheckCircle, Star, Heart, FileText, Briefcase, ShieldCheck, Percent, Hash, Package, Truck, Phone, Mail, MapPin, Layers, Grid3X3, LayoutList, CircleDot, Columns, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, BarChart3, DollarSign, TrendingUp, Users, Globe, Building2, Award, Target, Zap, Clock, Calendar, CheckCircle, Star, Heart, FileText, Briefcase, ShieldCheck, Percent, Hash, Package, Truck, Phone, Mail, MapPin, Layers, Grid3X3, LayoutList, CircleDot, Columns, Sparkles, X, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -32,7 +32,7 @@ const iconMap: Record<string, React.ElementType> = {
   DollarSign, TrendingUp, Users, Globe, Building2, Award,
   Target, Zap, Clock, Calendar, CheckCircle, Star,
   Heart, FileText, Briefcase, ShieldCheck, Percent, Hash,
-  Package, Truck, Phone, Mail, MapPin, BarChart3, Sparkles
+  Package, Truck, Phone, Mail, MapPin, BarChart3, Sparkles, Headphones
 };
 
 const STAT_ICONS = Object.keys(iconMap);
@@ -43,12 +43,28 @@ const getIconComponent = (iconName?: string): React.ElementType => {
 };
 
 const layoutOptions: { value: InfographicLayout; label: string; icon: React.ElementType }[] = [
+  { value: 'infographic', label: 'Infographic', icon: Layers },
   { value: 'cards', label: 'Card Grid', icon: Grid3X3 },
-  { value: 'pills', label: 'Overlapping Pills', icon: Layers },
   { value: 'vertical-list', label: 'Vertical List', icon: LayoutList },
   { value: 'hero-stats', label: 'Hero Stats', icon: Sparkles },
   { value: 'split-panel', label: 'Split Panel', icon: Columns },
   { value: 'circular', label: 'Circular', icon: CircleDot },
+];
+
+// Default service capabilities
+const DEFAULT_SERVICES = [
+  'Technology Solutions',
+  'Artificial Intelligence',
+  'Software & App Localization',
+  'Website Localization',
+  'International Performance Marketing',
+  'Interpretation',
+  'Translation & Localization',
+  'Accessibility Solutions',
+  'Dubbing & Subtitling',
+  'Content & Creative Services',
+  'Contact Center Solutions',
+  'QA & Testing'
 ];
 
 export const ByTheNumbersSection = ({
@@ -57,7 +73,7 @@ export const ByTheNumbersSection = ({
   customSubtitle,
   onSubtitleChange,
   brandName = 'Brand',
-  infographicLayout = 'pills',
+  infographicLayout = 'infographic',
   onLayoutChange,
   primaryColor = '#003b71',
   secondaryColor = '#139dd8'
@@ -65,6 +81,7 @@ export const ByTheNumbersSection = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [animatedStats, setAnimatedStats] = useState<Set<string>>(new Set());
+  const [showEditPanel, setShowEditPanel] = useState(false);
 
   // Trigger staggered animations on mount
   useEffect(() => {
@@ -90,6 +107,7 @@ export const ByTheNumbersSection = ({
     };
     onStatisticsChange([...statistics, newStat]);
     setEditingId(newStat.id);
+    setShowEditPanel(true);
   };
 
   const updateStatistic = (id: string, updates: Partial<StatisticItem>) => {
@@ -111,144 +129,194 @@ export const ByTheNumbersSection = ({
   const secondaryStats = statistics.filter(s => s.category === 'secondary');
   const highlightStats = statistics.filter(s => s.category === 'highlight');
 
-  // Render editing mode for a stat
-  const renderEditForm = (stat: StatisticItem) => (
-    <div className="space-y-3 p-4 bg-background rounded-lg border">
-      <Select
-        value={stat.icon || 'BarChart3'}
-        onValueChange={(value) => updateStatistic(stat.id, { icon: value })}
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select icon" />
-        </SelectTrigger>
-        <SelectContent>
-          {STAT_ICONS.map((iconName) => {
-            const Icon = iconMap[iconName];
-            return (
-              <SelectItem key={iconName} value={iconName}>
-                <div className="flex items-center gap-2">
-                  {Icon && <Icon className="h-4 w-4" />}
-                  <span>{iconName}</span>
-                </div>
-              </SelectItem>
-            );
-          })}
-        </SelectContent>
-      </Select>
+  // Render editing panel for a stat
+  const renderEditPanel = () => {
+    if (!editingId) return null;
+    const stat = statistics.find(s => s.id === editingId);
+    if (!stat) return null;
 
-      <div className="flex gap-2">
-        <Input
-          value={stat.prefix || ''}
-          onChange={(e) => updateStatistic(stat.id, { prefix: e.target.value })}
-          placeholder="Prefix"
-          className="w-16"
-        />
-        <Input
-          value={stat.value}
-          onChange={(e) => updateStatistic(stat.id, { value: e.target.value })}
-          placeholder="Value"
-          className="flex-1"
-        />
-        <Input
-          value={stat.suffix || ''}
-          onChange={(e) => updateStatistic(stat.id, { suffix: e.target.value })}
-          placeholder="Suffix"
-          className="w-16"
-        />
+    return (
+      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold">Edit Statistic</h3>
+              <Button size="icon" variant="ghost" onClick={() => { setEditingId(null); setShowEditPanel(false); }}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <Select
+              value={stat.icon || 'BarChart3'}
+              onValueChange={(value) => updateStatistic(stat.id, { icon: value })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select icon" />
+              </SelectTrigger>
+              <SelectContent>
+                {STAT_ICONS.map((iconName) => {
+                  const Icon = iconMap[iconName];
+                  return (
+                    <SelectItem key={iconName} value={iconName}>
+                      <div className="flex items-center gap-2">
+                        {Icon && <Icon className="h-4 w-4" />}
+                        <span>{iconName}</span>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+
+            <div className="flex gap-2">
+              <Input
+                value={stat.prefix || ''}
+                onChange={(e) => updateStatistic(stat.id, { prefix: e.target.value })}
+                placeholder="$"
+                className="w-16"
+              />
+              <Input
+                value={stat.value}
+                onChange={(e) => updateStatistic(stat.id, { value: e.target.value })}
+                placeholder="Value"
+                className="flex-1"
+              />
+              <Input
+                value={stat.suffix || ''}
+                onChange={(e) => updateStatistic(stat.id, { suffix: e.target.value })}
+                placeholder="+, %, B"
+                className="w-16"
+              />
+            </div>
+
+            <Input
+              value={stat.label}
+              onChange={(e) => updateStatistic(stat.id, { label: e.target.value })}
+              placeholder="Label"
+            />
+
+            <Select
+              value={stat.category || 'primary'}
+              onValueChange={(value) => updateStatistic(stat.id, { category: value as StatisticItem['category'] })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="primary">Primary (Top Row)</SelectItem>
+                <SelectItem value="secondary">Secondary (Bottom Row)</SelectItem>
+                <SelectItem value="highlight">Highlight (Sidebar)</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Textarea
+              value={stat.description || ''}
+              onChange={(e) => updateStatistic(stat.id, { description: e.target.value })}
+              placeholder="Description (optional)"
+              className="resize-none"
+              rows={2}
+            />
+
+            <div className="flex gap-2 pt-2">
+              <Button className="flex-1" onClick={() => { setEditingId(null); setShowEditPanel(false); }}>
+                <Check className="h-4 w-4 mr-2" /> Save
+              </Button>
+              <Button variant="destructive" onClick={() => { deleteStatistic(stat.id); setShowEditPanel(false); }}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+    );
+  };
 
-      <Input
-        value={stat.label}
-        onChange={(e) => updateStatistic(stat.id, { label: e.target.value })}
-        placeholder="Label"
-      />
-
-      <Select
-        value={stat.category || 'primary'}
-        onValueChange={(value) => updateStatistic(stat.id, { category: value as StatisticItem['category'] })}
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Category" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="primary">Primary (Featured)</SelectItem>
-          <SelectItem value="secondary">Secondary</SelectItem>
-          <SelectItem value="highlight">Highlight</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Textarea
-        value={stat.description || ''}
-        onChange={(e) => updateStatistic(stat.id, { description: e.target.value })}
-        placeholder="Description"
-        className="resize-none"
-        rows={2}
-      />
-
-      <div className="flex gap-2">
-        <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
-          <Check className="h-4 w-4 mr-1" /> Done
-        </Button>
-        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => deleteStatistic(stat.id)}>
-          <Trash2 className="h-4 w-4 mr-1" /> Delete
-        </Button>
-      </div>
-    </div>
-  );
-
-  // ==================== LAYOUT: OVERLAPPING PILLS ====================
-  const renderPillsLayout = () => (
+  // ==================== NEW LAYOUT: INFOGRAPHIC ====================
+  const renderInfographicLayout = () => (
     <div className="space-y-8">
-      {/* Primary stats in overlapping pills */}
-      <div className="relative flex justify-center items-center gap-0 py-8">
+      {/* Primary Stats Row - Large featured numbers */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         {primaryStats.slice(0, 4).map((stat, index) => {
           const isAnimated = animatedStats.has(stat.id);
-          const isEditing = editingId === stat.id;
-          const colors = [
-            'from-[#003b71] to-[#003b71]',
-            'from-[#139dd8] to-[#1eb5f0]',
-            'from-[#3bbfb5] to-[#4dd4c8]',
-            'from-[#7bc3da] to-[#9dd5e8]'
-          ];
+          const IconComponent = getIconComponent(stat.icon);
           
-          if (isEditing) return <div key={stat.id} className="z-50">{renderEditForm(stat)}</div>;
-
           return (
             <div
               key={stat.id}
               className={cn(
-                "relative group cursor-pointer transition-all duration-500 ease-out",
-                isAnimated ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-95",
-                index > 0 && "-ml-8"
+                "group relative bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-6 cursor-pointer",
+                "border border-primary/10 hover:border-primary/30 transition-all duration-500",
+                "hover:shadow-lg hover:-translate-y-1",
+                isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
               )}
-              style={{ 
-                zIndex: primaryStats.length - index,
-                animationDelay: `${index * 100}ms`
-              }}
-              onClick={() => setEditingId(stat.id)}
+              style={{ animationDelay: `${index * 100}ms` }}
+              onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
             >
-              <div 
-                className={cn(
-                  "relative w-36 h-48 sm:w-44 sm:h-56 rounded-[50%] flex flex-col items-center justify-center",
-                  "bg-gradient-to-b shadow-xl hover:shadow-2xl transition-all duration-300",
-                  "hover:scale-105 hover:-translate-y-2",
-                  "before:absolute before:inset-0 before:rounded-[50%] before:bg-[url('/placeholder.svg')] before:opacity-10 before:bg-cover",
-                  colors[index % colors.length]
-                )}
-              >
-                {/* Globe texture overlay */}
-                <div className="absolute inset-0 rounded-[50%] bg-gradient-to-b from-white/10 to-transparent" />
-                
-                <span className="text-white text-4xl sm:text-5xl font-bold drop-shadow-lg z-10">
-                  {stat.prefix}{stat.value}{stat.suffix}
-                </span>
-                <span className="text-white/90 text-xs sm:text-sm font-medium text-center uppercase tracking-wider mt-2 px-4 z-10">
+              {/* Icon badge */}
+              <div className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <IconComponent className="h-5 w-5" />
+              </div>
+              
+              <div className="text-center pt-2">
+                <div className="text-4xl md:text-5xl lg:text-6xl font-black text-primary mb-2">
+                  {stat.prefix}<span className="tabular-nums">{stat.value}</span>{stat.suffix}
+                </div>
+                <div className="text-sm md:text-base font-medium text-foreground uppercase tracking-wider">
                   {stat.label}
-                </span>
+                </div>
+              </div>
+              
+              {/* Edit indicator */}
+              <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Edit2 className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
-                {/* Edit indicator */}
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Edit2 className="h-4 w-4 text-white/70" />
+      {/* Support Banner */}
+      <div className={cn(
+        "flex items-center justify-center gap-3 py-4 px-6 rounded-xl",
+        "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground",
+        "transition-all duration-700",
+        animatedStats.size > 0 ? "opacity-100 scale-100" : "opacity-0 scale-95"
+      )}>
+        <Headphones className="h-6 w-6" />
+        <span className="text-lg md:text-xl font-bold tracking-[0.3em] uppercase">
+          24/7/365 Local Support
+        </span>
+      </div>
+
+      {/* Secondary Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        {secondaryStats.map((stat, index) => {
+          const isAnimated = animatedStats.has(stat.id);
+          const IconComponent = getIconComponent(stat.icon);
+          
+          return (
+            <div
+              key={stat.id}
+              className={cn(
+                "group flex items-center gap-4 p-5 rounded-xl cursor-pointer",
+                "bg-card border border-border hover:border-primary/30 transition-all duration-500",
+                "hover:shadow-md",
+                isAnimated ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
+              )}
+              style={{ animationDelay: `${(index + 4) * 100}ms` }}
+              onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+            >
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                <IconComponent className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl md:text-4xl font-black text-foreground group-hover:text-primary transition-colors">
+                    {stat.prefix}{stat.value}{stat.suffix}
+                  </span>
+                </div>
+                <div className="text-sm text-muted-foreground font-medium uppercase tracking-wide truncate">
+                  {stat.label}
                 </div>
               </div>
             </div>
@@ -256,38 +324,64 @@ export const ByTheNumbersSection = ({
         })}
       </div>
 
-      {/* Secondary stats row */}
-      {secondaryStats.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-8 pt-4 border-t border-border/50">
-          {secondaryStats.map((stat, index) => {
-            const isAnimated = animatedStats.has(stat.id);
-            const isEditing = editingId === stat.id;
-            
-            if (isEditing) return <div key={stat.id}>{renderEditForm(stat)}</div>;
-
-            return (
-              <div
-                key={stat.id}
-                className={cn(
-                  "group cursor-pointer text-center transition-all duration-500",
-                  isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                )}
-                style={{ animationDelay: `${(index + 4) * 100}ms` }}
-                onClick={() => setEditingId(stat.id)}
-              >
-                <div className="flex items-baseline gap-1 justify-center">
-                  <span className="text-4xl sm:text-5xl font-bold text-foreground group-hover:text-primary transition-colors">
-                    {stat.prefix}{stat.value}{stat.suffix}
-                  </span>
+      {/* Highlight Stats (if any) - Sidebar style */}
+      {highlightStats.length > 0 && (
+        <div className="bg-primary text-primary-foreground rounded-2xl p-6 md:p-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {highlightStats.map((stat, index) => {
+              const isAnimated = animatedStats.has(stat.id);
+              
+              return (
+                <div
+                  key={stat.id}
+                  className={cn(
+                    "group cursor-pointer transition-all duration-500",
+                    "hover:translate-x-1",
+                    isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+                  )}
+                  style={{ animationDelay: `${(index + 7) * 100}ms` }}
+                  onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+                >
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-4xl md:text-5xl font-black">
+                      {stat.prefix}{stat.value}{stat.suffix}
+                    </span>
+                  </div>
+                  <div className="text-sm font-semibold uppercase tracking-wide opacity-90 mt-1">
+                    {stat.label}
+                  </div>
+                  {stat.description && (
+                    <div className="text-xs opacity-70 mt-1">
+                      {stat.description}
+                    </div>
+                  )}
                 </div>
-                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                  {stat.label}
-                </span>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
+
+      {/* Services Grid */}
+      <div className={cn(
+        "border-t border-border pt-6 transition-all duration-700",
+        animatedStats.size > 0 ? "opacity-100" : "opacity-0"
+      )}>
+        <div className="flex flex-wrap justify-center gap-x-3 gap-y-2">
+          {DEFAULT_SERVICES.map((service, index) => (
+            <span 
+              key={service} 
+              className="inline-flex items-center text-sm text-muted-foreground"
+              style={{ animationDelay: `${(index + 10) * 50}ms` }}
+            >
+              {index > 0 && <span className="mr-3 text-primary">•</span>}
+              <span className="uppercase tracking-wide font-medium hover:text-foreground transition-colors cursor-default">
+                {service}
+              </span>
+            </span>
+          ))}
+        </div>
+      </div>
     </div>
   );
 
@@ -297,10 +391,7 @@ export const ByTheNumbersSection = ({
       <div className="space-y-6">
         {statistics.map((stat, index) => {
           const isAnimated = animatedStats.has(stat.id);
-          const isEditing = editingId === stat.id;
           
-          if (isEditing) return <div key={stat.id} className="bg-background rounded-lg">{renderEditForm(stat)}</div>;
-
           return (
             <div
               key={stat.id}
@@ -310,7 +401,7 @@ export const ByTheNumbersSection = ({
                 isAnimated ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
               )}
               style={{ animationDelay: `${index * 150}ms` }}
-              onClick={() => setEditingId(stat.id)}
+              onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
             >
               <span className="text-4xl sm:text-6xl font-bold min-w-[140px] sm:min-w-[180px] text-right">
                 {stat.prefix}{stat.value}{stat.suffix}
@@ -341,29 +432,20 @@ export const ByTheNumbersSection = ({
             animatedStats.has(primaryStats[0]?.id) ? "opacity-100 scale-100" : "opacity-0 scale-90"
           )}
         >
-          {editingId === primaryStats[0]?.id ? (
-            renderEditForm(primaryStats[0])
-          ) : (
-            <div 
-              className="cursor-pointer group" 
-              onClick={() => setEditingId(primaryStats[0].id)}
-            >
-              <div className="relative inline-block">
-                <span className="text-7xl sm:text-9xl font-black bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                  {primaryStats[0].prefix}{primaryStats[0].value}{primaryStats[0].suffix}
-                </span>
-                <div className="absolute -inset-4 bg-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-primary/10 transition-colors" />
-              </div>
-              <p className="text-xl sm:text-2xl font-medium text-foreground mt-4">
-                {primaryStats[0].label}
-              </p>
-              {primaryStats[0].description && (
-                <p className="text-muted-foreground mt-2 max-w-md mx-auto">
-                  {primaryStats[0].description}
-                </p>
-              )}
+          <div 
+            className="cursor-pointer group" 
+            onClick={() => { setEditingId(primaryStats[0].id); setShowEditPanel(true); }}
+          >
+            <div className="relative inline-block">
+              <span className="text-7xl sm:text-9xl font-black bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                {primaryStats[0].prefix}{primaryStats[0].value}{primaryStats[0].suffix}
+              </span>
+              <div className="absolute -inset-4 bg-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-primary/10 transition-colors" />
             </div>
-          )}
+            <p className="text-xl sm:text-2xl font-medium text-foreground mt-4">
+              {primaryStats[0].label}
+            </p>
+          </div>
         </div>
       )}
 
@@ -371,9 +453,6 @@ export const ByTheNumbersSection = ({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[...primaryStats.slice(1), ...secondaryStats].map((stat, index) => {
           const isAnimated = animatedStats.has(stat.id);
-          const isEditing = editingId === stat.id;
-          
-          if (isEditing) return <div key={stat.id}>{renderEditForm(stat)}</div>;
 
           return (
             <Card 
@@ -384,7 +463,7 @@ export const ByTheNumbersSection = ({
                 isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
               )}
               style={{ animationDelay: `${(index + 1) * 100}ms` }}
-              onClick={() => setEditingId(stat.id)}
+              onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
             >
               <CardContent className="p-4 text-center">
                 <span className="text-2xl sm:text-3xl font-bold text-foreground group-hover:text-primary transition-colors">
@@ -408,10 +487,7 @@ export const ByTheNumbersSection = ({
       <div className="bg-muted/30 rounded-xl p-6 space-y-6">
         {primaryStats.map((stat, index) => {
           const isAnimated = animatedStats.has(stat.id);
-          const isEditing = editingId === stat.id;
           const IconComponent = getIconComponent(stat.icon);
-          
-          if (isEditing) return <div key={stat.id}>{renderEditForm(stat)}</div>;
 
           return (
             <div
@@ -421,7 +497,7 @@ export const ByTheNumbersSection = ({
                 isAnimated ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
               )}
               style={{ animationDelay: `${index * 100}ms` }}
-              onClick={() => setEditingId(stat.id)}
+              onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
             >
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                 <IconComponent className="h-6 w-6 text-primary" />
@@ -443,9 +519,6 @@ export const ByTheNumbersSection = ({
       <div className="bg-primary text-primary-foreground rounded-xl p-6 space-y-6">
         {secondaryStats.length > 0 ? secondaryStats.map((stat, index) => {
           const isAnimated = animatedStats.has(stat.id);
-          const isEditing = editingId === stat.id;
-          
-          if (isEditing) return <div key={stat.id} className="bg-background rounded-lg">{renderEditForm(stat)}</div>;
 
           return (
             <div
@@ -455,7 +528,7 @@ export const ByTheNumbersSection = ({
                 isAnimated ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
               )}
               style={{ animationDelay: `${(index + primaryStats.length) * 100}ms` }}
-              onClick={() => setEditingId(stat.id)}
+              onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
             >
               <span className="text-4xl font-bold">
                 {stat.prefix}{stat.value}{stat.suffix}
@@ -478,11 +551,8 @@ export const ByTheNumbersSection = ({
       <div className="flex flex-wrap justify-center gap-8">
         {statistics.slice(0, 6).map((stat, index) => {
           const isAnimated = animatedStats.has(stat.id);
-          const isEditing = editingId === stat.id;
           const IconComponent = getIconComponent(stat.icon);
           const size = index === 0 ? 'w-40 h-40 sm:w-48 sm:h-48' : 'w-32 h-32 sm:w-36 sm:h-36';
-          
-          if (isEditing) return <div key={stat.id}>{renderEditForm(stat)}</div>;
 
           return (
             <div
@@ -492,7 +562,7 @@ export const ByTheNumbersSection = ({
                 isAnimated ? "opacity-100 scale-100 rotate-0" : "opacity-0 scale-50 rotate-12"
               )}
               style={{ animationDelay: `${index * 150}ms` }}
-              onClick={() => setEditingId(stat.id)}
+              onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
             >
               <div 
                 className={cn(
@@ -530,10 +600,7 @@ export const ByTheNumbersSection = ({
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {statistics.map((stat, index) => {
         const IconComponent = getIconComponent(stat.icon);
-        const isEditing = editingId === stat.id;
         const isAnimated = animatedStats.has(stat.id);
-
-        if (isEditing) return <div key={stat.id}>{renderEditForm(stat)}</div>;
 
         return (
           <Card 
@@ -544,7 +611,7 @@ export const ByTheNumbersSection = ({
               isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
             )}
             style={{ animationDelay: `${index * 100}ms` }}
-            onClick={() => setEditingId(stat.id)}
+            onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
           >
             <CardContent className="p-6">
               <div className="text-center">
@@ -573,8 +640,8 @@ export const ByTheNumbersSection = ({
   // Choose layout renderer
   const renderLayout = () => {
     switch (infographicLayout) {
-      case 'pills':
-        return renderPillsLayout();
+      case 'infographic':
+        return renderInfographicLayout();
       case 'vertical-list':
         return renderVerticalListLayout();
       case 'hero-stats':
@@ -657,6 +724,9 @@ export const ByTheNumbersSection = ({
           </div>
         </>
       )}
+
+      {/* Edit Panel Modal */}
+      {showEditPanel && renderEditPanel()}
     </section>
   );
 };

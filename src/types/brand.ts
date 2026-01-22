@@ -534,7 +534,7 @@ export interface StatisticItem {
 // Infographic layout options for By the Numbers
 export type InfographicLayout = 
   | 'cards'           // Default card grid
-  | 'pills'           // Overlapping pill/oval shapes (TransPerfect style)
+  | 'infographic'     // Full infographic with stats, support banner, services
   | 'vertical-list'   // Vertical list with large numbers (GlobalLink style)
   | 'split-panel'     // Two-panel layout
   | 'hero-stats'      // Large hero numbers with supporting stats
