@@ -1,8 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Sparkles, Lock } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { ArrowLeft, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import tpLogoWhite from '@/assets/tp-logo-white.svg';
+import tpLogoColor from '@/assets/tp-logo-color.svg';
 
 // Demo brand data with simple structure
 interface DemoBrandData {
@@ -195,6 +198,7 @@ const demoBrands: Record<string, DemoBrandData> = {
 export default function DemoBrandPreview() {
   const { brandSlug } = useParams();
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
   
   const brand = brandSlug ? demoBrands[brandSlug] : null;
 
@@ -224,7 +228,11 @@ export default function DemoBrandPreview() {
             </Button>
             <div className="h-6 w-px bg-border" />
             <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-accent" />
+              <img 
+                src={resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite} 
+                alt="TransPerfect" 
+                className="h-6 w-auto"
+              />
               <span className="font-semibold">Demo Preview</span>
             </div>
           </div>
@@ -380,7 +388,7 @@ export default function DemoBrandPreview() {
           </p>
           <Button size="lg" onClick={() => navigate('/auth')} className="gap-2">
             Get Started Free
-            <Sparkles className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5 rotate-180" />
           </Button>
         </div>
       </section>

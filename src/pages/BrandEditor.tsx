@@ -1,7 +1,9 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Brain } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Brain } from 'lucide-react';
+import tpLogoWhite from '@/assets/tp-logo-white.svg';
+import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, BrandGuide } from '@/types/brand';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
@@ -419,7 +421,11 @@ const BrandEditor = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="p-4 bg-accent/10 rounded-2xl w-fit mx-auto animate-pulse">
-            <Sparkles className="h-8 w-8 text-accent" />
+            <img 
+              src={theme === 'light' ? tpLogoColor : tpLogoWhite} 
+              alt="TransPerfect" 
+              className="h-8 w-auto"
+            />
           </div>
           <p className="text-muted-foreground">Loading brand...</p>
         </div>
@@ -562,9 +568,11 @@ const BrandEditor = () => {
                   <TooltipContent>Back to Brands</TooltipContent>
                 </Tooltip>
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-accent/10 rounded-lg hover-scale cursor-pointer">
-                    <Sparkles className="h-4 w-4 text-accent" />
-                  </div>
+                  <img 
+                    src={theme === 'light' ? tpLogoColor : tpLogoWhite} 
+                    alt="TransPerfect" 
+                    className="h-6 w-auto"
+                  />
                   <span className="font-semibold text-foreground hidden sm:inline">BrandHub</span>
                 </div>
                 <div className="h-6 w-px bg-border mx-2 hidden sm:block" />

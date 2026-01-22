@@ -1,5 +1,8 @@
 import { useState, useCallback } from 'react';
-import { Sparkles, Menu, LayoutList, ScrollText } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { Menu, LayoutList, ScrollText } from 'lucide-react';
+import tpLogoWhite from '@/assets/tp-logo-white.svg';
+import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { BrandGuide, SectionId } from '@/types/brand';
 import { BrandSidebar } from '@/components/brand/BrandSidebar';
 import { BrandSelector } from '@/components/brand/BrandSelector';
@@ -77,6 +80,7 @@ const createDefaultBrand = (name: string = 'My Brand'): BrandGuide => ({
 type ViewMode = 'sections' | 'full';
 
 const Index = () => {
+  const { resolvedTheme } = useTheme();
   const [brands, setBrands] = useState<BrandGuide[]>([createDefaultBrand()]);
   const [currentBrandId, setCurrentBrandId] = useState<string>(brands[0].id);
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
@@ -189,9 +193,11 @@ const Index = () => {
                   </SheetTrigger>
                 </Sheet>
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-accent/10 rounded-lg hover-scale cursor-pointer animate-bounce-gentle">
-                    <Sparkles className="h-4 w-4 text-accent" />
-                  </div>
+                  <img 
+                    src={resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite} 
+                    alt="TransPerfect" 
+                    className="h-6 w-auto"
+                  />
                   <span className="font-serif font-semibold text-foreground hidden sm:inline">BrandHub</span>
                 </div>
                 <div className="h-6 w-px bg-border mx-2 hidden sm:block" />

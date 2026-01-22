@@ -50,6 +50,10 @@ export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
   const [currentTip, setCurrentTip] = useState(0);
   const [dots, setDots] = useState('');
   const [showFaqs, setShowFaqs] = useState(false);
+  
+  // Shuffle tips on mount for variety
+  const [shuffledTips] = useState(() => [...loadingTips].sort(() => Math.random() - 0.5));
+  const [shuffledFaqs] = useState(() => [...faqs].sort(() => Math.random() - 0.5));
 
   // Use color logo for light theme, white logo for dark theme
   const tpLogo = resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite;
@@ -57,10 +61,10 @@ export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
   // Rotate tips every 3 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTip((prev) => (prev + 1) % loadingTips.length);
+      setCurrentTip((prev) => (prev + 1) % shuffledTips.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [shuffledTips.length]);
 
   // Animate loading dots
   useEffect(() => {
@@ -76,7 +80,7 @@ export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
     return () => clearTimeout(timer);
   }, []);
 
-  const CurrentTipIcon = loadingTips[currentTip].icon;
+  const CurrentTipIcon = shuffledTips[currentTip].icon;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 flex flex-col">
@@ -147,12 +151,12 @@ export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
                 <CurrentTipIcon className="h-5 w-5 text-accent" />
               </div>
               <p className="text-sm text-muted-foreground animate-fade-in">
-                {loadingTips[currentTip].text}
+                {shuffledTips[currentTip].text}
               </p>
             </div>
             {/* Tip indicators */}
             <div className="flex justify-center gap-1.5 mt-4">
-              {loadingTips.map((_, i) => (
+              {shuffledTips.map((_, i) => (
                 <div
                   key={i}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
@@ -171,7 +175,7 @@ export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
                 <span>Quick FAQs while you wait</span>
               </div>
               <div className="grid gap-3 text-left max-w-md mx-auto">
-                {faqs.map((faq, i) => (
+                {shuffledFaqs.map((faq, i) => (
                   <div key={i} className="bg-muted/30 rounded-lg p-3">
                     <p className="text-sm font-medium text-foreground">{faq.question}</p>
                     <p className="text-xs text-muted-foreground mt-1">{faq.answer}</p>

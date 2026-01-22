@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Mail, Lock, ArrowLeft, Loader2, Chrome, RotateCcw, Activity, AlertTriangle } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { Mail, Lock, ArrowLeft, Loader2, Chrome, RotateCcw, Activity, AlertTriangle } from 'lucide-react';
+import tpLogoWhite from '@/assets/tp-logo-white.svg';
+import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -21,6 +24,7 @@ const authSchema = z.object({
 
 const AuthPage = () => {
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
   const { user, isAdmin, isApproved, accessStatus, accessError, isLoading: authLoading, signIn, signUp, signInWithGoogle } = useAuth();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -254,9 +258,11 @@ const AuthPage = () => {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-accent/10 rounded-xl">
-                <Sparkles className="h-5 w-5 text-accent" />
-              </div>
+              <img 
+                src={resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite} 
+                alt="TransPerfect" 
+                className="h-8 w-auto"
+              />
               <span className="font-semibold text-xl text-foreground">BrandHub</span>
             </div>
           </div>

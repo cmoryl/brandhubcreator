@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowLeft, Send, Loader2, Mail, User, MessageSquare } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { ArrowLeft, Send, Loader2, Mail, User, MessageSquare } from 'lucide-react';
+import tpLogoWhite from '@/assets/tp-logo-white.svg';
+import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +22,7 @@ const contactSchema = z.object({
 
 const ContactUs = () => {
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
   const { toast } = useToast();
   
   const [isLoading, setIsLoading] = useState(false);
@@ -75,9 +79,11 @@ const ContactUs = () => {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-accent/10 rounded-xl">
-                <Sparkles className="h-5 w-5 text-accent" />
-              </div>
+              <img 
+                src={resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite} 
+                alt="TransPerfect" 
+                className="h-8 w-auto"
+              />
               <span className="font-semibold text-xl text-foreground">BrandHub</span>
             </div>
           </div>
