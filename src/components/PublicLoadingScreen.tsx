@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from 'next-themes';
 import { 
-  Sparkles, 
   Palette, 
   Type, 
   Image, 
@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import tpLogoWhite from '@/assets/tp-logo-white.svg';
+import tpLogoColor from '@/assets/tp-logo-color.svg';
 
 interface PublicLoadingScreenProps {
   type: 'brand' | 'product';
@@ -44,9 +46,13 @@ const faqs = [
 
 export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
   const [currentTip, setCurrentTip] = useState(0);
   const [dots, setDots] = useState('');
   const [showFaqs, setShowFaqs] = useState(false);
+
+  // Use color logo for light theme, white logo for dark theme
+  const tpLogo = resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite;
 
   // Rotate tips every 3 seconds
   useEffect(() => {
@@ -78,9 +84,11 @@ export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-accent/10 rounded-xl animate-pulse">
-              <Sparkles className="h-5 w-5 text-accent" />
-            </div>
+            <img 
+              src={tpLogo} 
+              alt="TransPerfect" 
+              className="h-8 w-auto"
+            />
             <span className="font-serif font-semibold text-foreground">BrandHub</span>
           </div>
           <div className="flex items-center gap-2">
@@ -102,9 +110,13 @@ export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
               <div className="absolute inset-0 rounded-2xl border-2 border-accent/20 animate-[spin_8s_linear_infinite]" />
               {/* Middle ring */}
               <div className="absolute inset-2 rounded-xl border-2 border-primary/30 animate-[spin_6s_linear_infinite_reverse]" />
-              {/* Inner content */}
+              {/* Inner content - TP Logo */}
               <div className="absolute inset-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
-                <Sparkles className="h-8 w-8 text-accent animate-pulse" />
+                <img 
+                  src={tpLogo} 
+                  alt="TransPerfect" 
+                  className="h-10 w-auto animate-pulse"
+                />
               </div>
             </div>
             {/* Floating elements */}
@@ -198,13 +210,16 @@ export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
 
 // Compact version for inline use
 export function PublicLoadingInline({ type }: { type: 'brand' | 'product' }) {
+  const { resolvedTheme } = useTheme();
+  const tpLogo = resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite;
+
   return (
     <div className="flex flex-col items-center justify-center py-20 animate-fade-in">
       <div className="relative mb-6">
         <div className="w-16 h-16 relative">
           <div className="absolute inset-0 rounded-xl border-2 border-accent/20 animate-[spin_4s_linear_infinite]" />
           <div className="absolute inset-2 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
-            <Sparkles className="h-6 w-6 text-accent animate-pulse" />
+            <img src={tpLogo} alt="TransPerfect" className="h-6 w-auto animate-pulse" />
           </div>
         </div>
       </div>
