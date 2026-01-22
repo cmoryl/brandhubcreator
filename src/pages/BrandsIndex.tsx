@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, lazy, Suspense, useMemo } fro
 import { useNavigate } from 'react-router-dom';
 import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink } from 'lucide-react';
 import { HierarchicalProductList } from '@/components/HierarchicalProductList';
+import { useParallax } from '@/hooks/useParallax';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
@@ -77,6 +78,9 @@ const BrandsIndex = () => {
 
   const recentlyUpdated = getRecentlyUpdated();
   const allFavorites = getFavorites();
+  
+  // Parallax scrolling effect
+  const parallaxOffset = useParallax({ speed: 0.3, maxOffset: 80 });
 
   // Get the appropriate logo based on current theme
   const currentLogo = resolvedTheme === 'dark' 
@@ -217,13 +221,23 @@ const BrandsIndex = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
+      {/* Hero Section with Parallax */}
       <div className="relative overflow-hidden">
-        {/* Dynamic Background */}
-        <HeroBackground />
+        {/* Dynamic Background with Parallax */}
+        <div 
+          className="absolute inset-0 transition-transform duration-100 ease-out"
+          style={{ transform: `translateY(${parallaxOffset * 0.5}px)` }}
+        >
+          <HeroBackground />
+        </div>
         
-        {/* Particle Embers Effect */}
-        <ParticleEmbers count={35} color="hsl(199 89% 58%)" />
+        {/* Particle Embers Effect with Parallax */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{ transform: `translateY(${parallaxOffset * 0.2}px)` }}
+        >
+          <ParticleEmbers count={40} color="hsl(199 89% 58%)" />
+        </div>
 
         {/* Header - Mobile optimized */}
         <header className="relative z-10 animate-fade-in-down">
@@ -358,8 +372,11 @@ const BrandsIndex = () => {
           </div>
         </header>
 
-        {/* Hero Content - Mobile optimized */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-12 pb-16 sm:pb-24">
+        {/* Hero Content - Mobile optimized with Parallax */}
+        <div 
+          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-12 pb-16 sm:pb-24"
+          style={{ transform: `translateY(${parallaxOffset * 0.15}px)` }}
+        >
           <div className="max-w-3xl">
             <div className="flex flex-wrap items-center gap-2 mb-4 sm:mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <div className="px-2.5 sm:px-3 py-1 bg-accent/10 rounded-full border border-accent/20">
@@ -552,13 +569,10 @@ const BrandsIndex = () => {
         </section>
       )}
 
-      {/* Demo Brands Showcase for non-logged-in users */}
-      {/* Demo Brands Showcase - shown based on settings */}
-      {settings.pageSections?.demoBrands !== false && (
-        <Suspense fallback={<div className="py-20 flex justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>
-          <DemoBrandsShowcase onLoginClick={() => navigate('/auth')} />
-        </Suspense>
-      )}
+      {/* Demo Brands Showcase - Always shown on landing page */}
+      <Suspense fallback={<div className="py-20 flex justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>
+        <DemoBrandsShowcase onLoginClick={() => navigate('/auth')} />
+      </Suspense>
 
       {/* Note: PublicGuidesNav removed - demo guides shown via DemoBrandsShowcase above */}
 
