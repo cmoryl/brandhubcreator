@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // Default section order from the frontend
 const DEFAULT_SECTION_ORDER = [
-  'hero', 'tagline', 'identity', 'values', 'services', 'logos', 'brandicon', 'colors', 'gradients',
+  'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'logos', 'brandicon', 'colors', 'gradients',
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons',
   'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
   'casestudies', 'brochures', 'templates', 'products'

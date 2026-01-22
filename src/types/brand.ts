@@ -459,6 +459,8 @@ export interface BaseGuide {
   linkedGuides?: LinkedGuideReference[];
   // Revenue Data (for Revenue Growth chart)
   revenueData?: RevenueDataPoint[];
+  // Statistics (By the Numbers infographic section)
+  statistics?: StatisticItem[];
   // Metadata
   createdAt: Date;
   updatedAt: Date;
@@ -466,7 +468,7 @@ export interface BaseGuide {
 
 // Default section order
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
-  'hero', 'tagline', 'identity', 'values', 'services', 'revenue', 'logos', 'brandicon', 'colors', 'gradients', 
+  'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
   'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
   'casestudies', 'brochures', 'templates', 'products'
@@ -489,6 +491,7 @@ export type SectionId =
   | 'tagline'
   | 'identity'
   | 'values'
+  | 'bythenumbers'
   | 'services'
   | 'revenue'
   | 'logos'
@@ -513,3 +516,14 @@ export type SectionId =
   | 'brochures'
   | 'templates'
   | 'products';
+
+// Statistic item for By the Numbers section
+export interface StatisticItem {
+  id: string;
+  value: string;
+  prefix?: string;
+  suffix?: string;
+  label: string;
+  description?: string;
+  icon?: string; // Lucide icon name
+}
