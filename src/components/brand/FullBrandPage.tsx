@@ -5,6 +5,7 @@ import { TaglineSection } from './TaglineSection';
 import { IdentitySection } from './IdentitySection';
 import { ValuesSection } from './ValuesSection';
 import { ServicesSection } from './ServicesSection';
+import { RevenueChartSection } from './RevenueChartSection';
 import { LogoSection } from './LogoSection';
 import { BrandIconsSection } from './BrandIconsSection';
 import { ColorPaletteSection } from './ColorPaletteSection';
@@ -37,6 +38,7 @@ const sectionAnimations: Record<string, AnimationType> = {
   identity: 'fade-left',
   values: 'fade-up',
   services: 'fade-right',
+  revenue: 'fade-up',
   logos: 'zoom-in',
   brandicon: 'zoom-in',
   colors: 'fade-up',
@@ -216,6 +218,7 @@ export const FullBrandPage = ({
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={(identity) => onBrandUpdate({ identity })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => onBrandUpdate({ values })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'services': return <ServicesSection services={brand.services || []} onServicesChange={(services) => onBrandUpdate({ services })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'revenue': return <RevenueChartSection customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'logos': return <LogoSection logos={brand.logos} onLogosChange={(logos) => onBrandUpdate({ logos })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={(brandIcons) => onBrandUpdate({ brandIcons })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={(colors) => onBrandUpdate({ colors })} colorCombinations={brand.colorCombinations} onColorCombinationsChange={(colorCombinations) => onBrandUpdate({ colorCombinations })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} />;
