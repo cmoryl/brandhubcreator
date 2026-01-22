@@ -258,9 +258,11 @@ const BrandsIndex = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <div className="flex items-center gap-2">
-                <div className="h-8 sm:h-10 w-8 sm:w-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-bold text-xs sm:text-sm">BH</span>
-                </div>
+                <img 
+                  src={resolvedTheme === 'dark' ? tpLogoWhite : tpLogoColor} 
+                  alt="BrandHUB" 
+                  className="h-8 sm:h-10 w-8 sm:w-10 object-contain flex-shrink-0" 
+                />
                 <span className="font-semibold text-lg sm:text-2xl text-foreground">
                   Brand<span className="text-accent">HUB</span>
                 </span>
