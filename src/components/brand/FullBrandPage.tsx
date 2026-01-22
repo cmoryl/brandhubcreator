@@ -4,6 +4,7 @@ import { HeroSection } from './HeroSection';
 import { TaglineSection } from './TaglineSection';
 import { IdentitySection } from './IdentitySection';
 import { ValuesSection } from './ValuesSection';
+import { ByTheNumbersSection } from './ByTheNumbersSection';
 import { ServicesSection } from './ServicesSection';
 import { RevenueChartSection } from './RevenueChartSection';
 import { LogoSection } from './LogoSection';
@@ -37,6 +38,7 @@ const sectionAnimations: Record<string, AnimationType> = {
   tagline: 'blur-in',
   identity: 'fade-left',
   values: 'fade-up',
+  bythenumbers: 'zoom-in',
   services: 'fade-right',
   revenue: 'fade-up',
   logos: 'zoom-in',
@@ -217,6 +219,7 @@ export const FullBrandPage = ({
       case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={(tagline) => onBrandUpdate({ tagline })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={(identity) => onBrandUpdate({ identity })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => onBrandUpdate({ values })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'bythenumbers': return <ByTheNumbersSection statistics={brand.statistics || []} onStatisticsChange={(statistics) => onBrandUpdate({ statistics })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} />;
       case 'services': return <ServicesSection services={brand.services || []} onServicesChange={(services) => onBrandUpdate({ services })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'revenue': return <RevenueChartSection revenueData={brand.revenueData} onRevenueDataChange={(revenueData) => onBrandUpdate({ revenueData })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} />;
       case 'logos': return <LogoSection logos={brand.logos} onLogosChange={(logos) => onBrandUpdate({ logos })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
