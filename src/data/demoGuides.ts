@@ -11,7 +11,7 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   isFavorite: false,
   isPublic: true,
   sectionOrder: [
-    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'logos', 'brandicon', 'colors', 'gradients', 
+    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'logos', 'brandicon', 'colors', 'gradients', 'patterns',
     'typography', 'textstyles', 'imagery', 'social', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
     'casestudies', 'brochures', 'templates'
   ] as SectionId[],
@@ -75,8 +75,8 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'g3', name: 'Aurora', css: 'linear-gradient(135deg, #0066FF 0%, #8B5CF6 50%, #00D4FF 100%)' },
   ],
   patterns: [
-    { id: 'p1', name: 'Circuit Pattern', url: '' },
-    { id: 'p2', name: 'Dot Grid', url: '' },
+    { id: 'p1', name: 'Hexagonal Network', url: '/images/demos/pattern-nexus-tech.jpg' },
+    { id: 'p2', name: 'Circuit Nodes', url: '/images/demos/pattern-nexus-tech.jpg' },
   ],
   typography: [
     { id: 't1', name: 'Display', fontFamily: 'Inter', weight: '700', usage: 'Headlines, hero sections, key statements', role: 'display' },
@@ -186,7 +186,7 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   isFavorite: false,
   isPublic: true,
   sectionOrder: [
-    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'logos', 'colors', 'gradients', 
+    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'logos', 'colors', 'gradients', 'patterns',
     'typography', 'imagery', 'social', 'website', 'qr'
   ] as SectionId[],
   hiddenSections: [],
@@ -244,7 +244,10 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'g1', name: 'Morning Bloom', css: 'linear-gradient(135deg, #7CB342 0%, #B39DDB 100%)' },
     { id: 'g2', name: 'Sunset Wellness', css: 'linear-gradient(180deg, #FFF8E7 0%, #FFE0B2 100%)' },
   ],
-  patterns: [],
+  patterns: [
+    { id: 'p1', name: 'Botanical Leaves', url: '/images/demos/pattern-bloom-wellness.jpg' },
+    { id: 'p2', name: 'Fern & Eucalyptus', url: '/images/demos/pattern-bloom-wellness.jpg' },
+  ],
   typography: [
     { id: 't1', name: 'Display', fontFamily: 'Playfair Display', weight: '600', usage: 'Headlines, hero sections', role: 'display' },
     { id: 't2', name: 'Body', fontFamily: 'Lato', weight: '400', usage: 'Body text, paragraphs', role: 'body' },
@@ -307,7 +310,7 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
   isFavorite: false,
   isPublic: true,
   sectionOrder: [
-    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'logos', 'colors', 'gradients', 'typography', 'imagery'
+    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'logos', 'colors', 'gradients', 'patterns', 'typography', 'imagery'
   ] as SectionId[],
   hiddenSections: [],
   hero: {
@@ -347,7 +350,10 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
   gradients: [
     { id: 'g1', name: 'Cloud Gradient', css: 'linear-gradient(135deg, #3B82F6 0%, #14B8A6 100%)' },
   ],
-  patterns: [],
+  patterns: [
+    { id: 'p1', name: 'Cloud Infrastructure', url: '/images/demos/pattern-nexus-cloud.jpg' },
+    { id: 'p2', name: 'Connected Nodes', url: '/images/demos/pattern-nexus-cloud.jpg' },
+  ],
   typography: [
     { id: 't1', name: 'Display', fontFamily: 'Inter', weight: '700', usage: 'Headlines', role: 'display' },
     { id: 't2', name: 'Code', fontFamily: 'Fira Code', weight: '400', usage: 'Code examples', role: 'body' },
@@ -406,7 +412,7 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
   isFavorite: false,
   isPublic: true,
   sectionOrder: [
-    'hero', 'tagline', 'identity', 'values', 'services', 'logos', 'colors', 'gradients', 'typography', 'imagery'
+    'hero', 'tagline', 'identity', 'values', 'services', 'logos', 'colors', 'gradients', 'patterns', 'typography', 'imagery'
   ] as SectionId[],
   hiddenSections: [],
   hero: {
@@ -445,7 +451,10 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
   gradients: [
     { id: 'g1', name: 'Aromatherapy', css: 'linear-gradient(135deg, #9575CD 0%, #4DB6AC 100%)' },
   ],
-  patterns: [],
+  patterns: [
+    { id: 'p1', name: 'Lavender Essence', url: '/images/demos/pattern-bloom-oils.jpg' },
+    { id: 'p2', name: 'Botanical Drops', url: '/images/demos/pattern-bloom-oils.jpg' },
+  ],
   typography: [
     { id: 't1', name: 'Display', fontFamily: 'Cormorant Garamond', weight: '500', usage: 'Headlines', role: 'display' },
     { id: 't2', name: 'Body', fontFamily: 'Lato', weight: '400', usage: 'Body text', role: 'body' },
