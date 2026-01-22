@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { X, Pencil, Upload, Download, Package } from 'lucide-react';
+import { X, Pencil, Upload, Download, Package, Maximize2 } from 'lucide-react';
 import { BrandPattern, LayoutPreset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,19 @@ import { SectionHeader } from './SectionHeader';
 import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
 import { toast } from 'sonner';
 import { useDropZone } from '@/components/ui/drop-zone';
-import { OptimizedImage } from '@/components/ui/optimized-image';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface PatternsSectionProps {
   patterns: BrandPattern[];
@@ -18,9 +30,18 @@ interface PatternsSectionProps {
   onLayoutChange?: (layout: LayoutPreset) => void;
 }
 
+const RESOLUTION_OPTIONS = [
+  { label: '512 × 512', value: '512', size: 512 },
+  { label: '1024 × 1024', value: '1024', size: 1024 },
+  { label: '2048 × 2048', value: '2048', size: 2048 },
+  { label: '4096 × 4096 (4K)', value: '4096', size: 4096 },
+];
+
 export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, onSubtitleChange, layout = 'grid-3', onLayoutChange }: PatternsSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const [previewPattern, setPreviewPattern] = useState<BrandPattern | null>(null);
+  const [downloadResolution, setDownloadResolution] = useState('1024');
   const { gridClass } = useLayoutClasses(layout);
 
   const handleFileDrop = useCallback((file: File) => {
@@ -51,14 +72,78 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
     if (editingId === id) setEditingId(null);
   };
 
+  const downloadPatternHighRes = async (pattern: BrandPattern, resolution: number) => {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = resolution;
+      canvas.height = resolution;
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        toast.error('Canvas not supported');
+        return;
+      }
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => {
+          // Tile the pattern across the canvas
+          const patternCanvas = document.createElement('canvas');
+          const patternCtx = patternCanvas.getContext('2d');
+          if (!patternCtx) {
+            reject(new Error('Pattern canvas not supported'));
+            return;
+          }
+          
+          // Use source dimensions for tiling
+          patternCanvas.width = img.width;
+          patternCanvas.height = img.height;
+          patternCtx.drawImage(img, 0, 0);
+          
+          const canvasPattern = ctx.createPattern(patternCanvas, 'repeat');
+          if (canvasPattern) {
+            ctx.fillStyle = canvasPattern;
+            ctx.fillRect(0, 0, resolution, resolution);
+          } else {
+            // Fallback: scale image to fill
+            ctx.drawImage(img, 0, 0, resolution, resolution);
+          }
+          resolve();
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = pattern.url;
+      });
+
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob(resolve, 'image/png', 1.0);
+      });
+
+      if (!blob) {
+        toast.error('Failed to generate image');
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${pattern.name}-${resolution}x${resolution}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success(`Downloaded ${pattern.name} at ${resolution}×${resolution}`);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download pattern');
+    }
+  };
+
   const downloadPattern = (pattern: BrandPattern) => {
-    const link = document.createElement('a');
-    link.href = pattern.url;
-    link.download = `${pattern.name}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success(`Downloaded ${pattern.name}`);
+    const resolution = RESOLUTION_OPTIONS.find(r => r.value === downloadResolution)?.size || 1024;
+    downloadPatternHighRes(pattern, resolution);
   };
 
   const downloadAllPatterns = async () => {
@@ -67,14 +152,12 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
       return;
     }
     
+    const resolution = RESOLUTION_OPTIONS.find(r => r.value === downloadResolution)?.size || 1024;
+    toast.info(`Downloading ${patterns.length} patterns at ${resolution}×${resolution}...`);
+    
     for (const pattern of patterns) {
-      const link = document.createElement('a');
-      link.href = pattern.url;
-      link.download = `pattern-${pattern.name}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await downloadPatternHighRes(pattern, resolution);
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
     toast.success(`Downloaded ${patterns.length} pattern(s)`);
   };
@@ -92,7 +175,7 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
           {onLayoutChange && (
             <LayoutSelector
               value={layout}
@@ -101,6 +184,16 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
               size="sm"
             />
           )}
+          <Select value={downloadResolution} onValueChange={setDownloadResolution}>
+            <SelectTrigger className="w-[140px] h-9">
+              <SelectValue placeholder="Resolution" />
+            </SelectTrigger>
+            <SelectContent>
+              {RESOLUTION_OPTIONS.map(opt => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {patterns.length > 0 && (
             <Button onClick={downloadAllPatterns} variant="outline" size="sm" className="gap-2">
               <Package className="h-4 w-4" />
@@ -109,7 +202,7 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
           )}
           <Button onClick={openFilePicker} size="sm" className="gap-2">
             <Upload className="h-4 w-4" />
-            Upload Pattern
+            Upload
           </Button>
         </div>
       </div>
@@ -134,19 +227,23 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
           >
             {/* Pattern preview */}
             <div
-              className="h-32 relative"
-              style={{ backgroundImage: `url(${pattern.url})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+              className="h-32 relative cursor-pointer"
+              style={{ backgroundImage: `url(${pattern.url})`, backgroundSize: '64px 64px', backgroundRepeat: 'repeat' }}
+              onClick={() => setPreviewPattern(pattern)}
             >
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+              </div>
               <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
-                  onClick={() => downloadPattern(pattern)}
+                  onClick={(e) => { e.stopPropagation(); downloadPattern(pattern); }}
                   className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-secondary"
                   title="Download"
                 >
                   <Download className="h-3.5 w-3.5" />
                 </button>
                 <button
-                  onClick={() => deletePattern(pattern.id)}
+                  onClick={(e) => { e.stopPropagation(); deletePattern(pattern.id); }}
                   className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -170,10 +267,10 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
                 </div>
               ) : (
                 <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-foreground">{pattern.name}</h3>
+                  <h3 className="font-medium text-foreground truncate">{pattern.name}</h3>
                   <button
                     onClick={() => setEditingId(pattern.id)}
-                    className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+                    className="p-1.5 rounded-md hover:bg-secondary transition-colors shrink-0"
                   >
                     <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                   </button>
@@ -208,6 +305,48 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
           </div>
         </div>
       )}
+
+      {/* Pattern Preview Modal */}
+      <Dialog open={!!previewPattern} onOpenChange={() => setPreviewPattern(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>{previewPattern?.name}</span>
+              <div className="flex items-center gap-2">
+                <Select value={downloadResolution} onValueChange={setDownloadResolution}>
+                  <SelectTrigger className="w-[140px] h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RESOLUTION_OPTIONS.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button 
+                  size="sm" 
+                  onClick={() => previewPattern && downloadPattern(previewPattern)}
+                  className="gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download
+                </Button>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div 
+            className="w-full aspect-square rounded-lg border border-border"
+            style={{ 
+              backgroundImage: previewPattern ? `url(${previewPattern.url})` : undefined, 
+              backgroundSize: '64px 64px', 
+              backgroundRepeat: 'repeat' 
+            }}
+          />
+          <p className="text-sm text-muted-foreground text-center">
+            Tileable pattern preview • Select resolution and download for high-quality export
+          </p>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
