@@ -4,9 +4,10 @@ import { SectionHeader } from './SectionHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
+import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Download, TrendingUp, TrendingDown, DollarSign, BarChart3, Target } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Download, TrendingUp, TrendingDown, DollarSign, BarChart3, Target, Pencil, Plus, Trash2, X, Check, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { RevenueDataPoint } from '@/types/brand';
 
@@ -98,6 +99,17 @@ export const RevenueChartSection = ({
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
+  
+  // Edit mode states
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<RevenueDataPoint | null>(null);
+  const [newEntry, setNewEntry] = useState<{ year: string; revenue: string; facts: string }>({
+    year: '',
+    revenue: '',
+    facts: ''
+  });
+  const [deleteConfirmYear, setDeleteConfirmYear] = useState<number | null>(null);
 
   // Update range when data changes
   useEffect(() => {
@@ -194,6 +206,65 @@ export const RevenueChartSection = ({
     );
   }, [chartData]);
 
+  // Edit mode handlers
+  const handleAddEntry = useCallback(() => {
+    const year = parseInt(newEntry.year);
+    const revenue = parseFloat(newEntry.revenue);
+    
+    if (isNaN(year) || year < 1900 || year > 2100) {
+      toast.error('Please enter a valid year (1900-2100)');
+      return;
+    }
+    
+    if (isNaN(revenue) || revenue <= 0) {
+      toast.error('Please enter a valid revenue amount');
+      return;
+    }
+    
+    // Check if year already exists
+    if (chartData.some(d => d.year === year)) {
+      toast.error(`Year ${year} already exists. Edit the existing entry instead.`);
+      return;
+    }
+    
+    const facts = newEntry.facts.split('\n').filter(f => f.trim());
+    const newDataPoint: RevenueDataPoint = { year, revenue, facts };
+    
+    const updatedData = [...chartData, newDataPoint].sort((a, b) => a.year - b.year);
+    onRevenueDataChange?.(updatedData);
+    
+    setNewEntry({ year: '', revenue: '', facts: '' });
+    setIsAddDialogOpen(false);
+    toast.success(`Added revenue data for ${year}`);
+  }, [newEntry, chartData, onRevenueDataChange]);
+
+  const handleUpdateEntry = useCallback(() => {
+    if (!editingEntry) return;
+    
+    const updatedData = chartData.map(d => 
+      d.year === editingEntry.year ? editingEntry : d
+    );
+    onRevenueDataChange?.(updatedData);
+    setEditingEntry(null);
+    toast.success(`Updated ${editingEntry.year} data`);
+  }, [editingEntry, chartData, onRevenueDataChange]);
+
+  const handleDeleteEntry = useCallback((year: number) => {
+    const updatedData = chartData.filter(d => d.year !== year);
+    if (updatedData.length === 0) {
+      toast.error('Cannot delete the last entry. At least one year is required.');
+      return;
+    }
+    onRevenueDataChange?.(updatedData);
+    setDeleteConfirmYear(null);
+    toast.success(`Deleted ${year} data`);
+  }, [chartData, onRevenueDataChange]);
+
+  const handleResetToDefaults = useCallback(() => {
+    onRevenueDataChange?.(DEFAULT_REVENUE_DATA);
+    toast.success('Reset to TransPerfect default data');
+  }, [onRevenueDataChange]);
+
   return (
     <section className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -207,11 +278,159 @@ export const RevenueChartSection = ({
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button onClick={handleExport} variant="outline" size="sm" className="gap-2">
-          <Download className="h-4 w-4" />
-          Export
-        </Button>
+        <div className="flex items-center gap-2">
+          {onRevenueDataChange && (
+            <Button 
+              onClick={() => setIsEditMode(!isEditMode)} 
+              variant={isEditMode ? "default" : "outline"} 
+              size="sm" 
+              className="gap-2"
+            >
+              {isEditMode ? <X className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
+              {isEditMode ? 'Exit Edit' : 'Edit Data'}
+            </Button>
+          )}
+          <Button onClick={handleExport} variant="outline" size="sm" className="gap-2">
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
+        </div>
       </div>
+      
+      {/* Edit Mode Controls */}
+      {isEditMode && onRevenueDataChange && (
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-2">
+              <Pencil className="h-4 w-4 text-primary" />
+              <span className="font-semibold text-sm">Edit Mode</span>
+              <span className="text-xs text-muted-foreground">• Click on year rows below to edit</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Year
+              </Button>
+              <Button onClick={handleResetToDefaults} variant="outline" size="sm" className="gap-2">
+                <RotateCcw className="h-4 w-4" />
+                Reset to Default
+              </Button>
+            </div>
+          </div>
+          
+          {/* Editable Data Table */}
+          <div className="bg-card border border-border rounded-xl overflow-hidden max-h-[300px] overflow-y-auto">
+            <table className="w-full">
+              <thead className="sticky top-0 bg-muted/90 backdrop-blur-sm z-10">
+                <tr className="border-b border-border">
+                  <th className="px-4 py-2 text-left text-xs font-bold text-muted-foreground uppercase tracking-wide w-20">Year</th>
+                  <th className="px-4 py-2 text-left text-xs font-bold text-muted-foreground uppercase tracking-wide w-32">Revenue</th>
+                  <th className="px-4 py-2 text-left text-xs font-bold text-muted-foreground uppercase tracking-wide">Facts</th>
+                  <th className="px-4 py-2 text-right text-xs font-bold text-muted-foreground uppercase tracking-wide w-24">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {chartData.map((entry) => (
+                  <tr key={entry.year} className="hover:bg-muted/30 transition-colors">
+                    {editingEntry?.year === entry.year ? (
+                      <>
+                        <td className="px-4 py-2">
+                          <span className="text-sm font-bold">{entry.year}</span>
+                        </td>
+                        <td className="px-4 py-2">
+                          <Input
+                            type="number"
+                            step="0.1"
+                            value={editingEntry.revenue}
+                            onChange={(e) => setEditingEntry({ ...editingEntry, revenue: parseFloat(e.target.value) || 0 })}
+                            className="h-8 w-28"
+                          />
+                        </td>
+                        <td className="px-4 py-2">
+                          <Textarea
+                            value={editingEntry.facts?.join('\n') || ''}
+                            onChange={(e) => setEditingEntry({ 
+                              ...editingEntry, 
+                              facts: e.target.value.split('\n').filter(f => f.trim()) 
+                            })}
+                            placeholder="One fact per line..."
+                            className="min-h-[60px] text-sm"
+                          />
+                        </td>
+                        <td className="px-4 py-2 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={handleUpdateEntry}>
+                              <Check className="h-4 w-4 text-green-600" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setEditingEntry(null)}>
+                              <X className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </div>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="px-4 py-2">
+                          <span className="text-sm font-bold">{entry.year}</span>
+                        </td>
+                        <td className="px-4 py-2">
+                          <span className="text-sm font-medium tabular-nums">{formatRevenue(entry.revenue)}</span>
+                        </td>
+                        <td className="px-4 py-2">
+                          <span className="text-sm text-muted-foreground line-clamp-1">
+                            {entry.facts?.join(' • ') || '—'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="h-7 w-7 p-0" 
+                              onClick={() => setEditingEntry({ ...entry })}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            {deleteConfirmYear === entry.year ? (
+                              <>
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="h-7 w-7 p-0" 
+                                  onClick={() => handleDeleteEntry(entry.year)}
+                                >
+                                  <Check className="h-4 w-4 text-red-600" />
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="h-7 w-7 p-0" 
+                                  onClick={() => setDeleteConfirmYear(null)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </>
+                            ) : (
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-7 w-7 p-0 text-destructive hover:text-destructive" 
+                                onClick={() => setDeleteConfirmYear(entry.year)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Controls */}
       <div className="flex flex-wrap gap-3">
@@ -457,7 +676,7 @@ export const RevenueChartSection = ({
           <div className="mt-4">
             <div className="bg-card border border-border rounded-xl p-6">
               <div className="text-center mb-4">
-                <h3 className="text-xl font-bold">TransPerfect Revenue Growth</h3>
+                <h3 className="text-xl font-bold">{brandName} Revenue Growth</h3>
                 <p className="text-sm text-muted-foreground">{yearRange[0]} – {yearRange[1]}</p>
               </div>
               <div className="h-[300px]">
@@ -480,6 +699,50 @@ export const RevenueChartSection = ({
               Right-click (desktop) or long-press (mobile) the chart area to save as image.
             </p>
           </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Add Year Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Revenue Year</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Year</label>
+              <Input
+                type="number"
+                placeholder="e.g., 2026"
+                value={newEntry.year}
+                onChange={(e) => setNewEntry({ ...newEntry, year: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Revenue (in millions USD)</label>
+              <Input
+                type="number"
+                step="0.1"
+                placeholder="e.g., 1500 for $1.5B"
+                value={newEntry.revenue}
+                onChange={(e) => setNewEntry({ ...newEntry, revenue: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">Enter value in millions. E.g., 1500 = $1.5B, 250 = $250M</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Year Highlights (one per line)</label>
+              <Textarea
+                placeholder="Major acquisition completed&#10;New market expansion&#10;Record revenue year"
+                value={newEntry.facts}
+                onChange={(e) => setNewEntry({ ...newEntry, facts: e.target.value })}
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddEntry}>Add Year</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </section>
