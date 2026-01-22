@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer } from 'lucide-react';
+import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseGuide, DEFAULT_SECTION_ORDER, SectionId, BrandSocialAssetSpec, BrandDisplayBannerSpec, TemplateSpec } from '@/types/brand';
 import { exportToPdf, PdfTheme, PaperSize, PAPER_SIZES, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
@@ -18,17 +18,25 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
 interface ExportPdfButtonProps {
   guide: BaseGuide;
 }
 
+// Get section label from metadata
+const getSectionLabel = (sectionId: SectionId): string => {
+  const meta = SECTION_METADATA.find(s => s.id === sectionId);
+  return meta?.label || sectionId;
+};
+
 export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [pdfTheme, setPdfTheme] = useState<PdfTheme>('light');
   const [paperSize, setPaperSize] = useState<PaperSize>('a4');
+  const [includeToc, setIncludeToc] = useState(true);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [selectedSections, setSelectedSections] = useState<Set<SectionId>>(new Set(DEFAULT_SECTION_ORDER));
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['core', 'visual']));
@@ -182,6 +190,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
   const t = themeClasses[pdfTheme];
   const paper = PAPER_SIZES[paperSize];
 
+  // Group sections by category for the selection UI
   const groupedSections = useMemo(() => {
     const groups: Record<string, typeof SECTION_METADATA> = {};
     SECTION_METADATA.forEach(section => {
@@ -191,6 +200,76 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
     return groups;
   }, []);
 
+  // Get ordered list of sections that will be included (for TOC)
+  const includedSections = useMemo(() => {
+    return sectionOrder.filter(id => selectedSections.has(id) && hasSectionContent(id) && id !== 'hero');
+  }, [sectionOrder, selectedSections, hasSectionContent]);
+
+  // Render Table of Contents
+  const renderTableOfContents = () => {
+    if (!includeToc || includedSections.length === 0) return null;
+
+    // Group sections by category for organized TOC
+    const groupedTocSections: Record<string, SectionId[]> = {};
+    includedSections.forEach(sectionId => {
+      const meta = SECTION_METADATA.find(s => s.id === sectionId);
+      const category = meta?.category || 'other';
+      if (!groupedTocSections[category]) groupedTocSections[category] = [];
+      groupedTocSections[category].push(sectionId);
+    });
+
+    return (
+      <div className={cn("py-8 border-b pdf-page-break-after", t.border)} key="toc">
+        <div className="flex items-center gap-2 mb-6">
+          <List className={cn("h-5 w-5", t.text)} />
+          <h2 className={cn("text-2xl font-bold", t.text)}>Table of Contents</h2>
+        </div>
+        
+        <div className="space-y-4">
+          {Object.entries(groupedTocSections).map(([category, sections], categoryIndex) => (
+            <div key={category}>
+              <h3 className={cn("text-xs font-semibold uppercase tracking-wider mb-2", t.textSubtle)}>
+                {CATEGORY_LABELS[category] || category}
+              </h3>
+              <div className="space-y-1">
+                {sections.map((sectionId, index) => {
+                  const globalIndex = includedSections.indexOf(sectionId) + 1;
+                  return (
+                    <a
+                      key={sectionId}
+                      href={`#pdf-section-${sectionId}`}
+                      className={cn(
+                        "flex items-center justify-between py-1.5 px-2 rounded hover:bg-opacity-10 transition-colors group",
+                        t.card
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={cn("text-xs font-mono w-6 text-center", t.textMuted)}>
+                          {String(globalIndex).padStart(2, '0')}
+                        </span>
+                        <span className={cn("text-sm font-medium", t.text)}>
+                          {getSectionLabel(sectionId)}
+                        </span>
+                      </div>
+                      <div className={cn("flex items-center gap-2", t.textMuted)}>
+                        <span className="hidden group-hover:inline text-xs">Jump to section</span>
+                        <span className="text-xs font-mono">→</span>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className={cn("mt-6 pt-4 border-t text-xs text-center", t.border, t.textSubtle)}>
+          {includedSections.length} section{includedSections.length !== 1 ? 's' : ''} in this guide
+        </div>
+      </div>
+    );
+  };
+
   const renderSection = (sectionId: SectionId) => {
     if (!selectedSections.has(sectionId)) return null;
     if (!hasSectionContent(sectionId)) return null;
@@ -198,7 +277,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
     switch (sectionId) {
       case 'hero':
         return (
-          <div className={cn("text-center py-12 border-b-4 pdf-avoid-break", t.accent)} key="hero">
+          <div id="pdf-section-hero" className={cn("text-center py-12 border-b-4 pdf-avoid-break", t.accent)} key="hero">
             {guide.hero.logoUrl && (
               <img 
                 src={guide.hero.logoUrl} 
@@ -224,7 +303,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'tagline':
         if (!guide.tagline?.primary) return null;
         return (
-          <div className={cn("py-6 border-b pdf-avoid-break", t.border)} key="tagline">
+          <div id="pdf-section-tagline" className={cn("py-6 border-b pdf-avoid-break", t.border)} key="tagline">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Corporate Tagline</h2>
             <div className={cn("p-4 rounded-lg text-center", t.card)}>
               <p className={cn("text-2xl font-semibold", t.text)}
@@ -254,7 +333,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'identity':
         if (!guide.identity.missionStatement && !guide.identity.archetype && guide.identity.toneOfVoice.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b pdf-avoid-break", t.border)} key="identity">
+          <div id="pdf-section-identity" className={cn("py-6 border-b pdf-avoid-break", t.border)} key="identity">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Brand Identity</h2>
             {guide.identity.missionStatement && (
               <p className={cn("text-base mb-3", t.text)}>{guide.identity.missionStatement}</p>
@@ -274,7 +353,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'values':
         if (guide.values.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="values">
+          <div id="pdf-section-values" className={cn("py-6 border-b", t.border)} key="values">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Core Values</h2>
             <div className="grid grid-cols-2 gap-3">
               {guide.values.map((value) => (
@@ -290,7 +369,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'bythenumbers':
         if (!guide.statistics || guide.statistics.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="bythenumbers">
+          <div id="pdf-section-bythenumbers" className={cn("py-6 border-b", t.border)} key="bythenumbers">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>By the Numbers</h2>
             <div className="grid grid-cols-3 gap-3">
               {guide.statistics.slice(0, 6).map((stat) => (
@@ -308,7 +387,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'services':
         if (!guide.services || guide.services.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="services">
+          <div id="pdf-section-services" className={cn("py-6 border-b", t.border)} key="services">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Services</h2>
             <div className="grid grid-cols-2 gap-3">
               {guide.services.map((service) => (
@@ -327,7 +406,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
         const latestRevenue = sortedRevenue[sortedRevenue.length - 1];
         const earliestRevenue = sortedRevenue[0];
         return (
-          <div className={cn("py-6 border-b pdf-avoid-break", t.border)} key="revenue">
+          <div id="pdf-section-revenue" className={cn("py-6 border-b pdf-avoid-break", t.border)} key="revenue">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Revenue Growth</h2>
             <div className={cn("p-4 rounded-lg", t.card)}>
               <div className="flex justify-between items-center mb-3">
@@ -359,7 +438,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'logos':
         if (guide.logos.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="logos">
+          <div id="pdf-section-logos" className={cn("py-6 border-b", t.border)} key="logos">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Logo Variations</h2>
             <div className="grid grid-cols-3 gap-3">
               {guide.logos.map((logo) => (
@@ -380,7 +459,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'brandicon':
         if (guide.brandIcons.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="brandicon">
+          <div id="pdf-section-brandicon" className={cn("py-6 border-b", t.border)} key="brandicon">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Brand Icons</h2>
             <div className="grid grid-cols-4 gap-3">
               {guide.brandIcons.map((icon) => (
@@ -396,7 +475,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'colors':
         if (guide.colors.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="colors">
+          <div id="pdf-section-colors" className={cn("py-6 border-b", t.border)} key="colors">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Color Palette</h2>
             <div className="grid grid-cols-2 gap-3">
               {guide.colors.map((color) => {
@@ -442,7 +521,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'gradients':
         if (guide.gradients.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="gradients">
+          <div id="pdf-section-gradients" className={cn("py-6 border-b", t.border)} key="gradients">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Gradients</h2>
             <div className="grid grid-cols-2 gap-3">
               {guide.gradients.map((gradient) => (
@@ -462,7 +541,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'patterns':
         if (guide.patterns.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="patterns">
+          <div id="pdf-section-patterns" className={cn("py-6 border-b", t.border)} key="patterns">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Patterns</h2>
             <div className="grid grid-cols-3 gap-3">
               {guide.patterns.map((pattern) => (
@@ -478,7 +557,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'typography':
         if (guide.typography.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="typography">
+          <div id="pdf-section-typography" className={cn("py-6 border-b", t.border)} key="typography">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Typography</h2>
             <div className="space-y-3">
               {guide.typography.map((type) => (
@@ -497,7 +576,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'textstyles':
         if (guide.textStyles.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="textstyles">
+          <div id="pdf-section-textstyles" className={cn("py-6 border-b", t.border)} key="textstyles">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Text Styles</h2>
             <div className="space-y-1">
               {guide.textStyles.map((style) => (
@@ -515,7 +594,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'iconography':
         if (guide.iconography.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="iconography">
+          <div id="pdf-section-iconography" className={cn("py-6 border-b", t.border)} key="iconography">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Iconography</h2>
             <div className="grid grid-cols-6 gap-2">
               {guide.iconography.slice(0, 24).map((icon) => (
@@ -540,7 +619,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'socialicons':
         if (guide.socialIcons.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="socialicons">
+          <div id="pdf-section-socialicons" className={cn("py-6 border-b", t.border)} key="socialicons">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Social Icons</h2>
             <div className="grid grid-cols-6 gap-2">
               {guide.socialIcons.map((icon) => (
@@ -560,7 +639,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'imagery':
         if (guide.imagery.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="imagery">
+          <div id="pdf-section-imagery" className={cn("py-6 border-b", t.border)} key="imagery">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Imagery Guidelines</h2>
             <div className="grid grid-cols-2 gap-3">
               {guide.imagery.map((img) => (
@@ -584,7 +663,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'social':
         if (guide.social.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="social">
+          <div id="pdf-section-social" className={cn("py-6 border-b", t.border)} key="social">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Social Profiles</h2>
             <div className="grid grid-cols-2 gap-2">
               {guide.social.map((profile) => (
@@ -610,7 +689,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
         const displayBanners = guide.displayBanners || [];
         if (socialAssets.length === 0 && displayBanners.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="socialassets">
+          <div id="pdf-section-socialassets" className={cn("py-6 border-b", t.border)} key="socialassets">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Social Assets & Banner Specifications</h2>
             {socialAssets.length > 0 && (
               <div className="mb-4">
@@ -650,7 +729,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'website':
         if (!guide.websites || guide.websites.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="website">
+          <div id="pdf-section-website" className={cn("py-6 border-b", t.border)} key="website">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Website Links</h2>
             <div className="space-y-2">
               {guide.websites.map((site) => (
@@ -666,7 +745,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'signatures':
         if (guide.signatures.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="signatures">
+          <div id="pdf-section-signatures" className={cn("py-6 border-b", t.border)} key="signatures">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Email Signatures</h2>
             <div className="space-y-3">
               {guide.signatures.map((sig) => (
@@ -683,7 +762,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
 
       case 'qr':
         return (
-          <div className={cn("py-6 border-b pdf-avoid-break", t.border)} key="qr">
+          <div id="pdf-section-qr" className={cn("py-6 border-b pdf-avoid-break", t.border)} key="qr">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>QR Code</h2>
             <div className={cn("p-4 rounded-lg flex items-start gap-4", t.card)}>
               {qrCodeDataUrl && (
@@ -716,7 +795,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'videos':
         if (!guide.videos || guide.videos.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="videos">
+          <div id="pdf-section-videos" className={cn("py-6 border-b", t.border)} key="videos">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Video Resources</h2>
             <div className="space-y-2">
               {guide.videos.map((video) => (
@@ -733,7 +812,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'assets':
         if (guide.assets.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="assets">
+          <div id="pdf-section-assets" className={cn("py-6 border-b", t.border)} key="assets">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Brand Assets</h2>
             <div className="space-y-1">
               {guide.assets.map((asset) => (
@@ -752,7 +831,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'misuse':
         if (guide.misuse.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="misuse">
+          <div id="pdf-section-misuse" className={cn("py-6 border-b", t.border)} key="misuse">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Logo Misuse</h2>
             <div className="grid grid-cols-2 gap-3">
               {guide.misuse.map((item) => (
@@ -768,7 +847,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'casestudies':
         if (guide.caseStudies.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="casestudies">
+          <div id="pdf-section-casestudies" className={cn("py-6 border-b", t.border)} key="casestudies">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Case Studies</h2>
             <div className="space-y-3">
               {guide.caseStudies.map((study) => (
@@ -787,7 +866,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'brochures':
         if (guide.brochures.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="brochures">
+          <div id="pdf-section-brochures" className={cn("py-6 border-b", t.border)} key="brochures">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Brochures</h2>
             <div className="grid grid-cols-2 gap-3">
               {guide.brochures.map((brochure) => (
@@ -806,7 +885,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'templates':
         if (guide.templates.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="templates">
+          <div id="pdf-section-templates" className={cn("py-6 border-b", t.border)} key="templates">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Templates</h2>
             <div className="space-y-1">
               {guide.templates.map((template) => (
@@ -825,7 +904,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'templatespecs':
         if (!guide.templateSpecs || guide.templateSpecs.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b", t.border)} key="templatespecs">
+          <div id="pdf-section-templatespecs" className={cn("py-6 border-b", t.border)} key="templatespecs">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Template Specifications</h2>
             {guide.templateSpecs.map((spec: TemplateSpec) => (
               <div key={spec.id} className={cn("p-3 rounded-lg mb-3 pdf-avoid-break", t.card)}>
@@ -852,7 +931,7 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
       case 'products':
         if (!guide.linkedGuides || guide.linkedGuides.length === 0) return null;
         return (
-          <div className={cn("py-6 border-b pdf-avoid-break", t.border)} key="products">
+          <div id="pdf-section-products" className={cn("py-6 border-b pdf-avoid-break", t.border)} key="products">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Linked Products</h2>
             <p className={cn("text-sm", t.textMuted)}>
               {guide.linkedGuides.length} linked {guide.linkedGuides.length === 1 ? 'guide' : 'guides'} available in the digital brand portal.
@@ -928,6 +1007,21 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
                       Letter
                     </ToggleGroupItem>
                   </ToggleGroup>
+                </div>
+
+                {/* Table of Contents Toggle */}
+                <div className="flex items-center justify-between py-2 px-1 rounded-md bg-muted/50">
+                  <div className="flex items-center gap-2">
+                    <List className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="toc-toggle" className="text-xs font-medium cursor-pointer">
+                      Include Table of Contents
+                    </Label>
+                  </div>
+                  <Switch
+                    id="toc-toggle"
+                    checked={includeToc}
+                    onCheckedChange={setIncludeToc}
+                  />
                 </div>
               </div>
 
@@ -1029,7 +1123,14 @@ export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
                       maxWidth: '100%',
                     }}
                   >
-                    {sectionOrder.map((sectionId) => renderSection(sectionId))}
+                    {/* Render Hero first */}
+                    {renderSection('hero')}
+                    
+                    {/* Render Table of Contents after Hero */}
+                    {renderTableOfContents()}
+                    
+                    {/* Render remaining sections */}
+                    {sectionOrder.filter(id => id !== 'hero').map((sectionId) => renderSection(sectionId))}
 
                     {/* Footer */}
                     <div className={cn("pt-6 text-center text-xs", t.textSubtle)}>
