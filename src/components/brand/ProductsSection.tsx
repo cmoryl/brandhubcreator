@@ -119,15 +119,15 @@ export const ProductsSection = ({
       ] = await Promise.all([
         // Only fetch by parent_brand_id if we're on a brand
         entityType === 'brand' 
-          ? supabase.from('products').select('id, name, guide_data').eq('parent_brand_id', entityId)
+          ? supabase.from('products').select('id, name, slug, guide_data').eq('parent_brand_id', entityId)
           : Promise.resolve({ data: [], error: null }),
         supabase
           .from('products')
-          .select('id, name, guide_data')
+          .select('id, name, slug, guide_data')
           .neq('id', entityId), // Exclude current product/brand
         supabase
           .from('brands')
-          .select('id, name, guide_data')
+          .select('id, name, slug, guide_data')
           .neq('id', entityId),
       ]);
 
@@ -281,41 +281,37 @@ export const ProductsSection = ({
   };
 
   const unlinkGuide = async (guide: GuideItem) => {
-    if (guide.type === 'product') {
-      // Check if linked via parent_brand_id or manually
-      const isLinkedViaParent = linkedProducts.some(p => 
-        p.id === guide.id && p.type === 'product'
-      );
+    try {
+      if (guide.type === 'product') {
+        // Check if linked via parent_brand_id
+        const isLinkedViaParent = entityType === 'brand';
 
-      if (isLinkedViaParent) {
-        try {
+        if (isLinkedViaParent) {
           const { error } = await supabase
             .from('products')
             .update({ parent_brand_id: null })
             .eq('id', guide.id);
 
           if (error) throw error;
-          toast.success('Product guide unlinked');
-          // Optimistic UI: remove immediately
-          setLinkedProducts(prev => prev.filter(p => p.id !== guide.id));
-          // Refresh available list quietly
-          fetchGuides({ initial: false });
-        } catch (error) {
-          console.error('Error unlinking product:', error);
-          toast.error('Failed to unlink product guide');
         }
       }
-    }
 
-    // Also remove from manual links if present
-    if (onLinkedGuidesChange) {
-      const filtered = linkedGuides.filter(lg => lg.guideId !== guide.id);
-      if (filtered.length !== linkedGuides.length) {
+      // Always remove from manual links
+      if (onLinkedGuidesChange) {
+        const filtered = linkedGuides.filter(lg => lg.guideId !== guide.id);
         onLinkedGuidesChange(filtered);
-        if (guide.type === 'brand') {
-          toast.success('Brand guide unlinked');
-        }
       }
+
+      // Optimistic UI update
+      setLinkedProducts(prev => prev.filter(p => p.id !== guide.id));
+      setAvailableGuides(prev => [...prev, guide]);
+      
+      toast.success(`${guide.type === 'brand' ? 'Brand' : 'Product'} guide unlinked`);
+    } catch (error) {
+      console.error('Error unlinking guide:', error);
+      toast.error('Failed to unlink guide');
+      // Refresh to restore correct state
+      fetchGuides({ initial: false });
     }
   };
 
