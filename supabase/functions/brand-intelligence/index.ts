@@ -117,8 +117,8 @@ serve(async (req) => {
       .maybeSingle();
 
     if (fetchError) {
-      console.error("Fetch error:", fetchError);
-      throw new Error(`Failed to fetch intelligence: ${fetchError.message}`);
+      console.error("[brand-intelligence] Fetch error:", fetchError);
+      throw new Error("Failed to retrieve intelligence data");
     }
 
     // Create if doesn't exist
@@ -135,8 +135,8 @@ serve(async (req) => {
         .single();
 
       if (createError) {
-        console.error("Create error:", createError);
-        throw new Error(`Failed to create intelligence: ${createError.message}`);
+        console.error("[brand-intelligence] Create error:", createError);
+        throw new Error("Failed to create intelligence record");
       }
       intelligence = newIntel;
     }
@@ -167,7 +167,10 @@ serve(async (req) => {
           .update({ knowledge_entries: updatedEntries })
           .eq('id', intelligence.id);
 
-        if (updateError) throw new Error(`Failed to add entry: ${updateError.message}`);
+        if (updateError) {
+          console.error("[brand-intelligence] Update error:", updateError);
+          throw new Error("Failed to add entry");
+        }
 
         return new Response(JSON.stringify({ success: true, entry: newEntry }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -184,7 +187,10 @@ serve(async (req) => {
           .update({ knowledge_entries: filteredEntries })
           .eq('id', intelligence.id);
 
-        if (deleteError) throw new Error(`Failed to delete entry: ${deleteError.message}`);
+        if (deleteError) {
+          console.error("[brand-intelligence] Delete error:", deleteError);
+          throw new Error("Failed to delete entry");
+        }
 
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -343,7 +349,10 @@ Respond with valid JSON matching this structure:
           })
           .eq('id', intelligence.id);
 
-        if (analysisError) throw new Error(`Failed to save analysis: ${analysisError.message}`);
+        if (analysisError) {
+          console.error("[brand-intelligence] Analysis save error:", analysisError);
+          throw new Error("Failed to save analysis results");
+        }
 
         return new Response(JSON.stringify({ 
           success: true, 
@@ -357,9 +366,18 @@ Respond with valid JSON matching this structure:
         throw new Error(`Unknown action: ${action}`);
     }
   } catch (error) {
-    console.error("Brand intelligence error:", error);
+    console.error("[brand-intelligence] Error:", error);
+    // Return generic error to client, detailed error logged server-side
+    const safeMessage = error instanceof Error && 
+      ['Failed to retrieve intelligence data', 'Failed to create intelligence record', 
+       'Failed to add entry', 'Failed to delete entry', 'Failed to save analysis results',
+       'Entry is required for add_entry action', 'Entry ID is required for delete_entry action',
+       'LOVABLE_API_KEY is not configured', 'Rate limit exceeded. Please try again later.',
+       'AI credits exhausted. Please add funds.', 'Failed to parse AI analysis response'].includes(error.message)
+      ? error.message 
+      : "Operation failed";
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ error: safeMessage }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
