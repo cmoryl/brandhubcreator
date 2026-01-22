@@ -4,6 +4,7 @@ import { useTheme } from 'next-themes';
 import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Brain } from 'lucide-react';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, BrandGuide } from '@/types/brand';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
+import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { supabase } from '@/integrations/supabase/client';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -405,7 +406,15 @@ const BrandEditor = () => {
   }, [viewMode]);
 
   // Show loading state - AFTER all hooks
+  // For public (logged out) views or slug-based access, show enhanced loading screen
+  const isPublicView = !user && publicBrandLoading;
+  
   if (authLoading || isLoading || publicBrandLoading) {
+    // Use enhanced loading for public/anonymous access
+    if (isPublicView || (!user && !contextBrand)) {
+      return <PublicLoadingScreen type="brand" />;
+    }
+    // Simple loading for authenticated users
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
