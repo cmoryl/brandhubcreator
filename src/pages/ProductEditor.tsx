@@ -416,12 +416,12 @@ const ProductEditor = () => {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div className="flex items-center gap-2">
-                  <img 
-                    src={theme === 'light' ? tpLogoColor : tpLogoWhite} 
-                    alt="TransPerfect" 
-                    className="h-6 w-auto"
-                  />
-                  <span className="font-serif font-semibold text-foreground hidden sm:inline">BrandHub</span>
+                  <div className="h-6 w-6 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-[10px]">BH</span>
+                  </div>
+                  <span className="font-serif font-semibold text-foreground hidden sm:inline">
+                    Brand<span className="text-accent">HUB</span>
+                  </span>
                 </div>
                 <div className="h-6 w-px bg-border mx-2 hidden sm:block" />
                 <div className="flex items-center gap-2">

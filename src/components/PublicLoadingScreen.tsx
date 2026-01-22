@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from 'next-themes';
 import { 
   Palette, 
   Type, 
@@ -14,8 +13,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import tpLogoWhite from '@/assets/tp-logo-white.svg';
-import tpLogoColor from '@/assets/tp-logo-color.svg';
 
 interface PublicLoadingScreenProps {
   type: 'brand' | 'product' | 'portal';
@@ -45,9 +42,8 @@ const faqs = [
   },
 ];
 
-export function PublicLoadingScreen({ type, name, organizationName }: PublicLoadingScreenProps) {
+export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
   const [currentTip, setCurrentTip] = useState(0);
   const [dots, setDots] = useState('');
   const [showFaqs, setShowFaqs] = useState(false);
@@ -55,9 +51,6 @@ export function PublicLoadingScreen({ type, name, organizationName }: PublicLoad
   // Shuffle tips on mount for variety
   const [shuffledTips] = useState(() => [...loadingTips].sort(() => Math.random() - 0.5));
   const [shuffledFaqs] = useState(() => [...faqs].sort(() => Math.random() - 0.5));
-
-  // Use color logo for light theme, white logo for dark theme
-  const tpLogo = resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite;
 
   // Rotate tips every 3 seconds
   useEffect(() => {
@@ -88,13 +81,13 @@ export function PublicLoadingScreen({ type, name, organizationName }: PublicLoad
       {/* Header */}
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img 
-              src={tpLogo} 
-              alt="TransPerfect" 
-              className="h-8 w-auto"
-            />
-            <span className="font-serif font-semibold text-foreground">BrandHub</span>
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              <span className="text-white font-bold text-xs">BH</span>
+            </div>
+            <span className="font-semibold text-foreground">
+              Brand<span className="text-accent">HUB</span>
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="gap-1.5 text-muted-foreground">
@@ -118,13 +111,11 @@ export function PublicLoadingScreen({ type, name, organizationName }: PublicLoad
               <div className="absolute inset-0 rounded-2xl border-2 border-accent/20 animate-[spin_8s_linear_infinite]" />
               {/* Middle ring */}
               <div className="absolute inset-2 rounded-xl border-2 border-primary/30 animate-[spin_6s_linear_infinite_reverse]" />
-              {/* Inner content - TP Logo */}
+              {/* Inner content - BrandHUB Logo */}
               <div className="absolute inset-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
-                <img 
-                  src={tpLogo} 
-                  alt="TransPerfect" 
-                  className="h-10 w-auto animate-pulse"
-                />
+                <div className="h-8 w-8 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                  <span className="text-white font-bold text-xs">BH</span>
+                </div>
               </div>
             </div>
             {/* Floating elements */}
@@ -224,16 +215,15 @@ export function PublicLoadingScreen({ type, name, organizationName }: PublicLoad
 
 // Compact version for inline use
 export function PublicLoadingInline({ type }: { type: 'brand' | 'product' }) {
-  const { resolvedTheme } = useTheme();
-  const tpLogo = resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite;
-
   return (
     <div className="flex flex-col items-center justify-center py-20 animate-fade-in">
       <div className="relative mb-6">
         <div className="w-16 h-16 relative">
           <div className="absolute inset-0 rounded-xl border-2 border-accent/20 animate-[spin_4s_linear_infinite]" />
           <div className="absolute inset-2 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
-            <img src={tpLogo} alt="TransPerfect" className="h-6 w-auto animate-pulse" />
+            <div className="h-6 w-6 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center animate-pulse">
+              <span className="text-white font-bold text-[8px]">BH</span>
+            </div>
           </div>
         </div>
       </div>

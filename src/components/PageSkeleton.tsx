@@ -1,20 +1,18 @@
-import { useTheme } from 'next-themes';
 import { Skeleton } from "@/components/ui/skeleton";
-import tpLogoWhite from '@/assets/tp-logo-white.svg';
-import tpLogoColor from '@/assets/tp-logo-color.svg';
 
 export function PageSkeleton() {
-  const { resolvedTheme } = useTheme();
-  const tpLogo = resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite;
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header skeleton */}
       <header className="border-b border-border/50 bg-background/95 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={tpLogo} alt="TransPerfect" className="h-8 w-auto" />
-            <span className="font-serif font-semibold text-foreground">BrandHub</span>
+          <div className="flex items-center gap-2">
+            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              <span className="text-white font-bold text-sm">BH</span>
+            </div>
+            <span className="font-semibold text-xl text-foreground">
+              Brand<span className="text-accent">HUB</span>
+            </span>
           </div>
           <div className="flex items-center gap-3">
             <Skeleton className="h-9 w-24 rounded-md" />
@@ -31,7 +29,9 @@ export function PageSkeleton() {
             <div className="absolute inset-0 rounded-2xl border-2 border-accent/20 animate-[spin_8s_linear_infinite]" />
             <div className="absolute inset-2 rounded-xl border-2 border-primary/30 animate-[spin_6s_linear_infinite_reverse]" />
             <div className="absolute inset-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
-              <img src={tpLogo} alt="TransPerfect" className="h-8 w-auto animate-pulse" />
+              <div className="h-8 w-8 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center animate-pulse">
+                <span className="text-white font-bold text-xs">BH</span>
+              </div>
             </div>
           </div>
         </div>
@@ -48,16 +48,17 @@ export function PageSkeleton() {
 }
 
 export function BrandEditorSkeleton() {
-  const { resolvedTheme } = useTheme();
-  const tpLogo = resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite;
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="border-b border-border/50 bg-background/95 backdrop-blur h-16 flex items-center px-4">
-        <div className="flex items-center gap-3">
-          <img src={tpLogo} alt="TransPerfect" className="h-8 w-auto" />
-          <span className="font-serif font-semibold text-foreground">BrandHub</span>
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+            <span className="text-white font-bold text-xs">BH</span>
+          </div>
+          <span className="font-semibold text-foreground">
+            Brand<span className="text-accent">HUB</span>
+          </span>
         </div>
       </header>
       
@@ -69,7 +70,9 @@ export function BrandEditorSkeleton() {
               <div className="absolute inset-0 rounded-2xl border-2 border-accent/20 animate-[spin_8s_linear_infinite]" />
               <div className="absolute inset-2 rounded-xl border-2 border-primary/30 animate-[spin_6s_linear_infinite_reverse]" />
               <div className="absolute inset-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
-                <img src={tpLogo} alt="TransPerfect" className="h-8 w-auto animate-pulse" />
+                <div className="h-8 w-8 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center animate-pulse">
+                  <span className="text-white font-bold text-xs">BH</span>
+                </div>
               </div>
             </div>
           </div>
@@ -87,9 +90,6 @@ export function BrandEditorSkeleton() {
 }
 
 export function AuthPageSkeleton() {
-  const { resolvedTheme } = useTheme();
-  const tpLogo = resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite;
-
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md text-center">
@@ -98,7 +98,9 @@ export function AuthPageSkeleton() {
             <div className="absolute inset-0 rounded-2xl border-2 border-accent/20 animate-[spin_8s_linear_infinite]" />
             <div className="absolute inset-2 rounded-xl border-2 border-primary/30 animate-[spin_6s_linear_infinite_reverse]" />
             <div className="absolute inset-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
-              <img src={tpLogo} alt="TransPerfect" className="h-8 w-auto animate-pulse" />
+              <div className="h-8 w-8 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center animate-pulse">
+                <span className="text-white font-bold text-xs">BH</span>
+              </div>
             </div>
           </div>
         </div>
