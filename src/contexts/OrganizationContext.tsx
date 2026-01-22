@@ -11,6 +11,7 @@ interface OrganizationContextType {
   needsOnboarding: boolean;
   createOrganization: (name: string, slug: string) => Promise<Organization | null>;
   updateOrganization: (updates: Partial<Organization>) => Promise<void>;
+  deleteOrganization: () => Promise<boolean>;
   inviteMember: (email: string, role: OrganizationMember['role']) => Promise<void>;
   acceptInvite: (inviteToken: string) => Promise<boolean>;
   checkPendingInvite: () => Promise<OrganizationMember | null>;
@@ -359,6 +360,48 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     setMembers(members.map(m => m.id === memberId ? { ...m, role } : m));
   };
 
+  const deleteOrganization = async (): Promise<boolean> => {
+    if (!organization || userRole !== 'owner') {
+      console.error('Only owners can delete organizations');
+      return false;
+    }
+
+    try {
+      // Delete all members first (cascade should handle this, but be explicit)
+      const { error: membersError } = await supabase
+        .from('organization_members')
+        .delete()
+        .eq('organization_id', organization.id);
+
+      if (membersError) {
+        console.error('Error deleting organization members:', membersError);
+        throw membersError;
+      }
+
+      // Delete the organization
+      const { error: orgError } = await supabase
+        .from('organizations')
+        .delete()
+        .eq('id', organization.id);
+
+      if (orgError) {
+        console.error('Error deleting organization:', orgError);
+        throw orgError;
+      }
+
+      // Reset state
+      setOrganization(null);
+      setMembers([]);
+      setUserRole(null);
+      setNeedsOnboarding(false);
+
+      return true;
+    } catch (error) {
+      console.error('Error in deleteOrganization:', error);
+      return false;
+    }
+  };
+
   const completeOnboarding = async () => {
     await updateOrganization({ onboardingCompleted: true, onboardingStep: 4 });
     setNeedsOnboarding(false);
@@ -373,6 +416,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       needsOnboarding,
       createOrganization,
       updateOrganization,
+      deleteOrganization,
       inviteMember,
       acceptInvite,
       checkPendingInvite,
