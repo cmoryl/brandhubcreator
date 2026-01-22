@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from 'react';
  */
 export function useStableLoading(
   isLoading: boolean,
-  minDisplayTime: number = 300
+  minDisplayTime: number = 150
 ): boolean {
   const [stableLoading, setStableLoading] = useState(isLoading);
   const loadingStartTime = useRef<number | null>(null);
