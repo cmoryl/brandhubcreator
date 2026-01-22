@@ -37,12 +37,21 @@ export function useScrollAnimation<T extends HTMLElement = HTMLDivElement>({
     const element = ref.current;
     if (!element) return;
 
+    // Fallback: In some browser + overflow container combinations, IntersectionObserver can
+    // fail to fire reliably, leaving content stuck at opacity: 0.
+    // If we haven't become visible shortly after mount, reveal anyway.
+    const revealFallback = window.setTimeout(() => {
+      setIsVisible(true);
+      if (triggerOnce) setHasAnimated(true);
+    }, Math.max(600, delay + 600));
+
     // If IntersectionObserver isn't available, show content immediately.
     // Otherwise sections can stay invisible (opacity: 0) and appear "blank".
     if (typeof IntersectionObserver === 'undefined') {
       setIsVisible(true);
       setHasAnimated(true);
-      return;
+      window.clearTimeout(revealFallback);
+      return () => window.clearTimeout(revealFallback);
     }
 
     const observer = new IntersectionObserver(
@@ -62,8 +71,11 @@ export function useScrollAnimation<T extends HTMLElement = HTMLDivElement>({
 
     observer.observe(element);
 
-    return () => observer.disconnect();
-  }, [threshold, rootMargin, triggerOnce]);
+    return () => {
+      window.clearTimeout(revealFallback);
+      observer.disconnect();
+    };
+  }, [threshold, rootMargin, triggerOnce, delay]);
 
   const getAnimationStyles = useCallback(() => {
     const baseStyles = {
