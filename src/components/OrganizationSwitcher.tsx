@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Building2, Check, ChevronsUpDown, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Building2, Check, ChevronsUpDown, Eye, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -18,9 +19,11 @@ import { cn } from '@/lib/utils';
 
 interface OrganizationSwitcherProps {
   onSwitch?: (org: Organization | null) => void;
+  navigateOnSelect?: boolean;
 }
 
-export const OrganizationSwitcher = ({ onSwitch }: OrganizationSwitcherProps) => {
+export const OrganizationSwitcher = ({ onSwitch, navigateOnSelect = true }: OrganizationSwitcherProps) => {
+  const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const { organization: currentOrg } = useOrganization();
   const { organizations, isLoading } = useAdminOrganizations();
@@ -32,6 +35,11 @@ export const OrganizationSwitcher = ({ onSwitch }: OrganizationSwitcherProps) =>
   const handleSelect = (org: Organization | null) => {
     setSelectedOrg(org);
     onSwitch?.(org);
+    
+    // Navigate to the organization's portal page when selected
+    if (navigateOnSelect && org) {
+      navigate(`/org/${org.slug}`);
+    }
   };
 
   const displayOrg = selectedOrg || currentOrg;
