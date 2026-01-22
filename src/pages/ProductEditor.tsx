@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain } from 'lucide-react';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings } from '@/types/brand';
+import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -145,6 +146,11 @@ const ProductEditor = () => {
 
   // Show loading state
   if (authLoading || isLoading) {
+    // Use enhanced loading for public/anonymous access
+    if (!user) {
+      return <PublicLoadingScreen type="product" />;
+    }
+    // Simple loading for authenticated users
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">

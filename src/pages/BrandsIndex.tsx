@@ -40,6 +40,7 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 
 // Lazy load components that are not needed on initial render
 const DemoBrandsShowcase = lazy(() => import('@/components/landing/DemoBrandsShowcase').then(m => ({ default: m.DemoBrandsShowcase })));
+const PublicGuidesNav = lazy(() => import('@/components/landing/DemoBrandsShowcase').then(m => ({ default: m.PublicGuidesNav })));
 const InviteMembersDialog = lazy(() => import('@/components/organization/InviteMembersDialog').then(m => ({ default: m.InviteMembersDialog })));
 const AppSettingsEditor = lazy(() => import('@/components/admin/AppSettingsEditor').then(m => ({ default: m.AppSettingsEditor })));
 const OrganizationSwitcher = lazy(() => import('@/components/OrganizationSwitcher').then(m => ({ default: m.OrganizationSwitcher })));
@@ -552,6 +553,13 @@ const BrandsIndex = () => {
       {settings.pageSections?.demoBrands !== false && (
         <Suspense fallback={<div className="py-20 flex justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>
           <DemoBrandsShowcase onLoginClick={() => navigate('/auth')} />
+        </Suspense>
+      )}
+
+      {/* Public Guides Navigation - browse public brands and products */}
+      {!user && (
+        <Suspense fallback={<div className="py-12 flex justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>}>
+          <PublicGuidesNav onLoginClick={() => navigate('/auth')} />
         </Suspense>
       )}
 

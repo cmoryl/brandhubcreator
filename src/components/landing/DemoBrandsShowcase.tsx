@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Palette, Star, ExternalLink, Loader2 } from 'lucide-react';
+import { ArrowRight, Palette, Star, ExternalLink, Loader2, Building2, Package, Book } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 
 interface DemoGuideData {
@@ -16,6 +17,7 @@ interface DemoGuideData {
   brand: {
     id: string;
     name: string;
+    slug: string | null;
     guide_data: {
       hero?: { tagline?: string; logoUrl?: string };
       colors?: Array<{ hex: string }>;
@@ -23,6 +25,234 @@ interface DemoGuideData {
   } | null;
 }
 
+interface PublicGuide {
+  id: string;
+  name: string;
+  slug: string | null;
+  type: 'brand' | 'product';
+  tagline?: string;
+  logoUrl?: string;
+  colors?: string[];
+  updatedAt: string;
+}
+
+// Public navigation bar for browsing brands/products
+export function PublicGuidesNav({ onLoginClick }: { onLoginClick: () => void }) {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'brands' | 'products'>('brands');
+  const [publicBrands, setPublicBrands] = useState<PublicGuide[]>([]);
+  const [publicProducts, setPublicProducts] = useState<PublicGuide[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPublicGuides = async () => {
+      try {
+        // Fetch public brands
+        const { data: brandsData, error: brandsError } = await supabase
+          .from('brands')
+          .select('id, name, slug, guide_data, updated_at')
+          .eq('is_public', true)
+          .order('updated_at', { ascending: false })
+          .limit(12);
+
+        if (!brandsError && brandsData) {
+          setPublicBrands(brandsData.map(b => {
+            const guideData = b.guide_data as Record<string, unknown> || {};
+            const hero = guideData.hero as Record<string, unknown> || {};
+            const colors = (guideData.colors as Array<{ hex: string }> || []).slice(0, 3).map(c => c.hex);
+            return {
+              id: b.id,
+              name: b.name,
+              slug: b.slug,
+              type: 'brand' as const,
+              tagline: hero.tagline as string | undefined,
+              logoUrl: hero.logoUrl as string | undefined,
+              colors,
+              updatedAt: b.updated_at,
+            };
+          }));
+        }
+
+        // Fetch public products
+        const { data: productsData, error: productsError } = await supabase
+          .from('products')
+          .select('id, name, slug, guide_data, updated_at')
+          .eq('is_public', true)
+          .order('updated_at', { ascending: false })
+          .limit(12);
+
+        if (!productsError && productsData) {
+          setPublicProducts(productsData.map(p => {
+            const guideData = p.guide_data as Record<string, unknown> || {};
+            const hero = guideData.hero as Record<string, unknown> || {};
+            const colors = (guideData.colors as Array<{ hex: string }> || []).slice(0, 3).map(c => c.hex);
+            return {
+              id: p.id,
+              name: p.name,
+              slug: p.slug,
+              type: 'product' as const,
+              tagline: hero.tagline as string | undefined,
+              logoUrl: hero.logoUrl as string | undefined,
+              colors,
+              updatedAt: p.updated_at,
+            };
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching public guides:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPublicGuides();
+  }, []);
+
+  const currentGuides = activeTab === 'brands' ? publicBrands : publicProducts;
+  const hasGuides = publicBrands.length > 0 || publicProducts.length > 0;
+
+  // Don't render if no public guides
+  if (!isLoading && !hasGuides) {
+    return null;
+  }
+
+  return (
+    <section className="py-12 border-t border-border/50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Book className="h-5 w-5 text-accent" />
+              <h2 className="text-2xl font-semibold text-foreground">Browse Public Guides</h2>
+            </div>
+            <p className="text-muted-foreground">
+              Explore brand and product guidelines shared by organizations
+            </p>
+          </div>
+
+          {/* Tabs for Brand vs Product */}
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'brands' | 'products')}>
+            <TabsList className="bg-muted/50">
+              <TabsTrigger value="brands" className="gap-2">
+                <Building2 className="h-4 w-4" />
+                Brands
+                {publicBrands.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                    {publicBrands.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="products" className="gap-2">
+                <Package className="h-4 w-4" />
+                Products
+                {publicProducts.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                    {publicProducts.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : currentGuides.length === 0 ? (
+          <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed border-border">
+            <div className="text-muted-foreground">
+              {activeTab === 'brands' ? (
+                <>
+                  <Building2 className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                  <p>No public brands available</p>
+                </>
+              ) : (
+                <>
+                  <Package className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                  <p>No public products available</p>
+                </>
+              )}
+            </div>
+          </div>
+        ) : (
+          /* Guides Grid */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {currentGuides.map((guide) => (
+              <Card 
+                key={guide.id}
+                className="group cursor-pointer overflow-hidden border hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
+                onClick={() => navigate(`/${guide.type}/${guide.slug || guide.id}`)}
+              >
+                <CardContent className="p-0">
+                  {/* Color Header */}
+                  <div 
+                    className="h-16 relative overflow-hidden"
+                    style={{
+                      background: guide.colors && guide.colors.length > 0
+                        ? guide.colors.length === 1
+                          ? guide.colors[0]
+                          : `linear-gradient(135deg, ${guide.colors.join(', ')})`
+                        : 'hsl(var(--muted))'
+                    }}
+                  >
+                    {/* Logo Initial */}
+                    <div className="absolute bottom-2 left-3 w-10 h-10 bg-background/95 backdrop-blur rounded-lg shadow flex items-center justify-center transform group-hover:scale-105 transition-transform">
+                      {guide.logoUrl ? (
+                        <img src={guide.logoUrl} alt={guide.name} className="w-6 h-6 object-contain" />
+                      ) : (
+                        <span 
+                          className="text-lg font-bold"
+                          style={{ color: guide.colors?.[0] || 'hsl(var(--foreground))' }}
+                        >
+                          {guide.name.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                    {/* Type Badge */}
+                    <Badge 
+                      variant="secondary" 
+                      className="absolute top-2 right-2 text-xs bg-background/80 backdrop-blur"
+                    >
+                      {guide.type === 'brand' ? <Building2 className="h-3 w-3 mr-1" /> : <Package className="h-3 w-3 mr-1" />}
+                      {guide.type}
+                    </Badge>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-3">
+                    <h3 className="font-medium text-foreground truncate group-hover:text-accent transition-colors">
+                      {guide.name}
+                    </h3>
+                    {guide.tagline && (
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                        {guide.tagline}
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* CTA */}
+        {!isLoading && hasGuides && (
+          <div className="mt-8 text-center">
+            <Button variant="outline" onClick={onLoginClick} className="gap-2">
+              <ExternalLink className="h-4 w-4" />
+              Create Your Own Guide
+            </Button>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// Featured demo brands showcase (existing component)
 const DemoBrandsShowcase = React.forwardRef<HTMLElement, { onLoginClick: () => void }>(({ onLoginClick }, ref) => {
   const navigate = useNavigate();
   const [demoGuides, setDemoGuides] = useState<DemoGuideData[]>([]);
@@ -50,7 +280,7 @@ const DemoBrandsShowcase = React.forwardRef<HTMLElement, { onLoginClick: () => v
         const brandIds = guides.map(g => g.brand_id);
         const { data: brands, error: brandsError } = await supabase
           .from('brands')
-          .select('id, name, guide_data')
+          .select('id, name, slug, guide_data')
           .in('id', brandIds)
           .eq('is_public', true);
 
@@ -193,7 +423,7 @@ const DemoBrandsShowcase = React.forwardRef<HTMLElement, { onLoginClick: () => v
                         <Button 
                           variant="outline" 
                           className="w-full gap-2 group/btn" 
-                          onClick={() => navigate(`/brand/${brand.id}`)}
+                          onClick={() => navigate(`/brand/${brand.slug || brand.id}`)}
                         >
                           View Full Guide
                           <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
