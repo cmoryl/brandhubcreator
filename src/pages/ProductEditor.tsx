@@ -62,7 +62,7 @@ const ProductEditor = () => {
   const { theme } = useTheme();
   const { getProduct, getProductBySlug, updateProduct, toggleFavorite, isLoading } = useBrands();
   const { user, isAdmin, isApproved, isLoading: authLoading } = useAuth();
-  const { userRole: orgRole } = useOrganization();
+  const { userRole: orgRole, organization } = useOrganization();
 
   // Treat organization owners/admins as "admins" within the guide as well.
   // Otherwise they are treated as viewers and hiddenSections can hide key areas (e.g., Social sections).
@@ -465,6 +465,7 @@ const ProductEditor = () => {
                   isPublic={currentProduct.isPublic}
                   onPublicChange={(isPublic) => handleUpdateProduct({ isPublic })}
                   canEdit={!!user && isAdmin}
+                  organizationSlug={organization?.slug}
                 />
                 {!!user && isAdmin && <BrandAuditButton brand={currentProduct} />}
                 {!!user && (

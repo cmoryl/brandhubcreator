@@ -18,8 +18,9 @@ import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 
 interface PublicLoadingScreenProps {
-  type: 'brand' | 'product';
+  type: 'brand' | 'product' | 'portal';
   name?: string;
+  organizationName?: string;
 }
 
 const loadingTips = [
@@ -44,7 +45,7 @@ const faqs = [
   },
 ];
 
-export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
+export function PublicLoadingScreen({ type, name, organizationName }: PublicLoadingScreenProps) {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const [currentTip, setCurrentTip] = useState(0);
@@ -98,7 +99,10 @@ export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="gap-1.5 text-muted-foreground">
               <Book className="h-3 w-3" />
-              Public {type === 'brand' ? 'Brand' : 'Product'} Guide
+              {type === 'portal' 
+                ? 'Brand Portal' 
+                : `Public ${type === 'brand' ? 'Brand' : 'Product'} Guide`
+              }
             </Badge>
           </div>
         </div>
@@ -131,10 +135,18 @@ export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
 
           {/* Loading Text */}
           <h1 className="text-2xl sm:text-3xl font-semibold text-foreground mb-2">
-            {name ? `Loading ${name}` : `Loading ${type} guide`}{dots}
+            {organizationName 
+              ? `Loading ${organizationName} Portal`
+              : name 
+                ? `Loading ${name}` 
+                : `Loading ${type} guide`
+            }{dots}
           </h1>
           <p className="text-muted-foreground mb-8">
-            Preparing your {type} guidelines experience
+            {type === 'portal' 
+              ? 'Preparing your brand portal experience'
+              : `Preparing your ${type} guidelines experience`
+            }
           </p>
 
           {/* Progress Indicator */}

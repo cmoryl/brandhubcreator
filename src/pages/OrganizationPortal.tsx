@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowRight, Globe, Lock, Building2, ArrowLeft } from 'lucide-react';
+import { ArrowRight, Globe, Lock, Building2, ArrowLeft, Search, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,6 +12,8 @@ import { useSEO } from '@/hooks/useSEO';
 import { OrganizationPortalSettings, DEFAULT_PORTAL_SETTINGS } from '@/types/organization';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
+import { SearchInput } from '@/components/ui/search-input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface OrganizationData {
   id: string;
@@ -67,6 +69,39 @@ const OrganizationPortal = () => {
   const [products, setProducts] = useState<PublicProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'all' | 'brands' | 'products'>('all');
+
+  // Filter brands and products based on search
+  const filteredBrands = useMemo(() => {
+    if (!searchQuery.trim()) return brands;
+    const query = searchQuery.toLowerCase();
+    return brands.filter(brand => {
+      const guideData = brand.guide_data || {};
+      const hero = guideData.hero || { name: brand.name, tagline: '' };
+      return (
+        brand.name.toLowerCase().includes(query) ||
+        hero.name?.toLowerCase().includes(query) ||
+        hero.tagline?.toLowerCase().includes(query)
+      );
+    });
+  }, [brands, searchQuery]);
+
+  const filteredProducts = useMemo(() => {
+    if (!searchQuery.trim()) return products;
+    const query = searchQuery.toLowerCase();
+    return products.filter(product => {
+      const guideData = product.guide_data || {};
+      const hero = guideData.hero || { name: product.name, tagline: '' };
+      return (
+        product.name.toLowerCase().includes(query) ||
+        hero.name?.toLowerCase().includes(query) ||
+        hero.tagline?.toLowerCase().includes(query)
+      );
+    });
+  }, [products, searchQuery]);
+
+  const totalResults = filteredBrands.length + filteredProducts.length;
 
   // SEO metadata
   useSEO({
@@ -217,7 +252,9 @@ const OrganizationPortal = () => {
   }, [refetch]);
 
   if (isLoading) {
-    return <PublicLoadingScreen type="brand" name={slug ? `${slug} portal` : undefined} />;
+    // Capitalize first letter of slug for display
+    const displayName = slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : undefined;
+    return <PublicLoadingScreen type="portal" organizationName={displayName} />;
   }
 
   if (error || !organization) {
@@ -241,6 +278,172 @@ const OrganizationPortal = () => {
 
   const portalSettings = organization.portal_settings || DEFAULT_PORTAL_SETTINGS;
   const heroFullWidth = portalSettings.heroFullWidth ?? false;
+
+  // Render helper for brand cards
+  const renderBrandCard = (brand: PublicBrand, index: number) => {
+    const guideData = brand.guide_data || {};
+    const hero = guideData.hero || { name: brand.name, tagline: '' };
+    const colors = guideData.colors || [];
+
+    return (
+      <Card 
+        key={brand.id}
+        className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
+        style={{ animationDelay: `${index * 0.05}s` }}
+        onClick={() => navigate(`/brand/${brand.slug || brand.id}`)}
+      >
+        <CardContent className="p-0">
+          <div className="relative h-44 overflow-hidden">
+            {hero.coverImage ? (
+              <OptimizedImage 
+                src={hero.coverImage} 
+                alt={hero.name}
+                className="w-full h-full transition-transform duration-500 group-hover:scale-105"
+                objectFit="cover"
+                priority={index < 3}
+              />
+            ) : (
+              <div className="w-full h-full flex">
+                {colors.length > 0 ? (
+                  colors.slice(0, 4).map((color: { id: string; hex: string }) => (
+                    <div 
+                      key={color.id} 
+                      className="flex-1 transition-all duration-500 group-hover:flex-[1.1]"
+                      style={{ backgroundColor: color.hex }}
+                    />
+                  ))
+                ) : (
+                  <div 
+                    className="flex-1" 
+                    style={{ 
+                      background: `linear-gradient(135deg, ${organization.primary_color || '#6366f1'}, ${organization.secondary_color || '#8b5cf6'})` 
+                    }}
+                  />
+                )}
+              </div>
+            )}
+            <Badge className="absolute top-3 right-3 gap-1 bg-green-500/90 text-white">
+              <Globe className="h-3 w-3" />
+              Public
+            </Badge>
+          </div>
+          <div className="p-5">
+            <h3 className="font-semibold text-lg text-foreground mb-1 group-hover:text-accent transition-colors">
+              {hero.name}
+            </h3>
+            {hero.tagline && (
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                {hero.tagline}
+              </p>
+            )}
+            {colors.length > 0 && (
+              <div className="flex gap-1 mb-4">
+                {colors.slice(0, 5).map((color: { id: string; hex: string }) => (
+                  <div 
+                    key={color.id}
+                    className="w-6 h-6 rounded-full border-2 border-background shadow-sm"
+                    style={{ backgroundColor: color.hex }}
+                  />
+                ))}
+                {colors.length > 5 && (
+                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                    +{colors.length - 5}
+                  </div>
+                )}
+              </div>
+            )}
+            <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-accent/80">
+              View Guidelines
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  // Render helper for product cards
+  const renderProductCard = (product: PublicProduct, index: number) => {
+    const guideData = product.guide_data || {};
+    const hero = guideData.hero || { name: product.name, tagline: '' };
+    const colors = guideData.colors || [];
+
+    return (
+      <Card 
+        key={product.id}
+        className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
+        style={{ animationDelay: `${index * 0.05}s` }}
+        onClick={() => navigate(`/product/${product.slug || product.id}`)}
+      >
+        <CardContent className="p-0">
+          <div className="relative h-44 overflow-hidden">
+            {hero.coverImage ? (
+              <OptimizedImage 
+                src={hero.coverImage} 
+                alt={hero.name}
+                className="w-full h-full transition-transform duration-500 group-hover:scale-105"
+                objectFit="cover"
+                priority={index < 3}
+              />
+            ) : (
+              <div className="w-full h-full flex">
+                {colors.length > 0 ? (
+                  colors.slice(0, 4).map((color: { id: string; hex: string }) => (
+                    <div 
+                      key={color.id} 
+                      className="flex-1 transition-all duration-500 group-hover:flex-[1.1]"
+                      style={{ backgroundColor: color.hex }}
+                    />
+                  ))
+                ) : (
+                  <div 
+                    className="flex-1" 
+                    style={{ 
+                      background: `linear-gradient(135deg, ${organization.primary_color || '#6366f1'}, ${organization.secondary_color || '#8b5cf6'})` 
+                    }}
+                  />
+                )}
+              </div>
+            )}
+            <Badge className="absolute top-3 right-3 gap-1 bg-green-500/90 text-white">
+              <Globe className="h-3 w-3" />
+              Public
+            </Badge>
+          </div>
+          <div className="p-5">
+            <h3 className="font-semibold text-lg text-foreground mb-1 group-hover:text-accent transition-colors">
+              {hero.name}
+            </h3>
+            {hero.tagline && (
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                {hero.tagline}
+              </p>
+            )}
+            {colors.length > 0 && (
+              <div className="flex gap-1 mb-4">
+                {colors.slice(0, 5).map((color: { id: string; hex: string }) => (
+                  <div 
+                    key={color.id}
+                    className="w-6 h-6 rounded-full border-2 border-background shadow-sm"
+                    style={{ backgroundColor: color.hex }}
+                  />
+                ))}
+                {colors.length > 5 && (
+                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                    +{colors.length - 5}
+                  </div>
+                )}
+              </div>
+            )}
+            <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-accent/80">
+              View Guidelines
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -324,6 +527,21 @@ const OrganizationPortal = () => {
               Explore our public brand guidelines and resources. Everything you need to represent our brand correctly.
             </p>
 
+            {/* Search Bar */}
+            <div className="max-w-md animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
+              <SearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search brands and products..."
+                className="w-full"
+              />
+              {searchQuery && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Found {totalResults} result{totalResults !== 1 ? 's' : ''} for "{searchQuery}"
+                </p>
+              )}
+            </div>
+
             {/* Stats */}
             <div className="flex items-center gap-8 mt-12 pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
               <div>
@@ -342,218 +560,142 @@ const OrganizationPortal = () => {
       </div>
 
       {/* Brands & Products Grid */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-16">
-        {/* Brands Section */}
-        <section>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="w-full">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-semibold text-foreground">Brand Guidelines</h2>
+            <TabsList className="bg-muted">
+              <TabsTrigger value="all" className="gap-2">
+                All
+                <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
+                  {filteredBrands.length + filteredProducts.length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="brands" className="gap-2">
+                <Building2 className="h-4 w-4" />
+                Brands
+                <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
+                  {filteredBrands.length}
+                </Badge>
+              </TabsTrigger>
+              {products.length > 0 && (
+                <TabsTrigger value="products" className="gap-2">
+                  <Package className="h-4 w-4" />
+                  Products
+                  <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
+                    {filteredProducts.length}
+                  </Badge>
+                </TabsTrigger>
+              )}
+            </TabsList>
           </div>
 
-          {brands.length === 0 ? (
-            <div className="text-center py-16 px-4">
-              <div className="p-4 bg-muted/50 rounded-2xl w-fit mx-auto mb-4">
-                <Lock className="h-8 w-8 text-muted-foreground" />
+          {/* All Content */}
+          <TabsContent value="all" className="space-y-16">
+            {/* Brands Section */}
+            {filteredBrands.length > 0 && (
+              <section>
+                <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-muted-foreground" />
+                  Brand Guidelines
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredBrands.map((brand, index) => renderBrandCard(brand, index))}
+                </div>
+              </section>
+            )}
+
+            {/* Products Section */}
+            {filteredProducts.length > 0 && (
+              <section>
+                <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                  <Package className="h-5 w-5 text-muted-foreground" />
+                  Product Guidelines
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredProducts.map((product, index) => renderProductCard(product, index))}
+                </div>
+              </section>
+            )}
+
+            {/* Empty State */}
+            {filteredBrands.length === 0 && filteredProducts.length === 0 && (
+              <div className="text-center py-16 px-4">
+                <div className="p-4 bg-muted/50 rounded-2xl w-fit mx-auto mb-4">
+                  {searchQuery ? (
+                    <Search className="h-8 w-8 text-muted-foreground" />
+                  ) : (
+                    <Lock className="h-8 w-8 text-muted-foreground" />
+                  )}
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  {searchQuery ? 'No Results Found' : 'No Public Guidelines'}
+                </h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  {searchQuery 
+                    ? `No brands or products match "${searchQuery}". Try a different search term.`
+                    : "This organization hasn't made any guidelines public yet. Check back later for updates."
+                  }
+                </p>
               </div>
-              <h3 className="text-lg font-medium text-foreground mb-2">No Public Brands</h3>
-              <p className="text-muted-foreground max-w-md mx-auto">
-                This organization hasn't made any brand guidelines public yet. Check back later for updates.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {brands.map((brand, index) => {
-                const guideData = brand.guide_data || {};
-                const hero = guideData.hero || { name: brand.name, tagline: '' };
-                const colors = guideData.colors || [];
+            )}
+          </TabsContent>
 
-                return (
-                <Card 
-                  key={brand.id}
-                  className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                  onClick={() => navigate(`/brand/${brand.slug || brand.id}`)}
-                >
-                  <CardContent className="p-0">
-                    {/* Cover Image / Color Preview */}
-                    <div className="relative h-44 overflow-hidden">
-                      {hero.coverImage ? (
-                        <OptimizedImage 
-                          src={hero.coverImage} 
-                          alt={hero.name}
-                          className="w-full h-full transition-transform duration-500 group-hover:scale-105"
-                          objectFit="cover"
-                          priority={index < 3}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex">
-                          {colors.length > 0 ? (
-                            colors.slice(0, 4).map((color: { id: string; hex: string }) => (
-                              <div 
-                                key={color.id} 
-                                className="flex-1 transition-all duration-500 group-hover:flex-[1.1]"
-                                style={{ backgroundColor: color.hex }}
-                              />
-                            ))
-                          ) : (
-                            <div 
-                              className="flex-1" 
-                              style={{ 
-                                background: `linear-gradient(135deg, ${organization.primary_color || '#6366f1'}, ${organization.secondary_color || '#8b5cf6'})` 
-                              }}
-                            />
-                          )}
-                        </div>
-                      )}
-                      
-                      {/* Public Badge */}
-                      <Badge className="absolute top-3 right-3 gap-1 bg-green-500/90 text-white">
-                        <Globe className="h-3 w-3" />
-                        Public
-                      </Badge>
-                    </div>
+          {/* Brands Only */}
+          <TabsContent value="brands">
+            {filteredBrands.length === 0 ? (
+              <div className="text-center py-16 px-4">
+                <div className="p-4 bg-muted/50 rounded-2xl w-fit mx-auto mb-4">
+                  {searchQuery ? (
+                    <Search className="h-8 w-8 text-muted-foreground" />
+                  ) : (
+                    <Lock className="h-8 w-8 text-muted-foreground" />
+                  )}
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  {searchQuery ? 'No Brands Found' : 'No Public Brands'}
+                </h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  {searchQuery 
+                    ? `No brands match "${searchQuery}". Try a different search term.`
+                    : "This organization hasn't made any brand guidelines public yet."
+                  }
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredBrands.map((brand, index) => renderBrandCard(brand, index))}
+              </div>
+            )}
+          </TabsContent>
 
-                    {/* Brand Info */}
-                    <div className="p-5">
-                      <h3 className="font-semibold text-lg text-foreground mb-1 group-hover:text-accent transition-colors">
-                        {hero.name}
-                      </h3>
-                      {hero.tagline && (
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                          {hero.tagline}
-                        </p>
-                      )}
-                      
-                      {/* Color Preview */}
-                      {colors.length > 0 && (
-                        <div className="flex gap-1 mb-4">
-                          {colors.slice(0, 5).map((color: { id: string; hex: string }) => (
-                            <div 
-                              key={color.id}
-                              className="w-6 h-6 rounded-full border-2 border-background shadow-sm"
-                              style={{ backgroundColor: color.hex }}
-                            />
-                          ))}
-                          {colors.length > 5 && (
-                            <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                              +{colors.length - 5}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-accent/80">
-                        View Guidelines
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-        {/* Products Section */}
-        {products.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-semibold text-foreground">Product Guidelines</h2>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product, index) => {
-                const guideData = product.guide_data || {};
-                const hero = guideData.hero || { name: product.name, tagline: '' };
-                const colors = guideData.colors || [];
-
-                return (
-                  <Card 
-                    key={product.id}
-                    className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                    onClick={() => navigate(`/product/${product.slug || product.id}`)}
-                  >
-                    <CardContent className="p-0">
-                      {/* Cover Image / Color Preview */}
-                      <div className="relative h-44 overflow-hidden">
-                        {hero.coverImage ? (
-                          <OptimizedImage 
-                            src={hero.coverImage} 
-                            alt={hero.name}
-                            className="w-full h-full transition-transform duration-500 group-hover:scale-105"
-                            objectFit="cover"
-                            priority={index < 3}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex">
-                            {colors.length > 0 ? (
-                              colors.slice(0, 4).map((color: { id: string; hex: string }) => (
-                                <div 
-                                  key={color.id} 
-                                  className="flex-1 transition-all duration-500 group-hover:flex-[1.1]"
-                                  style={{ backgroundColor: color.hex }}
-                                />
-                              ))
-                            ) : (
-                              <div 
-                                className="flex-1" 
-                                style={{ 
-                                  background: `linear-gradient(135deg, ${organization.primary_color || '#6366f1'}, ${organization.secondary_color || '#8b5cf6'})` 
-                                }}
-                              />
-                            )}
-                          </div>
-                        )}
-                        
-                        {/* Public Badge */}
-                        <Badge className="absolute top-3 right-3 gap-1 bg-green-500/90 text-white">
-                          <Globe className="h-3 w-3" />
-                          Public
-                        </Badge>
-                      </div>
-
-                      {/* Product Info */}
-                      <div className="p-5">
-                        <h3 className="font-semibold text-lg text-foreground mb-1 group-hover:text-accent transition-colors">
-                          {hero.name}
-                        </h3>
-                        {hero.tagline && (
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                            {hero.tagline}
-                          </p>
-                        )}
-                        
-                        {/* Color Preview */}
-                        {colors.length > 0 && (
-                          <div className="flex gap-1 mb-4">
-                            {colors.slice(0, 5).map((color: { id: string; hex: string }) => (
-                              <div 
-                                key={color.id}
-                                className="w-6 h-6 rounded-full border-2 border-background shadow-sm"
-                                style={{ backgroundColor: color.hex }}
-                              />
-                            ))}
-                            {colors.length > 5 && (
-                              <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                                +{colors.length - 5}
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-accent/80">
-                          View Guidelines
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </section>
-        )}
+          {/* Products Only */}
+          <TabsContent value="products">
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-16 px-4">
+                <div className="p-4 bg-muted/50 rounded-2xl w-fit mx-auto mb-4">
+                  {searchQuery ? (
+                    <Search className="h-8 w-8 text-muted-foreground" />
+                  ) : (
+                    <Lock className="h-8 w-8 text-muted-foreground" />
+                  )}
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  {searchQuery ? 'No Products Found' : 'No Public Products'}
+                </h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  {searchQuery 
+                    ? `No products match "${searchQuery}". Try a different search term.`
+                    : "This organization hasn't made any product guidelines public yet."
+                  }
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProducts.map((product, index) => renderProductCard(product, index))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
 
       {/* Footer */}

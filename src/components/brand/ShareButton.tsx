@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Share2, Copy, Check, Link2, Mail, Twitter, Globe, Lock } from 'lucide-react';
+import { Share2, Copy, Check, Link2, Mail, Globe, Lock, Linkedin, Facebook } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,6 +11,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
 
 interface ShareButtonProps {
   guideId: string;
@@ -19,6 +20,7 @@ interface ShareButtonProps {
   isPublic?: boolean;
   onPublicChange?: (isPublic: boolean) => void;
   canEdit?: boolean;
+  organizationSlug?: string;
 }
 
 export const ShareButton = ({ 
@@ -27,13 +29,20 @@ export const ShareButton = ({
   type, 
   isPublic = false, 
   onPublicChange,
-  canEdit = false 
+  canEdit = false,
+  organizationSlug
 }: ShareButtonProps) => {
   const [copied, setCopied] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const getShareUrl = () => {
     const baseUrl = window.location.origin;
     return `${baseUrl}/${type}/${guideId}`;
+  };
+
+  const getPortalUrl = () => {
+    if (!organizationSlug) return null;
+    return `${window.location.origin}/org/${organizationSlug}`;
   };
 
   const handleCopyLink = async () => {
@@ -59,14 +68,31 @@ export const ShareButton = ({
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
   };
 
+  const handleLinkedInShare = () => {
+    const url = encodeURIComponent(getShareUrl());
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
+  };
+
+  const handleFacebookShare = () => {
+    const url = encodeURIComponent(getShareUrl());
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+  };
+
   const handlePublicToggle = async (checked: boolean) => {
-    if (onPublicChange) {
-      onPublicChange(checked);
-      // Give debounced update time to sync before showing success
-      await new Promise(resolve => setTimeout(resolve, 600));
-      toast.success(checked ? 'Brand is now public' : 'Brand is now private');
+    if (onPublicChange && !isUpdating) {
+      setIsUpdating(true);
+      try {
+        onPublicChange(checked);
+        // Give debounced update time to sync before showing success
+        await new Promise(resolve => setTimeout(resolve, 600));
+        toast.success(checked ? `${type === 'brand' ? 'Brand' : 'Product'} is now public` : `${type === 'brand' ? 'Brand' : 'Product'} is now private`);
+      } finally {
+        setIsUpdating(false);
+      }
     }
   };
+
+  const portalUrl = getPortalUrl();
 
   return (
     <DropdownMenu>
@@ -80,7 +106,7 @@ export const ShareButton = ({
           <span className="hidden sm:inline">Share</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
+      <DropdownMenuContent align="end" className="w-80">
         {/* Public Toggle - Only show if canEdit */}
         {canEdit && onPublicChange && (
           <>
@@ -100,12 +126,13 @@ export const ShareButton = ({
                   id="public-toggle" 
                   checked={isPublic} 
                   onCheckedChange={handlePublicToggle}
+                  disabled={isUpdating}
                 />
               </div>
               <p className="text-xs text-muted-foreground mt-1.5">
                 {isPublic 
-                  ? 'Anyone with the link can view this ' + type
-                  : 'Only your organization can view this ' + type
+                  ? `Anyone with the link can view this ${type}`
+                  : `Only your organization can view this ${type}`
                 }
               </p>
             </div>
@@ -113,35 +140,86 @@ export const ShareButton = ({
           </>
         )}
         
-        <div className="px-2 py-1.5">
-          <p className="text-xs text-muted-foreground mb-1">
+        {/* Share Link Section */}
+        <div className="px-3 py-3">
+          <p className="text-xs font-medium text-foreground mb-2">
             Share this {type} guide
-            {!isPublic && !canEdit && (
-              <span className="text-amber-500 ml-1">(Private - org members only)</span>
+            {!isPublic && (
+              <span className="text-amber-500 ml-1">(Private)</span>
             )}
           </p>
-          <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
-            <Link2 className="h-3 w-3 text-muted-foreground shrink-0" />
-            <span className="text-xs truncate flex-1">{getShareUrl()}</span>
+          <div className="flex items-center gap-2">
+            <Input 
+              value={getShareUrl()} 
+              readOnly 
+              className="text-xs h-8 bg-muted"
+              onClick={(e) => e.currentTarget.select()}
+            />
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              className="h-8 px-2 shrink-0"
+              onClick={handleCopyLink}
+            >
+              {copied ? (
+                <Check className="h-4 w-4 text-green-500" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
           </div>
         </div>
+
+        {/* Portal Link (if org) */}
+        {portalUrl && (
+          <>
+            <DropdownMenuSeparator />
+            <div className="px-3 py-2">
+              <p className="text-xs text-muted-foreground mb-1">Organization Portal</p>
+              <div className="flex items-center gap-2 p-2 bg-muted rounded-md text-xs">
+                <Link2 className="h-3 w-3 text-muted-foreground shrink-0" />
+                <span className="truncate flex-1">{portalUrl}</span>
+              </div>
+            </div>
+          </>
+        )}
+
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleCopyLink} className="gap-2">
-          {copied ? (
-            <Check className="h-4 w-4 text-green-500" />
-          ) : (
-            <Copy className="h-4 w-4" />
-          )}
-          {copied ? 'Copied!' : 'Copy link'}
-        </DropdownMenuItem>
+        
+        {/* Share Options */}
+        <div className="px-1 py-1">
+          <p className="text-xs text-muted-foreground px-2 mb-1">Share via</p>
+        </div>
         <DropdownMenuItem onClick={handleEmailShare} className="gap-2">
           <Mail className="h-4 w-4" />
-          Share via email
+          Email
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleTwitterShare} className="gap-2">
-          <Twitter className="h-4 w-4" />
-          Share on Twitter
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+          </svg>
+          X (Twitter)
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleLinkedInShare} className="gap-2">
+          <Linkedin className="h-4 w-4" />
+          LinkedIn
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleFacebookShare} className="gap-2">
+          <Facebook className="h-4 w-4" />
+          Facebook
+        </DropdownMenuItem>
+
+        {/* Status Info */}
+        {!isPublic && !canEdit && (
+          <>
+            <DropdownMenuSeparator />
+            <div className="px-3 py-2">
+              <p className="text-xs text-amber-600 dark:text-amber-400">
+                This {type} is private. Only organization members can view it.
+              </p>
+            </div>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
