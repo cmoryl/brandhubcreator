@@ -37,6 +37,9 @@ export interface PageSectionVisibility {
   faqPreview: boolean;
   videoTutorials: boolean;
   services: boolean;
+  about: boolean;
+  contact: boolean;
+  signupCta: boolean;
 }
 
 export interface AppSettings {
@@ -78,6 +81,9 @@ const defaultPageSections: PageSectionVisibility = {
   faqPreview: true,
   videoTutorials: false, // Hidden by default until fine-tuned
   services: true, // "What We Offer" section
+  about: true,
+  contact: true,
+  signupCta: true,
 };
 
 const defaultSettings: AppSettings = {

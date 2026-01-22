@@ -40,7 +40,6 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 
 // Lazy load components that are not needed on initial render
 const DemoBrandsShowcase = lazy(() => import('@/components/landing/DemoBrandsShowcase').then(m => ({ default: m.DemoBrandsShowcase })));
-const PublicGuidesNav = lazy(() => import('@/components/landing/DemoBrandsShowcase').then(m => ({ default: m.PublicGuidesNav })));
 const InviteMembersDialog = lazy(() => import('@/components/organization/InviteMembersDialog').then(m => ({ default: m.InviteMembersDialog })));
 const AppSettingsEditor = lazy(() => import('@/components/admin/AppSettingsEditor').then(m => ({ default: m.AppSettingsEditor })));
 const OrganizationSwitcher = lazy(() => import('@/components/OrganizationSwitcher').then(m => ({ default: m.OrganizationSwitcher })));
@@ -556,12 +555,7 @@ const BrandsIndex = () => {
         </Suspense>
       )}
 
-      {/* Public Guides Navigation - browse public brands and products */}
-      {!user && (
-        <Suspense fallback={<div className="py-12 flex justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>}>
-          <PublicGuidesNav onLoginClick={() => navigate('/auth')} />
-        </Suspense>
-      )}
+      {/* Note: PublicGuidesNav removed - demo guides shown via DemoBrandsShowcase above */}
 
       {/* Main Content - Only show when logged in */}
       {user && (
@@ -1153,6 +1147,99 @@ const BrandsIndex = () => {
         </section>
       )}
 
+      {/* About Section */}
+      {!user && settings.pageSections?.about !== false && (
+        <section id="about" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30 border-t border-border/30">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl font-bold text-foreground mb-6">About BrandHub</h2>
+            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+              BrandHub is the modern platform for creating, managing, and sharing professional brand guidelines. 
+              Whether you're a startup building your first brand or an enterprise managing multiple product lines, 
+              we provide the tools you need to maintain brand consistency across every touchpoint.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+              <div className="text-center">
+                <div className="text-4xl font-bold text-accent mb-2">500+</div>
+                <p className="text-muted-foreground">Brand Guides Created</p>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-accent mb-2">50+</div>
+                <p className="text-muted-foreground">Organizations</p>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-accent mb-2">25+</div>
+                <p className="text-muted-foreground">Sections Available</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Contact Section */}
+      {!user && settings.pageSections?.contact !== false && (
+        <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 border-t border-border/30">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-foreground mb-4">Get in Touch</h2>
+              <p className="text-lg text-muted-foreground">
+                Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <Card className="p-6 border-border/50">
+                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <HelpCircle className="h-5 w-5 text-accent" />
+                  Support
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  Need help with your brand guide? Our support team is here to assist you.
+                </p>
+                <Button variant="outline" onClick={() => navigate('/knowledge')} className="w-full">
+                  Visit Help Center
+                </Button>
+              </Card>
+              <Card className="p-6 border-border/50">
+                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-accent" />
+                  Enterprise
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  Looking for team features or custom solutions? Let's talk about your needs.
+                </p>
+                <Button variant="outline" onClick={() => navigate('/contact')} className="w-full">
+                  Contact Sales
+                </Button>
+              </Card>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Sign Up CTA Section */}
+      {!user && settings.pageSections?.signupCta !== false && (
+        <section id="signup" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-t border-border/30">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Ready to build your brand?</h2>
+            <p className="text-lg text-muted-foreground mb-8">
+              Join thousands of teams creating professional brand guidelines. Start free today.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" onClick={() => navigate('/auth')} className="gap-2">
+                <Plus className="h-5 w-5" />
+                Create Free Account
+              </Button>
+              <Button size="lg" variant="outline" onClick={() => navigate('/auth')} className="gap-2">
+                <Lock className="h-5 w-5" />
+                Sign In
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground mt-6">
+              No credit card required • Free tier available • Cancel anytime
+            </p>
+          </div>
+        </section>
+      )}
+
       {/* Footer */}
       <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-border/30">
         <div className="max-w-7xl mx-auto">
@@ -1165,12 +1252,15 @@ const BrandsIndex = () => {
             </div>
             
             <nav className="flex flex-wrap items-center justify-center gap-6 text-sm">
+              <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors">
+                About
+              </a>
               <button onClick={() => navigate('/knowledge')} className="text-muted-foreground hover:text-foreground transition-colors">
                 FAQ & Help
               </button>
-              <button onClick={() => navigate('/knowledge')} className="text-muted-foreground hover:text-foreground transition-colors">
-                Documentation
-              </button>
+              <a href="#contact" className="text-muted-foreground hover:text-foreground transition-colors">
+                Contact
+              </a>
               <button onClick={() => navigate('/auth')} className="text-muted-foreground hover:text-foreground transition-colors">
                 Admin Login
               </button>
