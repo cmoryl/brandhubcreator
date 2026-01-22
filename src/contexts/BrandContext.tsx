@@ -20,7 +20,9 @@ interface BrandContextType {
   deleteBrand: (id: string) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   getBrand: (id: string) => BrandGuide | undefined;
+  getBrandBySlug: (slug: string) => BrandGuide | undefined;
   getProduct: (id: string) => ProductGuide | undefined;
+  getProductBySlug: (slug: string) => ProductGuide | undefined;
   getRecentlyUpdated: () => BaseGuide[];
   toggleFavorite: (id: string, type: 'brand' | 'product') => Promise<void>;
   getFavorites: () => BaseGuide[];

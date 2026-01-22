@@ -137,7 +137,7 @@ const App = () => (
                       }
                     />
                     <Route
-                      path="brand/:brandId"
+                      path="brand/:brandSlug"
                       element={
                         <Suspense fallback={<BrandEditorSkeleton />}>
                           <BrandEditor />
@@ -145,7 +145,7 @@ const App = () => (
                       }
                     />
                     <Route
-                      path="product/:productId"
+                      path="product/:productSlug"
                       element={
                         <Suspense fallback={<BrandEditorSkeleton />}>
                           <ProductEditor />

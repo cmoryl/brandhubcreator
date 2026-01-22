@@ -52,9 +52,9 @@ import { normalizeHiddenSections, normalizeSectionOrder } from '@/lib/sectionOrd
 type ViewMode = 'sections' | 'full';
 
 const ProductEditor = () => {
-  const { productId } = useParams<{ productId: string }>();
+  const { productSlug } = useParams<{ productSlug: string }>();
   const navigate = useNavigate();
-  const { getProduct, updateProduct, toggleFavorite, isLoading } = useBrands();
+  const { getProduct, getProductBySlug, updateProduct, toggleFavorite, isLoading } = useBrands();
   const { user, isAdmin, isApproved, isLoading: authLoading } = useAuth();
   const { userRole: orgRole } = useOrganization();
 
@@ -78,9 +78,21 @@ const ProductEditor = () => {
   // Scroll to top when product changes
   React.useEffect(() => {
     window.scrollTo(0, 0);
-  }, [productId]);
+  }, [productSlug]);
 
-const currentProduct = getProduct(productId || '');
+  // Helper to check if the param is a UUID
+  const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+  // Try to get product from context by ID (for UUID) or by slug
+  const currentProduct = React.useMemo(() => {
+    if (!productSlug) return undefined;
+    // First try as UUID for backwards compatibility
+    if (isUUID(productSlug)) {
+      return getProduct(productSlug);
+    }
+    // Try by slug
+    return getProductBySlug ? getProductBySlug(productSlug) : undefined;
+  }, [productSlug, getProduct, getProductBySlug]);
   
   // Forward-compat: older products may have persisted sectionOrder without newly-added sections (e.g., socialassets)
   const sectionOrder = useMemo(
@@ -99,9 +111,9 @@ const currentProduct = getProduct(productId || '');
 
   const handlePageSettingsChange = useCallback((newSettings: BrandPageSettings) => {
     if (currentProduct) {
-      updateProduct(productId || '', { pageSettings: newSettings });
+      updateProduct(currentProduct.id, { pageSettings: newSettings });
     }
-  }, [currentProduct, productId, updateProduct]);
+  }, [currentProduct, updateProduct]);
 
   // Get content width class based on settings
   const getContentWidthClass = () => {
@@ -146,40 +158,40 @@ const currentProduct = getProduct(productId || '');
   }
 
   const handleSectionOrderChange = useCallback((newOrder: SectionId[]) => {
-    if (productId && currentProduct) {
-      updateProduct(productId, { sectionOrder: newOrder });
+    if (currentProduct) {
+      updateProduct(currentProduct.id, { sectionOrder: newOrder });
     }
-  }, [productId, currentProduct, updateProduct]);
+  }, [currentProduct, updateProduct]);
 
   // Auto-heal persisted sectionOrder when new sections are introduced
   React.useEffect(() => {
-    if (!productId || !currentProduct || !isGuideAdmin) return;
+    if (!currentProduct || !isGuideAdmin) return;
     const current = Array.isArray(currentProduct.sectionOrder) ? currentProduct.sectionOrder : [];
     const normalized = normalizeSectionOrder(current);
     const isDifferent =
       current.length !== normalized.length || current.some((id, i) => id !== normalized[i]);
     if (isDifferent) {
-      updateProduct(productId, { sectionOrder: normalized });
+      updateProduct(currentProduct.id, { sectionOrder: normalized });
     }
-  }, [productId, currentProduct?.sectionOrder, isGuideAdmin, updateProduct]);
+  }, [currentProduct?.id, currentProduct?.sectionOrder, isGuideAdmin, updateProduct]);
 
   const handleHiddenSectionsChange = useCallback((newHiddenSections: SectionId[]) => {
-    if (productId && currentProduct) {
-      updateProduct(productId, { hiddenSections: newHiddenSections });
+    if (currentProduct) {
+      updateProduct(currentProduct.id, { hiddenSections: newHiddenSections });
     }
-  }, [productId, currentProduct, updateProduct]);
+  }, [currentProduct, updateProduct]);
 
   // Auto-heal invalid hidden sections
   React.useEffect(() => {
-    if (!productId || !currentProduct || !isGuideAdmin) return;
+    if (!currentProduct || !isGuideAdmin) return;
     const current = Array.isArray(currentProduct.hiddenSections) ? currentProduct.hiddenSections : [];
     const normalized = normalizeHiddenSections(current, sectionOrder);
     const isDifferent =
       current.length !== normalized.length || current.some((id, i) => id !== normalized[i]);
     if (isDifferent) {
-      updateProduct(productId, { hiddenSections: normalized });
+      updateProduct(currentProduct.id, { hiddenSections: normalized });
     }
-  }, [productId, currentProduct?.hiddenSections, sectionOrder, isGuideAdmin, updateProduct]);
+  }, [currentProduct?.id, currentProduct?.hiddenSections, sectionOrder, isGuideAdmin, updateProduct]);
 
   if (!currentProduct) {
     return (
@@ -193,8 +205,8 @@ const currentProduct = getProduct(productId || '');
   }
 
   const handleUpdateProduct = (updates: Partial<typeof currentProduct>) => {
-    if (productId) {
-      updateProduct(productId, updates);
+    if (currentProduct) {
+      updateProduct(currentProduct.id, updates);
     }
   };
 
@@ -403,7 +415,7 @@ const currentProduct = getProduct(productId || '');
               ) : (
                 <FullBrandPage 
                   brand={currentProduct}
-                  brandId={productId || ''}
+                  brandId={currentProduct.id}
                   onBrandUpdate={handleUpdateProduct}
                   scrollToSection={scrollToSection}
                   onSectionVisible={handleSectionVisible}

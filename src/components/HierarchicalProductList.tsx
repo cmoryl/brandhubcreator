@@ -113,7 +113,7 @@ export const HierarchicalProductList = ({
         isChild && "border-l-4 border-l-primary/30"
       )}
       style={{ animationDelay: `${index * 0.05}s` }}
-      onClick={() => navigate(`/product/${product.id}`)}
+      onClick={() => navigate(`/product/${product.slug || product.id}`)}
     >
       <CardContent className="p-0">
         {/* Cover Image / Color Preview */}
@@ -277,7 +277,7 @@ export const HierarchicalProductList = ({
                 {/* Parent with special styling */}
                 <Card 
                   className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden bg-card shadow-lg hover-lift card-animate ring-2 ring-primary/20"
-                  onClick={() => navigate(`/product/${hierarchy.parent.id}`)}
+                  onClick={() => navigate(`/product/${hierarchy.parent.slug || hierarchy.parent.id}`)}
                 >
                   <CardContent className="p-0">
                     {/* Cover Image */}

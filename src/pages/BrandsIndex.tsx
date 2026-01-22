@@ -140,12 +140,12 @@ const BrandsIndex = () => {
         const brand = await addBrand(newItemName.trim());
         setNewItemName('');
         setIsNewDialogOpen(false);
-        if (brand) navigate(`/brand/${brand.id}`);
+        if (brand) navigate(`/brand/${brand.slug || brand.id}`);
       } else {
         const product = await addProduct(newItemName.trim());
         setNewItemName('');
         setIsNewDialogOpen(false);
-        if (product) navigate(`/product/${product.id}`);
+        if (product) navigate(`/product/${product.slug || product.id}`);
       }
     }
   };
@@ -623,7 +623,7 @@ const BrandsIndex = () => {
                   key={brand.id}
                   className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg hover-lift card-animate"
                   style={{ animationDelay: `${index * 0.1}s` }}
-                  onClick={() => navigate(`/brand/${brand.id}`)}
+                  onClick={() => navigate(`/brand/${brand.slug || brand.id}`)}
                 >
                   <CardContent className="p-0">
                     {/* Cover Image / Color Preview */}

@@ -66,7 +66,7 @@ import { normalizeHiddenSections, normalizeSectionOrder } from '@/lib/sectionOrd
 type ViewMode = 'sections' | 'full';
 
 const BrandEditor = () => {
-  const { brandId } = useParams<{ brandId: string }>();
+  const { brandSlug } = useParams<{ brandSlug: string }>();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const previousThemeRef = useRef<string | undefined>(undefined);
@@ -92,23 +92,42 @@ const BrandEditor = () => {
   // Scroll to top when brand changes
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [brandId]);
+  }, [brandSlug]);
 
-  const contextBrand = getBrand(brandId || '');
+  // Helper to check if the param is a UUID
+  const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
   
-  // Fetch public brand directly if not in context (for logged-out users)
+  // Try to get brand from context by ID (for UUID) or by slug
+  const contextBrand = useMemo(() => {
+    if (!brandSlug) return undefined;
+    // First try as UUID for backwards compatibility
+    if (isUUID(brandSlug)) {
+      return getBrand(brandSlug);
+    }
+    // Otherwise, we'll need to fetch by slug
+    return undefined;
+  }, [brandSlug, getBrand]);
+  
+  // Fetch public brand directly if not in context (for logged-out users or slug-based access)
   useEffect(() => {
     const fetchPublicBrand = async () => {
-      if (!brandId || contextBrand || authLoading || isLoading) return;
+      if (!brandSlug || contextBrand || authLoading || isLoading) return;
       
       setPublicBrandLoading(true);
       try {
-        const { data, error } = await supabase
+        // Build query - try by slug first, then by ID for backwards compatibility
+        let query = supabase
           .from('brands')
           .select('*')
-          .eq('id', brandId)
-          .eq('is_public', true)
-          .single();
+          .eq('is_public', true);
+        
+        if (isUUID(brandSlug)) {
+          query = query.eq('id', brandSlug);
+        } else {
+          query = query.eq('slug', brandSlug);
+        }
+        
+        const { data, error } = await query.maybeSingle();
         
         if (!error && data) {
           // Convert DB format to BrandGuide (defensive: legacy guide_data can contain invalid shapes)
@@ -123,6 +142,7 @@ const BrandEditor = () => {
           const brand: BrandGuide = {
             id: data.id,
             type: 'brand',
+            slug: data.slug,
             organizationId: data.organization_id,
             isFavorite: data.is_favorite ?? false,
             isPublic: data.is_public ?? false,
@@ -174,7 +194,7 @@ const BrandEditor = () => {
     };
     
     fetchPublicBrand();
-  }, [brandId, contextBrand, authLoading, isLoading]);
+  }, [brandSlug, contextBrand, authLoading, isLoading]);
   
   // Use context brand if available, otherwise use fetched public brand
   const brand = contextBrand || publicBrand;
@@ -669,7 +689,7 @@ const BrandEditor = () => {
               ) : (
                 <FullBrandPage 
                   brand={brand}
-                  brandId={brandId || ''}
+                  brandId={brand.id}
                   onBrandUpdate={updateBrand}
                   scrollToSection={scrollToSection}
                   onSectionVisible={handleSectionVisible}

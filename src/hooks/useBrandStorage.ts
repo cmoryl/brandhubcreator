@@ -14,6 +14,7 @@ interface DbBrand {
   user_id: string;
   organization_id: string | null;
   name: string;
+  slug: string | null;
   is_favorite: boolean;
   is_public: boolean;
   section_order: string[] | null;
@@ -29,6 +30,7 @@ interface DbProduct {
   organization_id: string | null;
   parent_brand_id: string | null;
   name: string;
+  slug: string | null;
   is_favorite: boolean;
   is_public: boolean;
   section_order: string[] | null;
@@ -120,6 +122,7 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
   return {
     id: db.id,
     type: 'brand',
+    slug: db.slug || undefined,
     organizationId: db.organization_id,
     isFavorite: db.is_favorite,
     isPublic: db.is_public ?? false,
@@ -174,6 +177,7 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
   return {
     id: db.id,
     type: 'product',
+    slug: db.slug || undefined,
     organizationId: db.organization_id,
     parentBrandId: db.parent_brand_id ?? undefined,
     isFavorite: db.is_favorite,
@@ -1006,7 +1010,9 @@ export const useBrandStorage = () => {
   };
 
   const getBrand = (id: string) => brands.find(b => b.id === id);
+  const getBrandBySlug = (slug: string) => brands.find(b => b.slug === slug);
   const getProduct = (id: string) => products.find(p => p.id === id);
+  const getProductBySlug = (slug: string) => products.find(p => p.slug === slug);
 
   const getRecentlyUpdated = () => {
     const all = [...brands, ...products];
@@ -1093,7 +1099,9 @@ export const useBrandStorage = () => {
     deleteBrand,
     deleteProduct,
     getBrand,
+    getBrandBySlug,
     getProduct,
+    getProductBySlug,
     getRecentlyUpdated,
     toggleFavorite,
     getFavorites,

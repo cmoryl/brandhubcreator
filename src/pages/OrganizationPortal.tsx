@@ -26,6 +26,7 @@ interface OrganizationData {
 interface PublicBrand {
   id: string;
   name: string;
+  slug: string | null;
   is_public: boolean;
   guide_data: {
     hero?: {
@@ -41,6 +42,7 @@ interface PublicBrand {
 interface PublicProduct {
   id: string;
   name: string;
+  slug: string | null;
   is_public: boolean;
   parent_brand_id: string | null;
   guide_data: {
@@ -109,7 +111,7 @@ const OrganizationPortal = () => {
       // Fetch public brands for this organization
       const { data: brandsData, error: brandsError } = await supabase
         .from('brands')
-        .select('id, name, is_public, guide_data, updated_at')
+        .select('id, name, slug, is_public, guide_data, updated_at')
         .eq('organization_id', orgData.id)
         .eq('is_public', true)
         .order('updated_at', { ascending: false });
@@ -123,7 +125,7 @@ const OrganizationPortal = () => {
       // Fetch public products for this organization
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('id, name, is_public, parent_brand_id, guide_data, updated_at')
+        .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
         .eq('organization_id', orgData.id)
         .eq('is_public', true)
         .order('updated_at', { ascending: false });
@@ -328,7 +330,7 @@ const OrganizationPortal = () => {
                   key={brand.id}
                   className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
                   style={{ animationDelay: `${index * 0.1}s` }}
-                  onClick={() => navigate(`/brand/${brand.id}`)}
+                  onClick={() => navigate(`/brand/${brand.slug || brand.id}`)}
                 >
                   <CardContent className="p-0">
                     {/* Cover Image / Color Preview */}
@@ -449,7 +451,7 @@ const OrganizationPortal = () => {
                         <Card 
                           className={`group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg ${hasSubProducts ? 'ring-2 ring-accent/30' : ''}`}
                           style={{ animationDelay: `${index * 0.1}s` }}
-                          onClick={() => navigate(`/product/${product.id}`)}
+                          onClick={() => navigate(`/product/${product.slug || product.id}`)}
                         >
                           <CardContent className="p-0">
                             <div className="relative h-44 overflow-hidden">
@@ -543,7 +545,7 @@ const OrganizationPortal = () => {
                                   <Card 
                                     key={subProduct.id}
                                     className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden border bg-card/50"
-                                    onClick={() => navigate(`/product/${subProduct.id}`)}
+                                    onClick={() => navigate(`/product/${subProduct.slug || subProduct.id}`)}
                                   >
                                     <CardContent className="p-0">
                                       <div className="relative h-24 overflow-hidden">
