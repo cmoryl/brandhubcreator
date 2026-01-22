@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BrandGuide, ProductGuide, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS } from '@/types/brand';
+import { DEFAULT_SOCIAL_ASSETS, DEFAULT_DISPLAY_BANNERS } from '@/lib/socialAssetDefaults';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Json } from '@/integrations/supabase/types';
@@ -72,6 +73,9 @@ const createDefaultGuideData = (name: string, type: 'brand' | 'product') => ({
   socialIcons: [],
   imagery: [],
   social: [],
+  // Pre-populated Social Assets & Display Banners
+  socialAssets: DEFAULT_SOCIAL_ASSETS,
+  displayBanners: DEFAULT_DISPLAY_BANNERS,
   websites: [],
   signatures: [],
   qr: { 
