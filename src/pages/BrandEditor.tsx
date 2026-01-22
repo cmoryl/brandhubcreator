@@ -602,7 +602,7 @@ const BrandEditor = () => {
                   onPublicChange={(isPublic) => updateBrand({ isPublic })}
                   canEdit={canEdit || false}
                 />
-                <BrandAuditButton brand={brand} />
+                {canEdit && <BrandAuditButton brand={brand} />}
                 {canEdit && (
                   <Sheet open={intelligenceOpen} onOpenChange={setIntelligenceOpen}>
                     <SheetTrigger asChild>

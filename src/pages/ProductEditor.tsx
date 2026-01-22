@@ -456,7 +456,7 @@ const ProductEditor = () => {
                   onPublicChange={(isPublic) => handleUpdateProduct({ isPublic })}
                   canEdit={!!user && isAdmin}
                 />
-                <BrandAuditButton brand={currentProduct} />
+                {!!user && isAdmin && <BrandAuditButton brand={currentProduct} />}
                 {!!user && (
                   <Sheet open={intelligenceOpen} onOpenChange={setIntelligenceOpen}>
                     <SheetTrigger asChild>
