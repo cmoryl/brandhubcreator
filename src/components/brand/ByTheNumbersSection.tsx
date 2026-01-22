@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Plus, Trash2, Edit2, Check, BarChart3, DollarSign, TrendingUp, Users, Globe, Building2, Award, Target, Zap, Clock, Calendar, CheckCircle, Star, Heart, FileText, Briefcase, ShieldCheck, Percent, Hash, Package, Truck, Phone, Mail, MapPin, Layers, Grid3X3, LayoutList, CircleDot, Columns, Sparkles, X, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { SectionHeader } from './SectionHeader';
-import { StatisticItem, InfographicLayout, DEFAULT_STATISTICS } from '@/types/brand';
+import { StatisticItem, InfographicLayout, DEFAULT_STATISTICS, BrandColor } from '@/types/brand';
 import {
   Select,
   SelectContent,
@@ -23,8 +23,7 @@ interface ByTheNumbersSectionProps {
   brandName?: string;
   infographicLayout?: InfographicLayout;
   onLayoutChange?: (layout: InfographicLayout) => void;
-  primaryColor?: string;
-  secondaryColor?: string;
+  brandColors?: BrandColor[];
 }
 
 // Icon mapping
@@ -51,21 +50,31 @@ const layoutOptions: { value: InfographicLayout; label: string; icon: React.Elem
   { value: 'circular', label: 'Circular', icon: CircleDot },
 ];
 
-// Default service capabilities
-const DEFAULT_SERVICES = [
-  'Technology Solutions',
-  'Artificial Intelligence',
-  'Software & App Localization',
-  'Website Localization',
-  'International Performance Marketing',
-  'Interpretation',
-  'Translation & Localization',
-  'Accessibility Solutions',
-  'Dubbing & Subtitling',
-  'Content & Creative Services',
-  'Contact Center Solutions',
-  'QA & Testing'
-];
+// Helper to convert hex to HSL for CSS custom properties
+const hexToHsl = (hex: string): { h: number; s: number; l: number } => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return { h: 210, s: 70, l: 50 };
+
+  let r = parseInt(result[1], 16) / 255;
+  let g = parseInt(result[2], 16) / 255;
+  let b = parseInt(result[3], 16) / 255;
+
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+};
 
 export const ByTheNumbersSection = ({
   statistics,
@@ -75,23 +84,47 @@ export const ByTheNumbersSection = ({
   brandName = 'Brand',
   infographicLayout = 'infographic',
   onLayoutChange,
-  primaryColor = '#003b71',
-  secondaryColor = '#139dd8'
+  brandColors = []
 }: ByTheNumbersSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [animatedStats, setAnimatedStats] = useState<Set<string>>(new Set());
   const [showEditPanel, setShowEditPanel] = useState(false);
+  const [hoveredStat, setHoveredStat] = useState<string | null>(null);
+
+  // Extract brand colors for theming
+  const themeColors = useMemo(() => {
+    const primary = brandColors.find(c => c.role === 'primary') || brandColors[0];
+    const secondary = brandColors.find(c => c.role === 'secondary') || brandColors[1];
+    const accent = brandColors.find(c => c.role === 'accent') || brandColors[2];
+    
+    return {
+      primary: primary?.hex || '#003b71',
+      secondary: secondary?.hex || '#139dd8',
+      accent: accent?.hex || '#3bbfb5',
+      primaryHsl: hexToHsl(primary?.hex || '#003b71'),
+      secondaryHsl: hexToHsl(secondary?.hex || '#139dd8'),
+      accentHsl: hexToHsl(accent?.hex || '#3bbfb5'),
+    };
+  }, [brandColors]);
+
+  // Generate gradient stops from brand colors
+  const gradientColors = useMemo(() => {
+    const colors = brandColors.slice(0, 4).map(c => c.hex);
+    if (colors.length < 2) return [themeColors.primary, themeColors.secondary];
+    return colors;
+  }, [brandColors, themeColors]);
 
   // Trigger staggered animations on mount
   useEffect(() => {
+    setAnimatedStats(new Set());
     const timer = setTimeout(() => {
       statistics.forEach((stat, index) => {
         setTimeout(() => {
           setAnimatedStats(prev => new Set(prev).add(stat.id));
-        }, index * 100);
+        }, index * 120);
       });
-    }, 200);
+    }, 100);
     return () => clearTimeout(timer);
   }, [statistics]);
 
@@ -129,6 +162,15 @@ export const ByTheNumbersSection = ({
   const secondaryStats = statistics.filter(s => s.category === 'secondary');
   const highlightStats = statistics.filter(s => s.category === 'highlight');
 
+  // Dynamic styles based on brand colors
+  const dynamicStyles = useMemo(() => ({
+    '--brand-primary': themeColors.primary,
+    '--brand-secondary': themeColors.secondary,
+    '--brand-accent': themeColors.accent,
+    '--brand-gradient': `linear-gradient(135deg, ${gradientColors.join(', ')})`,
+    '--brand-glow': `0 0 40px ${themeColors.primary}40`,
+  } as React.CSSProperties), [themeColors, gradientColors]);
+
   // Render editing panel for a stat
   const renderEditPanel = () => {
     if (!editingId) return null;
@@ -137,7 +179,7 @@ export const ByTheNumbersSection = ({
 
     return (
       <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md border-2" style={{ borderColor: themeColors.primary }}>
           <CardContent className="p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold">Edit Statistic</h3>
@@ -205,7 +247,7 @@ export const ByTheNumbersSection = ({
               <SelectContent>
                 <SelectItem value="primary">Primary (Top Row)</SelectItem>
                 <SelectItem value="secondary">Secondary (Bottom Row)</SelectItem>
-                <SelectItem value="highlight">Highlight (Sidebar)</SelectItem>
+                <SelectItem value="highlight">Highlight (Featured)</SelectItem>
               </SelectContent>
             </Select>
 
@@ -218,7 +260,11 @@ export const ByTheNumbersSection = ({
             />
 
             <div className="flex gap-2 pt-2">
-              <Button className="flex-1" onClick={() => { setEditingId(null); setShowEditPanel(false); }}>
+              <Button 
+                className="flex-1" 
+                onClick={() => { setEditingId(null); setShowEditPanel(false); }}
+                style={{ background: themeColors.primary }}
+              >
                 <Check className="h-4 w-4 mr-2" /> Save
               </Button>
               <Button variant="destructive" onClick={() => { deleteStatistic(stat.id); setShowEditPanel(false); }}>
@@ -231,121 +277,240 @@ export const ByTheNumbersSection = ({
     );
   };
 
-  // ==================== NEW LAYOUT: INFOGRAPHIC ====================
+  // ==================== INTERACTIVE INFOGRAPHIC LAYOUT ====================
   const renderInfographicLayout = () => (
-    <div className="space-y-8">
-      {/* Primary Stats Row - Large featured numbers */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+    <div className="space-y-8" style={dynamicStyles}>
+      {/* Primary Stats - Animated Cards with Brand Colors */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {primaryStats.slice(0, 4).map((stat, index) => {
           const isAnimated = animatedStats.has(stat.id);
+          const isHovered = hoveredStat === stat.id;
           const IconComponent = getIconComponent(stat.icon);
+          const colorIndex = index % gradientColors.length;
+          const cardColor = gradientColors[colorIndex] || themeColors.primary;
+          const hsl = hexToHsl(cardColor);
           
           return (
             <div
               key={stat.id}
               className={cn(
-                "group relative bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-6 cursor-pointer",
-                "border border-primary/10 hover:border-primary/30 transition-all duration-500",
-                "hover:shadow-lg hover:-translate-y-1",
-                isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                "group relative cursor-pointer overflow-hidden rounded-2xl",
+                "transition-all duration-500 ease-out transform-gpu",
+                isAnimated ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-12 scale-90",
+                isHovered && "scale-105 -translate-y-2"
               )}
-              style={{ animationDelay: `${index * 100}ms` }}
+              style={{ 
+                animationDelay: `${index * 100}ms`,
+                boxShadow: isHovered ? `0 20px 40px -10px ${cardColor}50` : `0 8px 24px -8px ${cardColor}30`,
+              }}
               onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+              onMouseEnter={() => setHoveredStat(stat.id)}
+              onMouseLeave={() => setHoveredStat(null)}
             >
-              {/* Icon badge */}
-              <div className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <IconComponent className="h-5 w-5" />
+              {/* Background gradient */}
+              <div 
+                className="absolute inset-0 transition-opacity duration-300"
+                style={{ 
+                  background: `linear-gradient(135deg, ${cardColor} 0%, ${cardColor}dd 50%, ${cardColor}bb 100%)`,
+                  opacity: isHovered ? 1 : 0.95,
+                }}
+              />
+              
+              {/* Animated glow effect */}
+              <div 
+                className={cn(
+                  "absolute inset-0 opacity-0 transition-opacity duration-500",
+                  isHovered && "opacity-100"
+                )}
+                style={{
+                  background: `radial-gradient(circle at 50% 0%, ${cardColor}60 0%, transparent 70%)`,
+                }}
+              />
+              
+              {/* Floating particles effect */}
+              <div className="absolute inset-0 overflow-hidden">
+                {[...Array(3)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute rounded-full bg-white/10"
+                    style={{
+                      width: 8 + i * 4,
+                      height: 8 + i * 4,
+                      left: `${20 + i * 30}%`,
+                      top: `${60 + i * 10}%`,
+                      animation: `float ${3 + i}s ease-in-out infinite`,
+                      animationDelay: `${i * 0.5}s`,
+                    }}
+                  />
+                ))}
               </div>
               
-              <div className="text-center pt-2">
-                <div className="text-4xl md:text-5xl lg:text-6xl font-black text-primary mb-2">
-                  {stat.prefix}<span className="tabular-nums">{stat.value}</span>{stat.suffix}
+              {/* Content */}
+              <div className="relative p-6 md:p-8 text-white text-center z-10">
+                {/* Icon */}
+                <div className={cn(
+                  "inline-flex items-center justify-center w-12 h-12 rounded-full mb-4",
+                  "bg-white/20 backdrop-blur-sm transition-transform duration-300",
+                  isHovered && "scale-110 rotate-12"
+                )}>
+                  <IconComponent className="h-6 w-6" />
                 </div>
-                <div className="text-sm md:text-base font-medium text-foreground uppercase tracking-wider">
+                
+                {/* Value with counting animation effect */}
+                <div className={cn(
+                  "text-4xl md:text-5xl lg:text-6xl font-black mb-2 tracking-tight",
+                  "transition-transform duration-300",
+                  isHovered && "scale-105"
+                )}>
+                  <span className="tabular-nums">{stat.prefix}{stat.value}{stat.suffix}</span>
+                </div>
+                
+                {/* Label */}
+                <div className="text-sm md:text-base font-semibold uppercase tracking-widest opacity-90">
                   {stat.label}
                 </div>
+                
+                {/* Description on hover */}
+                {stat.description && (
+                  <div className={cn(
+                    "text-xs opacity-0 max-h-0 overflow-hidden transition-all duration-300",
+                    isHovered && "opacity-70 max-h-20 mt-2"
+                  )}>
+                    {stat.description}
+                  </div>
+                )}
               </div>
               
               {/* Edit indicator */}
-              <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Edit2 className="h-4 w-4 text-muted-foreground" />
+              <div className={cn(
+                "absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20",
+                "flex items-center justify-center opacity-0 transition-opacity duration-300",
+                isHovered && "opacity-100"
+              )}>
+                <Edit2 className="h-4 w-4 text-white" />
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Support Banner */}
-      <div className={cn(
-        "flex items-center justify-center gap-3 py-4 px-6 rounded-xl",
-        "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground",
-        "transition-all duration-700",
-        animatedStats.size > 0 ? "opacity-100 scale-100" : "opacity-0 scale-95"
-      )}>
-        <Headphones className="h-6 w-6" />
-        <span className="text-lg md:text-xl font-bold tracking-[0.3em] uppercase">
-          24/7/365 Local Support
-        </span>
+      {/* Support Banner with animated gradient */}
+      <div 
+        className={cn(
+          "relative overflow-hidden rounded-xl py-5 px-8",
+          "transition-all duration-700",
+          animatedStats.size > 0 ? "opacity-100 scale-100" : "opacity-0 scale-95"
+        )}
+        style={{
+          background: `linear-gradient(90deg, ${themeColors.primary}, ${themeColors.secondary}, ${themeColors.accent || themeColors.primary})`,
+          backgroundSize: '200% 100%',
+          animation: 'shimmer 3s linear infinite',
+        }}
+      >
+        <div className="flex items-center justify-center gap-4 text-white relative z-10">
+          <Headphones className="h-6 w-6 animate-pulse" />
+          <span className="text-lg md:text-xl font-bold tracking-[0.2em] uppercase">
+            24/7/365 Local Support
+          </span>
+          <Headphones className="h-6 w-6 animate-pulse" />
+        </div>
       </div>
 
-      {/* Secondary Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-        {secondaryStats.map((stat, index) => {
-          const isAnimated = animatedStats.has(stat.id);
-          const IconComponent = getIconComponent(stat.icon);
-          
-          return (
-            <div
-              key={stat.id}
-              className={cn(
-                "group flex items-center gap-4 p-5 rounded-xl cursor-pointer",
-                "bg-card border border-border hover:border-primary/30 transition-all duration-500",
-                "hover:shadow-md",
-                isAnimated ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
-              )}
-              style={{ animationDelay: `${(index + 4) * 100}ms` }}
-              onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
-            >
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                <IconComponent className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl md:text-4xl font-black text-foreground group-hover:text-primary transition-colors">
+      {/* Secondary Stats - Horizontal interactive list */}
+      {secondaryStats.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {secondaryStats.map((stat, index) => {
+            const isAnimated = animatedStats.has(stat.id);
+            const isHovered = hoveredStat === stat.id;
+            const IconComponent = getIconComponent(stat.icon);
+            
+            return (
+              <div
+                key={stat.id}
+                className={cn(
+                  "group flex items-center gap-4 p-5 rounded-xl cursor-pointer",
+                  "bg-card border-2 transition-all duration-500",
+                  isAnimated ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8",
+                  isHovered ? "shadow-xl -translate-y-1" : "shadow-md"
+                )}
+                style={{ 
+                  animationDelay: `${(index + 4) * 100}ms`,
+                  borderColor: isHovered ? themeColors.secondary : 'transparent',
+                }}
+                onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+                onMouseEnter={() => setHoveredStat(stat.id)}
+                onMouseLeave={() => setHoveredStat(null)}
+              >
+                <div 
+                  className={cn(
+                    "w-14 h-14 rounded-xl flex items-center justify-center shrink-0",
+                    "transition-all duration-300"
+                  )}
+                  style={{ 
+                    background: isHovered 
+                      ? `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.secondary})`
+                      : `${themeColors.primary}15`,
+                  }}
+                >
+                  <IconComponent 
+                    className={cn("h-7 w-7 transition-colors duration-300")}
+                    style={{ color: isHovered ? 'white' : themeColors.primary }}
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div 
+                    className={cn(
+                      "text-3xl md:text-4xl font-black transition-colors duration-300"
+                    )}
+                    style={{ color: isHovered ? themeColors.primary : undefined }}
+                  >
                     {stat.prefix}{stat.value}{stat.suffix}
-                  </span>
-                </div>
-                <div className="text-sm text-muted-foreground font-medium uppercase tracking-wide truncate">
-                  {stat.label}
+                  </div>
+                  <div className="text-sm text-muted-foreground font-medium uppercase tracking-wide truncate">
+                    {stat.label}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
-      {/* Highlight Stats (if any) - Sidebar style */}
+      {/* Highlight Stats - Featured panel with brand gradient */}
       {highlightStats.length > 0 && (
-        <div className="bg-primary text-primary-foreground rounded-2xl p-6 md:p-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div 
+          className="relative overflow-hidden rounded-2xl p-6 md:p-8"
+          style={{
+            background: `linear-gradient(135deg, ${themeColors.primary} 0%, ${themeColors.secondary} 100%)`,
+          }}
+        >
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+          
+          <div className="relative z-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
             {highlightStats.map((stat, index) => {
               const isAnimated = animatedStats.has(stat.id);
+              const isHovered = hoveredStat === stat.id;
               
               return (
                 <div
                   key={stat.id}
                   className={cn(
-                    "group cursor-pointer transition-all duration-500",
+                    "group cursor-pointer text-white transition-all duration-500",
                     "hover:translate-x-1",
                     isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
                   )}
                   style={{ animationDelay: `${(index + 7) * 100}ms` }}
                   onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+                  onMouseEnter={() => setHoveredStat(stat.id)}
+                  onMouseLeave={() => setHoveredStat(null)}
                 >
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-4xl md:text-5xl font-black">
-                      {stat.prefix}{stat.value}{stat.suffix}
-                    </span>
+                  <div className={cn(
+                    "text-4xl md:text-5xl font-black transition-transform duration-300",
+                    isHovered && "scale-105"
+                  )}>
+                    {stat.prefix}{stat.value}{stat.suffix}
                   </div>
                   <div className="text-sm font-semibold uppercase tracking-wide opacity-90 mt-1">
                     {stat.label}
@@ -362,57 +527,117 @@ export const ByTheNumbersSection = ({
         </div>
       )}
 
-      {/* Services Grid */}
-      <div className={cn(
-        "border-t border-border pt-6 transition-all duration-700",
-        animatedStats.size > 0 ? "opacity-100" : "opacity-0"
-      )}>
-        <div className="flex flex-wrap justify-center gap-x-3 gap-y-2">
-          {DEFAULT_SERVICES.map((service, index) => (
-            <span 
-              key={service} 
-              className="inline-flex items-center text-sm text-muted-foreground"
-              style={{ animationDelay: `${(index + 10) * 50}ms` }}
-            >
-              {index > 0 && <span className="mr-3 text-primary">•</span>}
-              <span className="uppercase tracking-wide font-medium hover:text-foreground transition-colors cursor-default">
-                {service}
-              </span>
-            </span>
-          ))}
-        </div>
-      </div>
+      {/* Global CSS for animations */}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+      `}</style>
     </div>
   );
 
-  // ==================== LAYOUT: VERTICAL LIST (GlobalLink style) ====================
+  // ==================== OTHER LAYOUTS (simplified for brevity) ====================
+  const renderCardsLayout = () => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" style={dynamicStyles}>
+      {statistics.map((stat, index) => {
+        const IconComponent = getIconComponent(stat.icon);
+        const isAnimated = animatedStats.has(stat.id);
+        const isHovered = hoveredStat === stat.id;
+        const cardColor = gradientColors[index % gradientColors.length] || themeColors.primary;
+
+        return (
+          <Card 
+            key={stat.id} 
+            className={cn(
+              "relative group overflow-hidden cursor-pointer transition-all duration-500",
+              isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
+              isHovered && "shadow-xl -translate-y-2"
+            )}
+            style={{ 
+              animationDelay: `${index * 100}ms`,
+              borderColor: isHovered ? cardColor : undefined,
+              borderWidth: isHovered ? 2 : 1,
+            }}
+            onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+            onMouseEnter={() => setHoveredStat(stat.id)}
+            onMouseLeave={() => setHoveredStat(null)}
+          >
+            <CardContent className="p-6">
+              <div className="text-center">
+                <div 
+                  className="inline-flex items-center justify-center w-14 h-14 rounded-xl mb-4 transition-all duration-300"
+                  style={{ 
+                    background: isHovered 
+                      ? `linear-gradient(135deg, ${cardColor}, ${themeColors.secondary})`
+                      : `${cardColor}15`,
+                  }}
+                >
+                  <IconComponent 
+                    className="h-7 w-7 transition-colors duration-300"
+                    style={{ color: isHovered ? 'white' : cardColor }}
+                  />
+                </div>
+                <div 
+                  className="text-4xl font-black mb-2 transition-colors duration-300"
+                  style={{ color: isHovered ? cardColor : undefined }}
+                >
+                  {stat.prefix}{stat.value}{stat.suffix}
+                </div>
+                <div className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                  {stat.label}
+                </div>
+                {stat.description && (
+                  <p className="text-xs text-muted-foreground mt-2">{stat.description}</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+
   const renderVerticalListLayout = () => (
-    <div className="bg-primary text-primary-foreground rounded-xl p-6 sm:p-8">
+    <div 
+      className="rounded-2xl p-6 sm:p-8 text-white"
+      style={{ background: `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.secondary})` }}
+    >
       <div className="space-y-6">
         {statistics.map((stat, index) => {
           const isAnimated = animatedStats.has(stat.id);
+          const isHovered = hoveredStat === stat.id;
           
           return (
             <div
               key={stat.id}
               className={cn(
                 "flex items-center gap-4 sm:gap-6 group cursor-pointer transition-all duration-500",
-                "hover:translate-x-2",
-                isAnimated ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
+                isAnimated ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8",
+                isHovered && "translate-x-4"
               )}
               style={{ animationDelay: `${index * 150}ms` }}
               onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+              onMouseEnter={() => setHoveredStat(stat.id)}
+              onMouseLeave={() => setHoveredStat(null)}
             >
-              <span className="text-4xl sm:text-6xl font-bold min-w-[140px] sm:min-w-[180px] text-right">
+              <span className={cn(
+                "text-4xl sm:text-6xl font-black min-w-[140px] sm:min-w-[200px] text-right transition-transform duration-300",
+                isHovered && "scale-105"
+              )}>
                 {stat.prefix}{stat.value}{stat.suffix}
               </span>
               <div className="flex flex-col">
                 <span className="text-sm sm:text-base font-semibold uppercase tracking-wide">
-                  {stat.label.split(' ').slice(0, 1).join(' ')}
+                  {stat.label}
                 </span>
-                <span className="text-xs sm:text-sm opacity-80">
-                  {stat.label.split(' ').slice(1).join(' ')}
-                </span>
+                {stat.description && (
+                  <span className="text-xs opacity-70">{stat.description}</span>
+                )}
               </div>
             </div>
           );
@@ -421,72 +646,84 @@ export const ByTheNumbersSection = ({
     </div>
   );
 
-  // ==================== LAYOUT: HERO STATS ====================
   const renderHeroStatsLayout = () => (
-    <div className="space-y-8">
-      {/* Hero stat (first one) */}
+    <div className="space-y-8" style={dynamicStyles}>
       {primaryStats.length > 0 && (
         <div 
           className={cn(
-            "text-center py-8 transition-all duration-700",
+            "text-center py-12 transition-all duration-700",
             animatedStats.has(primaryStats[0]?.id) ? "opacity-100 scale-100" : "opacity-0 scale-90"
           )}
         >
           <div 
             className="cursor-pointer group" 
             onClick={() => { setEditingId(primaryStats[0].id); setShowEditPanel(true); }}
+            onMouseEnter={() => setHoveredStat(primaryStats[0].id)}
+            onMouseLeave={() => setHoveredStat(null)}
           >
             <div className="relative inline-block">
-              <span className="text-7xl sm:text-9xl font-black bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              <span 
+                className="text-8xl sm:text-[10rem] font-black bg-clip-text text-transparent transition-transform duration-300 group-hover:scale-105"
+                style={{ backgroundImage: `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.secondary})` }}
+              >
                 {primaryStats[0].prefix}{primaryStats[0].value}{primaryStats[0].suffix}
               </span>
-              <div className="absolute -inset-4 bg-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-primary/10 transition-colors" />
+              <div 
+                className="absolute -inset-8 rounded-full blur-3xl -z-10 opacity-20 group-hover:opacity-40 transition-opacity"
+                style={{ background: themeColors.primary }}
+              />
             </div>
-            <p className="text-xl sm:text-2xl font-medium text-foreground mt-4">
+            <p className="text-2xl sm:text-3xl font-semibold text-foreground mt-4">
               {primaryStats[0].label}
             </p>
           </div>
         </div>
       )}
 
-      {/* Supporting stats grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[...primaryStats.slice(1), ...secondaryStats].map((stat, index) => {
           const isAnimated = animatedStats.has(stat.id);
+          const isHovered = hoveredStat === stat.id;
+          const cardColor = gradientColors[(index + 1) % gradientColors.length] || themeColors.secondary;
 
           return (
-            <Card 
+            <div 
               key={stat.id}
               className={cn(
-                "cursor-pointer group overflow-hidden transition-all duration-500",
-                "hover:shadow-lg hover:-translate-y-1",
-                isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                "cursor-pointer p-4 rounded-xl border-2 transition-all duration-500 bg-card",
+                isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
+                isHovered && "shadow-lg -translate-y-1"
               )}
-              style={{ animationDelay: `${(index + 1) * 100}ms` }}
+              style={{ 
+                animationDelay: `${(index + 1) * 100}ms`,
+                borderColor: isHovered ? cardColor : 'transparent',
+              }}
               onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+              onMouseEnter={() => setHoveredStat(stat.id)}
+              onMouseLeave={() => setHoveredStat(null)}
             >
-              <CardContent className="p-4 text-center">
-                <span className="text-2xl sm:text-3xl font-bold text-foreground group-hover:text-primary transition-colors">
+              <div className="text-center">
+                <span 
+                  className="text-3xl sm:text-4xl font-black transition-colors duration-300"
+                  style={{ color: isHovered ? cardColor : undefined }}
+                >
                   {stat.prefix}{stat.value}{stat.suffix}
                 </span>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                  {stat.label}
-                </p>
-              </CardContent>
-            </Card>
+                <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+              </div>
+            </div>
           );
         })}
       </div>
     </div>
   );
 
-  // ==================== LAYOUT: SPLIT PANEL ====================
   const renderSplitPanelLayout = () => (
-    <div className="grid md:grid-cols-2 gap-6">
-      {/* Left panel - Primary stats */}
-      <div className="bg-muted/30 rounded-xl p-6 space-y-6">
+    <div className="grid md:grid-cols-2 gap-6" style={dynamicStyles}>
+      <div className="bg-muted/30 rounded-2xl p-6 space-y-6">
         {primaryStats.map((stat, index) => {
           const isAnimated = animatedStats.has(stat.id);
+          const isHovered = hoveredStat === stat.id;
           const IconComponent = getIconComponent(stat.icon);
 
           return (
@@ -494,20 +731,34 @@ export const ByTheNumbersSection = ({
               key={stat.id}
               className={cn(
                 "flex items-center gap-4 group cursor-pointer transition-all duration-500",
-                isAnimated ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
+                isAnimated ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8",
+                isHovered && "translate-x-2"
               )}
               style={{ animationDelay: `${index * 100}ms` }}
               onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+              onMouseEnter={() => setHoveredStat(stat.id)}
+              onMouseLeave={() => setHoveredStat(null)}
             >
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                <IconComponent className="h-6 w-6 text-primary" />
+              <div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300"
+                style={{ 
+                  background: isHovered 
+                    ? `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.secondary})`
+                    : `${themeColors.primary}15`,
+                }}
+              >
+                <IconComponent 
+                  className="h-6 w-6 transition-colors duration-300"
+                  style={{ color: isHovered ? 'white' : themeColors.primary }}
+                />
               </div>
               <div className="flex-1">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-foreground">
-                    {stat.prefix}{stat.value}{stat.suffix}
-                  </span>
-                </div>
+                <span 
+                  className="text-3xl font-black transition-colors duration-300"
+                  style={{ color: isHovered ? themeColors.primary : undefined }}
+                >
+                  {stat.prefix}{stat.value}{stat.suffix}
+                </span>
                 <p className="text-sm text-muted-foreground">{stat.label}</p>
               </div>
             </div>
@@ -515,22 +766,31 @@ export const ByTheNumbersSection = ({
         })}
       </div>
 
-      {/* Right panel - Secondary stats */}
-      <div className="bg-primary text-primary-foreground rounded-xl p-6 space-y-6">
+      <div 
+        className="rounded-2xl p-6 space-y-6 text-white"
+        style={{ background: `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.secondary})` }}
+      >
         {secondaryStats.length > 0 ? secondaryStats.map((stat, index) => {
           const isAnimated = animatedStats.has(stat.id);
+          const isHovered = hoveredStat === stat.id;
 
           return (
             <div
               key={stat.id}
               className={cn(
                 "text-right group cursor-pointer transition-all duration-500",
-                isAnimated ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
+                isAnimated ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8",
+                isHovered && "-translate-x-2"
               )}
               style={{ animationDelay: `${(index + primaryStats.length) * 100}ms` }}
               onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+              onMouseEnter={() => setHoveredStat(stat.id)}
+              onMouseLeave={() => setHoveredStat(null)}
             >
-              <span className="text-4xl font-bold">
+              <span className={cn(
+                "text-4xl font-black transition-transform duration-300 inline-block",
+                isHovered && "scale-105"
+              )}>
                 {stat.prefix}{stat.value}{stat.suffix}
               </span>
               <p className="text-sm opacity-80">{stat.label}</p>
@@ -545,48 +805,55 @@ export const ByTheNumbersSection = ({
     </div>
   );
 
-  // ==================== LAYOUT: CIRCULAR ====================
   const renderCircularLayout = () => (
-    <div className="relative py-12">
-      <div className="flex flex-wrap justify-center gap-8">
+    <div className="relative py-12" style={dynamicStyles}>
+      <div className="flex flex-wrap justify-center gap-6 md:gap-8">
         {statistics.slice(0, 6).map((stat, index) => {
           const isAnimated = animatedStats.has(stat.id);
+          const isHovered = hoveredStat === stat.id;
           const IconComponent = getIconComponent(stat.icon);
-          const size = index === 0 ? 'w-40 h-40 sm:w-48 sm:h-48' : 'w-32 h-32 sm:w-36 sm:h-36';
+          const size = index === 0 ? 'w-44 h-44 sm:w-52 sm:h-52' : 'w-32 h-32 sm:w-40 sm:h-40';
+          const cardColor = gradientColors[index % gradientColors.length] || themeColors.primary;
 
           return (
             <div
               key={stat.id}
               className={cn(
                 "relative group cursor-pointer transition-all duration-700",
-                isAnimated ? "opacity-100 scale-100 rotate-0" : "opacity-0 scale-50 rotate-12"
+                isAnimated ? "opacity-100 scale-100" : "opacity-0 scale-50",
+                isHovered && "scale-110 -translate-y-2"
               )}
               style={{ animationDelay: `${index * 150}ms` }}
               onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+              onMouseEnter={() => setHoveredStat(stat.id)}
+              onMouseLeave={() => setHoveredStat(null)}
             >
               <div 
                 className={cn(
-                  "rounded-full flex flex-col items-center justify-center",
-                  "bg-gradient-to-br from-primary/90 to-primary shadow-xl",
-                  "hover:shadow-2xl hover:scale-110 transition-all duration-300",
-                  "ring-4 ring-background",
+                  "rounded-full flex flex-col items-center justify-center ring-4 ring-background text-white",
+                  "transition-shadow duration-300",
                   size
                 )}
+                style={{ 
+                  background: `linear-gradient(135deg, ${cardColor}, ${themeColors.secondary})`,
+                  boxShadow: isHovered ? `0 20px 40px -10px ${cardColor}60` : `0 8px 24px -8px ${cardColor}40`,
+                }}
               >
                 <span className={cn(
-                  "font-bold text-primary-foreground",
+                  "font-black",
                   index === 0 ? "text-3xl sm:text-4xl" : "text-2xl sm:text-3xl"
                 )}>
                   {stat.prefix}{stat.value}{stat.suffix}
                 </span>
-                <span className="text-xs text-primary-foreground/80 text-center px-2 mt-1">
+                <span className="text-xs text-white/80 text-center px-3 mt-1">
                   {stat.label}
                 </span>
               </div>
               
-              {/* Floating icon */}
-              <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-background shadow-lg flex items-center justify-center">
-                <IconComponent className="h-4 w-4 text-primary" />
+              <div 
+                className="absolute -top-2 -right-2 w-10 h-10 rounded-full bg-background shadow-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
+              >
+                <IconComponent className="h-5 w-5" style={{ color: cardColor }} />
               </div>
             </div>
           );
@@ -595,64 +862,16 @@ export const ByTheNumbersSection = ({
     </div>
   );
 
-  // ==================== LAYOUT: DEFAULT CARDS ====================
-  const renderCardsLayout = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {statistics.map((stat, index) => {
-        const IconComponent = getIconComponent(stat.icon);
-        const isAnimated = animatedStats.has(stat.id);
-
-        return (
-          <Card 
-            key={stat.id} 
-            className={cn(
-              "relative group overflow-hidden cursor-pointer transition-all duration-500",
-              "hover:shadow-lg hover:-translate-y-1",
-              isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-            )}
-            style={{ animationDelay: `${index * 100}ms` }}
-            onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
-          >
-            <CardContent className="p-6">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary mb-4 group-hover:scale-110 transition-transform">
-                  <IconComponent className="h-6 w-6" />
-                </div>
-                <div className="text-3xl font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
-                  {stat.prefix}{stat.value}{stat.suffix}
-                </div>
-                <div className="text-sm font-medium text-foreground mb-2">
-                  {stat.label}
-                </div>
-                {stat.description && (
-                  <p className="text-xs text-muted-foreground">
-                    {stat.description}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  );
-
   // Choose layout renderer
   const renderLayout = () => {
     switch (infographicLayout) {
-      case 'infographic':
-        return renderInfographicLayout();
-      case 'vertical-list':
-        return renderVerticalListLayout();
-      case 'hero-stats':
-        return renderHeroStatsLayout();
-      case 'split-panel':
-        return renderSplitPanelLayout();
-      case 'circular':
-        return renderCircularLayout();
+      case 'infographic': return renderInfographicLayout();
+      case 'vertical-list': return renderVerticalListLayout();
+      case 'hero-stats': return renderHeroStatsLayout();
+      case 'split-panel': return renderSplitPanelLayout();
+      case 'circular': return renderCircularLayout();
       case 'cards':
-      default:
-        return renderCardsLayout();
+      default: return renderCardsLayout();
     }
   };
 
@@ -673,12 +892,14 @@ export const ByTheNumbersSection = ({
           <span className="text-sm text-muted-foreground mr-2">Layout:</span>
           {layoutOptions.map((option) => {
             const Icon = option.icon;
+            const isActive = infographicLayout === option.value;
             return (
               <Button
                 key={option.value}
-                variant={infographicLayout === option.value ? 'default' : 'outline'}
+                variant={isActive ? 'default' : 'outline'}
                 size="sm"
-                className="gap-2"
+                className="gap-2 transition-all duration-300"
+                style={isActive ? { background: themeColors.primary } : {}}
                 onClick={() => onLayoutChange(option.value)}
               >
                 <Icon className="h-4 w-4" />
@@ -690,12 +911,16 @@ export const ByTheNumbersSection = ({
       )}
 
       {statistics.length === 0 ? (
-        <Card className="border-dashed">
+        <Card className="border-dashed border-2" style={{ borderColor: `${themeColors.primary}40` }}>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <BarChart3 className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <BarChart3 className="h-12 w-12 mb-4" style={{ color: `${themeColors.primary}50` }} />
             <p className="text-muted-foreground mb-4">No statistics added yet</p>
             <div className="flex gap-3">
-              <Button onClick={populateDefaults} variant="default" className="gap-2">
+              <Button 
+                onClick={populateDefaults} 
+                className="gap-2"
+                style={{ background: themeColors.primary }}
+              >
                 <Sparkles className="h-4 w-4" />
                 Use Default Stats
               </Button>
@@ -711,7 +936,12 @@ export const ByTheNumbersSection = ({
           {renderLayout()}
 
           <div className="flex justify-center gap-3 pt-4">
-            <Button onClick={addStatistic} variant="outline" className="gap-2">
+            <Button 
+              onClick={addStatistic} 
+              variant="outline" 
+              className="gap-2 transition-all duration-300 hover:border-2"
+              style={{ '--hover-color': themeColors.primary } as React.CSSProperties}
+            >
               <Plus className="h-4 w-4" />
               Add Statistic
             </Button>
