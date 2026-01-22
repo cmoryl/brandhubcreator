@@ -44,6 +44,7 @@ export interface AppSettings {
   appLogo: string;
   appLogoLight: string;  // Logo for light mode
   appLogoDark: string;   // Logo for dark mode
+  appFavicon: string;    // Custom favicon URL or base64
   heroTitle: string;
   heroHighlight: string;
   heroDescription: string;
@@ -84,6 +85,7 @@ const defaultSettings: AppSettings = {
   appLogo: '',
   appLogoLight: '',
   appLogoDark: '',
+  appFavicon: '',
   heroTitle: 'Create stunning',
   heroHighlight: 'brand guides',
   heroDescription: 'Design, organize, and share comprehensive brand identity systems. From colors to typography, logos to guidelines — all in one place.',
@@ -91,6 +93,14 @@ const defaultSettings: AppSettings = {
   colors: defaultColors,
   heroBackground: defaultHeroBackground,
   pageSections: defaultPageSections,
+};
+
+// Apply favicon to document
+const applyFavicon = (faviconUrl: string) => {
+  const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+  if (link) {
+    link.href = faviconUrl || '/favicon.ico';
+  }
 };
 
 interface AppSettingsContextType {
@@ -198,11 +208,17 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
     applyColors(settings.colors);
+    if (settings.appFavicon) {
+      applyFavicon(settings.appFavicon);
+    }
   }, [settings]);
 
-  // Apply colors on mount
+  // Apply colors and favicon on mount
   useEffect(() => {
     applyColors(settings.colors);
+    if (settings.appFavicon) {
+      applyFavicon(settings.appFavicon);
+    }
   }, []);
 
   const updateSettings = (updates: Partial<AppSettings>) => {

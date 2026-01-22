@@ -55,6 +55,7 @@ export const AppSettingsEditor = () => {
   const [accentHex, setAccentHex] = useState(hslToHex(settings.colors.accent));
   const logoLightInputRef = useRef<HTMLInputElement>(null);
   const logoDarkInputRef = useRef<HTMLInputElement>(null);
+  const faviconInputRef = useRef<HTMLInputElement>(null);
   const bgImageInputRef = useRef<HTMLInputElement>(null);
 
   const handleOpen = () => {
@@ -115,6 +116,21 @@ export const AppSettingsEditor = () => {
 
   const removeLogoDark = () => {
     setFormData(prev => ({ ...prev, appLogoDark: '' }));
+  };
+
+  const handleFaviconUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, appFavicon: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeFavicon = () => {
+    setFormData(prev => ({ ...prev, appFavicon: '' }));
   };
 
   const removeBgImage = () => {
@@ -287,6 +303,52 @@ export const AppSettingsEditor = () => {
                   >
                     <Upload className="h-4 w-4 mr-2" />
                     Upload
+                  </Button>
+                </div>
+              </div>
+
+              {/* Favicon */}
+              <div className="p-3 rounded-lg border border-border bg-muted/50">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Favicon (Browser Tab Icon)</span>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Upload a square image (recommended 32x32 or 64x64px) for the browser tab icon.
+                </p>
+                <div className="flex items-center gap-3">
+                  {formData.appFavicon ? (
+                    <div className="relative">
+                      <img
+                        src={formData.appFavicon}
+                        alt="Favicon"
+                        className="h-8 w-8 rounded border bg-background p-0.5"
+                      />
+                      <button
+                        onClick={removeFavicon}
+                        className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="h-8 w-8 rounded border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
+                      <span className="text-xs text-muted-foreground">None</span>
+                    </div>
+                  )}
+                  <input
+                    ref={faviconInputRef}
+                    type="file"
+                    accept="image/png,image/x-icon,image/svg+xml,image/jpeg"
+                    className="hidden"
+                    onChange={handleFaviconUpload}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => faviconInputRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Favicon
                   </Button>
                 </div>
               </div>
