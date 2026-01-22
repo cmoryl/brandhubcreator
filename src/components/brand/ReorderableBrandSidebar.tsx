@@ -63,6 +63,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   casestudies: { label: 'Proof Shards', icon: FileText, category: 'Collateral' },
   brochures: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
   templates: { label: 'Master Scaffolds', icon: FileType, category: 'Collateral' },
+  templatespecs: { label: 'Template Specs', icon: FileText, category: 'Collateral' },
   products: { label: 'Products', icon: Package, category: 'Collateral' },
 };
 

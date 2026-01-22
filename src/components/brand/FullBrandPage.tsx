@@ -28,6 +28,7 @@ import { MisuseSection } from './MisuseSection';
 import { CaseStudiesSection } from './CaseStudiesSection';
 import { BrochuresSection } from './BrochuresSection';
 import { TemplatesSection } from './TemplatesSection';
+import { TemplateSpecsSection } from './TemplateSpecsSection';
 import { ProductsSection } from './ProductsSection';
 import { Separator } from '@/components/ui/separator';
 import { ScrollAnimate, AnimationType } from '@/components/ui/scroll-animate';
@@ -62,6 +63,7 @@ const sectionAnimations: Record<string, AnimationType> = {
   casestudies: 'fade-right',
   brochures: 'fade-up',
   templates: 'zoom-in',
+  templatespecs: 'fade-up',
   products: 'fade-up'
 };
 
@@ -243,6 +245,7 @@ export const FullBrandPage = ({
       case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies} onCaseStudiesChange={(caseStudies) => onBrandUpdate({ caseStudies })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />;
       case 'brochures': return <BrochuresSection brochures={brand.brochures} onBrochuresChange={(brochures) => onBrandUpdate({ brochures })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />;
       case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={(templates) => onBrandUpdate({ templates })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />;
+      case 'templatespecs': return <TemplateSpecsSection templateSpecs={brand.templateSpecs || []} onTemplateSpecsChange={(templateSpecs) => onBrandUpdate({ templateSpecs })} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandColors={brand.colors || []} />;
       case 'products': 
         // Support products section for both brands and products
         return brand.type === 'brand' 

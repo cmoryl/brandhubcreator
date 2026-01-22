@@ -1,0 +1,608 @@
+import { useState, useRef, useMemo } from 'react';
+import { Plus, Trash2, Edit2, Check, X, Upload, GripVertical, Eye, EyeOff, FileText, BookOpen, File, Newspaper, Settings2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent } from '@/components/ui/card';
+import { SectionHeader } from './SectionHeader';
+import { TemplateSpec, TemplateSpecItem, BrandColor } from '@/types/brand';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+interface TemplateSpecsSectionProps {
+  templateSpecs: TemplateSpec[];
+  onTemplateSpecsChange: (specs: TemplateSpec[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
+  brandColors?: BrandColor[];
+}
+
+const CATEGORY_OPTIONS: { value: TemplateSpec['category']; label: string; icon: React.ElementType }[] = [
+  { value: 'case-study', label: 'Case Study', icon: BookOpen },
+  { value: 'brochure', label: 'Brochure', icon: Newspaper },
+  { value: 'whitepaper', label: 'White Paper', icon: FileText },
+  { value: 'template', label: 'Template', icon: File },
+  { value: 'other', label: 'Other', icon: Settings2 },
+];
+
+// Sortable spec item component
+const SortableSpecItem = ({
+  item,
+  isEditing,
+  onEdit,
+  onUpdate,
+  onDelete,
+  onDoneEditing,
+  primaryColor,
+}: {
+  item: TemplateSpecItem;
+  isEditing: boolean;
+  onEdit: () => void;
+  onUpdate: (updates: Partial<TemplateSpecItem>) => void;
+  onDelete: () => void;
+  onDoneEditing: () => void;
+  primaryColor: string;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "group flex items-start gap-3 p-4 rounded-lg border transition-all",
+        isDragging ? "opacity-50 bg-muted shadow-lg" : "bg-card hover:bg-muted/50",
+        isEditing && "ring-2 ring-primary"
+      )}
+    >
+      {/* Drag handle */}
+      <button
+        {...attributes}
+        {...listeners}
+        className="mt-1 p-1 rounded hover:bg-secondary cursor-grab active:cursor-grabbing"
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      </button>
+
+      {/* Number badge */}
+      <div
+        className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
+        style={{ backgroundColor: primaryColor }}
+      >
+        {item.number}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        {isEditing ? (
+          <div className="space-y-3">
+            <Input
+              value={item.title}
+              onChange={(e) => onUpdate({ title: e.target.value })}
+              placeholder="Section title (e.g., CLIENT LOGO)"
+              className="font-semibold"
+            />
+            <Textarea
+              value={item.description}
+              onChange={(e) => onUpdate({ description: e.target.value })}
+              placeholder="Description or guidelines"
+              rows={2}
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                value={item.dimensions || ''}
+                onChange={(e) => onUpdate({ dimensions: e.target.value })}
+                placeholder="Dimensions (e.g., 1500 x 500 pixels)"
+              />
+              <Input
+                value={item.fileFormats || ''}
+                onChange={(e) => onUpdate({ fileFormats: e.target.value })}
+                placeholder="File formats (e.g., JPEG or PNG)"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={onDoneEditing} className="gap-1">
+                <Check className="h-3 w-3" /> Done
+              </Button>
+              <Button size="sm" variant="destructive" onClick={onDelete}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold text-sm uppercase tracking-wide" style={{ color: primaryColor }}>
+                {item.title || 'Untitled Section'}
+              </h4>
+              <button
+                onClick={onEdit}
+                className="p-1.5 rounded-md hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100"
+              >
+                <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            </div>
+            <p className="text-sm text-muted-foreground">{item.description || 'No description'}</p>
+            {(item.dimensions || item.fileFormats) && (
+              <p className="text-xs text-muted-foreground/70">
+                {item.dimensions && <span className="font-medium">Dimensions:</span>} {item.dimensions}
+                {item.dimensions && item.fileFormats && ' • '}
+                {item.fileFormats && <span className="font-medium">Formats:</span>} {item.fileFormats}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export const TemplateSpecsSection = ({
+  templateSpecs,
+  onTemplateSpecsChange,
+  customSubtitle,
+  onSubtitleChange,
+  brandColors = [],
+}: TemplateSpecsSectionProps) => {
+  const [selectedSpecId, setSelectedSpecId] = useState<string | null>(null);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [newSpecForm, setNewSpecForm] = useState({
+    name: '',
+    category: 'case-study' as TemplateSpec['category'],
+  });
+
+  // Get primary brand color
+  const primaryColor = useMemo(() => {
+    const primary = brandColors.find(c => c.role === 'primary') || brandColors[0];
+    return primary?.hex || '#0066cc';
+  }, [brandColors]);
+
+  // Drag sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const selectedSpec = templateSpecs.find(s => s.id === selectedSpecId);
+
+  // Add new template spec
+  const handleAddSpec = () => {
+    if (!newSpecForm.name.trim()) return;
+
+    const newSpec: TemplateSpec = {
+      id: crypto.randomUUID(),
+      name: newSpecForm.name.trim(),
+      category: newSpecForm.category,
+      items: [
+        { id: crypto.randomUUID(), number: 1, title: 'CLIENT LOGO', description: 'Dimensions: 000 x 000 pixels' },
+        { id: crypto.randomUUID(), number: 2, title: 'COVER IMAGE', description: 'Dimensions: 1500 x 500 pixels', dimensions: '1500 x 500 pixels', fileFormats: 'JPEG or PNG under 2MB' },
+        { id: crypto.randomUUID(), number: 3, title: 'SPOTLIGHT HEADER', description: 'Client project header' },
+        { id: crypto.randomUUID(), number: 4, title: 'THE CHALLENGE', description: 'What was the project challenge?' },
+        { id: crypto.randomUUID(), number: 5, title: 'THE SOLUTION', description: 'What was the solution?' },
+        { id: crypto.randomUUID(), number: 6, title: 'THE RESULTS', description: 'What were the project results?' },
+        { id: crypto.randomUUID(), number: 7, title: 'CONTACT INFORMATION', description: 'TransPerfect contact information' },
+      ],
+    };
+
+    onTemplateSpecsChange([...templateSpecs, newSpec]);
+    setSelectedSpecId(newSpec.id);
+    setNewSpecForm({ name: '', category: 'case-study' });
+    setIsAddDialogOpen(false);
+  };
+
+  // Delete spec
+  const handleDeleteSpec = (id: string) => {
+    onTemplateSpecsChange(templateSpecs.filter(s => s.id !== id));
+    if (selectedSpecId === id) {
+      setSelectedSpecId(templateSpecs.length > 1 ? templateSpecs[0].id : null);
+    }
+  };
+
+  // Add item to spec
+  const handleAddItem = () => {
+    if (!selectedSpec) return;
+
+    const maxNumber = Math.max(0, ...selectedSpec.items.map(i => i.number));
+    const newItem: TemplateSpecItem = {
+      id: crypto.randomUUID(),
+      number: maxNumber + 1,
+      title: 'NEW SECTION',
+      description: 'Describe this section',
+    };
+
+    const updatedSpec = {
+      ...selectedSpec,
+      items: [...selectedSpec.items, newItem],
+    };
+    onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
+    setEditingItemId(newItem.id);
+  };
+
+  // Update item
+  const handleUpdateItem = (itemId: string, updates: Partial<TemplateSpecItem>) => {
+    if (!selectedSpec) return;
+
+    const updatedSpec = {
+      ...selectedSpec,
+      items: selectedSpec.items.map(i => i.id === itemId ? { ...i, ...updates } : i),
+    };
+    onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
+  };
+
+  // Delete item
+  const handleDeleteItem = (itemId: string) => {
+    if (!selectedSpec) return;
+
+    const filteredItems = selectedSpec.items.filter(i => i.id !== itemId);
+    // Renumber items
+    const renumberedItems = filteredItems.map((item, idx) => ({
+      ...item,
+      number: idx + 1,
+    }));
+
+    const updatedSpec = {
+      ...selectedSpec,
+      items: renumberedItems,
+    };
+    onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
+    setEditingItemId(null);
+  };
+
+  // Handle drag end
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!selectedSpec || !over || active.id === over.id) return;
+
+    const oldIndex = selectedSpec.items.findIndex(i => i.id === active.id);
+    const newIndex = selectedSpec.items.findIndex(i => i.id === over.id);
+
+    const reorderedItems = arrayMove(selectedSpec.items, oldIndex, newIndex).map((item, idx) => ({
+      ...item,
+      number: idx + 1,
+    }));
+
+    const updatedSpec = {
+      ...selectedSpec,
+      items: reorderedItems,
+    };
+    onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
+  };
+
+  // Handle preview image upload
+  const handlePreviewImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedSpec) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const url = event.target?.result as string;
+      const updatedSpec = { ...selectedSpec, previewImageUrl: url };
+      onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
+    };
+    reader.readAsDataURL(file);
+
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  return (
+    <section className="space-y-6">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex-1">
+          <SectionHeader
+            title="Template Specifications"
+            defaultSubtitle="Visual guidelines for case studies, brochures, and document templates"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            isEditing={isHeaderEditing}
+            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+          />
+        </div>
+        <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="gap-2">
+          <Plus className="h-4 w-4" />
+          Add Template Spec
+        </Button>
+      </div>
+
+      {/* Add Template Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Template Specification</DialogTitle>
+            <DialogDescription>
+              Create a new template specification with visual annotations.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Template Name</Label>
+              <Input
+                value={newSpecForm.name}
+                onChange={(e) => setNewSpecForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., Client Case Study Template"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select
+                value={newSpecForm.category}
+                onValueChange={(v) => setNewSpecForm(prev => ({ ...prev, category: v as TemplateSpec['category'] }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORY_OPTIONS.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      <div className="flex items-center gap-2">
+                        <opt.icon className="h-4 w-4" />
+                        {opt.label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddSpec} disabled={!newSpecForm.name.trim()}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Spec Selector Tabs */}
+      {templateSpecs.length > 0 && (
+        <div className="flex gap-2 flex-wrap">
+          {templateSpecs.map(spec => {
+            const CategoryIcon = CATEGORY_OPTIONS.find(o => o.value === spec.category)?.icon || File;
+            return (
+              <button
+                key={spec.id}
+                onClick={() => setSelectedSpecId(spec.id)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg border transition-all",
+                  selectedSpecId === spec.id
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card hover:bg-muted border-border"
+                )}
+              >
+                <CategoryIcon className="h-4 w-4" />
+                <span className="font-medium">{spec.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Main Builder UI */}
+      {selectedSpec ? (
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Left Panel - Spec Items */}
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-lg">Specification Items</h3>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={handleAddItem} className="gap-1">
+                    <Plus className="h-3 w-3" /> Add Item
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleDeleteSpec(selectedSpec.id)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={selectedSpec.items.map(i => i.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2">
+                    {selectedSpec.items.map(item => (
+                      <SortableSpecItem
+                        key={item.id}
+                        item={item}
+                        isEditing={editingItemId === item.id}
+                        onEdit={() => setEditingItemId(item.id)}
+                        onUpdate={(updates) => handleUpdateItem(item.id, updates)}
+                        onDelete={() => handleDeleteItem(item.id)}
+                        onDoneEditing={() => setEditingItemId(null)}
+                        primaryColor={primaryColor}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+
+              {selectedSpec.items.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No items yet. Click "Add Item" to get started.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Right Panel - Visual Preview */}
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-lg">Visual Preview</h3>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="gap-1"
+                  >
+                    {showPreview ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                    {showPreview ? 'Hide' : 'Show'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="gap-1"
+                  >
+                    <Upload className="h-3 w-3" /> Upload Preview
+                  </Button>
+                </div>
+              </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePreviewImageUpload}
+                className="hidden"
+              />
+
+              {showPreview && (
+                <div className="relative bg-muted rounded-lg overflow-hidden min-h-[400px]">
+                  {selectedSpec.previewImageUrl ? (
+                    <div className="relative">
+                      <img
+                        src={selectedSpec.previewImageUrl}
+                        alt={selectedSpec.name}
+                        className="w-full h-auto"
+                      />
+                      {/* Overlay callout badges */}
+                      {selectedSpec.items.map((item, idx) => {
+                        // Default positions spread vertically on the left side
+                        const defaultY = 10 + (idx * (80 / Math.max(selectedSpec.items.length, 1)));
+                        const pos = item.position || { x: 5, y: defaultY };
+                        return (
+                          <div
+                            key={item.id}
+                            className="absolute w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg cursor-pointer hover:scale-110 transition-transform"
+                            style={{
+                              backgroundColor: primaryColor,
+                              left: `${pos.x}%`,
+                              top: `${pos.y}%`,
+                              transform: 'translate(-50%, -50%)',
+                            }}
+                            title={item.title}
+                          >
+                            {item.number}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div
+                      className="flex flex-col items-center justify-center h-[400px] text-muted-foreground cursor-pointer hover:text-accent transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="h-12 w-12 mb-2" />
+                      <p className="text-sm font-medium">Upload a template preview image</p>
+                      <p className="text-xs">The numbered callouts will overlay on this image</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Quick Reference Legend */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="text-sm font-semibold mb-2" style={{ color: primaryColor }}>
+                  Quick Reference
+                </h4>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {selectedSpec.items.slice(0, 8).map(item => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      <span
+                        className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        {item.number}
+                      </span>
+                      <span className="text-muted-foreground truncate">{item.title}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : templateSpecs.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="font-semibold text-lg mb-2">No Template Specifications</h3>
+            <p className="text-muted-foreground mb-4">
+              Create visual specifications for your case studies, brochures, and document templates.
+            </p>
+            <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Create Your First Template Spec
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="py-8 text-center text-muted-foreground">
+            Select a template specification above to edit.
+          </CardContent>
+        </Card>
+      )}
+    </section>
+  );
+};
