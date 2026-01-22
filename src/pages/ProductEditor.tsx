@@ -1,6 +1,9 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Sparkles, Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain } from 'lucide-react';
+import tpLogoWhite from '@/assets/tp-logo-white.svg';
+import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, ProductGuide } from '@/types/brand';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
@@ -56,6 +59,7 @@ type ViewMode = 'sections' | 'full';
 const ProductEditor = () => {
   const { productSlug } = useParams<{ productSlug: string }>();
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const { getProduct, getProductBySlug, updateProduct, toggleFavorite, isLoading } = useBrands();
   const { user, isAdmin, isApproved, isLoading: authLoading } = useAuth();
   const { userRole: orgRole } = useOrganization();
@@ -252,7 +256,11 @@ const ProductEditor = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="p-4 bg-accent/10 rounded-2xl w-fit mx-auto animate-pulse">
-            <Sparkles className="h-8 w-8 text-accent" />
+            <img 
+              src={theme === 'light' ? tpLogoColor : tpLogoWhite} 
+              alt="TransPerfect" 
+              className="h-8 w-auto"
+            />
           </div>
           <p className="text-muted-foreground">Loading product...</p>
         </div>
@@ -419,9 +427,11 @@ const ProductEditor = () => {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-accent/10 rounded-lg">
-                    <Sparkles className="h-4 w-4 text-accent" />
-                  </div>
+                  <img 
+                    src={theme === 'light' ? tpLogoColor : tpLogoWhite} 
+                    alt="TransPerfect" 
+                    className="h-6 w-auto"
+                  />
                   <span className="font-serif font-semibold text-foreground hidden sm:inline">BrandHub</span>
                 </div>
                 <div className="h-6 w-px bg-border mx-2 hidden sm:block" />

@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useCallback, lazy, Suspense, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Sparkles, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink, BarChart3, Users, FolderCheck, TrendingUp, FileSearch, ShieldCheck } from 'lucide-react';
+import { Plus, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink, BarChart3, Users, FolderCheck, TrendingUp, FileSearch, ShieldCheck } from 'lucide-react';
+import tpLogoWhite from '@/assets/tp-logo-white.svg';
+import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { AnimatedHeroCanvas } from '@/components/AnimatedHeroCanvas';
 import { HierarchicalProductList } from '@/components/HierarchicalProductList';
 import { useParallax } from '@/hooks/useParallax';
@@ -248,9 +250,11 @@ const BrandsIndex = () => {
               {currentLogo ? (
                 <img src={currentLogo} alt={settings.appName} className="h-8 sm:h-10 w-auto flex-shrink-0" />
               ) : (
-                <div className="p-2 sm:p-2.5 bg-accent/10 rounded-xl border border-accent/20 hover-scale cursor-pointer animate-bounce-gentle flex-shrink-0">
-                  <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
-                </div>
+                <img 
+                  src={resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite} 
+                  alt="TransPerfect" 
+                  className="h-8 sm:h-10 w-auto flex-shrink-0"
+                />
               )}
               <span className="font-semibold text-lg sm:text-2xl text-foreground truncate">{settings.appName}</span>
             </div>
@@ -586,7 +590,7 @@ const BrandsIndex = () => {
             {/* Tabs - Full width scrollable on mobile */}
             <TabsList className="w-full sm:w-auto overflow-x-auto justify-start sm:justify-center">
               <TabsTrigger value="brands" className="gap-2 text-xs sm:text-sm flex-1 sm:flex-none min-w-0">
-                <Sparkles className="h-4 w-4 flex-shrink-0" />
+                <Layers className="h-4 w-4 flex-shrink-0" />
                 <span className="truncate">Brands</span>
                 <span className="text-muted-foreground">({sortedBrands.length})</span>
               </TabsTrigger>
@@ -945,7 +949,7 @@ const BrandsIndex = () => {
                       <Badge variant="secondary" className="absolute top-3 left-3 gap-1">
                         {item.type === 'brand' ? (
                           <>
-                            <Sparkles className="h-3 w-3" />
+                            <Layers className="h-3 w-3" />
                             Brand
                           </>
                         ) : (
@@ -1340,9 +1344,11 @@ const BrandsIndex = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-accent/10 rounded-lg">
-                <Sparkles className="h-5 w-5 text-accent" />
-              </div>
+              <img 
+                src={resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite} 
+                alt="TransPerfect" 
+                className="h-8 w-auto"
+              />
               <span className="font-semibold text-lg text-foreground">{settings.appName}</span>
             </div>
             
