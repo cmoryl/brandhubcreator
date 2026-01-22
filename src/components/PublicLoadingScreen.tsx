@@ -135,17 +135,15 @@ export function PublicLoadingScreen({ type, name, organizationName }: PublicLoad
 
           {/* Loading Text */}
           <h1 className="text-2xl sm:text-3xl font-semibold text-foreground mb-2">
-            {organizationName 
-              ? `Loading ${organizationName} Portal`
-              : name 
-                ? `Loading ${name}` 
-                : `Loading ${type} guide`
-            }{dots}
+            Loading TransPerfect{' '}
+            {type === 'portal' ? 'Portal' : type === 'brand' ? 'Brand Guide' : 'Product Guide'}{dots}
           </h1>
           <p className="text-muted-foreground mb-8">
-            {type === 'portal' 
-              ? 'Preparing your brand portal experience'
-              : `Preparing your ${type} guidelines experience`
+            {name 
+              ? `Preparing ${name}`
+              : type === 'portal' 
+                ? 'Preparing your brand portal experience'
+                : `Preparing your ${type} guidelines experience`
             }
           </p>
 
@@ -239,7 +237,7 @@ export function PublicLoadingInline({ type }: { type: 'brand' | 'product' }) {
           </div>
         </div>
       </div>
-      <p className="text-muted-foreground text-sm">Loading {type} guide...</p>
+      <p className="text-muted-foreground text-sm">Loading TransPerfect {type === 'brand' ? 'Brand Guide' : 'Product Guide'}...</p>
     </div>
   );
 }
