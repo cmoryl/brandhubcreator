@@ -326,7 +326,7 @@ const ProductEditor = () => {
 
   const renderSection = () => {
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={(hero) => handleUpdateProduct({ hero })} onOpenIntelligence={() => setIntelligenceOpen(true)} />;
+      case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={(hero) => handleUpdateProduct({ hero })} onOpenIntelligence={user ? () => setIntelligenceOpen(true) : undefined} />;
       case 'tagline': return <TaglineSection tagline={currentProduct.tagline} onTaglineChange={(tagline) => handleUpdateProduct({ tagline })} />;
       case 'identity': return <IdentitySection identity={currentProduct.identity} onIdentityChange={(identity) => handleUpdateProduct({ identity })} />;
       case 'values': return <ValuesSection values={currentProduct.values} onValuesChange={(values) => handleUpdateProduct({ values })} />;
@@ -527,7 +527,7 @@ const ProductEditor = () => {
                   sectionOrder={sectionOrder}
                   hiddenSections={hiddenSections}
                   isAdmin={isGuideAdmin}
-                  onOpenIntelligence={() => setIntelligenceOpen(true)}
+                  onOpenIntelligence={user ? () => setIntelligenceOpen(true) : undefined}
                 />
               )}
             </div>
