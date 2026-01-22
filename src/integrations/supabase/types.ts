@@ -132,6 +132,7 @@ export type Database = {
           name: string
           organization_id: string | null
           section_order: string[] | null
+          slug: string | null
           updated_at: string
           user_id: string
         }
@@ -145,6 +146,7 @@ export type Database = {
           name: string
           organization_id?: string | null
           section_order?: string[] | null
+          slug?: string | null
           updated_at?: string
           user_id: string
         }
@@ -158,6 +160,7 @@ export type Database = {
           name?: string
           organization_id?: string | null
           section_order?: string[] | null
+          slug?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -337,6 +340,7 @@ export type Database = {
           organization_id: string | null
           parent_brand_id: string | null
           section_order: string[] | null
+          slug: string | null
           updated_at: string
           user_id: string
         }
@@ -351,6 +355,7 @@ export type Database = {
           organization_id?: string | null
           parent_brand_id?: string | null
           section_order?: string[] | null
+          slug?: string | null
           updated_at?: string
           user_id: string
         }
@@ -365,6 +370,7 @@ export type Database = {
           organization_id?: string | null
           parent_brand_id?: string | null
           section_order?: string[] | null
+          slug?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -449,6 +455,7 @@ export type Database = {
     Functions: {
       cleanup_expired_invites: { Args: never; Returns: number }
       cleanup_old_audit_logs: { Args: never; Returns: number }
+      generate_slug: { Args: { name: string }; Returns: string }
       get_auth_email: { Args: never; Returns: string }
       get_organization_members_safe: {
         Args: { p_org_id: string }
