@@ -1,14 +1,20 @@
+import { useTheme } from 'next-themes';
 import { Skeleton } from "@/components/ui/skeleton";
+import tpLogoWhite from '@/assets/tp-logo-white.svg';
+import tpLogoColor from '@/assets/tp-logo-color.svg';
 
 export function PageSkeleton() {
+  const { resolvedTheme } = useTheme();
+  const tpLogo = resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header skeleton */}
       <header className="border-b border-border/50 bg-background/95 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Skeleton className="h-10 w-10 rounded-xl" />
-            <Skeleton className="h-6 w-32" />
+            <img src={tpLogo} alt="TransPerfect" className="h-8 w-auto" />
+            <span className="font-serif font-semibold text-foreground">BrandHub</span>
           </div>
           <div className="flex items-center gap-3">
             <Skeleton className="h-9 w-24 rounded-md" />
@@ -18,33 +24,23 @@ export function PageSkeleton() {
         </div>
       </header>
 
-      {/* Hero skeleton */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-24">
-        <div className="max-w-3xl space-y-6">
-          <Skeleton className="h-6 w-40 rounded-full" />
-          <div className="space-y-3">
-            <Skeleton className="h-14 w-96 max-w-full" />
-            <Skeleton className="h-14 w-64" />
-          </div>
-          <Skeleton className="h-6 w-full max-w-xl" />
-          <Skeleton className="h-6 w-3/4 max-w-md" />
-          <div className="flex gap-4 pt-4">
-            <Skeleton className="h-12 w-36 rounded-md" />
-            <Skeleton className="h-12 w-36 rounded-md" />
+      {/* Loading content */}
+      <div className="flex flex-col items-center justify-center py-24">
+        <div className="relative mb-8">
+          <div className="w-20 h-20 relative">
+            <div className="absolute inset-0 rounded-2xl border-2 border-accent/20 animate-[spin_8s_linear_infinite]" />
+            <div className="absolute inset-2 rounded-xl border-2 border-primary/30 animate-[spin_6s_linear_infinite_reverse]" />
+            <div className="absolute inset-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
+              <img src={tpLogo} alt="TransPerfect" className="h-8 w-auto animate-pulse" />
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Content skeleton */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-xl border bg-card p-6 space-y-4">
-              <Skeleton className="h-40 w-full rounded-lg" />
-              <Skeleton className="h-5 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
-            </div>
-          ))}
+        <p className="text-lg font-medium text-foreground mb-2">Loading TransPerfect Portal</p>
+        <p className="text-muted-foreground text-sm">Preparing your experience...</p>
+        <div className="w-48 mt-6">
+          <div className="h-1 bg-muted rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-primary via-accent to-primary animate-[shimmer_2s_ease-in-out_infinite] bg-[length:200%_100%]" />
+          </div>
         </div>
       </div>
     </div>
@@ -52,46 +48,66 @@ export function PageSkeleton() {
 }
 
 export function BrandEditorSkeleton() {
+  const { resolvedTheme } = useTheme();
+  const tpLogo = resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite;
+
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar skeleton */}
-      <aside className="w-64 border-r bg-card p-4 space-y-4">
-        <Skeleton className="h-10 w-full" />
-        <div className="space-y-2">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="h-10 w-full rounded-md" />
-          ))}
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <header className="border-b border-border/50 bg-background/95 backdrop-blur h-16 flex items-center px-4">
+        <div className="flex items-center gap-3">
+          <img src={tpLogo} alt="TransPerfect" className="h-8 w-auto" />
+          <span className="font-serif font-semibold text-foreground">BrandHub</span>
         </div>
-      </aside>
+      </header>
       
-      {/* Main content skeleton */}
-      <main className="flex-1 p-8 space-y-8">
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-4 w-96" />
+      {/* Loading content */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative mb-8 mx-auto w-fit">
+            <div className="w-20 h-20 relative">
+              <div className="absolute inset-0 rounded-2xl border-2 border-accent/20 animate-[spin_8s_linear_infinite]" />
+              <div className="absolute inset-2 rounded-xl border-2 border-primary/30 animate-[spin_6s_linear_infinite_reverse]" />
+              <div className="absolute inset-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
+                <img src={tpLogo} alt="TransPerfect" className="h-8 w-auto animate-pulse" />
+              </div>
+            </div>
+          </div>
+          <p className="text-lg font-medium text-foreground mb-2">Loading TransPerfect Brand Guide</p>
+          <p className="text-muted-foreground text-sm">Preparing your brand guidelines...</p>
+          <div className="w-48 mt-6 mx-auto">
+            <div className="h-1 bg-muted rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-primary via-accent to-primary animate-[shimmer_2s_ease-in-out_infinite] bg-[length:200%_100%]" />
+            </div>
+          </div>
         </div>
-        <Skeleton className="h-64 w-full rounded-xl" />
-        <div className="grid grid-cols-2 gap-6">
-          <Skeleton className="h-40 rounded-lg" />
-          <Skeleton className="h-40 rounded-lg" />
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
 
 export function AuthPageSkeleton() {
+  const { resolvedTheme } = useTheme();
+  const tpLogo = resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite;
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-2">
-          <Skeleton className="h-12 w-12 rounded-xl mx-auto" />
-          <Skeleton className="h-8 w-48 mx-auto" />
+      <div className="w-full max-w-md text-center">
+        <div className="relative mb-8 mx-auto w-fit">
+          <div className="w-20 h-20 relative">
+            <div className="absolute inset-0 rounded-2xl border-2 border-accent/20 animate-[spin_8s_linear_infinite]" />
+            <div className="absolute inset-2 rounded-xl border-2 border-primary/30 animate-[spin_6s_linear_infinite_reverse]" />
+            <div className="absolute inset-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
+              <img src={tpLogo} alt="TransPerfect" className="h-8 w-auto animate-pulse" />
+            </div>
+          </div>
         </div>
-        <div className="rounded-xl border bg-card p-6 space-y-4">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
+        <p className="text-lg font-medium text-foreground mb-2">Loading TransPerfect Portal</p>
+        <p className="text-muted-foreground text-sm">Preparing authentication...</p>
+        <div className="w-48 mt-6 mx-auto">
+          <div className="h-1 bg-muted rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-primary via-accent to-primary animate-[shimmer_2s_ease-in-out_infinite] bg-[length:200%_100%]" />
+          </div>
         </div>
       </div>
     </div>
