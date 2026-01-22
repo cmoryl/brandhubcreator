@@ -348,6 +348,7 @@ const PlatformDetailModal = ({
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: handleFileDrop,
     accept: 'image/*',
+    maxSize: 10 * 1024 * 1024, // 10MB limit for social assets
   });
 
   if (!asset) return null;
@@ -394,41 +395,83 @@ const PlatformDetailModal = ({
         </DialogHeader>
 
         <div className="space-y-6 pt-4">
-          {/* Preview Image */}
+          {/* Preview Image with Social Layout */}
           <div 
             className={cn(
-              "relative h-48 rounded-lg overflow-hidden border-2 border-dashed transition-colors",
+              "relative rounded-lg overflow-hidden border-2 border-dashed transition-colors",
               isDragging ? "border-primary bg-primary/5" : "border-border/50"
             )}
             onDragOver={dragHandlers.onDragOver}
             onDragLeave={dragHandlers.onDragLeave}
             onDrop={dragHandlers.onDrop}
           >
-            {asset.previewImageUrl ? (
-              <>
-                <img src={asset.previewImageUrl} alt={asset.platform} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <Button size="sm" variant="secondary" onClick={openFilePicker}>
-                    <Upload className="h-3.5 w-3.5 mr-1.5" />
-                    Replace
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={() => onUpdate(asset.id, { previewImageUrl: '' })}>
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-                {/* Safe zone indicator */}
-                <div className="absolute inset-6 border-2 border-dashed border-white/40 rounded pointer-events-none">
-                  <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-medium uppercase tracking-wider text-white/70 bg-black/40 px-2 py-1 rounded">
-                    Safe Zone
+            {/* Header/Cover area */}
+            <div className="relative h-48">
+              {asset.previewImageUrl ? (
+                <>
+                  <img src={asset.previewImageUrl} alt={asset.platform} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <Button size="sm" variant="secondary" onClick={openFilePicker}>
+                      <Upload className="h-3.5 w-3.5 mr-1.5" />
+                      Replace
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => onUpdate(asset.id, { previewImageUrl: '' })}>
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  {/* Safe zone indicator */}
+                  <div className="absolute inset-6 border-2 border-dashed border-white/40 rounded pointer-events-none">
+                    <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-medium uppercase tracking-wider text-white/70 bg-black/40 px-2 py-1 rounded">
+                      Safe Zone
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <button onClick={openFilePicker} className="w-full h-full flex flex-col items-center justify-center bg-muted/30">
+                  <Image className="h-8 w-8 text-muted-foreground mb-2" />
+                  <span className="text-sm text-muted-foreground">Drop image or click to upload (up to 10MB)</span>
+                </button>
+              )}
+            </div>
+            
+            {/* Realistic social page layout preview */}
+            <div className="bg-card border-t border-border">
+              {/* Profile section showing where avatar appears */}
+              <div className="relative px-4 pb-3">
+                {/* User icon placeholder - positioned to overlap header */}
+                <div className={cn(
+                  "absolute border-4 border-card bg-muted rounded-full flex items-center justify-center overflow-hidden",
+                  asset.platform === 'LinkedIn' && "-top-12 left-4 w-24 h-24",
+                  asset.platform === 'X (Twitter)' && "-top-10 left-4 w-20 h-20",
+                  asset.platform === 'Facebook' && "-top-8 left-4 w-[100px] h-[100px]",
+                  asset.platform === 'YouTube' && "-top-8 left-4 w-16 h-16",
+                  asset.platform === 'Instagram' && "-top-6 left-1/2 -translate-x-1/2 w-20 h-20",
+                  asset.platform === 'TikTok' && "-top-6 left-1/2 -translate-x-1/2 w-24 h-24",
+                  !['LinkedIn', 'X (Twitter)', 'Facebook', 'YouTube', 'Instagram', 'TikTok'].includes(asset.platform) && "-top-8 left-4 w-16 h-16"
+                )}>
+                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                    <span className="text-2xl font-bold text-primary/40">
+                      {asset.platform.charAt(0)}
+                    </span>
+                  </div>
+                  <span className="absolute bottom-0.5 right-0.5 text-[8px] text-muted-foreground bg-card/80 px-1 rounded">
+                    Avatar
                   </span>
                 </div>
-              </>
-            ) : (
-              <button onClick={openFilePicker} className="w-full h-full flex flex-col items-center justify-center">
-                <Image className="h-8 w-8 text-muted-foreground mb-2" />
-                <span className="text-sm text-muted-foreground">Drop image or click to upload</span>
-              </button>
-            )}
+                
+                {/* Username/handle placeholder */}
+                <div className={cn(
+                  "pt-14",
+                  asset.platform === 'Instagram' && "pt-16 text-center",
+                  asset.platform === 'TikTok' && "pt-16 text-center",
+                  asset.platform === 'Facebook' && "pt-16"
+                )}>
+                  <div className="h-4 w-32 bg-muted rounded animate-pulse mb-1" />
+                  <div className="h-3 w-24 bg-muted/60 rounded animate-pulse" />
+                </div>
+              </div>
+            </div>
+            
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleInputChange} className="hidden" />
           </div>
 
@@ -598,6 +641,7 @@ const BannerDetailModal = ({
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: handleFileDrop,
     accept: 'image/*',
+    maxSize: 10 * 1024 * 1024, // 10MB limit
   });
 
   if (!banner) return null;
