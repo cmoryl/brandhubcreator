@@ -27,6 +27,7 @@ const OrganizationSettings = lazy(() => import("./pages/OrganizationSettings"));
 const ContactUs = lazy(() => import("./pages/ContactUs"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const DemoBrandPreview = lazy(() => import("./pages/DemoBrandPreview"));
+const DemoGuideViewer = lazy(() => import("./pages/DemoGuideViewer"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -157,6 +158,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <DemoBrandPreview />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="demo/:type/:slug"
+                      element={
+                        <Suspense fallback={<BrandEditorSkeleton />}>
+                          <DemoGuideViewer />
                         </Suspense>
                       }
                     />
