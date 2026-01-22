@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Link2, Figma, Upload, Image } from 'lucide-react';
+import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers } from 'lucide-react';
 import { BrandSocialAssetSpec, BrandDisplayBannerSpec, SocialAssetTemplate } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,11 +9,11 @@ import { SectionHeader } from './SectionHeader';
 import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
 import { LayoutPreset } from '@/types/brand';
 import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDropZone } from '@/components/ui/drop-zone';
 import { safeUUID } from '@/lib/safeUUID';
-
-
+import { cn } from '@/lib/utils';
 
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];
@@ -48,7 +48,6 @@ const fileTypeIcons: Record<string, { icon: React.ElementType; className: string
   other: { icon: FileType, className: 'text-muted-foreground', label: 'Other' },
 };
 
-// Default background images for each platform
 const platformDefaultImages: Record<string, string> = {
   'LinkedIn': '/images/social-defaults/linkedin-default.jpg',
   'X (Twitter)': '/images/social-defaults/twitter-default.jpg',
@@ -162,526 +161,531 @@ const platformPresets: BrandSocialAssetSpec[] = [
   },
 ];
 
-// Comprehensive IAB Standard Display Banner Presets with detailed guidelines
 const bannerPresets: BrandDisplayBannerSpec[] = [
-  // Desktop/Universal Banners
-  {
-    id: 'preset-mrec',
-    name: 'Medium Rectangle (MREC)',
-    dimensions: '300 x 250 px',
-    maxMessaging: 'Headline: 25 chars | Body: 70 chars | CTA: 15 chars',
-    textLegibility: 'Headline: 18-24pt Bold | Body: 12-14pt | CTA: 14pt Bold',
-    safeZonePolicy: '15px padding all edges. Logo in corner (max 60x40px). CTA button bottom-right or center-bottom.',
-    aspectRatio: 1.2,
-    category: 'desktop',
-  },
-  {
-    id: 'preset-leaderboard',
-    name: 'Leaderboard',
-    dimensions: '728 x 90 px',
-    maxMessaging: 'Headline: 30 chars | Body: 50 chars | CTA: 12 chars',
-    textLegibility: 'Headline: 24-28pt Bold | Body: 14-16pt | CTA: 14pt Bold',
-    safeZonePolicy: 'Center content in 650px. Logo left (max 80x50px). CTA right side. Avoid outer 40px edges.',
-    aspectRatio: 8.09,
-    category: 'desktop',
-  },
-  {
-    id: 'preset-wide-skyscraper',
-    name: 'Wide Skyscraper',
-    dimensions: '160 x 600 px',
-    maxMessaging: 'Headline: 20 chars | Body: 60 chars | CTA: 10 chars',
-    textLegibility: 'Headline: 18-22pt Bold | Body: 11-13pt | CTA: 12pt Bold',
-    safeZonePolicy: '10px horizontal padding. Logo top (max 120x40px). Stack content vertically. CTA bottom 80px.',
-    aspectRatio: 0.27,
-    category: 'desktop',
-  },
-  {
-    id: 'preset-large-rectangle',
-    name: 'Large Rectangle',
-    dimensions: '336 x 280 px',
-    maxMessaging: 'Headline: 30 chars | Body: 90 chars | CTA: 15 chars',
-    textLegibility: 'Headline: 20-26pt Bold | Body: 13-15pt | CTA: 14pt Bold',
-    safeZonePolicy: '20px padding all edges. Logo top-left or top-right. CTA center-bottom with 25px margin.',
-    aspectRatio: 1.2,
-    category: 'desktop',
-  },
-  {
-    id: 'preset-billboard',
-    name: 'Billboard',
-    dimensions: '970 x 250 px',
-    maxMessaging: 'Headline: 40 chars | Body: 100 chars | CTA: 15 chars',
-    textLegibility: 'Headline: 32-40pt Bold | Body: 16-18pt | CTA: 16pt Bold',
-    safeZonePolicy: 'Center content in 800px. Logo on left or integrated. Multiple CTAs allowed. Avoid outer 85px.',
-    aspectRatio: 3.88,
-    category: 'desktop',
-  },
-  {
-    id: 'preset-large-leaderboard',
-    name: 'Large Leaderboard',
-    dimensions: '970 x 90 px',
-    maxMessaging: 'Headline: 35 chars | Body: 60 chars | CTA: 12 chars',
-    textLegibility: 'Headline: 26-32pt Bold | Body: 14-16pt | CTA: 14pt Bold',
-    safeZonePolicy: 'Center content in 850px. Logo left (max 100x60px). CTA right. Keep text vertically centered.',
-    aspectRatio: 10.78,
-    category: 'desktop',
-  },
-  {
-    id: 'preset-half-page',
-    name: 'Half Page (Monster)',
-    dimensions: '300 x 600 px',
-    maxMessaging: 'Headline: 30 chars | Body: 120 chars | CTA: 15 chars',
-    textLegibility: 'Headline: 24-30pt Bold | Body: 14-16pt | CTA: 16pt Bold',
-    safeZonePolicy: '20px padding all edges. Logo top (max 150x50px). Stack content. CTA bottom 60px with full width.',
-    aspectRatio: 0.5,
-    category: 'desktop',
-  },
-  {
-    id: 'preset-portrait',
-    name: 'Portrait',
-    dimensions: '300 x 1050 px',
-    maxMessaging: 'Headline: 25 chars | Body: 150 chars | CTA: 12 chars (multiple CTAs allowed)',
-    textLegibility: 'Headline: 22-28pt Bold | Body: 13-15pt | CTA: 14pt Bold',
-    safeZonePolicy: '20px horizontal padding. Divide into 3-4 visual sections. Logo top, CTA bottom 80px.',
-    aspectRatio: 0.29,
-    category: 'desktop',
-  },
-  {
-    id: 'preset-skyscraper',
-    name: 'Skyscraper',
-    dimensions: '120 x 600 px',
-    maxMessaging: 'Headline: 15 chars | Body: 40 chars | CTA: 8 chars',
-    textLegibility: 'Headline: 14-18pt Bold | Body: 10-12pt | CTA: 11pt Bold',
-    safeZonePolicy: '8px horizontal padding. Very limited space—prioritize logo + single message + CTA.',
-    aspectRatio: 0.2,
-    category: 'desktop',
-  },
-  {
-    id: 'preset-square',
-    name: 'Square',
-    dimensions: '250 x 250 px',
-    maxMessaging: 'Headline: 20 chars | Body: 50 chars | CTA: 12 chars',
-    textLegibility: 'Headline: 18-22pt Bold | Body: 12-14pt | CTA: 13pt Bold',
-    safeZonePolicy: '15px padding all edges. Logo top-left (max 50x35px). CTA bottom center.',
-    aspectRatio: 1.0,
-    category: 'desktop',
-  },
-  {
-    id: 'preset-small-square',
-    name: 'Small Square',
-    dimensions: '200 x 200 px',
-    maxMessaging: 'Headline: 15 chars | CTA: 10 chars (no body copy)',
-    textLegibility: 'Headline: 16-20pt Bold | CTA: 12pt Bold',
-    safeZonePolicy: '12px padding. Minimal elements only—logo + headline + CTA. No body text.',
-    aspectRatio: 1.0,
-    category: 'desktop',
-  },
-  {
-    id: 'preset-button-1',
-    name: 'Button 1',
-    dimensions: '120 x 90 px',
-    maxMessaging: 'CTA only: 8 chars max',
-    textLegibility: 'CTA: 11-13pt Bold',
-    safeZonePolicy: 'Logo OR text only. 5px padding. Single action focus.',
-    aspectRatio: 1.33,
-    category: 'desktop',
-  },
-  {
-    id: 'preset-button-2',
-    name: 'Button 2',
-    dimensions: '120 x 60 px',
-    maxMessaging: 'CTA only: 8 chars max',
-    textLegibility: 'CTA: 10-12pt Bold',
-    safeZonePolicy: 'Extremely limited. Logo or text, not both. 4px padding.',
-    aspectRatio: 2.0,
-    category: 'desktop',
-  },
-  // Mobile Banners
-  {
-    id: 'preset-mobile-leaderboard',
-    name: 'Mobile Leaderboard',
-    dimensions: '320 x 50 px',
-    maxMessaging: 'Headline: 20 chars | CTA: 8 chars (no body)',
-    textLegibility: 'Headline: 14-16pt Bold | CTA: 12pt Bold',
-    safeZonePolicy: 'Logo left (max 40x30px). Text center. CTA right. 8px edge padding.',
-    aspectRatio: 6.4,
-    category: 'mobile',
-  },
-  {
-    id: 'preset-mobile-banner',
-    name: 'Mobile Banner',
-    dimensions: '300 x 50 px',
-    maxMessaging: 'Headline: 18 chars | CTA: 8 chars',
-    textLegibility: 'Headline: 13-15pt Bold | CTA: 11pt Bold',
-    safeZonePolicy: 'Logo left (max 35x28px). Single line text. CTA far right.',
-    aspectRatio: 6.0,
-    category: 'mobile',
-  },
-  {
-    id: 'preset-large-mobile-banner',
-    name: 'Large Mobile Banner',
-    dimensions: '320 x 100 px',
-    maxMessaging: 'Headline: 25 chars | Body: 35 chars | CTA: 10 chars',
-    textLegibility: 'Headline: 16-18pt Bold | Body: 12pt | CTA: 13pt Bold',
-    safeZonePolicy: 'Logo top-left. Two-line layout allowed. CTA bottom-right. 10px padding.',
-    aspectRatio: 3.2,
-    category: 'mobile',
-  },
-  {
-    id: 'preset-smartphone-banner',
-    name: 'Smartphone Banner',
-    dimensions: '300 x 250 px (Mobile MREC)',
-    maxMessaging: 'Headline: 25 chars | Body: 60 chars | CTA: 12 chars',
-    textLegibility: 'Headline: 20-24pt Bold | Body: 13-15pt | CTA: 14pt Bold',
-    safeZonePolicy: 'Same as desktop MREC. 15px padding. Design for touch—CTA min 44px height.',
-    aspectRatio: 1.2,
-    category: 'mobile',
-  },
-  {
-    id: 'preset-mobile-interstitial',
-    name: 'Mobile Interstitial',
-    dimensions: '320 x 480 px',
-    maxMessaging: 'Headline: 30 chars | Body: 80 chars | CTA: 15 chars',
-    textLegibility: 'Headline: 28-34pt Bold | Body: 16-18pt | CTA: 18pt Bold',
-    safeZonePolicy: 'Full screen. Close button space top-right (50x50px). CTA center-bottom 80px. 25px margins.',
-    aspectRatio: 0.67,
-    category: 'mobile',
-  },
-  {
-    id: 'preset-tablet-interstitial',
-    name: 'Tablet Interstitial',
-    dimensions: '768 x 1024 px',
-    maxMessaging: 'Headline: 40 chars | Body: 120 chars | CTA: 18 chars',
-    textLegibility: 'Headline: 36-44pt Bold | Body: 18-22pt | CTA: 20pt Bold',
-    safeZonePolicy: 'Full screen. Close button top-right (60x60px). Center content in 600px width. CTA bottom 100px.',
-    aspectRatio: 0.75,
-    category: 'mobile',
-  },
-  // Video/Rich Media Banners
-  {
-    id: 'preset-video-rectangle',
-    name: 'Video Rectangle',
-    dimensions: '640 x 360 px (16:9)',
-    maxMessaging: 'Overlay: 20 chars | End card: 30 chars + CTA',
-    textLegibility: 'Overlay: 18-22pt Bold (high contrast) | End card: 24-28pt',
-    safeZonePolicy: 'Video controls bottom 50px. Logo watermark top-left (subtle). End card CTA center.',
-    aspectRatio: 1.78,
-    category: 'video',
-  },
-  {
-    id: 'preset-video-skyscraper',
-    name: 'Video Skyscraper',
-    dimensions: '300 x 600 px (Video)',
-    maxMessaging: 'Overlay: 15 chars | End card: 25 chars + CTA',
-    textLegibility: 'Overlay: 16-20pt Bold | End card: 22-26pt',
-    safeZonePolicy: 'Vertical video format. Controls bottom 60px. Logo top. End card CTA bottom third.',
-    aspectRatio: 0.5,
-    category: 'video',
-  },
-  // Native/Social Banners
-  {
-    id: 'preset-native-ad-unit',
-    name: 'Native Ad Unit',
-    dimensions: '1200 x 627 px',
-    maxMessaging: 'Headline: 50 chars | Description: 150 chars | CTA: 15 chars',
-    textLegibility: 'Headline: 24-30pt Bold | Description: 16-18pt | CTA: 16pt Bold',
-    safeZonePolicy: 'Image-focused. Text overlay bottom 30% with gradient. Logo bottom-left. CTA bottom-right.',
-    aspectRatio: 1.91,
-    category: 'native',
-  },
-  {
-    id: 'preset-sponsored-content-card',
-    name: 'Sponsored Content Card',
-    dimensions: '600 x 600 px',
-    maxMessaging: 'Headline: 40 chars | Body: 100 chars | CTA: 12 chars',
-    textLegibility: 'Headline: 26-32pt Bold | Body: 16-18pt | CTA: 16pt Bold',
-    safeZonePolicy: 'Square format. Image top 60%. Text bottom 40%. Logo corner. CTA below text.',
-    aspectRatio: 1.0,
-    category: 'native',
-  },
+  { id: 'preset-mrec', name: 'Medium Rectangle', dimensions: '300 x 250 px', maxMessaging: 'Headline: 25 chars | Body: 70 chars', textLegibility: 'Headline: 18-24pt Bold | Body: 12-14pt', safeZonePolicy: '15px padding all edges. Logo corner (max 60x40px). CTA bottom-right.', aspectRatio: 1.2, category: 'desktop' },
+  { id: 'preset-leaderboard', name: 'Leaderboard', dimensions: '728 x 90 px', maxMessaging: 'Headline: 30 chars | Body: 50 chars', textLegibility: 'Headline: 24-28pt Bold | Body: 14-16pt', safeZonePolicy: 'Center in 650px. Logo left. CTA right.', aspectRatio: 8.09, category: 'desktop' },
+  { id: 'preset-wide-sky', name: 'Wide Skyscraper', dimensions: '160 x 600 px', maxMessaging: 'Headline: 20 chars | Body: 60 chars', textLegibility: 'Headline: 18-22pt Bold | Body: 11-13pt', safeZonePolicy: '10px horizontal. Logo top. Stack vertical.', aspectRatio: 0.27, category: 'desktop' },
+  { id: 'preset-large-rect', name: 'Large Rectangle', dimensions: '336 x 280 px', maxMessaging: 'Headline: 30 chars | Body: 90 chars', textLegibility: 'Headline: 20-26pt Bold | Body: 13-15pt', safeZonePolicy: '20px padding. Logo top-left. CTA center-bottom.', aspectRatio: 1.2, category: 'desktop' },
+  { id: 'preset-billboard', name: 'Billboard', dimensions: '970 x 250 px', maxMessaging: 'Headline: 40 chars | Body: 100 chars', textLegibility: 'Headline: 32-40pt Bold | Body: 16-18pt', safeZonePolicy: 'Center in 800px. Logo left. Multiple CTAs allowed.', aspectRatio: 3.88, category: 'desktop' },
+  { id: 'preset-half-page', name: 'Half Page', dimensions: '300 x 600 px', maxMessaging: 'Headline: 30 chars | Body: 120 chars', textLegibility: 'Headline: 24-30pt Bold | Body: 14-16pt', safeZonePolicy: '20px padding. Logo top. CTA bottom full-width.', aspectRatio: 0.5, category: 'desktop' },
+  { id: 'preset-mobile-lead', name: 'Mobile Leaderboard', dimensions: '320 x 50 px', maxMessaging: 'Headline: 20 chars | CTA: 8 chars', textLegibility: 'Headline: 14-16pt Bold | CTA: 12pt', safeZonePolicy: 'Logo left (40x30px). CTA right. 8px edges.', aspectRatio: 6.4, category: 'mobile' },
+  { id: 'preset-large-mobile', name: 'Large Mobile', dimensions: '320 x 100 px', maxMessaging: 'Headline: 25 chars | Body: 35 chars', textLegibility: 'Headline: 16-18pt Bold | Body: 12pt', safeZonePolicy: 'Two-line layout. CTA bottom-right. 10px padding.', aspectRatio: 3.2, category: 'mobile' },
+  { id: 'preset-mobile-mrec', name: 'Mobile MREC', dimensions: '300 x 250 px', maxMessaging: 'Headline: 25 chars | Body: 60 chars', textLegibility: 'Headline: 20-24pt Bold | Body: 13-15pt', safeZonePolicy: 'Same as desktop MREC. Touch CTA min 44px.', aspectRatio: 1.2, category: 'mobile' },
+  { id: 'preset-interstitial', name: 'Interstitial', dimensions: '320 x 480 px', maxMessaging: 'Headline: 30 chars | Body: 80 chars', textLegibility: 'Headline: 28-34pt Bold | Body: 16-18pt', safeZonePolicy: 'Close button top-right. CTA bottom 80px.', aspectRatio: 0.67, category: 'mobile' },
+  { id: 'preset-video-rect', name: 'Video Rectangle', dimensions: '640 x 360 px', maxMessaging: 'Overlay: 20 chars | End card: 30 chars', textLegibility: 'Overlay: 18-22pt Bold | End card: 24-28pt', safeZonePolicy: 'Controls bottom 50px. Logo watermark top-left.', aspectRatio: 1.78, category: 'video' },
+  { id: 'preset-native', name: 'Native Ad Unit', dimensions: '1200 x 627 px', maxMessaging: 'Headline: 50 chars | Desc: 150 chars', textLegibility: 'Headline: 24-30pt Bold | Desc: 16-18pt', safeZonePolicy: 'Image-focused. Text bottom 30% with gradient.', aspectRatio: 1.91, category: 'native' },
 ];
 
-// Image upload component for social asset preview
-const SocialAssetPreviewUpload = ({ 
-  asset, 
-  onUpdate 
-}: { 
-  asset: BrandSocialAssetSpec; 
+// Compact Platform Card Component
+const PlatformCard = ({
+  asset,
+  onUpdate,
+  onDelete,
+  onExpand,
+}: {
+  asset: BrandSocialAssetSpec;
   onUpdate: (updates: Partial<BrandSocialAssetSpec>) => void;
+  onDelete: () => void;
+  onExpand: () => void;
 }) => {
-  const handleFileDrop = useCallback((file: File) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const url = event.target?.result as string;
-      onUpdate({ previewImageUrl: url });
-    };
-    reader.readAsDataURL(file);
-  }, [onUpdate]);
-
-  const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
-    onFileDrop: handleFileDrop,
-    accept: 'image/*',
-    maxSize: 10 * 1024 * 1024, // 10MB
-  });
-
-  // Use design tokens (no hardcoded brand colors) for consistent theming.
-  const platformColor = 'hsl(var(--primary))';
-  const defaultImage = platformDefaultImages[asset.platform];
-  const isUsingDefaultImage = asset.previewImageUrl === defaultImage;
-
-  const handleResetToDefault = () => {
-    if (defaultImage) {
-      onUpdate({ previewImageUrl: defaultImage });
-    }
-  };
-
-  if (asset.previewImageUrl) {
-    return (
-      <div className="relative group/preview">
-        <img 
-          src={asset.previewImageUrl} 
-          alt={`${asset.platform} example`}
-          className="w-full h-32 object-cover rounded-lg bg-muted"
-          loading="lazy"
-          decoding="async"
-          onError={(e) => {
-            // If image fails to load, show placeholder
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-          }}
-        />
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/preview:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
-          <Button 
-            size="sm" 
-            variant="secondary" 
-            onClick={openFilePicker}
-            className="h-7 text-xs"
-          >
-            <Upload className="h-3 w-3 mr-1" />
-            Replace
-          </Button>
-          {!isUsingDefaultImage && defaultImage && (
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={handleResetToDefault}
-              className="h-7 text-xs bg-white/10 border-white/20 hover:bg-white/20"
-            >
-              Reset
-            </Button>
-          )}
-          <Button 
-            size="sm" 
-            variant="destructive" 
-            onClick={() => onUpdate({ previewImageUrl: '' })}
-            className="h-7 text-xs"
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        </div>
-        {/* Safe zone overlay */}
-        <div className="absolute inset-4 border-2 border-dashed border-white/40 rounded pointer-events-none">
-          <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[9px] font-medium uppercase tracking-widest text-white/60 bg-black/30 px-2 py-0.5 rounded">
-            Safe Zone
-          </span>
-        </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleInputChange}
-          className="hidden"
-        />
-      </div>
-    );
-  }
+  const IconComponent = platformIcons[asset.platform] || Monitor;
+  const hasTemplates = (asset.templates?.length || 0) > 0;
+  const sizeCount = [asset.postSize, asset.storySize, asset.reelSize, asset.coverSize].filter(s => s && s !== 'N/A').length;
 
   return (
-    <button
-      onClick={openFilePicker}
-      onDragOver={dragHandlers.onDragOver}
-      onDragLeave={dragHandlers.onDragLeave}
-      onDrop={dragHandlers.onDrop}
-      className={`relative w-full h-32 rounded-lg border-2 border-dashed transition-all overflow-hidden ${
-        isDragging 
-          ? 'border-primary bg-primary/10' 
-          : 'border-border/50 hover:border-primary/50 bg-muted/30'
-      }`}
+    <div 
+      className="group relative bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 overflow-hidden hover:border-primary/30 transition-all cursor-pointer"
+      onClick={onExpand}
     >
-      {/* Platform-colored gradient background */}
-      <div
-        className="absolute inset-0 opacity-10"
-        style={{
-          background:
-            'linear-gradient(135deg, hsl(var(--primary) / 0.25) 0%, transparent 50%, hsl(var(--primary) / 0.12) 100%)',
-        }}
-      />
-      
-      {/* Safe zone indicator */}
-      <div className="absolute inset-4 border border-primary/30 rounded flex items-center justify-center">
-        <div className="text-center">
-          <Image className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-          <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-            {isDragging ? 'Drop Image' : 'Add Example'}
-          </span>
+      {/* Preview thumbnail */}
+      <div className="relative h-24 bg-muted/30 overflow-hidden">
+        {asset.previewImageUrl ? (
+          <img 
+            src={asset.previewImageUrl} 
+            alt={asset.platform}
+            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
+            <IconComponent className="h-8 w-8 text-primary/40" />
+          </div>
+        )}
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+        
+        {/* Platform name overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-3">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <IconComponent className="h-3.5 w-3.5 text-white" />
+            </div>
+            <span className="font-semibold text-sm text-white">{asset.platform}</span>
+          </div>
+        </div>
+
+        {/* Actions overlay */}
+        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={(e) => { e.stopPropagation(); onExpand(); }}
+            className="p-1.5 rounded-md bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors"
+          >
+            <Maximize2 className="h-3 w-3 text-white" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="p-1.5 rounded-md bg-destructive/80 hover:bg-destructive transition-colors"
+          >
+            <X className="h-3 w-3 text-white" />
+          </button>
         </div>
       </div>
-      
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleInputChange}
-        className="hidden"
-      />
-    </button>
+
+      {/* Quick stats */}
+      <div className="p-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
+            {sizeCount} sizes
+          </Badge>
+          {hasTemplates && (
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 gap-1">
+              <Download className="h-2.5 w-2.5" />
+              {asset.templates?.length}
+            </Badge>
+          )}
+        </div>
+        <span className="text-[10px] font-mono text-muted-foreground">
+          {asset.postSize.split(' x ')[0]}px
+        </span>
+      </div>
+    </div>
   );
 };
 
-// Image upload component for display banner preview
-const BannerPreviewUpload = ({ 
-  banner, 
-  onUpdate 
-}: { 
-  banner: BrandDisplayBannerSpec; 
+// Compact Banner Card Component
+const BannerCard = ({
+  banner,
+  onUpdate,
+  onDelete,
+  onExpand,
+}: {
+  banner: BrandDisplayBannerSpec;
   onUpdate: (updates: Partial<BrandDisplayBannerSpec>) => void;
+  onDelete: () => void;
+  onExpand: () => void;
 }) => {
+  const aspectRatio = banner.aspectRatio || 1.2;
+  const isVertical = aspectRatio < 0.7;
+  const isWide = aspectRatio > 3;
+
+  return (
+    <div 
+      className="group relative bg-card/50 backdrop-blur-sm rounded-lg border border-border/50 overflow-hidden hover:border-accent/30 transition-all cursor-pointer p-3"
+      onClick={onExpand}
+    >
+      <div className="flex items-center gap-3">
+        {/* Aspect ratio preview */}
+        <div 
+          className={cn(
+            "flex-shrink-0 rounded border border-accent/30 bg-accent/5 flex items-center justify-center",
+            isWide ? "w-16 h-4" : isVertical ? "w-6 h-12" : "w-10 h-8"
+          )}
+        >
+          <span className="text-[7px] font-mono text-accent/60">{banner.dimensions.split(' x ')[0]}</span>
+        </div>
+        
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <p className="font-medium text-sm truncate">{banner.name}</p>
+          <p className="text-[10px] font-mono text-muted-foreground">{banner.dimensions}</p>
+        </div>
+
+        {/* Quick actions */}
+        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={(e) => { e.stopPropagation(); onExpand(); }}
+            className="p-1.5 rounded hover:bg-secondary transition-colors"
+          >
+            <Info className="h-3 w-3 text-muted-foreground" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="p-1.5 rounded hover:bg-destructive/10 text-destructive transition-colors"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Detail Modal for Platform
+const PlatformDetailModal = ({
+  asset,
+  open,
+  onOpenChange,
+  onUpdate,
+}: {
+  asset: BrandSocialAssetSpec | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onUpdate: (id: string, updates: Partial<BrandSocialAssetSpec>) => void;
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [newTemplate, setNewTemplate] = useState<Partial<SocialAssetTemplate>>({});
+  const [showTemplateForm, setShowTemplateForm] = useState(false);
+
   const handleFileDrop = useCallback((file: File) => {
+    if (!asset) return;
     const reader = new FileReader();
     reader.onload = (event) => {
-      const url = event.target?.result as string;
-      onUpdate({ previewImageUrl: url });
+      onUpdate(asset.id, { previewImageUrl: event.target?.result as string });
     };
     reader.readAsDataURL(file);
-  }, [onUpdate]);
+  }, [asset, onUpdate]);
 
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: handleFileDrop,
     accept: 'image/*',
-    maxSize: 10 * 1024 * 1024, // 10MB
   });
 
-  // Parse dimensions for aspect ratio display
-  const parseDimensions = (dims: string) => {
-    const match = dims.match(/(\d+)\s*x\s*(\d+)/);
-    if (match) {
-      return { width: parseInt(match[1]), height: parseInt(match[2]) };
-    }
-    return { width: 300, height: 250 };
+  if (!asset) return null;
+
+  const IconComponent = platformIcons[asset.platform] || Monitor;
+
+  const addTemplate = () => {
+    if (!newTemplate.name || !newTemplate.url) return;
+    const template: SocialAssetTemplate = {
+      id: safeUUID(),
+      name: newTemplate.name,
+      fileType: (newTemplate.fileType as SocialAssetTemplate['fileType']) || 'other',
+      url: newTemplate.url,
+      description: newTemplate.description,
+    };
+    onUpdate(asset.id, { templates: [...(asset.templates || []), template] });
+    setNewTemplate({});
+    setShowTemplateForm(false);
   };
 
-  const dims = parseDimensions(banner.dimensions);
-  const aspectRatio = dims.width / dims.height;
-  
-  // Dynamic height based on aspect ratio for preview
-  const getPreviewHeight = () => {
-    if (aspectRatio > 4) return 'h-16';
-    if (aspectRatio > 2) return 'h-20';
-    if (aspectRatio > 1.5) return 'h-24';
-    if (aspectRatio < 0.4) return 'h-56';
-    if (aspectRatio < 0.7) return 'h-44';
-    return 'h-32';
+  const deleteTemplate = (templateId: string) => {
+    onUpdate(asset.id, { templates: (asset.templates || []).filter(t => t.id !== templateId) });
   };
-
-  if (banner.previewImageUrl) {
-    return (
-      <div className="relative group/preview">
-        <img 
-          src={banner.previewImageUrl} 
-          alt={`${banner.name} example`}
-          className={`w-full ${getPreviewHeight()} object-cover rounded-lg bg-muted`}
-          loading="lazy"
-          decoding="async"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-          }}
-        />
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/preview:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
-          <Button 
-            size="sm" 
-            variant="secondary" 
-            onClick={openFilePicker}
-            className="h-7 text-xs"
-          >
-            <Upload className="h-3 w-3 mr-1" />
-            Replace
-          </Button>
-          <Button 
-            size="sm" 
-            variant="destructive" 
-            onClick={() => onUpdate({ previewImageUrl: '' })}
-            className="h-7 text-xs"
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        </div>
-        {/* Safe zone overlay */}
-        <div className="absolute inset-3 border-2 border-dashed border-white/50 rounded pointer-events-none">
-          <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[8px] font-medium uppercase tracking-widest text-white/70 bg-black/40 px-1.5 py-0.5 rounded">
-            Safe Zone
-          </span>
-        </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleInputChange}
-          className="hidden"
-        />
-      </div>
-    );
-  }
 
   return (
-    <button
-      onClick={openFilePicker}
-      onDragOver={dragHandlers.onDragOver}
-      onDragLeave={dragHandlers.onDragLeave}
-      onDrop={dragHandlers.onDrop}
-      className={`relative w-full ${getPreviewHeight()} rounded-lg border-2 border-dashed transition-all overflow-hidden ${
-        isDragging 
-          ? 'border-accent bg-accent/10' 
-          : 'border-border/50 hover:border-accent/50 bg-muted/30'
-      }`}
-    >
-      {/* Gradient background hint */}
-      <div
-        className="absolute inset-0 opacity-10"
-        style={{
-          background:
-            'linear-gradient(135deg, hsl(var(--accent) / 0.25) 0%, transparent 50%, hsl(var(--accent) / 0.12) 100%)',
-        }}
-      />
-      
-      {/* Safe zone indicator with proper aspect ratio visualization */}
-      <div 
-        className="absolute border border-accent/40 rounded flex items-center justify-center"
-        style={{
-          left: '12%',
-          right: '12%',
-          top: aspectRatio > 3 ? '15%' : '10%',
-          bottom: aspectRatio > 3 ? '15%' : '10%',
-        }}
-      >
-        <div className="text-center">
-          <Image className="h-4 w-4 mx-auto mb-0.5 text-muted-foreground" />
-          <span className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground">
-            {isDragging ? 'Drop' : 'Add Banner'}
-          </span>
-          <div className="text-[8px] text-muted-foreground/70 font-mono mt-0.5">
-            {banner.dimensions.replace(' px', '')}
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <IconComponent className="h-4 w-4 text-primary" />
+            </div>
+            <span>{asset.platform} Protocol</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setIsEditing(!isEditing)}
+              className="ml-auto"
+            >
+              <Pencil className="h-3.5 w-3.5 mr-1" />
+              {isEditing ? 'Done' : 'Edit'}
+            </Button>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6 pt-4">
+          {/* Preview Image */}
+          <div 
+            className={cn(
+              "relative h-48 rounded-lg overflow-hidden border-2 border-dashed transition-colors",
+              isDragging ? "border-primary bg-primary/5" : "border-border/50"
+            )}
+            onDragOver={dragHandlers.onDragOver}
+            onDragLeave={dragHandlers.onDragLeave}
+            onDrop={dragHandlers.onDrop}
+          >
+            {asset.previewImageUrl ? (
+              <>
+                <img src={asset.previewImageUrl} alt={asset.platform} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <Button size="sm" variant="secondary" onClick={openFilePicker}>
+                    <Upload className="h-3.5 w-3.5 mr-1.5" />
+                    Replace
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => onUpdate(asset.id, { previewImageUrl: '' })}>
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                {/* Safe zone indicator */}
+                <div className="absolute inset-6 border-2 border-dashed border-white/40 rounded pointer-events-none">
+                  <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-medium uppercase tracking-wider text-white/70 bg-black/40 px-2 py-1 rounded">
+                    Safe Zone
+                  </span>
+                </div>
+              </>
+            ) : (
+              <button onClick={openFilePicker} className="w-full h-full flex flex-col items-center justify-center">
+                <Image className="h-8 w-8 text-muted-foreground mb-2" />
+                <span className="text-sm text-muted-foreground">Drop image or click to upload</span>
+              </button>
+            )}
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleInputChange} className="hidden" />
+          </div>
+
+          {/* Size Specifications */}
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              { label: 'Post Size', key: 'postSize', value: asset.postSize },
+              { label: 'Cover/Banner', key: 'coverSize', value: asset.coverSize || asset.altSize },
+              { label: 'Story Size', key: 'storySize', value: asset.storySize },
+              { label: 'Reel/Short', key: 'reelSize', value: asset.reelSize },
+            ].map(({ label, key, value }) => (
+              (value || isEditing) && (
+                <div key={key} className="space-y-1">
+                  <label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{label}</label>
+                  {isEditing ? (
+                    <Input
+                      value={value || ''}
+                      onChange={(e) => onUpdate(asset.id, { [key]: e.target.value })}
+                      className="h-9"
+                      placeholder={`e.g., 1080 x 1080 px`}
+                    />
+                  ) : (
+                    <p className="font-medium text-sm">{value || '—'}</p>
+                  )}
+                </div>
+              )
+            ))}
+          </div>
+
+          {/* Text Legibility */}
+          <div className="space-y-1">
+            <label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Text Legibility</label>
+            {isEditing ? (
+              <Input
+                value={asset.textLegibility}
+                onChange={(e) => onUpdate(asset.id, { textLegibility: e.target.value })}
+                className="h-9"
+              />
+            ) : (
+              <p className="font-medium text-sm">{asset.textLegibility || '—'}</p>
+            )}
+          </div>
+
+          {/* Directive */}
+          <div className="space-y-1">
+            <label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Platform Directive</label>
+            {isEditing ? (
+              <Textarea
+                value={asset.directive}
+                onChange={(e) => onUpdate(asset.id, { directive: e.target.value })}
+                className="min-h-[100px] resize-none"
+                placeholder="Safe zone guidelines, logo placement rules..."
+              />
+            ) : (
+              <div className="bg-muted/50 rounded-lg p-3">
+                <p className="text-sm text-muted-foreground leading-relaxed">{asset.directive || 'No specific directive'}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Templates */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-2">
+                <Download className="h-3.5 w-3.5 text-primary" />
+                Design Templates
+                {(asset.templates?.length || 0) > 0 && (
+                  <Badge variant="secondary" className="text-[10px]">{asset.templates?.length}</Badge>
+                )}
+              </label>
+              <Button size="sm" variant="outline" onClick={() => setShowTemplateForm(true)} className="h-7 text-xs">
+                <Plus className="h-3 w-3 mr-1" />
+                Add Template
+              </Button>
+            </div>
+
+            {showTemplateForm && (
+              <div className="bg-muted/50 rounded-lg p-3 space-y-2 border border-primary/20">
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    value={newTemplate.name || ''}
+                    onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+                    placeholder="Template name"
+                    className="h-8"
+                  />
+                  <Select value={newTemplate.fileType || 'figma'} onValueChange={(val) => setNewTemplate({ ...newTemplate, fileType: val as SocialAssetTemplate['fileType'] })}>
+                    <SelectTrigger className="h-8"><SelectValue placeholder="Type" /></SelectTrigger>
+                    <SelectContent>
+                      {['figma', 'canva', 'psd', 'ai', 'sketch', 'xd', 'other'].map(t => (
+                        <SelectItem key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Input
+                  value={newTemplate.url || ''}
+                  onChange={(e) => setNewTemplate({ ...newTemplate, url: e.target.value })}
+                  placeholder="Template URL"
+                  className="h-8"
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={addTemplate} disabled={!newTemplate.name || !newTemplate.url} className="h-7">Add</Button>
+                  <Button size="sm" variant="ghost" onClick={() => { setShowTemplateForm(false); setNewTemplate({}); }} className="h-7">Cancel</Button>
+                </div>
+              </div>
+            )}
+
+            {(asset.templates?.length || 0) > 0 && (
+              <div className="space-y-2">
+                {asset.templates?.map((template) => {
+                  const typeInfo = fileTypeIcons[template.fileType] || fileTypeIcons.other;
+                  const TypeIcon = typeInfo.icon;
+                  return (
+                    <div key={template.id} className="flex items-center justify-between bg-background/50 rounded-lg p-2.5 border border-border/30 group">
+                      <div className="flex items-center gap-2.5">
+                        <div className={cn("w-7 h-7 rounded flex items-center justify-center bg-muted/50", typeInfo.className)}>
+                          <TypeIcon className="h-3.5 w-3.5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{template.name}</p>
+                          <p className="text-xs text-muted-foreground">{typeInfo.label}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <a href={template.url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded hover:bg-primary/10 text-primary">
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                        <button onClick={() => deleteTemplate(template.id)} className="p-1.5 rounded hover:bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
-      </div>
-      
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleInputChange}
-        className="hidden"
-      />
-    </button>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// Detail Modal for Banner
+const BannerDetailModal = ({
+  banner,
+  open,
+  onOpenChange,
+  onUpdate,
+}: {
+  banner: BrandDisplayBannerSpec | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onUpdate: (id: string, updates: Partial<BrandDisplayBannerSpec>) => void;
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleFileDrop = useCallback((file: File) => {
+    if (!banner) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      onUpdate(banner.id, { previewImageUrl: event.target?.result as string });
+    };
+    reader.readAsDataURL(file);
+  }, [banner, onUpdate]);
+
+  const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
+    onFileDrop: handleFileDrop,
+    accept: 'image/*',
+  });
+
+  if (!banner) return null;
+
+  const aspectRatio = banner.aspectRatio || 1.2;
+  const isVertical = aspectRatio < 0.7;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+              <Layers className="h-4 w-4 text-accent" />
+            </div>
+            <span>{banner.name}</span>
+            <Badge variant="outline" className="ml-2 text-xs font-mono">{banner.dimensions}</Badge>
+            <Button variant="ghost" size="sm" onClick={() => setIsEditing(!isEditing)} className="ml-auto">
+              <Pencil className="h-3.5 w-3.5 mr-1" />
+              {isEditing ? 'Done' : 'Edit'}
+            </Button>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-5 pt-4">
+          {/* Preview */}
+          <div 
+            className={cn(
+              "relative rounded-lg overflow-hidden border-2 border-dashed transition-colors mx-auto",
+              isDragging ? "border-accent bg-accent/5" : "border-border/50",
+              isVertical ? "w-32 h-64" : "w-full h-32"
+            )}
+            onDragOver={dragHandlers.onDragOver}
+            onDragLeave={dragHandlers.onDragLeave}
+            onDrop={dragHandlers.onDrop}
+          >
+            {banner.previewImageUrl ? (
+              <>
+                <img src={banner.previewImageUrl} alt={banner.name} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <Button size="sm" variant="secondary" onClick={openFilePicker}><Upload className="h-3 w-3" /></Button>
+                  <Button size="sm" variant="destructive" onClick={() => onUpdate(banner.id, { previewImageUrl: '' })}><X className="h-3 w-3" /></Button>
+                </div>
+              </>
+            ) : (
+              <button onClick={openFilePicker} className="w-full h-full flex flex-col items-center justify-center bg-accent/5">
+                <Image className="h-6 w-6 text-muted-foreground mb-1" />
+                <span className="text-xs text-muted-foreground">Add preview</span>
+              </button>
+            )}
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleInputChange} className="hidden" />
+          </div>
+
+          {/* Specs Grid */}
+          <div className="grid grid-cols-1 gap-4">
+            {[
+              { label: 'Dimensions', key: 'dimensions', value: banner.dimensions },
+              { label: 'Max Messaging', key: 'maxMessaging', value: banner.maxMessaging },
+              { label: 'Text Legibility', key: 'textLegibility', value: banner.textLegibility },
+              { label: 'Safe Zone Policy', key: 'safeZonePolicy', value: banner.safeZonePolicy },
+            ].map(({ label, key, value }) => (
+              <div key={key} className="space-y-1">
+                <label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{label}</label>
+                {isEditing ? (
+                  key === 'safeZonePolicy' ? (
+                    <Textarea
+                      value={value || ''}
+                      onChange={(e) => onUpdate(banner.id, { [key]: e.target.value })}
+                      className="min-h-[60px] resize-none"
+                    />
+                  ) : (
+                    <Input
+                      value={value || ''}
+                      onChange={(e) => onUpdate(banner.id, { [key]: e.target.value })}
+                      className="h-9"
+                    />
+                  )
+                ) : (
+                  <div className="bg-muted/50 rounded-lg p-2.5">
+                    <p className="text-sm">{value || '—'}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
@@ -692,816 +696,216 @@ export const SocialAssetsSection = ({
   onDisplayBannersChange,
   customSubtitle,
   onSubtitleChange,
-  layout = 'grid-2',
+  layout = 'grid-3',
   onLayoutChange,
 }: SocialAssetsProps) => {
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
-  const [expandedTemplates, setExpandedTemplates] = useState<Set<string>>(new Set());
-  const [addingTemplateFor, setAddingTemplateFor] = useState<string | null>(null);
-  const [newTemplate, setNewTemplate] = useState<Partial<SocialAssetTemplate>>({});
+  const [selectedPlatform, setSelectedPlatform] = useState<BrandSocialAssetSpec | null>(null);
+  const [selectedBanner, setSelectedBanner] = useState<BrandDisplayBannerSpec | null>(null);
+  const [bannerTab, setBannerTab] = useState('desktop');
   const { gridClass } = useLayoutClasses(layout);
-  // Track if this component instance has initialized - use stable refs
+
   const hasSocialInitialized = useRef(false);
   const hasBannerInitialized = useRef(false);
-  const lastSocialAssetsLength = useRef(socialAssets.length);
-  const lastBannersLength = useRef(displayBanners.length);
 
-  // Reset initialization flags when data changes externally (e.g., brand switch)
-  useEffect(() => {
-    if (socialAssets.length !== lastSocialAssetsLength.current) {
-      lastSocialAssetsLength.current = socialAssets.length;
-      // If we got data from outside, mark as initialized
-      if (socialAssets.length > 0) {
-        hasSocialInitialized.current = true;
-      }
-    }
-  }, [socialAssets.length]);
-
-  useEffect(() => {
-    if (displayBanners.length !== lastBannersLength.current) {
-      lastBannersLength.current = displayBanners.length;
-      if (displayBanners.length > 0) {
-        hasBannerInitialized.current = true;
-      }
-    }
-  }, [displayBanners.length]);
-
-  // Auto-populate with all platform presets on first render if empty
+  // Auto-populate presets
   useEffect(() => {
     if (!hasSocialInitialized.current && socialAssets.length === 0) {
       hasSocialInitialized.current = true;
-      const presetsWithIds = platformPresets.map(preset => ({
-        ...preset,
-        id: safeUUID(),
-        templates: [],
-      }));
-      onSocialAssetsChange(presetsWithIds);
+      onSocialAssetsChange(platformPresets.map(p => ({ ...p, id: safeUUID(), templates: [] })));
     }
   }, [socialAssets.length, onSocialAssetsChange]);
 
-  // Auto-populate display banners with all IAB standard presets on first render if empty
   useEffect(() => {
     if (!hasBannerInitialized.current && displayBanners.length === 0) {
       hasBannerInitialized.current = true;
-      const bannersWithIds = bannerPresets.map(preset => ({
-        ...preset,
-        id: safeUUID(),
-      }));
-      onDisplayBannersChange(bannersWithIds);
+      onDisplayBannersChange(bannerPresets.map(b => ({ ...b, id: safeUUID() })));
     }
   }, [displayBanners.length, onDisplayBannersChange]);
 
-  const toggleTemplateExpand = (id: string) => {
-    const newSet = new Set(expandedTemplates);
-    if (newSet.has(id)) {
-      newSet.delete(id);
-    } else {
-      newSet.add(id);
+  const updateSocialAsset = (id: string, updates: Partial<BrandSocialAssetSpec>) => {
+    onSocialAssetsChange(socialAssets.map(a => a.id === id ? { ...a, ...updates } : a));
+    if (selectedPlatform?.id === id) {
+      setSelectedPlatform({ ...selectedPlatform, ...updates });
     }
-    setExpandedTemplates(newSet);
   };
 
-  // Initialize with all presets (manual button)
-  const initializeWithPresets = () => {
-    const presetsWithIds = platformPresets.map(preset => ({
-      ...preset,
-      id: safeUUID(),
-      templates: [],
-    }));
-    onSocialAssetsChange(presetsWithIds);
+  const deleteSocialAsset = (id: string) => {
+    onSocialAssetsChange(socialAssets.filter(a => a.id !== id));
+    if (selectedPlatform?.id === id) setSelectedPlatform(null);
   };
 
-  // Initialize with all banner presets (manual button)
-  const initializeBannerPresets = () => {
-    const bannersWithIds = bannerPresets.map(preset => ({
-      ...preset,
-      id: safeUUID(),
-    }));
-    onDisplayBannersChange(bannersWithIds);
+  const updateDisplayBanner = (id: string, updates: Partial<BrandDisplayBannerSpec>) => {
+    onDisplayBannersChange(displayBanners.map(b => b.id === id ? { ...b, ...updates } : b));
+    if (selectedBanner?.id === id) {
+      setSelectedBanner({ ...selectedBanner, ...updates });
+    }
+  };
+
+  const deleteDisplayBanner = (id: string) => {
+    onDisplayBannersChange(displayBanners.filter(b => b.id !== id));
+    if (selectedBanner?.id === id) setSelectedBanner(null);
   };
 
   const addSocialAsset = (preset?: BrandSocialAssetSpec) => {
     const newAsset: BrandSocialAssetSpec = preset
       ? { ...preset, id: safeUUID(), templates: [] }
-      : {
-          id: safeUUID(),
-          platform: 'LinkedIn',
-          postSize: '1200 x 627 px',
-          altSize: '',
-          textLegibility: '',
-          directive: '',
-          templates: [],
-          previewImageUrl: platformDefaultImages['LinkedIn'] || '',
-        };
+      : { id: safeUUID(), platform: 'LinkedIn', postSize: '1200 x 627 px', altSize: '', textLegibility: '', directive: '', templates: [], previewImageUrl: platformDefaultImages['LinkedIn'] };
     onSocialAssetsChange([...socialAssets, newAsset]);
-    if (!preset) setEditingId(newAsset.id);
-  };
-
-  const updateSocialAsset = (id: string, updates: Partial<BrandSocialAssetSpec>) => {
-    onSocialAssetsChange(socialAssets.map((a) => (a.id === id ? { ...a, ...updates } : a)));
-  };
-
-  const deleteSocialAsset = (id: string) => {
-    onSocialAssetsChange(socialAssets.filter((a) => a.id !== id));
-    if (editingId === id) setEditingId(null);
-  };
-
-  // Template management
-  const addTemplate = (assetId: string) => {
-    if (!newTemplate.name || !newTemplate.url) return;
-    
-    const template: SocialAssetTemplate = {
-      id: safeUUID(),
-      name: newTemplate.name,
-      fileType: (newTemplate.fileType as SocialAssetTemplate['fileType']) || 'other',
-      url: newTemplate.url,
-      description: newTemplate.description,
-    };
-    
-    const asset = socialAssets.find(a => a.id === assetId);
-    if (asset) {
-      updateSocialAsset(assetId, {
-        templates: [...(asset.templates || []), template]
-      });
-    }
-    
-    setNewTemplate({});
-    setAddingTemplateFor(null);
-  };
-
-  const deleteTemplate = (assetId: string, templateId: string) => {
-    const asset = socialAssets.find(a => a.id === assetId);
-    if (asset) {
-      updateSocialAsset(assetId, {
-        templates: (asset.templates || []).filter(t => t.id !== templateId)
-      });
-    }
+    if (!preset) setSelectedPlatform(newAsset);
   };
 
   const addDisplayBanner = (preset?: BrandDisplayBannerSpec) => {
     const newBanner: BrandDisplayBannerSpec = preset
       ? { ...preset, id: safeUUID() }
-      : {
-          id: safeUUID(),
-          name: 'Custom Banner',
-          dimensions: '300 x 250 px',
-          maxMessaging: '12 Words',
-          textLegibility: '12pt Min',
-          safeZonePolicy: '',
-          aspectRatio: 1.2,
-        };
+      : { id: safeUUID(), name: 'Custom Banner', dimensions: '300 x 250 px', maxMessaging: '', textLegibility: '', safeZonePolicy: '', aspectRatio: 1.2, category: 'desktop' };
     onDisplayBannersChange([...displayBanners, newBanner]);
-    if (!preset) setEditingId(newBanner.id);
+    if (!preset) setSelectedBanner(newBanner);
   };
 
-  const updateDisplayBanner = (id: string, updates: Partial<BrandDisplayBannerSpec>) => {
-    onDisplayBannersChange(displayBanners.map((b) => (b.id === id ? { ...b, ...updates } : b)));
+  // Group banners by category
+  const bannersByCategory = {
+    desktop: displayBanners.filter(b => b.category === 'desktop' || !b.category),
+    mobile: displayBanners.filter(b => b.category === 'mobile'),
+    video: displayBanners.filter(b => b.category === 'video'),
+    native: displayBanners.filter(b => b.category === 'native'),
   };
-
-  const deleteDisplayBanner = (id: string) => {
-    onDisplayBannersChange(displayBanners.filter((b) => b.id !== id));
-    if (editingId === id) setEditingId(null);
-  };
-
 
   return (
     <section className="space-y-8">
-      {/* Header with layout selector */}
+      {/* Header */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1 min-w-0">
           <SectionHeader
             title="Social Assets & Guidelines"
-            defaultSubtitle="Platform specifications, safe zones, and downloadable design templates"
+            defaultSubtitle="Platform specifications, safe zones, and design templates"
             customSubtitle={customSubtitle}
             onSubtitleChange={onSubtitleChange}
             isEditing={isHeaderEditing}
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {onLayoutChange && (
-            <LayoutSelector
-              value={layout}
-              onChange={onLayoutChange}
-              availableLayouts={['grid-2', 'grid-3', 'large-cards', 'list']}
-              size="sm"
-            />
-          )}
-        </div>
+        {onLayoutChange && (
+          <LayoutSelector
+            value={layout}
+            onChange={onLayoutChange}
+            availableLayouts={['grid-2', 'grid-3', 'grid-4', 'large-cards']}
+            size="sm"
+          />
+        )}
       </div>
 
-      {/* Social Platform Protocols */}
+      {/* Social Platforms - Compact Grid */}
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-            Social Platform Protocols
+            Social Platforms
+            <Badge variant="secondary" className="text-[10px]">{socialAssets.length}</Badge>
           </h3>
-          <div className="flex gap-2 flex-wrap">
-            {socialAssets.length === 0 && (
-              <Button onClick={initializeWithPresets} size="sm" variant="default" className="gap-1.5 h-8">
-                <Plus className="h-3.5 w-3.5" />
-                Add All Platforms
-              </Button>
-            )}
+          <div className="flex gap-2">
             <Select onValueChange={(platform) => {
               const preset = platformPresets.find(p => p.platform === platform);
               if (preset) addSocialAsset(preset);
             }}>
-              <SelectTrigger className="w-[180px] h-8 text-xs">
-                <SelectValue placeholder="Add preset..." />
+              <SelectTrigger className="w-[140px] h-8 text-xs">
+                <SelectValue placeholder="Add platform..." />
               </SelectTrigger>
               <SelectContent>
-                {platformPresets.map((preset) => {
-                  const IconComp = platformIcons[preset.platform] || Monitor;
+                {platformPresets.filter(p => !socialAssets.some(a => a.platform === p.platform)).map((preset) => {
+                  const Icon = platformIcons[preset.platform] || Monitor;
                   return (
                     <SelectItem key={preset.platform} value={preset.platform}>
-                      <div className="flex items-center gap-2">
-                        <IconComp className="h-3.5 w-3.5" />
-                        {preset.platform}
-                      </div>
+                      <div className="flex items-center gap-2"><Icon className="h-3.5 w-3.5" />{preset.platform}</div>
                     </SelectItem>
                   );
                 })}
               </SelectContent>
             </Select>
-            <Button onClick={() => addSocialAsset()} size="sm" variant="outline" className="gap-1.5 h-8">
-              <Plus className="h-3.5 w-3.5" />
-              Custom
+            <Button onClick={() => addSocialAsset()} size="sm" variant="outline" className="h-8 text-xs">
+              <Plus className="h-3.5 w-3.5 mr-1" />Custom
             </Button>
           </div>
         </div>
 
         <div className={gridClass}>
-          {socialAssets.map((asset, index) => {
-            const IconComponent = platformIcons[asset.platform] || Monitor;
-            const isEditing = editingId === asset.id;
-            const hasTemplates = (asset.templates?.length || 0) > 0;
-            const isTemplateExpanded = expandedTemplates.has(asset.id);
-            const isAddingTemplate = addingTemplateFor === asset.id;
-
-            return (
-              <div
-                key={asset.id}
-                className="group relative bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 overflow-hidden animate-scale-in hover:border-primary/30 transition-colors"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <IconComponent className="h-4 w-4 text-primary" />
-                    </div>
-                    {isEditing ? (
-                      <Select
-                        value={asset.platform}
-                        onValueChange={(platform) => updateSocialAsset(asset.id, { platform })}
-                      >
-                        <SelectTrigger className="h-7 text-xs w-[140px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.keys(platformIcons).map((p) => (
-                            <SelectItem key={p} value={p}>{p}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <span className="font-semibold text-sm uppercase tracking-wide text-foreground">
-                        {asset.platform} Protocol
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    {hasTemplates && (
-                      <Badge variant="secondary" className="text-[9px] gap-1">
-                        <Download className="h-2.5 w-2.5" />
-                        {asset.templates?.length}
-                      </Badge>
-                    )}
-                    <span className="text-[10px] font-mono bg-muted/80 px-2 py-0.5 rounded text-muted-foreground">
-                      {asset.altSize || asset.postSize.split(' ')[0]}
-                    </span>
-                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => setEditingId(isEditing ? null : asset.id)}
-                        className="p-1 rounded hover:bg-secondary transition-colors"
-                      >
-                        <Pencil className="h-3 w-3 text-muted-foreground" />
-                      </button>
-                      <button
-                        onClick={() => deleteSocialAsset(asset.id)}
-                        className="p-1 rounded hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Preview Image Upload Area */}
-                <div className="px-4 py-3">
-                  <SocialAssetPreviewUpload 
-                    asset={asset} 
-                    onUpdate={(updates) => updateSocialAsset(asset.id, updates)} 
-                  />
-                </div>
-
-                {/* Specs */}
-                <div className="px-4 pb-4 space-y-3">
-                  {/* Size Specifications Grid */}
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
-                        Post Size
-                      </p>
-                      {isEditing ? (
-                        <Input
-                          value={asset.postSize}
-                          onChange={(e) => updateSocialAsset(asset.id, { postSize: e.target.value })}
-                          className="h-7 text-xs"
-                        />
-                      ) : (
-                        <p className="font-medium text-foreground text-[11px]">{asset.postSize}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
-                        Banner/Cover
-                      </p>
-                      {isEditing ? (
-                        <Input
-                          value={asset.coverSize || asset.altSize || ''}
-                          onChange={(e) => updateSocialAsset(asset.id, { coverSize: e.target.value })}
-                          className="h-7 text-xs"
-                          placeholder="e.g., 1500 x 500 px"
-                        />
-                      ) : (
-                        <p className="font-medium text-foreground text-[11px]">{asset.coverSize || asset.altSize || '—'}</p>
-                      )}
-                    </div>
-                    {(asset.storySize || isEditing) && (
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
-                          Story Size
-                        </p>
-                        {isEditing ? (
-                          <Input
-                            value={asset.storySize || ''}
-                            onChange={(e) => updateSocialAsset(asset.id, { storySize: e.target.value })}
-                            className="h-7 text-xs"
-                            placeholder="e.g., 1080 x 1920 px"
-                          />
-                        ) : (
-                          <p className="font-medium text-foreground text-[11px]">{asset.storySize}</p>
-                        )}
-                      </div>
-                    )}
-                    {(asset.reelSize || isEditing) && (
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
-                          Reel/Short Size
-                        </p>
-                        {isEditing ? (
-                          <Input
-                            value={asset.reelSize || ''}
-                            onChange={(e) => updateSocialAsset(asset.id, { reelSize: e.target.value })}
-                            className="h-7 text-xs"
-                            placeholder="e.g., 1080 x 1920 px"
-                          />
-                        ) : (
-                          <p className="font-medium text-foreground text-[11px]">{asset.reelSize}</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Text Legibility */}
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
-                      Text Legibility
-                    </p>
-                    {isEditing ? (
-                      <Input
-                        value={asset.textLegibility}
-                        onChange={(e) => updateSocialAsset(asset.id, { textLegibility: e.target.value })}
-                        className="h-7 text-xs"
-                      />
-                    ) : (
-                      <p className="font-medium text-foreground text-[11px]">{asset.textLegibility || '—'}</p>
-                    )}
-                  </div>
-
-                  {/* Directive */}
-                  <div className="bg-muted/50 rounded-lg p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
-                      Platform Directive
-                    </p>
-                    {isEditing ? (
-                      <Textarea
-                        value={asset.directive}
-                        onChange={(e) => updateSocialAsset(asset.id, { directive: e.target.value })}
-                        className="min-h-[80px] text-xs resize-none"
-                        placeholder="Enter safe zone guidelines, logo placement rules, etc."
-                      />
-                    ) : (
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        {asset.directive || 'No specific directive'}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Templates Section */}
-                  <Collapsible open={isTemplateExpanded} onOpenChange={() => toggleTemplateExpand(asset.id)}>
-                    <div className="border-t border-border/30 pt-3 mt-3">
-                      <CollapsibleTrigger className="flex items-center justify-between w-full group/trigger">
-                        <div className="flex items-center gap-2">
-                          <Download className="h-3.5 w-3.5 text-primary" />
-                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-                            Design Templates
-                          </span>
-                          {hasTemplates && (
-                            <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                              {asset.templates?.length} files
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[10px] text-muted-foreground group-hover/trigger:text-foreground transition-colors">
-                          {isTemplateExpanded ? 'Hide' : 'Show'}
-                        </span>
-                      </CollapsibleTrigger>
-
-                      <CollapsibleContent className="mt-3 space-y-2">
-                        {/* Template List */}
-                        {asset.templates?.map((template) => {
-                          const typeInfo = fileTypeIcons[template.fileType] || fileTypeIcons.other;
-                          const TypeIcon = typeInfo.icon;
-                          
-                          return (
-                            <div 
-                              key={template.id}
-                              className="flex items-center justify-between gap-2 bg-background/50 rounded-lg p-2 border border-border/30 group/template"
-                            >
-                              <div className="flex items-center gap-2 min-w-0">
-                                <div className={`w-6 h-6 rounded flex items-center justify-center bg-muted/50 ${typeInfo.className}`}>
-                                  <TypeIcon className="h-3 w-3" />
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="text-xs font-medium truncate">{template.name}</p>
-                                  <p className="text-[10px] text-muted-foreground">{typeInfo.label}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-1 shrink-0">
-                                <a
-                                  href={template.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="p-1.5 rounded hover:bg-primary/10 text-primary transition-colors"
-                                  title="Open template"
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                </a>
-                                <button
-                                  onClick={() => deleteTemplate(asset.id, template.id)}
-                                  className="p-1.5 rounded hover:bg-destructive/10 text-destructive opacity-0 group-hover/template:opacity-100 transition-all"
-                                  title="Remove template"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-
-                        {/* Add Template Form */}
-                        {isAddingTemplate ? (
-                          <div className="bg-background/50 rounded-lg p-3 border border-primary/30 space-y-2">
-                            <div className="grid grid-cols-2 gap-2">
-                              <Input
-                                value={newTemplate.name || ''}
-                                onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
-                                placeholder="Template name"
-                                className="h-7 text-xs"
-                              />
-                              <Select
-                                value={newTemplate.fileType || 'figma'}
-                                onValueChange={(val) => setNewTemplate({ ...newTemplate, fileType: val as SocialAssetTemplate['fileType'] })}
-                              >
-                                <SelectTrigger className="h-7 text-xs">
-                                  <SelectValue placeholder="Type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="figma">Figma</SelectItem>
-                                  <SelectItem value="canva">Canva</SelectItem>
-                                  <SelectItem value="psd">Photoshop</SelectItem>
-                                  <SelectItem value="ai">Illustrator</SelectItem>
-                                  <SelectItem value="sketch">Sketch</SelectItem>
-                                  <SelectItem value="xd">Adobe XD</SelectItem>
-                                  <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <Input
-                              value={newTemplate.url || ''}
-                              onChange={(e) => setNewTemplate({ ...newTemplate, url: e.target.value })}
-                              placeholder="Template URL (Figma, Canva, Dropbox, etc.)"
-                              className="h-7 text-xs"
-                            />
-                            <Input
-                              value={newTemplate.description || ''}
-                              onChange={(e) => setNewTemplate({ ...newTemplate, description: e.target.value })}
-                              placeholder="Description (optional)"
-                              className="h-7 text-xs"
-                            />
-                            <div className="flex gap-2 pt-1">
-                              <Button 
-                                size="sm" 
-                                onClick={() => addTemplate(asset.id)} 
-                                disabled={!newTemplate.name || !newTemplate.url}
-                                className="h-7 text-xs gap-1"
-                              >
-                                <Plus className="h-3 w-3" />
-                                Add Template
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                onClick={() => { setAddingTemplateFor(null); setNewTemplate({}); }}
-                                className="h-7 text-xs"
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setAddingTemplateFor(asset.id)}
-                            className="w-full h-8 text-xs gap-1.5 border-dashed"
-                          >
-                            <Link2 className="h-3 w-3" />
-                            Add Template Link
-                          </Button>
-                        )}
-                      </CollapsibleContent>
-                    </div>
-                  </Collapsible>
-                </div>
-              </div>
-            );
-          })}
-
-          {socialAssets.length === 0 && (
-            <button
-              onClick={() => addSocialAsset(platformPresets[0])}
-              className="h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors col-span-full"
-            >
-              <Plus className="h-6 w-6" />
-              <span className="text-sm font-medium">Add social platform protocol</span>
-            </button>
-          )}
+          {socialAssets.map((asset) => (
+            <PlatformCard
+              key={asset.id}
+              asset={asset}
+              onUpdate={(updates) => updateSocialAsset(asset.id, updates)}
+              onDelete={() => deleteSocialAsset(asset.id)}
+              onExpand={() => setSelectedPlatform(asset)}
+            />
+          ))}
         </div>
       </div>
 
-      {/* Display Banner Specs */}
+      {/* Display Banners - Tabbed by Category */}
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-            IAB Standard Display Banner Specs
+            Display Banner Specs
+            <Badge variant="secondary" className="text-[10px]">{displayBanners.length}</Badge>
           </h3>
-          <div className="flex flex-wrap gap-2">
-            {displayBanners.length === 0 && (
-              <Button onClick={initializeBannerPresets} size="sm" variant="secondary" className="gap-1.5 h-8 text-xs">
-                <Plus className="h-3.5 w-3.5" />
-                Add All {bannerPresets.length} IAB Sizes
-              </Button>
-            )}
-            <Select onValueChange={(name) => {
-              const preset = bannerPresets.find(p => p.name === name);
-              if (preset) addDisplayBanner(preset);
-            }}>
-              <SelectTrigger className="w-[200px] h-8 text-xs">
-                <SelectValue placeholder="Add specific size..." />
-              </SelectTrigger>
-              <SelectContent className="max-h-[400px]">
-                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-b">Desktop/Universal</div>
-                {bannerPresets.filter(p => !p.name.includes('Mobile') && !p.name.includes('Smartphone') && !p.name.includes('Tablet') && !p.name.includes('Video') && !p.name.includes('Native') && !p.name.includes('Sponsored')).map((preset) => (
-                  <SelectItem key={preset.name} value={preset.name} className="text-xs">
-                    <span className="flex items-center gap-2">
-                      <span>{preset.name}</span>
-                      <span className="text-muted-foreground font-mono">{preset.dimensions.replace(' px', '')}</span>
-                    </span>
-                  </SelectItem>
-                ))}
-                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-b border-t mt-1">Mobile</div>
-                {bannerPresets.filter(p => p.name.includes('Mobile') || p.name.includes('Smartphone') || p.name.includes('Tablet')).map((preset) => (
-                  <SelectItem key={preset.name} value={preset.name} className="text-xs">
-                    <span className="flex items-center gap-2">
-                      <span>{preset.name}</span>
-                      <span className="text-muted-foreground font-mono">{preset.dimensions.replace(' px', '')}</span>
-                    </span>
-                  </SelectItem>
-                ))}
-                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-b border-t mt-1">Video/Rich Media</div>
-                {bannerPresets.filter(p => p.name.includes('Video')).map((preset) => (
-                  <SelectItem key={preset.name} value={preset.name} className="text-xs">
-                    <span className="flex items-center gap-2">
-                      <span>{preset.name}</span>
-                      <span className="text-muted-foreground font-mono">{preset.dimensions.replace(' px', '')}</span>
-                    </span>
-                  </SelectItem>
-                ))}
-                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-b border-t mt-1">Native/Social</div>
-                {bannerPresets.filter(p => p.name.includes('Native') || p.name.includes('Sponsored')).map((preset) => (
-                  <SelectItem key={preset.name} value={preset.name} className="text-xs">
-                    <span className="flex items-center gap-2">
-                      <span>{preset.name}</span>
-                      <span className="text-muted-foreground font-mono">{preset.dimensions.replace(' px', '')}</span>
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button onClick={() => addDisplayBanner()} size="sm" variant="outline" className="gap-1.5 h-8">
-              <Plus className="h-3.5 w-3.5" />
-              Custom
-            </Button>
-          </div>
+          <Button onClick={() => addDisplayBanner()} size="sm" variant="outline" className="h-8 text-xs">
+            <Plus className="h-3.5 w-3.5 mr-1" />Custom Banner
+          </Button>
         </div>
 
-        {/* Banner Categories Info */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-          <div className="bg-muted/30 rounded-lg px-3 py-2 text-center">
-            <div className="font-semibold text-foreground">Desktop/Universal</div>
-            <div className="text-muted-foreground">{bannerPresets.filter(p => !p.name.includes('Mobile') && !p.name.includes('Smartphone') && !p.name.includes('Tablet') && !p.name.includes('Video') && !p.name.includes('Native') && !p.name.includes('Sponsored')).length} sizes</div>
-          </div>
-          <div className="bg-muted/30 rounded-lg px-3 py-2 text-center">
-            <div className="font-semibold text-foreground">Mobile</div>
-            <div className="text-muted-foreground">{bannerPresets.filter(p => p.name.includes('Mobile') || p.name.includes('Smartphone') || p.name.includes('Tablet')).length} sizes</div>
-          </div>
-          <div className="bg-muted/30 rounded-lg px-3 py-2 text-center">
-            <div className="font-semibold text-foreground">Video/Rich Media</div>
-            <div className="text-muted-foreground">{bannerPresets.filter(p => p.name.includes('Video')).length} sizes</div>
-          </div>
-          <div className="bg-muted/30 rounded-lg px-3 py-2 text-center">
-            <div className="font-semibold text-foreground">Native/Social</div>
-            <div className="text-muted-foreground">{bannerPresets.filter(p => p.name.includes('Native') || p.name.includes('Sponsored')).length} sizes</div>
-          </div>
-        </div>
+        <Tabs value={bannerTab} onValueChange={setBannerTab} className="w-full">
+          <TabsList className="h-9 w-full justify-start bg-muted/50 rounded-lg p-1">
+            {[
+              { id: 'desktop', label: 'Desktop', count: bannersByCategory.desktop.length },
+              { id: 'mobile', label: 'Mobile', count: bannersByCategory.mobile.length },
+              { id: 'video', label: 'Video', count: bannersByCategory.video.length },
+              { id: 'native', label: 'Native', count: bannersByCategory.native.length },
+            ].map(tab => (
+              <TabsTrigger key={tab.id} value={tab.id} className="text-xs data-[state=active]:bg-background gap-1.5 px-3">
+                {tab.label}
+                <span className="text-[10px] text-muted-foreground">({tab.count})</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-        <div className={gridClass}>
-          {displayBanners.map((banner, index) => {
-            const isEditing = editingId === banner.id;
-
-            return (
-              <div
-                key={banner.id}
-                className="group relative bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 overflow-hidden animate-scale-in hover:border-accent/30 transition-colors"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center">
-                      <Monitor className="h-4 w-4 text-accent" />
-                    </div>
-                    {isEditing ? (
-                      <Input
-                        value={banner.name}
-                        onChange={(e) => updateDisplayBanner(banner.id, { name: e.target.value })}
-                        className="h-7 text-xs w-[160px]"
-                      />
-                    ) : (
-                      <span className="font-semibold text-sm uppercase tracking-wide text-foreground">
-                        {banner.name}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    {isEditing ? (
-                      <Input
-                        value={banner.dimensions}
-                        onChange={(e) => updateDisplayBanner(banner.id, { dimensions: e.target.value })}
-                        className="h-6 text-[10px] font-mono w-[100px]"
-                      />
-                    ) : (
-                      <span className="text-[10px] font-mono bg-muted/80 px-2 py-0.5 rounded text-muted-foreground">
-                        {banner.dimensions.replace(' px', '')}
-                      </span>
-                    )}
-                    <div className="flex gap-0.5">
-                      <button
-                        onClick={() => setEditingId(isEditing ? null : banner.id)}
-                        className={`p-1 rounded transition-colors ${isEditing ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary opacity-0 group-hover:opacity-100'}`}
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </button>
-                      <button
-                        onClick={() => deleteDisplayBanner(banner.id)}
-                        className="p-1 rounded hover:bg-destructive hover:text-destructive-foreground transition-colors opacity-0 group-hover:opacity-100"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Banner Preview Image Upload */}
-                <div className="px-4 py-3">
-                  <BannerPreviewUpload 
-                    banner={banner} 
-                    onUpdate={(updates) => updateDisplayBanner(banner.id, updates)} 
+          {Object.entries(bannersByCategory).map(([category, banners]) => (
+            <TabsContent key={category} value={category} className="mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {banners.map((banner) => (
+                  <BannerCard
+                    key={banner.id}
+                    banner={banner}
+                    onUpdate={(updates) => updateDisplayBanner(banner.id, updates)}
+                    onDelete={() => deleteDisplayBanner(banner.id)}
+                    onExpand={() => setSelectedBanner(banner)}
                   />
-                </div>
-
-                {/* Expanded Specs Grid */}
-                <div className="px-4 pb-4 space-y-3">
-                  {/* Max Messaging */}
-                  <div className="bg-muted/30 rounded-lg p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5 flex items-center gap-1.5">
-                      <span className="w-1 h-1 rounded-full bg-accent" />
-                      Max Messaging
-                    </p>
-                    {isEditing ? (
-                      <Textarea
-                        value={banner.maxMessaging}
-                        onChange={(e) => updateDisplayBanner(banner.id, { maxMessaging: e.target.value })}
-                        className="min-h-[50px] text-xs resize-none"
-                        placeholder="Headline: 25 chars | Body: 70 chars | CTA: 15 chars"
-                      />
-                    ) : (
-                      <p className="text-xs text-foreground leading-relaxed">{banner.maxMessaging}</p>
-                    )}
-                  </div>
-
-                  {/* Text Legibility */}
-                  <div className="bg-muted/30 rounded-lg p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5 flex items-center gap-1.5">
-                      <span className="w-1 h-1 rounded-full bg-primary" />
-                      Text Legibility
-                    </p>
-                    {isEditing ? (
-                      <Textarea
-                        value={banner.textLegibility}
-                        onChange={(e) => updateDisplayBanner(banner.id, { textLegibility: e.target.value })}
-                        className="min-h-[50px] text-xs resize-none"
-                        placeholder="Headline: 18-24pt Bold | Body: 12-14pt | CTA: 14pt Bold"
-                      />
-                    ) : (
-                      <p className="text-xs text-foreground leading-relaxed">{banner.textLegibility}</p>
-                    )}
-                  </div>
-
-                  {/* Safe Zone Policy */}
-                  <div className="bg-accent/5 border border-accent/20 rounded-lg p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-accent font-semibold mb-1.5 flex items-center gap-1.5">
-                      <span className="w-1 h-1 rounded-full bg-accent" />
-                      Safe Zone Policy
-                    </p>
-                    {isEditing ? (
-                      <Textarea
-                        value={banner.safeZonePolicy}
-                        onChange={(e) => updateDisplayBanner(banner.id, { safeZonePolicy: e.target.value })}
-                        className="min-h-[70px] text-xs resize-none"
-                        placeholder="15px padding all edges. Logo in corner (max 60x40px). CTA button bottom-right or center-bottom."
-                      />
-                    ) : (
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        {banner.safeZonePolicy || 'No specific policy defined'}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Done Editing Button */}
-                  {isEditing && (
-                    <Button 
-                      size="sm" 
-                      onClick={() => setEditingId(null)}
-                      className="w-full h-8 text-xs"
-                    >
-                      Done Editing
-                    </Button>
-                  )}
-                </div>
+                ))}
               </div>
-            );
-          })}
-
-          {displayBanners.length === 0 && (
-            <button
-              onClick={initializeBannerPresets}
-              className="h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors col-span-full"
-            >
-              <Monitor className="h-6 w-6" />
-              <span className="text-sm font-medium">Load All {bannerPresets.length} IAB Standard Banner Sizes</span>
-              <span className="text-xs text-muted-foreground">Desktop, Mobile, Video & Native formats</span>
-            </button>
-          )}
-        </div>
+              {banners.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  No {category} banners configured
+                </div>
+              )}
+            </TabsContent>
+          ))}
+        </Tabs>
       </div>
+
+      {/* Detail Modals */}
+      <PlatformDetailModal
+        asset={selectedPlatform}
+        open={!!selectedPlatform}
+        onOpenChange={(open) => !open && setSelectedPlatform(null)}
+        onUpdate={updateSocialAsset}
+      />
+
+      <BannerDetailModal
+        banner={selectedBanner}
+        open={!!selectedBanner}
+        onOpenChange={(open) => !open && setSelectedBanner(null)}
+        onUpdate={updateDisplayBanner}
+      />
     </section>
   );
 };
