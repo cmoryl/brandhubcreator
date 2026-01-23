@@ -105,12 +105,19 @@ const ProductEditor = () => {
     return getProductBySlug ? getProductBySlug(productSlug) : undefined;
   }, [productSlug, getProduct, getProductBySlug]);
 
+  // Track if we've already fetched for this slug to avoid duplicate calls
+  const hasFetchedPublicRef = React.useRef<string | null>(null);
+
   // Fetch public product directly if not in context
+  // IMPORTANT: Don't wait for authLoading/isLoading - fetch public data immediately
   React.useEffect(() => {
     const fetchPublicProduct = async () => {
-      if (!productSlug || contextProduct || authLoading || isLoading) return;
+      // Skip if we already have the product from context OR already fetched this slug
+      if (!productSlug || contextProduct || hasFetchedPublicRef.current === productSlug) return;
 
       setPublicProductLoading(true);
+      hasFetchedPublicRef.current = productSlug;
+      
       try {
         let query = supabase
           .from('products')
@@ -192,7 +199,7 @@ const ProductEditor = () => {
     };
 
     fetchPublicProduct();
-  }, [productSlug, contextProduct, authLoading, isLoading]);
+  }, [productSlug, contextProduct]);
 
   // Use context product if available, otherwise use fetched public product
   const currentProduct = contextProduct || publicProduct;
@@ -247,16 +254,19 @@ const ProductEditor = () => {
   };
 
   // Consolidate loading states with stability to prevent flickers
-  const rawLoading = authLoading || isLoading || publicProductLoading;
-  const stableLoading = useStableLoading(rawLoading, 250);
+  // Only block on publicProductLoading if we don't have a product yet
+  // Auth loading shouldn't block public content display
+  const needsPublicData = !contextProduct && !publicProduct;
+  const rawLoading = needsPublicData && publicProductLoading;
+  const stableLoading = useStableLoading(rawLoading, 50, 6000);
 
   // Show loading state
-  // Always use enhanced loading screen with organization context when available
+  // Use guide name if known for better UX
   if (stableLoading) {
     return (
       <PublicLoadingScreen 
         type="product" 
-        name={currentProduct?.hero?.name}
+        name={publicProduct?.hero?.name || productSlug}
         organizationName={organization?.name}
       />
     );

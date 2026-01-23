@@ -45,6 +45,27 @@ const faqs = [
   },
 ];
 
+// Helper to get display text for loading screen
+function getLoadingText(type: 'brand' | 'product' | 'portal', name?: string): { title: string; subtitle: string } {
+  if (name) {
+    return {
+      title: `Loading ${name}...`,
+      subtitle: type === 'portal' 
+        ? 'Preparing your brand portal'
+        : `Preparing ${name} brand guidelines`
+    };
+  }
+  
+  switch (type) {
+    case 'portal':
+      return { title: 'Loading Portal...', subtitle: 'Preparing your brand portal' };
+    case 'product':
+      return { title: 'Loading Product Guide...', subtitle: 'Preparing product guidelines' };
+    default:
+      return { title: 'Loading Brand Guide...', subtitle: 'Preparing brand guidelines' };
+  }
+}
+
 export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
@@ -136,16 +157,10 @@ export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
 
           {/* Loading Text */}
           <h1 className="text-2xl sm:text-3xl font-semibold text-foreground mb-2">
-            Loading TransPerfect{' '}
-            {type === 'portal' ? 'Portal' : type === 'brand' ? 'Brand Guide' : 'Product Guide'}{dots}
+            {getLoadingText(type, name).title.replace('...', '')}{dots}
           </h1>
           <p className="text-muted-foreground mb-8">
-            {name 
-              ? `Preparing ${name}`
-              : type === 'portal' 
-                ? 'Preparing your brand portal experience'
-                : `Preparing your ${type} guidelines experience`
-            }
+            {getLoadingText(type, name).subtitle}
           </p>
 
           {/* Progress Indicator */}

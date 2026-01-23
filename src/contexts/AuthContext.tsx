@@ -41,8 +41,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   type CheckResult = { ok: true; value: boolean } | { ok: false; error: unknown };
 
-  const
-  withTimeout = <T,>(p: PromiseLike<T>, ms = 12000): Promise<T> => {
+  // Faster timeouts to prevent long blocking - 8s default
+  const withTimeout = <T,>(p: PromiseLike<T>, ms = 8000): Promise<T> => {
     const asPromise = new Promise<T>((resolve, reject) => {
       // Postgrest builders are PromiseLike (thenable) but not typed as Promise.
       (p as unknown as { then: (onFulfilled: (v: T) => void, onRejected: (e: unknown) => void) => void }).then(resolve, reject);
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const res = await withTimeout(
         supabase.from('user_roles').select('role').eq('user_id', userId).eq('role', 'admin').maybeSingle(),
-        15000
+        8000
       );
 
       const { data, error } = res as unknown as { data: unknown; error: unknown };
@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const res = await withTimeout(
         supabase.from('profiles').select('is_approved').eq('user_id', userId).maybeSingle(),
-        15000
+        8000
       );
 
       const { data, error } = res as unknown as { data: { is_approved?: boolean } | null; error: unknown };
@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // THEN check for existing session
     (async () => {
       try {
-        const { data: { session: initialSession } } = await withTimeout(supabase.auth.getSession(), 12000);
+        const { data: { session: initialSession } } = await withTimeout(supabase.auth.getSession(), 6000);
         if (cancelled) return;
         setSession(initialSession);
         setUser(initialSession?.user ?? null);

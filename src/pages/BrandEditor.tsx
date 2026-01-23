@@ -112,12 +112,19 @@ const BrandEditor = () => {
     return undefined;
   }, [brandSlug, getBrand]);
   
-  // Fetch public brand directly if not in context (for logged-out users or slug-based access)
+  // Fetch public brand directly if not in context
+  // IMPORTANT: Don't wait for authLoading/isLoading - fetch public data immediately
+  // This ensures public visitors aren't blocked by auth checks
+  const hasFetchedPublicRef = useRef<string | null>(null);
+  
   useEffect(() => {
     const fetchPublicBrand = async () => {
-      if (!brandSlug || contextBrand || authLoading || isLoading) return;
+      // Skip if we already have the brand from context OR already fetched this slug
+      if (!brandSlug || contextBrand || hasFetchedPublicRef.current === brandSlug) return;
       
       setPublicBrandLoading(true);
+      hasFetchedPublicRef.current = brandSlug;
+      
       try {
         // Build query - try by slug first, then by ID for backwards compatibility
         let query = supabase
@@ -198,7 +205,7 @@ const BrandEditor = () => {
     };
     
     fetchPublicBrand();
-  }, [brandSlug, contextBrand, authLoading, isLoading]);
+  }, [brandSlug, contextBrand]);
   
   // Use context brand if available, otherwise use fetched public brand
   const brand = contextBrand || publicBrand;
@@ -409,16 +416,19 @@ const BrandEditor = () => {
   }, [viewMode]);
 
   // Consolidate loading states with stability to prevent flickers
-  const rawLoading = authLoading || isLoading || publicBrandLoading;
-  const stableLoading = useStableLoading(rawLoading, 250);
+  // Only block on publicBrandLoading if we don't have a brand yet
+  // Auth loading shouldn't block public content display
+  const needsPublicData = !contextBrand && !publicBrand;
+  const rawLoading = needsPublicData && publicBrandLoading;
+  const stableLoading = useStableLoading(rawLoading, 50, 6000);
 
   // Show loading state - AFTER all hooks
-  // Always use enhanced loading screen with organization context when available
+  // Use guide name if known for better UX
   if (stableLoading) {
     return (
       <PublicLoadingScreen 
         type="brand" 
-        name={brand?.hero?.name}
+        name={publicBrand?.hero?.name || brandSlug}
         organizationName={organization?.name}
       />
     );
