@@ -1,9 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Star, Building2, Package, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Star, Building2, Package, ExternalLink, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
+import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
 import type { BrandGuide, ProductGuide, SectionId } from '@/types/brand';
 
@@ -19,7 +20,7 @@ export default function DemoGuideViewer() {
 
   if (!demoGuide) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-foreground mb-4">Demo Guide Not Found</h1>
           <p className="text-muted-foreground mb-6">The demo guide you're looking for doesn't exist.</p>
@@ -46,52 +47,66 @@ export default function DemoGuideViewer() {
       {/* Demo Header Banner */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-b border-border backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="gap-2 shrink-0">
               <ArrowLeft className="h-4 w-4" />
-              Back
+              <span className="hidden sm:inline">Back</span>
             </Button>
-            <div className="h-6 w-px bg-border" />
-            <Badge variant="secondary" className="gap-1">
+            <div className="h-6 w-px bg-border hidden sm:block" />
+            <Badge variant="secondary" className="gap-1 shrink-0">
               <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-              Demo Guide
+              <span className="hidden xs:inline">Demo</span>
             </Badge>
-            <Badge variant="outline" className="gap-1">
+            <Badge variant="outline" className="gap-1 hidden sm:flex">
               {type === 'brand' ? <Building2 className="h-3 w-3" /> : <Package className="h-3 w-3" />}
               {industry}
             </Badge>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <Button size="sm" onClick={() => navigate('/auth')} className="gap-2">
-              Create Your Own
-              <ExternalLink className="h-4 w-4" />
+              <span className="hidden sm:inline">Create Your Own</span>
+              <span className="sm:hidden">Sign Up</span>
+              <ExternalLink className="h-4 w-4 hidden sm:block" />
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Full Brand Page Content */}
-      <FullBrandPage
-        brand={fullGuide}
-        brandId={demoGuide.id}
-        onBrandUpdate={() => {}} // No-op for demo
-        sectionOrder={demoGuide.sectionOrder as SectionId[]}
-        hiddenSections={[]}
-        isAdmin={false}
-        heroFullWidth={true}
-      />
+      {/* Breadcrumbs */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <AppBreadcrumbs
+          items={[
+            { label: 'Demo Guides', icon: Star, href: '/' },
+            { label: type === 'brand' ? 'Brand Guides' : 'Product Guides', icon: type === 'brand' ? Building2 : Package, href: '/' },
+          ]}
+          currentPage={demoGuide.hero.name}
+        />
+      </div>
+
+      {/* Full Brand Page Content - wrapped in proper container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        <FullBrandPage
+          brand={fullGuide}
+          brandId={demoGuide.id}
+          onBrandUpdate={() => {}} // No-op for demo
+          sectionOrder={demoGuide.sectionOrder as SectionId[]}
+          hiddenSections={[]}
+          isAdmin={false}
+          heroFullWidth={true}
+        />
+      </div>
 
       {/* Bottom CTA Banner */}
       <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-t border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-          <h3 className="text-2xl font-semibold text-foreground mb-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 text-center">
+          <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-3">
             Like what you see?
           </h3>
-          <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
+          <p className="text-muted-foreground mb-6 max-w-xl mx-auto text-sm sm:text-base">
             Create your own professional brand guidelines with all the features you've just explored.
           </p>
-          <div className="flex flex-wrap gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Button size="lg" onClick={() => navigate('/auth')} className="gap-2">
               Get Started Free
             </Button>
