@@ -17,12 +17,15 @@ import {
   Globe,
   FileText,
   Play,
-  ChevronRight
+  ChevronRight,
+  Calendar,
+  MapPin,
+  Ticket
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Feature {
   icon: React.ElementType;
@@ -71,8 +74,6 @@ const coreFeatures: Feature[] = [
 ];
 
 // Event-specific features
-import { Calendar, MapPin, Ticket } from 'lucide-react';
-
 const eventFeatures: Feature[] = [
   {
     icon: Calendar,
