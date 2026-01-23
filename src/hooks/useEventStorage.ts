@@ -65,6 +65,7 @@ const dbToEventGuide = (db: DbEvent): EventGuide => {
     eventSchedule: asArray(guideData.eventSchedule, []) as EventGuide['eventSchedule'],
     eventSpeakers: asArray(guideData.eventSpeakers, []) as EventGuide['eventSpeakers'],
     eventSponsors: asArray(guideData.eventSponsors, []) as EventGuide['eventSponsors'],
+    eventHistory: asArray(guideData.eventHistory, []) as EventGuide['eventHistory'],
     
     // Visual
     logos: asArray(guideData.logos, []) as EventGuide['logos'],

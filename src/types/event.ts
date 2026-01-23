@@ -129,6 +129,30 @@ export interface EventSponsor {
   placement?: string; // Where sponsor logo appears
 }
 
+// Event History types for archiving past events
+export interface EventHistoryAsset {
+  id: string;
+  name: string;
+  type: 'image' | 'video' | 'document' | 'logo' | 'presentation' | 'other';
+  url: string;
+  description?: string;
+  thumbnailUrl?: string;
+}
+
+export interface EventHistoryEntry {
+  id: string;
+  year: number;
+  eventName: string;
+  theme?: string;
+  location?: string;
+  venue?: string;
+  dates?: string;
+  attendees?: number;
+  highlights?: string;
+  learnings?: string;
+  assets?: EventHistoryAsset[];
+}
+
 // Event Section IDs (extends base SectionId)
 export type EventSectionId = 
   | SectionId
@@ -139,7 +163,8 @@ export type EventSectionId =
   | 'eventdigital'      // Digital materials
   | 'eventschedule'     // Agenda/schedule
   | 'eventspeakers'     // Speaker info
-  | 'eventsponsors';    // Sponsor tiers
+  | 'eventsponsors'     // Sponsor tiers
+  | 'eventhistory';     // Past events archive
 
 // Default Event Section Order
 export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
@@ -159,6 +184,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'eventschedule',
   'eventspeakers',
   'eventsponsors',
+  'eventhistory',
   'assets',
   'misuse',
 ];
@@ -193,6 +219,7 @@ export interface EventGuide {
   eventSchedule: EventScheduleItem[];
   eventSpeakers: EventSpeaker[];
   eventSponsors: EventSponsor[];
+  eventHistory: EventHistoryEntry[];
   
   // Visual identity (reused from brand)
   logos: BrandLogo[];
@@ -277,6 +304,7 @@ export const createDefaultEventGuideData = (name: string): Omit<EventGuide, 'id'
   eventSchedule: [],
   eventSpeakers: [],
   eventSponsors: [],
+  eventHistory: [],
   
   // Visual
   logos: [],

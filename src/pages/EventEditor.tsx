@@ -22,6 +22,7 @@ import { EventBannersSection } from '@/components/event/EventBannersSection';
 import { EventDigitalSection } from '@/components/event/EventDigitalSection';
 import { EventSponsorsSection } from '@/components/event/EventSponsorsSection';
 import { EventScheduleSection } from '@/components/event/EventScheduleSection';
+import { EventHistorySection } from '@/components/event/EventHistorySection';
 import { HeroSection } from '@/components/brand/HeroSection';
 import { TaglineSection } from '@/components/brand/TaglineSection';
 import { ColorPaletteSection } from '@/components/brand/ColorPaletteSection';
@@ -143,6 +144,7 @@ const EventEditor = () => {
             eventSchedule: (Array.isArray(guideData.eventSchedule) ? guideData.eventSchedule : []) as EventGuide['eventSchedule'],
             eventSpeakers: (Array.isArray(guideData.eventSpeakers) ? guideData.eventSpeakers : []) as EventGuide['eventSpeakers'],
             eventSponsors: (Array.isArray(guideData.eventSponsors) ? guideData.eventSponsors : []) as EventGuide['eventSponsors'],
+            eventHistory: (Array.isArray(guideData.eventHistory) ? guideData.eventHistory : []) as EventGuide['eventHistory'],
             logos: (Array.isArray(guideData.logos) ? guideData.logos : []) as EventGuide['logos'],
             brandIcons: (Array.isArray(guideData.brandIcons) ? guideData.brandIcons : []) as EventGuide['brandIcons'],
             colors: (Array.isArray(guideData.colors) ? guideData.colors : []) as EventGuide['colors'],
@@ -334,9 +336,17 @@ const EventEditor = () => {
             isEditable={canEdit || false} 
           />
         );
+      case 'eventhistory':
+        return (
+          <EventHistorySection 
+            history={event.eventHistory} 
+            onUpdate={(eventHistory) => updateEvent({ eventHistory })} 
+            isEditable={canEdit || false} 
+          />
+        );
       case 'assets': 
         return <AssetsSection assets={event.assets} onAssetsChange={(assets) => updateEvent({ assets })} />;
-      case 'misuse': 
+      case 'misuse':
         return <MisuseSection misuse={event.misuse} onMisuseChange={(misuse) => updateEvent({ misuse })} />;
       default:
         return (
@@ -600,9 +610,17 @@ const EventEditor = () => {
                                 isEditable={canEdit || false} 
                               />
                             );
+                          case 'eventhistory':
+                            return (
+                              <EventHistorySection 
+                                history={event.eventHistory} 
+                                onUpdate={(eventHistory) => updateEvent({ eventHistory })} 
+                                isEditable={canEdit || false} 
+                              />
+                            );
                           case 'assets': 
                             return <AssetsSection assets={event.assets} onAssetsChange={(assets) => updateEvent({ assets })} />;
-                          case 'misuse': 
+                          case 'misuse':
                             return <MisuseSection misuse={event.misuse} onMisuseChange={(misuse) => updateEvent({ misuse })} />;
                           default: 
                             return null;
