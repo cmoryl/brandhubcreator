@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Calendar, Building2 } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Calendar, Building2, Brain } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { EventSectionId, DEFAULT_EVENT_SECTION_ORDER, EventGuide } from '@/types/event';
@@ -42,6 +42,7 @@ import { BrochuresSection } from '@/components/brand/BrochuresSection';
 import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { ShareButton } from '@/components/brand/ShareButton';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
+import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
@@ -78,6 +79,7 @@ const EventEditor = () => {
   const [scrollToSection, setScrollToSection] = useState<EventSectionId | null>(null);
   const [publicEvent, setPublicEvent] = useState<EventGuide | null>(null);
   const [publicEventLoading, setPublicEventLoading] = useState(false);
+  const [intelligenceOpen, setIntelligenceOpen] = useState(false);
 
   // Redirect unapproved users
   useEffect(() => {
@@ -591,6 +593,26 @@ const EventEditor = () => {
                   canEdit={canEdit || false}
                   organizationSlug={organization?.slug}
                 />
+                {canEdit && (
+                  <Sheet open={intelligenceOpen} onOpenChange={setIntelligenceOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon" className="relative">
+                        <Brain className="h-5 w-5" />
+                        <span className="sr-only">Event Intelligence</span>
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="w-full sm:w-[540px] sm:max-w-xl p-0 overflow-y-auto">
+                      <div className="p-6">
+                        <BrandIntelligencePanel
+                          entityType="event"
+                          entityId={event.id}
+                          entityName={event.hero.name}
+                          organizationId={event.organizationId || undefined}
+                        />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                )}
                 {canEdit && (
                   <BrandPageSettingsEditor
                     settings={pageSettings} 

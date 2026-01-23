@@ -66,7 +66,7 @@ interface BrandIntelligence {
 }
 
 interface BrandIntelligencePanelProps {
-  entityType: 'brand' | 'product';
+  entityType: 'brand' | 'product' | 'event';
   entityId: string;
   entityName: string;
   organizationId?: string;
@@ -234,7 +234,7 @@ export const BrandIntelligencePanel = ({
               <Brain className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-xl">Brand Intelligence</CardTitle>
+              <CardTitle className="text-xl">{entityType === 'event' ? 'Event' : 'Brand'} Intelligence</CardTitle>
               <CardDescription>{entityName}</CardDescription>
             </div>
           </div>
