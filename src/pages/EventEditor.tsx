@@ -42,7 +42,7 @@ import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { BrochuresSection } from '@/components/brand/BrochuresSection';
 import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { ShareButton } from '@/components/brand/ShareButton';
-import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
+import { EventExportPdfButton } from '@/components/event/EventExportPdfButton';
 import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
@@ -598,6 +598,7 @@ const EventEditor = () => {
                   canEdit={canEdit || false}
                   organizationSlug={organization?.slug}
                 />
+                <EventExportPdfButton event={event} />
                 {canEdit && (
                   <Sheet open={intelligenceOpen} onOpenChange={setIntelligenceOpen}>
                     <SheetTrigger asChild>
