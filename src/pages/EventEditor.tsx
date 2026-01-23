@@ -23,6 +23,8 @@ import { EventDigitalSection } from '@/components/event/EventDigitalSection';
 import { EventSponsorsSection } from '@/components/event/EventSponsorsSection';
 import { EventScheduleSection } from '@/components/event/EventScheduleSection';
 import { EventHistorySection } from '@/components/event/EventHistorySection';
+import { EventVideosSection } from '@/components/event/EventVideosSection';
+import { EventLocationSection } from '@/components/event/EventLocationSection';
 import { HeroSection } from '@/components/brand/HeroSection';
 import { TaglineSection } from '@/components/brand/TaglineSection';
 import { ColorPaletteSection } from '@/components/brand/ColorPaletteSection';
@@ -346,6 +348,22 @@ const EventEditor = () => {
             isEditable={canEdit || false} 
           />
         );
+      case 'eventvideos':
+        return (
+          <EventVideosSection 
+            videos={event.eventVideos || []} 
+            onUpdate={(eventVideos) => updateEvent({ eventVideos })} 
+            isEditable={canEdit || false} 
+          />
+        );
+      case 'eventlocation':
+        return (
+          <EventLocationSection 
+            location={event.eventLocation || { venueName: '', address: '', city: '', country: '', venueMaps: [] }} 
+            onUpdate={(eventLocation) => updateEvent({ eventLocation })} 
+            isEditable={canEdit || false} 
+          />
+        );
       case 'assets': 
         return <AssetsSection assets={event.assets} onAssetsChange={(assets) => updateEvent({ assets })} />;
       case 'misuse':
@@ -359,6 +377,54 @@ const EventEditor = () => {
     }
   };
 
+  // Render section by ID (for full page view)
+  const renderSectionById = useCallback((sectionId: EventSectionId) => {
+    switch (sectionId) {
+      case 'hero': 
+        return <HeroSection hero={event.hero} onHeroChange={(hero) => updateEvent({ hero })} />;
+      case 'eventdetails':
+        return <EventDetailsSection eventDetails={event.eventDetails} onUpdate={(eventDetails) => updateEvent({ eventDetails: { ...event.eventDetails, ...eventDetails } })} isEditable={canEdit || false} />;
+      case 'tagline': 
+        return <TaglineSection tagline={event.tagline} onTaglineChange={(tagline) => updateEvent({ tagline })} />;
+      case 'eventlogos':
+        return <EventLogosSection logos={event.eventLogos || []} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} />;
+      case 'eventsignage':
+        return <EventSignageSection signage={event.eventSignage || []} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} />;
+      case 'eventbanners':
+        return <EventBannersSection banners={event.eventBanners || []} onUpdate={(eventBanners) => updateEvent({ eventBanners })} isEditable={canEdit || false} />;
+      case 'eventdigital':
+        return <EventDigitalSection materials={event.eventDigitalMaterials || []} onUpdate={(eventDigitalMaterials) => updateEvent({ eventDigitalMaterials })} isEditable={canEdit || false} />;
+      case 'eventvideos':
+        return <EventVideosSection videos={event.eventVideos || []} onUpdate={(eventVideos) => updateEvent({ eventVideos })} isEditable={canEdit || false} />;
+      case 'eventlocation':
+        return <EventLocationSection location={event.eventLocation || { venueName: '', address: '', city: '', country: '', venueMaps: [] }} onUpdate={(eventLocation) => updateEvent({ eventLocation })} isEditable={canEdit || false} />;
+      case 'colors': 
+        return <ColorPaletteSection colors={event.colors} onColorsChange={(colors) => updateEvent({ colors })} colorCombinations={event.colorCombinations} onColorCombinationsChange={(colorCombinations) => updateEvent({ colorCombinations })} brandName={event.hero.name} />;
+      case 'gradients': 
+        return <GradientsSection gradients={event.gradients} onGradientsChange={(gradients) => updateEvent({ gradients })} />;
+      case 'typography': 
+        return <TypographySection typography={event.typography} onTypographyChange={(typography) => updateEvent({ typography })} />;
+      case 'imagery': 
+        return <ImagerySection imagery={event.imagery} onImageryChange={(imagery) => updateEvent({ imagery })} />;
+      case 'social': 
+        return <SocialSection social={event.social} onSocialChange={(social) => updateEvent({ social })} />;
+      case 'socialassets': 
+        return <SocialAssetsSection socialAssets={event.socialAssets || []} onSocialAssetsChange={(socialAssets) => updateEvent({ socialAssets })} displayBanners={event.displayBanners || []} onDisplayBannersChange={(displayBanners) => updateEvent({ displayBanners })} />;
+      case 'eventsponsors':
+        return <EventSponsorsSection sponsors={event.eventSponsors || []} onUpdate={(eventSponsors) => updateEvent({ eventSponsors })} isEditable={canEdit || false} />;
+      case 'eventschedule':
+        return <EventScheduleSection schedule={event.eventSchedule || []} onUpdate={(eventSchedule) => updateEvent({ eventSchedule })} speakers={event.eventSpeakers || []} isEditable={canEdit || false} />;
+      case 'eventhistory':
+        return <EventHistorySection history={event.eventHistory || []} onUpdate={(eventHistory) => updateEvent({ eventHistory })} isEditable={canEdit || false} />;
+      case 'assets': 
+        return <AssetsSection assets={event.assets} onAssetsChange={(assets) => updateEvent({ assets })} />;
+      case 'misuse':
+        return <MisuseSection misuse={event.misuse} onMisuseChange={(misuse) => updateEvent({ misuse })} />;
+      default:
+        return null;
+    }
+  }, [event, canEdit, updateEvent]);
+
   // Render all sections for full page view
   const renderFullPage = () => {
     const visibleSections = isGuideAdmin 
@@ -368,11 +434,8 @@ const EventEditor = () => {
     return (
       <div className={getSectionSpacingClass()}>
         {visibleSections.map((sectionId) => {
-          // Temporarily set activeSection to render each section
-          const prevActive = activeSection;
-          setActiveSection(sectionId);
-          const content = renderSection();
-          setActiveSection(prevActive);
+          const content = renderSectionById(sectionId);
+          if (!content) return null;
           
           return (
             <div key={sectionId} id={sectionId} className="scroll-mt-24">
