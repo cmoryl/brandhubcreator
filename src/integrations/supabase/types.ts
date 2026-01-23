@@ -215,6 +215,69 @@ export type Database = {
           },
         ]
       }
+      events: {
+        Row: {
+          created_at: string
+          guide_data: Json | null
+          hidden_sections: string[] | null
+          id: string
+          is_favorite: boolean | null
+          is_public: boolean | null
+          name: string
+          organization_id: string | null
+          parent_brand_id: string | null
+          section_order: string[] | null
+          slug: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          guide_data?: Json | null
+          hidden_sections?: string[] | null
+          id?: string
+          is_favorite?: boolean | null
+          is_public?: boolean | null
+          name: string
+          organization_id?: string | null
+          parent_brand_id?: string | null
+          section_order?: string[] | null
+          slug?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          guide_data?: Json | null
+          hidden_sections?: string[] | null
+          id?: string
+          is_favorite?: boolean | null
+          is_public?: boolean | null
+          name?: string
+          organization_id?: string | null
+          parent_brand_id?: string | null
+          section_order?: string[] | null
+          slug?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_parent_brand_id_fkey"
+            columns: ["parent_brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           created_at: string
