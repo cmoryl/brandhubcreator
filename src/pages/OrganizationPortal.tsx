@@ -107,6 +107,26 @@ const OrganizationPortal = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'brands' | 'products' | 'events'>('all');
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
+
+  const withTimeout = useCallback(
+    async <T,>(promiseLike: PromiseLike<T>, ms: number, label: string): Promise<T> => {
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+      try {
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(new Error(`${label} timed out after ${ms}ms`));
+          }, ms);
+        });
+
+        // supabase-js returns thenables (PostgrestBuilder), not always native Promises
+        const promise = Promise.resolve(promiseLike as unknown as PromiseLike<T>);
+        return await Promise.race([promise, timeoutPromise]);
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+      }
+    },
+    []
+  );
   
   // Check if user can edit (admin or org member)
   const canEdit = user && (isAdmin || (userRole && ['owner', 'admin', 'member'].includes(userRole)));
@@ -177,9 +197,11 @@ const OrganizationPortal = () => {
     ogType: 'website',
   });
 
-  // Main data fetching effect - optimized to use context when available
+  // Main data fetching effect
+  // IMPORTANT: keep dependencies stable (slug only) so we don't cancel/restart fetches in a loop
   useEffect(() => {
     let cancelled = false;
+    const fetchId = ++fetchIdRef.current;
 
     const fetchData = async () => {
       if (!slug) {
@@ -188,138 +210,98 @@ const OrganizationPortal = () => {
         return;
       }
 
-      // Always fetch fresh data on initial load - don't skip based on cached ref
-      // Reset loading for each fetch attempt
+      setIsLoading(true);
       console.log('[PORTAL] Starting fetch for slug:', slug);
 
       try {
-        let orgId: string;
-        let orgData: OrganizationData;
+        // Fetch public portal org via backend function (works for both signed-in + public users)
+        const { data: orgRow, error: orgError } = await withTimeout(
+          supabase.rpc('get_public_portal_org', { p_slug: slug }).maybeSingle(),
+          8000,
+          'Loading organization'
+        );
 
-        // If user's context org matches the slug and is loaded, use it directly
-        if (contextOrg && contextOrg.slug === slug && !orgContextLoading) {
-          console.log('[PORTAL] Using context org:', contextOrg.name);
-          orgData = {
-            id: contextOrg.id,
-            name: contextOrg.name,
-            slug: contextOrg.slug,
-            logo_url: contextOrg.logoUrl,
-            primary_color: contextOrg.primaryColor,
-            secondary_color: contextOrg.secondaryColor,
-            accent_color: contextOrg.accentColor,
-            portal_settings: contextOrg.portalSettings as OrganizationPortalSettings | null,
-          };
-          orgId = contextOrg.id;
-        } else {
-          // Fetch organization by slug (required for public/different org access)
-          console.log('[PORTAL] Fetching org from DB for slug:', slug);
-          const { data: fetchedOrg, error: orgError } = await supabase
-            .from('organizations')
-            .select('id, name, slug, logo_url, primary_color, secondary_color, accent_color, portal_settings')
-            .eq('slug', slug)
-            .maybeSingle();
+        if (cancelled || fetchIdRef.current !== fetchId) return;
 
-          if (cancelled) return;
-
-          if (orgError) {
-            console.error('[PORTAL] Error fetching organization:', orgError);
-            setError('Unable to load organization');
-            setIsLoading(false);
-            return;
-          }
-
-          if (!fetchedOrg) {
-            console.error('[PORTAL] Organization not found for slug:', slug);
-            setError('Organization not found');
-            setIsLoading(false);
-            return;
-          }
-
-          console.log('[PORTAL] Fetched org:', fetchedOrg.name);
-          orgData = {
-            ...fetchedOrg,
-            portal_settings: fetchedOrg.portal_settings as OrganizationPortalSettings | null,
-          };
-          orgId = fetchedOrg.id;
+        if (orgError || !orgRow) {
+          console.error('[PORTAL] Error fetching public org:', orgError);
+          setError('Organization not found');
+          return;
         }
 
-        if (cancelled) return;
+        const orgData: OrganizationData = {
+          id: orgRow.id,
+          name: orgRow.name,
+          slug: orgRow.slug,
+          logo_url: orgRow.logo_url,
+          primary_color: orgRow.primary_color,
+          secondary_color: orgRow.secondary_color,
+          accent_color: orgRow.accent_color,
+          portal_settings: (orgRow.portal_settings as OrganizationPortalSettings | null) ?? null,
+        };
+
         setOrganization(orgData);
 
-        // Fetch brands, products, and events in PARALLEL for faster loading
-        console.log('[PORTAL] Fetching content for org:', orgId);
-        const [brandsRes, productsRes, eventsRes] = await Promise.all([
-          supabase
-            .from('brands')
-            .select('id, name, slug, is_public, guide_data, updated_at')
-            .eq('organization_id', orgId)
-            .eq('is_public', true)
-            .order('updated_at', { ascending: false }),
-          supabase
-            .from('products')
-            .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
-            .eq('organization_id', orgId)
-            .eq('is_public', true)
-            .order('updated_at', { ascending: false }),
-          supabase
-            .from('events')
-            .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
-            .eq('organization_id', orgId)
-            .eq('is_public', true)
-            .order('updated_at', { ascending: false }),
-        ]);
+        const orgId = orgData.id;
 
-        if (cancelled) return;
+        // Fetch brands/products/events in parallel
+        const [brandsRes, productsRes, eventsRes] = await withTimeout(
+          Promise.all([
+            supabase
+              .from('brands')
+              .select('id, name, slug, is_public, guide_data, updated_at')
+              .eq('organization_id', orgId)
+              .eq('is_public', true)
+              .order('updated_at', { ascending: false }),
+            supabase
+              .from('products')
+              .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
+              .eq('organization_id', orgId)
+              .eq('is_public', true)
+              .order('updated_at', { ascending: false }),
+            supabase
+              .from('events')
+              .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
+              .eq('organization_id', orgId)
+              .eq('is_public', true)
+              .order('updated_at', { ascending: false }),
+          ]),
+          12000,
+          'Loading portal content'
+        );
 
-        console.log('[PORTAL] Fetched data:', {
-          brands: brandsRes.data?.length || 0,
-          brandsError: brandsRes.error?.message,
-          products: productsRes.data?.length || 0,
-          productsError: productsRes.error?.message,
-          events: eventsRes.data?.length || 0,
-          eventsError: eventsRes.error?.message,
-        });
+        if (cancelled || fetchIdRef.current !== fetchId) return;
 
-        // Fetch completed successfully
+        if (brandsRes.error) console.error('[PORTAL] Error fetching brands:', brandsRes.error);
+        if (productsRes.error) console.error('[PORTAL] Error fetching products:', productsRes.error);
+        if (eventsRes.error) console.error('[PORTAL] Error fetching events:', eventsRes.error);
 
-        if (brandsRes.error) {
-          console.error('[PORTAL] Error fetching brands:', brandsRes.error);
-        } else {
-          setBrands((brandsRes.data as PublicBrand[]) || []);
-        }
-
-        if (productsRes.error) {
-          console.error('[PORTAL] Error fetching products:', productsRes.error);
-        } else {
-          setProducts((productsRes.data as PublicProduct[]) || []);
-        }
-
-        if (eventsRes.error) {
-          console.error('[PORTAL] Error fetching events:', eventsRes.error);
-        } else {
-          setEvents((eventsRes.data as PublicEvent[]) || []);
-        }
+        setBrands((brandsRes.data as PublicBrand[]) || []);
+        setProducts((productsRes.data as PublicProduct[]) || []);
+        setEvents((eventsRes.data as PublicEvent[]) || []);
 
         setError(null);
       } catch (err) {
-        if (cancelled) return;
+        if (cancelled || fetchIdRef.current !== fetchId) return;
         console.error('[PORTAL] Error:', err);
-        setError('Something went wrong');
+        setError(err instanceof Error ? err.message : 'Something went wrong');
+        // Ensure we don't leave stale skeletons on screen
+        setBrands([]);
+        setProducts([]);
+        setEvents([]);
       } finally {
-        if (!cancelled) {
+        if (!cancelled && fetchIdRef.current === fetchId) {
           setIsLoading(false);
         }
       }
     };
 
-    // Start fetching - don't wait for orgContextLoading if we don't have context data yet
-    setIsLoading(true);
     fetchData();
 
     return () => {
       cancelled = true;
     };
-  }, [slug, contextOrg, orgContextLoading]);
+  }, [slug, withTimeout]);
 
   // Refetch on tab focus
   const refetch = useCallback(async () => {
