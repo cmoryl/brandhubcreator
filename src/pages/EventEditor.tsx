@@ -37,6 +37,7 @@ import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
 import { ShareButton } from '@/components/brand/ShareButton';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
+import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { HeroBackground } from '@/components/HeroBackground';
@@ -244,6 +245,12 @@ const EventEditor = () => {
   const handleHiddenSectionsChange = useCallback((newHiddenSections: EventSectionId[]) => {
     if (event) {
       updateEventContext(event.id, { hiddenSections: newHiddenSections });
+    }
+  }, [event, updateEventContext]);
+
+  const handlePageSettingsChange = useCallback((newSettings: typeof DEFAULT_PAGE_SETTINGS) => {
+    if (event) {
+      updateEventContext(event.id, { pageSettings: newSettings });
     }
   }, [event, updateEventContext]);
 
@@ -550,6 +557,12 @@ const EventEditor = () => {
                   canEdit={canEdit || false}
                   organizationSlug={organization?.slug}
                 />
+                {canEdit && (
+                  <BrandPageSettingsEditor
+                    settings={pageSettings} 
+                    onSettingsChange={handlePageSettingsChange} 
+                  />
+                )}
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
                   <Tooltip>
                     <TooltipTrigger asChild>
