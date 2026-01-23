@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { BrandProvider } from "@/contexts/BrandContext";
+import { EventProvider } from "@/contexts/EventContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppSettingsProvider } from "@/contexts/AppSettingsContext";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
@@ -59,6 +60,7 @@ const App = () => (
           <AppSettingsProvider>
             <OrganizationProvider>
               <BrandProvider>
+                <EventProvider>
                 <ScrollToTop />
                 <GlobalErrorLogger />
                 <Toaster />
@@ -179,6 +181,7 @@ const App = () => (
                     />
                   </Route>
                 </Routes>
+                </EventProvider>
               </BrandProvider>
             </OrganizationProvider>
           </AppSettingsProvider>
