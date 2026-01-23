@@ -1181,15 +1181,15 @@ const BrandsIndex = () => {
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
               <div className="text-center">
-                <div className="text-4xl font-bold text-accent mb-2">500+</div>
+                <div className="text-4xl font-bold text-primary mb-2">500+</div>
                 <p className="text-muted-foreground">Brand Guides Created</p>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold text-accent mb-2">50+</div>
+                <div className="text-4xl font-bold text-primary mb-2">50+</div>
                 <p className="text-muted-foreground">Organizations</p>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold text-accent mb-2">25+</div>
+                <div className="text-4xl font-bold text-primary mb-2">25+</div>
                 <p className="text-muted-foreground">Sections Available</p>
               </div>
             </div>
@@ -1221,7 +1221,7 @@ const BrandsIndex = () => {
                 <p className="text-sm text-muted-foreground mb-4">
                   Browse tutorials, FAQs, and documentation.
                 </p>
-                <Button variant="ghost" onClick={() => navigate('/knowledge')} className="gap-2 p-0 h-auto text-accent hover:text-accent/80">
+                <Button variant="ghost" onClick={() => navigate('/knowledge')} className="gap-2 p-0 h-auto text-primary font-medium hover:text-primary/80">
                   Visit Help Center
                   <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -1249,7 +1249,7 @@ const BrandsIndex = () => {
                 <p className="text-sm text-muted-foreground mb-4">
                   See how organization portals work.
                 </p>
-                <Button variant="ghost" onClick={() => navigate('/org/transperfect')} className="gap-2 p-0 h-auto text-green-600 hover:text-green-500">
+                <Button variant="ghost" onClick={() => navigate('/org/transperfect')} className="gap-2 p-0 h-auto text-green-700 dark:text-green-400 font-medium hover:text-green-600 dark:hover:text-green-300">
                   View Example
                   <ExternalLink className="h-4 w-4" />
                 </Button>
