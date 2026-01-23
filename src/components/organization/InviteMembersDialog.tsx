@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { UserPlus, Mail, Loader2, Users, Crown, Shield, Eye, Trash2 } from 'lucide-react';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { MemberRole } from '@/lib/organization/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -25,7 +26,8 @@ import { z } from 'zod';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 
-type MemberRole = 'admin' | 'member' | 'viewer';
+// Roles available for invitation (excludes 'owner' as it's auto-assigned)
+type InviteRole = 'admin' | 'member' | 'viewer';
 
 const roleIcons = {
   owner: Crown,
@@ -58,7 +60,7 @@ export const InviteMembersDialog = ({ asButton = false }: InviteMembersDialogPro
   
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<MemberRole>('member');
+  const [role, setRole] = useState<InviteRole>('member');
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -194,7 +196,7 @@ export const InviteMembersDialog = ({ asButton = false }: InviteMembersDialogPro
                 />
               </div>
             </div>
-            <Select value={role} onValueChange={(v) => setRole(v as MemberRole)}>
+            <Select value={role} onValueChange={(v) => setRole(v as InviteRole)}>
               <SelectTrigger className="w-28">
                 <SelectValue />
               </SelectTrigger>
