@@ -78,7 +78,8 @@ const ProductEditor = () => {
 
   // Public product fallback (for logged-out users / public URLs)
   const [publicProduct, setPublicProduct] = useState<ProductGuide | null>(null);
-  const [publicProductLoading, setPublicProductLoading] = useState(false);
+  // Initialize to true to prevent hooks ordering issues during initial render
+  const [publicProductLoading, setPublicProductLoading] = useState(true);
 
   // Redirect unapproved users to pending approval page (admins are always allowed)
   React.useEffect(() => {
@@ -114,7 +115,10 @@ const ProductEditor = () => {
   React.useEffect(() => {
     const fetchPublicProduct = async () => {
       // Skip if we already have the product from context OR already fetched this slug
-      if (!productSlug || contextProduct || hasFetchedPublicRef.current === productSlug) return;
+      if (!productSlug || contextProduct || hasFetchedPublicRef.current === productSlug) {
+        setPublicProductLoading(false);
+        return;
+      }
 
       setPublicProductLoading(true);
       hasFetchedPublicRef.current = productSlug;
