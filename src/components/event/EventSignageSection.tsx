@@ -10,12 +10,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { LayoutSelector, LayoutPreset, useLayoutClasses } from '@/components/brand/LayoutSelector';
 
 interface EventSignageSectionProps {
   signage: EventSignage[];
   onUpdate: (signage: EventSignage[]) => void;
   isEditable?: boolean;
   subtitle?: string;
+  layout?: LayoutPreset;
+  onLayoutChange?: (layout: LayoutPreset) => void;
 }
 
 const SIGNAGE_TYPES = [
@@ -52,7 +55,10 @@ export const EventSignageSection = ({
   onUpdate,
   isEditable = true,
   subtitle,
+  layout = 'grid-3',
+  onLayoutChange,
 }: EventSignageSectionProps) => {
+  const { gridClass, cardClass, isListView } = useLayoutClasses(layout);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newItem, setNewItem] = useState<Partial<EventSignage>>({
     name: '',
@@ -93,8 +99,8 @@ export const EventSignageSection = ({
 
   return (
     <section id="eventsignage" className="scroll-mt-24">
-      <div className="flex items-center justify-between mb-6">
-        <div>
+      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
+        <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold">Event Signage</h2>
           {subtitle ? (
             <p className="text-muted-foreground mt-1" dangerouslySetInnerHTML={{ __html: subtitle }} />
@@ -102,8 +108,17 @@ export const EventSignageSection = ({
             <p className="text-muted-foreground mt-1">Physical signage specifications for booth, banners, and venue graphics</p>
           )}
         </div>
-        {isEditable && (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <div className="flex items-center gap-2">
+          {isEditable && onLayoutChange && (
+            <LayoutSelector
+              value={layout}
+              onChange={onLayoutChange}
+              availableLayouts={['grid-2', 'grid-3', 'grid-4', 'list']}
+              size="sm"
+            />
+          )}
+          {isEditable && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -184,7 +199,8 @@ export const EventSignageSection = ({
               </div>
             </DialogContent>
           </Dialog>
-        )}
+          )}
+        </div>
       </div>
 
       {signage.length === 0 ? (
@@ -211,7 +227,7 @@ export const EventSignageSection = ({
                   {items.length}
                 </Badge>
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className={gridClass}>
                 {items.map((item) => (
                   <Card key={item.id} className="group relative overflow-hidden hover:border-primary/50 transition-colors">
                     {item.previewUrl ? (
