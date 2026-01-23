@@ -265,23 +265,38 @@ const ProductEditor = () => {
   const rawLoading = needsPublicData && publicProductLoading;
   const stableLoading = useStableLoading(rawLoading, 50, 6000);
 
-  // Show loading state
-  // Use guide name if known for better UX
-  if (stableLoading) {
-    return (
-      <PublicLoadingScreen 
-        type="product" 
-        name={publicProduct?.hero?.name || productSlug}
-        organizationName={organization?.name}
-      />
-    );
-  }
-
+  // ALL HOOKS MUST BE DECLARED BEFORE ANY EARLY RETURNS
   const handleSectionOrderChange = useCallback((newOrder: SectionId[]) => {
     if (currentProduct) {
       updateProduct(currentProduct.id, { sectionOrder: newOrder });
     }
   }, [currentProduct, updateProduct]);
+
+  const handleHiddenSectionsChange = useCallback((newHiddenSections: SectionId[]) => {
+    if (currentProduct) {
+      updateProduct(currentProduct.id, { hiddenSections: newHiddenSections });
+    }
+  }, [currentProduct, updateProduct]);
+
+  const handleSectionVisible = useCallback((section: SectionId) => {
+    if (viewMode === 'full') {
+      setActiveSection(section);
+    }
+  }, [viewMode]);
+
+  const handleUpdateProduct = useCallback((updates: Partial<ProductGuide>) => {
+    if (currentProduct) {
+      updateProduct(currentProduct.id, updates);
+    }
+  }, [currentProduct, updateProduct]);
+
+  const handleSectionChange = useCallback((section: SectionId) => {
+    setActiveSection(section);
+    if (viewMode === 'full') {
+      setScrollToSection(section);
+      setTimeout(() => setScrollToSection(null), 100);
+    }
+  }, [viewMode]);
 
   // Auto-heal persisted sectionOrder when new sections are introduced
   React.useEffect(() => {
@@ -295,12 +310,6 @@ const ProductEditor = () => {
     }
   }, [currentProduct?.id, currentProduct?.sectionOrder, isGuideAdmin, updateProduct]);
 
-  const handleHiddenSectionsChange = useCallback((newHiddenSections: SectionId[]) => {
-    if (currentProduct) {
-      updateProduct(currentProduct.id, { hiddenSections: newHiddenSections });
-    }
-  }, [currentProduct, updateProduct]);
-
   // Auto-heal invalid hidden sections
   React.useEffect(() => {
     if (!currentProduct || !isGuideAdmin) return;
@@ -313,6 +322,18 @@ const ProductEditor = () => {
     }
   }, [currentProduct?.id, currentProduct?.hiddenSections, sectionOrder, isGuideAdmin, updateProduct]);
 
+  // Show loading state
+  // Use guide name if known for better UX
+  if (stableLoading) {
+    return (
+      <PublicLoadingScreen 
+        type="product" 
+        name={publicProduct?.hero?.name || productSlug}
+        organizationName={organization?.name}
+      />
+    );
+  }
+
   if (!currentProduct) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -323,26 +344,6 @@ const ProductEditor = () => {
       </div>
     );
   }
-
-  const handleUpdateProduct = (updates: Partial<typeof currentProduct>) => {
-    if (currentProduct) {
-      updateProduct(currentProduct.id, updates);
-    }
-  };
-
-  const handleSectionChange = (section: SectionId) => {
-    setActiveSection(section);
-    if (viewMode === 'full') {
-      setScrollToSection(section);
-      setTimeout(() => setScrollToSection(null), 100);
-    }
-  };
-
-  const handleSectionVisible = useCallback((section: SectionId) => {
-    if (viewMode === 'full') {
-      setActiveSection(section);
-    }
-  }, [viewMode]);
 
   const renderSection = () => {
     switch (activeSection) {
