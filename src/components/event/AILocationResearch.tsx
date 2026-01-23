@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Sparkles, Loader2, MapPin, Utensils, Car, Hotel, 
-  Landmark, Sun, Lightbulb, ChevronDown, ChevronUp, RefreshCw 
+  Landmark, Sun, Lightbulb, ChevronDown, ChevronUp, RefreshCw, Save, CheckCircle, Trash2 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,55 +9,25 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { EventLocation } from '@/types/event';
-
-interface LocationReport {
-  overview: string;
-  neighborhood: {
-    description: string;
-    character: string;
-    safetyNotes: string;
-  };
-  dining: {
-    nearby: string[];
-    recommendations: string;
-  };
-  transportation: {
-    airports: string[];
-    publicTransit: string;
-    rideshare: string;
-    parking: string;
-  };
-  hotels: {
-    luxury: string[];
-    midRange: string[];
-    budget: string[];
-    recommendations: string;
-  };
-  attractions: {
-    cultural: string[];
-    entertainment: string[];
-    outdoor: string[];
-  };
-  practicalInfo: {
-    weather: string;
-    timezone: string;
-    currency: string;
-    tipping: string;
-    localCustoms: string;
-  };
-  eventTips: string[];
-}
+import { EventLocation, LocationResearchReport } from '@/types/event';
 
 interface AILocationResearchProps {
   location: EventLocation;
   isEditable?: boolean;
+  onSaveReport?: (report: LocationResearchReport) => void;
+  onClearReport?: () => void;
 }
 
-export const AILocationResearch = ({ location, isEditable = true }: AILocationResearchProps) => {
+export const AILocationResearch = ({ 
+  location, 
+  isEditable = true, 
+  onSaveReport,
+  onClearReport 
+}: AILocationResearchProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [report, setReport] = useState<LocationReport | null>(null);
-  const [generatedAt, setGeneratedAt] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [report, setReport] = useState<LocationResearchReport | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     neighborhood: true,
     dining: false,
@@ -68,7 +38,16 @@ export const AILocationResearch = ({ location, isEditable = true }: AILocationRe
     tips: false,
   });
 
+  // Load saved report from location data on mount
+  useEffect(() => {
+    if (location.locationResearchReport) {
+      setReport(location.locationResearchReport);
+      setHasUnsavedChanges(false);
+    }
+  }, [location.locationResearchReport]);
+
   const hasRequiredInfo = location.city && location.country;
+  const hasSavedReport = !!location.locationResearchReport;
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -106,9 +85,13 @@ export const AILocationResearch = ({ location, isEditable = true }: AILocationRe
       }
 
       if (data?.report) {
-        setReport(data.report);
-        setGeneratedAt(data.generatedAt);
-        toast.success('Location report generated!');
+        const newReport: LocationResearchReport = {
+          ...data.report,
+          generatedAt: data.generatedAt || new Date().toISOString(),
+        };
+        setReport(newReport);
+        setHasUnsavedChanges(true);
+        toast.success('Location report generated! Click Save to persist.');
       }
     } catch (error) {
       console.error('Location research error:', error);
@@ -116,6 +99,31 @@ export const AILocationResearch = ({ location, isEditable = true }: AILocationRe
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSaveReport = async () => {
+    if (!report || !onSaveReport) return;
+    
+    setIsSaving(true);
+    try {
+      onSaveReport(report);
+      setHasUnsavedChanges(false);
+      toast.success('Location report saved to event!');
+    } catch (error) {
+      console.error('Save error:', error);
+      toast.error('Failed to save report');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleClearReport = () => {
+    if (!onClearReport) return;
+    
+    onClearReport();
+    setReport(null);
+    setHasUnsavedChanges(false);
+    toast.success('Location report cleared');
   };
 
   const SectionCard = ({ 
@@ -194,29 +202,67 @@ export const AILocationResearch = ({ location, isEditable = true }: AILocationRe
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="gap-1">
-            <Sparkles className="h-3 w-3" />
-            AI Generated
+          <Badge variant={hasSavedReport ? "default" : "secondary"} className="gap-1">
+            {hasSavedReport ? (
+              <CheckCircle className="h-3 w-3" />
+            ) : (
+              <Sparkles className="h-3 w-3" />
+            )}
+            {hasSavedReport ? 'Saved' : 'AI Generated'}
           </Badge>
-          {generatedAt && (
+          {report.generatedAt && (
             <span className="text-xs text-muted-foreground">
-              {new Date(generatedAt).toLocaleDateString()}
+              {new Date(report.generatedAt).toLocaleDateString()}
             </span>
+          )}
+          {hasUnsavedChanges && (
+            <Badge variant="outline" className="text-amber-600 border-amber-300">
+              Unsaved
+            </Badge>
           )}
         </div>
         {isEditable && (
-          <Button variant="outline" size="sm" onClick={runResearch} disabled={isLoading}>
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
-              </>
+          <div className="flex items-center gap-2">
+            {hasUnsavedChanges && onSaveReport && (
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={handleSaveReport} 
+                disabled={isSaving}
+                className="gap-1"
+              >
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                Save Report
+              </Button>
             )}
-          </Button>
+            {hasSavedReport && onClearReport && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleClearReport}
+                className="gap-1 text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+                Clear
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={runResearch} disabled={isLoading}>
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh
+                </>
+              )}
+            </Button>
+          </div>
         )}
       </div>
 

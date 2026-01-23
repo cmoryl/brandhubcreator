@@ -151,6 +151,46 @@ export interface EventVenueMap {
   description?: string;
 }
 
+// AI-generated location research report
+export interface LocationResearchReport {
+  overview: string;
+  neighborhood: {
+    description: string;
+    character: string;
+    safetyNotes: string;
+  };
+  dining: {
+    nearby: string[];
+    recommendations: string;
+  };
+  transportation: {
+    airports: string[];
+    publicTransit: string;
+    rideshare: string;
+    parking: string;
+  };
+  hotels: {
+    luxury: string[];
+    midRange: string[];
+    budget: string[];
+    recommendations: string;
+  };
+  attractions: {
+    cultural: string[];
+    entertainment: string[];
+    outdoor: string[];
+  };
+  practicalInfo: {
+    weather: string;
+    timezone: string;
+    currency: string;
+    tipping: string;
+    localCustoms: string;
+  };
+  eventTips: string[];
+  generatedAt: string;
+}
+
 export interface EventLocation {
   venueName: string;
   address: string;
@@ -169,6 +209,7 @@ export interface EventLocation {
   nearbyHotels?: string;
   customNotes?: string;
   venueMaps?: EventVenueMap[];
+  locationResearchReport?: LocationResearchReport;
 }
 
 // Event History types for archiving past events

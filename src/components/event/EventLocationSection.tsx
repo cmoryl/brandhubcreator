@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { EventLocation, EventVenueMap } from '@/types/event';
+import { EventLocation, EventVenueMap, LocationResearchReport } from '@/types/event';
 import { cn } from '@/lib/utils';
 import { AILocationResearch } from './AILocationResearch';
 
@@ -622,7 +622,17 @@ export const EventLocationSection = ({
         </TabsContent>
 
         <TabsContent value="research">
-          <AILocationResearch location={location} isEditable={isEditable} />
+          <AILocationResearch 
+            location={location} 
+            isEditable={isEditable} 
+            onSaveReport={(report: LocationResearchReport) => {
+              onUpdate({ ...location, locationResearchReport: report });
+            }}
+            onClearReport={() => {
+              const { locationResearchReport, ...rest } = location;
+              onUpdate(rest as EventLocation);
+            }}
+          />
         </TabsContent>
       </Tabs>
     </section>
