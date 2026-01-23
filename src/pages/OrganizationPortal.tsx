@@ -500,45 +500,45 @@ const OrganizationPortal = () => {
       <div className={`relative overflow-hidden ${heroFullWidth ? '' : ''}`}>
         <HeroBackground />
 
-        {/* Header */}
-        <header className="relative z-10 animate-fade-in-down">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        {/* Header - Mobile optimized */}
+        <header className="relative z-10 animate-fade-in-down safe-area-inset-top">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-20 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               {organization.logo_url ? (
                 <img 
                   src={organization.logo_url} 
                   alt={organization.name} 
-                  className="h-10 w-auto" 
+                  className="h-8 sm:h-10 w-auto flex-shrink-0" 
                 />
               ) : (
                 <div 
-                  className="p-2.5 rounded-xl border"
+                  className="p-2 sm:p-2.5 rounded-xl border flex-shrink-0"
                   style={{ 
                     backgroundColor: `${organization.primary_color}20`,
                     borderColor: `${organization.primary_color}40`
                   }}
                 >
                   <Building2 
-                    className="h-6 w-6" 
+                    className="h-5 w-5 sm:h-6 sm:w-6" 
                     style={{ color: organization.primary_color || 'hsl(var(--accent))' }} 
                   />
                 </div>
               )}
-              <span className="font-semibold text-2xl text-foreground">{organization.name}</span>
+              <span className="font-semibold text-lg sm:text-2xl text-foreground truncate">{organization.name}</span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
               {user && (
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={() => navigate('/')}
-                  className="gap-2"
+                  className="gap-1.5 sm:gap-2 h-9 sm:h-8 px-2 sm:px-3 touch-manipulation"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Back to Dashboard
+                  <span className="hidden sm:inline">Back to Dashboard</span>
                 </Button>
               )}
-              <Badge variant="outline" className="gap-1">
+              <Badge variant="outline" className="gap-1 hidden sm:flex">
                 <Globe className="h-3 w-3" />
                 Public Portal
               </Badge>
@@ -547,12 +547,12 @@ const OrganizationPortal = () => {
           </div>
         </header>
 
-        {/* Hero Content */}
-        <div className={`relative z-10 ${heroFullWidth ? 'px-4 sm:px-6 lg:px-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} pt-12 pb-24`}>
+        {/* Hero Content - Mobile optimized */}
+        <div className={`relative z-10 ${heroFullWidth ? 'px-4 sm:px-6 lg:px-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} pt-8 sm:pt-12 pb-16 sm:pb-24`}>
           <div className="max-w-3xl">
-            <div className="flex items-center gap-2 mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+            <div className="flex items-center gap-2 mb-4 sm:mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <div 
-                className="px-3 py-1 rounded-full border"
+                className="px-2.5 sm:px-3 py-1 rounded-full border"
                 style={{ 
                   backgroundColor: `${organization.accent_color || organization.primary_color}10`,
                   borderColor: `${organization.accent_color || organization.primary_color}30`
@@ -566,13 +566,13 @@ const OrganizationPortal = () => {
                 </span>
               </div>
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-foreground mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-semibold text-foreground mb-4 sm:mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               Welcome to<br />
               <span style={{ color: organization.accent_color || organization.primary_color || 'hsl(var(--accent))' }}>
                 {organization.name}
               </span>
             </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+            <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
               Explore our public brand guidelines and resources. Everything you need to represent our brand correctly.
             </p>
 
@@ -591,16 +591,16 @@ const OrganizationPortal = () => {
               )}
             </div>
 
-            {/* Stats */}
-            <div className="flex items-center gap-8 mt-12 pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+            {/* Stats - Mobile optimized */}
+            <div className="flex items-center gap-6 sm:gap-8 mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
               <div>
-                <p className="text-3xl font-semibold text-foreground">{brands.length}</p>
-                <p className="text-sm text-muted-foreground">Public Brands</p>
+                <p className="text-2xl sm:text-3xl font-semibold text-foreground">{brands.length}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Public Brands</p>
               </div>
               {products.length > 0 && (
                 <div>
-                  <p className="text-3xl font-semibold text-foreground">{products.length}</p>
-                  <p className="text-sm text-muted-foreground">Public Products</p>
+                  <p className="text-2xl sm:text-3xl font-semibold text-foreground">{products.length}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Public Products</p>
                 </div>
               )}
             </div>
@@ -608,56 +608,59 @@ const OrganizationPortal = () => {
         </div>
       </div>
 
-      {/* Brands & Products Grid */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      {/* Brands & Products Grid - Mobile optimized */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 safe-area-inset-bottom">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="w-full">
-          <div className="flex items-center justify-between mb-8">
-            <TabsList className="bg-muted">
-              <TabsTrigger value="all" className="gap-2">
-                All
-                <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
-                  {filteredBrands.length + filteredProducts.length}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger value="brands" className="gap-2">
-                <Building2 className="h-4 w-4" />
-                Brands
-                <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
-                  {filteredBrands.length}
-                </Badge>
-              </TabsTrigger>
-              {products.length > 0 && (
-                <TabsTrigger value="products" className="gap-2">
-                  <Package className="h-4 w-4" />
-                  Products
+          <div className="flex items-center justify-between mb-6 sm:mb-8">
+            {/* Horizontally scrollable tabs on mobile */}
+            <div className="w-full overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+              <TabsList className="bg-muted w-max sm:w-auto">
+                <TabsTrigger value="all" className="gap-1.5 sm:gap-2 px-3 sm:px-4 touch-manipulation">
+                  All
                   <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
-                    {filteredProducts.length}
+                    {filteredBrands.length + filteredProducts.length}
                   </Badge>
                 </TabsTrigger>
-              )}
-            </TabsList>
+                <TabsTrigger value="brands" className="gap-1.5 sm:gap-2 px-3 sm:px-4 touch-manipulation">
+                  <Building2 className="h-4 w-4 hidden sm:block" />
+                  Brands
+                  <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
+                    {filteredBrands.length}
+                  </Badge>
+                </TabsTrigger>
+                {products.length > 0 && (
+                  <TabsTrigger value="products" className="gap-1.5 sm:gap-2 px-3 sm:px-4 touch-manipulation">
+                    <Package className="h-4 w-4 hidden sm:block" />
+                    Products
+                    <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
+                      {filteredProducts.length}
+                    </Badge>
+                  </TabsTrigger>
+                )}
+              </TabsList>
+            </div>
           </div>
 
           {/* All Content */}
           <TabsContent value="all" className="space-y-16">
             {/* Loading State with Skeletons */}
             {isLoading && brands.length === 0 && products.length === 0 && (
-              <div className="space-y-16">
+              <div className="space-y-12 sm:space-y-16">
                 <section>
-                  <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                  <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                     <Building2 className="h-5 w-5 text-muted-foreground" />
                     Brand Guidelines
                   </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     <GuideCardSkeleton count={3} />
                   </div>
                 </section>
                 <section>
-                  <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                  <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                     <Package className="h-5 w-5 text-muted-foreground" />
                     Product Guidelines
                   </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     <GuideCardSkeleton count={3} />
                   </div>
                 </section>
@@ -667,11 +670,11 @@ const OrganizationPortal = () => {
             {/* Brands Section */}
             {!isLoading && filteredBrands.length > 0 && (
               <section>
-                <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                   <Building2 className="h-5 w-5 text-muted-foreground" />
                   Brand Guidelines
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {filteredBrands.map((brand, index) => renderBrandCard(brand, index))}
                 </div>
               </section>
@@ -680,11 +683,11 @@ const OrganizationPortal = () => {
             {/* Products Section */}
             {!isLoading && filteredProducts.length > 0 && (
               <section>
-                <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                   <Package className="h-5 w-5 text-muted-foreground" />
                   Product Guidelines
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {filteredProducts.map((product, index) => renderProductCard(product, index))}
                 </div>
               </section>

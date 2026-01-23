@@ -249,36 +249,36 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+    <div className="min-h-screen min-h-[100dvh] bg-background flex flex-col">
+      {/* Header - Mobile optimized with larger touch targets */}
+      <header className="border-b border-border safe-area-inset-top">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="h-10 w-10 sm:h-9 sm:w-9 touch-manipulation">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-2">
               <img 
                 src={resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite} 
                 alt="TransPerfect" 
-                className="h-8 w-auto"
+                className="h-7 sm:h-8 w-auto"
               />
-              <span className="font-semibold text-xl text-foreground">BrandHub</span>
+              <span className="font-semibold text-lg sm:text-xl text-foreground">BrandHub</span>
             </div>
           </div>
           <ThemeToggle />
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto p-3 bg-accent/10 rounded-2xl w-fit mb-4">
-              <Lock className="h-8 w-8 text-accent" />
+      {/* Main Content - Mobile optimized with safe area support */}
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 safe-area-inset-bottom">
+        <Card className="w-full max-w-md mx-auto">
+          <CardHeader className="text-center px-4 sm:px-6 pt-5 sm:pt-6">
+            <div className="mx-auto p-3 bg-accent/10 rounded-2xl w-fit mb-3 sm:mb-4">
+              <Lock className="h-7 w-7 sm:h-8 sm:w-8 text-accent" />
             </div>
-            <CardTitle className="text-2xl">Admin Access</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-xl sm:text-2xl">Admin Access</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Sign in to manage and publish brand guides
             </CardDescription>
 
@@ -342,7 +342,7 @@ const AuthPage = () => {
               </div>
             )}
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6 pb-5 sm:pb-6">
             {/* Password Reset Form */}
             {showResetForm ? (
               <form onSubmit={handlePasswordReset} className="space-y-4">
@@ -383,22 +383,24 @@ const AuthPage = () => {
               </form>
             ) : (
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-5 sm:mb-6 h-11 sm:h-10">
+                <TabsTrigger value="login" className="text-sm sm:text-base h-9 sm:h-auto touch-manipulation">Login</TabsTrigger>
+                <TabsTrigger value="signup" className="text-sm sm:text-base h-9 sm:h-auto touch-manipulation">Sign Up</TabsTrigger>
               </TabsList>
               
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
+                    <Label htmlFor="login-email" className="text-sm font-medium">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                       <Input
                         id="login-email"
                         type="email"
+                        inputMode="email"
+                        autoComplete="email"
                         placeholder="admin@example.com"
-                        className="pl-10"
+                        className="pl-10 h-11 sm:h-10 text-base sm:text-sm touch-manipulation"
                         value={loginEmail}
                         onChange={(e) => setLoginEmail(e.target.value)}
                         required
@@ -407,32 +409,33 @@ const AuthPage = () => {
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="login-password">Password</Label>
+                      <Label htmlFor="login-password" className="text-sm font-medium">Password</Label>
                       <button
                         type="button"
                         onClick={() => {
                           setShowResetForm(true);
                           setResetEmail(loginEmail);
                         }}
-                        className="text-xs text-primary hover:underline"
+                        className="text-xs text-primary hover:underline touch-manipulation py-1"
                       >
                         Forgot password?
                       </button>
                     </div>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                       <Input
                         id="login-password"
                         type="password"
+                        autoComplete="current-password"
                         placeholder="••••••••"
-                        className="pl-10"
+                        className="pl-10 h-11 sm:h-10 text-base sm:text-sm touch-manipulation"
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
                         required
                       />
                     </div>
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button type="submit" className="w-full h-11 sm:h-10 text-base sm:text-sm touch-manipulation" disabled={isLoading}>
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -455,7 +458,7 @@ const AuthPage = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full"
+                    className="w-full h-11 sm:h-10 text-base sm:text-sm touch-manipulation"
                     onClick={async () => {
                       setIsGoogleLoading(true);
                       const { error } = await signInWithGoogle();
@@ -495,14 +498,16 @@ const AuthPage = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email" className="text-sm font-medium">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                       <Input
                         id="signup-email"
                         type="email"
+                        inputMode="email"
+                        autoComplete="email"
                         placeholder="you@example.com"
-                        className="pl-10"
+                        className="pl-10 h-11 sm:h-10 text-base sm:text-sm touch-manipulation"
                         value={signupEmail}
                         onChange={(e) => setSignupEmail(e.target.value)}
                         required
@@ -510,14 +515,15 @@ const AuthPage = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="signup-password" className="text-sm font-medium">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                       <Input
                         id="signup-password"
                         type="password"
+                        autoComplete="new-password"
                         placeholder="••••••••"
-                        className="pl-10"
+                        className="pl-10 h-11 sm:h-10 text-base sm:text-sm touch-manipulation"
                         value={signupPassword}
                         onChange={(e) => setSignupPassword(e.target.value)}
                         required
@@ -525,21 +531,22 @@ const AuthPage = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-confirm">Confirm Password</Label>
+                    <Label htmlFor="signup-confirm" className="text-sm font-medium">Confirm Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                       <Input
                         id="signup-confirm"
                         type="password"
+                        autoComplete="new-password"
                         placeholder="••••••••"
-                        className="pl-10"
+                        className="pl-10 h-11 sm:h-10 text-base sm:text-sm touch-manipulation"
                         value={signupConfirmPassword}
                         onChange={(e) => setSignupConfirmPassword(e.target.value)}
                         required
                       />
                     </div>
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button type="submit" className="w-full h-11 sm:h-10 text-base sm:text-sm touch-manipulation" disabled={isLoading}>
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -562,7 +569,7 @@ const AuthPage = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full"
+                    className="w-full h-11 sm:h-10 text-base sm:text-sm touch-manipulation"
                     onClick={async () => {
                       setIsGoogleLoading(true);
                       const { error } = await signInWithGoogle();
