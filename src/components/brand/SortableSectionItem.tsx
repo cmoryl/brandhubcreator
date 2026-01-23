@@ -2,10 +2,9 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { SectionId } from '@/types/brand';
 
 interface SortableSectionItemProps {
-  id: SectionId;
+  id: string;
   label: string;
   icon: React.ElementType;
   isActive: boolean;
