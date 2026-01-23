@@ -315,31 +315,30 @@ export const useBrandStorage = () => {
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   const [lastSyncError, setLastSyncError] = useState<string | null>(null);
 
-  const isConnectivityLikeError = useCallback((message: string) => {
+  // Helper to detect connectivity-related errors (not a hook)
+  const isConnectivityLikeError = (message: string) => {
     return /timeout|request timeout|connection|network|failed to fetch|fetch/i.test(message);
-  }, []);
+  };
 
-  const setSyncFailure = useCallback(
-    (err: unknown, context: string) => {
-      const msg = err instanceof Error ? err.message : String(err);
-      const isConnectivity = isConnectivityLikeError(msg);
+  // Helper to set sync failure state appropriately (not a hook)
+  const setSyncFailure = (err: unknown, context: string) => {
+    const msg = err instanceof Error ? err.message : String(err);
+    const isConnectivity = isConnectivityLikeError(msg);
 
-      // Connectivity-like issues should not be shown as a hard "Sync error".
-      // Treat them as offline/reconnecting so the UI doesn't look broken.
-      if (isConnectivity) {
-        setIsOnline(typeof navigator !== 'undefined' ? navigator.onLine : true);
-        setSyncStatus('offline');
-        setLastSyncError('Backend temporarily unreachable. Your changes will sync automatically when the connection recovers.');
-        console.warn('[SYNC]', context, 'connectivity issue:', msg);
-        return;
-      }
+    // Connectivity-like issues should not be shown as a hard "Sync error".
+    // Treat them as offline/reconnecting so the UI doesn't look broken.
+    if (isConnectivity) {
+      setIsOnline(typeof navigator !== 'undefined' ? navigator.onLine : true);
+      setSyncStatus('offline');
+      setLastSyncError('Backend temporarily unreachable. Your changes will sync automatically when the connection recovers.');
+      console.warn('[SYNC]', context, 'connectivity issue:', msg);
+      return;
+    }
 
-      setSyncStatus('error');
-      setLastSyncError(msg || 'Unknown sync error');
-      console.error('[SYNC]', context, 'error:', err);
-    },
-    [isConnectivityLikeError]
-  );
+    setSyncStatus('error');
+    setLastSyncError(msg || 'Unknown sync error');
+    console.error('[SYNC]', context, 'error:', err);
+  };
 
   useEffect(() => {
     const onOnline = () => {
@@ -724,7 +723,7 @@ export const useBrandStorage = () => {
     } finally {
       pendingBrandUpdates.current.delete(id);
     }
-  }, [user, organization?.id, setSyncFailure]);
+  }, [user, organization?.id]);
 
   const syncProductToDb = useCallback(async (id: string, merged: ProductGuide) => {
     if (!user) {
@@ -767,7 +766,7 @@ export const useBrandStorage = () => {
     } finally {
       pendingProductUpdates.current.delete(id);
     }
-  }, [user, organization?.id, setSyncFailure]);
+  }, [user, organization?.id]);
 
   // Flush all pending updates immediately (for unmount/beforeunload)
   const flushPendingUpdates = useCallback(() => {
