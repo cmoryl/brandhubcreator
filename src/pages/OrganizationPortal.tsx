@@ -16,6 +16,7 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { GuideCardSkeleton } from '@/components/ui/guide-card-skeleton';
 
 interface OrganizationData {
   id: string;
@@ -639,8 +640,32 @@ const OrganizationPortal = () => {
 
           {/* All Content */}
           <TabsContent value="all" className="space-y-16">
+            {/* Loading State with Skeletons */}
+            {isLoading && brands.length === 0 && products.length === 0 && (
+              <div className="space-y-16">
+                <section>
+                  <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-muted-foreground" />
+                    Brand Guidelines
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <GuideCardSkeleton count={3} />
+                  </div>
+                </section>
+                <section>
+                  <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                    <Package className="h-5 w-5 text-muted-foreground" />
+                    Product Guidelines
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <GuideCardSkeleton count={3} />
+                  </div>
+                </section>
+              </div>
+            )}
+
             {/* Brands Section */}
-            {filteredBrands.length > 0 && (
+            {!isLoading && filteredBrands.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
                   <Building2 className="h-5 w-5 text-muted-foreground" />
@@ -653,7 +678,7 @@ const OrganizationPortal = () => {
             )}
 
             {/* Products Section */}
-            {filteredProducts.length > 0 && (
+            {!isLoading && filteredProducts.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
                   <Package className="h-5 w-5 text-muted-foreground" />
@@ -666,7 +691,7 @@ const OrganizationPortal = () => {
             )}
 
             {/* Empty State */}
-            {filteredBrands.length === 0 && filteredProducts.length === 0 && (
+            {!isLoading && filteredBrands.length === 0 && filteredProducts.length === 0 && (
               <div className="text-center py-16 px-4">
                 <div className="p-4 bg-muted/50 rounded-2xl w-fit mx-auto mb-4">
                   {searchQuery ? (
