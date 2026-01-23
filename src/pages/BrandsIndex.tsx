@@ -52,6 +52,11 @@ const AppSettingsEditor = lazy(() => import('@/components/admin/AppSettingsEdito
 const OrganizationSwitcher = lazy(() => import('@/components/OrganizationSwitcher').then(m => ({ default: m.OrganizationSwitcher })));
 const FeaturesShowcase = lazy(() => import('@/components/landing/FeaturesShowcase').then(m => ({ default: m.FeaturesShowcase })));
 const LearnMoreCard = lazy(() => import('@/components/landing/LearnMoreForm').then(m => ({ default: m.LearnMoreCard })));
+const BrandBackupManager = lazy(() => import('@/components/brand/BrandBackupManager').then(m => ({ default: m.BrandBackupManager })));
+
+// Backup reminder constants
+const BACKUP_REMINDER_KEY = 'brandhub_last_backup_reminder';
+const BACKUP_REMINDER_INTERVAL_DAYS = 7;
 
 const BrandsIndex = () => {
   const navigate = useNavigate();
@@ -96,6 +101,7 @@ const BrandsIndex = () => {
   const [newItemType, setNewItemType] = useState<'brand' | 'product'>('brand');
   const [viewingOrg, setViewingOrg] = useState<Organization | null>(null);
   const fileInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+  const [showBackupReminder, setShowBackupReminder] = useState(false);
 
   const recentlyUpdated = getRecentlyUpdated();
   const allFavorites = getFavorites();
@@ -115,6 +121,28 @@ const BrandsIndex = () => {
 
   // Allow editing if user is logged in AND either is a global admin OR is an org member with appropriate role
   const canEdit = user && (isAdmin || (organization && ['owner', 'admin', 'member'].includes(userRole || '')));
+
+  // Check for backup reminder - after canEdit is defined
+  useEffect(() => {
+    if (!user || !canEdit) return;
+    
+    const lastReminder = localStorage.getItem(BACKUP_REMINDER_KEY);
+    const lastReminderDate = lastReminder ? new Date(parseInt(lastReminder)) : null;
+    const now = new Date();
+    
+    // Show reminder if never shown or more than 7 days since last reminder
+    if (!lastReminderDate || (now.getTime() - lastReminderDate.getTime()) > BACKUP_REMINDER_INTERVAL_DAYS * 24 * 60 * 60 * 1000) {
+      // Only show if user has brands/products
+      if (brands.length > 0 || products.length > 0) {
+        setShowBackupReminder(true);
+      }
+    }
+  }, [user, canEdit, brands.length, products.length]);
+
+  const dismissBackupReminder = useCallback(() => {
+    localStorage.setItem(BACKUP_REMINDER_KEY, Date.now().toString());
+    setShowBackupReminder(false);
+  }, []);
 
   // Determine which organization to filter by
   // For admins: use viewingOrg (null = all orgs, or specific org)
@@ -262,6 +290,38 @@ const BrandsIndex = () => {
           <ParticleEmbers count={50} color="hsl(199 89% 58%)" />
         </div>
 
+        {/* Backup Reminder Banner */}
+        {showBackupReminder && canEdit && (
+          <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+            <div className="flex items-center justify-between gap-4 p-4 bg-accent/10 border border-accent/20 rounded-lg backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-accent/20 flex items-center justify-center">
+                  <FolderCheck className="h-5 w-5 text-accent" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Time for a backup?</p>
+                  <p className="text-sm text-muted-foreground">
+                    Protect your {brands.length} brand{brands.length !== 1 ? 's' : ''} and {products.length} product{products.length !== 1 ? 's' : ''} with a backup
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Suspense fallback={null}>
+                  <BrandBackupManager showFullBackup />
+                </Suspense>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={dismissBackupReminder}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header - Mobile optimized */}
         <header className="relative z-10 animate-fade-in-down">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
@@ -377,6 +437,15 @@ const BrandsIndex = () => {
                             <Suspense fallback={null}><InviteMembersDialog /></Suspense>
                           </>
                         )}
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    {/* Backup Option for editors */}
+                    {canEdit && (brands.length > 0 || products.length > 0) && (
+                      <>
+                        <Suspense fallback={null}>
+                          <BrandBackupManager showFullBackup variant="dropdown-item" />
+                        </Suspense>
                         <DropdownMenuSeparator />
                       </>
                     )}
