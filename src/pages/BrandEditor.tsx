@@ -84,7 +84,8 @@ const BrandEditor = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('full');
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
   const [publicBrand, setPublicBrand] = useState<BrandGuide | null>(null);
-  const [publicBrandLoading, setPublicBrandLoading] = useState(false);
+  // Start as true to prevent flash of "not found" before fetch begins
+  const [publicBrandLoading, setPublicBrandLoading] = useState(true);
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
 
   // Redirect unapproved users to pending approval page (admins are always allowed)
@@ -121,7 +122,11 @@ const BrandEditor = () => {
   useEffect(() => {
     const fetchPublicBrand = async () => {
       // Skip if we already have the brand from context OR already fetched this slug
-      if (!brandSlug || contextBrand || hasFetchedPublicRef.current === brandSlug) return;
+      if (!brandSlug || contextBrand || hasFetchedPublicRef.current === brandSlug) {
+        // Mark loading as done if we're skipping the fetch
+        setPublicBrandLoading(false);
+        return;
+      }
       
       setPublicBrandLoading(true);
       hasFetchedPublicRef.current = brandSlug;
