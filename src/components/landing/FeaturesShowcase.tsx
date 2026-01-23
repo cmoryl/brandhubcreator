@@ -25,7 +25,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 interface Feature {
   icon: React.ElementType;
@@ -177,9 +177,23 @@ function FeatureCard({ feature, index, isVisible }: { feature: Feature; index: n
   );
 }
 
+function FeatureGrid({ features, isVisible }: { features: Feature[]; isVisible: boolean }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {features.map((feature, index) => (
+        <FeatureCard 
+          key={feature.title} 
+          feature={feature} 
+          index={index}
+          isVisible={isVisible}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function FeaturesShowcase() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('core');
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -199,15 +213,6 @@ export function FeaturesShowcase() {
 
     return () => observer.disconnect();
   }, []);
-
-  const getFeatures = () => {
-    switch (activeTab) {
-      case 'analytics': return analyticsFeatures;
-      case 'admin': return adminFeatures;
-      case 'events': return eventFeatures;
-      default: return coreFeatures;
-    }
-  };
 
   return (
     <section ref={sectionRef} className="py-24 px-4 sm:px-6 lg:px-8 border-t border-border/30 overflow-hidden">
@@ -229,39 +234,42 @@ export function FeaturesShowcase() {
         </div>
 
         {/* Category Tabs */}
-        <div className={`flex justify-center mb-12 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`} style={{ animationDelay: '200ms' }}>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-2xl">
-            <TabsList className="grid w-full grid-cols-4 h-12">
-              <TabsTrigger value="core" className="gap-2 text-sm">
-                <Layers className="h-4 w-4" />
-                <span className="hidden sm:inline">Core</span>
-              </TabsTrigger>
-              <TabsTrigger value="events" className="gap-2 text-sm">
-                <Calendar className="h-4 w-4" />
-                <span className="hidden sm:inline">Events</span>
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="gap-2 text-sm">
-                <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">AI</span>
-              </TabsTrigger>
-              <TabsTrigger value="admin" className="gap-2 text-sm">
-                <ShieldCheck className="h-4 w-4" />
-                <span className="hidden sm:inline">Admin</span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+        <div className={`${isVisible ? 'animate-fade-in' : 'opacity-0'}`} style={{ animationDelay: '200ms' }}>
+          <Tabs defaultValue="core" className="w-full">
+            <div className="flex justify-center mb-12">
+              <TabsList className="grid w-full max-w-2xl grid-cols-4 h-12">
+                <TabsTrigger value="core" className="gap-2 text-sm">
+                  <Layers className="h-4 w-4" />
+                  <span className="hidden sm:inline">Core</span>
+                </TabsTrigger>
+                <TabsTrigger value="events" className="gap-2 text-sm">
+                  <Calendar className="h-4 w-4" />
+                  <span className="hidden sm:inline">Events</span>
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="gap-2 text-sm">
+                  <BarChart3 className="h-4 w-4" />
+                  <span className="hidden sm:inline">AI</span>
+                </TabsTrigger>
+                <TabsTrigger value="admin" className="gap-2 text-sm">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span className="hidden sm:inline">Admin</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-        {/* Feature Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {getFeatures().map((feature, index) => (
-            <FeatureCard 
-              key={feature.title} 
-              feature={feature} 
-              index={index}
-              isVisible={isVisible}
-            />
-          ))}
+            <TabsContent value="core" className="mb-12 mt-0">
+              <FeatureGrid features={coreFeatures} isVisible={isVisible} />
+            </TabsContent>
+            <TabsContent value="events" className="mb-12 mt-0">
+              <FeatureGrid features={eventFeatures} isVisible={isVisible} />
+            </TabsContent>
+            <TabsContent value="analytics" className="mb-12 mt-0">
+              <FeatureGrid features={analyticsFeatures} isVisible={isVisible} />
+            </TabsContent>
+            <TabsContent value="admin" className="mb-12 mt-0">
+              <FeatureGrid features={adminFeatures} isVisible={isVisible} />
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Stats Row */}
