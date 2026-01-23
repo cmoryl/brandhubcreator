@@ -315,6 +315,32 @@ export const useBrandStorage = () => {
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   const [lastSyncError, setLastSyncError] = useState<string | null>(null);
 
+  const isConnectivityLikeError = useCallback((message: string) => {
+    return /timeout|request timeout|connection|network|failed to fetch|fetch/i.test(message);
+  }, []);
+
+  const setSyncFailure = useCallback(
+    (err: unknown, context: string) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      const isConnectivity = isConnectivityLikeError(msg);
+
+      // Connectivity-like issues should not be shown as a hard "Sync error".
+      // Treat them as offline/reconnecting so the UI doesn't look broken.
+      if (isConnectivity) {
+        setIsOnline(typeof navigator !== 'undefined' ? navigator.onLine : true);
+        setSyncStatus('offline');
+        setLastSyncError('Backend temporarily unreachable. Your changes will sync automatically when the connection recovers.');
+        console.warn('[SYNC]', context, 'connectivity issue:', msg);
+        return;
+      }
+
+      setSyncStatus('error');
+      setLastSyncError(msg || 'Unknown sync error');
+      console.error('[SYNC]', context, 'error:', err);
+    },
+    [isConnectivityLikeError]
+  );
+
   useEffect(() => {
     const onOnline = () => {
       setIsOnline(true);
@@ -473,13 +499,8 @@ export const useBrandStorage = () => {
         console.error('Error fetching data:', err);
 
         const msg = err instanceof Error ? err.message : 'Unknown error';
-        const isTimeout = /timeout|connection|network|fetch/i.test(msg);
-        
-        setSyncStatus('error');
-        setLastSyncError(isTimeout 
-          ? 'Backend temporarily unreachable. Your data is cached locally.' 
-          : msg
-        );
+        const isTimeout = isConnectivityLikeError(msg);
+        setSyncFailure(err, 'fetchData');
 
         // If we have nothing in memory yet, try a last-known-good cache so the UI isn't blank.
         if (brandsRef.current.length === 0 && productsRef.current.length === 0) {
@@ -689,22 +710,21 @@ export const useBrandStorage = () => {
 
       if (error) {
         console.error('[SYNC] syncBrandToDb: Error updating brand:', error);
-        setSyncStatus('error');
-        setLastSyncError(error.message || 'Failed to save brand changes');
+        setSyncFailure(error, 'syncBrandToDb');
         toast.error('Failed to save changes. Please try again.');
       } else {
         console.log('[SYNC] syncBrandToDb: Success for brand', id);
         setSyncStatus('idle');
         setLastSyncedAt(new Date());
+        setLastSyncError(null);
       }
     } catch (err) {
       console.error('[SYNC] syncBrandToDb: Caught exception:', err);
-      setSyncStatus('error');
-      setLastSyncError(err instanceof Error ? err.message : 'Unknown sync error');
+      setSyncFailure(err, 'syncBrandToDb');
     } finally {
       pendingBrandUpdates.current.delete(id);
     }
-  }, [user, organization?.id]);
+  }, [user, organization?.id, setSyncFailure]);
 
   const syncProductToDb = useCallback(async (id: string, merged: ProductGuide) => {
     if (!user) {
@@ -733,22 +753,21 @@ export const useBrandStorage = () => {
 
       if (error) {
         console.error('[SYNC] syncProductToDb: Error updating product:', error);
-        setSyncStatus('error');
-        setLastSyncError(error.message || 'Failed to save product changes');
+        setSyncFailure(error, 'syncProductToDb');
         toast.error('Failed to save changes. Please try again.');
       } else {
         console.log('[SYNC] syncProductToDb: Success for product', id);
         setSyncStatus('idle');
         setLastSyncedAt(new Date());
+        setLastSyncError(null);
       }
     } catch (err) {
       console.error('[SYNC] syncProductToDb: Caught exception:', err);
-      setSyncStatus('error');
-      setLastSyncError(err instanceof Error ? err.message : 'Unknown sync error');
+      setSyncFailure(err, 'syncProductToDb');
     } finally {
       pendingProductUpdates.current.delete(id);
     }
-  }, [user, organization?.id]);
+  }, [user, organization?.id, setSyncFailure]);
 
   // Flush all pending updates immediately (for unmount/beforeunload)
   const flushPendingUpdates = useCallback(() => {
