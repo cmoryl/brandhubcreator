@@ -1,24 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Palette, Star, ExternalLink, Building2, Package, Eye, Sparkles, Type, Image, Layers, CheckCircle } from 'lucide-react';
+import { ArrowRight, Palette, Star, ExternalLink, Building2, Package, Eye, Sparkles, Type, Image, Layers, CheckCircle, Calendar, MapPin, Users } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_GRADIENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
+import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_GRADIENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
 
-// Demo brands and products showcase for the landing page
+// Demo brands, products, and events showcase for the landing page
 const DemoBrandsShowcase = React.forwardRef<HTMLElement, { onLoginClick: () => void }>(({ onLoginClick }, ref) => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'brands' | 'products'>('brands');
-
-  const currentItems = activeTab === 'brands' ? DEMO_BRANDS : DEMO_PRODUCTS;
+  const [activeTab, setActiveTab] = useState<'brands' | 'products' | 'events'>('brands');
 
   // Feature highlights for the demo section
   const features = [
     { icon: Palette, label: 'Color Systems', description: 'Complete color palettes with usage guidelines' },
     { icon: Type, label: 'Typography', description: 'Font hierarchies and text styles' },
-    { icon: Image, label: 'Visual Direction', description: 'Imagery guidelines and examples' },
+    { icon: Calendar, label: 'Event Branding', description: 'Signage, banners, and schedules' },
     { icon: Layers, label: 'Logo Variants', description: 'Primary, secondary, and icon versions' },
   ];
 
@@ -55,22 +53,29 @@ const DemoBrandsShowcase = React.forwardRef<HTMLElement, { onLoginClick: () => v
           ))}
         </div>
 
-        {/* Tabs for Brands vs Products */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'brands' | 'products')} className="mb-8">
+        {/* Tabs for Brands, Products, and Events */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'brands' | 'products' | 'events')} className="mb-8">
           <div className="flex justify-center">
             <TabsList className="bg-muted/50">
-              <TabsTrigger value="brands" className="gap-2 px-6">
+              <TabsTrigger value="brands" className="gap-2 px-4 sm:px-6">
                 <Building2 className="h-4 w-4" />
-                Brand Guides
+                <span className="hidden sm:inline">Brand</span> Guides
                 <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
                   {DEMO_BRANDS.length}
                 </Badge>
               </TabsTrigger>
-              <TabsTrigger value="products" className="gap-2 px-6">
+              <TabsTrigger value="products" className="gap-2 px-4 sm:px-6">
                 <Package className="h-4 w-4" />
-                Product Guides
+                <span className="hidden sm:inline">Product</span> Guides
                 <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
                   {DEMO_PRODUCTS.length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="events" className="gap-2 px-4 sm:px-6">
+                <Calendar className="h-4 w-4" />
+                <span className="hidden sm:inline">Event</span> Kits
+                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs bg-accent/20 text-accent">
+                  {DEMO_EVENTS.length}
                 </Badge>
               </TabsTrigger>
             </TabsList>
@@ -81,6 +86,9 @@ const DemoBrandsShowcase = React.forwardRef<HTMLElement, { onLoginClick: () => v
           </TabsContent>
           <TabsContent value="products" className="mt-8">
             <DemoGuideGrid items={DEMO_PRODUCTS} type="product" />
+          </TabsContent>
+          <TabsContent value="events" className="mt-8">
+            <DemoEventGrid />
           </TabsContent>
         </Tabs>
 
@@ -109,6 +117,19 @@ const DemoBrandsShowcase = React.forwardRef<HTMLElement, { onLoginClick: () => v
                 <span>{item}</span>
               </div>
             ))}
+          </div>
+          
+          {/* Event-specific features callout */}
+          <div className="mt-6 pt-6 border-t border-border/50">
+            <h4 className="text-sm font-medium text-foreground mb-3 text-center">Event Brand Kits Also Include</h4>
+            <div className="flex flex-wrap justify-center gap-3">
+              {['Schedule & Agenda', 'Venue Signage', 'Digital Banners', 'Sponsor Tiers', 'Event History'].map((item, index) => (
+                <Badge key={index} variant="outline" className="gap-1">
+                  <Calendar className="h-3 w-3" />
+                  {item}
+                </Badge>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -263,6 +284,90 @@ function DemoGuideGrid({ items, type }: { items: typeof DEMO_BRANDS | typeof DEM
                 >
                   <Eye className="h-4 w-4" />
                   View Full Guide
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+// Event-specific grid component
+function DemoEventGrid() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="grid grid-cols-1 gap-6">
+      {DEMO_EVENTS.map((event, index) => {
+        const gradientClass = DEMO_GRADIENTS[event.id] || 'from-violet-500 to-purple-600';
+        const industry = DEMO_INDUSTRIES[event.id] || 'Event';
+        const colors = event.colors?.slice(0, 4) || [];
+        
+        return (
+          <Card 
+            key={event.id}
+            className="group overflow-hidden border bg-card shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
+          >
+            <CardContent className="p-0">
+              <div className={`relative h-56 bg-gradient-to-br ${gradientClass} overflow-hidden`}>
+                {event.hero.coverImage && (
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity"
+                    style={{ backgroundImage: `url(${event.hero.coverImage})` }}
+                  />
+                )}
+                <div className="absolute inset-0 opacity-20">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[length:20px_20px]" />
+                </div>
+                <div className="absolute bottom-4 left-4 w-16 h-16 bg-white/95 backdrop-blur rounded-xl shadow-lg flex items-center justify-center">
+                  <Calendar className="h-8 w-8 text-primary" />
+                </div>
+                <Badge className="absolute top-3 right-3 bg-white/90 text-foreground shadow-lg gap-1">
+                  <Calendar className="h-3 w-3" />
+                  {industry}
+                </Badge>
+                <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground shadow gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  New
+                </Badge>
+                {event.eventDetails && (
+                  <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 text-white">
+                    <div className="text-xs opacity-80">Event Date</div>
+                    <div className="font-semibold text-sm">{event.eventDetails.eventDates}</div>
+                  </div>
+                )}
+              </div>
+              <div className="p-5">
+                <h3 className="font-semibold text-xl text-foreground mb-1">{event.hero.name}</h3>
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{event.hero.tagline}</p>
+                {event.eventDetails && (
+                  <div className="flex flex-wrap gap-3 mb-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4 text-accent" />
+                      {event.eventDetails.location}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Users className="h-4 w-4 text-accent" />
+                      {event.eventDetails.expectedAttendees?.toLocaleString()} Attendees
+                    </div>
+                  </div>
+                )}
+                {colors.length > 0 && (
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex -space-x-1">
+                      {colors.map((color, i) => (
+                        <div key={i} className="w-7 h-7 rounded-full border-2 border-background shadow-sm" style={{ backgroundColor: color.hex }} title={color.name} />
+                      ))}
+                    </div>
+                    <span className="text-xs text-muted-foreground">{colors.length} Event Colors</span>
+                  </div>
+                )}
+                <Button className="w-full gap-2 group/btn" onClick={() => navigate(`/demo/event/${event.slug}`)}>
+                  <Eye className="h-4 w-4" />
+                  View Event Kit
                   <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                 </Button>
               </div>
