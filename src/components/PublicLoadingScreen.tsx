@@ -18,7 +18,7 @@ import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 
 interface PublicLoadingScreenProps {
-  type: 'brand' | 'product' | 'portal';
+  type: 'brand' | 'product' | 'portal' | 'event';
   name?: string;
   organizationName?: string;
 }
@@ -46,12 +46,14 @@ const faqs = [
 ];
 
 // Helper to get display text for loading screen
-function getLoadingText(type: 'brand' | 'product' | 'portal', name?: string): { title: string; subtitle: string } {
+function getLoadingText(type: 'brand' | 'product' | 'portal' | 'event', name?: string): { title: string; subtitle: string } {
   if (name) {
     return {
       title: `Loading ${name}...`,
       subtitle: type === 'portal' 
         ? 'Preparing your brand portal'
+        : type === 'event'
+        ? `Preparing ${name} event kit`
         : `Preparing ${name} brand guidelines`
     };
   }
@@ -61,6 +63,8 @@ function getLoadingText(type: 'brand' | 'product' | 'portal', name?: string): { 
       return { title: 'Loading Portal...', subtitle: 'Preparing your brand portal' };
     case 'product':
       return { title: 'Loading Product Guide...', subtitle: 'Preparing product guidelines' };
+    case 'event':
+      return { title: 'Loading Event Kit...', subtitle: 'Preparing event brand kit' };
     default:
       return { title: 'Loading Brand Guide...', subtitle: 'Preparing brand guidelines' };
   }

@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 interface ShareButtonProps {
   guideId: string;
   guideName: string;
-  type: 'brand' | 'product';
+  type: 'brand' | 'product' | 'event';
   isPublic?: boolean;
   onPublicChange?: (isPublic: boolean) => void;
   canEdit?: boolean;
