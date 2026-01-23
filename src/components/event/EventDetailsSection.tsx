@@ -1,5 +1,20 @@
 import { useState } from 'react';
-import { Calendar, MapPin, Users, Hash, Link, Edit2, Check, X, Building2, Tag } from 'lucide-react';
+import { 
+  Calendar, 
+  MapPin, 
+  Users, 
+  Hash, 
+  Link, 
+  Edit2, 
+  Check, 
+  X, 
+  Building2, 
+  Tag, 
+  Sparkles,
+  ExternalLink,
+  Clock,
+  Globe
+} from 'lucide-react';
 import { EventDetails } from '@/types/event';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -16,13 +31,13 @@ interface EventDetailsSectionProps {
 }
 
 const EVENT_TYPES = [
-  { value: 'conference', label: 'Conference' },
-  { value: 'trade-show', label: 'Trade Show' },
-  { value: 'summit', label: 'Summit' },
-  { value: 'webinar', label: 'Webinar' },
-  { value: 'workshop', label: 'Workshop' },
-  { value: 'launch', label: 'Product Launch' },
-  { value: 'other', label: 'Other' },
+  { value: 'conference', label: 'Conference', icon: '🎤' },
+  { value: 'trade-show', label: 'Trade Show', icon: '🏪' },
+  { value: 'summit', label: 'Summit', icon: '🏔️' },
+  { value: 'webinar', label: 'Webinar', icon: '💻' },
+  { value: 'workshop', label: 'Workshop', icon: '🛠️' },
+  { value: 'launch', label: 'Product Launch', icon: '🚀' },
+  { value: 'other', label: 'Other', icon: '📌' },
 ];
 
 export const EventDetailsSection = ({
@@ -44,30 +59,122 @@ export const EventDetailsSection = ({
     setIsEditing(false);
   };
 
-  const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value?: string | number }) => (
-    <div className="flex items-start gap-3">
-      <div className="p-2 rounded-lg bg-primary/10">
-        <Icon className="h-4 w-4 text-primary" />
+  const eventType = EVENT_TYPES.find(t => t.value === eventDetails.eventType);
+
+  // Infographic card component with animations
+  const InfoCard = ({ 
+    icon: Icon, 
+    label, 
+    value, 
+    delay = 0,
+    accent = false,
+    href,
+    iconEmoji,
+  }: { 
+    icon?: React.ElementType; 
+    label: string; 
+    value?: string | number;
+    delay?: number;
+    accent?: boolean;
+    href?: string;
+    iconEmoji?: string;
+  }) => {
+    const content = (
+      <div 
+        className={cn(
+          "group relative p-5 rounded-2xl border transition-all duration-500 cursor-default",
+          "bg-gradient-to-br from-card via-card to-muted/30",
+          "hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1",
+          "animate-fade-in",
+          accent && "border-primary/30 bg-gradient-to-br from-primary/5 via-card to-primary/10"
+        )}
+        style={{ 
+          animationDelay: `${delay}ms`,
+          animationFillMode: 'backwards',
+        }}
+      >
+        {/* Animated glow effect */}
+        <div className={cn(
+          "absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-500",
+          "bg-gradient-to-br from-primary/10 via-transparent to-accent/10",
+          "group-hover:opacity-100"
+        )} />
+        
+        {/* Floating icon with pulse */}
+        <div className={cn(
+          "relative flex items-center gap-3 mb-3",
+        )}>
+          <div className={cn(
+            "relative p-2.5 rounded-xl transition-all duration-300",
+            "bg-gradient-to-br from-primary/20 to-primary/10",
+            "group-hover:scale-110 group-hover:rotate-3",
+            accent && "from-primary/30 to-accent/20"
+          )}>
+            {iconEmoji ? (
+              <span className="text-lg">{iconEmoji}</span>
+            ) : Icon ? (
+              <Icon className="h-5 w-5 text-primary" />
+            ) : null}
+            
+            {/* Pulse ring on hover */}
+            <div className="absolute inset-0 rounded-xl bg-primary/20 animate-ping opacity-0 group-hover:opacity-30" 
+              style={{ animationDuration: '1.5s' }} 
+            />
+          </div>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+        </div>
+        
+        {/* Value with slide-up animation */}
+        <div className="relative">
+          <p className={cn(
+            "font-semibold text-lg text-foreground transition-all duration-300",
+            "group-hover:text-primary",
+            href && "flex items-center gap-2"
+          )}>
+            {value || '—'}
+            {href && <ExternalLink className="h-3.5 w-3.5 opacity-50" />}
+          </p>
+        </div>
+        
+        {/* Bottom accent line */}
+        <div className={cn(
+          "absolute bottom-0 left-4 right-4 h-0.5 rounded-full",
+          "bg-gradient-to-r from-transparent via-primary/30 to-transparent",
+          "scale-x-0 group-hover:scale-x-100 transition-transform duration-500"
+        )} />
       </div>
-      <div>
-        <p className="text-xs text-muted-foreground uppercase tracking-wide">{label}</p>
-        <p className="font-medium">{value || '—'}</p>
-      </div>
-    </div>
-  );
+    );
+
+    if (href) {
+      return (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="block">
+          {content}
+        </a>
+      );
+    }
+
+    return content;
+  };
 
   return (
     <section id="eventdetails" className="scroll-mt-24">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold">Event Information</h2>
-          {subtitle && (
-            <p className="text-muted-foreground mt-1" dangerouslySetInnerHTML={{ __html: subtitle }} />
-          )}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20">
+            <Sparkles className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+              Event Information
+            </h2>
+            {subtitle && (
+              <p className="text-muted-foreground mt-1 text-sm" dangerouslySetInnerHTML={{ __html: subtitle }} />
+            )}
+          </div>
         </div>
         {isEditable && !isEditing && (
-          <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-            <Edit2 className="h-4 w-4 mr-2" />
+          <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="gap-2">
+            <Edit2 className="h-4 w-4" />
             Edit Details
           </Button>
         )}
@@ -86,7 +193,7 @@ export const EventDetailsSection = ({
       </div>
 
       {isEditing ? (
-        <Card>
+        <Card className="border-dashed">
           <CardContent className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -111,7 +218,10 @@ export const EventDetailsSection = ({
                   <SelectContent>
                     {EVENT_TYPES.map((type) => (
                       <SelectItem key={type.value} value={type.value}>
-                        {type.label}
+                        <span className="flex items-center gap-2">
+                          <span>{type.icon}</span>
+                          {type.label}
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -193,39 +303,89 @@ export const EventDetailsSection = ({
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          <Card className={cn("p-6", eventDetails.eventName && "border-primary/20 bg-primary/5")}>
-            <InfoItem icon={Tag} label="Event Name" value={eventDetails.eventName} />
-          </Card>
-          <Card className="p-6">
-            <InfoItem icon={Building2} label="Event Type" value={EVENT_TYPES.find(t => t.value === eventDetails.eventType)?.label} />
-          </Card>
-          <Card className="p-6">
-            <InfoItem icon={Calendar} label="Dates" value={eventDetails.eventDates} />
-          </Card>
-          <Card className="p-6">
-            <InfoItem icon={MapPin} label="Location" value={eventDetails.location} />
-          </Card>
-          {eventDetails.venue && (
-            <Card className="p-6">
-              <InfoItem icon={Building2} label="Venue" value={eventDetails.venue} />
-            </Card>
+        <div className="relative">
+          {/* Background decoration */}
+          <div className="absolute inset-0 -z-10 overflow-hidden rounded-3xl">
+            <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
+          </div>
+
+          {/* Hero event name card */}
+          {eventDetails.eventName && (
+            <div 
+              className="mb-6 p-6 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border border-primary/20 animate-fade-in"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-primary/20 animate-pulse" style={{ animationDuration: '3s' }}>
+                  <Tag className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Event Name</p>
+                  <h3 className="text-2xl font-bold text-foreground">{eventDetails.eventName}</h3>
+                  {eventDetails.tagline && (
+                    <p className="text-sm text-muted-foreground mt-1 italic">"{eventDetails.tagline}"</p>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
-          {eventDetails.expectedAttendees && (
-            <Card className="p-6">
-              <InfoItem icon={Users} label="Expected Attendees" value={eventDetails.expectedAttendees.toLocaleString()} />
-            </Card>
-          )}
-          {eventDetails.hashtag && (
-            <Card className="p-6">
-              <InfoItem icon={Hash} label="Hashtag" value={eventDetails.hashtag} />
-            </Card>
-          )}
-          {eventDetails.registrationUrl && (
-            <Card className="p-6">
-              <InfoItem icon={Link} label="Registration" value="View Registration →" />
-            </Card>
-          )}
+
+          {/* Info grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <InfoCard 
+              iconEmoji={eventType?.icon}
+              label="Event Type" 
+              value={eventType?.label}
+              delay={50}
+            />
+            <InfoCard 
+              icon={Calendar} 
+              label="Dates" 
+              value={eventDetails.eventDates}
+              delay={100}
+            />
+            <InfoCard 
+              icon={MapPin} 
+              label="Location" 
+              value={eventDetails.location}
+              delay={150}
+            />
+            {eventDetails.venue && (
+              <InfoCard 
+                icon={Building2} 
+                label="Venue" 
+                value={eventDetails.venue}
+                delay={200}
+              />
+            )}
+            {eventDetails.expectedAttendees && (
+              <InfoCard 
+                icon={Users} 
+                label="Expected Attendees" 
+                value={eventDetails.expectedAttendees.toLocaleString()}
+                delay={250}
+              />
+            )}
+            {eventDetails.hashtag && (
+              <InfoCard 
+                icon={Hash} 
+                label="Hashtag" 
+                value={eventDetails.hashtag}
+                delay={300}
+                accent
+              />
+            )}
+            {eventDetails.registrationUrl && (
+              <InfoCard 
+                icon={Globe} 
+                label="Registration" 
+                value="Register Now →"
+                delay={350}
+                href={eventDetails.registrationUrl}
+                accent
+              />
+            )}
+          </div>
         </div>
       )}
     </section>

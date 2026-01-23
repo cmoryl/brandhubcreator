@@ -249,13 +249,15 @@ export type EventSectionId =
   | 'eventsponsors'     // Sponsor tiers
   | 'eventhistory'      // Past events archive
   | 'eventvideos'       // Event videos & promos
-  | 'eventlocation';    // Venue & location info
+  | 'eventlocation'     // Venue & location info
+  | 'eventwebsites';    // Event website links
 
 // Default Event Section Order
 export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'hero',
   'eventdetails',
   'tagline',
+  'eventwebsites',
   'eventlocation',
   'eventlogos',
   'eventsignage',

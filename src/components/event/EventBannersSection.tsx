@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Check, X, Image as ImageIcon, Mail, Globe, Share2, Download, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, Check, X, Image as ImageIcon, Mail, Globe, Share2, Download, Eye } from 'lucide-react';
 import { EventBanner } from '@/types/event';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { PreviewDialog } from '@/components/ui/preview-dialog';
 
 interface EventBannersSectionProps {
   banners: EventBanner[];
@@ -71,12 +72,19 @@ export const EventBannersSection = ({
 }: EventBannersSectionProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('all');
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewItem, setPreviewItem] = useState<EventBanner | null>(null);
   const [newItem, setNewItem] = useState<Partial<EventBanner>>({
     name: '',
     type: 'email-header',
     dimensions: '',
     platform: '',
   });
+
+  const openPreview = (item: EventBanner) => {
+    setPreviewItem(item);
+    setPreviewOpen(true);
+  };
 
   const handleAdd = () => {
     if (!newItem.name || !newItem.dimensions) return;
@@ -304,11 +312,9 @@ export const EventBannersSection = ({
                 {/* Action Buttons */}
                 <div className="flex gap-2 mt-3">
                   {banner.previewUrl && (
-                    <Button variant="outline" size="sm" className="flex-1 text-xs h-8" asChild>
-                      <a href={banner.previewUrl} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-3 w-3 mr-1.5" />
-                        Preview
-                      </a>
+                    <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => openPreview(banner)}>
+                      <Eye className="h-3 w-3 mr-1.5" />
+                      Preview
                     </Button>
                   )}
                   {banner.templateUrl && (
@@ -343,6 +349,16 @@ export const EventBannersSection = ({
           </div>
         </div>
       )}
+
+      {/* Preview Dialog */}
+      <PreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        title={previewItem?.name || 'Banner Preview'}
+        previewUrl={previewItem?.previewUrl}
+        externalUrl={previewItem?.previewUrl}
+        type="image"
+      />
     </section>
   );
 };
