@@ -111,16 +111,8 @@ const OrganizationPortal = () => {
   // Check if user can edit (admin or org member)
   const canEdit = user && (isAdmin || (userRole && ['owner', 'admin', 'member'].includes(userRole)));
   
-  // Track if we've already fetched for this slug to avoid duplicate calls
-  // Reset when slug changes
-  const hasFetchedRef = useRef<string | null>(null);
-  
-  // Reset hasFetchedRef when slug changes
-  useEffect(() => {
-    if (slug !== hasFetchedRef.current) {
-      hasFetchedRef.current = null;
-    }
-  }, [slug]);
+  // Track current fetch attempt to avoid race conditions
+  const fetchIdRef = useRef(0);
 
   // Filter brands and products based on search
   const filteredBrands = useMemo(() => {
@@ -196,20 +188,9 @@ const OrganizationPortal = () => {
         return;
       }
 
-      // Skip if we've already successfully fetched for THIS slug
-      // Only skip if we have both organization data AND some content (brands, products, or events)
-      const hasContent = brands.length > 0 || products.length > 0 || events.length > 0;
-      if (hasFetchedRef.current === slug && organization && hasContent) {
-        console.log('[PORTAL] Skipping fetch - already have data for slug:', slug);
-        setIsLoading(false);
-        return;
-      }
-
-      console.log('[PORTAL] Starting fetch for slug:', slug, { 
-        hasFetchedRef: hasFetchedRef.current,
-        hasOrg: !!organization,
-        hasContent
-      });
+      // Always fetch fresh data on initial load - don't skip based on cached ref
+      // Reset loading for each fetch attempt
+      console.log('[PORTAL] Starting fetch for slug:', slug);
 
       try {
         let orgId: string;
@@ -299,7 +280,7 @@ const OrganizationPortal = () => {
           eventsError: eventsRes.error?.message,
         });
 
-        hasFetchedRef.current = slug; // Track which slug we fetched
+        // Fetch completed successfully
 
         if (brandsRes.error) {
           console.error('[PORTAL] Error fetching brands:', brandsRes.error);
@@ -868,15 +849,13 @@ const OrganizationPortal = () => {
                     {filteredBrands.length}
                   </Badge>
                 </TabsTrigger>
-                {products.length > 0 && (
-                  <TabsTrigger value="products" className="gap-1.5 sm:gap-2 px-3 sm:px-4 touch-manipulation">
-                    <Package className="h-4 w-4 hidden sm:block" />
-                    Products
-                    <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
-                      {filteredProducts.length}
-                    </Badge>
-                  </TabsTrigger>
-                )}
+                <TabsTrigger value="products" className="gap-1.5 sm:gap-2 px-3 sm:px-4 touch-manipulation">
+                  <Package className="h-4 w-4 hidden sm:block" />
+                  Products
+                  <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
+                    {filteredProducts.length}
+                  </Badge>
+                </TabsTrigger>
                 <TabsTrigger value="events" className="gap-1.5 sm:gap-2 px-3 sm:px-4 touch-manipulation">
                   <Calendar className="h-4 w-4 hidden sm:block" />
                   Events
