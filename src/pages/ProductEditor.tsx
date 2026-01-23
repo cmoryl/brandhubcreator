@@ -11,7 +11,6 @@ import { useBrands } from '@/contexts/BrandContext';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { useSEO } from '@/hooks/useSEO';
 import { supabase } from '@/integrations/supabase/client';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
@@ -81,7 +80,6 @@ const ProductEditor = () => {
   const [publicProduct, setPublicProduct] = useState<ProductGuide | null>(null);
   // Initialize to true to prevent hooks ordering issues during initial render
   const [publicProductLoading, setPublicProductLoading] = useState(true);
-  const [publicFetchNonce, setPublicFetchNonce] = useState(0);
 
   // Redirect unapproved users to pending approval page (admins are always allowed)
   React.useEffect(() => {
@@ -206,7 +204,7 @@ const ProductEditor = () => {
     };
 
     fetchPublicProduct();
-  }, [productSlug, contextProduct, publicFetchNonce]);
+  }, [productSlug, contextProduct]);
 
   // Use context product if available, otherwise use fetched public product
   const currentProduct = contextProduct || publicProduct;
@@ -260,41 +258,12 @@ const ProductEditor = () => {
     }
   };
 
-  // SEO metadata for product page - use slug for canonical URL (better for sharing/SEO)
-  const canonicalProductUrl = useMemo(() => {
-    if (!currentProduct) return undefined;
-    // Prefer slug over UUID for cleaner, more shareable URLs
-    const identifier = currentProduct.slug || currentProduct.id;
-    return `${window.location.origin}/product/${identifier}`;
-  }, [currentProduct]);
-
-  useSEO({
-    title: currentProduct ? `${currentProduct.hero.name} Product Guidelines` : 'Product Guidelines',
-    description: currentProduct?.hero.tagline 
-      ? `${currentProduct.hero.name} - ${currentProduct.hero.tagline}. View complete product brand guidelines.`
-      : currentProduct ? `Complete product guidelines for ${currentProduct.hero.name}. Access logos, colors, and visual identity.`
-      : 'View product guidelines',
-    canonicalUrl: canonicalProductUrl,
-    ogTitle: currentProduct ? `${currentProduct.hero.name} - Product Guidelines` : undefined,
-    ogDescription: currentProduct?.hero.tagline || (currentProduct ? `Official product guidelines for ${currentProduct.hero.name}` : undefined),
-    ogImage: currentProduct?.hero.coverImage || currentProduct?.hero.logoUrl || undefined,
-    ogType: 'article',
-  });
-
   // Consolidate loading states with stability to prevent flickers
   // Only block on publicProductLoading if we don't have a product yet
   // Auth loading shouldn't block public content display
   const needsPublicData = !contextProduct && !publicProduct;
   const rawLoading = needsPublicData && publicProductLoading;
-  const stableLoading = useStableLoading(rawLoading, 50, 15000);
-  const hasTimedOut = rawLoading && !stableLoading;
-
-  const handleRetryPublicFetch = useCallback(() => {
-    hasFetchedPublicRef.current = null;
-    setPublicProduct(null);
-    setPublicProductLoading(true);
-    setPublicFetchNonce((n) => n + 1);
-  }, []);
+  const stableLoading = useStableLoading(rawLoading, 50, 6000);
 
   // ALL HOOKS MUST BE DECLARED BEFORE ANY EARLY RETURNS
   const handleSectionOrderChange = useCallback((newOrder: SectionId[]) => {
@@ -362,21 +331,6 @@ const ProductEditor = () => {
         name={publicProduct?.hero?.name || productSlug}
         organizationName={organization?.name}
       />
-    );
-  }
-
-  if (hasTimedOut) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl font-semibold text-foreground mb-2">Still loading…</h1>
-          <p className="text-muted-foreground mb-6">This guide is taking longer than usual to load. You can retry.</p>
-          <div className="flex items-center justify-center gap-3">
-            <Button onClick={handleRetryPublicFetch}>Retry</Button>
-            <Button variant="outline" onClick={() => navigate('/')}>Go back home</Button>
-          </div>
-        </div>
-      </div>
     );
   }
 

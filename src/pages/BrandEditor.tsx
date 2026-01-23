@@ -94,7 +94,6 @@ const BrandEditor = () => {
   const [publicBrand, setPublicBrand] = useState<BrandGuide | null>(null);
   // Start as true to prevent flash of "not found" before fetch begins
   const [publicBrandLoading, setPublicBrandLoading] = useState(true);
-  const [publicFetchNonce, setPublicFetchNonce] = useState(0);
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
 
   // Redirect unapproved users to pending approval page (admins are always allowed)
@@ -233,7 +232,7 @@ const BrandEditor = () => {
     };
     
     fetchPublicBrand();
-  }, [brandSlug, effectiveBrandSlug, contextBrand, navigate, publicFetchNonce]);
+  }, [brandSlug, effectiveBrandSlug, contextBrand, navigate]);
   
   // Use context brand if available, otherwise use fetched public brand
   const brand = contextBrand || publicBrand;
@@ -332,21 +331,14 @@ const BrandEditor = () => {
     };
   }, [pageSettings.customPrimaryColor, pageSettings.customSecondaryColor]);
 
-  // SEO metadata for brand page - use slug for canonical URL (better for sharing/SEO)
-  const canonicalBrandUrl = useMemo(() => {
-    if (!brand) return undefined;
-    // Prefer slug over UUID for cleaner, more shareable URLs
-    const identifier = brand.slug || brand.id;
-    return `${window.location.origin}/brand/${identifier}`;
-  }, [brand]);
-
+  // SEO metadata for brand page
   useSEO({
     title: brand ? `${brand.hero.name} Brand Guidelines` : 'Brand Guidelines',
     description: brand?.hero.tagline 
       ? `${brand.hero.name} - ${brand.hero.tagline}. View the complete brand guidelines including logos, colors, typography, and more.`
       : brand ? `Complete brand guidelines for ${brand.hero.name}. Access logos, colors, typography, and visual identity standards.`
       : 'View brand guidelines',
-    canonicalUrl: canonicalBrandUrl,
+    canonicalUrl: brand ? `${window.location.origin}/brand/${brand.id}` : undefined,
     ogTitle: brand ? `${brand.hero.name} - Brand Guidelines` : undefined,
     ogDescription: brand?.hero.tagline || (brand ? `Official brand guidelines for ${brand.hero.name}` : undefined),
     ogImage: brand?.hero.coverImage || brand?.hero.logoUrl || undefined,
@@ -387,21 +379,6 @@ const BrandEditor = () => {
       return undefined;
     }
     return pageSettings.backgroundType as HeroBackgroundType;
-  };
-
-  // Consolidate loading states with stability to prevent flickers.
-  // NOTE: We must NOT show "Brand not found" while a public fetch is still in-flight.
-  const needsPublicData = !contextBrand && !publicBrand;
-  const rawLoading = needsPublicData && publicBrandLoading;
-  // Increase max loading window: slow public guides can exceed 6s.
-  const stableLoading = useStableLoading(rawLoading, 50, 15000);
-  const hasTimedOut = rawLoading && !stableLoading;
-
-  const handleRetryPublicFetch = () => {
-    hasFetchedPublicRef.current = null;
-    setPublicBrand(null);
-    setPublicBrandLoading(true);
-    setPublicFetchNonce((n) => n + 1);
   };
 
   const handlePageSettingsChange = useCallback((newSettings: BrandPageSettings) => {
@@ -465,6 +442,13 @@ const BrandEditor = () => {
     }
   }, [viewMode]);
 
+  // Consolidate loading states with stability to prevent flickers
+  // Only block on publicBrandLoading if we don't have a brand yet
+  // Auth loading shouldn't block public content display
+  const needsPublicData = !contextBrand && !publicBrand;
+  const rawLoading = needsPublicData && publicBrandLoading;
+  const stableLoading = useStableLoading(rawLoading, 50, 6000);
+
   // Show loading state - AFTER all hooks
   // Use guide name if known for better UX
   if (stableLoading) {
@@ -477,30 +461,12 @@ const BrandEditor = () => {
     );
   }
 
-  // If the fetch is still in-flight but exceeded the stabilization window, do NOT show "not found".
-  if (hasTimedOut) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl font-semibold text-foreground mb-2">Still loading…</h1>
-          <p className="text-muted-foreground mb-6">
-            This guide is taking longer than usual to load. You can retry.
-          </p>
-          <div className="flex items-center justify-center gap-3">
-            <Button onClick={handleRetryPublicFetch}>Retry</Button>
-            <Button variant="outline" onClick={() => navigate('/')}>Back to Brands</Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (!brand) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-foreground mb-2">Brand not found</h1>
-          <p className="text-muted-foreground mb-4">The brand you&apos;re looking for doesn&apos;t exist.</p>
+          <p className="text-muted-foreground mb-4">The brand you&apos;s looking for doesn&apos;t exist.</p>
           <Button onClick={() => navigate('/')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Brands

@@ -166,27 +166,26 @@ const OrganizationPortal = () => {
     const EVENT_CARD_SELECT =
       'id, name, slug, is_public, parent_brand_id, updated_at, hero:guide_data->hero, colors:guide_data->colors, eventDetails:guide_data->eventDetails';
 
-    // Portal always shows only public brands/products/events
-    const brandsQuery = supabase
+    const brandsQuery = (supabase
       .from('brands')
       .select(BRAND_CARD_SELECT as any)
       .eq('organization_id', orgId)
       .eq('is_public', true)
-      .order('updated_at', { ascending: false });
+      .order('updated_at', { ascending: false }) as unknown) as PromiseLike<any>;
 
-    const productsQuery = supabase
+    const productsQuery = (supabase
       .from('products')
       .select(PRODUCT_CARD_SELECT as any)
       .eq('organization_id', orgId)
       .eq('is_public', true)
-      .order('updated_at', { ascending: false });
+      .order('updated_at', { ascending: false }) as unknown) as PromiseLike<any>;
 
-    const eventsQuery = supabase
+    const eventsQuery = (supabase
       .from('events')
       .select(EVENT_CARD_SELECT as any)
       .eq('organization_id', orgId)
       .eq('is_public', true)
-      .order('updated_at', { ascending: false });
+      .order('updated_at', { ascending: false }) as unknown) as PromiseLike<any>;
 
     const [brandsRes, productsRes, eventsRes] = (await Promise.all([
       Promise.resolve(brandsQuery),
