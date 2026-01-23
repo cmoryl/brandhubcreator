@@ -64,7 +64,7 @@ serve(async (req) => {
     }
     
     // Validate entityType whitelist
-    if (entityType && !['brand', 'product'].includes(entityType)) {
+    if (entityType && !['brand', 'product', 'event'].includes(entityType)) {
       return new Response(
         JSON.stringify({ error: 'Invalid entityType' }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -91,7 +91,7 @@ serve(async (req) => {
     }
     
     // Verify user has access to the entity before proceeding
-    const tableName = entityType === 'brand' ? 'brands' : 'products';
+    const tableName = entityType === 'brand' ? 'brands' : entityType === 'product' ? 'products' : 'events';
     const { data: entityData, error: entityError } = await userSupabase
       .from(tableName)
       .select('id, user_id, organization_id')
@@ -201,8 +201,8 @@ serve(async (req) => {
           throw new Error("LOVABLE_API_KEY is not configured");
         }
 
-        // Fetch the brand/product data
-        const table = entityType === 'brand' ? 'brands' : 'products';
+        // Fetch the brand/product/event data
+        const table = entityType === 'brand' ? 'brands' : entityType === 'product' ? 'products' : 'events';
         const { data: entityData, error: entityError } = await supabase
           .from(table)
           .select('name, guide_data')
@@ -214,18 +214,32 @@ serve(async (req) => {
         const guideData = entityData.guide_data as any;
         const knowledgeEntries = intelligence.knowledge_entries || [];
 
-        // Build comprehensive context for AI
-        const analysisPrompt = `You are a brand intelligence analyst. Analyze the following brand/product data and knowledge entries to generate comprehensive insights.
+        // Build comprehensive context for AI (handle both brand/product and event data)
+        const isEvent = entityType === 'event';
+        const eventDetails = isEvent ? guideData?.eventDetails : null;
+        
+        const analysisPrompt = `You are a ${isEvent ? 'event intelligence' : 'brand intelligence'} analyst. Analyze the following ${entityType} data and knowledge entries to generate comprehensive insights.
 
-BRAND/PRODUCT NAME: ${entityData.name}
+${isEvent ? 'EVENT' : 'BRAND/PRODUCT'} NAME: ${entityData.name}
 
-BRAND DATA:
+${isEvent ? `EVENT DATA:
+- Event Name: ${eventDetails?.eventName || entityData.name}
+- Event Dates: ${eventDetails?.eventDates || 'Not specified'}
+- Event Type: ${eventDetails?.eventType || 'Not specified'}
+- Location: ${eventDetails?.location || 'Not specified'}
+- Venue: ${eventDetails?.venue || 'Not specified'}
+- Expected Attendees: ${eventDetails?.expectedAttendees || 'Not specified'}
+- Hashtag: ${eventDetails?.hashtag || 'Not specified'}
+- Tagline: ${eventDetails?.tagline || guideData?.hero?.tagline || 'Not specified'}
+- Sponsors: ${JSON.stringify((guideData?.eventSponsors || []).map((s: any) => ({ name: s.name, tier: s.tier })))}
+- Schedule Items: ${(guideData?.eventSchedule || []).length} sessions` : 
+`BRAND DATA:
 - Mission: ${guideData?.hero?.tagline || 'Not specified'}
 - Description: ${guideData?.hero?.description || 'Not specified'}
 - Values: ${JSON.stringify(guideData?.values || [])}
 - Colors: ${JSON.stringify(guideData?.colors?.map((c: any) => c.name) || [])}
 - Typography: ${JSON.stringify(guideData?.typography || {})}
-- Services: ${JSON.stringify(guideData?.services || [])}
+- Services: ${JSON.stringify(guideData?.services || [])}`}
 
 KNOWLEDGE BASE (${knowledgeEntries.length} entries):
 ${knowledgeEntries.map((e: KnowledgeEntry) => `- [${e.type}] ${e.content}`).join('\n') || 'No entries yet'}
@@ -234,11 +248,11 @@ PREVIOUS ANALYSIS COUNT: ${intelligence.analysis_count}
 LAST ANALYZED: ${intelligence.last_analyzed_at || 'Never'}
 
 Generate a comprehensive analysis including:
-1. Brand summary (2-3 sentences)
+1. ${isEvent ? 'Event' : 'Brand'} summary (2-3 sentences)
 2. Market position assessment
 3. Target audience identification (primary, secondary, demographics)
 4. Competitive advantages (list 3-5)
-5. Brand voice profile (tone, personality traits, communication style)
+5. ${isEvent ? 'Event' : 'Brand'} voice profile (tone, personality traits, communication style)
 6. Growth recommendations (3-5 actionable items with priority and rationale)
 7. New insights based on the knowledge entries (2-3 observations)
 
