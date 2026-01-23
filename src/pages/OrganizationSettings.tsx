@@ -32,9 +32,9 @@ import {
 import { ArrowLeft, Building2, Upload, Loader2, Palette, Globe, Eye, EyeOff, Trash2, Users, Mail, Crown, Shield, UserPlus, Layout } from 'lucide-react';
 import { z } from 'zod';
 
-const emailSchema = z.string().email('Please enter a valid email address');
+import { MemberRole } from '@/lib/organization/types';
 
-type MemberRole = 'admin' | 'member' | 'viewer';
+const emailSchema = z.string().email('Please enter a valid email address');
 
 const roleIcons = {
   owner: Crown,

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useBrands } from '@/contexts/BrandContext';
 import { useToast } from '@/hooks/use-toast';
-import { OnboardingData, DEFAULT_ONBOARDING_DATA } from '@/types/organization';
+import { OnboardingData, DEFAULT_ONBOARDING_DATA } from '@/lib/organization/types';
 import { OnboardingStep1 } from './steps/OnboardingStep1';
 import { OnboardingStep2 } from './steps/OnboardingStep2';
 import { OnboardingStep3 } from './steps/OnboardingStep3';

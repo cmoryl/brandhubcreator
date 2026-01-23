@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Building2, Check, ChevronsUpDown, Eye, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,7 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useAdminOrganizations } from '@/hooks/useAdminOrganizations';
 import { useBrands } from '@/contexts/BrandContext';
-import { Organization } from '@/types/organization';
+import { Organization } from '@/lib/organization/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -26,19 +26,19 @@ interface OrganizationSwitcherProps {
 
 export const OrganizationSwitcher = ({ onSwitch, navigateOnSelect = true }: OrganizationSwitcherProps) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { isAdmin } = useAuth();
   const { organization: currentOrg, refetch: refetchOrg } = useOrganization();
-  const { organizations, isLoading, refetch: refetchOrgs } = useAdminOrganizations();
+  const { organizations, isLoading } = useAdminOrganizations();
   const { refetch: refetchBrands, saveNow, hasPendingChanges } = useBrands();
   
   // Track selected org separately from context to avoid race conditions
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [isSwitching, setIsSwitching] = useState(false);
+  const switchInProgressRef = useRef(false);
 
-  // Sync selected org with current org from context
+  // Sync selected org with current org from context (only on initial load)
   useEffect(() => {
-    if (currentOrg && !selectedOrg) {
+    if (currentOrg && !selectedOrg && !switchInProgressRef.current) {
       setSelectedOrg(currentOrg);
     }
   }, [currentOrg, selectedOrg]);
@@ -47,13 +47,15 @@ export const OrganizationSwitcher = ({ onSwitch, navigateOnSelect = true }: Orga
   if (!isAdmin) return null;
 
   const handleSelect = useCallback(async (org: Organization | null) => {
-    if (isSwitching) return;
+    // Prevent concurrent switches
+    if (isSwitching || switchInProgressRef.current) return;
     
     // Don't switch if same org selected
     if (org?.id === selectedOrg?.id || (!org && !selectedOrg)) {
       return;
     }
 
+    switchInProgressRef.current = true;
     setIsSwitching(true);
     
     try {
@@ -63,29 +65,34 @@ export const OrganizationSwitcher = ({ onSwitch, navigateOnSelect = true }: Orga
         await saveNow();
       }
 
+      // Update local state first for immediate UI feedback
       setSelectedOrg(org);
       onSwitch?.(org);
       
       // Navigate to the organization's portal page when selected
       if (navigateOnSelect && org) {
-        // Refetch data for the new org context
-        await Promise.all([
-          refetchBrands(),
-          refetchOrg(),
-        ]);
+        // Navigate immediately, then refetch in background
         navigate(`/org/${org.slug}`);
+        // Refetch data for the new org context (non-blocking)
+        Promise.all([refetchBrands(), refetchOrg()]).catch(console.error);
       } else if (!org) {
         // "All Organizations" view - go to admin dashboard or home
-        await refetchBrands();
         navigate('/');
+        refetchBrands().catch(console.error);
       }
     } catch (err) {
       console.error('Error switching organization:', err);
       toast.error('Failed to switch organization');
+      // Revert selection on error
+      setSelectedOrg(currentOrg);
     } finally {
       setIsSwitching(false);
+      // Small delay before allowing another switch
+      setTimeout(() => {
+        switchInProgressRef.current = false;
+      }, 500);
     }
-  }, [isSwitching, selectedOrg, hasPendingChanges, saveNow, onSwitch, navigateOnSelect, refetchBrands, refetchOrg, navigate]);
+  }, [isSwitching, selectedOrg, currentOrg, hasPendingChanges, saveNow, onSwitch, navigateOnSelect, refetchBrands, refetchOrg, navigate]);
 
   const displayOrg = selectedOrg || currentOrg;
 
