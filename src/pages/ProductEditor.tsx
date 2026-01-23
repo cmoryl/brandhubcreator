@@ -80,6 +80,7 @@ const ProductEditor = () => {
   const [publicProduct, setPublicProduct] = useState<ProductGuide | null>(null);
   // Initialize to true to prevent hooks ordering issues during initial render
   const [publicProductLoading, setPublicProductLoading] = useState(true);
+  const [publicFetchNonce, setPublicFetchNonce] = useState(0);
 
   // Redirect unapproved users to pending approval page (admins are always allowed)
   React.useEffect(() => {
@@ -204,7 +205,7 @@ const ProductEditor = () => {
     };
 
     fetchPublicProduct();
-  }, [productSlug, contextProduct]);
+  }, [productSlug, contextProduct, publicFetchNonce]);
 
   // Use context product if available, otherwise use fetched public product
   const currentProduct = contextProduct || publicProduct;
@@ -263,7 +264,15 @@ const ProductEditor = () => {
   // Auth loading shouldn't block public content display
   const needsPublicData = !contextProduct && !publicProduct;
   const rawLoading = needsPublicData && publicProductLoading;
-  const stableLoading = useStableLoading(rawLoading, 50, 6000);
+  const stableLoading = useStableLoading(rawLoading, 50, 15000);
+  const hasTimedOut = rawLoading && !stableLoading;
+
+  const handleRetryPublicFetch = useCallback(() => {
+    hasFetchedPublicRef.current = null;
+    setPublicProduct(null);
+    setPublicProductLoading(true);
+    setPublicFetchNonce((n) => n + 1);
+  }, []);
 
   // ALL HOOKS MUST BE DECLARED BEFORE ANY EARLY RETURNS
   const handleSectionOrderChange = useCallback((newOrder: SectionId[]) => {
@@ -331,6 +340,21 @@ const ProductEditor = () => {
         name={publicProduct?.hero?.name || productSlug}
         organizationName={organization?.name}
       />
+    );
+  }
+
+  if (hasTimedOut) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-semibold text-foreground mb-2">Still loading…</h1>
+          <p className="text-muted-foreground mb-6">This guide is taking longer than usual to load. You can retry.</p>
+          <div className="flex items-center justify-center gap-3">
+            <Button onClick={handleRetryPublicFetch}>Retry</Button>
+            <Button variant="outline" onClick={() => navigate('/')}>Go back home</Button>
+          </div>
+        </div>
+      </div>
     );
   }
 

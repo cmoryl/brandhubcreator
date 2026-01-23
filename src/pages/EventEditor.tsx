@@ -66,6 +66,11 @@ import { Badge } from '@/components/ui/badge';
 
 type ViewMode = 'sections' | 'full';
 
+// Legacy/short slugs that may exist in old links, emails, or bookmarks.
+const EVENT_SLUG_ALIASES: Record<string, string> = {
+  'innovation-summit': 'global-innovation-summit-2026',
+};
+
 const EventEditor = () => {
   const { eventSlug } = useParams<{ eventSlug: string }>();
   const navigate = useNavigate();
@@ -79,7 +84,9 @@ const EventEditor = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('full');
   const [scrollToSection, setScrollToSection] = useState<EventSectionId | null>(null);
   const [publicEvent, setPublicEvent] = useState<EventGuide | null>(null);
-  const [publicEventLoading, setPublicEventLoading] = useState(false);
+  // Start as true to prevent flash of "Event not found" on slow fetches
+  const [publicEventLoading, setPublicEventLoading] = useState(true);
+  const [publicFetchNonce, setPublicFetchNonce] = useState(0);
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
 
   // Redirect unapproved users
@@ -96,6 +103,12 @@ const EventEditor = () => {
 
   // Helper to check if the param is a UUID
   const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+  const effectiveEventSlug = useMemo(() => {
+    if (!eventSlug) return undefined;
+    if (isUUID(eventSlug)) return eventSlug;
+    return EVENT_SLUG_ALIASES[eventSlug] ?? eventSlug;
+  }, [eventSlug]);
   
   // Try to get event from context
   const contextEvent = useMemo(() => {
@@ -111,10 +124,13 @@ const EventEditor = () => {
   
   useEffect(() => {
     const fetchPublicEvent = async () => {
-      if (!eventSlug || contextEvent || hasFetchedPublicRef.current === eventSlug) return;
+      if (!effectiveEventSlug || contextEvent || hasFetchedPublicRef.current === effectiveEventSlug) {
+        setPublicEventLoading(false);
+        return;
+      }
       
       setPublicEventLoading(true);
-      hasFetchedPublicRef.current = eventSlug;
+      hasFetchedPublicRef.current = effectiveEventSlug;
       
       try {
         let query = supabase
@@ -122,15 +138,20 @@ const EventEditor = () => {
           .select('*')
           .eq('is_public', true);
         
-        if (isUUID(eventSlug)) {
-          query = query.eq('id', eventSlug);
+        if (isUUID(effectiveEventSlug)) {
+          query = query.eq('id', effectiveEventSlug);
         } else {
-          query = query.eq('slug', eventSlug);
+          query = query.eq('slug', effectiveEventSlug);
         }
         
         const { data, error } = await query.maybeSingle();
         
         if (!error && data) {
+          // Normalize legacy URL to canonical slug.
+          if (eventSlug && !isUUID(eventSlug) && data.slug && data.slug !== eventSlug) {
+            navigate(`/event/${data.slug}`, { replace: true });
+          }
+
           // Convert to EventGuide - simplified version
           const guideData = (data.guide_data || {}) as Record<string, unknown>;
           const event: EventGuide = {
@@ -198,7 +219,7 @@ const EventEditor = () => {
     };
     
     fetchPublicEvent();
-  }, [eventSlug, contextEvent]);
+  }, [eventSlug, effectiveEventSlug, contextEvent, publicFetchNonce, navigate]);
   
   const event = contextEvent || publicEvent;
   
@@ -291,7 +312,15 @@ const EventEditor = () => {
   // Consolidate loading
   const needsPublicData = !contextEvent && !publicEvent;
   const rawLoading = needsPublicData && publicEventLoading;
-  const stableLoading = useStableLoading(rawLoading, 50, 6000);
+  const stableLoading = useStableLoading(rawLoading, 50, 15000);
+  const hasTimedOut = rawLoading && !stableLoading;
+
+  const handleRetryPublicFetch = useCallback(() => {
+    hasFetchedPublicRef.current = null;
+    setPublicEvent(null);
+    setPublicEventLoading(true);
+    setPublicFetchNonce((n) => n + 1);
+  }, []);
 
   if (stableLoading) {
     return (
@@ -300,6 +329,21 @@ const EventEditor = () => {
         name={publicEvent?.hero?.name || eventSlug}
         organizationName={organization?.name}
       />
+    );
+  }
+
+  if (hasTimedOut) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-semibold text-foreground mb-2">Still loading…</h1>
+          <p className="text-muted-foreground mb-6">This event kit is taking longer than usual to load. You can retry.</p>
+          <div className="flex items-center justify-center gap-3">
+            <Button onClick={handleRetryPublicFetch}>Retry</Button>
+            <Button variant="outline" onClick={() => navigate('/')}>Back to Home</Button>
+          </div>
+        </div>
+      </div>
     );
   }
 
