@@ -322,27 +322,61 @@ const EventEditor = () => {
     updateEventContext(event.id, updates);
   };
 
-  const renderSection = () => {
+  // Unified section renderer - used by both single-section and full-page views
+  const renderSectionContent = useCallback((sectionId: EventSectionId) => {
     // Helper to conditionally create change handler
     const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
     
-    switch (activeSection) {
+    switch (sectionId) {
       case 'hero': 
         return <HeroSection hero={event.hero} onHeroChange={editHandler((hero) => updateEvent({ hero }))} />;
       case 'eventdetails':
         return <EventDetailsSection eventDetails={event.eventDetails} onUpdate={(eventDetails) => updateEvent({ eventDetails: { ...event.eventDetails, ...eventDetails } })} isEditable={canEdit || false} />;
       case 'tagline': 
         return <TaglineSection tagline={event.tagline} onTaglineChange={editHandler((tagline) => updateEvent({ tagline }))} />;
+      case 'identity':
+        return (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Event Narrative</h2>
+            <div className="prose dark:prose-invert max-w-none">
+              <p className="text-muted-foreground">{event.identity?.missionStatement || 'No mission statement defined.'}</p>
+              {event.identity?.archetype && (
+                <p><strong>Archetype:</strong> {event.identity.archetype}</p>
+              )}
+              {event.identity?.toneOfVoice?.length > 0 && (
+                <p><strong>Tone:</strong> {event.identity.toneOfVoice.join(', ')}</p>
+              )}
+            </div>
+          </div>
+        );
+      case 'values':
+        return (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Event Pillars</h2>
+            {event.values?.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {event.values.map((value, index) => (
+                  <div key={value.id || index} className="p-4 rounded-lg border bg-card">
+                    <h3 className="font-medium">{value.text}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{value.description}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">No event pillars defined.</p>
+            )}
+          </div>
+        );
       case 'eventwebsites':
         return <EventWebsiteSection websites={event.websites || []} onWebsitesChange={(websites) => updateEvent({ websites })} isEditable={canEdit || false} />;
       case 'eventlogos':
-        return <EventLogosSection logos={event.eventLogos} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} />;
+        return <EventLogosSection logos={event.eventLogos || []} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} />;
       case 'eventsignage':
-        return <EventSignageSection signage={event.eventSignage} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('eventsignage', layout) : undefined} />;
+        return <EventSignageSection signage={event.eventSignage || []} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('eventsignage', layout) : undefined} />;
       case 'eventbanners':
-        return <EventBannersSection banners={event.eventBanners} onUpdate={(eventBanners) => updateEvent({ eventBanners })} isEditable={canEdit || false} />;
+        return <EventBannersSection banners={event.eventBanners || []} onUpdate={(eventBanners) => updateEvent({ eventBanners })} isEditable={canEdit || false} />;
       case 'eventdigital':
-        return <EventDigitalSection materials={event.eventDigitalMaterials} onUpdate={(eventDigitalMaterials) => updateEvent({ eventDigitalMaterials })} isEditable={canEdit || false} />;
+        return <EventDigitalSection materials={event.eventDigitalMaterials || []} onUpdate={(eventDigitalMaterials) => updateEvent({ eventDigitalMaterials })} isEditable={canEdit || false} />;
       case 'colors': 
         return <ColorPaletteSection colors={event.colors} onColorsChange={editHandler((colors) => updateEvent({ colors }))} colorCombinations={event.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateEvent({ colorCombinations }))} brandName={event.hero.name} />;
       case 'gradients': 
@@ -362,106 +396,38 @@ const EventEditor = () => {
             onDisplayBannersChange={editHandler((displayBanners) => updateEvent({ displayBanners }))}
           />
         );
-      case 'eventsponsors':
-        return <EventSponsorsSection sponsors={event.eventSponsors} onUpdate={(eventSponsors) => updateEvent({ eventSponsors })} isEditable={canEdit || false} />;
-      case 'eventschedule':
+      case 'eventspeakers':
         return (
-          <EventScheduleSection 
-            schedule={event.eventSchedule} 
-            onUpdate={(eventSchedule) => updateEvent({ eventSchedule })} 
-            speakers={event.eventSpeakers}
-            isEditable={canEdit || false} 
-          />
-        );
-      case 'eventhistory':
-        return (
-          <EventHistorySection 
-            history={event.eventHistory} 
-            onUpdate={(eventHistory) => updateEvent({ eventHistory })} 
-            isEditable={canEdit || false} 
-          />
-        );
-      case 'eventvideos':
-        return (
-          <EventVideosSection 
-            videos={event.eventVideos || []} 
-            onUpdate={(eventVideos) => updateEvent({ eventVideos })} 
-            isEditable={canEdit || false} 
-          />
-        );
-      case 'eventlocation':
-        return (
-          <EventLocationSection 
-            location={event.eventLocation || { venueName: '', address: '', city: '', country: '', venueMaps: [] }} 
-            onUpdate={(eventLocation) => updateEvent({ eventLocation })} 
-            isEditable={canEdit || false} 
-          />
-        );
-      case 'assets': 
-        return <AssetsSection assets={event.assets} onAssetsChange={editHandler((assets) => updateEvent({ assets }))} />;
-      case 'misuse':
-        return <MisuseSection misuse={event.misuse} onMisuseChange={editHandler((misuse) => updateEvent({ misuse }))} />;
-      case 'casestudies':
-        return <CaseStudiesSection caseStudies={event.caseStudies || []} onCaseStudiesChange={editHandler((caseStudies) => updateEvent({ caseStudies }))} layout={getSectionLayout('casestudies')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('casestudies', layout) : undefined} />;
-      case 'templates':
-        return <TemplatesSection templates={event.templates || []} onTemplatesChange={editHandler((templates) => updateEvent({ templates }))} layout={getSectionLayout('templates')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('templates', layout) : undefined} />;
-      case 'brochures':
-        return <BrochuresSection brochures={event.brochures || []} onBrochuresChange={editHandler((brochures) => updateEvent({ brochures }))} layout={getSectionLayout('brochures')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('brochures', layout) : undefined} />;
-      case 'templatespecs':
-        return <TemplateSpecsSection templateSpecs={event.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateEvent({ templateSpecs }))} />;
-      default:
-        return (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Section "{activeSection}" coming soon</p>
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Event Speakers</h2>
+            {event.eventSpeakers?.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {event.eventSpeakers.map((speaker) => (
+                  <div key={speaker.id} className="p-4 rounded-lg border bg-card text-center">
+                    {speaker.photoUrl && (
+                      <img src={speaker.photoUrl} alt={speaker.name} className="w-24 h-24 rounded-full mx-auto mb-3 object-cover" />
+                    )}
+                    <h3 className="font-medium">{speaker.name}</h3>
+                    <p className="text-sm text-muted-foreground">{speaker.title}</p>
+                    {speaker.company && <p className="text-xs text-muted-foreground">{speaker.company}</p>}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">No speakers added yet.</p>
+            )}
           </div>
         );
-    }
-  };
-
-  // Render section by ID (for full page view)
-  const renderSectionById = useCallback((sectionId: EventSectionId) => {
-    // Helper to conditionally create change handler
-    const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
-    
-    switch (sectionId) {
-      case 'hero': 
-        return <HeroSection hero={event.hero} onHeroChange={editHandler((hero) => updateEvent({ hero }))} />;
-      case 'eventdetails':
-        return <EventDetailsSection eventDetails={event.eventDetails} onUpdate={(eventDetails) => updateEvent({ eventDetails: { ...event.eventDetails, ...eventDetails } })} isEditable={canEdit || false} />;
-      case 'tagline': 
-        return <TaglineSection tagline={event.tagline} onTaglineChange={editHandler((tagline) => updateEvent({ tagline }))} />;
-      case 'eventwebsites':
-        return <EventWebsiteSection websites={event.websites || []} onWebsitesChange={(websites) => updateEvent({ websites })} isEditable={canEdit || false} />;
-      case 'eventlogos':
-        return <EventLogosSection logos={event.eventLogos || []} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} />;
-      case 'eventsignage':
-        return <EventSignageSection signage={event.eventSignage || []} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('eventsignage', layout) : undefined} />;
-      case 'eventbanners':
-        return <EventBannersSection banners={event.eventBanners || []} onUpdate={(eventBanners) => updateEvent({ eventBanners })} isEditable={canEdit || false} />;
-      case 'eventdigital':
-        return <EventDigitalSection materials={event.eventDigitalMaterials || []} onUpdate={(eventDigitalMaterials) => updateEvent({ eventDigitalMaterials })} isEditable={canEdit || false} />;
-      case 'eventvideos':
-        return <EventVideosSection videos={event.eventVideos || []} onUpdate={(eventVideos) => updateEvent({ eventVideos })} isEditable={canEdit || false} />;
-      case 'eventlocation':
-        return <EventLocationSection location={event.eventLocation || { venueName: '', address: '', city: '', country: '', venueMaps: [] }} onUpdate={(eventLocation) => updateEvent({ eventLocation })} isEditable={canEdit || false} />;
-      case 'colors': 
-        return <ColorPaletteSection colors={event.colors} onColorsChange={editHandler((colors) => updateEvent({ colors }))} colorCombinations={event.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateEvent({ colorCombinations }))} brandName={event.hero.name} />;
-      case 'gradients': 
-        return <GradientsSection gradients={event.gradients} onGradientsChange={editHandler((gradients) => updateEvent({ gradients }))} />;
-      case 'typography': 
-        return <TypographySection typography={event.typography} onTypographyChange={editHandler((typography) => updateEvent({ typography }))} />;
-      case 'imagery': 
-        return <ImagerySection imagery={event.imagery} onImageryChange={editHandler((imagery) => updateEvent({ imagery }))} />;
-      case 'social': 
-        return <SocialSection social={event.social} onSocialChange={editHandler((social) => updateEvent({ social }))} />;
-      case 'socialassets': 
-        return <SocialAssetsSection socialAssets={event.socialAssets || []} onSocialAssetsChange={editHandler((socialAssets) => updateEvent({ socialAssets }))} displayBanners={event.displayBanners || []} onDisplayBannersChange={editHandler((displayBanners) => updateEvent({ displayBanners }))} />;
       case 'eventsponsors':
         return <EventSponsorsSection sponsors={event.eventSponsors || []} onUpdate={(eventSponsors) => updateEvent({ eventSponsors })} isEditable={canEdit || false} />;
       case 'eventschedule':
         return <EventScheduleSection schedule={event.eventSchedule || []} onUpdate={(eventSchedule) => updateEvent({ eventSchedule })} speakers={event.eventSpeakers || []} isEditable={canEdit || false} />;
       case 'eventhistory':
         return <EventHistorySection history={event.eventHistory || []} onUpdate={(eventHistory) => updateEvent({ eventHistory })} isEditable={canEdit || false} />;
+      case 'eventvideos':
+        return <EventVideosSection videos={event.eventVideos || []} onUpdate={(eventVideos) => updateEvent({ eventVideos })} isEditable={canEdit || false} />;
+      case 'eventlocation':
+        return <EventLocationSection location={event.eventLocation || { venueName: '', address: '', city: '', country: '', venueMaps: [] }} onUpdate={(eventLocation) => updateEvent({ eventLocation })} isEditable={canEdit || false} />;
       case 'assets': 
         return <AssetsSection assets={event.assets} onAssetsChange={editHandler((assets) => updateEvent({ assets }))} />;
       case 'misuse':
@@ -477,7 +443,18 @@ const EventEditor = () => {
       default:
         return null;
     }
-  }, [event, canEdit, updateEvent, getSectionLayout, handleSectionLayoutChange]);
+  }, [event, canEdit, getSectionLayout, handleSectionLayoutChange]);
+
+  // Wrapper for single section view
+  const renderSection = () => {
+    const content = renderSectionContent(activeSection);
+    if (content) return content;
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">Section "{activeSection}" coming soon</p>
+      </div>
+    );
+  };
 
   // Render all sections for full page view
   const renderFullPage = () => {
@@ -488,7 +465,7 @@ const EventEditor = () => {
     return (
       <div className={getSectionSpacingClass()}>
         {visibleSections.map((sectionId) => {
-          const content = renderSectionById(sectionId);
+          const content = renderSectionContent(sectionId);
           if (!content) return null;
           
           return (
