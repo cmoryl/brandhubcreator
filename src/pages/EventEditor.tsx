@@ -21,6 +21,7 @@ import { EventSignageSection } from '@/components/event/EventSignageSection';
 import { EventBannersSection } from '@/components/event/EventBannersSection';
 import { EventDigitalSection } from '@/components/event/EventDigitalSection';
 import { EventSponsorsSection } from '@/components/event/EventSponsorsSection';
+import { EventScheduleSection } from '@/components/event/EventScheduleSection';
 import { HeroSection } from '@/components/brand/HeroSection';
 import { TaglineSection } from '@/components/brand/TaglineSection';
 import { ColorPaletteSection } from '@/components/brand/ColorPaletteSection';
@@ -324,11 +325,20 @@ const EventEditor = () => {
         );
       case 'eventsponsors':
         return <EventSponsorsSection sponsors={event.eventSponsors} onUpdate={(eventSponsors) => updateEvent({ eventSponsors })} isEditable={canEdit || false} />;
+      case 'eventschedule':
+        return (
+          <EventScheduleSection 
+            schedule={event.eventSchedule} 
+            onUpdate={(eventSchedule) => updateEvent({ eventSchedule })} 
+            speakers={event.eventSpeakers}
+            isEditable={canEdit || false} 
+          />
+        );
       case 'assets': 
         return <AssetsSection assets={event.assets} onAssetsChange={(assets) => updateEvent({ assets })} />;
       case 'misuse': 
         return <MisuseSection misuse={event.misuse} onMisuseChange={(misuse) => updateEvent({ misuse })} />;
-      default: 
+      default:
         return (
           <div className="text-center py-12">
             <p className="text-muted-foreground">Section "{activeSection}" coming soon</p>
@@ -581,6 +591,15 @@ const EventEditor = () => {
                             );
                           case 'eventsponsors':
                             return <EventSponsorsSection sponsors={event.eventSponsors} onUpdate={(eventSponsors) => updateEvent({ eventSponsors })} isEditable={canEdit || false} />;
+                          case 'eventschedule':
+                            return (
+                              <EventScheduleSection 
+                                schedule={event.eventSchedule} 
+                                onUpdate={(eventSchedule) => updateEvent({ eventSchedule })} 
+                                speakers={event.eventSpeakers}
+                                isEditable={canEdit || false} 
+                              />
+                            );
                           case 'assets': 
                             return <AssetsSection assets={event.assets} onAssetsChange={(assets) => updateEvent({ assets })} />;
                           case 'misuse': 
