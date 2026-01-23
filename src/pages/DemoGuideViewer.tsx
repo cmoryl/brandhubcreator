@@ -1,22 +1,30 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Star, Building2, Package, ExternalLink, Home } from 'lucide-react';
+import { ArrowLeft, Star, Building2, Package, Calendar, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
-import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
+import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
 import type { BrandGuide, ProductGuide, SectionId } from '@/types/brand';
+import type { EventGuide, EventSectionId } from '@/types/event';
 
-// Demo guide viewer page - renders static demo data
+// Demo guide viewer page - renders static demo data for brands, products, and events
 export default function DemoGuideViewer() {
-  const { type, slug } = useParams<{ type: 'brand' | 'product'; slug: string }>();
+  const { type, slug } = useParams<{ type: 'brand' | 'product' | 'event'; slug: string }>();
   const navigate = useNavigate();
 
-  // Find the demo guide
-  const demoGuide = type === 'brand' 
-    ? DEMO_BRANDS.find(b => b.slug === slug)
-    : DEMO_PRODUCTS.find(p => p.slug === slug);
+  // Find the demo guide based on type
+  const demoGuide = (() => {
+    if (type === 'brand') {
+      return DEMO_BRANDS.find(b => b.slug === slug);
+    } else if (type === 'product') {
+      return DEMO_PRODUCTS.find(p => p.slug === slug);
+    } else if (type === 'event') {
+      return DEMO_EVENTS.find(e => e.slug === slug);
+    }
+    return undefined;
+  })();
 
   if (!demoGuide) {
     return (
@@ -38,9 +46,35 @@ export default function DemoGuideViewer() {
     ...demoGuide,
     createdAt: new Date(),
     updatedAt: new Date(),
-  } as BrandGuide | ProductGuide;
+  } as BrandGuide | ProductGuide | EventGuide;
 
-  const industry = DEMO_INDUSTRIES[demoGuide.id] || (type === 'brand' ? 'Brand Guide' : 'Product Guide');
+  const industry = DEMO_INDUSTRIES[demoGuide.id] || (
+    type === 'brand' ? 'Brand Guide' : 
+    type === 'product' ? 'Product Guide' : 
+    'Event Kit'
+  );
+
+  const getTypeIcon = () => {
+    switch (type) {
+      case 'brand': return <Building2 className="h-3 w-3" />;
+      case 'product': return <Package className="h-3 w-3" />;
+      case 'event': return <Calendar className="h-3 w-3" />;
+      default: return <Building2 className="h-3 w-3" />;
+    }
+  };
+
+  const getTypeLabel = () => {
+    switch (type) {
+      case 'brand': return 'Brand Guides';
+      case 'product': return 'Product Guides';
+      case 'event': return 'Event Kits';
+      default: return 'Demo Guides';
+    }
+  };
+
+  // For events, we'll render a simplified view using the FullBrandPage
+  // which can handle the common sections, or show event-specific content
+  const isEvent = type === 'event';
 
   return (
     <div className="min-h-screen bg-background">
@@ -58,9 +92,15 @@ export default function DemoGuideViewer() {
               <span className="hidden xs:inline">Demo</span>
             </Badge>
             <Badge variant="outline" className="gap-1 hidden sm:flex">
-              {type === 'brand' ? <Building2 className="h-3 w-3" /> : <Package className="h-3 w-3" />}
+              {getTypeIcon()}
               {industry}
             </Badge>
+            {isEvent && (
+              <Badge className="bg-accent text-accent-foreground gap-1 hidden md:flex">
+                <Calendar className="h-3 w-3" />
+                New Feature
+              </Badge>
+            )}
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
@@ -78,7 +118,7 @@ export default function DemoGuideViewer() {
         <AppBreadcrumbs
           items={[
             { label: 'Demo Guides', icon: Star, href: '/' },
-            { label: type === 'brand' ? 'Brand Guides' : 'Product Guides', icon: type === 'brand' ? Building2 : Package, href: '/' },
+            { label: getTypeLabel(), icon: type === 'brand' ? Building2 : type === 'product' ? Package : Calendar, href: '/' },
           ]}
           currentPage={demoGuide.hero.name}
         />
@@ -87,13 +127,14 @@ export default function DemoGuideViewer() {
       {/* Full Brand Page Content - wrapped in proper container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <FullBrandPage
-          brand={fullGuide}
+          brand={fullGuide as BrandGuide | ProductGuide}
           brandId={demoGuide.id}
           onBrandUpdate={() => {}} // No-op for demo
-          sectionOrder={demoGuide.sectionOrder as SectionId[]}
+          sectionOrder={(demoGuide.sectionOrder || []) as SectionId[]}
           hiddenSections={[]}
           isAdmin={false}
           heroFullWidth={true}
+          canEdit={false}
         />
       </div>
 
@@ -104,7 +145,10 @@ export default function DemoGuideViewer() {
             Like what you see?
           </h3>
           <p className="text-muted-foreground mb-6 max-w-xl mx-auto text-sm sm:text-base">
-            Create your own professional brand guidelines with all the features you've just explored.
+            {isEvent 
+              ? 'Create your own professional event brand kits with all the features you\'ve just explored.'
+              : 'Create your own professional brand guidelines with all the features you\'ve just explored.'
+            }
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Button size="lg" onClick={() => navigate('/auth')} className="gap-2">
