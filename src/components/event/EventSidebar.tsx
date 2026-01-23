@@ -1,7 +1,7 @@
 import { 
   Shield, Quote, Calendar, MapPin, Image, Palette, Type, Camera, 
   Users, LayoutGrid, FolderArchive, Ban, Flag, Presentation, Crown,
-  Blend, Clock, Mic2, UserCircle, History
+  Blend, Clock, Mic2, UserCircle, History, Video, MapPinned
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -61,6 +61,12 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   eventschedule: { label: 'Event Schedule', icon: Clock, category: 'Program' },
   eventspeakers: { label: 'Speakers', icon: Mic2, category: 'Program' },
   eventsponsors: { label: 'Sponsors', icon: Crown, category: 'Program' },
+  
+  // Event Media
+  eventvideos: { label: 'Event Videos', icon: Video, category: 'Media' },
+  
+  // Location
+  eventlocation: { label: 'Venue & Location', icon: MapPinned, category: 'Venue' },
   
   // History
   eventhistory: { label: 'Event History', icon: History, category: 'Archive' },

@@ -129,6 +129,48 @@ export interface EventSponsor {
   placement?: string; // Where sponsor logo appears
 }
 
+// Event Video types
+export interface EventVideo {
+  id: string;
+  title: string;
+  url: string;
+  type: 'promo' | 'recap' | 'speaker' | 'stage' | 'testimonial' | 'teaser' | 'slideshow' | 'livestream' | 'other';
+  platform: 'youtube' | 'vimeo' | 'direct';
+  thumbnailUrl?: string;
+  description?: string;
+  duration?: string;
+  year?: number;
+}
+
+// Event Location types
+export interface EventVenueMap {
+  id: string;
+  name: string;
+  type: 'floor-plan' | 'venue-overview' | 'parking' | 'transit' | 'custom';
+  imageUrl: string;
+  description?: string;
+}
+
+export interface EventLocation {
+  venueName: string;
+  address: string;
+  city: string;
+  state?: string;
+  country: string;
+  postalCode?: string;
+  coordinates?: { lat: number; lng: number };
+  googleMapsUrl?: string;
+  googleMapsEmbed?: string;
+  venueWebsite?: string;
+  venuePhone?: string;
+  venueEmail?: string;
+  parkingInfo?: string;
+  transitInfo?: string;
+  nearbyHotels?: string;
+  customNotes?: string;
+  venueMaps?: EventVenueMap[];
+}
+
 // Event History types for archiving past events
 export interface EventHistoryAsset {
   id: string;
@@ -164,17 +206,21 @@ export type EventSectionId =
   | 'eventschedule'     // Agenda/schedule
   | 'eventspeakers'     // Speaker info
   | 'eventsponsors'     // Sponsor tiers
-  | 'eventhistory';     // Past events archive
+  | 'eventhistory'      // Past events archive
+  | 'eventvideos'       // Event videos & promos
+  | 'eventlocation';    // Venue & location info
 
 // Default Event Section Order
 export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'hero',
   'eventdetails',
   'tagline',
+  'eventlocation',
   'eventlogos',
   'eventsignage',
   'eventbanners',
   'eventdigital',
+  'eventvideos',
   'colors',
   'gradients',
   'typography',
@@ -220,6 +266,8 @@ export interface EventGuide {
   eventSpeakers: EventSpeaker[];
   eventSponsors: EventSponsor[];
   eventHistory: EventHistoryEntry[];
+  eventVideos: EventVideo[];
+  eventLocation: EventLocation;
   
   // Visual identity (reused from brand)
   logos: BrandLogo[];
@@ -305,6 +353,14 @@ export const createDefaultEventGuideData = (name: string): Omit<EventGuide, 'id'
   eventSpeakers: [],
   eventSponsors: [],
   eventHistory: [],
+  eventVideos: [],
+  eventLocation: {
+    venueName: '',
+    address: '',
+    city: '',
+    country: '',
+    venueMaps: [],
+  },
   
   // Visual
   logos: [],
