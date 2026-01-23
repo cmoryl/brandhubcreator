@@ -1,9 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { ArrowLeft, Lock } from 'lucide-react';
+import { ArrowLeft, Lock, Building2, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 
@@ -249,9 +250,20 @@ export default function DemoBrandPreview() {
         </div>
       </header>
 
+      {/* Breadcrumbs */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <AppBreadcrumbs
+          items={[
+            { label: 'Demo Guides', icon: Star, href: '/' },
+          ]}
+          currentPage={brand.name}
+          currentIcon={Building2}
+        />
+      </div>
+
       {/* Hero Section */}
       <section 
-        className="relative py-20 overflow-hidden"
+        className="relative py-12 sm:py-20 overflow-hidden"
         style={{ 
           background: `linear-gradient(135deg, ${primaryColor}15, ${secondaryColor}15)` 
         }}

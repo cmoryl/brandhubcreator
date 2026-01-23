@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowRight, Globe, Lock, Building2, ArrowLeft, Search, Package } from 'lucide-react';
+import { ArrowRight, Globe, Lock, Building2, ArrowLeft, Search, Package, Home } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { HeroBackground } from '@/components/HeroBackground';
+import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useSEO } from '@/hooks/useSEO';
@@ -547,8 +548,17 @@ const OrganizationPortal = () => {
           </div>
         </header>
 
+        {/* Breadcrumbs */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <AppBreadcrumbs
+            items={[]}
+            currentPage={organization.name}
+            currentIcon={Building2}
+          />
+        </div>
+
         {/* Hero Content - Mobile optimized */}
-        <div className={`relative z-10 ${heroFullWidth ? 'px-4 sm:px-6 lg:px-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} pt-8 sm:pt-12 pb-16 sm:pb-24`}>
+        <div className={`relative z-10 ${heroFullWidth ? 'px-4 sm:px-6 lg:px-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} pt-4 sm:pt-8 pb-16 sm:pb-24`}>
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-4 sm:mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <div 

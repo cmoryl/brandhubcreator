@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, BookOpen, HelpCircle, Lightbulb, Search, CreditCard, Plug, Users, Globe, Shield, Play, Video, X } from "lucide-react";
+import { ArrowLeft, BookOpen, HelpCircle, Lightbulb, Search, CreditCard, Plug, Users, Globe, Shield, Play, Video, X, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
+import { AppBreadcrumbs } from "@/components/AppBreadcrumbs";
 import {
   Accordion,
   AccordionContent,
@@ -276,8 +277,17 @@ const KnowledgeBase = () => {
         </div>
       </header>
 
+      {/* Breadcrumbs */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-4">
+        <AppBreadcrumbs
+          items={[]}
+          currentPage="Knowledge Base"
+          currentIcon={HelpCircle}
+        />
+      </div>
+
       {/* Hero */}
-      <section className="py-10 sm:py-16 px-4 sm:px-6 text-center border-b border-border/30">
+      <section className="py-6 sm:py-12 px-4 sm:px-6 text-center border-b border-border/30">
         <div className="max-w-2xl mx-auto space-y-4">
           <div className="p-3 bg-accent/10 rounded-2xl w-fit mx-auto">
             <HelpCircle className="h-6 w-6 sm:h-8 sm:w-8 text-accent" />
