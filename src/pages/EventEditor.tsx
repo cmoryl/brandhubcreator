@@ -323,40 +323,43 @@ const EventEditor = () => {
   };
 
   const renderSection = () => {
+    // Helper to conditionally create change handler
+    const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
+    
     switch (activeSection) {
       case 'hero': 
-        return <HeroSection hero={event.hero} onHeroChange={(hero) => updateEvent({ hero })} />;
+        return <HeroSection hero={event.hero} onHeroChange={editHandler((hero) => updateEvent({ hero }))} />;
       case 'eventdetails':
         return <EventDetailsSection eventDetails={event.eventDetails} onUpdate={(eventDetails) => updateEvent({ eventDetails: { ...event.eventDetails, ...eventDetails } })} isEditable={canEdit || false} />;
       case 'tagline': 
-        return <TaglineSection tagline={event.tagline} onTaglineChange={(tagline) => updateEvent({ tagline })} />;
+        return <TaglineSection tagline={event.tagline} onTaglineChange={editHandler((tagline) => updateEvent({ tagline }))} />;
       case 'eventwebsites':
         return <EventWebsiteSection websites={event.websites || []} onWebsitesChange={(websites) => updateEvent({ websites })} isEditable={canEdit || false} />;
       case 'eventlogos':
         return <EventLogosSection logos={event.eventLogos} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} />;
       case 'eventsignage':
-        return <EventSignageSection signage={event.eventSignage} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={(layout) => handleSectionLayoutChange('eventsignage', layout)} />;
+        return <EventSignageSection signage={event.eventSignage} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('eventsignage', layout) : undefined} />;
       case 'eventbanners':
         return <EventBannersSection banners={event.eventBanners} onUpdate={(eventBanners) => updateEvent({ eventBanners })} isEditable={canEdit || false} />;
       case 'eventdigital':
         return <EventDigitalSection materials={event.eventDigitalMaterials} onUpdate={(eventDigitalMaterials) => updateEvent({ eventDigitalMaterials })} isEditable={canEdit || false} />;
       case 'colors': 
-        return <ColorPaletteSection colors={event.colors} onColorsChange={(colors) => updateEvent({ colors })} colorCombinations={event.colorCombinations} onColorCombinationsChange={(colorCombinations) => updateEvent({ colorCombinations })} brandName={event.hero.name} />;
+        return <ColorPaletteSection colors={event.colors} onColorsChange={editHandler((colors) => updateEvent({ colors }))} colorCombinations={event.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateEvent({ colorCombinations }))} brandName={event.hero.name} />;
       case 'gradients': 
-        return <GradientsSection gradients={event.gradients} onGradientsChange={(gradients) => updateEvent({ gradients })} />;
+        return <GradientsSection gradients={event.gradients} onGradientsChange={editHandler((gradients) => updateEvent({ gradients }))} />;
       case 'typography': 
-        return <TypographySection typography={event.typography} onTypographyChange={(typography) => updateEvent({ typography })} />;
+        return <TypographySection typography={event.typography} onTypographyChange={editHandler((typography) => updateEvent({ typography }))} />;
       case 'imagery': 
-        return <ImagerySection imagery={event.imagery} onImageryChange={(imagery) => updateEvent({ imagery })} />;
+        return <ImagerySection imagery={event.imagery} onImageryChange={editHandler((imagery) => updateEvent({ imagery }))} />;
       case 'social': 
-        return <SocialSection social={event.social} onSocialChange={(social) => updateEvent({ social })} />;
+        return <SocialSection social={event.social} onSocialChange={editHandler((social) => updateEvent({ social }))} />;
       case 'socialassets': 
         return (
           <SocialAssetsSection
             socialAssets={event.socialAssets || []}
-            onSocialAssetsChange={(socialAssets) => updateEvent({ socialAssets })}
+            onSocialAssetsChange={editHandler((socialAssets) => updateEvent({ socialAssets }))}
             displayBanners={event.displayBanners || []}
-            onDisplayBannersChange={(displayBanners) => updateEvent({ displayBanners })}
+            onDisplayBannersChange={editHandler((displayBanners) => updateEvent({ displayBanners }))}
           />
         );
       case 'eventsponsors':
@@ -395,17 +398,17 @@ const EventEditor = () => {
           />
         );
       case 'assets': 
-        return <AssetsSection assets={event.assets} onAssetsChange={(assets) => updateEvent({ assets })} />;
+        return <AssetsSection assets={event.assets} onAssetsChange={editHandler((assets) => updateEvent({ assets }))} />;
       case 'misuse':
-        return <MisuseSection misuse={event.misuse} onMisuseChange={(misuse) => updateEvent({ misuse })} />;
+        return <MisuseSection misuse={event.misuse} onMisuseChange={editHandler((misuse) => updateEvent({ misuse }))} />;
       case 'casestudies':
-        return <CaseStudiesSection caseStudies={event.caseStudies || []} onCaseStudiesChange={(caseStudies) => updateEvent({ caseStudies })} layout={getSectionLayout('casestudies')} onLayoutChange={(layout) => handleSectionLayoutChange('casestudies', layout)} />;
+        return <CaseStudiesSection caseStudies={event.caseStudies || []} onCaseStudiesChange={editHandler((caseStudies) => updateEvent({ caseStudies }))} layout={getSectionLayout('casestudies')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('casestudies', layout) : undefined} />;
       case 'templates':
-        return <TemplatesSection templates={event.templates || []} onTemplatesChange={(templates) => updateEvent({ templates })} layout={getSectionLayout('templates')} onLayoutChange={(layout) => handleSectionLayoutChange('templates', layout)} />;
+        return <TemplatesSection templates={event.templates || []} onTemplatesChange={editHandler((templates) => updateEvent({ templates }))} layout={getSectionLayout('templates')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('templates', layout) : undefined} />;
       case 'brochures':
-        return <BrochuresSection brochures={event.brochures || []} onBrochuresChange={(brochures) => updateEvent({ brochures })} layout={getSectionLayout('brochures')} onLayoutChange={(layout) => handleSectionLayoutChange('brochures', layout)} />;
+        return <BrochuresSection brochures={event.brochures || []} onBrochuresChange={editHandler((brochures) => updateEvent({ brochures }))} layout={getSectionLayout('brochures')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('brochures', layout) : undefined} />;
       case 'templatespecs':
-        return <TemplateSpecsSection templateSpecs={event.templateSpecs || []} onTemplateSpecsChange={(templateSpecs) => updateEvent({ templateSpecs })} />;
+        return <TemplateSpecsSection templateSpecs={event.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateEvent({ templateSpecs }))} />;
       default:
         return (
           <div className="text-center py-12">
@@ -417,19 +420,22 @@ const EventEditor = () => {
 
   // Render section by ID (for full page view)
   const renderSectionById = useCallback((sectionId: EventSectionId) => {
+    // Helper to conditionally create change handler
+    const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
+    
     switch (sectionId) {
       case 'hero': 
-        return <HeroSection hero={event.hero} onHeroChange={(hero) => updateEvent({ hero })} />;
+        return <HeroSection hero={event.hero} onHeroChange={editHandler((hero) => updateEvent({ hero }))} />;
       case 'eventdetails':
         return <EventDetailsSection eventDetails={event.eventDetails} onUpdate={(eventDetails) => updateEvent({ eventDetails: { ...event.eventDetails, ...eventDetails } })} isEditable={canEdit || false} />;
       case 'tagline': 
-        return <TaglineSection tagline={event.tagline} onTaglineChange={(tagline) => updateEvent({ tagline })} />;
+        return <TaglineSection tagline={event.tagline} onTaglineChange={editHandler((tagline) => updateEvent({ tagline }))} />;
       case 'eventwebsites':
         return <EventWebsiteSection websites={event.websites || []} onWebsitesChange={(websites) => updateEvent({ websites })} isEditable={canEdit || false} />;
       case 'eventlogos':
         return <EventLogosSection logos={event.eventLogos || []} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} />;
       case 'eventsignage':
-        return <EventSignageSection signage={event.eventSignage || []} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={(layout) => handleSectionLayoutChange('eventsignage', layout)} />;
+        return <EventSignageSection signage={event.eventSignage || []} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('eventsignage', layout) : undefined} />;
       case 'eventbanners':
         return <EventBannersSection banners={event.eventBanners || []} onUpdate={(eventBanners) => updateEvent({ eventBanners })} isEditable={canEdit || false} />;
       case 'eventdigital':
@@ -439,17 +445,17 @@ const EventEditor = () => {
       case 'eventlocation':
         return <EventLocationSection location={event.eventLocation || { venueName: '', address: '', city: '', country: '', venueMaps: [] }} onUpdate={(eventLocation) => updateEvent({ eventLocation })} isEditable={canEdit || false} />;
       case 'colors': 
-        return <ColorPaletteSection colors={event.colors} onColorsChange={(colors) => updateEvent({ colors })} colorCombinations={event.colorCombinations} onColorCombinationsChange={(colorCombinations) => updateEvent({ colorCombinations })} brandName={event.hero.name} />;
+        return <ColorPaletteSection colors={event.colors} onColorsChange={editHandler((colors) => updateEvent({ colors }))} colorCombinations={event.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateEvent({ colorCombinations }))} brandName={event.hero.name} />;
       case 'gradients': 
-        return <GradientsSection gradients={event.gradients} onGradientsChange={(gradients) => updateEvent({ gradients })} />;
+        return <GradientsSection gradients={event.gradients} onGradientsChange={editHandler((gradients) => updateEvent({ gradients }))} />;
       case 'typography': 
-        return <TypographySection typography={event.typography} onTypographyChange={(typography) => updateEvent({ typography })} />;
+        return <TypographySection typography={event.typography} onTypographyChange={editHandler((typography) => updateEvent({ typography }))} />;
       case 'imagery': 
-        return <ImagerySection imagery={event.imagery} onImageryChange={(imagery) => updateEvent({ imagery })} />;
+        return <ImagerySection imagery={event.imagery} onImageryChange={editHandler((imagery) => updateEvent({ imagery }))} />;
       case 'social': 
-        return <SocialSection social={event.social} onSocialChange={(social) => updateEvent({ social })} />;
+        return <SocialSection social={event.social} onSocialChange={editHandler((social) => updateEvent({ social }))} />;
       case 'socialassets': 
-        return <SocialAssetsSection socialAssets={event.socialAssets || []} onSocialAssetsChange={(socialAssets) => updateEvent({ socialAssets })} displayBanners={event.displayBanners || []} onDisplayBannersChange={(displayBanners) => updateEvent({ displayBanners })} />;
+        return <SocialAssetsSection socialAssets={event.socialAssets || []} onSocialAssetsChange={editHandler((socialAssets) => updateEvent({ socialAssets }))} displayBanners={event.displayBanners || []} onDisplayBannersChange={editHandler((displayBanners) => updateEvent({ displayBanners }))} />;
       case 'eventsponsors':
         return <EventSponsorsSection sponsors={event.eventSponsors || []} onUpdate={(eventSponsors) => updateEvent({ eventSponsors })} isEditable={canEdit || false} />;
       case 'eventschedule':
@@ -457,21 +463,21 @@ const EventEditor = () => {
       case 'eventhistory':
         return <EventHistorySection history={event.eventHistory || []} onUpdate={(eventHistory) => updateEvent({ eventHistory })} isEditable={canEdit || false} />;
       case 'assets': 
-        return <AssetsSection assets={event.assets} onAssetsChange={(assets) => updateEvent({ assets })} />;
+        return <AssetsSection assets={event.assets} onAssetsChange={editHandler((assets) => updateEvent({ assets }))} />;
       case 'misuse':
-        return <MisuseSection misuse={event.misuse} onMisuseChange={(misuse) => updateEvent({ misuse })} />;
+        return <MisuseSection misuse={event.misuse} onMisuseChange={editHandler((misuse) => updateEvent({ misuse }))} />;
       case 'casestudies':
-        return <CaseStudiesSection caseStudies={event.caseStudies || []} onCaseStudiesChange={(caseStudies) => updateEvent({ caseStudies })} layout={getSectionLayout('casestudies')} onLayoutChange={(layout) => handleSectionLayoutChange('casestudies', layout)} />;
+        return <CaseStudiesSection caseStudies={event.caseStudies || []} onCaseStudiesChange={editHandler((caseStudies) => updateEvent({ caseStudies }))} layout={getSectionLayout('casestudies')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('casestudies', layout) : undefined} />;
       case 'templates':
-        return <TemplatesSection templates={event.templates || []} onTemplatesChange={(templates) => updateEvent({ templates })} layout={getSectionLayout('templates')} onLayoutChange={(layout) => handleSectionLayoutChange('templates', layout)} />;
+        return <TemplatesSection templates={event.templates || []} onTemplatesChange={editHandler((templates) => updateEvent({ templates }))} layout={getSectionLayout('templates')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('templates', layout) : undefined} />;
       case 'brochures':
-        return <BrochuresSection brochures={event.brochures || []} onBrochuresChange={(brochures) => updateEvent({ brochures })} layout={getSectionLayout('brochures')} onLayoutChange={(layout) => handleSectionLayoutChange('brochures', layout)} />;
+        return <BrochuresSection brochures={event.brochures || []} onBrochuresChange={editHandler((brochures) => updateEvent({ brochures }))} layout={getSectionLayout('brochures')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('brochures', layout) : undefined} />;
       case 'templatespecs':
-        return <TemplateSpecsSection templateSpecs={event.templateSpecs || []} onTemplateSpecsChange={(templateSpecs) => updateEvent({ templateSpecs })} />;
+        return <TemplateSpecsSection templateSpecs={event.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateEvent({ templateSpecs }))} />;
       default:
         return null;
     }
-  }, [event, canEdit, updateEvent]);
+  }, [event, canEdit, updateEvent, getSectionLayout, handleSectionLayoutChange]);
 
   // Render all sections for full page view
   const renderFullPage = () => {
@@ -545,7 +551,7 @@ const EventEditor = () => {
                 </Sheet>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+                    <Button variant="ghost" size="icon" onClick={() => navigate(organization ? `/org/${organization.slug}` : '/')}>
                       <ArrowLeft className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>

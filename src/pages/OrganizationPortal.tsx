@@ -711,15 +711,15 @@ const OrganizationPortal = () => {
               <span className="font-semibold text-lg sm:text-2xl text-foreground truncate">{organization.name}</span>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-              {user && (
+              {user && organization && (
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => navigate('/')}
+                  onClick={() => navigate(`/org/${organization.slug}`)}
                   className="gap-1.5 sm:gap-2 h-9 sm:h-8 px-2 sm:px-3 touch-manipulation"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  <span className="hidden sm:inline">Back to Dashboard</span>
+                  <span className="hidden sm:inline">Dashboard</span>
                 </Button>
               )}
               <Badge variant="outline" className="gap-1 hidden sm:flex">

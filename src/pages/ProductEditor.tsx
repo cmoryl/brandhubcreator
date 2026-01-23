@@ -428,7 +428,7 @@ const ProductEditor = () => {
                     </Button>
                   </SheetTrigger>
                 </Sheet>
-                <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+                <Button variant="ghost" size="icon" onClick={() => navigate(organization ? `/org/${organization.slug}` : '/')}>
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div className="flex items-center gap-2">
@@ -474,8 +474,8 @@ const ProductEditor = () => {
                   canEdit={!!user && isAdmin}
                   organizationSlug={organization?.slug}
                 />
-                {!!user && isAdmin && <BrandAuditButton brand={currentProduct} />}
-                {!!user && (
+                {isGuideAdmin && <BrandAuditButton brand={currentProduct} />}
+                {isGuideAdmin && (
                   <Sheet open={intelligenceOpen} onOpenChange={setIntelligenceOpen}>
                     <SheetTrigger asChild>
                       <Button variant="ghost" size="icon" className="relative">
@@ -495,7 +495,7 @@ const ProductEditor = () => {
                     </SheetContent>
                   </Sheet>
                 )}
-                {!!user && (
+                {isGuideAdmin && (
                   <BrandPageSettingsEditor 
                     settings={pageSettings} 
                     onSettingsChange={handlePageSettingsChange}
@@ -553,7 +553,8 @@ const ProductEditor = () => {
                   sectionOrder={sectionOrder}
                   hiddenSections={hiddenSections}
                   isAdmin={isGuideAdmin}
-                  onOpenIntelligence={user ? () => setIntelligenceOpen(true) : undefined}
+                  canEdit={isGuideAdmin}
+                  onOpenIntelligence={isGuideAdmin ? () => setIntelligenceOpen(true) : undefined}
                 />
               )}
             </div>
