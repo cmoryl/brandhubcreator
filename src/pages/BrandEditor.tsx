@@ -455,41 +455,44 @@ const BrandEditor = () => {
   };
 
   const renderSection = () => {
+    // Helper to conditionally create change handler - when canEdit is false, editing is disabled
+    const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
+    
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={(hero) => updateBrand({ hero })} onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined} />;
-      case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={(tagline) => updateBrand({ tagline })} />;
-      case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={(identity) => updateBrand({ identity })} />;
-      case 'values': return <ValuesSection values={brand.values} onValuesChange={(values) => updateBrand({ values })} />;
-      case 'services': return <ServicesSection services={brand.services || []} onServicesChange={(services) => updateBrand({ services })} />;
-      case 'revenue': return <RevenueChartSection revenueData={brand.revenueData} onRevenueDataChange={(revenueData) => updateBrand({ revenueData })} brandName={brand.hero.name} />;
-      case 'logos': return <LogoSection logos={brand.logos} onLogosChange={(logos) => updateBrand({ logos })} />;
-      case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={(brandIcons) => updateBrand({ brandIcons })} />;
-      case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={(colors) => updateBrand({ colors })} colorCombinations={brand.colorCombinations} onColorCombinationsChange={(colorCombinations) => updateBrand({ colorCombinations })} brandName={brand.hero.name} />;
-      case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={(gradients) => updateBrand({ gradients })} />;
-      case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={(patterns) => updateBrand({ patterns })} />;
-      case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={(typography) => updateBrand({ typography })} />;
-      case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={(textStyles) => updateBrand({ textStyles })} />;
-      case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={(iconography) => updateBrand({ iconography })} />;
-      case 'socialicons': return <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={(socialIcons) => updateBrand({ socialIcons })} />;
-      case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={(imagery) => updateBrand({ imagery })} />;
-      case 'social': return <SocialSection social={brand.social} onSocialChange={(social) => updateBrand({ social })} />;
+      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={editHandler((hero) => updateBrand({ hero }))} onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined} />;
+      case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={editHandler((tagline) => updateBrand({ tagline }))} />;
+      case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={editHandler((identity) => updateBrand({ identity }))} />;
+      case 'values': return <ValuesSection values={brand.values} onValuesChange={editHandler((values) => updateBrand({ values }))} />;
+      case 'services': return <ServicesSection services={brand.services || []} onServicesChange={editHandler((services) => updateBrand({ services }))} />;
+      case 'revenue': return <RevenueChartSection revenueData={brand.revenueData} onRevenueDataChange={editHandler((revenueData) => updateBrand({ revenueData }))} brandName={brand.hero.name} />;
+      case 'logos': return <LogoSection logos={brand.logos} onLogosChange={editHandler((logos) => updateBrand({ logos }))} />;
+      case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={editHandler((brandIcons) => updateBrand({ brandIcons }))} />;
+      case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={editHandler((colors) => updateBrand({ colors }))} colorCombinations={brand.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateBrand({ colorCombinations }))} brandName={brand.hero.name} />;
+      case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={editHandler((gradients) => updateBrand({ gradients }))} />;
+      case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={editHandler((patterns) => updateBrand({ patterns }))} />;
+      case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={editHandler((typography) => updateBrand({ typography }))} />;
+      case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={editHandler((textStyles) => updateBrand({ textStyles }))} />;
+      case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={editHandler((iconography) => updateBrand({ iconography }))} />;
+      case 'socialicons': return <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={editHandler((socialIcons) => updateBrand({ socialIcons }))} />;
+      case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={editHandler((imagery) => updateBrand({ imagery }))} />;
+      case 'social': return <SocialSection social={brand.social} onSocialChange={editHandler((social) => updateBrand({ social }))} />;
       case 'socialassets': return (
         <SocialAssetsSection
           socialAssets={brand.socialAssets || []}
-          onSocialAssetsChange={(socialAssets) => updateBrand({ socialAssets })}
+          onSocialAssetsChange={editHandler((socialAssets) => updateBrand({ socialAssets }))}
           displayBanners={brand.displayBanners || []}
-          onDisplayBannersChange={(displayBanners) => updateBrand({ displayBanners })}
+          onDisplayBannersChange={editHandler((displayBanners) => updateBrand({ displayBanners }))}
         />
       );
-      case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={(websites) => updateBrand({ websites })} />;
-      case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={(signatures) => updateBrand({ signatures })} />;
-      case 'qr': return <QRSection qr={brand.qr} onQRChange={(qr) => updateBrand({ qr })} />;
-      case 'videos': return <VideosSection videos={brand.videos} onVideosChange={(videos) => updateBrand({ videos })} />;
-      case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={(assets) => updateBrand({ assets })} />;
-      case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={(misuse) => updateBrand({ misuse })} />;
-      case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies} onCaseStudiesChange={(caseStudies) => updateBrand({ caseStudies })} />;
-      case 'brochures': return <BrochuresSection brochures={brand.brochures} onBrochuresChange={(brochures) => updateBrand({ brochures })} />;
-      case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={(templates) => updateBrand({ templates })} />;
+      case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={editHandler((websites) => updateBrand({ websites }))} />;
+      case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={editHandler((signatures) => updateBrand({ signatures }))} />;
+      case 'qr': return <QRSection qr={brand.qr} onQRChange={editHandler((qr) => updateBrand({ qr }))} />;
+      case 'videos': return <VideosSection videos={brand.videos} onVideosChange={editHandler((videos) => updateBrand({ videos }))} />;
+      case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={editHandler((assets) => updateBrand({ assets }))} />;
+      case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={editHandler((misuse) => updateBrand({ misuse }))} />;
+      case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies} onCaseStudiesChange={editHandler((caseStudies) => updateBrand({ caseStudies }))} />;
+      case 'brochures': return <BrochuresSection brochures={brand.brochures} onBrochuresChange={editHandler((brochures) => updateBrand({ brochures }))} />;
+      case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={editHandler((templates) => updateBrand({ templates }))} />;
       case 'products': return <ProductsSection brandId={brand.id} />;
       default: return null;
     }
@@ -563,11 +566,11 @@ const BrandEditor = () => {
                 </Sheet>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+                    <Button variant="ghost" size="icon" onClick={() => navigate(organization ? `/org/${organization.slug}` : '/')}>
                       <ArrowLeft className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Back to Brands</TooltipContent>
+                  <TooltipContent>Back to Dashboard</TooltipContent>
                 </Tooltip>
                 <div className="flex items-center gap-2">
                   <img 
@@ -728,6 +731,7 @@ const BrandEditor = () => {
                   sectionOrder={sectionOrder}
                   hiddenSections={hiddenSections}
                   isAdmin={isGuideAdmin}
+                  canEdit={canEdit || false}
                   heroFullWidth={pageSettings.heroFullWidth}
                   onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined}
                 />
