@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Check, X, Maximize, FileImage, Download, ExternalLink, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Check, X, Maximize, FileImage, Download, ExternalLink, Edit2, Eye } from 'lucide-react';
 import { EventSignage } from '@/types/event';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { LayoutSelector, LayoutPreset, useLayoutClasses } from '@/components/brand/LayoutSelector';
+import { PreviewDialog } from '@/components/ui/preview-dialog';
 
 interface EventSignageSectionProps {
   signage: EventSignage[];
@@ -60,12 +61,19 @@ export const EventSignageSection = ({
 }: EventSignageSectionProps) => {
   const { gridClass, cardClass, isListView } = useLayoutClasses(layout);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewItem, setPreviewItem] = useState<EventSignage | null>(null);
   const [newItem, setNewItem] = useState<Partial<EventSignage>>({
     name: '',
     type: 'booth-backdrop',
     dimensions: '',
     notes: '',
   });
+
+  const openPreview = (item: EventSignage) => {
+    setPreviewItem(item);
+    setPreviewOpen(true);
+  };
 
   const handleAdd = () => {
     if (!newItem.name || !newItem.dimensions) return;
@@ -277,11 +285,9 @@ export const EventSignageSection = ({
                       {/* Action Buttons - Always visible */}
                       <div className="flex gap-2">
                         {item.previewUrl && (
-                          <Button variant="outline" size="sm" className="flex-1" asChild>
-                            <a href={item.previewUrl} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                              Preview
-                            </a>
+                          <Button variant="outline" size="sm" className="flex-1" onClick={() => openPreview(item)}>
+                            <Eye className="h-3.5 w-3.5 mr-1.5" />
+                            Preview
                           </Button>
                         )}
                         {item.templateUrl && (
@@ -324,6 +330,16 @@ export const EventSignageSection = ({
           </div>
         </div>
       )}
+
+      {/* Preview Dialog */}
+      <PreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        title={previewItem?.name || 'Signage Preview'}
+        previewUrl={previewItem?.previewUrl}
+        externalUrl={previewItem?.previewUrl}
+        type="image"
+      />
     </section>
   );
 };

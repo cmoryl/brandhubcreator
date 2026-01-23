@@ -26,6 +26,7 @@ import { EventScheduleSection } from '@/components/event/EventScheduleSection';
 import { EventHistorySection } from '@/components/event/EventHistorySection';
 import { EventVideosSection } from '@/components/event/EventVideosSection';
 import { EventLocationSection } from '@/components/event/EventLocationSection';
+import { EventWebsiteSection } from '@/components/event/EventWebsiteSection';
 import { HeroSection } from '@/components/brand/HeroSection';
 import { TaglineSection } from '@/components/brand/TaglineSection';
 import { ColorPaletteSection } from '@/components/brand/ColorPaletteSection';
@@ -329,6 +330,8 @@ const EventEditor = () => {
         return <EventDetailsSection eventDetails={event.eventDetails} onUpdate={(eventDetails) => updateEvent({ eventDetails: { ...event.eventDetails, ...eventDetails } })} isEditable={canEdit || false} />;
       case 'tagline': 
         return <TaglineSection tagline={event.tagline} onTaglineChange={(tagline) => updateEvent({ tagline })} />;
+      case 'eventwebsites':
+        return <EventWebsiteSection websites={event.websites || []} onWebsitesChange={(websites) => updateEvent({ websites })} isEditable={canEdit || false} />;
       case 'eventlogos':
         return <EventLogosSection logos={event.eventLogos} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} />;
       case 'eventsignage':
@@ -421,6 +424,8 @@ const EventEditor = () => {
         return <EventDetailsSection eventDetails={event.eventDetails} onUpdate={(eventDetails) => updateEvent({ eventDetails: { ...event.eventDetails, ...eventDetails } })} isEditable={canEdit || false} />;
       case 'tagline': 
         return <TaglineSection tagline={event.tagline} onTaglineChange={(tagline) => updateEvent({ tagline })} />;
+      case 'eventwebsites':
+        return <EventWebsiteSection websites={event.websites || []} onWebsitesChange={(websites) => updateEvent({ websites })} isEditable={canEdit || false} />;
       case 'eventlogos':
         return <EventLogosSection logos={event.eventLogos || []} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} />;
       case 'eventsignage':
