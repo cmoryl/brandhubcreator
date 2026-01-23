@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/table';
 import { 
   RefreshCw, Search, Palette, Package, Eye, EyeOff, 
-  Building2, User, AlertTriangle, CheckCircle, ExternalLink 
+  Building2, User, AlertTriangle, ExternalLink, Calendar
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -49,9 +49,25 @@ interface InspectorProduct {
   parentBrandName: string | null;
 }
 
+interface InspectorEvent {
+  id: string;
+  name: string;
+  user_id: string;
+  organization_id: string | null;
+  parent_brand_id: string | null;
+  is_public: boolean;
+  is_favorite: boolean;
+  created_at: string;
+  updated_at: string;
+  ownerEmail: string | null;
+  organizationName: string | null;
+  parentBrandName: string | null;
+}
+
 export function DataInspector() {
   const [brands, setBrands] = useState<InspectorBrand[]>([]);
   const [products, setProducts] = useState<InspectorProduct[]>([]);
+  const [events, setEvents] = useState<InspectorEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('brands');
@@ -75,6 +91,14 @@ export function DataInspector() {
 
       if (productsError) throw productsError;
 
+      // Fetch all events
+      const { data: eventsData, error: eventsError } = await supabase
+        .from('events')
+        .select('id, name, user_id, organization_id, parent_brand_id, is_public, is_favorite, created_at, updated_at')
+        .order('updated_at', { ascending: false });
+
+      if (eventsError) throw eventsError;
+
       // Fetch profiles for email mapping
       const { data: profiles } = await supabase
         .from('profiles')
@@ -93,7 +117,7 @@ export function DataInspector() {
       const orgMap = new Map<string, string>();
       orgs?.forEach(o => orgMap.set(o.id, o.name));
 
-      // Create brand name map for products
+      // Create brand name map for products and events
       const brandNameMap = new Map<string, string>();
       brandsData?.forEach(b => brandNameMap.set(b.id, b.name));
 
@@ -112,8 +136,17 @@ export function DataInspector() {
         parentBrandName: p.parent_brand_id ? brandNameMap.get(p.parent_brand_id) || null : null,
       }));
 
+      // Enrich events data
+      const enrichedEvents: InspectorEvent[] = (eventsData || []).map(e => ({
+        ...e,
+        ownerEmail: emailMap.get(e.user_id) || null,
+        organizationName: e.organization_id ? orgMap.get(e.organization_id) || null : null,
+        parentBrandName: e.parent_brand_id ? brandNameMap.get(e.parent_brand_id) || null : null,
+      }));
+
       setBrands(enrichedBrands);
       setProducts(enrichedProducts);
+      setEvents(enrichedEvents);
       toast.success('Data refreshed');
     } catch (error) {
       console.error('Error fetching inspector data:', error);
@@ -141,6 +174,13 @@ export function DataInspector() {
     p.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const filteredEvents = events.filter(e => 
+    e.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.ownerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.organizationName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   // Stats
   const brandStats = {
     total: brands.length,
@@ -156,6 +196,13 @@ export function DataInspector() {
     orphaned: products.filter(p => !p.organization_id).length,
   };
 
+  const eventStats = {
+    total: events.length,
+    public: events.filter(e => e.is_public).length,
+    withOrg: events.filter(e => e.organization_id).length,
+    orphaned: events.filter(e => !e.organization_id).length,
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -166,7 +213,7 @@ export function DataInspector() {
               Data Inspector
             </CardTitle>
             <CardDescription>
-              Debug visibility issues by viewing all brands/products with their owners and organizations
+              Debug visibility issues by viewing all brands/products/events with their owners and organizations
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -188,7 +235,7 @@ export function DataInspector() {
       </CardHeader>
       <CardContent>
         {/* Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <div className="p-3 bg-muted/50 rounded-lg">
             <div className="flex items-center gap-2 mb-1">
               <Palette className="h-4 w-4 text-blue-500" />
@@ -211,12 +258,22 @@ export function DataInspector() {
           </div>
           <div className="p-3 bg-muted/50 rounded-lg">
             <div className="flex items-center gap-2 mb-1">
-              <Building2 className="h-4 w-4 text-purple-500" />
+              <Calendar className="h-4 w-4 text-purple-500" />
+              <span className="text-sm font-medium">Events</span>
+            </div>
+            <div className="text-2xl font-bold">{eventStats.total}</div>
+            <div className="text-xs text-muted-foreground">
+              {eventStats.public} public · {eventStats.orphaned} personal
+            </div>
+          </div>
+          <div className="p-3 bg-muted/50 rounded-lg">
+            <div className="flex items-center gap-2 mb-1">
+              <Building2 className="h-4 w-4 text-indigo-500" />
               <span className="text-sm font-medium">Org-Scoped</span>
             </div>
-            <div className="text-2xl font-bold">{brandStats.withOrg + productStats.withOrg}</div>
+            <div className="text-2xl font-bold">{brandStats.withOrg + productStats.withOrg + eventStats.withOrg}</div>
             <div className="text-xs text-muted-foreground">
-              {brandStats.withOrg} brands · {productStats.withOrg} products
+              {brandStats.withOrg}b · {productStats.withOrg}p · {eventStats.withOrg}e
             </div>
           </div>
           <div className="p-3 bg-amber-500/10 rounded-lg">
@@ -224,7 +281,7 @@ export function DataInspector() {
               <User className="h-4 w-4 text-amber-500" />
               <span className="text-sm font-medium">Personal (No Org)</span>
             </div>
-            <div className="text-2xl font-bold">{brandStats.orphaned + productStats.orphaned}</div>
+            <div className="text-2xl font-bold">{brandStats.orphaned + productStats.orphaned + eventStats.orphaned}</div>
             <div className="text-xs text-muted-foreground">
               May have RLS visibility issues
             </div>
@@ -240,6 +297,10 @@ export function DataInspector() {
             <TabsTrigger value="products" className="gap-2">
               <Package className="h-4 w-4" />
               Products ({filteredProducts.length})
+            </TabsTrigger>
+            <TabsTrigger value="events" className="gap-2">
+              <Calendar className="h-4 w-4" />
+              Events ({filteredEvents.length})
             </TabsTrigger>
           </TabsList>
 
@@ -403,6 +464,91 @@ export function DataInspector() {
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                         No products found matching your search
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="events">
+            <ScrollArea className="h-[500px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Owner</TableHead>
+                    <TableHead>Organization</TableHead>
+                    <TableHead>Parent Brand</TableHead>
+                    <TableHead>Visibility</TableHead>
+                    <TableHead>Updated</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredEvents.map((event) => (
+                    <TableRow key={event.id}>
+                      <TableCell className="font-medium">{event.name}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          <User className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-sm truncate max-w-[150px]" title={event.ownerEmail || event.user_id}>
+                            {event.ownerEmail || event.user_id.slice(0, 8) + '...'}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {event.organizationName ? (
+                          <Badge variant="outline" className="gap-1">
+                            <Building2 className="h-3 w-3" />
+                            {event.organizationName}
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="gap-1 bg-amber-500/10 text-amber-600">
+                            <User className="h-3 w-3" />
+                            Personal
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {event.parentBrandName ? (
+                          <span className="text-sm">{event.parentBrandName}</span>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {event.is_public ? (
+                          <Badge className="gap-1 bg-green-500/10 text-green-600 border-green-500/20">
+                            <Eye className="h-3 w-3" />
+                            Public
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="gap-1">
+                            <EyeOff className="h-3 w-3" />
+                            Private
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {format(new Date(event.updated_at), 'MMM d, h:mm a')}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => window.open(`/event/${event.id}`, '_blank')}
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {filteredEvents.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        No events found matching your search
                       </TableCell>
                     </TableRow>
                   )}
