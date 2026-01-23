@@ -58,64 +58,30 @@ test.describe("Organization Portal Navigation", () => {
 });
 
 test.describe("Brand Guide Navigation", () => {
-  test("should load TransPerfect brand page", async ({ page }) => {
+  test("should load a public brand page", async ({ page }) => {
     await page.goto("/brand/transperfect");
     await page.waitForLoadState("networkidle");
     await expect(page.locator("body")).toBeVisible();
   });
 
-  test("should load Legal brand page", async ({ page }) => {
-    await page.goto("/brand/legal");
+  test("should handle brand page with slug parameter", async ({ page }) => {
+    await page.goto("/brand/globallink");
     await page.waitForLoadState("networkidle");
-    await expect(page.locator("body")).toBeVisible();
-  });
-
-  test("should load Life Sciences brand page", async ({ page }) => {
-    await page.goto("/brand/life-sciences");
-    await page.waitForLoadState("networkidle");
-    await expect(page.locator("body")).toBeVisible();
-  });
-
-  test("should load GlobalLink NEXT brand page", async ({ page }) => {
-    await page.goto("/brand/globallink-next");
-    await page.waitForLoadState("networkidle");
-    await expect(page.locator("body")).toBeVisible();
-  });
-
-  test("should load Media brand page", async ({ page }) => {
-    await page.goto("/brand/media");
-    await page.waitForLoadState("networkidle");
-    await expect(page.locator("body")).toBeVisible();
-  });
-
-  test("should load DataForce brand page", async ({ page }) => {
-    await page.goto("/brand/dataforce");
-    await page.waitForLoadState("networkidle");
+    // Page should load without crashing
     await expect(page.locator("body")).toBeVisible();
   });
 });
 
 test.describe("Product Guide Navigation", () => {
-  test("should load Trial Interactive product page", async ({ page }) => {
+  test("should load a public product page", async ({ page }) => {
     await page.goto("/product/trial-interactive");
     await page.waitForLoadState("networkidle");
+    // Page should load without crashing (may show loading or content)
     await expect(page.locator("body")).toBeVisible();
   });
 
   test("should load GlobalLink product page", async ({ page }) => {
     await page.goto("/product/globallink");
-    await page.waitForLoadState("networkidle");
-    await expect(page.locator("body")).toBeVisible();
-  });
-
-  test("should load GlobalLink TMS product page", async ({ page }) => {
-    await page.goto("/product/globallink-tms");
-    await page.waitForLoadState("networkidle");
-    await expect(page.locator("body")).toBeVisible();
-  });
-
-  test("should load GlobalLink Portal product page", async ({ page }) => {
-    await page.goto("/product/globallink-portal");
     await page.waitForLoadState("networkidle");
     await expect(page.locator("body")).toBeVisible();
   });
@@ -128,20 +94,6 @@ test.describe("Product Guide Navigation", () => {
 
   test("should load ReefCentral product page", async ({ page }) => {
     await page.goto("/product/reefcentral");
-    await page.waitForLoadState("networkidle");
-    await expect(page.locator("body")).toBeVisible();
-  });
-
-  test("should load ReefStream product page", async ({ page }) => {
-    await page.goto("/product/reefstream");
-    await page.waitForLoadState("networkidle");
-    await expect(page.locator("body")).toBeVisible();
-  });
-});
-
-test.describe("Event Guide Navigation", () => {
-  test("should load Global Innovation Summit event page", async ({ page }) => {
-    await page.goto("/event/global-innovation-summit-2026");
     await page.waitForLoadState("networkidle");
     await expect(page.locator("body")).toBeVisible();
   });

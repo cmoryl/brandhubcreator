@@ -144,9 +144,8 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     socialIcons: asArray(guideData.socialIcons, []) as BrandGuide['socialIcons'],
     imagery: asArray(guideData.imagery, []) as BrandGuide['imagery'],
     social: asArray(guideData.social, []) as BrandGuide['social'],
-    // If these are missing in legacy guides, fall back to defaults so guides don't appear empty.
-    socialAssets: asArray(guideData.socialAssets, DEFAULT_SOCIAL_ASSETS) as BrandGuide['socialAssets'],
-    displayBanners: asArray(guideData.displayBanners, DEFAULT_DISPLAY_BANNERS) as BrandGuide['displayBanners'],
+    socialAssets: asArray(guideData.socialAssets, []) as BrandGuide['socialAssets'],
+    displayBanners: asArray(guideData.displayBanners, []) as BrandGuide['displayBanners'],
     websites: asArray(guideData.websites, []) as BrandGuide['websites'],
     signatures: asArray(guideData.signatures, []) as BrandGuide['signatures'],
     emailBanners: asArray(guideData.emailBanners, []) as BrandGuide['emailBanners'],
@@ -160,7 +159,7 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     templates: asArray(guideData.templates, []) as BrandGuide['templates'],
     services: asArray(guideData.services, []) as BrandGuide['services'],
     linkedGuides: asArray(guideData.linkedGuides, []) as BrandGuide['linkedGuides'],
-    templateSpecs: asArray(guideData.templateSpecs, DEFAULT_TEMPLATE_SPECS) as BrandGuide['templateSpecs'],
+    templateSpecs: asArray(guideData.templateSpecs, []) as BrandGuide['templateSpecs'],
     revenueData: asArray(guideData.revenueData, []) as BrandGuide['revenueData'],
     statistics: asArray(guideData.statistics, []) as BrandGuide['statistics'],
     infographicLayout: (guideData.infographicLayout as BrandGuide['infographicLayout']) || 'infographic',
@@ -201,8 +200,8 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
     socialIcons: asArray(guideData.socialIcons, []) as ProductGuide['socialIcons'],
     imagery: asArray(guideData.imagery, []) as ProductGuide['imagery'],
     social: asArray(guideData.social, []) as ProductGuide['social'],
-    socialAssets: asArray(guideData.socialAssets, DEFAULT_SOCIAL_ASSETS) as ProductGuide['socialAssets'],
-    displayBanners: asArray(guideData.displayBanners, DEFAULT_DISPLAY_BANNERS) as ProductGuide['displayBanners'],
+    socialAssets: asArray(guideData.socialAssets, []) as ProductGuide['socialAssets'],
+    displayBanners: asArray(guideData.displayBanners, []) as ProductGuide['displayBanners'],
     websites: asArray(guideData.websites, []) as ProductGuide['websites'],
     signatures: asArray(guideData.signatures, []) as ProductGuide['signatures'],
     emailBanners: asArray(guideData.emailBanners, []) as ProductGuide['emailBanners'],
@@ -216,7 +215,7 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
     templates: asArray(guideData.templates, []) as ProductGuide['templates'],
     services: asArray(guideData.services, []) as ProductGuide['services'],
     linkedGuides: asArray(guideData.linkedGuides, []) as ProductGuide['linkedGuides'],
-    templateSpecs: asArray(guideData.templateSpecs, DEFAULT_TEMPLATE_SPECS) as ProductGuide['templateSpecs'],
+    templateSpecs: asArray(guideData.templateSpecs, []) as ProductGuide['templateSpecs'],
     revenueData: asArray(guideData.revenueData, []) as ProductGuide['revenueData'],
     statistics: asArray(guideData.statistics, []) as ProductGuide['statistics'],
     infographicLayout: (guideData.infographicLayout as ProductGuide['infographicLayout']) || 'infographic',
@@ -266,9 +265,7 @@ export const useBrandStorage = () => {
 
   // Lightweight local cache to keep the UI usable during temporary backend/network issues.
   // NOTE: This is not a source of truth; it only helps with resilience.
-  // Bump cache version whenever we change guide normalization or syncing logic.
-  // This prevents stale cached guides from overwriting newer backend data.
-  const CACHE_KEY = 'brandhub_guides_cache_v2';
+  const CACHE_KEY = 'brandhub_guides_cache_v1';
   const saveCache = useCallback((nextBrands: BrandGuide[], nextProducts: ProductGuide[]) => {
     try {
       const payload = {
@@ -917,15 +914,8 @@ export const useBrandStorage = () => {
           const latestBrand = brandsRef.current.find(b => b.id === id);
           const finalUpdates = pendingBrandUpdates.current.get(id) || {};
           
-          // CRITICAL SAFETY: Never PATCH a brand if we don't have a full base object.
-          // Otherwise defaults (e.g. name='My Brand', isPublic=false) can overwrite backend data.
-          const baseData = latestBrand || currentBrand;
-          if (!baseData) {
-            console.warn('[SYNC] updateBrand: Skipping sync because base brand is missing (prevents overwrites):', id);
-            brandSyncTimeouts.current.delete(id);
-            return;
-          }
-
+          // Even if brand not in local state, sync using pending updates with a base object
+          const baseData = latestBrand || currentBrand || { id } as BrandGuide;
           const merged = { ...baseData, ...finalUpdates };
           syncBrandToDb(id, merged as BrandGuide);
           
@@ -989,14 +979,8 @@ export const useBrandStorage = () => {
           const latestProduct = productsRef.current.find(p => p.id === id);
           const finalUpdates = pendingProductUpdates.current.get(id) || {};
           
-          // Same safety rule as brands.
-          const baseData = latestProduct || currentProduct;
-          if (!baseData) {
-            console.warn('[SYNC] updateProduct: Skipping sync because base product is missing (prevents overwrites):', id);
-            productSyncTimeouts.current.delete(id);
-            return;
-          }
-
+          // Even if product not in local state, sync using pending updates with a base object
+          const baseData = latestProduct || currentProduct || { id } as ProductGuide;
           const merged = { ...baseData, ...finalUpdates };
           syncProductToDb(id, merged as ProductGuide);
           
