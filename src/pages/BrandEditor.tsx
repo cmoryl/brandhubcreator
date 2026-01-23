@@ -84,7 +84,7 @@ const BrandEditor = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const previousThemeRef = useRef<string | undefined>(undefined);
-  const { getBrand, updateBrand: updateBrandContext, toggleFavorite, isLoading } = useBrands();
+  const { getBrand, getBrandBySlug, updateBrand: updateBrandContext, toggleFavorite, isLoading } = useBrands();
   const { user, isAdmin, isApproved, signOut, isLoading: authLoading } = useAuth();
   const { userRole: orgRole, organization } = useOrganization();
   
@@ -121,14 +121,14 @@ const BrandEditor = () => {
   
   // Try to get brand from context by ID (for UUID) or by slug
   const contextBrand = useMemo(() => {
-    if (!brandSlug) return undefined;
+    if (!effectiveBrandSlug) return undefined;
     // First try as UUID for backwards compatibility
-    if (isUUID(brandSlug)) {
-      return getBrand(brandSlug);
+    if (isUUID(effectiveBrandSlug)) {
+      return getBrand(effectiveBrandSlug);
     }
-    // Otherwise, we'll need to fetch by slug
-    return undefined;
-  }, [brandSlug, getBrand]);
+    // Try by slug using the effective (alias-resolved) slug
+    return getBrandBySlug(effectiveBrandSlug);
+  }, [effectiveBrandSlug, getBrand, getBrandBySlug]);
   
   // Fetch public brand directly if not in context
   // IMPORTANT: Don't wait for authLoading/isLoading - fetch public data immediately
