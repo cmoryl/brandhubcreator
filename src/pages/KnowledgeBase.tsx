@@ -72,6 +72,8 @@ const tutorials = [
   },
 ];
 
+import { Calendar } from 'lucide-react';
+
 const faqs = [
   {
     category: "Getting Started",
@@ -79,7 +81,7 @@ const faqs = [
     questions: [
       {
         q: "What is BrandHub?",
-        a: "BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines. Create stunning brand books with colors, typography, logos, and more."
+        a: "BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines. Create stunning brand books with colors, typography, logos, and more—plus dedicated event brand kits for conferences and summits."
       },
       {
         q: "How do I create my first brand guide?",
@@ -110,6 +112,32 @@ const faqs = [
       {
         q: "How do I reorder sections in my brand guide?",
         a: "In edit mode, use the sidebar to drag and drop sections into your preferred order. You can also hide sections you don't need."
+      }
+    ]
+  },
+  {
+    category: "Event Brand Kits",
+    icon: Calendar,
+    questions: [
+      {
+        q: "What are Event Brand Kits?",
+        a: "Event Brand Kits are specialized guidelines for conferences, summits, and corporate events. They include everything from venue signage specs to digital banners, schedules, sponsor tiers, and event history—all in one place."
+      },
+      {
+        q: "What sections are included in an Event Kit?",
+        a: "Event Kits include: Event Details (dates, venue, attendees), Schedule & Agenda, Sponsor Tiers, Signage Specs (dimensions, placement), Digital Banners (email, social, web), Event Videos, Website Links, and Event History."
+      },
+      {
+        q: "Can I export my Event Kit as a PDF?",
+        a: "Yes! Use the Export PDF button to generate a comprehensive event brief including AI-generated insights, schedules, venue information, and all branding assets."
+      },
+      {
+        q: "How do I add sponsors to my event?",
+        a: "In the Sponsors section, add sponsor logos organized by tier (Platinum, Gold, Silver, Bronze). Each sponsor can have a logo, website link, and tier designation."
+      },
+      {
+        q: "Can I link an event to a parent brand?",
+        a: "Yes! Events can be linked to parent brands, allowing them to inherit brand colors and guidelines while maintaining their own event-specific branding."
       }
     ]
   },

@@ -1,7 +1,8 @@
-// Pre-populated demo brand and product guides with sample imagery, colors, typography, and logos
+// Pre-populated demo brand, product, and event guides with sample imagery, colors, typography, and logos
 // These showcase the full capabilities of BrandHub
 
 import type { BrandGuide, ProductGuide, SectionId } from '@/types/brand';
+import type { EventGuide, EventSectionId } from '@/types/event';
 
 // Demo Brand 1: Nexus Tech - Modern Tech Company
 export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
@@ -500,9 +501,169 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
   ],
 };
 
+// Demo Event: Global Innovation Summit 2026
+export const DEMO_EVENT_SUMMIT: Omit<EventGuide, 'createdAt' | 'updatedAt'> = {
+  id: 'demo-innovation-summit',
+  type: 'event',
+  slug: 'demo-innovation-summit',
+  parentBrandId: 'demo-nexus-tech',
+  isFavorite: false,
+  isPublic: true,
+  sectionOrder: [
+    'hero', 'eventdetails', 'eventlogos', 'eventschedule', 'eventsponsors', 
+    'eventsignage', 'eventbanners', 'eventdigital', 'eventvideos', 'eventwebsites', 'eventhistory'
+  ] as EventSectionId[],
+  hiddenSections: [],
+  hero: {
+    name: 'Global Innovation Summit 2026',
+    tagline: 'Where visionaries converge to shape the future of technology',
+    coverImage: '/images/events/hero-innovation-summit.jpg',
+    logoUrl: '/images/demos/logo-nexus-tech.png',
+  },
+  tagline: {
+    primary: 'Where Innovation Meets Opportunity',
+    secondary: 'Join 5,000+ industry leaders for three days of insights and networking',
+    variations: ['Shape the Future', 'Connect. Learn. Transform.'],
+  },
+  identity: {
+    missionStatement: 'To bring together the world\'s most innovative minds to share knowledge and drive the future of technology.',
+    archetype: 'The Sage',
+    toneOfVoice: ['Inspiring', 'Professional', 'Forward-thinking'],
+  },
+  values: [
+    { id: 'v1', text: 'Innovation', description: 'Showcasing cutting-edge technology and ideas', icon: 'Lightbulb' },
+    { id: 'v2', text: 'Community', description: 'Building lasting professional connections', icon: 'Users' },
+    { id: 'v3', text: 'Excellence', description: 'World-class speakers and content', icon: 'Award' },
+  ],
+  eventDetails: {
+    eventName: 'Global Innovation Summit 2026',
+    eventDates: 'September 15-17, 2026',
+    startDate: '2026-09-15',
+    endDate: '2026-09-17',
+    location: 'San Francisco, CA',
+    venue: 'Moscone Center',
+    tagline: 'Shaping Tomorrow\'s Technology Today',
+    eventType: 'conference',
+    expectedAttendees: 5000,
+    hashtag: '#GIS2026',
+    registrationUrl: 'https://innovationsummit.nexustech.com/register',
+  },
+  eventLocation: {
+    venueName: 'Moscone Center',
+    address: '747 Howard Street',
+    city: 'San Francisco',
+    state: 'CA',
+    country: 'United States',
+    postalCode: '94103',
+    googleMapsUrl: 'https://maps.google.com/maps?q=Moscone+Center+San+Francisco',
+    nearbyHotels: 'Marriott Marquis (0.2 mi), St. Regis San Francisco (0.3 mi), W San Francisco (0.4 mi)',
+    transitInfo: 'BART Powell Street station is a 5-minute walk. Complimentary shuttle from partner hotels.',
+    parkingInfo: 'Paid parking available at 5th & Mission Garage. Valet available at venue.',
+    venueMaps: [],
+  },
+  eventLogos: [
+    { id: 'el1', name: 'Event Logo Full', url: '/images/demos/logo-nexus-tech.png', variant: 'event-primary' },
+    { id: 'el2', name: 'Event Logo Light', url: '/images/demos/logo-nexus-tech.png', variant: 'event-secondary' },
+    { id: 'el3', name: 'Date Lockup', url: '', variant: 'date-lockup' },
+  ],
+  eventSignage: [
+    { id: 'sig1', name: 'Main Stage Backdrop', type: 'stage-backdrop', dimensions: '40ft x 15ft', previewUrl: '/images/events/signage-booth-backdrop.jpg', notes: 'Full bleed event gradient with centered logo' },
+    { id: 'sig2', name: 'Registration Banner', type: 'pull-up-banner', dimensions: '8ft x 3ft', previewUrl: '/images/events/signage-pullup-banner.jpg' },
+    { id: 'sig3', name: 'Directional Signs', type: 'directional', dimensions: '24in x 36in', notes: 'Wayfinding for halls A-D' },
+  ],
+  eventBanners: [
+    { id: 'ban1', name: 'Email Header', type: 'email-header', dimensions: '600px x 200px', previewUrl: '/images/events/banner-email.jpg', platform: 'Email' },
+    { id: 'ban2', name: 'LinkedIn Event Banner', type: 'social-cover', dimensions: '1200px x 628px', previewUrl: '/images/events/banner-linkedin.jpg', platform: 'LinkedIn' },
+    { id: 'ban3', name: 'Website Hero', type: 'website-hero', dimensions: '1920px x 600px', platform: 'Web' },
+  ],
+  eventDigitalMaterials: [
+    { id: 'da1', name: 'Event Program PDF', type: 'agenda', fileType: 'pdf', description: 'Complete event schedule and speaker bios' },
+    { id: 'da2', name: 'Speaker Kit', type: 'presentation-template', fileType: 'zip', description: 'Presentation templates and guidelines' },
+    { id: 'da3', name: 'Press Release Template', type: 'other', fileType: 'docx', description: 'Media announcement template' },
+  ],
+  eventSchedule: [
+    { id: 's1', time: '9:00 AM - Day 1', title: 'Opening Keynote: The Next Decade', speaker: 'CEO Panel', location: 'Main Stage' },
+    { id: 's2', time: '11:00 AM - Day 1', title: 'AI in Enterprise', speaker: 'Dr. Sarah Chen', location: 'Hall A', track: 'AI & ML' },
+    { id: 's3', time: '12:30 PM - Day 1', title: 'Networking Lunch', location: 'Expo Hall' },
+    { id: 's4', time: '2:00 PM - Day 1', title: 'Cloud Architecture Workshop', speaker: 'Tech Team', location: 'Workshop Room 1', track: 'Cloud' },
+    { id: 's5', time: '9:00 AM - Day 2', title: 'Product Showcase', location: 'Main Stage' },
+    { id: 's6', time: '10:30 AM - Day 2', title: 'Developer Deep Dive', speaker: 'Engineering Team', location: 'Hall B', track: 'Dev' },
+    { id: 's7', time: '2:00 PM - Day 2', title: 'Partner Summit', location: 'Executive Lounge' },
+    { id: 's8', time: '7:00 PM - Day 2', title: 'Evening Gala', location: 'Grand Ballroom' },
+  ],
+  eventSpeakers: [
+    { id: 'spk1', name: 'Dr. Sarah Chen', title: 'Chief AI Officer', company: 'TechCorp Global', bio: 'Leading expert in enterprise AI implementation' },
+    { id: 'spk2', name: 'Marcus Johnson', title: 'VP of Engineering', company: 'CloudScale Inc', bio: 'Pioneer in cloud-native architecture' },
+  ],
+  eventSponsors: [
+    { id: 'sp1', name: 'TechCorp Global', tier: 'platinum', logoUrl: '/images/demos/logo-nexus-tech.png', websiteUrl: 'https://techcorp.com' },
+    { id: 'sp2', name: 'CloudScale Inc', tier: 'gold', logoUrl: '/images/demos/logo-nexus-cloud.png', websiteUrl: 'https://cloudscale.com' },
+    { id: 'sp3', name: 'DataFlow Systems', tier: 'silver', logoUrl: '/images/demos/logo-nexus-tech.png', websiteUrl: 'https://dataflow.com' },
+  ],
+  eventHistory: [
+    { id: 'eh1', year: 2025, eventName: 'Global Innovation Summit 2025', location: 'Austin, TX', venue: 'Austin Convention Center', attendees: 4200, highlights: 'First hybrid format, 50+ speakers' },
+    { id: 'eh2', year: 2024, eventName: 'Global Innovation Summit 2024', location: 'Seattle, WA', venue: 'Washington State Convention Center', attendees: 3500, highlights: 'Product launch keynote, 100+ exhibitors' },
+    { id: 'eh3', year: 2023, eventName: 'Global Innovation Summit 2023', location: 'New York, NY', venue: 'Javits Center', attendees: 2800, highlights: 'Inaugural summit, sold out in 48 hours' },
+  ],
+  eventVideos: [
+    { id: 'ev1', title: 'Event Teaser', url: 'https://youtube.com/watch?v=example', type: 'teaser', platform: 'youtube', description: '60-second event preview' },
+    { id: 'ev2', title: 'Last Year Highlights', url: 'https://youtube.com/watch?v=example2', type: 'recap', platform: 'youtube', description: '2025 Summit recap', year: 2025 },
+  ],
+  colors: [
+    { id: 'ec1', name: 'Summit Blue', hex: '#0066FF', rgb: 'rgb(0, 102, 255)', usage: 'Primary event color', role: 'primary' },
+    { id: 'ec2', name: 'Innovation Purple', hex: '#8B5CF6', rgb: 'rgb(139, 92, 246)', usage: 'Accent color for highlights', role: 'accent' },
+    { id: 'ec3', name: 'Stage Gold', hex: '#F59E0B', rgb: 'rgb(245, 158, 11)', usage: 'VIP and premium elements', role: 'secondary' },
+  ],
+  colorCombinations: [],
+  logos: [
+    { id: 'l1', name: 'Nexus Tech Logo', url: '/images/demos/logo-nexus-tech.png', variant: 'primary' },
+  ],
+  brandIcons: [],
+  gradients: [
+    { id: 'g1', name: 'Summit Gradient', css: 'linear-gradient(135deg, #0066FF 0%, #8B5CF6 100%)' },
+  ],
+  patterns: [],
+  typography: [
+    { id: 't1', name: 'Display', fontFamily: 'Inter', weight: '700', usage: 'Headlines, stage signage', role: 'display' },
+    { id: 't2', name: 'Body', fontFamily: 'Inter', weight: '400', usage: 'Body text, materials', role: 'body' },
+  ],
+  textStyles: [],
+  iconography: [],
+  socialIcons: [],
+  imagery: [],
+  social: [
+    { id: 's1', platform: 'LinkedIn', handle: '@nexustech', url: 'https://linkedin.com/company/nexustech', color: '#0A66C2' },
+    { id: 's2', platform: 'Twitter', handle: '@GIS2026', url: 'https://twitter.com/GIS2026', color: '#1DA1F2' },
+  ],
+  websites: [
+    { id: 'ew1', label: 'Event Website', url: 'https://innovationsummit.nexustech.com' },
+    { id: 'ew2', label: 'Registration Portal', url: 'https://register.innovationsummit.com' },
+  ],
+  signatures: [],
+  qr: {
+    defaultUrl: 'https://innovationsummit.nexustech.com',
+    fgColor: '#0066FF',
+    bgColor: '#FFFFFF',
+  },
+  videos: [],
+  assets: [],
+  misuse: [],
+  atmosphere: {
+    style: 'tech',
+    animate: true,
+    opacity: 0.3,
+    blur: 60,
+  },
+  caseStudies: [],
+  brochures: [],
+  templates: [],
+  services: [],
+};
+
 // All demo guides collection
 export const DEMO_BRANDS = [DEMO_BRAND_NEXUS, DEMO_BRAND_BLOOM];
 export const DEMO_PRODUCTS = [DEMO_PRODUCT_CLOUD, DEMO_PRODUCT_OILS];
+export const DEMO_EVENTS = [DEMO_EVENT_SUMMIT];
 
 // Gradient classes for display cards
 export const DEMO_GRADIENTS: Record<string, string> = {
@@ -510,6 +671,7 @@ export const DEMO_GRADIENTS: Record<string, string> = {
   'demo-bloom-wellness': 'from-green-400 via-emerald-500 to-teal-500',
   'demo-nexus-cloud': 'from-blue-400 via-teal-500 to-cyan-500',
   'demo-bloom-oils': 'from-purple-400 via-pink-400 to-amber-400',
+  'demo-innovation-summit': 'from-violet-500 via-purple-500 to-fuchsia-500',
 };
 
 // Industry labels for display
@@ -518,4 +680,5 @@ export const DEMO_INDUSTRIES: Record<string, string> = {
   'demo-bloom-wellness': 'Wellness',
   'demo-nexus-cloud': 'Cloud Platform',
   'demo-bloom-oils': 'Consumer Products',
+  'demo-innovation-summit': 'Conference',
 };

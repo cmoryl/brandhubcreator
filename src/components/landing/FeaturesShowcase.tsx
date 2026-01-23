@@ -70,6 +70,30 @@ const coreFeatures: Feature[] = [
   },
 ];
 
+// Event-specific features
+import { Calendar, MapPin, Ticket } from 'lucide-react';
+
+const eventFeatures: Feature[] = [
+  {
+    icon: Calendar,
+    title: 'Event Brand Kits',
+    description: 'Create comprehensive event brand guidelines with schedules, signage specs, and sponsor tiers.',
+    gradient: 'from-violet-500/20 to-purple-500/20',
+  },
+  {
+    icon: MapPin,
+    title: 'Venue & Signage',
+    description: 'Document signage dimensions, placement guidelines, and wayfinding specifications.',
+    gradient: 'from-rose-500/20 to-pink-500/20',
+  },
+  {
+    icon: Ticket,
+    title: 'Digital Banners',
+    description: 'Manage email headers, social media banners, and web assets with size presets.',
+    gradient: 'from-amber-500/20 to-orange-500/20',
+  },
+];
+
 const analyticsFeatures: Feature[] = [
   {
     icon: BarChart3,
@@ -179,6 +203,7 @@ export function FeaturesShowcase() {
     switch (activeTab) {
       case 'analytics': return analyticsFeatures;
       case 'admin': return adminFeatures;
+      case 'events': return eventFeatures;
       default: return coreFeatures;
     }
   };
@@ -204,19 +229,23 @@ export function FeaturesShowcase() {
 
         {/* Category Tabs */}
         <div className={`flex justify-center mb-12 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`} style={{ animationDelay: '200ms' }}>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-xl">
-            <TabsList className="grid w-full grid-cols-3 h-12">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-2xl">
+            <TabsList className="grid w-full grid-cols-4 h-12">
               <TabsTrigger value="core" className="gap-2 text-sm">
                 <Layers className="h-4 w-4" />
-                <span className="hidden sm:inline">Core</span> Features
+                <span className="hidden sm:inline">Core</span>
+              </TabsTrigger>
+              <TabsTrigger value="events" className="gap-2 text-sm">
+                <Calendar className="h-4 w-4" />
+                <span className="hidden sm:inline">Events</span>
               </TabsTrigger>
               <TabsTrigger value="analytics" className="gap-2 text-sm">
                 <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Analytics &</span> AI
+                <span className="hidden sm:inline">AI</span>
               </TabsTrigger>
               <TabsTrigger value="admin" className="gap-2 text-sm">
                 <ShieldCheck className="h-4 w-4" />
-                <span className="hidden sm:inline">Admin</span> Tools
+                <span className="hidden sm:inline">Admin</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
