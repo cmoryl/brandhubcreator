@@ -153,7 +153,7 @@ const OrganizationPortal = () => {
   // Track current fetch attempt to avoid race conditions
   const fetchIdRef = useRef(0);
 
-  const fetchPortalContent = useCallback(async (orgId: string, showPrivate: boolean = false) => {
+  const fetchPortalContent = useCallback(async (orgId: string) => {
     const contentStart = Date.now();
 
     // IMPORTANT: Avoid pulling the full JSONB `guide_data` (can be very large).
@@ -166,37 +166,27 @@ const OrganizationPortal = () => {
     const EVENT_CARD_SELECT =
       'id, name, slug, is_public, parent_brand_id, updated_at, hero:guide_data->hero, colors:guide_data->colors, eventDetails:guide_data->eventDetails';
 
-    // For authenticated org members, show ALL brands (including private)
-    // For public visitors, only show is_public=true
-    let brandsQuery = supabase
+    // Portal always shows only public brands/products/events
+    const brandsQuery = supabase
       .from('brands')
       .select(BRAND_CARD_SELECT as any)
       .eq('organization_id', orgId)
+      .eq('is_public', true)
       .order('updated_at', { ascending: false });
-    
-    if (!showPrivate) {
-      brandsQuery = brandsQuery.eq('is_public', true);
-    }
 
-    let productsQuery = supabase
+    const productsQuery = supabase
       .from('products')
       .select(PRODUCT_CARD_SELECT as any)
       .eq('organization_id', orgId)
+      .eq('is_public', true)
       .order('updated_at', { ascending: false });
-    
-    if (!showPrivate) {
-      productsQuery = productsQuery.eq('is_public', true);
-    }
 
-    let eventsQuery = supabase
+    const eventsQuery = supabase
       .from('events')
       .select(EVENT_CARD_SELECT as any)
       .eq('organization_id', orgId)
+      .eq('is_public', true)
       .order('updated_at', { ascending: false });
-    
-    if (!showPrivate) {
-      eventsQuery = eventsQuery.eq('is_public', true);
-    }
 
     const [brandsRes, productsRes, eventsRes] = (await Promise.all([
       Promise.resolve(brandsQuery),
@@ -376,9 +366,7 @@ const OrganizationPortal = () => {
 
         const orgId = orgData.id;
 
-        // Show private brands/products/events to authenticated org members
-        const showPrivate = Boolean(user && (isAdmin || userRole));
-        const content = await fetchPortalContent(orgId, showPrivate);
+        const content = await fetchPortalContent(orgId);
 
         if (cancelled || fetchIdRef.current !== fetchId) return;
 
@@ -407,22 +395,21 @@ const OrganizationPortal = () => {
     return () => {
       cancelled = true;
     };
-   }, [slug, logFetch, fetchPortalContent, user, isAdmin, userRole]);
+   }, [slug, logFetch, fetchPortalContent]);
 
   // Refetch on tab focus
   const refetch = useCallback(async () => {
     if (!slug || !organization) return;
     
     try {
-      const showPrivate = Boolean(user && (isAdmin || userRole));
-      const content = await fetchPortalContent(organization.id, showPrivate);
+      const content = await fetchPortalContent(organization.id);
       setBrands(content.brands);
       setProducts(content.products);
       setEvents(content.events);
     } catch (err) {
       console.error('Error refetching:', err);
     }
-  }, [slug, organization, fetchPortalContent, user, isAdmin, userRole]);
+  }, [slug, organization, fetchPortalContent]);
 
   // Debounced refetch on tab focus (prevents duplicate calls from focus + visibility events)
   useEffect(() => {
