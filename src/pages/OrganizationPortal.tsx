@@ -155,45 +155,70 @@ const OrganizationPortal = () => {
 
   const fetchPortalContent = useCallback(async (orgId: string) => {
     const contentStart = Date.now();
+    const FETCH_TIMEOUT = 15000; // 15 second timeout
 
     // IMPORTANT: Avoid pulling the full JSONB `guide_data` (can be very large).
     // We only need a few keys for the cards.
-    // NOTE: Selecting computed JSON-path columns can cause very deep generic instantiation
-    // in TS for PostgREST builders. We intentionally loosen types here.
     const BRAND_CARD_SELECT = 'id, name, slug, is_public, updated_at, hero:guide_data->hero, colors:guide_data->colors';
     const PRODUCT_CARD_SELECT =
       'id, name, slug, is_public, parent_brand_id, updated_at, hero:guide_data->hero, colors:guide_data->colors, linkedGuides:guide_data->linkedGuides';
     const EVENT_CARD_SELECT =
       'id, name, slug, is_public, parent_brand_id, updated_at, hero:guide_data->hero, colors:guide_data->colors, eventDetails:guide_data->eventDetails';
 
-    const brandsQuery = (supabase
-      .from('brands')
-      .select(BRAND_CARD_SELECT as any)
-      .eq('organization_id', orgId)
-      .eq('is_public', true)
-      .order('updated_at', { ascending: false }) as unknown) as PromiseLike<any>;
+    // Helper to add timeout to fetch operations
+    const withTimeout = <T,>(promise: PromiseLike<T>, label: string): Promise<T> => {
+      return Promise.race([
+        Promise.resolve(promise),
+        new Promise<T>((_, reject) => 
+          setTimeout(() => reject(new Error(`${label} timed out after ${FETCH_TIMEOUT}ms`)), FETCH_TIMEOUT)
+        )
+      ]);
+    };
 
-    const productsQuery = (supabase
-      .from('products')
-      .select(PRODUCT_CARD_SELECT as any)
-      .eq('organization_id', orgId)
-      .eq('is_public', true)
-      .order('updated_at', { ascending: false }) as unknown) as PromiseLike<any>;
+    // Create queries with proper typing
+    const brandsPromise = withTimeout(
+      supabase
+        .from('brands')
+        .select(BRAND_CARD_SELECT as any)
+        .eq('organization_id', orgId)
+        .eq('is_public', true)
+        .order('updated_at', { ascending: false }) as unknown as PromiseLike<any>,
+      'Brands fetch'
+    );
 
-    const eventsQuery = (supabase
-      .from('events')
-      .select(EVENT_CARD_SELECT as any)
-      .eq('organization_id', orgId)
-      .eq('is_public', true)
-      .order('updated_at', { ascending: false }) as unknown) as PromiseLike<any>;
+    const productsPromise = withTimeout(
+      supabase
+        .from('products')
+        .select(PRODUCT_CARD_SELECT as any)
+        .eq('organization_id', orgId)
+        .eq('is_public', true)
+        .order('updated_at', { ascending: false }) as unknown as PromiseLike<any>,
+      'Products fetch'
+    );
 
-    const [brandsRes, productsRes, eventsRes] = (await Promise.all([
-      Promise.resolve(brandsQuery),
-      Promise.resolve(productsQuery),
-      Promise.resolve(eventsQuery),
-    ])) as any;
+    const eventsPromise = withTimeout(
+      supabase
+        .from('events')
+        .select(EVENT_CARD_SELECT as any)
+        .eq('organization_id', orgId)
+        .eq('is_public', true)
+        .order('updated_at', { ascending: false }) as unknown as PromiseLike<any>,
+      'Events fetch'
+    );
+
+    // Use Promise.allSettled to handle partial failures gracefully
+    const [brandsResult, productsResult, eventsResult] = await Promise.allSettled([
+      brandsPromise,
+      productsPromise,
+      eventsPromise,
+    ]);
 
     logFetch('Content fetch', contentStart);
+
+    // Extract data from settled results, falling back to empty arrays on failure
+    const brandsRes = brandsResult.status === 'fulfilled' ? brandsResult.value : { data: [], error: brandsResult.reason };
+    const productsRes = productsResult.status === 'fulfilled' ? productsResult.value : { data: [], error: productsResult.reason };
+    const eventsRes = eventsResult.status === 'fulfilled' ? eventsResult.value : { data: [], error: eventsResult.reason };
 
     if (brandsRes.error) console.error('[PORTAL] Error fetching brands:', brandsRes.error);
     if (productsRes.error) console.error('[PORTAL] Error fetching products:', productsRes.error);
