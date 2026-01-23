@@ -49,6 +49,7 @@ import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
 import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
+import { BrandBackupManager } from '@/components/brand/BrandBackupManager';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { Button } from '@/components/ui/button';
@@ -545,6 +546,7 @@ const ProductEditor = () => {
                   />
                 )}
                 <ExportPdfButton guide={currentProduct} />
+                <BrandBackupManager guide={currentProduct} />
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
                   <Tooltip>
                     <TooltipTrigger asChild>
