@@ -21,6 +21,9 @@ import { IdentitySection } from '@/components/brand/IdentitySection';
 import { ValuesSection } from '@/components/brand/ValuesSection';
 import { ServicesSection } from '@/components/brand/ServicesSection';
 import { VideosSection } from '@/components/brand/VideosSection';
+import { RevenueChartSection } from '@/components/brand/RevenueChartSection';
+import { ByTheNumbersSection } from '@/components/brand/ByTheNumbersSection';
+import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { LogoSection } from '@/components/brand/LogoSection';
 import { BrandIconsSection } from '@/components/brand/BrandIconsSection';
 import { ColorPaletteSection } from '@/components/brand/ColorPaletteSection';
@@ -351,8 +354,9 @@ const ProductEditor = () => {
       case 'tagline': return <TaglineSection tagline={currentProduct.tagline} onTaglineChange={(tagline) => handleUpdateProduct({ tagline })} />;
       case 'identity': return <IdentitySection identity={currentProduct.identity} onIdentityChange={(identity) => handleUpdateProduct({ identity })} />;
       case 'values': return <ValuesSection values={currentProduct.values} onValuesChange={(values) => handleUpdateProduct({ values })} />;
+      case 'bythenumbers': return <ByTheNumbersSection statistics={currentProduct.statistics || []} onStatisticsChange={(statistics) => handleUpdateProduct({ statistics })} brandName={currentProduct.hero.name} infographicLayout={currentProduct.infographicLayout || 'infographic'} onLayoutChange={(infographicLayout) => handleUpdateProduct({ infographicLayout })} brandColors={currentProduct.colors || []} />;
       case 'services': return <ServicesSection services={currentProduct.services || []} onServicesChange={(services) => handleUpdateProduct({ services })} />;
-      case 'logos': return <LogoSection logos={currentProduct.logos} onLogosChange={(logos) => handleUpdateProduct({ logos })} />;
+      case 'revenue': return <RevenueChartSection revenueData={currentProduct.revenueData} onRevenueDataChange={(revenueData) => handleUpdateProduct({ revenueData })} brandName={currentProduct.hero.name} />;
       case 'brandicon': return <BrandIconsSection brandIcons={currentProduct.brandIcons} onBrandIconsChange={(brandIcons) => handleUpdateProduct({ brandIcons })} />;
       case 'colors': return <ColorPaletteSection colors={currentProduct.colors} onColorsChange={(colors) => handleUpdateProduct({ colors })} colorCombinations={currentProduct.colorCombinations} onColorCombinationsChange={(colorCombinations) => handleUpdateProduct({ colorCombinations })} brandName={currentProduct.hero.name} />;
       case 'gradients': return <GradientsSection gradients={currentProduct.gradients} onGradientsChange={(gradients) => handleUpdateProduct({ gradients })} />;
@@ -381,6 +385,7 @@ const ProductEditor = () => {
       case 'casestudies': return <CaseStudiesSection caseStudies={currentProduct.caseStudies} onCaseStudiesChange={(caseStudies) => handleUpdateProduct({ caseStudies })} />;
       case 'brochures': return <BrochuresSection brochures={currentProduct.brochures} onBrochuresChange={(brochures) => handleUpdateProduct({ brochures })} />;
       case 'templates': return <TemplatesSection templates={currentProduct.templates} onTemplatesChange={(templates) => handleUpdateProduct({ templates })} />;
+      case 'templatespecs': return <TemplateSpecsSection templateSpecs={currentProduct.templateSpecs || []} onTemplateSpecsChange={(templateSpecs) => handleUpdateProduct({ templateSpecs })} brandColors={currentProduct.colors || []} />;
       case 'products': return <ProductsSection productId={currentProduct.id} linkedGuides={currentProduct.linkedGuides || []} onLinkedGuidesChange={(linkedGuides) => handleUpdateProduct({ linkedGuides })} />;
       default: return null;
     }
