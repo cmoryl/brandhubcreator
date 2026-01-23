@@ -43,6 +43,7 @@ import { MisuseSection } from '@/components/brand/MisuseSection';
 import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
 import { BrochuresSection } from '@/components/brand/BrochuresSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
+import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { ProductsSection } from '@/components/brand/ProductsSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
@@ -194,6 +195,7 @@ const BrandEditor = () => {
             caseStudies: asArray(guideData.caseStudies, []) as BrandGuide['caseStudies'],
             brochures: asArray(guideData.brochures, []) as BrandGuide['brochures'],
             templates: asArray(guideData.templates, []) as BrandGuide['templates'],
+            templateSpecs: asArray(guideData.templateSpecs, []) as BrandGuide['templateSpecs'],
             services: asArray(guideData.services, []) as BrandGuide['services'],
             linkedGuides: asArray(guideData.linkedGuides, []) as BrandGuide['linkedGuides'],
             sectionSubtitles: asObject(guideData.sectionSubtitles, {}) as BrandGuide['sectionSubtitles'],
@@ -498,6 +500,7 @@ const BrandEditor = () => {
       case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies} onCaseStudiesChange={editHandler((caseStudies) => updateBrand({ caseStudies }))} />;
       case 'brochures': return <BrochuresSection brochures={brand.brochures} onBrochuresChange={editHandler((brochures) => updateBrand({ brochures }))} />;
       case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={editHandler((templates) => updateBrand({ templates }))} />;
+      case 'templatespecs': return <TemplateSpecsSection templateSpecs={brand.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateBrand({ templateSpecs }))} brandColors={brand.colors || []} />;
       case 'products': return <ProductsSection brandId={brand.id} />;
       default: return null;
     }
