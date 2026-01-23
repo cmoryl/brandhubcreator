@@ -8,6 +8,7 @@ import { HierarchicalProductList } from '@/components/HierarchicalProductList';
 import { useParallax } from '@/hooks/useParallax';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { useBrands } from '@/contexts/BrandContext';
+import { useEvents } from '@/contexts/EventContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
 import { useTheme } from 'next-themes';
@@ -55,6 +56,7 @@ const LearnMoreCard = lazy(() => import('@/components/landing/LearnMoreForm').th
 const BrandsIndex = () => {
   const navigate = useNavigate();
   const { brands, products, addBrand, addProduct, deleteBrand, deleteProduct, updateBrand, updateProduct, getRecentlyUpdated, toggleFavorite, getFavorites, isLoading } = useBrands();
+  const { events, isLoading: eventsLoading } = useEvents();
   const { user, isAdmin, isApproved, accessStatus, accessError, signOut, isLoading: authLoading } = useAuth();
   const { settings } = useAppSettings();
   const { resolvedTheme } = useTheme();
@@ -477,6 +479,12 @@ const BrandsIndex = () => {
                 <p className="text-2xl sm:text-3xl font-semibold text-foreground">{sortedProducts.length}</p>
                 <p className="text-xs sm:text-sm text-muted-foreground">Product Guides</p>
               </div>
+              {events.length > 0 && (
+                <div>
+                  <p className="text-2xl sm:text-3xl font-semibold text-foreground">{events.length}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Event Guides</p>
+                </div>
+              )}
               <div>
                 <p className="text-2xl sm:text-3xl font-semibold text-foreground">∞</p>
                 <p className="text-xs sm:text-sm text-muted-foreground">Possibilities</p>
