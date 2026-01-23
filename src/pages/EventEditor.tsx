@@ -5,7 +5,8 @@ import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Ca
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { EventSectionId, DEFAULT_EVENT_SECTION_ORDER, EventGuide } from '@/types/event';
-import { DEFAULT_PAGE_SETTINGS, BrandPageSettings, SectionId } from '@/types/brand';
+import { DEFAULT_PAGE_SETTINGS, BrandPageSettings, SectionId, SectionLayoutSettings } from '@/types/brand';
+import { LayoutPreset } from '@/components/brand/LayoutSelector';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { supabase } from '@/integrations/supabase/client';
@@ -201,7 +202,20 @@ const EventEditor = () => {
   
   const sectionOrder = useMemo(() => event?.sectionOrder || DEFAULT_EVENT_SECTION_ORDER, [event?.sectionOrder]);
   const hiddenSections = useMemo(() => event?.hiddenSections || [], [event?.hiddenSections]);
+  const sectionLayouts = useMemo(() => event?.sectionLayouts || {}, [event?.sectionLayouts]);
   const pageSettings = event?.pageSettings || DEFAULT_PAGE_SETTINGS;
+
+  const getSectionLayout = useCallback((sectionId: EventSectionId): LayoutPreset => {
+    return (sectionLayouts[sectionId as SectionId] as LayoutPreset) || 'grid-3';
+  }, [sectionLayouts]);
+
+  const handleSectionLayoutChange = useCallback((sectionId: EventSectionId, layout: LayoutPreset) => {
+    if (event) {
+      updateEventContext(event.id, {
+        sectionLayouts: { ...sectionLayouts, [sectionId]: layout }
+      });
+    }
+  }, [event, updateEventContext, sectionLayouts]);
 
   // SEO metadata
   useSEO({
@@ -312,7 +326,7 @@ const EventEditor = () => {
       case 'eventlogos':
         return <EventLogosSection logos={event.eventLogos} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} />;
       case 'eventsignage':
-        return <EventSignageSection signage={event.eventSignage} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} />;
+        return <EventSignageSection signage={event.eventSignage} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={(layout) => handleSectionLayoutChange('eventsignage', layout)} />;
       case 'eventbanners':
         return <EventBannersSection banners={event.eventBanners} onUpdate={(eventBanners) => updateEvent({ eventBanners })} isEditable={canEdit || false} />;
       case 'eventdigital':
@@ -396,7 +410,7 @@ const EventEditor = () => {
       case 'eventlogos':
         return <EventLogosSection logos={event.eventLogos || []} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} />;
       case 'eventsignage':
-        return <EventSignageSection signage={event.eventSignage || []} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} />;
+        return <EventSignageSection signage={event.eventSignage || []} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={(layout) => handleSectionLayoutChange('eventsignage', layout)} />;
       case 'eventbanners':
         return <EventBannersSection banners={event.eventBanners || []} onUpdate={(eventBanners) => updateEvent({ eventBanners })} isEditable={canEdit || false} />;
       case 'eventdigital':
@@ -653,7 +667,7 @@ const EventEditor = () => {
                           case 'eventlogos':
                             return <EventLogosSection logos={event.eventLogos} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} />;
                           case 'eventsignage':
-                            return <EventSignageSection signage={event.eventSignage} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} />;
+                            return <EventSignageSection signage={event.eventSignage} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={(layout) => handleSectionLayoutChange('eventsignage', layout)} />;
                           case 'eventbanners':
                             return <EventBannersSection banners={event.eventBanners} onUpdate={(eventBanners) => updateEvent({ eventBanners })} isEditable={canEdit || false} />;
                           case 'eventdigital':
