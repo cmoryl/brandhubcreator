@@ -197,12 +197,19 @@ const OrganizationPortal = () => {
       }
 
       // Skip if we've already successfully fetched for THIS slug
-      if (hasFetchedRef.current === slug && organization && brands.length > 0) {
+      // Only skip if we have both organization data AND some content (brands, products, or events)
+      const hasContent = brands.length > 0 || products.length > 0 || events.length > 0;
+      if (hasFetchedRef.current === slug && organization && hasContent) {
+        console.log('[PORTAL] Skipping fetch - already have data for slug:', slug);
         setIsLoading(false);
         return;
       }
 
-      console.log('[PORTAL] Starting fetch for slug:', slug);
+      console.log('[PORTAL] Starting fetch for slug:', slug, { 
+        hasFetchedRef: hasFetchedRef.current,
+        hasOrg: !!organization,
+        hasContent
+      });
 
       try {
         let orgId: string;
@@ -210,6 +217,7 @@ const OrganizationPortal = () => {
 
         // If user's context org matches the slug and is loaded, use it directly
         if (contextOrg && contextOrg.slug === slug && !orgContextLoading) {
+          console.log('[PORTAL] Using context org:', contextOrg.name);
           orgData = {
             id: contextOrg.id,
             name: contextOrg.name,
@@ -223,6 +231,7 @@ const OrganizationPortal = () => {
           orgId = contextOrg.id;
         } else {
           // Fetch organization by slug (required for public/different org access)
+          console.log('[PORTAL] Fetching org from DB for slug:', slug);
           const { data: fetchedOrg, error: orgError } = await supabase
             .from('organizations')
             .select('id, name, slug, logo_url, primary_color, secondary_color, accent_color, portal_settings')
@@ -232,18 +241,20 @@ const OrganizationPortal = () => {
           if (cancelled) return;
 
           if (orgError) {
-            console.error('Error fetching organization:', orgError);
+            console.error('[PORTAL] Error fetching organization:', orgError);
             setError('Unable to load organization');
             setIsLoading(false);
             return;
           }
 
           if (!fetchedOrg) {
+            console.error('[PORTAL] Organization not found for slug:', slug);
             setError('Organization not found');
             setIsLoading(false);
             return;
           }
 
+          console.log('[PORTAL] Fetched org:', fetchedOrg.name);
           orgData = {
             ...fetchedOrg,
             portal_settings: fetchedOrg.portal_settings as OrganizationPortalSettings | null,
@@ -255,6 +266,7 @@ const OrganizationPortal = () => {
         setOrganization(orgData);
 
         // Fetch brands, products, and events in PARALLEL for faster loading
+        console.log('[PORTAL] Fetching content for org:', orgId);
         const [brandsRes, productsRes, eventsRes] = await Promise.all([
           supabase
             .from('brands')
@@ -280,8 +292,11 @@ const OrganizationPortal = () => {
 
         console.log('[PORTAL] Fetched data:', {
           brands: brandsRes.data?.length || 0,
+          brandsError: brandsRes.error?.message,
           products: productsRes.data?.length || 0,
+          productsError: productsRes.error?.message,
           events: eventsRes.data?.length || 0,
+          eventsError: eventsRes.error?.message,
         });
 
         hasFetchedRef.current = slug; // Track which slug we fetched
@@ -307,7 +322,7 @@ const OrganizationPortal = () => {
         setError(null);
       } catch (err) {
         if (cancelled) return;
-        console.error('Error:', err);
+        console.error('[PORTAL] Error:', err);
         setError('Something went wrong');
       } finally {
         if (!cancelled) {
