@@ -332,14 +332,21 @@ const BrandEditor = () => {
     };
   }, [pageSettings.customPrimaryColor, pageSettings.customSecondaryColor]);
 
-  // SEO metadata for brand page
+  // SEO metadata for brand page - use slug for canonical URL (better for sharing/SEO)
+  const canonicalBrandUrl = useMemo(() => {
+    if (!brand) return undefined;
+    // Prefer slug over UUID for cleaner, more shareable URLs
+    const identifier = brand.slug || brand.id;
+    return `${window.location.origin}/brand/${identifier}`;
+  }, [brand]);
+
   useSEO({
     title: brand ? `${brand.hero.name} Brand Guidelines` : 'Brand Guidelines',
     description: brand?.hero.tagline 
       ? `${brand.hero.name} - ${brand.hero.tagline}. View the complete brand guidelines including logos, colors, typography, and more.`
       : brand ? `Complete brand guidelines for ${brand.hero.name}. Access logos, colors, typography, and visual identity standards.`
       : 'View brand guidelines',
-    canonicalUrl: brand ? `${window.location.origin}/brand/${brand.id}` : undefined,
+    canonicalUrl: canonicalBrandUrl,
     ogTitle: brand ? `${brand.hero.name} - Brand Guidelines` : undefined,
     ogDescription: brand?.hero.tagline || (brand ? `Official brand guidelines for ${brand.hero.name}` : undefined),
     ogImage: brand?.hero.coverImage || brand?.hero.logoUrl || undefined,

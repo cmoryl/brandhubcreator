@@ -245,12 +245,24 @@ const EventEditor = () => {
     }
   }, [event, updateEventContext, sectionLayouts]);
 
-  // SEO metadata
+  // SEO metadata - use slug for canonical URL (better for sharing/SEO)
+  const canonicalEventUrl = useMemo(() => {
+    if (!event) return undefined;
+    // Prefer slug over UUID for cleaner, more shareable URLs
+    const identifier = event.slug || event.id;
+    return `${window.location.origin}/event/${identifier}`;
+  }, [event]);
+
   useSEO({
     title: event ? `${event.hero.name} Event Kit` : 'Event Brand Kit',
     description: event?.eventDetails?.tagline || event?.hero.tagline 
       ? `${event?.hero.name} - ${event?.eventDetails?.tagline || event?.hero.tagline}. Complete event brand kit.`
       : 'Event brand guidelines and assets',
+    canonicalUrl: canonicalEventUrl,
+    ogTitle: event ? `${event.hero.name} - Event Kit` : undefined,
+    ogDescription: event?.eventDetails?.tagline || event?.hero.tagline || (event ? `Official event kit for ${event.hero.name}` : undefined),
+    ogImage: event?.hero.coverImage || event?.hero.logoUrl || undefined,
+    ogType: 'article',
   });
 
   const getContentWidthClass = () => {
