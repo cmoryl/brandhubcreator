@@ -91,6 +91,40 @@ interface PublicEvent {
   updated_at: string;
 }
 
+type PortalBrandRow = {
+  id: string;
+  name: string;
+  slug: string | null;
+  is_public: boolean;
+  updated_at: string;
+  hero: PublicBrand['guide_data']['hero'] | null;
+  colors: PublicBrand['guide_data']['colors'] | null;
+};
+
+type PortalProductRow = {
+  id: string;
+  name: string;
+  slug: string | null;
+  is_public: boolean;
+  parent_brand_id: string | null;
+  updated_at: string;
+  hero: PublicProduct['guide_data']['hero'] | null;
+  colors: PublicProduct['guide_data']['colors'] | null;
+  linkedGuides: PublicProduct['guide_data']['linkedGuides'] | null;
+};
+
+type PortalEventRow = {
+  id: string;
+  name: string;
+  slug: string | null;
+  is_public: boolean;
+  parent_brand_id: string | null;
+  updated_at: string;
+  hero: PublicEvent['guide_data']['hero'] | null;
+  colors: PublicEvent['guide_data']['colors'] | null;
+  eventDetails: PublicEvent['guide_data']['eventDetails'] | null;
+};
+
 const OrganizationPortal = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -118,6 +152,99 @@ const OrganizationPortal = () => {
   
   // Track current fetch attempt to avoid race conditions
   const fetchIdRef = useRef(0);
+
+  const fetchPortalContent = useCallback(async (orgId: string) => {
+    const contentStart = Date.now();
+
+    // IMPORTANT: Avoid pulling the full JSONB `guide_data` (can be very large).
+    // We only need a few keys for the cards.
+    // NOTE: Selecting computed JSON-path columns can cause very deep generic instantiation
+    // in TS for PostgREST builders. We intentionally loosen types here.
+    const BRAND_CARD_SELECT = 'id, name, slug, is_public, updated_at, hero:guide_data->hero, colors:guide_data->colors';
+    const PRODUCT_CARD_SELECT =
+      'id, name, slug, is_public, parent_brand_id, updated_at, hero:guide_data->hero, colors:guide_data->colors, linkedGuides:guide_data->linkedGuides';
+    const EVENT_CARD_SELECT =
+      'id, name, slug, is_public, parent_brand_id, updated_at, hero:guide_data->hero, colors:guide_data->colors, eventDetails:guide_data->eventDetails';
+
+    const brandsQuery = (supabase
+      .from('brands')
+      .select(BRAND_CARD_SELECT as any)
+      .eq('organization_id', orgId)
+      .eq('is_public', true)
+      .order('updated_at', { ascending: false }) as unknown) as PromiseLike<any>;
+
+    const productsQuery = (supabase
+      .from('products')
+      .select(PRODUCT_CARD_SELECT as any)
+      .eq('organization_id', orgId)
+      .eq('is_public', true)
+      .order('updated_at', { ascending: false }) as unknown) as PromiseLike<any>;
+
+    const eventsQuery = (supabase
+      .from('events')
+      .select(EVENT_CARD_SELECT as any)
+      .eq('organization_id', orgId)
+      .eq('is_public', true)
+      .order('updated_at', { ascending: false }) as unknown) as PromiseLike<any>;
+
+    const [brandsRes, productsRes, eventsRes] = (await Promise.all([
+      Promise.resolve(brandsQuery),
+      Promise.resolve(productsQuery),
+      Promise.resolve(eventsQuery),
+    ])) as any;
+
+    logFetch('Content fetch', contentStart);
+
+    if (brandsRes.error) console.error('[PORTAL] Error fetching brands:', brandsRes.error);
+    if (productsRes.error) console.error('[PORTAL] Error fetching products:', productsRes.error);
+    if (eventsRes.error) console.error('[PORTAL] Error fetching events:', eventsRes.error);
+
+    const mappedBrands: PublicBrand[] = ((brandsRes.data as PortalBrandRow[]) || []).map((row) => ({
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      is_public: row.is_public,
+      updated_at: row.updated_at,
+      guide_data: {
+        hero: row.hero ?? undefined,
+        colors: row.colors ?? undefined,
+      },
+    }));
+
+    const mappedProducts: PublicProduct[] = ((productsRes.data as PortalProductRow[]) || []).map((row) => ({
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      is_public: row.is_public,
+      parent_brand_id: row.parent_brand_id,
+      updated_at: row.updated_at,
+      guide_data: {
+        hero: row.hero ?? undefined,
+        colors: row.colors ?? undefined,
+        linkedGuides: row.linkedGuides ?? undefined,
+      },
+    }));
+
+    const mappedEvents: PublicEvent[] = ((eventsRes.data as PortalEventRow[]) || []).map((row) => ({
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      is_public: row.is_public,
+      parent_brand_id: row.parent_brand_id,
+      updated_at: row.updated_at,
+      guide_data: {
+        hero: row.hero ?? undefined,
+        colors: row.colors ?? undefined,
+        eventDetails: row.eventDetails ?? undefined,
+      },
+    }));
+
+    return {
+      brands: mappedBrands,
+      products: mappedProducts,
+      events: mappedEvents,
+    };
+  }, [logFetch]);
 
   // Filter brands and products based on search
   const filteredBrands = useMemo(() => {
@@ -237,41 +364,14 @@ const OrganizationPortal = () => {
         setOrganization(orgData);
 
         const orgId = orgData.id;
-        const contentStart = Date.now();
 
-        // Fetch brands/products/events in parallel - simple direct calls
-        const [brandsRes, productsRes, eventsRes] = await Promise.all([
-          supabase
-            .from('brands')
-            .select('id, name, slug, is_public, guide_data, updated_at')
-            .eq('organization_id', orgId)
-            .eq('is_public', true)
-            .order('updated_at', { ascending: false }),
-          supabase
-            .from('products')
-            .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
-            .eq('organization_id', orgId)
-            .eq('is_public', true)
-            .order('updated_at', { ascending: false }),
-          supabase
-            .from('events')
-            .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
-            .eq('organization_id', orgId)
-            .eq('is_public', true)
-            .order('updated_at', { ascending: false }),
-        ]);
-        
-        logFetch('Content fetch', contentStart);
+        const content = await fetchPortalContent(orgId);
 
         if (cancelled || fetchIdRef.current !== fetchId) return;
 
-        if (brandsRes.error) console.error('[PORTAL] Error fetching brands:', brandsRes.error);
-        if (productsRes.error) console.error('[PORTAL] Error fetching products:', productsRes.error);
-        if (eventsRes.error) console.error('[PORTAL] Error fetching events:', eventsRes.error);
-
-        setBrands((brandsRes.data as PublicBrand[]) || []);
-        setProducts((productsRes.data as PublicProduct[]) || []);
-        setEvents((eventsRes.data as PublicEvent[]) || []);
+        setBrands(content.brands);
+        setProducts(content.products);
+        setEvents(content.events);
 
         setError(null);
       } catch (err) {
@@ -294,41 +394,21 @@ const OrganizationPortal = () => {
     return () => {
       cancelled = true;
     };
-  }, [slug, logFetch]);
+   }, [slug, logFetch, fetchPortalContent]);
 
   // Refetch on tab focus
   const refetch = useCallback(async () => {
     if (!slug || !organization) return;
     
     try {
-      const [brandsRes, productsRes, eventsRes] = await Promise.all([
-        supabase
-          .from('brands')
-          .select('id, name, slug, is_public, guide_data, updated_at')
-          .eq('organization_id', organization.id)
-          .eq('is_public', true)
-          .order('updated_at', { ascending: false }),
-        supabase
-          .from('products')
-          .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
-          .eq('organization_id', organization.id)
-          .eq('is_public', true)
-          .order('updated_at', { ascending: false }),
-        supabase
-          .from('events')
-          .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
-          .eq('organization_id', organization.id)
-          .eq('is_public', true)
-          .order('updated_at', { ascending: false }),
-      ]);
-
-      if (!brandsRes.error) setBrands((brandsRes.data as PublicBrand[]) || []);
-      if (!productsRes.error) setProducts((productsRes.data as PublicProduct[]) || []);
-      if (!eventsRes.error) setEvents((eventsRes.data as PublicEvent[]) || []);
+      const content = await fetchPortalContent(organization.id);
+      setBrands(content.brands);
+      setProducts(content.products);
+      setEvents(content.events);
     } catch (err) {
       console.error('Error refetching:', err);
     }
-  }, [slug, organization]);
+  }, [slug, organization, fetchPortalContent]);
 
   // Debounced refetch on tab focus (prevents duplicate calls from focus + visibility events)
   useEffect(() => {
