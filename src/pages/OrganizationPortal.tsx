@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowRight, Globe, Lock, Building2, ArrowLeft, Search, Package, Home } from 'lucide-react';
+import { ArrowRight, Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { HeroBackground } from '@/components/HeroBackground';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { useEvents } from '@/contexts/EventContext';
 import { useSEO } from '@/hooks/useSEO';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { OrganizationPortalSettings, DEFAULT_PORTAL_SETTINGS } from '@/types/organization';
@@ -18,6 +19,7 @@ import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GuideCardSkeleton } from '@/components/ui/guide-card-skeleton';
+import { toast } from 'sonner';
 
 interface OrganizationData {
   id: string;
@@ -64,19 +66,47 @@ interface PublicProduct {
   updated_at: string;
 }
 
+interface PublicEvent {
+  id: string;
+  name: string;
+  slug: string | null;
+  is_public: boolean;
+  parent_brand_id: string | null;
+  guide_data: {
+    hero?: {
+      name: string;
+      tagline: string;
+      coverImage?: string;
+    };
+    eventDetails?: {
+      eventName: string;
+      eventDates: string;
+      location: string;
+    };
+    colors?: Array<{ id: string; hex: string }>;
+  };
+  updated_at: string;
+}
+
 const OrganizationPortal = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { user, isLoading: authLoading } = useAuth();
-  const { organization: contextOrg, isLoading: orgContextLoading } = useOrganization();
+  const { user, isLoading: authLoading, isAdmin } = useAuth();
+  const { organization: contextOrg, isLoading: orgContextLoading, userRole } = useOrganization();
+  const { addEvent } = useEvents();
   
   const [organization, setOrganization] = useState<OrganizationData | null>(null);
   const [brands, setBrands] = useState<PublicBrand[]>([]);
   const [products, setProducts] = useState<PublicProduct[]>([]);
+  const [events, setEvents] = useState<PublicEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'all' | 'brands' | 'products'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'brands' | 'products' | 'events'>('all');
+  const [isCreatingEvent, setIsCreatingEvent] = useState(false);
+  
+  // Check if user can edit (admin or org member)
+  const canEdit = user && (isAdmin || (userRole && ['owner', 'admin', 'member'].includes(userRole)));
   
   // Track if we've already fetched for this slug to avoid duplicate calls
   const hasFetchedRef = useRef<string | null>(null);
@@ -110,7 +140,24 @@ const OrganizationPortal = () => {
     });
   }, [products, searchQuery]);
 
-  const totalResults = filteredBrands.length + filteredProducts.length;
+  const filteredEvents = useMemo(() => {
+    if (!searchQuery.trim()) return events;
+    const query = searchQuery.toLowerCase();
+    return events.filter(event => {
+      const guideData = event.guide_data || {};
+      const hero = guideData.hero || { name: event.name, tagline: '' };
+      const eventDetails = guideData.eventDetails || { eventName: '', eventDates: '', location: '' };
+      return (
+        event.name.toLowerCase().includes(query) ||
+        hero.name?.toLowerCase().includes(query) ||
+        hero.tagline?.toLowerCase().includes(query) ||
+        eventDetails.eventName?.toLowerCase().includes(query) ||
+        eventDetails.location?.toLowerCase().includes(query)
+      );
+    });
+  }, [events, searchQuery]);
+
+  const totalResults = filteredBrands.length + filteredProducts.length + filteredEvents.length;
 
   // SEO metadata
   useSEO({
@@ -191,8 +238,8 @@ const OrganizationPortal = () => {
         if (cancelled) return;
         setOrganization(orgData);
 
-        // Fetch brands and products in PARALLEL for faster loading
-        const [brandsRes, productsRes] = await Promise.all([
+        // Fetch brands, products, and events in PARALLEL for faster loading
+        const [brandsRes, productsRes, eventsRes] = await Promise.all([
           supabase
             .from('brands')
             .select('id, name, slug, is_public, guide_data, updated_at')
@@ -201,6 +248,12 @@ const OrganizationPortal = () => {
             .order('updated_at', { ascending: false }),
           supabase
             .from('products')
+            .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
+            .eq('organization_id', orgId)
+            .eq('is_public', true)
+            .order('updated_at', { ascending: false }),
+          supabase
+            .from('events')
             .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
             .eq('organization_id', orgId)
             .eq('is_public', true)
@@ -220,6 +273,12 @@ const OrganizationPortal = () => {
           console.error('Error fetching products:', productsRes.error);
         } else {
           setProducts((productsRes.data as PublicProduct[]) || []);
+        }
+
+        if (eventsRes.error) {
+          console.error('Error fetching events:', eventsRes.error);
+        } else {
+          setEvents((eventsRes.data as PublicEvent[]) || []);
         }
 
         setError(null);
@@ -251,7 +310,7 @@ const OrganizationPortal = () => {
     if (!slug || !organization) return;
     
     try {
-      const [brandsRes, productsRes] = await Promise.all([
+      const [brandsRes, productsRes, eventsRes] = await Promise.all([
         supabase
           .from('brands')
           .select('id, name, slug, is_public, guide_data, updated_at')
@@ -264,10 +323,17 @@ const OrganizationPortal = () => {
           .eq('organization_id', organization.id)
           .eq('is_public', true)
           .order('updated_at', { ascending: false }),
+        supabase
+          .from('events')
+          .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
+          .eq('organization_id', organization.id)
+          .eq('is_public', true)
+          .order('updated_at', { ascending: false }),
       ]);
 
       if (!brandsRes.error) setBrands((brandsRes.data as PublicBrand[]) || []);
       if (!productsRes.error) setProducts((productsRes.data as PublicProduct[]) || []);
+      if (!eventsRes.error) setEvents((eventsRes.data as PublicEvent[]) || []);
     } catch (err) {
       console.error('Error refetching:', err);
     }
@@ -495,6 +561,123 @@ const OrganizationPortal = () => {
     );
   };
 
+  // Render helper for event cards
+  const renderEventCard = (event: PublicEvent, index: number) => {
+    const guideData = event.guide_data || {};
+    const hero = guideData.hero || { name: event.name, tagline: '' };
+    const eventDetails = guideData.eventDetails || { eventName: '', eventDates: '', location: '' };
+    const colors = guideData.colors || [];
+
+    return (
+      <Card 
+        key={event.id}
+        className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
+        style={{ animationDelay: `${index * 0.05}s` }}
+        onClick={() => navigate(`/event/${event.slug || event.id}`)}
+      >
+        <CardContent className="p-0">
+          <div className="relative h-44 overflow-hidden">
+            {hero.coverImage ? (
+              <OptimizedImage 
+                src={hero.coverImage} 
+                alt={hero.name}
+                className="w-full h-full transition-transform duration-500 group-hover:scale-105"
+                objectFit="cover"
+                priority={index < 3}
+              />
+            ) : (
+              <div className="w-full h-full flex">
+                {colors.length > 0 ? (
+                  colors.slice(0, 4).map((color: { id: string; hex: string }) => (
+                    <div 
+                      key={color.id} 
+                      className="flex-1 transition-all duration-500 group-hover:flex-[1.1]"
+                      style={{ backgroundColor: color.hex }}
+                    />
+                  ))
+                ) : (
+                  <div 
+                    className="flex-1" 
+                    style={{ 
+                      background: `linear-gradient(135deg, ${organization.primary_color || '#6366f1'}, ${organization.secondary_color || '#8b5cf6'})` 
+                    }}
+                  />
+                )}
+              </div>
+            )}
+            <Badge className="absolute top-3 right-3 gap-1 bg-green-500/90 text-white">
+              <Globe className="h-3 w-3" />
+              Public
+            </Badge>
+            <Badge className="absolute top-3 left-3 gap-1 bg-primary/90 text-primary-foreground">
+              <Calendar className="h-3 w-3" />
+              Event
+            </Badge>
+          </div>
+          <div className="p-5">
+            <h3 className="font-semibold text-lg text-foreground mb-1 group-hover:text-accent transition-colors">
+              {hero.name || eventDetails.eventName}
+            </h3>
+            {eventDetails.eventDates && (
+              <p className="text-sm text-muted-foreground mb-1">
+                {eventDetails.eventDates}
+              </p>
+            )}
+            {eventDetails.location && (
+              <p className="text-sm text-muted-foreground mb-2">
+                📍 {eventDetails.location}
+              </p>
+            )}
+            {hero.tagline && (
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                {hero.tagline}
+              </p>
+            )}
+            {colors.length > 0 && (
+              <div className="flex gap-1 mb-4">
+                {colors.slice(0, 5).map((color: { id: string; hex: string }) => (
+                  <div 
+                    key={color.id}
+                    className="w-6 h-6 rounded-full border-2 border-background shadow-sm"
+                    style={{ backgroundColor: color.hex }}
+                  />
+                ))}
+                {colors.length > 5 && (
+                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                    +{colors.length - 5}
+                  </div>
+                )}
+              </div>
+            )}
+            <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-accent/80">
+              View Event Kit
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  // Handle creating a new event
+  const handleCreateEvent = async () => {
+    if (!canEdit) return;
+    
+    setIsCreatingEvent(true);
+    try {
+      const newEvent = await addEvent('New Event');
+      if (newEvent) {
+        toast.success('Event created');
+        navigate(`/event/${newEvent.slug || newEvent.id}`);
+      }
+    } catch (err) {
+      console.error('Error creating event:', err);
+      toast.error('Failed to create event');
+    } finally {
+      setIsCreatingEvent(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -613,6 +796,12 @@ const OrganizationPortal = () => {
                   <p className="text-xs sm:text-sm text-muted-foreground">Public Products</p>
                 </div>
               )}
+              {events.length > 0 && (
+                <div>
+                  <p className="text-2xl sm:text-3xl font-semibold text-foreground">{events.length}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Public Events</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -621,14 +810,14 @@ const OrganizationPortal = () => {
       {/* Brands & Products Grid - Mobile optimized */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 safe-area-inset-bottom">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="w-full">
-          <div className="flex items-center justify-between mb-6 sm:mb-8">
+          <div className="flex items-center justify-between mb-6 sm:mb-8 gap-4">
             {/* Horizontally scrollable tabs on mobile */}
-            <div className="w-full overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex-1 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
               <TabsList className="bg-muted w-max sm:w-auto">
                 <TabsTrigger value="all" className="gap-1.5 sm:gap-2 px-3 sm:px-4 touch-manipulation">
                   All
                   <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
-                    {filteredBrands.length + filteredProducts.length}
+                    {filteredBrands.length + filteredProducts.length + filteredEvents.length}
                   </Badge>
                 </TabsTrigger>
                 <TabsTrigger value="brands" className="gap-1.5 sm:gap-2 px-3 sm:px-4 touch-manipulation">
@@ -647,8 +836,27 @@ const OrganizationPortal = () => {
                     </Badge>
                   </TabsTrigger>
                 )}
+                <TabsTrigger value="events" className="gap-1.5 sm:gap-2 px-3 sm:px-4 touch-manipulation">
+                  <Calendar className="h-4 w-4 hidden sm:block" />
+                  Events
+                  <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
+                    {filteredEvents.length}
+                  </Badge>
+                </TabsTrigger>
               </TabsList>
             </div>
+            {/* Add Event Button */}
+            {canEdit && (
+              <Button 
+                onClick={handleCreateEvent} 
+                disabled={isCreatingEvent}
+                size="sm"
+                className="gap-2 shrink-0"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Add Event</span>
+              </Button>
+            )}
           </div>
 
           {/* All Content */}
@@ -703,8 +911,21 @@ const OrganizationPortal = () => {
               </section>
             )}
 
+            {/* Events Section */}
+            {!isLoading && filteredEvents.length > 0 && (
+              <section>
+                <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                  Event Brand Kits
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  {filteredEvents.map((event, index) => renderEventCard(event, index))}
+                </div>
+              </section>
+            )}
+
             {/* Empty State */}
-            {!isLoading && filteredBrands.length === 0 && filteredProducts.length === 0 && (
+            {!isLoading && filteredBrands.length === 0 && filteredProducts.length === 0 && filteredEvents.length === 0 && (
               <div className="text-center py-16 px-4">
                 <div className="p-4 bg-muted/50 rounded-2xl w-fit mx-auto mb-4">
                   {searchQuery ? (
@@ -718,7 +939,7 @@ const OrganizationPortal = () => {
                 </h3>
                 <p className="text-muted-foreground max-w-md mx-auto">
                   {searchQuery 
-                    ? `No brands or products match "${searchQuery}". Try a different search term.`
+                    ? `No brands, products, or events match "${searchQuery}". Try a different search term.`
                     : "This organization hasn't made any guidelines public yet. Check back later for updates."
                   }
                 </p>
@@ -778,6 +999,40 @@ const OrganizationPortal = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map((product, index) => renderProductCard(product, index))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Events Only */}
+          <TabsContent value="events">
+            {filteredEvents.length === 0 ? (
+              <div className="text-center py-16 px-4">
+                <div className="p-4 bg-muted/50 rounded-2xl w-fit mx-auto mb-4">
+                  {searchQuery ? (
+                    <Search className="h-8 w-8 text-muted-foreground" />
+                  ) : (
+                    <Calendar className="h-8 w-8 text-muted-foreground" />
+                  )}
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  {searchQuery ? 'No Events Found' : 'No Public Events'}
+                </h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  {searchQuery 
+                    ? `No events match "${searchQuery}". Try a different search term.`
+                    : "This organization hasn't made any event brand kits public yet."
+                  }
+                </p>
+                {canEdit && (
+                  <Button onClick={handleCreateEvent} disabled={isCreatingEvent} className="mt-4 gap-2">
+                    <Plus className="h-4 w-4" />
+                    Create Your First Event
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredEvents.map((event, index) => renderEventCard(event, index))}
               </div>
             )}
           </TabsContent>
