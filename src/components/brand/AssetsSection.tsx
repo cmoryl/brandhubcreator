@@ -18,7 +18,8 @@ const formatFileSize = (bytes: number): string => {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 };
 
-const getFileIcon = (type: string) => {
+const getFileIcon = (type?: string) => {
+  if (!type) return '📁';
   if (type.includes('zip') || type.includes('rar')) return '📦';
   if (type.includes('pdf')) return '📄';
   if (type.includes('image')) return '🖼️';
