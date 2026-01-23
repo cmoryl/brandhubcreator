@@ -231,6 +231,10 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'eventspeakers',
   'eventsponsors',
   'eventhistory',
+  'casestudies',
+  'templates',
+  'brochures',
+  'templatespecs',
   'assets',
   'misuse',
 ];

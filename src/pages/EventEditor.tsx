@@ -36,6 +36,10 @@ import { SocialSection } from '@/components/brand/SocialSection';
 import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
+import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
+import { TemplatesSection } from '@/components/brand/TemplatesSection';
+import { BrochuresSection } from '@/components/brand/BrochuresSection';
+import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { ShareButton } from '@/components/brand/ShareButton';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
@@ -389,6 +393,14 @@ const EventEditor = () => {
         return <AssetsSection assets={event.assets} onAssetsChange={(assets) => updateEvent({ assets })} />;
       case 'misuse':
         return <MisuseSection misuse={event.misuse} onMisuseChange={(misuse) => updateEvent({ misuse })} />;
+      case 'casestudies':
+        return <CaseStudiesSection caseStudies={event.caseStudies || []} onCaseStudiesChange={(caseStudies) => updateEvent({ caseStudies })} layout={getSectionLayout('casestudies')} onLayoutChange={(layout) => handleSectionLayoutChange('casestudies', layout)} />;
+      case 'templates':
+        return <TemplatesSection templates={event.templates || []} onTemplatesChange={(templates) => updateEvent({ templates })} layout={getSectionLayout('templates')} onLayoutChange={(layout) => handleSectionLayoutChange('templates', layout)} />;
+      case 'brochures':
+        return <BrochuresSection brochures={event.brochures || []} onBrochuresChange={(brochures) => updateEvent({ brochures })} layout={getSectionLayout('brochures')} onLayoutChange={(layout) => handleSectionLayoutChange('brochures', layout)} />;
+      case 'templatespecs':
+        return <TemplateSpecsSection templateSpecs={event.templateSpecs || []} onTemplateSpecsChange={(templateSpecs) => updateEvent({ templateSpecs })} />;
       default:
         return (
           <div className="text-center py-12">
@@ -441,6 +453,14 @@ const EventEditor = () => {
         return <AssetsSection assets={event.assets} onAssetsChange={(assets) => updateEvent({ assets })} />;
       case 'misuse':
         return <MisuseSection misuse={event.misuse} onMisuseChange={(misuse) => updateEvent({ misuse })} />;
+      case 'casestudies':
+        return <CaseStudiesSection caseStudies={event.caseStudies || []} onCaseStudiesChange={(caseStudies) => updateEvent({ caseStudies })} layout={getSectionLayout('casestudies')} onLayoutChange={(layout) => handleSectionLayoutChange('casestudies', layout)} />;
+      case 'templates':
+        return <TemplatesSection templates={event.templates || []} onTemplatesChange={(templates) => updateEvent({ templates })} layout={getSectionLayout('templates')} onLayoutChange={(layout) => handleSectionLayoutChange('templates', layout)} />;
+      case 'brochures':
+        return <BrochuresSection brochures={event.brochures || []} onBrochuresChange={(brochures) => updateEvent({ brochures })} layout={getSectionLayout('brochures')} onLayoutChange={(layout) => handleSectionLayoutChange('brochures', layout)} />;
+      case 'templatespecs':
+        return <TemplateSpecsSection templateSpecs={event.templateSpecs || []} onTemplateSpecsChange={(templateSpecs) => updateEvent({ templateSpecs })} />;
       default:
         return null;
     }
@@ -714,7 +734,15 @@ const EventEditor = () => {
                             return <AssetsSection assets={event.assets} onAssetsChange={(assets) => updateEvent({ assets })} />;
                           case 'misuse':
                             return <MisuseSection misuse={event.misuse} onMisuseChange={(misuse) => updateEvent({ misuse })} />;
-                          default: 
+                          case 'casestudies':
+                            return <CaseStudiesSection caseStudies={event.caseStudies || []} onCaseStudiesChange={(caseStudies) => updateEvent({ caseStudies })} layout={getSectionLayout('casestudies')} onLayoutChange={(layout) => handleSectionLayoutChange('casestudies', layout)} />;
+                          case 'templates':
+                            return <TemplatesSection templates={event.templates || []} onTemplatesChange={(templates) => updateEvent({ templates })} layout={getSectionLayout('templates')} onLayoutChange={(layout) => handleSectionLayoutChange('templates', layout)} />;
+                          case 'brochures':
+                            return <BrochuresSection brochures={event.brochures || []} onBrochuresChange={(brochures) => updateEvent({ brochures })} layout={getSectionLayout('brochures')} onLayoutChange={(layout) => handleSectionLayoutChange('brochures', layout)} />;
+                          case 'templatespecs':
+                            return <TemplateSpecsSection templateSpecs={event.templateSpecs || []} onTemplateSpecsChange={(templateSpecs) => updateEvent({ templateSpecs })} />;
+                          default:
                             return null;
                         }
                       })()}
