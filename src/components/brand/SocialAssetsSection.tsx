@@ -255,7 +255,7 @@ const PlatformCard = ({
           )}
         </div>
         <span className="text-[10px] font-mono text-muted-foreground">
-          {asset.postSize.split(' x ')[0]}px
+          {(asset.postSize || '').split(' x ')[0] || '—'}px
         </span>
       </div>
     </div>
@@ -291,7 +291,7 @@ const BannerCard = ({
             isWide ? "w-16 h-4" : isVertical ? "w-6 h-12" : "w-10 h-8"
           )}
         >
-          <span className="text-[7px] font-mono text-accent/60">{banner.dimensions.split(' x ')[0]}</span>
+          <span className="text-[7px] font-mono text-accent/60">{(banner.dimensions || '').split(' x ')[0] || '—'}</span>
         </div>
         
         {/* Info */}

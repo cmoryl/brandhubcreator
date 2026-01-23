@@ -63,9 +63,10 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
     link.click();
   };
 
-  // Group by type
-  const groupedAssets = assets.reduce((acc, asset) => {
-    const category = asset.type.split('/')[0] || 'other';
+  // Group by type (with null-safe check)
+  const groupedAssets = (assets || []).reduce((acc, asset) => {
+    const assetType = asset?.type || 'unknown';
+    const category = assetType.split('/')[0] || 'other';
     if (!acc[category]) acc[category] = [];
     acc[category].push(asset);
     return acc;
