@@ -114,7 +114,7 @@ const DraggableCallout = ({ item, primaryColor, containerRef, onPositionChange }
 
 interface TemplateSpecsSectionProps {
   templateSpecs: TemplateSpec[];
-  onTemplateSpecsChange: (specs: TemplateSpec[]) => void;
+  onTemplateSpecsChange?: (specs: TemplateSpec[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   brandColors?: BrandColor[];
@@ -140,9 +140,9 @@ const SortableSpecItem = ({
 }: {
   item: TemplateSpecItem;
   isEditing: boolean;
-  onEdit: () => void;
-  onUpdate: (updates: Partial<TemplateSpecItem>) => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onUpdate?: (updates: Partial<TemplateSpecItem>) => void;
+  onDelete?: () => void;
   onDoneEditing: () => void;
   primaryColor: string;
 }) => {
@@ -171,13 +171,15 @@ const SortableSpecItem = ({
       )}
     >
       {/* Drag handle */}
-      <button
-        {...attributes}
-        {...listeners}
-        className="mt-1 p-1 rounded hover:bg-secondary cursor-grab active:cursor-grabbing"
-      >
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
-      </button>
+      {onEdit && (
+        <button
+          {...attributes}
+          {...listeners}
+          className="mt-1 p-1 rounded hover:bg-secondary cursor-grab active:cursor-grabbing"
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </button>
+      )}
 
       {/* Number badge */}
       <div
@@ -193,25 +195,25 @@ const SortableSpecItem = ({
           <div className="space-y-3">
             <Input
               value={item.title}
-              onChange={(e) => onUpdate({ title: e.target.value })}
+              onChange={(e) => onUpdate?.({ title: e.target.value })}
               placeholder="Section title (e.g., CLIENT LOGO)"
               className="font-semibold"
             />
             <Textarea
               value={item.description}
-              onChange={(e) => onUpdate({ description: e.target.value })}
+              onChange={(e) => onUpdate?.({ description: e.target.value })}
               placeholder="Description or guidelines"
               rows={2}
             />
             <div className="grid grid-cols-2 gap-2">
               <Input
                 value={item.dimensions || ''}
-                onChange={(e) => onUpdate({ dimensions: e.target.value })}
+                onChange={(e) => onUpdate?.({ dimensions: e.target.value })}
                 placeholder="Dimensions (e.g., 1500 x 500 pixels)"
               />
               <Input
                 value={item.fileFormats || ''}
-                onChange={(e) => onUpdate({ fileFormats: e.target.value })}
+                onChange={(e) => onUpdate?.({ fileFormats: e.target.value })}
                 placeholder="File formats (e.g., JPEG or PNG)"
               />
             </div>
@@ -219,9 +221,11 @@ const SortableSpecItem = ({
               <Button size="sm" onClick={onDoneEditing} className="gap-1">
                 <Check className="h-3 w-3" /> Done
               </Button>
-              <Button size="sm" variant="destructive" onClick={onDelete}>
-                <Trash2 className="h-3 w-3" />
-              </Button>
+              {onDelete && (
+                <Button size="sm" variant="destructive" onClick={onDelete}>
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
             </div>
           </div>
         ) : (
@@ -230,12 +234,14 @@ const SortableSpecItem = ({
               <h4 className="font-semibold text-sm uppercase tracking-wide" style={{ color: primaryColor }}>
                 {item.title || 'Untitled Section'}
               </h4>
-              <button
-                onClick={onEdit}
-                className="p-1.5 rounded-md hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100"
-              >
-                <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
-              </button>
+              {onEdit && (
+                <button
+                  onClick={onEdit}
+                  className="p-1.5 rounded-md hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              )}
             </div>
             <p className="text-sm text-muted-foreground">{item.description || 'No description'}</p>
             {(item.dimensions || item.fileFormats) && (
@@ -291,7 +297,7 @@ export const TemplateSpecsSection = ({
 
   // Add new template spec
   const handleAddSpec = () => {
-    if (!newSpecForm.name.trim()) return;
+    if (!newSpecForm.name.trim() || !onTemplateSpecsChange) return;
 
     const newSpec: TemplateSpec = {
       id: crypto.randomUUID(),
@@ -316,6 +322,7 @@ export const TemplateSpecsSection = ({
 
   // Delete spec
   const handleDeleteSpec = (id: string) => {
+    if (!onTemplateSpecsChange) return;
     onTemplateSpecsChange(templateSpecs.filter(s => s.id !== id));
     if (selectedSpecId === id) {
       setSelectedSpecId(templateSpecs.length > 1 ? templateSpecs[0].id : null);
@@ -324,7 +331,7 @@ export const TemplateSpecsSection = ({
 
   // Add item to spec
   const handleAddItem = () => {
-    if (!selectedSpec) return;
+    if (!selectedSpec || !onTemplateSpecsChange) return;
 
     const maxNumber = Math.max(0, ...selectedSpec.items.map(i => i.number));
     const newItem: TemplateSpecItem = {
@@ -344,7 +351,7 @@ export const TemplateSpecsSection = ({
 
   // Update item
   const handleUpdateItem = (itemId: string, updates: Partial<TemplateSpecItem>) => {
-    if (!selectedSpec) return;
+    if (!selectedSpec || !onTemplateSpecsChange) return;
 
     const updatedSpec = {
       ...selectedSpec,
@@ -355,7 +362,7 @@ export const TemplateSpecsSection = ({
 
   // Delete item
   const handleDeleteItem = (itemId: string) => {
-    if (!selectedSpec) return;
+    if (!selectedSpec || !onTemplateSpecsChange) return;
 
     const filteredItems = selectedSpec.items.filter(i => i.id !== itemId);
     // Renumber items
@@ -375,7 +382,7 @@ export const TemplateSpecsSection = ({
   // Handle drag end
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (!selectedSpec || !over || active.id === over.id) return;
+    if (!selectedSpec || !over || active.id === over.id || !onTemplateSpecsChange) return;
 
     const oldIndex = selectedSpec.items.findIndex(i => i.id === active.id);
     const newIndex = selectedSpec.items.findIndex(i => i.id === over.id);
@@ -395,7 +402,7 @@ export const TemplateSpecsSection = ({
   // Handle preview image upload
   const handlePreviewImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !selectedSpec) return;
+    if (!file || !selectedSpec || !onTemplateSpecsChange) return;
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -410,7 +417,7 @@ export const TemplateSpecsSection = ({
 
   // Handle callout position change from drag
   const handleCalloutPositionChange = useCallback((itemId: string, position: { x: number; y: number }) => {
-    if (!selectedSpec) return;
+    if (!selectedSpec || !onTemplateSpecsChange) return;
 
     const updatedSpec = {
       ...selectedSpec,
@@ -420,6 +427,8 @@ export const TemplateSpecsSection = ({
     };
     onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
   }, [selectedSpec, templateSpecs, onTemplateSpecsChange]);
+
+  const canEdit = !!onTemplateSpecsChange;
 
   return (
     <section className="space-y-6">
@@ -431,13 +440,15 @@ export const TemplateSpecsSection = ({
             customSubtitle={customSubtitle}
             onSubtitleChange={onSubtitleChange}
             isEditing={isHeaderEditing}
-            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+            onEditToggle={canEdit ? () => setIsHeaderEditing(!isHeaderEditing) : undefined}
           />
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Template Spec
-        </Button>
+        {canEdit && (
+          <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Template Spec
+          </Button>
+        )}
       </div>
 
       {/* Add Template Dialog */}
@@ -519,19 +530,21 @@ export const TemplateSpecsSection = ({
             <CardContent className="p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-lg">Specification Items</h3>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={handleAddItem} className="gap-1">
-                    <Plus className="h-3 w-3" /> Add Item
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleDeleteSpec(selectedSpec.id)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                {canEdit && (
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={handleAddItem} className="gap-1">
+                      <Plus className="h-3 w-3" /> Add Item
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDeleteSpec(selectedSpec.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <DndContext
@@ -548,10 +561,10 @@ export const TemplateSpecsSection = ({
                       <SortableSpecItem
                         key={item.id}
                         item={item}
-                        isEditing={editingItemId === item.id}
-                        onEdit={() => setEditingItemId(item.id)}
-                        onUpdate={(updates) => handleUpdateItem(item.id, updates)}
-                        onDelete={() => handleDeleteItem(item.id)}
+                        isEditing={canEdit && editingItemId === item.id}
+                        onEdit={canEdit ? () => setEditingItemId(item.id) : undefined}
+                        onUpdate={canEdit ? (updates) => handleUpdateItem(item.id, updates) : undefined}
+                        onDelete={canEdit ? () => handleDeleteItem(item.id) : undefined}
                         onDoneEditing={() => setEditingItemId(null)}
                         primaryColor={primaryColor}
                       />
@@ -562,7 +575,7 @@ export const TemplateSpecsSection = ({
 
               {selectedSpec.items.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
-                  <p>No items yet. Click "Add Item" to get started.</p>
+                  <p>{canEdit ? 'No items yet. Click "Add Item" to get started.' : 'No items defined.'}</p>
                 </div>
               )}
             </CardContent>
@@ -717,12 +730,16 @@ export const TemplateSpecsSection = ({
             <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="font-semibold text-lg mb-2">No Template Specifications</h3>
             <p className="text-muted-foreground mb-4">
-              Create visual specifications for your case studies, brochures, and document templates.
+              {canEdit 
+                ? 'Create visual specifications for your case studies, brochures, and document templates.'
+                : 'No template specifications have been added yet.'}
             </p>
-            <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Create Your First Template Spec
-            </Button>
+            {canEdit && (
+              <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Create Your First Template Spec
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
