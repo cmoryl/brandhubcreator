@@ -47,6 +47,8 @@ interface DashboardStats {
   totalOrganizations: number;
   totalBrands: number;
   totalProducts: number;
+  totalEvents: number;
+  publicEvents: number;
   activeUsersToday: number;
   newUsersThisWeek: number;
   publicBrands: number;
@@ -72,6 +74,7 @@ interface OrgData {
   memberCount: number;
   brandCount: number;
   productCount: number;
+  eventCount: number;
   owner: string;
 }
 
@@ -136,20 +139,24 @@ export default function AdminDashboard() {
   };
 
   const fetchStats = async () => {
-    // Fetch counts from various tables
+    // Fetch counts from various tables including events
     const [
       { count: usersCount },
       { count: orgsCount },
       { count: brandsCount },
       { count: productsCount },
+      { count: eventsCount },
       { count: publicBrandsCount },
+      { count: publicEventsCount },
       { count: pendingApprovalsCount },
     ] = await Promise.all([
       supabase.from('profiles').select('*', { count: 'exact', head: true }),
       supabase.from('organizations').select('*', { count: 'exact', head: true }),
       supabase.from('brands').select('*', { count: 'exact', head: true }),
       supabase.from('products').select('*', { count: 'exact', head: true }),
+      supabase.from('events').select('*', { count: 'exact', head: true }),
       supabase.from('brands').select('*', { count: 'exact', head: true }).eq('is_public', true),
+      supabase.from('events').select('*', { count: 'exact', head: true }).eq('is_public', true),
       supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_approved', false),
     ]);
 
@@ -165,6 +172,8 @@ export default function AdminDashboard() {
       totalOrganizations: orgsCount || 0,
       totalBrands: brandsCount || 0,
       totalProducts: productsCount || 0,
+      totalEvents: eventsCount || 0,
+      publicEvents: publicEventsCount || 0,
       activeUsersToday: Math.floor((usersCount || 0) * 0.3), // Estimated
       newUsersThisWeek: newUsersCount || 0,
       publicBrands: publicBrandsCount || 0,
@@ -267,6 +276,15 @@ export default function AdminDashboard() {
       }
     });
 
+    // Get event counts per org
+    const { data: events } = await supabase.from('events').select('organization_id');
+    const eventCount = new Map<string, number>();
+    events?.forEach(e => {
+      if (e.organization_id) {
+        eventCount.set(e.organization_id, (eventCount.get(e.organization_id) || 0) + 1);
+      }
+    });
+
     const orgData: OrgData[] = (orgs || []).map(o => {
       const ownerUserId = ownerUserIdMap.get(o.id);
       const ownerEmail = ownerUserId ? emailMap.get(ownerUserId) : undefined;
@@ -278,6 +296,7 @@ export default function AdminDashboard() {
         memberCount: memberCount.get(o.id) || 0,
         brandCount: brandCount.get(o.id) || 0,
         productCount: productCount.get(o.id) || 0,
+        eventCount: eventCount.get(o.id) || 0,
         owner: ownerEmail || 'Unknown',
       };
     });
@@ -616,7 +635,7 @@ export default function AdminDashboard() {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             {/* Key Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <Card>
                 <CardHeader className="pb-2">
                   <CardDescription>Total Users</CardDescription>
@@ -664,6 +683,18 @@ export default function AdminDashboard() {
                 <CardContent>
                   <p className="text-xs text-muted-foreground">
                     Product guides created
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>Events</CardDescription>
+                  <CardTitle className="text-3xl">{stats?.totalEvents || 0}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-muted-foreground">
+                    {stats?.publicEvents || 0} public
                   </p>
                 </CardContent>
               </Card>
@@ -893,6 +924,7 @@ export default function AdminDashboard() {
                         <TableHead>Members</TableHead>
                         <TableHead>Brands</TableHead>
                         <TableHead>Products</TableHead>
+                        <TableHead>Events</TableHead>
                         <TableHead>Created</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
@@ -905,6 +937,7 @@ export default function AdminDashboard() {
                           <TableCell>{org.memberCount}</TableCell>
                           <TableCell>{org.brandCount}</TableCell>
                           <TableCell>{org.productCount}</TableCell>
+                          <TableCell>{org.eventCount}</TableCell>
                           <TableCell>{format(new Date(org.created_at), 'MMM d, yyyy')}</TableCell>
                           <TableCell className="text-right">
                             <Button 
@@ -929,7 +962,7 @@ export default function AdminDashboard() {
             {/* Demo Guides Manager */}
             <DemoGuidesManager />
             
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-3 gap-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -972,6 +1005,34 @@ export default function AdminDashboard() {
                       {stats?.totalBrands ? (stats.totalProducts / stats.totalBrands).toFixed(1) : 0}
                     </p>
                     <p className="text-sm text-muted-foreground">Avg Products per Brand</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Event Guides
+                  </CardTitle>
+                  <CardDescription>{stats?.totalEvents || 0} total events</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-muted/50 rounded-lg text-center">
+                      <p className="text-2xl font-bold">{stats?.publicEvents || 0}</p>
+                      <p className="text-sm text-muted-foreground">Public</p>
+                    </div>
+                    <div className="p-4 bg-muted/50 rounded-lg text-center">
+                      <p className="text-2xl font-bold">{(stats?.totalEvents || 0) - (stats?.publicEvents || 0)}</p>
+                      <p className="text-sm text-muted-foreground">Private</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Publish Rate</span>
+                    <Badge variant="outline">
+                      {stats?.totalEvents ? Math.round((stats.publicEvents / stats.totalEvents) * 100) : 0}%
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
