@@ -71,6 +71,13 @@ import { normalizeHiddenSections, normalizeSectionOrder } from '@/lib/sectionOrd
 
 type ViewMode = 'sections' | 'full';
 
+// Legacy/short slugs that may exist in old links, emails, or bookmarks.
+// Keep this small and explicit to avoid unexpected matches.
+const BRAND_SLUG_ALIASES: Record<string, string> = {
+  lifesci: 'life-sciences',
+  'life-sciences-brand': 'life-sciences',
+};
+
 const BrandEditor = () => {
   const { brandSlug } = useParams<{ brandSlug: string }>();
   const navigate = useNavigate();
@@ -103,6 +110,13 @@ const BrandEditor = () => {
 
   // Helper to check if the param is a UUID
   const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+  // Normalize legacy slugs to the canonical slug.
+  const effectiveBrandSlug = useMemo(() => {
+    if (!brandSlug) return undefined;
+    if (isUUID(brandSlug)) return brandSlug;
+    return BRAND_SLUG_ALIASES[brandSlug] ?? brandSlug;
+  }, [brandSlug]);
   
   // Try to get brand from context by ID (for UUID) or by slug
   const contextBrand = useMemo(() => {
@@ -123,14 +137,14 @@ const BrandEditor = () => {
   useEffect(() => {
     const fetchPublicBrand = async () => {
       // Skip if we already have the brand from context OR already fetched this slug
-      if (!brandSlug || contextBrand || hasFetchedPublicRef.current === brandSlug) {
+      if (!effectiveBrandSlug || contextBrand || hasFetchedPublicRef.current === effectiveBrandSlug) {
         // Mark loading as done if we're skipping the fetch
         setPublicBrandLoading(false);
         return;
       }
       
       setPublicBrandLoading(true);
-      hasFetchedPublicRef.current = brandSlug;
+      hasFetchedPublicRef.current = effectiveBrandSlug;
       
       try {
         // Build query - try by slug first, then by ID for backwards compatibility
@@ -139,15 +153,20 @@ const BrandEditor = () => {
           .select('*')
           .eq('is_public', true);
         
-        if (isUUID(brandSlug)) {
-          query = query.eq('id', brandSlug);
+        if (isUUID(effectiveBrandSlug)) {
+          query = query.eq('id', effectiveBrandSlug);
         } else {
-          query = query.eq('slug', brandSlug);
+          query = query.eq('slug', effectiveBrandSlug);
         }
         
         const { data, error } = await query.maybeSingle();
         
         if (!error && data) {
+          // If the user hit a legacy slug URL, normalize to canonical slug.
+          if (brandSlug && !isUUID(brandSlug) && data.slug && data.slug !== brandSlug) {
+            navigate(`/brand/${data.slug}`, { replace: true });
+          }
+
           // Convert DB format to BrandGuide (defensive: legacy guide_data can contain invalid shapes)
           const asArray = <T,>(value: unknown, fallback: T[] = []): T[] =>
             Array.isArray(value) ? (value as T[]) : fallback;
@@ -213,7 +232,7 @@ const BrandEditor = () => {
     };
     
     fetchPublicBrand();
-  }, [brandSlug, contextBrand]);
+  }, [brandSlug, effectiveBrandSlug, contextBrand, navigate]);
   
   // Use context brand if available, otherwise use fetched public brand
   const brand = contextBrand || publicBrand;
