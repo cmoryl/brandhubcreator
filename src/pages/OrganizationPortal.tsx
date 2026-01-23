@@ -296,12 +296,13 @@ const OrganizationPortal = () => {
   }, [refetch]);
 
   // Stabilize loading to prevent flickers - minimal delay for fast perceived load
-  const stableLoading = useStableLoading(isLoading, 80);
+  // Use 6 second max timeout as escape hatch
+  const stableLoading = useStableLoading(isLoading, 50, 6000);
 
   if (stableLoading) {
-    // Capitalize first letter of slug for display
-    const displayName = slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : undefined;
-    return <PublicLoadingScreen type="portal" organizationName={displayName} />;
+    // Use organization name if available, otherwise capitalize slug
+    const displayName = organization?.name || (slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : undefined);
+    return <PublicLoadingScreen type="portal" name={displayName} />;
   }
 
   if (error || !organization) {
