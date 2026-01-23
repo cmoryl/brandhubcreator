@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowRight, Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus } from 'lucide-react';
+import { ArrowRight, Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,6 +20,9 @@ import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GuideCardSkeleton } from '@/components/ui/guide-card-skeleton';
 import { toast } from 'sonner';
+
+// Lazy load admin components
+const AppSettingsEditor = lazy(() => import('@/components/admin/AppSettingsEditor').then(m => ({ default: m.AppSettingsEditor })));
 
 interface OrganizationData {
   id: string;
@@ -109,7 +112,15 @@ const OrganizationPortal = () => {
   const canEdit = user && (isAdmin || (userRole && ['owner', 'admin', 'member'].includes(userRole)));
   
   // Track if we've already fetched for this slug to avoid duplicate calls
+  // Reset when slug changes
   const hasFetchedRef = useRef<string | null>(null);
+  
+  // Reset hasFetchedRef when slug changes
+  useEffect(() => {
+    if (slug !== hasFetchedRef.current) {
+      hasFetchedRef.current = null;
+    }
+  }, [slug]);
 
   // Filter brands and products based on search
   const filteredBrands = useMemo(() => {
@@ -185,14 +196,19 @@ const OrganizationPortal = () => {
         return;
       }
 
-      // Check if we've already fetched for THIS slug
-      if (hasFetchedRef.current === slug) return;
+      // Skip if we've already successfully fetched for THIS slug
+      if (hasFetchedRef.current === slug && organization && brands.length > 0) {
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('[PORTAL] Starting fetch for slug:', slug);
 
       try {
         let orgId: string;
         let orgData: OrganizationData;
 
-        // If user's context org matches the slug, use it directly (skip network call)
+        // If user's context org matches the slug and is loaded, use it directly
         if (contextOrg && contextOrg.slug === slug && !orgContextLoading) {
           orgData = {
             id: contextOrg.id,
@@ -261,22 +277,29 @@ const OrganizationPortal = () => {
         ]);
 
         if (cancelled) return;
+
+        console.log('[PORTAL] Fetched data:', {
+          brands: brandsRes.data?.length || 0,
+          products: productsRes.data?.length || 0,
+          events: eventsRes.data?.length || 0,
+        });
+
         hasFetchedRef.current = slug; // Track which slug we fetched
 
         if (brandsRes.error) {
-          console.error('Error fetching brands:', brandsRes.error);
+          console.error('[PORTAL] Error fetching brands:', brandsRes.error);
         } else {
           setBrands((brandsRes.data as PublicBrand[]) || []);
         }
 
         if (productsRes.error) {
-          console.error('Error fetching products:', productsRes.error);
+          console.error('[PORTAL] Error fetching products:', productsRes.error);
         } else {
           setProducts((productsRes.data as PublicProduct[]) || []);
         }
 
         if (eventsRes.error) {
-          console.error('Error fetching events:', eventsRes.error);
+          console.error('[PORTAL] Error fetching events:', eventsRes.error);
         } else {
           setEvents((eventsRes.data as PublicEvent[]) || []);
         }
@@ -293,17 +316,14 @@ const OrganizationPortal = () => {
       }
     };
 
-    // Start fetching immediately for all cases.
-    // If user is logged in AND their org context matches the slug, we might be able to skip a network call,
-    // but we still start immediately and use whatever data is available.
-    // Don't block on orgContextLoading - just fetch with the current state
+    // Start fetching - don't wait for orgContextLoading if we don't have context data yet
     setIsLoading(true);
     fetchData();
 
     return () => {
       cancelled = true;
     };
-  }, [slug, contextOrg, orgContextLoading, user]);
+  }, [slug, contextOrg, orgContextLoading]);
 
   // Refetch on tab focus
   const refetch = useCallback(async () => {
@@ -711,16 +731,22 @@ const OrganizationPortal = () => {
               <span className="font-semibold text-lg sm:text-2xl text-foreground truncate">{organization.name}</span>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-              {user && organization && (
+              {user && (
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => navigate(`/org/${organization.slug}`)}
+                  onClick={() => navigate('/')}
                   className="gap-1.5 sm:gap-2 h-9 sm:h-8 px-2 sm:px-3 touch-manipulation"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   <span className="hidden sm:inline">Dashboard</span>
                 </Button>
+              )}
+              {/* App Settings for admins */}
+              {canEdit && (
+                <Suspense fallback={null}>
+                  <AppSettingsEditor />
+                </Suspense>
               )}
               <Badge variant="outline" className="gap-1 hidden sm:flex">
                 <Globe className="h-3 w-3" />
