@@ -108,25 +108,10 @@ const OrganizationPortal = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'brands' | 'products' | 'events'>('all');
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
 
-  const withTimeout = useCallback(
-    async <T,>(promiseLike: PromiseLike<T>, ms: number, label: string): Promise<T> => {
-      let timeoutId: ReturnType<typeof setTimeout> | null = null;
-      try {
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          timeoutId = setTimeout(() => {
-            reject(new Error(`${label} timed out after ${ms}ms`));
-          }, ms);
-        });
-
-        // supabase-js returns thenables (PostgrestBuilder), not always native Promises
-        const promise = Promise.resolve(promiseLike as unknown as PromiseLike<T>);
-        return await Promise.race([promise, timeoutPromise]);
-      } finally {
-        if (timeoutId) clearTimeout(timeoutId);
-      }
-    },
-    []
-  );
+  // Simple helper to log fetch timing
+  const logFetch = useCallback((label: string, startTime: number) => {
+    console.log(`[PORTAL] ${label} took ${Date.now() - startTime}ms`);
+  }, []);
   
   // Check if user can edit (admin or org member)
   const canEdit = user && (isAdmin || (userRole && ['owner', 'admin', 'member'].includes(userRole)));
@@ -214,18 +199,27 @@ const OrganizationPortal = () => {
       console.log('[PORTAL] Starting fetch for slug:', slug);
 
       try {
+        const fetchStart = Date.now();
+        
         // Fetch public portal org via backend function (works for both signed-in + public users)
-        const { data: orgRow, error: orgError } = await withTimeout(
-          supabase.rpc('get_public_portal_org', { p_slug: slug }).maybeSingle(),
-          8000,
-          'Loading organization'
-        );
+        const orgResult = await supabase
+          .rpc('get_public_portal_org', { p_slug: slug })
+          .maybeSingle();
+        
+        logFetch('Org fetch', fetchStart);
 
-        if (cancelled || fetchIdRef.current !== fetchId) return;
+        if (cancelled || fetchIdRef.current !== fetchId) {
+          console.log('[PORTAL] Fetch cancelled or superseded');
+          return;
+        }
+
+        const { data: orgRow, error: orgError } = orgResult;
+        console.log('[PORTAL] Org fetch result:', { orgRow, orgError });
 
         if (orgError || !orgRow) {
           console.error('[PORTAL] Error fetching public org:', orgError);
           setError('Organization not found');
+          setIsLoading(false);
           return;
         }
 
@@ -243,32 +237,31 @@ const OrganizationPortal = () => {
         setOrganization(orgData);
 
         const orgId = orgData.id;
+        const contentStart = Date.now();
 
-        // Fetch brands/products/events in parallel
-        const [brandsRes, productsRes, eventsRes] = await withTimeout(
-          Promise.all([
-            supabase
-              .from('brands')
-              .select('id, name, slug, is_public, guide_data, updated_at')
-              .eq('organization_id', orgId)
-              .eq('is_public', true)
-              .order('updated_at', { ascending: false }),
-            supabase
-              .from('products')
-              .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
-              .eq('organization_id', orgId)
-              .eq('is_public', true)
-              .order('updated_at', { ascending: false }),
-            supabase
-              .from('events')
-              .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
-              .eq('organization_id', orgId)
-              .eq('is_public', true)
-              .order('updated_at', { ascending: false }),
-          ]),
-          12000,
-          'Loading portal content'
-        );
+        // Fetch brands/products/events in parallel - simple direct calls
+        const [brandsRes, productsRes, eventsRes] = await Promise.all([
+          supabase
+            .from('brands')
+            .select('id, name, slug, is_public, guide_data, updated_at')
+            .eq('organization_id', orgId)
+            .eq('is_public', true)
+            .order('updated_at', { ascending: false }),
+          supabase
+            .from('products')
+            .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
+            .eq('organization_id', orgId)
+            .eq('is_public', true)
+            .order('updated_at', { ascending: false }),
+          supabase
+            .from('events')
+            .select('id, name, slug, is_public, parent_brand_id, guide_data, updated_at')
+            .eq('organization_id', orgId)
+            .eq('is_public', true)
+            .order('updated_at', { ascending: false }),
+        ]);
+        
+        logFetch('Content fetch', contentStart);
 
         if (cancelled || fetchIdRef.current !== fetchId) return;
 
@@ -301,7 +294,7 @@ const OrganizationPortal = () => {
     return () => {
       cancelled = true;
     };
-  }, [slug, withTimeout]);
+  }, [slug, logFetch]);
 
   // Refetch on tab focus
   const refetch = useCallback(async () => {
