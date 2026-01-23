@@ -48,7 +48,8 @@ const backgroundTypes: { type: HeroBackgroundType; name: string; icon: typeof Im
   { type: 'animated-spotlight', name: 'Spotlight', icon: Sparkles, description: 'Moving spotlight effect' },
 ];
 
-export const AppSettingsEditor = () => {
+// Exported as a named function component for lazy loading compatibility
+export function AppSettingsEditor() {
   const { settings, updateSettings, resetColors } = useAppSettings();
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState<AppSettings>(settings);
@@ -723,4 +724,4 @@ export const AppSettingsEditor = () => {
       </DialogContent>
     </Dialog>
   );
-};
+}

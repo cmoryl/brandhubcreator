@@ -61,6 +61,27 @@ import { normalizeHiddenSections, normalizeSectionOrder } from '@/lib/sectionOrd
 
 type ViewMode = 'sections' | 'full';
 
+// Legacy/short slugs that may exist in old links, emails, or bookmarks.
+// Keep this small and explicit to avoid unexpected matches.
+const PRODUCT_SLUG_ALIASES: Record<string, string> = {
+  gl: 'globallink',
+  'gl-tms': 'globallink-tms',
+  'gl-portal': 'globallink-portal',
+  'gl-web': 'globallink-web',
+  'gl-now': 'globallink-now',
+  'gl-scribe': 'globallink-scribe',
+  'gl-voice': 'globallink-voice',
+  'gl-live': 'globallink-live',
+  'gl-media': 'globallink-media',
+  'gl-tv': 'globallink-tv',
+  'gl-strings': 'globallink-strings',
+  'gl-share': 'globallink-share',
+  'gl-write': 'globallink-write',
+  'gl-ccms': 'globallink-ccms',
+  ti: 'trial-interactive',
+  'trial-int': 'trial-interactive',
+};
+
 const ProductEditor = () => {
   const { productSlug } = useParams<{ productSlug: string }>();
   const navigate = useNavigate();
@@ -99,16 +120,23 @@ const ProductEditor = () => {
   // Helper to check if the param is a UUID
   const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
+  // Normalize legacy slugs to the canonical slug.
+  const effectiveProductSlug = React.useMemo(() => {
+    if (!productSlug) return undefined;
+    if (isUUID(productSlug)) return productSlug;
+    return PRODUCT_SLUG_ALIASES[productSlug] ?? productSlug;
+  }, [productSlug]);
+
   // Try to get product from context by ID (for UUID) or by slug
   const contextProduct = React.useMemo(() => {
-    if (!productSlug) return undefined;
+    if (!effectiveProductSlug) return undefined;
     // First try as UUID for backwards compatibility
-    if (isUUID(productSlug)) {
-      return getProduct(productSlug);
+    if (isUUID(effectiveProductSlug)) {
+      return getProduct(effectiveProductSlug);
     }
-    // Try by slug
-    return getProductBySlug ? getProductBySlug(productSlug) : undefined;
-  }, [productSlug, getProduct, getProductBySlug]);
+    // Try by slug using the effective (alias-resolved) slug
+    return getProductBySlug(effectiveProductSlug);
+  }, [effectiveProductSlug, getProduct, getProductBySlug]);
 
   // Track if we've already fetched for this slug to avoid duplicate calls
   const hasFetchedPublicRef = React.useRef<string | null>(null);
@@ -118,13 +146,13 @@ const ProductEditor = () => {
   React.useEffect(() => {
     const fetchPublicProduct = async () => {
       // Skip if we already have the product from context OR already fetched this slug
-      if (!productSlug || contextProduct || hasFetchedPublicRef.current === productSlug) {
+      if (!effectiveProductSlug || contextProduct || hasFetchedPublicRef.current === effectiveProductSlug) {
         setPublicProductLoading(false);
         return;
       }
 
       setPublicProductLoading(true);
-      hasFetchedPublicRef.current = productSlug;
+      hasFetchedPublicRef.current = effectiveProductSlug;
       
       try {
         let query = supabase
@@ -132,16 +160,21 @@ const ProductEditor = () => {
           .select('*')
           .eq('is_public', true);
 
-        if (isUUID(productSlug)) {
-          query = query.eq('id', productSlug);
+        if (isUUID(effectiveProductSlug)) {
+          query = query.eq('id', effectiveProductSlug);
         } else {
-          query = query.eq('slug', productSlug);
+          query = query.eq('slug', effectiveProductSlug);
         }
 
         const { data, error } = await query.maybeSingle();
         if (error) throw error;
 
         if (data) {
+          // If the user hit a legacy slug URL, normalize to canonical slug.
+          if (productSlug && !isUUID(productSlug) && data.slug && data.slug !== productSlug) {
+            navigate(`/product/${data.slug}`, { replace: true });
+          }
+
           const asArray = <T,>(value: unknown, fallback: T[] = []): T[] =>
             Array.isArray(value) ? (value as T[]) : fallback;
 
@@ -207,7 +240,7 @@ const ProductEditor = () => {
     };
 
     fetchPublicProduct();
-  }, [productSlug, contextProduct]);
+  }, [effectiveProductSlug, productSlug, contextProduct, navigate]);
 
   // Use context product if available, otherwise use fetched public product
   const currentProduct = contextProduct || publicProduct;
