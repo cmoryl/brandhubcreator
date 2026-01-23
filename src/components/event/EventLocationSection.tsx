@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { EventLocation, EventVenueMap } from '@/types/event';
 import { cn } from '@/lib/utils';
+import { AILocationResearch } from './AILocationResearch';
 
 interface EventLocationSectionProps {
   location: EventLocation;
@@ -138,6 +139,7 @@ export const EventLocationSection = ({
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="maps">Maps ({location.venueMaps?.length || 0})</TabsTrigger>
           <TabsTrigger value="travel">Travel Info</TabsTrigger>
+          <TabsTrigger value="research">AI Research</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -614,9 +616,13 @@ export const EventLocationSection = ({
                     )}
                   </CardContent>
                 </Card>
-              )}
-            </div>
-          )}
+            )}
+          </div>
+        )}
+        </TabsContent>
+
+        <TabsContent value="research">
+          <AILocationResearch location={location} isEditable={isEditable} />
         </TabsContent>
       </Tabs>
     </section>
