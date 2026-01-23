@@ -145,6 +145,8 @@ const EventEditor = () => {
             eventSpeakers: (Array.isArray(guideData.eventSpeakers) ? guideData.eventSpeakers : []) as EventGuide['eventSpeakers'],
             eventSponsors: (Array.isArray(guideData.eventSponsors) ? guideData.eventSponsors : []) as EventGuide['eventSponsors'],
             eventHistory: (Array.isArray(guideData.eventHistory) ? guideData.eventHistory : []) as EventGuide['eventHistory'],
+            eventVideos: (Array.isArray(guideData.eventVideos) ? guideData.eventVideos : []) as EventGuide['eventVideos'],
+            eventLocation: (guideData.eventLocation || { venueName: '', address: '', city: '', country: '', venueMaps: [] }) as EventGuide['eventLocation'],
             logos: (Array.isArray(guideData.logos) ? guideData.logos : []) as EventGuide['logos'],
             brandIcons: (Array.isArray(guideData.brandIcons) ? guideData.brandIcons : []) as EventGuide['brandIcons'],
             colors: (Array.isArray(guideData.colors) ? guideData.colors : []) as EventGuide['colors'],
