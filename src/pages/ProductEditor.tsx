@@ -11,6 +11,7 @@ import { useBrands } from '@/contexts/BrandContext';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { useSEO } from '@/hooks/useSEO';
 import { supabase } from '@/integrations/supabase/client';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
@@ -258,6 +259,27 @@ const ProductEditor = () => {
       default: return `${base} bg-background/80 backdrop-blur-lg border-b border-border`;
     }
   };
+
+  // SEO metadata for product page - use slug for canonical URL (better for sharing/SEO)
+  const canonicalProductUrl = useMemo(() => {
+    if (!currentProduct) return undefined;
+    // Prefer slug over UUID for cleaner, more shareable URLs
+    const identifier = currentProduct.slug || currentProduct.id;
+    return `${window.location.origin}/product/${identifier}`;
+  }, [currentProduct]);
+
+  useSEO({
+    title: currentProduct ? `${currentProduct.hero.name} Product Guidelines` : 'Product Guidelines',
+    description: currentProduct?.hero.tagline 
+      ? `${currentProduct.hero.name} - ${currentProduct.hero.tagline}. View complete product brand guidelines.`
+      : currentProduct ? `Complete product guidelines for ${currentProduct.hero.name}. Access logos, colors, and visual identity.`
+      : 'View product guidelines',
+    canonicalUrl: canonicalProductUrl,
+    ogTitle: currentProduct ? `${currentProduct.hero.name} - Product Guidelines` : undefined,
+    ogDescription: currentProduct?.hero.tagline || (currentProduct ? `Official product guidelines for ${currentProduct.hero.name}` : undefined),
+    ogImage: currentProduct?.hero.coverImage || currentProduct?.hero.logoUrl || undefined,
+    ogType: 'article',
+  });
 
   // Consolidate loading states with stability to prevent flickers
   // Only block on publicProductLoading if we don't have a product yet
