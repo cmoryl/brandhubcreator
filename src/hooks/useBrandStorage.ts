@@ -680,6 +680,50 @@ export const useBrandStorage = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Auto-backup helper - stores snapshot before significant saves
+  const createAutoBackup = useCallback((guide: BrandGuide | ProductGuide) => {
+    try {
+      const BACKUP_KEY = 'brandhub_auto_backups_v2';
+      const MAX_BACKUPS_PER_GUIDE = 5;
+      
+      const backups = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]');
+      
+      const newBackup = {
+        id: crypto.randomUUID(),
+        timestamp: Date.now(),
+        guideId: guide.id,
+        guideName: guide.hero.name,
+        guideType: guide.type,
+        data: {
+          version: '2.0',
+          exportedAt: new Date().toISOString(),
+          type: guide.type,
+          guide,
+          metadata: {
+            originalId: guide.id,
+            originalSlug: guide.slug,
+            organizationId: guide.organizationId,
+          },
+        },
+      };
+
+      // Keep only the most recent backups per guide
+      const otherGuideBackups = backups.filter((b: any) => b.guideId !== guide.id);
+      const thisGuideBackups = backups
+        .filter((b: any) => b.guideId === guide.id)
+        .sort((a: any, b: any) => b.timestamp - a.timestamp)
+        .slice(0, MAX_BACKUPS_PER_GUIDE - 1);
+
+      const updatedBackups = [...otherGuideBackups, ...thisGuideBackups, newBackup]
+        .sort((a: any, b: any) => b.timestamp - a.timestamp)
+        .slice(0, MAX_BACKUPS_PER_GUIDE * 20); // Total cap
+
+      localStorage.setItem(BACKUP_KEY, JSON.stringify(updatedBackups));
+    } catch (err) {
+      console.warn('[BACKUP] Failed to create auto-backup:', err);
+    }
+  }, []);
+
   const syncBrandToDb = useCallback(async (id: string, merged: BrandGuide) => {
     if (!user) {
       console.warn('[SYNC] syncBrandToDb: No user, skipping');
@@ -695,6 +739,9 @@ export const useBrandStorage = () => {
         pendingBrandUpdates.current.delete(id);
         return;
       }
+
+      // Create auto-backup before saving
+      createAutoBackup(merged);
 
       // IMPORTANT: only include organization_id when we actually have one,
       // otherwise we risk overwriting an existing org association with null.
@@ -723,7 +770,7 @@ export const useBrandStorage = () => {
     } finally {
       pendingBrandUpdates.current.delete(id);
     }
-  }, [user, organization?.id]);
+  }, [user, organization?.id, createAutoBackup]);
 
   const syncProductToDb = useCallback(async (id: string, merged: ProductGuide) => {
     if (!user) {
@@ -740,6 +787,9 @@ export const useBrandStorage = () => {
         pendingProductUpdates.current.delete(id);
         return;
       }
+
+      // Create auto-backup before saving
+      createAutoBackup(merged);
 
       const dbData = productGuideToDb(merged, user.id, organization?.id);
       
@@ -766,7 +816,7 @@ export const useBrandStorage = () => {
     } finally {
       pendingProductUpdates.current.delete(id);
     }
-  }, [user, organization?.id]);
+  }, [user, organization?.id, createAutoBackup]);
 
   // Flush all pending updates immediately (for unmount/beforeunload)
   const flushPendingUpdates = useCallback(() => {

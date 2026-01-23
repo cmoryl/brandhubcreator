@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Building2, Check, ChevronsUpDown, Eye, ExternalLink } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Building2, Check, ChevronsUpDown, Eye, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,8 +14,10 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useAdminOrganizations } from '@/hooks/useAdminOrganizations';
+import { useBrands } from '@/contexts/BrandContext';
 import { Organization } from '@/types/organization';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface OrganizationSwitcherProps {
   onSwitch?: (org: Organization | null) => void;
@@ -24,23 +26,66 @@ interface OrganizationSwitcherProps {
 
 export const OrganizationSwitcher = ({ onSwitch, navigateOnSelect = true }: OrganizationSwitcherProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAdmin } = useAuth();
-  const { organization: currentOrg } = useOrganization();
-  const { organizations, isLoading } = useAdminOrganizations();
-  const [selectedOrg, setSelectedOrg] = useState<Organization | null>(currentOrg);
+  const { organization: currentOrg, refetch: refetchOrg } = useOrganization();
+  const { organizations, isLoading, refetch: refetchOrgs } = useAdminOrganizations();
+  const { refetch: refetchBrands, saveNow, hasPendingChanges } = useBrands();
+  
+  // Track selected org separately from context to avoid race conditions
+  const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+  const [isSwitching, setIsSwitching] = useState(false);
+
+  // Sync selected org with current org from context
+  useEffect(() => {
+    if (currentOrg && !selectedOrg) {
+      setSelectedOrg(currentOrg);
+    }
+  }, [currentOrg, selectedOrg]);
 
   // Only show for admins
   if (!isAdmin) return null;
 
-  const handleSelect = (org: Organization | null) => {
-    setSelectedOrg(org);
-    onSwitch?.(org);
+  const handleSelect = useCallback(async (org: Organization | null) => {
+    if (isSwitching) return;
     
-    // Navigate to the organization's portal page when selected
-    if (navigateOnSelect && org) {
-      navigate(`/org/${org.slug}`);
+    // Don't switch if same org selected
+    if (org?.id === selectedOrg?.id || (!org && !selectedOrg)) {
+      return;
     }
-  };
+
+    setIsSwitching(true);
+    
+    try {
+      // Save any pending changes before switching
+      if (hasPendingChanges()) {
+        toast.info('Saving changes before switching...');
+        await saveNow();
+      }
+
+      setSelectedOrg(org);
+      onSwitch?.(org);
+      
+      // Navigate to the organization's portal page when selected
+      if (navigateOnSelect && org) {
+        // Refetch data for the new org context
+        await Promise.all([
+          refetchBrands(),
+          refetchOrg(),
+        ]);
+        navigate(`/org/${org.slug}`);
+      } else if (!org) {
+        // "All Organizations" view - go to admin dashboard or home
+        await refetchBrands();
+        navigate('/');
+      }
+    } catch (err) {
+      console.error('Error switching organization:', err);
+      toast.error('Failed to switch organization');
+    } finally {
+      setIsSwitching(false);
+    }
+  }, [isSwitching, selectedOrg, hasPendingChanges, saveNow, onSwitch, navigateOnSelect, refetchBrands, refetchOrg, navigate]);
 
   const displayOrg = selectedOrg || currentOrg;
 
@@ -51,10 +96,14 @@ export const OrganizationSwitcher = ({ onSwitch, navigateOnSelect = true }: Orga
           variant="outline" 
           size="sm"
           className="w-full gap-2 justify-between"
-          disabled={isLoading}
+          disabled={isLoading || isSwitching}
         >
           <div className="flex items-center gap-2 truncate">
-            <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+            {isSwitching ? (
+              <RefreshCw className="h-4 w-4 shrink-0 text-muted-foreground animate-spin" />
+            ) : (
+              <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+            )}
             <span className="truncate text-sm">
               {displayOrg ? displayOrg.name : 'All Organizations'}
             </span>
@@ -80,6 +129,7 @@ export const OrganizationSwitcher = ({ onSwitch, navigateOnSelect = true }: Orga
         <DropdownMenuItem 
           onClick={() => handleSelect(null)}
           className="gap-2"
+          disabled={isSwitching}
         >
           <Eye className="h-4 w-4" />
           <div className="flex-1">
@@ -106,6 +156,7 @@ export const OrganizationSwitcher = ({ onSwitch, navigateOnSelect = true }: Orga
             <DropdownMenuItem
               key={org.id}
               onClick={() => handleSelect(org)}
+              disabled={isSwitching}
               className={cn(
                 "gap-2",
                 selectedOrg?.id === org.id && "bg-accent/10"

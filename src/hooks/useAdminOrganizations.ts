@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Organization, OrganizationFeatures, OrganizationPortalSettings, DEFAULT_PORTAL_SETTINGS } from '@/types/organization';
@@ -29,35 +29,39 @@ export const useAdminOrganizations = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchOrganizations = async () => {
-      if (!isAdmin) {
-        setOrganizations([]);
+  const fetchOrganizations = useCallback(async () => {
+    if (!isAdmin) {
+      setOrganizations([]);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('*')
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching organizations:', error);
         return;
       }
 
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('organizations')
-          .select('*')
-          .order('name');
-
-        if (error) {
-          console.error('Error fetching organizations:', error);
-          return;
-        }
-
-        setOrganizations(data.map(dbToOrganization));
-      } catch (error) {
-        console.error('Error in fetchOrganizations:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchOrganizations();
+      setOrganizations(data.map(dbToOrganization));
+    } catch (error) {
+      console.error('Error in fetchOrganizations:', error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [isAdmin]);
 
-  return { organizations, isLoading };
+  useEffect(() => {
+    fetchOrganizations();
+  }, [fetchOrganizations]);
+
+  return { 
+    organizations, 
+    isLoading,
+    refetch: fetchOrganizations,
+  };
 };
