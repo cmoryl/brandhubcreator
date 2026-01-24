@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ExternalLink, Trash2, GripVertical, Layers, Package } from 'lucide-react';
+import { ExternalLink, Trash2, GripVertical, Layers, Package, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BackgroundImage } from '@/components/ui/optimized-image';
@@ -16,11 +16,11 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-interface GuideItem {
+export interface GuideItem {
   id: string;
   name: string;
   guide_data: unknown;
-  type: 'brand' | 'product';
+  type: 'brand' | 'product' | 'event';
 }
 
 interface LinkedGuideCardProps {
@@ -117,11 +117,13 @@ export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideC
           {/* Type badge */}
           <div className="absolute top-2 left-12 z-20">
             <Badge 
-              variant={guide.type === 'brand' ? 'default' : 'secondary'}
-              className="text-xs"
+              variant={guide.type === 'brand' ? 'default' : guide.type === 'event' ? 'outline' : 'secondary'}
+              className={`text-xs ${guide.type === 'event' ? 'bg-primary/90 text-primary-foreground border-primary' : ''}`}
             >
               {guide.type === 'brand' ? (
                 <><Layers className="h-3 w-3 mr-1" />Brand</>
+              ) : guide.type === 'event' ? (
+                <><Calendar className="h-3 w-3 mr-1" />Event</>
               ) : (
                 <><Package className="h-3 w-3 mr-1" />Product</>
               )}
@@ -169,7 +171,7 @@ export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideC
               </AlertDialogTrigger>
               <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Unlink {guide.type === 'brand' ? 'Brand' : 'Product'} Guide</AlertDialogTitle>
+                  <AlertDialogTitle>Unlink {guide.type === 'brand' ? 'Brand' : guide.type === 'event' ? 'Event' : 'Product'} Guide</AlertDialogTitle>
                   <AlertDialogDescription>
                     This will remove "{guide.name}" from this brand guide. The {guide.type} guide itself will not be deleted.
                   </AlertDialogDescription>

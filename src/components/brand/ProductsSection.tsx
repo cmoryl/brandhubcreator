@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Package, Layers, BookOpen } from 'lucide-react';
+import { Plus, Package, Layers, BookOpen, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
 import { LinkedGuideCard } from './LinkedGuideCard';
@@ -50,13 +50,13 @@ export interface GuideItem {
   name: string;
   slug?: string | null;
   guide_data: unknown;
-  type: 'brand' | 'product';
+  type: 'brand' | 'product' | 'event';
 }
 
 interface LinkedGuide {
   id: string;
   guideId?: string;
-  guideType?: 'brand' | 'product';
+  guideType?: 'brand' | 'product' | 'event';
 }
 
 interface ProductsSectionProps {
@@ -110,12 +110,12 @@ export const ProductsSection = ({
       setIsRefreshing(true);
     }
     try {
-      // For products, we primarily use linkedGuides from guide_data
-      // For brands, we also check parent_brand_id relationships
+      // Fetch products, brands, and events in parallel
       const [
         { data: linkedByParent, error: linkedError },
         { data: availableProducts, error: availableError },
         { data: allBrands, error: brandsError },
+        { data: allEvents, error: eventsError },
       ] = await Promise.all([
         // Only fetch by parent_brand_id if we're on a brand
         entityType === 'brand' 
@@ -124,16 +124,20 @@ export const ProductsSection = ({
         supabase
           .from('products')
           .select('id, name, slug, guide_data')
-          .neq('id', entityId), // Exclude current product/brand
+          .neq('id', entityId),
         supabase
           .from('brands')
           .select('id, name, slug, guide_data')
           .neq('id', entityId),
+        supabase
+          .from('events')
+          .select('id, name, slug, guide_data'),
       ]);
 
       if (linkedError) throw linkedError;
       if (availableError) throw availableError;
       if (brandsError) throw brandsError;
+      if (eventsError) throw eventsError;
 
       // Combine linked products with manually linked guides
       const linkedProductItems: GuideItem[] = (linkedByParent || []).map(p => ({
@@ -154,11 +158,17 @@ export const ProductsSection = ({
         .filter(p => manuallyLinkedIds.includes(p.id))
         .map(p => ({ ...p, type: 'product' as const }));
 
+      // Fetch manually linked events
+      const manuallyLinkedEvents = (allEvents || [])
+        .filter(e => manuallyLinkedIds.includes(e.id))
+        .map(e => ({ ...e, type: 'event' as const }));
+
       // Combine all linked items
       const allLinked = [
         ...linkedProductItems,
         ...manuallyLinkedBrands,
-        ...manuallyLinkedProducts
+        ...manuallyLinkedProducts,
+        ...manuallyLinkedEvents
       ];
 
       // Remove duplicates
@@ -168,7 +178,7 @@ export const ProductsSection = ({
 
       setLinkedProducts(uniqueLinked);
 
-      // Available guides = all brands + unlinked products, minus what's already linked
+      // Available guides = all brands + unlinked products + unlinked events, minus what's already linked
       const linkedIds = uniqueLinked.map(l => l.id);
       const availableBrandItems: GuideItem[] = (allBrands || [])
         .filter(b => !linkedIds.includes(b.id))
@@ -178,8 +188,12 @@ export const ProductsSection = ({
         .filter(p => !linkedIds.includes(p.id))
         .map(p => ({ ...p, type: 'product' as const }));
 
-      setAvailableGuides([...availableBrandItems, ...availableProductItems]);
-      setAllGuides([...availableBrandItems, ...availableProductItems]);
+      const availableEventItems: GuideItem[] = (allEvents || [])
+        .filter(e => !linkedIds.includes(e.id))
+        .map(e => ({ ...e, type: 'event' as const }));
+
+      setAvailableGuides([...availableBrandItems, ...availableProductItems, ...availableEventItems]);
+      setAllGuides([...availableBrandItems, ...availableProductItems, ...availableEventItems]);
     } catch (error) {
       console.error('Error fetching guides:', error);
       toast.error('Failed to load guides');
@@ -229,9 +243,9 @@ export const ProductsSection = ({
     }
 
     // For products as parent, always use linkedGuides (no parent_brand_id relationship)
-    // For brands as parent, use parent_brand_id for product links + linkedGuides for brands
-    if (entityType === 'product' || guide.type === 'brand') {
-      // Use linkedGuides for all links when parent is a product, or for brand-to-brand links
+    // For brands as parent, use parent_brand_id for product links + linkedGuides for brands/events
+    if (entityType === 'product' || guide.type === 'brand' || guide.type === 'event') {
+      // Use linkedGuides for all links when parent is a product, or for brand-to-brand/event links
       if (onLinkedGuidesChange) {
         const newLinkedGuide: LinkedGuide = {
           id: crypto.randomUUID(),
@@ -244,7 +258,8 @@ export const ProductsSection = ({
         setLinkedProducts(prev => [...prev, guide]);
         setAvailableGuides(prev => prev.filter(g => g.id !== guideId));
         
-        toast.success(`${guide.type === 'brand' ? 'Brand' : 'Product'} guide linked`);
+        const typeLabel = guide.type === 'brand' ? 'Brand' : guide.type === 'event' ? 'Event' : 'Product';
+        toast.success(`${typeLabel} guide linked`);
       } else {
         toast.error('Unable to link guide - handler not available');
       }
@@ -306,7 +321,8 @@ export const ProductsSection = ({
       setLinkedProducts(prev => prev.filter(p => p.id !== guide.id));
       setAvailableGuides(prev => [...prev, guide]);
       
-      toast.success(`${guide.type === 'brand' ? 'Brand' : 'Product'} guide unlinked`);
+      const typeLabel = guide.type === 'brand' ? 'Brand' : guide.type === 'event' ? 'Event' : 'Product';
+      toast.success(`${typeLabel} guide unlinked`);
     } catch (error) {
       console.error('Error unlinking guide:', error);
       toast.error('Failed to unlink guide');
@@ -318,6 +334,8 @@ export const ProductsSection = ({
   const openGuide = useCallback((guide: GuideItem) => {
     if (guide.type === 'brand') {
       navigate(`/brand/${guide.slug || guide.id}`);
+    } else if (guide.type === 'event') {
+      navigate(`/event/${guide.slug || guide.id}`);
     } else {
       navigate(`/product/${guide.slug || guide.id}`);
     }
@@ -369,6 +387,7 @@ export const ProductsSection = ({
 
   const availableBrands = availableGuides.filter(g => g.type === 'brand');
   const availableProductsList = availableGuides.filter(g => g.type === 'product');
+  const availableEventsList = availableGuides.filter(g => g.type === 'event');
 
   return (
     <section className="space-y-4 sm:space-y-6">
@@ -376,8 +395,8 @@ export const ProductsSection = ({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <SectionHeader
-            title="Product Guides"
-            defaultSubtitle="Brand and product guides linked to this brand"
+            title="Linked Guides"
+            defaultSubtitle="Brand, product, and event guides linked to this brand"
             customSubtitle={customSubtitle}
             onSubtitleChange={onSubtitleChange}
             isEditing={isHeaderEditing}
@@ -427,6 +446,22 @@ export const ProductsSection = ({
                       <SelectItem key={guide.id} value={guide.id}>
                         <span className="flex items-center gap-2">
                           <Badge variant="secondary" className="text-xs px-1.5 py-0">Product</Badge>
+                          {guide.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                )}
+                {availableEventsList.length > 0 && (
+                  <SelectGroup>
+                    <SelectLabel className="flex items-center gap-2">
+                      <Calendar className="h-3 w-3" />
+                      Event Guides
+                    </SelectLabel>
+                    {availableEventsList.map((guide) => (
+                      <SelectItem key={guide.id} value={guide.id}>
+                        <span className="flex items-center gap-2">
+                          <Badge className="text-xs px-1.5 py-0 bg-primary/90">Event</Badge>
                           {guide.name}
                         </span>
                       </SelectItem>
@@ -509,7 +544,7 @@ export const ProductsSection = ({
           <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">No guides linked</h3>
           <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-            Link existing brand or product guides, or create a new product guide.
+            Link existing brand, product, or event guides, or create a new product guide.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
             <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
