@@ -1,12 +1,14 @@
 /**
  * OrganizationAnalytics Component
  * Displays analytics dashboard with brand views, user activity, and usage trends
+ * Includes CSV and PDF export functionality
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
@@ -16,10 +18,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -45,11 +51,14 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   BarChart3,
-  PieChart as PieChartIcon,
+  Download,
+  FileSpreadsheet,
+  Loader2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, parseISO } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
+import { format, subDays, endOfDay, eachDayOfInterval, parseISO } from 'date-fns';
 
 interface ActivityData {
   date: string;
@@ -94,7 +103,9 @@ const PIE_COLORS = ['#6366f1', '#8b5cf6', '#f59e0b', '#22c55e', '#3b82f6', '#ec4
 
 export const OrganizationAnalytics = () => {
   const { organization, members } = useOrganization();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   const [dateRange, setDateRange] = useState('30');
   const [activityData, setActivityData] = useState<ActivityData[]>([]);
   const [entityCounts, setEntityCounts] = useState<EntityCount>({ brands: 0, products: 0, events: 0, members: 0 });
@@ -102,6 +113,7 @@ export const OrganizationAnalytics = () => {
   const [contentDistribution, setContentDistribution] = useState<ContentDistribution[]>([]);
   const [growthData, setGrowthData] = useState<{ date: string; total: number }[]>([]);
   const [publicVsPrivate, setPublicVsPrivate] = useState({ public: 0, private: 0 });
+  const analyticsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (organization?.id) {
@@ -214,6 +226,233 @@ export const OrganizationAnalytics = () => {
     }
   };
 
+  // CSV Export
+  const exportToCSV = () => {
+    if (!organization) return;
+    
+    setIsExporting(true);
+    try {
+      const reportDate = format(new Date(), 'yyyy-MM-dd');
+      const dateRangeLabel = dateRange === '7' ? '7 days' : dateRange === '30' ? '30 days' : '90 days';
+      
+      // Build CSV content
+      let csvContent = '';
+      
+      // Header
+      csvContent += `Organization Analytics Report\n`;
+      csvContent += `Organization: ${organization.name}\n`;
+      csvContent += `Report Date: ${reportDate}\n`;
+      csvContent += `Date Range: Last ${dateRangeLabel}\n\n`;
+      
+      // Summary Metrics
+      csvContent += `SUMMARY METRICS\n`;
+      csvContent += `Metric,Value\n`;
+      csvContent += `Total Brands,${entityCounts.brands}\n`;
+      csvContent += `Total Products,${entityCounts.products}\n`;
+      csvContent += `Total Events,${entityCounts.events}\n`;
+      csvContent += `Team Members,${entityCounts.members}\n`;
+      csvContent += `Public Content,${publicVsPrivate.public}\n`;
+      csvContent += `Private Content,${publicVsPrivate.private}\n\n`;
+      
+      // Daily Activity
+      csvContent += `DAILY ACTIVITY\n`;
+      csvContent += `Date,Views,Edits,Exports\n`;
+      activityData.forEach(day => {
+        csvContent += `${day.date},${day.views},${day.edits},${day.exports}\n`;
+      });
+      csvContent += `\n`;
+      
+      // Content Growth
+      csvContent += `CONTENT GROWTH\n`;
+      csvContent += `Date,Total Content\n`;
+      growthData.forEach(day => {
+        csvContent += `${day.date},${day.total}\n`;
+      });
+      csvContent += `\n`;
+      
+      // Recent Activity
+      csvContent += `RECENT ACTIVITY\n`;
+      csvContent += `Timestamp,Action,Entity Type,Entity Name\n`;
+      recentActivity.forEach(activity => {
+        const timestamp = format(parseISO(activity.createdAt), 'yyyy-MM-dd HH:mm');
+        csvContent += `${timestamp},${activity.actionType},${activity.entityType},"${activity.entityName}"\n`;
+      });
+      
+      // Create and download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${organization.slug}-analytics-${reportDate}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: 'CSV Exported',
+        description: 'Analytics data has been downloaded as CSV.',
+      });
+    } catch (error) {
+      console.error('[Analytics] CSV export error:', error);
+      toast({
+        title: 'Export Failed',
+        description: 'Failed to export CSV. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // PDF Export
+  const exportToPDF = async () => {
+    if (!organization) return;
+    
+    setIsExporting(true);
+    try {
+      const html2pdf = (await import('html2pdf.js')).default;
+      const reportDate = format(new Date(), 'MMMM d, yyyy');
+      const dateRangeLabel = dateRange === '7' ? '7 days' : dateRange === '30' ? '30 days' : '90 days';
+      
+      // Create PDF content
+      const pdfContent = document.createElement('div');
+      pdfContent.style.padding = '40px';
+      pdfContent.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+      pdfContent.style.color = '#1f2937';
+      pdfContent.style.backgroundColor = '#ffffff';
+      
+      pdfContent.innerHTML = `
+        <div style="margin-bottom: 32px;">
+          <h1 style="font-size: 28px; font-weight: 700; margin: 0 0 8px 0; color: #111827;">
+            📊 Analytics Report
+          </h1>
+          <p style="font-size: 16px; color: #6b7280; margin: 0;">
+            ${organization.name} • Last ${dateRangeLabel}
+          </p>
+          <p style="font-size: 12px; color: #9ca3af; margin-top: 4px;">
+            Generated on ${reportDate}
+          </p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px;">
+          <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; text-align: center;">
+            <p style="font-size: 24px; font-weight: 700; margin: 0; color: #6366f1;">${entityCounts.brands}</p>
+            <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Brands</p>
+          </div>
+          <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; text-align: center;">
+            <p style="font-size: 24px; font-weight: 700; margin: 0; color: #8b5cf6;">${entityCounts.products}</p>
+            <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Products</p>
+          </div>
+          <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; text-align: center;">
+            <p style="font-size: 24px; font-weight: 700; margin: 0; color: #f59e0b;">${entityCounts.events}</p>
+            <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Events</p>
+          </div>
+          <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; text-align: center;">
+            <p style="font-size: 24px; font-weight: 700; margin: 0; color: #22c55e;">${entityCounts.members}</p>
+            <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Team Members</p>
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 32px;">
+          <h2 style="font-size: 18px; font-weight: 600; margin: 0 0 16px 0; color: #111827;">
+            Content Visibility
+          </h2>
+          <div style="display: flex; gap: 24px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 12px; height: 12px; background: #22c55e; border-radius: 50%;"></span>
+              <span style="font-size: 14px;">Public: ${publicVsPrivate.public}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 12px; height: 12px; background: #6b7280; border-radius: 50%;"></span>
+              <span style="font-size: 14px;">Private: ${publicVsPrivate.private}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 32px;">
+          <h2 style="font-size: 18px; font-weight: 600; margin: 0 0 16px 0; color: #111827;">
+            Daily Activity Summary
+          </h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="background: #f9fafb;">
+                <th style="text-align: left; padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">Date</th>
+                <th style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">Views</th>
+                <th style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">Edits</th>
+                <th style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">Exports</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${activityData.slice(-7).map(day => `
+                <tr>
+                  <td style="padding: 8px 12px; border-bottom: 1px solid #f3f4f6;">${day.date}</td>
+                  <td style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #f3f4f6;">${day.views}</td>
+                  <td style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #f3f4f6;">${day.edits}</td>
+                  <td style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #f3f4f6;">${day.exports}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="margin-bottom: 32px;">
+          <h2 style="font-size: 18px; font-weight: 600; margin: 0 0 16px 0; color: #111827;">
+            Recent Activity
+          </h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="background: #f9fafb;">
+                <th style="text-align: left; padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">Time</th>
+                <th style="text-align: left; padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">Action</th>
+                <th style="text-align: left; padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">Entity</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${recentActivity.slice(0, 10).map(activity => `
+                <tr>
+                  <td style="padding: 8px 12px; border-bottom: 1px solid #f3f4f6;">${format(parseISO(activity.createdAt), 'MMM d, h:mm a')}</td>
+                  <td style="padding: 8px 12px; border-bottom: 1px solid #f3f4f6; text-transform: capitalize;">${activity.actionType}</td>
+                  <td style="padding: 8px 12px; border-bottom: 1px solid #f3f4f6;">${activity.entityName} (${activity.entityType})</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="margin-top: 40px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center;">
+          <p style="font-size: 11px; color: #9ca3af; margin: 0;">
+            Generated by BrandHub Analytics • ${reportDate}
+          </p>
+        </div>
+      `;
+      
+      const opt = {
+        margin: 0.5,
+        filename: `${organization.slug}-analytics-report.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in' as const, format: 'letter' as const, orientation: 'portrait' as const },
+      };
+      
+      await html2pdf().set(opt).from(pdfContent).save();
+      
+      toast({
+        title: 'PDF Exported',
+        description: 'Analytics report has been downloaded as PDF.',
+      });
+    } catch (error) {
+      console.error('[Analytics] PDF export error:', error);
+      toast({
+        title: 'Export Failed',
+        description: 'Failed to export PDF. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const getActionIcon = (actionType: string) => {
     switch (actionType) {
       case 'view': return <Eye className="h-3 w-3" />;
@@ -242,9 +481,9 @@ export const OrganizationAnalytics = () => {
   if (!organization) return null;
 
   return (
-    <Card>
+    <Card ref={analyticsRef}>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
@@ -252,16 +491,41 @@ export const OrganizationAnalytics = () => {
             </CardTitle>
             <CardDescription>Track usage, activity, and growth metrics</CardDescription>
           </div>
-          <Select value={dateRange} onValueChange={setDateRange}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7">Last 7 days</SelectItem>
-              <SelectItem value="30">Last 30 days</SelectItem>
-              <SelectItem value="90">Last 90 days</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <Select value={dateRange} onValueChange={setDateRange}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">Last 7 days</SelectItem>
+                <SelectItem value="30">Last 30 days</SelectItem>
+                <SelectItem value="90">Last 90 days</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" disabled={isExporting || isLoading}>
+                  {isExporting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  <span className="ml-2 hidden sm:inline">Export</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={exportToCSV} className="gap-2">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToPDF} className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Export as PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
