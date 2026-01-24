@@ -1,6 +1,7 @@
 /**
  * GlobalAssetOrbit Component
  * Interactive globe with orbiting icons linked to actual brands, products, and events
+ * Features dotted orbit lines, monochromatic icons, and organization-branded center
  */
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
@@ -9,9 +10,8 @@ import {
   Building2,
   Package,
   Calendar,
-  Globe,
-  Sparkles,
   ArrowUpRight,
+  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,21 +29,25 @@ interface GlobalAssetOrbitProps {
   className?: string;
   primaryColor?: string;
   secondaryColor?: string;
+  organizationName?: string;
+  organizationLogo?: string | null;
   brands?: LinkedEntity[];
   products?: LinkedEntity[];
   events?: LinkedEntity[];
 }
 
 const TYPE_CONFIG = {
-  brand: { Icon: Building2, label: 'Brand', path: '/brand' },
-  product: { Icon: Package, label: 'Product', path: '/product' },
-  event: { Icon: Calendar, label: 'Event', path: '/event' },
+  brand: { Icon: Building2, label: 'Brand Guide', path: '/brand' },
+  product: { Icon: Package, label: 'Product Guide', path: '/product' },
+  event: { Icon: Calendar, label: 'Event Kit', path: '/event' },
 };
 
 export const GlobalAssetOrbit = ({ 
   className, 
   primaryColor = '#6366f1',
   secondaryColor = '#8b5cf6',
+  organizationName = 'Brand Hub',
+  organizationLogo,
   brands = [],
   products = [],
   events = [],
@@ -65,7 +69,6 @@ export const GlobalAssetOrbit = ({
       ...events.slice(0, 4).map(e => ({ ...e, type: 'event' as const })),
     ];
     
-    // Sort by updated date and take top 8
     return allEntities
       .sort((a, b) => {
         const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
@@ -75,7 +78,7 @@ export const GlobalAssetOrbit = ({
       .slice(0, 8);
   }, [brands, products, events]);
 
-  // Group counts for center display
+  // Entity counts
   const entityCounts = useMemo(() => ({
     brands: brands.length,
     products: products.length,
@@ -83,7 +86,10 @@ export const GlobalAssetOrbit = ({
     total: brands.length + products.length + events.length,
   }), [brands, products, events]);
 
-  // Handle mouse movement with rAF
+  // Get first letter for center icon
+  const centerLetter = organizationName.charAt(0).toUpperCase();
+
+  // Handle mouse movement
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -108,12 +114,12 @@ export const GlobalAssetOrbit = ({
     };
   }, []);
 
-  // 3D transform based on mouse
+  // 3D perspective transform
   const getTransform3D = () => {
     if (!isHovering) return 'perspective(1200px) rotateX(0deg) rotateY(0deg)';
     
-    const rotateX = (mousePosition.y - 0.5) * -15;
-    const rotateY = (mousePosition.x - 0.5) * 15;
+    const rotateX = (mousePosition.y - 0.5) * -12;
+    const rotateY = (mousePosition.x - 0.5) * 12;
     
     return `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
   };
@@ -124,16 +130,16 @@ export const GlobalAssetOrbit = ({
     navigate(`${config.path}/${entity.slug || entity.id}`);
   };
 
-  // Get relationship lines between same-type entities
+  // Get relationship lines
   const getRelationshipLines = () => {
     if (hoveredIndex === null || !activeEntity) return [];
     
-    const lines: { from: number; to: number; opacity: number }[] = [];
+    const lines: { from: number; to: number }[] = [];
     const activeType = activeEntity.type;
     
     orbitEntities.forEach((entity, i) => {
       if (i !== hoveredIndex && entity.type === activeType) {
-        lines.push({ from: hoveredIndex, to: i, opacity: 0.6 });
+        lines.push({ from: hoveredIndex, to: i });
       }
     });
     
@@ -141,6 +147,23 @@ export const GlobalAssetOrbit = ({
   };
 
   const relationshipLines = getRelationshipLines();
+
+  // Generate dotted circle points
+  const generateDots = (cx: number, cy: number, r: number, count: number, size: number) => {
+    const dots = [];
+    for (let i = 0; i < count; i++) {
+      const angle = (i * 360 / count) * (Math.PI / 180);
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+      dots.push({ x, y, size });
+    }
+    return dots;
+  };
+
+  const outerDots = generateDots(200, 200, 175, 48, 2);
+  const mainOrbitDots = generateDots(200, 200, 145, 36, 2.5);
+  const middleDots = generateDots(200, 200, 95, 24, 2);
+  const innerDots = generateDots(200, 200, 55, 16, 1.5);
 
   return (
     <div 
@@ -167,28 +190,22 @@ export const GlobalAssetOrbit = ({
         style={{ overflow: 'visible' }}
       >
         <defs>
-          <radialGradient id="globe-grad" cx="30%" cy="30%">
-            <stop offset="0%" stopColor={primaryColor} stopOpacity={isHovering ? "0.6" : "0.4"} />
-            <stop offset="50%" stopColor={secondaryColor} stopOpacity={isHovering ? "0.3" : "0.2"} />
-            <stop offset="100%" stopColor={primaryColor} stopOpacity="0.05" />
+          <radialGradient id="center-grad" cx="30%" cy="30%">
+            <stop offset="0%" stopColor={primaryColor} stopOpacity={isHovering ? "0.7" : "0.5"} />
+            <stop offset="70%" stopColor={primaryColor} stopOpacity={isHovering ? "0.4" : "0.25"} />
+            <stop offset="100%" stopColor={primaryColor} stopOpacity="0.1" />
           </radialGradient>
           
-          <linearGradient id="orbit-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={primaryColor} stopOpacity="0.7" />
-            <stop offset="50%" stopColor={secondaryColor} stopOpacity="0.4" />
-            <stop offset="100%" stopColor={primaryColor} stopOpacity="0.7" />
-          </linearGradient>
-          
-          <filter id="glow-strong" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur stdDeviation="8" result="blur" />
+          <filter id="glow-main" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="10" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
           
-          <filter id="line-glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
+          <filter id="glow-soft" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -196,92 +213,108 @@ export const GlobalAssetOrbit = ({
           </filter>
         </defs>
         
-        {/* Outer pulse ring */}
-        <circle 
-          cx="200" 
-          cy="200" 
-          r="185" 
-          fill="none" 
-          stroke={primaryColor}
-          strokeWidth={isHovering ? "3" : "1"}
-          strokeOpacity={isHovering ? "0.4" : "0.15"}
-          strokeDasharray="12 6"
-          className={orbitPaused ? '' : 'animate-[spin_90s_linear_infinite]'}
-          style={{ transformOrigin: '200px 200px', transition: 'all 0.3s' }}
-        />
-        
-        {/* Main orbit ring */}
-        <circle 
-          cx="200" 
-          cy="200" 
-          r="150" 
-          fill="none" 
-          stroke="url(#orbit-grad)" 
-          strokeWidth={isHovering ? "3" : "2"}
-          strokeDasharray={isHovering ? "10 5" : "6 4"}
-          className={orbitPaused ? '' : 'animate-[spin_60s_linear_infinite]'}
-          style={{ transformOrigin: '200px 200px', transition: 'all 0.3s' }}
-        />
-        
-        {/* Middle orbit */}
-        <circle 
-          cx="200" 
-          cy="200" 
-          r="100" 
-          fill="none" 
-          stroke={primaryColor}
-          strokeWidth="1.5"
-          strokeOpacity={isHovering ? "0.5" : "0.3"}
-          strokeDasharray="4 8"
-          className={orbitPaused ? '' : 'animate-[spin_45s_linear_infinite_reverse]'}
+        {/* Outer dotted orbit */}
+        <g 
+          className={orbitPaused ? '' : 'animate-[spin_120s_linear_infinite]'}
           style={{ transformOrigin: '200px 200px' }}
-        />
+        >
+          {outerDots.map((dot, i) => (
+            <circle
+              key={`outer-${i}`}
+              cx={dot.x}
+              cy={dot.y}
+              r={dot.size}
+              fill={primaryColor}
+              fillOpacity={isHovering ? 0.5 : 0.25}
+              style={{ transition: 'fill-opacity 0.3s' }}
+            />
+          ))}
+        </g>
         
-        {/* Inner orbit */}
-        <circle 
-          cx="200" 
-          cy="200" 
-          r="55" 
-          fill="none" 
-          stroke={secondaryColor}
-          strokeWidth="1"
-          strokeOpacity={isHovering ? "0.45" : "0.25"}
-          strokeDasharray="2 6"
-          className={orbitPaused ? '' : 'animate-[spin_35s_linear_infinite]'}
+        {/* Main orbit dots */}
+        <g 
+          className={orbitPaused ? '' : 'animate-[spin_80s_linear_infinite]'}
           style={{ transformOrigin: '200px 200px' }}
-        />
+        >
+          {mainOrbitDots.map((dot, i) => (
+            <circle
+              key={`main-${i}`}
+              cx={dot.x}
+              cy={dot.y}
+              r={dot.size}
+              fill={primaryColor}
+              fillOpacity={isHovering ? 0.7 : 0.4}
+              style={{ transition: 'fill-opacity 0.3s' }}
+            />
+          ))}
+        </g>
         
-        {/* Relationship connection lines */}
-        {relationshipLines.map(({ from, to, opacity }, i) => {
+        {/* Middle orbit dots */}
+        <g 
+          className={orbitPaused ? '' : 'animate-[spin_60s_linear_infinite_reverse]'}
+          style={{ transformOrigin: '200px 200px' }}
+        >
+          {middleDots.map((dot, i) => (
+            <circle
+              key={`middle-${i}`}
+              cx={dot.x}
+              cy={dot.y}
+              r={dot.size}
+              fill={primaryColor}
+              fillOpacity={isHovering ? 0.55 : 0.3}
+              style={{ transition: 'fill-opacity 0.3s' }}
+            />
+          ))}
+        </g>
+        
+        {/* Inner orbit dots */}
+        <g 
+          className={orbitPaused ? '' : 'animate-[spin_45s_linear_infinite]'}
+          style={{ transformOrigin: '200px 200px' }}
+        >
+          {innerDots.map((dot, i) => (
+            <circle
+              key={`inner-${i}`}
+              cx={dot.x}
+              cy={dot.y}
+              r={dot.size}
+              fill={primaryColor}
+              fillOpacity={isHovering ? 0.5 : 0.25}
+              style={{ transition: 'fill-opacity 0.3s' }}
+            />
+          ))}
+        </g>
+        
+        {/* Relationship connection lines - animated dots */}
+        {relationshipLines.map(({ from, to }, i) => {
           const angleFrom = (from * 360 / orbitEntities.length - 90) * (Math.PI / 180);
           const angleTo = (to * 360 / orbitEntities.length - 90) * (Math.PI / 180);
-          const r = 150;
+          const r = 145;
           
           const x1 = 200 + r * Math.cos(angleFrom);
           const y1 = 200 + r * Math.sin(angleFrom);
           const x2 = 200 + r * Math.cos(angleTo);
           const y2 = 200 + r * Math.sin(angleTo);
           
-          // Curved path through center
           const midAngle = ((from + to) / 2 * 360 / orbitEntities.length - 90) * (Math.PI / 180);
-          const cx = 200 + 60 * Math.cos(midAngle);
-          const cy = 200 + 60 * Math.sin(midAngle);
+          const cx = 200 + 50 * Math.cos(midAngle);
+          const cy = 200 + 50 * Math.sin(midAngle);
           
           return (
-            <g key={`rel-${i}`}>
+            <g key={`rel-${i}`} filter="url(#glow-soft)">
               <path
                 d={`M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`}
                 fill="none"
-                stroke={activeEntity?.type === 'brand' ? '#3b82f6' : activeEntity?.type === 'product' ? '#8b5cf6' : '#f59e0b'}
-                strokeWidth="2.5"
-                strokeOpacity={opacity}
-                filter="url(#line-glow)"
-                className="animate-[pulse_1.5s_ease-in-out_infinite]"
+                stroke={primaryColor}
+                strokeWidth="2"
+                strokeOpacity="0.6"
+                strokeDasharray="6 6"
+                className="animate-[dash_1s_linear_infinite]"
               />
-              {/* Animated dot along path */}
-              <circle r="4" fill={activeEntity?.type === 'brand' ? '#3b82f6' : activeEntity?.type === 'product' ? '#8b5cf6' : '#f59e0b'}>
+              {/* Traveling dot */}
+              <circle r="5" fill={primaryColor} fillOpacity="0.9">
                 <animateMotion
-                  dur="2s"
+                  dur="1.5s"
                   repeatCount="indefinite"
                   path={`M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`}
                 />
@@ -290,16 +323,16 @@ export const GlobalAssetOrbit = ({
           );
         })}
         
-        {/* Mouse connection lines */}
-        {isHovering && orbitEntities.map((_, i) => {
+        {/* Mouse proximity lines */}
+        {isHovering && hoveredIndex === null && orbitEntities.map((_, i) => {
           const angle = (i * 360 / orbitEntities.length - 90) * (Math.PI / 180);
-          const iconX = 200 + 150 * Math.cos(angle);
-          const iconY = 200 + 150 * Math.sin(angle);
+          const iconX = 200 + 145 * Math.cos(angle);
+          const iconY = 200 + 145 * Math.sin(angle);
           const mouseX = mousePosition.x * 400;
           const mouseY = mousePosition.y * 400;
           
           const distance = Math.sqrt(Math.pow(mouseX - iconX, 2) + Math.pow(mouseY - iconY, 2));
-          const opacity = Math.max(0, 0.5 - distance / 250);
+          const opacity = Math.max(0, 0.4 - distance / 300);
           
           if (opacity <= 0.05) return null;
           
@@ -311,131 +344,92 @@ export const GlobalAssetOrbit = ({
               x2={iconX}
               y2={iconY}
               stroke={primaryColor}
-              strokeWidth="1.5"
+              strokeWidth="1"
               strokeOpacity={opacity}
-              strokeDasharray="4 4"
+              strokeDasharray="3 6"
             />
           );
         })}
         
-        {/* Central globe */}
+        {/* Central circle */}
         <circle 
           cx="200" 
           cy="200" 
-          r={isHovering ? "52" : "48"} 
-          fill="url(#globe-grad)"
+          r={isHovering ? "50" : "46"} 
+          fill="url(#center-grad)"
           stroke={primaryColor}
-          strokeWidth={isHovering ? "2.5" : "2"}
-          strokeOpacity={isHovering ? "0.8" : "0.6"}
+          strokeWidth={isHovering ? "3" : "2"}
+          strokeOpacity={isHovering ? "0.9" : "0.7"}
+          filter="url(#glow-main)"
           style={{ transition: 'all 0.3s ease-out' }}
         />
         
-        {/* Globe lines */}
-        <ellipse 
-          cx="200" cy="200" 
-          rx={isHovering ? "52" : "48"} ry="18" 
-          fill="none" stroke={primaryColor}
-          strokeWidth="1" strokeOpacity={isHovering ? "0.5" : "0.3"}
-          style={{ transition: 'all 0.3s' }}
-        />
-        <ellipse 
-          cx="200" cy="200" 
-          rx={isHovering ? "52" : "48"} ry="38" 
-          fill="none" stroke={primaryColor}
-          strokeWidth="0.75" strokeOpacity={isHovering ? "0.4" : "0.2"}
-          style={{ transition: 'all 0.3s' }}
-        />
-        <ellipse 
-          cx="200" cy="200" 
-          rx="14" ry={isHovering ? "52" : "48"}
-          fill="none" stroke={primaryColor}
-          strokeWidth="1" strokeOpacity={isHovering ? "0.5" : "0.3"}
-          style={{ transition: 'all 0.3s' }}
-        />
-        
-        {/* Center glow */}
+        {/* Center glow pulse */}
         <circle 
-          cx="200" cy="200" r="70" 
+          cx="200" 
+          cy="200" 
+          r="70" 
           fill={primaryColor}
-          fillOpacity={isHovering ? "0.2" : "0.1"}
-          filter="url(#glow-strong)"
+          fillOpacity={isHovering ? "0.15" : "0.08"}
           style={{ transition: 'fill-opacity 0.3s' }}
         />
       </svg>
       
-      {/* Central Globe with Stats */}
+      {/* Center Icon - Organization Letter */}
       <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center cursor-pointer transition-all duration-300"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center transition-all duration-300"
         style={{ 
-          width: isHovering ? '110px' : '100px',
-          height: isHovering ? '110px' : '100px',
+          width: isHovering ? '100px' : '92px',
+          height: isHovering ? '100px' : '92px',
         }}
       >
         <div 
-          className="w-full h-full rounded-full flex flex-col items-center justify-center"
+          className="w-full h-full rounded-full flex flex-col items-center justify-center overflow-hidden"
           style={{ 
-            background: `linear-gradient(135deg, ${primaryColor}50, ${secondaryColor}30)`,
-            boxShadow: `0 0 ${isHovering ? '60px' : '40px'} ${primaryColor}50`,
-            border: `2px solid ${primaryColor}60`,
+            background: `linear-gradient(145deg, ${primaryColor}60, ${primaryColor}30)`,
+            boxShadow: `
+              0 0 ${isHovering ? '50px' : '30px'} ${primaryColor}40,
+              inset 0 2px 10px ${primaryColor}30
+            `,
+            border: `2px solid ${primaryColor}80`,
           }}
         >
-          <Globe 
-            className={cn(
-              "w-8 h-8 mb-1 transition-all duration-300",
-              isHovering && "animate-pulse"
-            )}
-            style={{ color: primaryColor }}
-          />
-          <span className="text-lg font-bold" style={{ color: primaryColor }}>
-            {entityCounts.total}
-          </span>
-          <span className="text-[10px] text-muted-foreground">Assets</span>
-        </div>
-      </div>
-      
-      {/* Inner sparkle icons */}
-      <div 
-        className={cn("absolute inset-0", !orbitPaused && "animate-[spin_30s_linear_infinite_reverse]")}
-        style={{ transformOrigin: 'center' }}
-      >
-        {[0, 1, 2].map((i) => {
-          const angle = (i * 120 - 90) * (Math.PI / 180);
-          const r = 55 / 400 * 100;
-          const x = 50 + r * Math.cos(angle);
-          const y = 50 + r * Math.sin(angle);
-          
-          return (
-            <div
-              key={`inner-${i}`}
-              className={cn(
-                "absolute w-8 h-8 -ml-4 -mt-4 flex items-center justify-center",
-                !orbitPaused && "animate-[spin_30s_linear_infinite]"
-              )}
-              style={{ left: `${x}%`, top: `${y}%` }}
+          {organizationLogo ? (
+            <img 
+              src={organizationLogo} 
+              alt={organizationName}
+              className="w-12 h-12 object-contain"
+              style={{ filter: 'brightness(0) invert(1)', opacity: 0.9 }}
+            />
+          ) : (
+            <span 
+              className="text-4xl font-bold transition-all duration-300"
+              style={{ 
+                color: primaryColor,
+                textShadow: `0 0 20px ${primaryColor}60`,
+                filter: 'brightness(1.3)',
+              }}
             >
-              <div 
-                className="p-1.5 rounded-full transition-all duration-300"
-                style={{ 
-                  background: `${secondaryColor}40`,
-                  boxShadow: `0 0 15px ${secondaryColor}30`,
-                  transform: `scale(${isHovering ? 1.2 : 1})`,
-                }}
-              >
-                <Sparkles className="w-4 h-4" style={{ color: secondaryColor }} />
-              </div>
-            </div>
-          );
-        })}
+              {centerLetter}
+            </span>
+          )}
+          <span 
+            className="text-[10px] font-medium mt-0.5 opacity-80"
+            style={{ color: primaryColor }}
+          >
+            {entityCounts.total} Assets
+          </span>
+        </div>
       </div>
       
       {/* Outer entity icons */}
       <div 
-        className={cn("absolute inset-0", !orbitPaused && "animate-[spin_50s_linear_infinite]")}
+        className={cn("absolute inset-0", !orbitPaused && "animate-[spin_60s_linear_infinite]")}
         style={{ transformOrigin: 'center' }}
       >
         {orbitEntities.map((entity, i) => {
           const angle = (i * 360 / orbitEntities.length - 90) * (Math.PI / 180);
-          const r = 150 / 400 * 100;
+          const r = 145 / 400 * 100;
           const x = 50 + r * Math.cos(angle);
           const y = 50 + r * Math.sin(angle);
           
@@ -444,22 +438,17 @@ export const GlobalAssetOrbit = ({
           const isActive = hoveredIndex === i;
           const isRelated = activeEntity && activeEntity.type === entity.type && hoveredIndex !== i;
           
-          const typeColors = {
-            brand: '#3b82f6',
-            product: '#8b5cf6',
-            event: '#f59e0b',
-          };
-          const iconColor = entity.color || typeColors[entity.type];
-          
           return (
             <div
               key={entity.id}
-              className="absolute -ml-8 -mt-8 group"
+              className="absolute group"
               style={{ 
                 left: `${x}%`, 
                 top: `${y}%`,
-                width: '64px',
-                height: '64px',
+                width: '56px',
+                height: '56px',
+                marginLeft: '-28px',
+                marginTop: '-28px',
               }}
               onMouseEnter={() => {
                 setHoveredIndex(i);
@@ -473,84 +462,91 @@ export const GlobalAssetOrbit = ({
               }}
               onClick={() => handleEntityClick(entity)}
             >
-              {/* Counter-rotate */}
+              {/* Counter-rotate to keep upright */}
               <div 
                 className={cn(
                   "w-full h-full flex items-center justify-center",
-                  !orbitPaused && "animate-[spin_50s_linear_infinite_reverse]"
+                  !orbitPaused && "animate-[spin_60s_linear_infinite_reverse]"
                 )}
                 style={{ transformOrigin: 'center' }}
               >
+                {/* Icon container */}
                 <div 
                   className={cn(
-                    "relative p-3 rounded-2xl cursor-pointer transition-all duration-200",
+                    "relative p-3 rounded-2xl cursor-pointer transition-all duration-300 ease-out",
                     isActive && "z-20"
                   )}
                   style={{ 
                     background: isActive 
-                      ? `linear-gradient(135deg, ${iconColor}90, ${iconColor}60)`
+                      ? `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)`
                       : isRelated
-                        ? `linear-gradient(135deg, ${iconColor}50, ${iconColor}30)`
-                        : `linear-gradient(135deg, ${iconColor}30, ${iconColor}15)`,
+                        ? `linear-gradient(135deg, ${primaryColor}70, ${primaryColor}40)`
+                        : `linear-gradient(135deg, ${primaryColor}40, ${primaryColor}20)`,
                     boxShadow: isActive 
-                      ? `0 0 40px ${iconColor}60, 0 8px 32px ${iconColor}40`
+                      ? `0 0 35px ${primaryColor}70, 0 10px 40px ${primaryColor}50`
                       : isRelated
-                        ? `0 0 25px ${iconColor}40`
-                        : `0 0 20px ${iconColor}20`,
-                    border: `2px solid ${iconColor}${isActive ? 'cc' : isRelated ? '80' : '40'}`,
-                    transform: `scale(${isActive ? 1.4 : isRelated ? 1.2 : 1})`,
+                        ? `0 0 20px ${primaryColor}50`
+                        : `0 0 15px ${primaryColor}25`,
+                    border: `2px solid ${primaryColor}${isActive ? '' : isRelated ? 'aa' : '50'}`,
+                    transform: `scale(${isActive ? 1.35 : isRelated ? 1.15 : 1})`,
                   }}
                 >
-                  {/* Entity cover image or icon */}
-                  {entity.coverImage ? (
-                    <div 
-                      className="w-6 h-6 rounded-lg bg-cover bg-center"
-                      style={{ backgroundImage: `url(${entity.coverImage})` }}
-                    />
-                  ) : (
-                    <Icon 
-                      className="w-6 h-6 transition-all duration-200"
-                      style={{ 
-                        color: isActive ? '#fff' : iconColor,
-                        filter: isActive ? 'drop-shadow(0 0 8px rgba(255,255,255,0.5))' : 'none',
-                      }}
-                    />
-                  )}
+                  <Icon 
+                    className="w-6 h-6 transition-all duration-300"
+                    style={{ 
+                      color: isActive ? '#ffffff' : primaryColor,
+                      filter: isActive ? 'drop-shadow(0 0 6px rgba(255,255,255,0.6))' : 'none',
+                    }}
+                  />
                   
-                  {/* Arrow indicator on hover */}
+                  {/* Active indicator */}
                   {isActive && (
-                    <div className="absolute -top-1 -right-1 p-0.5 rounded-full bg-white/90">
-                      <ArrowUpRight className="w-3 h-3 text-gray-800" />
+                    <div 
+                      className="absolute -top-1 -right-1 p-1 rounded-full animate-scale-in"
+                      style={{ background: primaryColor }}
+                    >
+                      <ExternalLink className="w-3 h-3 text-white" />
                     </div>
                   )}
                 </div>
                 
-                {/* Tooltip with entity info */}
+                {/* Enhanced hover tooltip */}
                 <div 
                   className={cn(
-                    "absolute left-1/2 -translate-x-1/2 whitespace-nowrap transition-all duration-200 pointer-events-none",
-                    isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+                    "absolute left-1/2 -translate-x-1/2 transition-all duration-300 pointer-events-none",
+                    isActive 
+                      ? "opacity-100 translate-y-0 scale-100" 
+                      : "opacity-0 translate-y-4 scale-90"
                   )}
                   style={{ 
-                    top: 'calc(100% + 8px)',
-                    zIndex: 30,
+                    top: 'calc(100% + 12px)',
+                    zIndex: 50,
                   }}
                 >
                   <div 
-                    className="px-3 py-2 rounded-xl shadow-xl"
+                    className="px-4 py-3 rounded-xl shadow-2xl min-w-[160px]"
                     style={{ 
-                      background: `linear-gradient(135deg, ${iconColor}, ${iconColor}dd)`,
-                      boxShadow: `0 8px 24px ${iconColor}50`,
+                      background: `linear-gradient(145deg, ${primaryColor}, ${primaryColor}dd)`,
+                      boxShadow: `0 12px 40px ${primaryColor}60`,
                     }}
                   >
-                    <p className="text-xs font-bold text-white truncate max-w-[140px]">
+                    <p className="text-sm font-bold text-white truncate">
                       {entity.name}
                     </p>
-                    <p className="text-[10px] text-white/80 flex items-center gap-1">
-                      <Icon className="w-3 h-3" />
-                      {config.label}
-                    </p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <Icon className="w-3.5 h-3.5 text-white/80" />
+                      <span className="text-xs text-white/80">{config.label}</span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-2 pt-2 border-t border-white/20">
+                      <ArrowUpRight className="w-3 h-3 text-white/70" />
+                      <span className="text-[10px] text-white/70">Click to open</span>
+                    </div>
                   </div>
+                  {/* Tooltip arrow */}
+                  <div 
+                    className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45"
+                    style={{ background: primaryColor }}
+                  />
                 </div>
               </div>
             </div>
@@ -558,64 +554,54 @@ export const GlobalAssetOrbit = ({
         })}
       </div>
       
-      {/* Floating particles */}
+      {/* Floating ambient particles */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(20)].map((_, i) => {
-          const baseX = 15 + (i % 5) * 18;
-          const baseY = 15 + Math.floor(i / 5) * 18;
-          const offsetX = isHovering ? (mousePosition.x - 0.5) * 25 : 0;
-          const offsetY = isHovering ? (mousePosition.y - 0.5) * 25 : 0;
+        {[...Array(24)].map((_, i) => {
+          const baseX = 10 + (i % 6) * 15;
+          const baseY = 10 + Math.floor(i / 6) * 22;
+          const offsetX = isHovering ? (mousePosition.x - 0.5) * 30 : 0;
+          const offsetY = isHovering ? (mousePosition.y - 0.5) * 30 : 0;
           
           return (
             <div
               key={i}
-              className="absolute w-1.5 h-1.5 rounded-full transition-all duration-700"
+              className="absolute rounded-full transition-all duration-700"
               style={{
-                left: `${baseX + offsetX * (i % 3 === 0 ? 1.2 : -0.6)}%`,
-                top: `${baseY + offsetY * (i % 2 === 0 ? 1.2 : -0.6)}%`,
-                background: i % 3 === 0 ? primaryColor : i % 3 === 1 ? secondaryColor : '#f59e0b',
-                opacity: isHovering ? 0.7 : 0.35,
-                transform: `scale(${isHovering ? 1.4 : 1})`,
-                animation: `float ${3 + Math.random() * 3}s ease-in-out ${Math.random() * 2}s infinite alternate`,
+                left: `${baseX + offsetX * (i % 3 === 0 ? 1.3 : -0.7)}%`,
+                top: `${baseY + offsetY * (i % 2 === 0 ? 1.3 : -0.7)}%`,
+                width: `${1 + (i % 3)}px`,
+                height: `${1 + (i % 3)}px`,
+                background: primaryColor,
+                opacity: isHovering ? 0.6 : 0.3,
+                transform: `scale(${isHovering ? 1.5 : 1})`,
+                animation: `float ${3 + (i % 4)}s ease-in-out ${(i % 5) * 0.5}s infinite alternate`,
               }}
             />
           );
         })}
       </div>
       
-      {/* Mouse glow */}
+      {/* Mouse follower glow */}
       {isHovering && (
         <div 
-          className="absolute w-40 h-40 rounded-full pointer-events-none"
+          className="absolute w-48 h-48 rounded-full pointer-events-none transition-opacity duration-200"
           style={{
             left: `${mousePosition.x * 100}%`,
             top: `${mousePosition.y * 100}%`,
             transform: 'translate(-50%, -50%)',
-            background: `radial-gradient(circle, ${primaryColor}40 0%, transparent 70%)`,
-            filter: 'blur(25px)',
+            background: `radial-gradient(circle, ${primaryColor}30 0%, transparent 70%)`,
+            filter: 'blur(30px)',
           }}
         />
       )}
       
-      {/* Active entity detail panel */}
-      {activeEntity && (
-        <div 
-          className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl shadow-xl backdrop-blur-sm animate-fade-in-up"
-          style={{ 
-            background: `linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}10)`,
-            border: `1px solid ${primaryColor}30`,
-          }}
-        >
-          <p className="text-xs text-muted-foreground text-center">
-            Click to view <span className="font-semibold text-foreground">{activeEntity.name}</span>
-          </p>
-        </div>
-      )}
-      
       <style>{`
         @keyframes float {
-          0% { transform: translateY(0px) translateX(0px) scale(1); }
-          100% { transform: translateY(-25px) translateX(18px) scale(1.1); }
+          0% { transform: translateY(0px) translateX(0px); opacity: 0.3; }
+          100% { transform: translateY(-20px) translateX(15px); opacity: 0.6; }
+        }
+        @keyframes dash {
+          to { stroke-dashoffset: -12; }
         }
       `}</style>
     </div>
