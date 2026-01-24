@@ -159,6 +159,18 @@ export const FullBrandPage = ({
       const element = sectionRefs.current.get(scrollToSection);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Add highlight flash after scroll completes
+        const flashTimeout = setTimeout(() => {
+          element.classList.add('section-highlight-flash');
+          
+          // Remove the class after animation completes
+          setTimeout(() => {
+            element.classList.remove('section-highlight-flash');
+          }, 1300);
+        }, 400);
+        
+        return () => clearTimeout(flashTimeout);
       }
     }
   }, [scrollToSection]);
