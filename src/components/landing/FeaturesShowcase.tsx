@@ -26,6 +26,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Feature {
   icon: React.ElementType;
@@ -177,7 +179,31 @@ function FeatureCard({ feature, index, isVisible }: { feature: Feature; index: n
   );
 }
 
+function FeatureCarousel({ features, isVisible }: { features: Feature[]; isVisible: boolean }) {
+  return (
+    <Carousel opts={{ align: 'start', loop: true }} className="w-full">
+      <CarouselContent className="-ml-2">
+        {features.map((feature, index) => (
+          <CarouselItem key={feature.title} className="pl-2 basis-[85%]">
+            <FeatureCard 
+              feature={feature} 
+              index={index}
+              isVisible={isVisible}
+            />
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+    </Carousel>
+  );
+}
+
 function FeatureGrid({ features, isVisible }: { features: Feature[]; isVisible: boolean }) {
+  const isMobile = useIsMobile();
+  
+  if (isMobile) {
+    return <FeatureCarousel features={features} isVisible={isVisible} />;
+  }
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {features.map((feature, index) => (
