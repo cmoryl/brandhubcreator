@@ -15,6 +15,20 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       sourcemap: true,
+      modulePreload: {
+        polyfill: true, // Enables modulepreload polyfill for better browser support
+      },
+      rollupOptions: {
+        output: {
+          // Reduce chunk fragmentation by grouping small modules
+          manualChunks: {
+            // Group vendor libraries together to reduce request chain depth
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-supabase': ['@supabase/supabase-js'],
+            'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs', '@radix-ui/react-accordion'],
+          },
+        },
+      },
     },
     plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
     resolve: {
