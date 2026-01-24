@@ -1,7 +1,31 @@
 import { useState, useRef, useEffect, forwardRef, ImgHTMLAttributes, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 
-interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'onLoad' | 'onError'> {
+// Standard responsive breakpoints for srcset generation
+const RESPONSIVE_WIDTHS = [320, 480, 640, 768, 1024, 1280, 1536, 1920] as const;
+
+// Common sizes presets for different layout contexts
+export const IMAGE_SIZES = {
+  // Full-width hero images
+  hero: '100vw',
+  // Card images in grid layouts
+  card: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+  // Thumbnail images
+  thumbnail: '(max-width: 640px) 50vw, 200px',
+  // Portal card images (3-column grid)
+  portalCard: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+  // Product/brand cards
+  guideCard: '(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 400px',
+} as const;
+
+export type ImageSizePreset = keyof typeof IMAGE_SIZES;
+
+interface ResponsiveImageSource {
+  src: string;
+  width: number;
+}
+
+interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'onLoad' | 'onError' | 'sizes'> {
   src: string;
   alt: string;
   fallbackSrc?: string;
@@ -10,6 +34,12 @@ interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 
   blur?: boolean;
   priority?: boolean;
   placeholderColor?: string;
+  /** Responsive image sources for srcset */
+  responsiveSources?: ResponsiveImageSource[];
+  /** Sizes attribute - use IMAGE_SIZES presets or custom string */
+  sizes?: ImageSizePreset | string;
+  /** Auto-generate srcset from src (for Supabase storage URLs) */
+  autoSrcset?: boolean;
   onLoadComplete?: () => void;
   onLoadError?: () => void;
 }
@@ -20,15 +50,55 @@ const generatePlaceholder = (color: string = 'hsl(var(--muted))') => {
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 };
 
-// Dominant color extraction would go here for real blur-up
-// For now, we use muted background with gradient shimmer
+// Shimmer gradient for loading state
 const generateShimmerGradient = () => 
   'linear-gradient(90deg, hsl(var(--muted)) 0%, hsl(var(--muted-foreground) / 0.1) 50%, hsl(var(--muted)) 100%)';
+
+/**
+ * Generate srcset string from responsive sources
+ */
+const generateSrcset = (sources: ResponsiveImageSource[]): string => {
+  return sources
+    .sort((a, b) => a.width - b.width)
+    .map(({ src, width }) => `${src} ${width}w`)
+    .join(', ');
+};
+
+/**
+ * Auto-generate srcset for Supabase storage URLs using transform API
+ * Works with URLs like: https://xxx.supabase.co/storage/v1/object/public/bucket/path
+ */
+const generateAutoSrcset = (src: string): string | undefined => {
+  // Check if it's a Supabase storage URL
+  if (!src.includes('supabase.co/storage') && !src.includes('supabase.in/storage')) {
+    return undefined;
+  }
+
+  // Generate srcset using Supabase image transformation
+  return RESPONSIVE_WIDTHS
+    .map(width => {
+      const separator = src.includes('?') ? '&' : '?';
+      return `${src}${separator}width=${width} ${width}w`;
+    })
+    .join(', ');
+};
+
+/**
+ * Resolve sizes prop - either use preset or custom string
+ */
+const resolveSizes = (sizes: ImageSizePreset | string | undefined): string | undefined => {
+  if (!sizes) return undefined;
+  if (sizes in IMAGE_SIZES) {
+    return IMAGE_SIZES[sizes as ImageSizePreset];
+  }
+  return sizes;
+};
 
 /**
  * OptimizedImage - A performance-optimized image component with:
  * - Lazy loading via Intersection Observer
  * - Blur-up placeholder effect with shimmer animation
+ * - Responsive srcset support for different viewport sizes
  * - Error fallback handling
  * - Aspect ratio preservation
  * - Priority preloading for LCP images
@@ -42,6 +112,9 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
   blur = true,
   priority = false,
   placeholderColor,
+  responsiveSources,
+  sizes,
+  autoSrcset = false,
   className,
   onLoadComplete,
   onLoadError,
@@ -63,6 +136,19 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
     () => generatePlaceholder(placeholderColor),
     [placeholderColor]
   );
+
+  // Compute srcset and sizes
+  const computedSrcset = useMemo(() => {
+    if (responsiveSources && responsiveSources.length > 0) {
+      return generateSrcset(responsiveSources);
+    }
+    if (autoSrcset) {
+      return generateAutoSrcset(src);
+    }
+    return undefined;
+  }, [responsiveSources, autoSrcset, src]);
+
+  const computedSizes = useMemo(() => resolveSizes(sizes), [sizes]);
 
   // Intersection Observer for lazy loading with larger margin for smoother experience
   useEffect(() => {
@@ -89,20 +175,29 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
     return () => observer.disconnect();
   }, [priority, isInView]);
 
-  // Preload priority images using link preload
+  // Preload priority images using link preload with srcset support
   useEffect(() => {
     if (priority && src) {
       const link = document.createElement('link');
       link.rel = 'preload';
       link.as = 'image';
       link.href = src;
+      
+      // Add imagesrcset and imagesizes for responsive preloading
+      if (computedSrcset) {
+        link.setAttribute('imagesrcset', computedSrcset);
+      }
+      if (computedSizes) {
+        link.setAttribute('imagesizes', computedSizes);
+      }
+      
       link.fetchPriority = 'high';
       document.head.appendChild(link);
       return () => {
         document.head.removeChild(link);
       };
     }
-  }, [priority, src]);
+  }, [priority, src, computedSrcset, computedSizes]);
 
   const handleLoad = () => {
     setLoadState('loaded');
@@ -148,7 +243,7 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
       <div 
         className={cn(
           'absolute inset-0 transition-opacity duration-500 ease-out',
-          isLoaded ? 'opacity-0' : 'opacity-100'
+          isLoaded ? 'opacity-0 pointer-events-none' : 'opacity-100'
         )}
         aria-hidden="true"
       >
@@ -187,6 +282,8 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
         <img
           ref={imgRef}
           src={currentSrc}
+          srcSet={hasError ? undefined : computedSrcset}
+          sizes={computedSizes}
           alt={alt}
           loading={priority ? 'eager' : 'lazy'}
           decoding={priority ? 'sync' : 'async'}
