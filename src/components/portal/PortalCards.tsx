@@ -111,6 +111,8 @@ export const PortalBrandCard = React.forwardRef<HTMLDivElement, BrandCardProps>(
                 className="w-full h-full transition-transform duration-500 group-hover:scale-105"
                 objectFit="cover"
                 priority={index < 3}
+                sizes="portalCard"
+                autoSrcset
               />
             ) : (
               <ColorStripes colors={colors} fallbackGradient={fallbackGradient} />
@@ -165,6 +167,8 @@ export const PortalProductCard = React.forwardRef<HTMLDivElement, ProductCardPro
                 className="w-full h-full transition-transform duration-500 group-hover:scale-105"
                 objectFit="cover"
                 priority={index < 3}
+                sizes="portalCard"
+                autoSrcset
               />
             ) : (
               <ColorStripes colors={colors} fallbackGradient={fallbackGradient} />
@@ -220,6 +224,8 @@ export const PortalEventCard = React.forwardRef<HTMLDivElement, EventCardProps>(
                 className="w-full h-full transition-transform duration-500 group-hover:scale-105"
                 objectFit="cover"
                 priority={index < 3}
+                sizes="portalCard"
+                autoSrcset
               />
             ) : (
               <ColorStripes colors={colors} fallbackGradient={fallbackGradient} />
