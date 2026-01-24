@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
   SelectContent,
@@ -29,7 +30,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Building2, Upload, Loader2, Palette, Globe, Eye, EyeOff, Trash2, Users, Mail, Crown, Shield, UserPlus, Layout } from 'lucide-react';
+import { ArrowLeft, Building2, Upload, Loader2, Palette, Globe, Eye, EyeOff, Trash2, Users, Mail, Crown, Shield, UserPlus, Layout, BarChart3 } from 'lucide-react';
+
+// Lazy load analytics component for performance
+const OrganizationAnalytics = lazy(() => import('@/components/organization/OrganizationAnalytics'));
 import { z } from 'zod';
 
 import { MemberRole } from '@/lib/organization/types';
@@ -577,7 +581,28 @@ const OrganizationSettings = () => {
           </CardContent>
         </Card>
 
-        {/* Team Members */}
+        {/* Analytics Dashboard */}
+        <Suspense fallback={
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                <Skeleton className="h-6 w-40" />
+              </div>
+              <Skeleton className="h-4 w-60 mt-1" />
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} className="h-24 rounded-lg" />
+                ))}
+              </div>
+              <Skeleton className="h-64 rounded-lg" />
+            </CardContent>
+          </Card>
+        }>
+          <OrganizationAnalytics />
+        </Suspense>
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
