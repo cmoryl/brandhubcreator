@@ -240,7 +240,7 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
 
   // Group regular templates by file type
   const groupedTemplates = regularTemplates.reduce((acc, template) => {
-    const category = template.externalUrl ? 'EXTERNAL LINKS' : template.fileType.toUpperCase();
+    const category = template.externalUrl ? 'EXTERNAL LINKS' : (template.fileType?.toUpperCase() || 'OTHER');
     if (!acc[category]) acc[category] = [];
     acc[category].push(template);
     return acc;

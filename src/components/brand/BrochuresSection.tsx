@@ -172,7 +172,7 @@ export const BrochuresSection = ({ brochures, onBrochuresChange, customSubtitle,
                       {brochure.thumbnailUrl ? (
                         // Show thumbnail if available
                         <OptimizedImage src={brochure.thumbnailUrl} alt={brochure.title} className="w-full h-full" objectFit="cover" />
-                      ) : brochure.previewUrl.includes('image') || brochure.previewUrl.includes('data:image') ? (
+                      ) : brochure.previewUrl?.includes('image') || brochure.previewUrl?.includes('data:image') ? (
                         // Show image preview for image files
                         <OptimizedImage src={brochure.previewUrl} alt={brochure.title} className="w-full h-full" objectFit="cover" />
                       ) : (
