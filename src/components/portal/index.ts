@@ -6,3 +6,4 @@ export { PortalBrandCard, PortalProductCard, PortalEventCard } from './PortalCar
 export { HierarchicalEventCard } from './HierarchicalEventCard';
 export { PortalGridSkeleton } from './PortalGridSkeleton';
 export { PortalPagination } from './PortalPagination';
+export { PortalAdminActions } from './PortalAdminActions';
