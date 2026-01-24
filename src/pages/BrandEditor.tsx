@@ -406,12 +406,14 @@ const BrandEditor = () => {
     }
   }, [viewMode]);
 
-  // Consolidate loading states with stability to prevent flickers
-  // Only block on publicBrandLoading if we don't have a brand yet
-  // Auth loading shouldn't block public content display
+  // Optimized loading: prevents flash for fast loads, smooth transition for slow ones
   const needsPublicData = !contextBrand && !publicBrand;
   const rawLoading = needsPublicData && publicBrandLoading;
-  const stableLoading = useStableLoading(rawLoading, 50, 6000);
+  const stableLoading = useStableLoading(rawLoading, {
+    showDelay: 100,      // Wait 100ms before showing loading
+    minDisplayTime: 300, // Show for at least 300ms once visible
+    maxLoadingTime: 6000
+  });
 
   // Show loading state - AFTER all hooks
   // Use guide name if known for better UX

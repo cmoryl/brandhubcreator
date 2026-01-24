@@ -65,8 +65,12 @@ const OrganizationPortal = () => {
     ogType: 'website',
   });
 
-  // Stabilize loading state
-  const stableLoading = useStableLoading(isLoading, 50, 6000);
+  // Optimized loading: prevents flash for fast loads
+  const stableLoading = useStableLoading(isLoading, {
+    showDelay: 100,
+    minDisplayTime: 300,
+    maxLoadingTime: 6000
+  });
 
   // Show welcome toast if redirected from sign-in
   useEffect(() => {
