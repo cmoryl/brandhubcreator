@@ -94,12 +94,26 @@ const EventEditor = () => {
     window.scrollTo(0, 0);
   }, [eventSlug]);
 
-  // Scroll to section when sidebar nav is clicked
+  // Scroll to section when sidebar nav is clicked, then flash highlight
   useEffect(() => {
     if (scrollToSection && viewMode === 'full') {
       const element = document.getElementById(scrollToSection);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Add highlight flash after scroll completes
+        const flashTimeout = setTimeout(() => {
+          element.classList.add('section-highlight-flash');
+          
+          // Remove the class after animation completes
+          const cleanupTimeout = setTimeout(() => {
+            element.classList.remove('section-highlight-flash');
+          }, 1300);
+          
+          return () => clearTimeout(cleanupTimeout);
+        }, 400); // Wait for scroll to mostly complete
+        
+        return () => clearTimeout(flashTimeout);
       }
     }
   }, [scrollToSection, viewMode]);

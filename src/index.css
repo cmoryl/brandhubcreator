@@ -198,6 +198,27 @@
     transform: translateY(0);
   }
 
+  /* Section highlight flash animation for navigation */
+  @keyframes section-flash {
+    0% {
+      box-shadow: inset 0 0 0 0 hsl(var(--accent) / 0);
+      background-color: hsl(var(--accent) / 0);
+    }
+    30% {
+      box-shadow: inset 0 0 0 3px hsl(var(--accent) / 0.4);
+      background-color: hsl(var(--accent) / 0.08);
+    }
+    100% {
+      box-shadow: inset 0 0 0 0 hsl(var(--accent) / 0);
+      background-color: hsl(var(--accent) / 0);
+    }
+  }
+
+  .section-highlight-flash {
+    animation: section-flash 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    border-radius: var(--radius);
+  }
+
   .scroll-zoom-in {
     opacity: 0;
     transform: scale(0.85);
