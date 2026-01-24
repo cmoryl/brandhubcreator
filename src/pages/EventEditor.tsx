@@ -118,6 +118,36 @@ const EventEditor = () => {
     }
   }, [scrollToSection, viewMode]);
 
+  // Sync sidebar with scroll position using Intersection Observer
+  useEffect(() => {
+    if (viewMode !== 'full') return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const sectionId = entry.target.id as EventSectionId;
+            if (sectionId) {
+              setActiveSection(sectionId);
+            }
+          }
+        });
+      },
+      { threshold: 0.3, rootMargin: '-80px 0px -50% 0px' }
+    );
+
+    // Observe all section elements
+    const sectionElements = document.querySelectorAll('[id]');
+    sectionElements.forEach((el) => {
+      // Only observe valid section IDs
+      if (DEFAULT_EVENT_SECTION_ORDER.includes(el.id as EventSectionId)) {
+        observer.observe(el);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, [viewMode]);
+
   // Helper to check if the param is a UUID
   const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
   
