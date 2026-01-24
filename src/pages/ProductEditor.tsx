@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock, Download } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -53,6 +53,7 @@ import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
 import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
 import { BrandBackupManager } from '@/components/brand/BrandBackupManager';
+import { QuickBackupButton } from '@/components/brand/QuickBackupButton';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { BackToTopButton } from '@/components/BackToTopButton';
@@ -590,6 +591,7 @@ const ProductEditor = () => {
                   />
                 )}
                 <ExportPdfButton guide={currentProduct} />
+                <QuickBackupButton guide={currentProduct} />
                 <BrandBackupManager guide={currentProduct} />
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
                   <Tooltip>
