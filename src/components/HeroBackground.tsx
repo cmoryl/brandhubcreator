@@ -686,6 +686,325 @@ export const HeroBackground = React.forwardRef<
     );
   }
 
+  // Animated wave lines - flowing gradient lines
+  if (type === 'animated-wave-lines') {
+    const tintStyle = useTintDirectly ? `hsl(${tintVar}` : 'hsl(var(--accent)';
+    const duration = parseFloat(getAnimationDuration());
+    
+    return (
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/20" />
+        
+        {/* Gradient blobs */}
+        <div
+          className="absolute w-[600px] h-[600px] rounded-full blur-[100px]"
+          style={{
+            background: `radial-gradient(circle, ${tintStyle} / 0.15) 0%, transparent 70%)`,
+            top: '10%',
+            left: '5%',
+            animation: `waveLineBlob ${duration * 2}s ease-in-out infinite`,
+          }}
+        />
+        <div
+          className="absolute w-[500px] h-[500px] rounded-full blur-[80px]"
+          style={{
+            background: `radial-gradient(circle, hsl(var(--primary) / 0.1) 0%, transparent 70%)`,
+            bottom: '10%',
+            right: '10%',
+            animation: `waveLineBlob ${duration * 2.5}s ease-in-out infinite reverse`,
+          }}
+        />
+        
+        {/* Flowing wave lines */}
+        <svg
+          className="absolute inset-0 w-full h-full"
+          preserveAspectRatio="none"
+          viewBox="0 0 1440 900"
+        >
+          <defs>
+            <linearGradient id="waveLine1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor={useTintDirectly ? `hsl(${tintVar} / 0)` : "hsl(var(--accent) / 0)"} />
+              <stop offset="20%" stopColor={useTintDirectly ? `hsl(${tintVar} / 0.4)` : "hsl(var(--accent) / 0.4)"} />
+              <stop offset="50%" stopColor={useTintDirectly ? `hsl(${tintVar} / 0.6)` : "hsl(var(--accent) / 0.6)"} />
+              <stop offset="80%" stopColor={useTintDirectly ? `hsl(${tintVar} / 0.4)` : "hsl(var(--accent) / 0.4)"} />
+              <stop offset="100%" stopColor={useTintDirectly ? `hsl(${tintVar} / 0)` : "hsl(var(--accent) / 0)"} />
+            </linearGradient>
+            <linearGradient id="waveLine2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="hsl(var(--primary) / 0)" />
+              <stop offset="30%" stopColor="hsl(var(--primary) / 0.3)" />
+              <stop offset="70%" stopColor="hsl(var(--primary) / 0.3)" />
+              <stop offset="100%" stopColor="hsl(var(--primary) / 0)" />
+            </linearGradient>
+            <filter id="waveGlow">
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          
+          {/* Main flowing lines */}
+          {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+            <path
+              key={`wave-${i}`}
+              d={`M-100,${200 + i * 100} Q200,${150 + i * 100 + (i % 2 ? 50 : -30)} 400,${200 + i * 100} T800,${200 + i * 100} T1200,${200 + i * 100} T1600,${200 + i * 100}`}
+              fill="none"
+              stroke={`url(#waveLine${i % 2 + 1})`}
+              strokeWidth={2 - i * 0.15}
+              strokeLinecap="round"
+              filter="url(#waveGlow)"
+              style={{
+                animation: `waveLineFlow ${duration + i * 0.5}s ease-in-out infinite`,
+                animationDelay: `${i * 0.3}s`,
+                opacity: 0.4 + (i % 3) * 0.1,
+              }}
+            />
+          ))}
+          
+          {/* Secondary accent lines */}
+          {[0, 1, 2].map((i) => (
+            <path
+              key={`accent-${i}`}
+              d={`M-50,${350 + i * 150} C200,${300 + i * 150} 400,${400 + i * 150} 720,${350 + i * 150} S1100,${300 + i * 150} 1500,${350 + i * 150}`}
+              fill="none"
+              stroke={useTintDirectly ? `hsl(${tintVar} / 0.2)` : "hsl(var(--accent) / 0.2)"}
+              strokeWidth="1"
+              strokeDasharray="8 4"
+              style={{
+                animation: `waveLineDash ${duration * 1.5 + i}s linear infinite`,
+                animationDelay: `${i * 0.5}s`,
+              }}
+            />
+          ))}
+        </svg>
+        
+        {/* Floating particles along lines */}
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div
+            key={`particle-${i}`}
+            className="absolute rounded-full"
+            style={{
+              width: `${4 + (i % 3) * 2}px`,
+              height: `${4 + (i % 3) * 2}px`,
+              left: `${10 + i * 12}%`,
+              top: `${25 + (i % 4) * 15}%`,
+              background: useTintDirectly ? `hsl(${tintVar})` : 'hsl(var(--accent))',
+              boxShadow: useTintDirectly 
+                ? `0 0 ${10 + i * 2}px hsl(${tintVar} / 0.6)` 
+                : `0 0 ${10 + i * 2}px hsl(var(--accent) / 0.6)`,
+              animation: `waveLineParticle ${duration + i * 0.5}s ease-in-out infinite`,
+              animationDelay: `${i * 0.4}s`,
+            }}
+          />
+        ))}
+        
+        <style>{`
+          @keyframes waveLineFlow {
+            0%, 100% { 
+              transform: translateX(0) translateY(0);
+              opacity: 0.3;
+            }
+            25% { 
+              transform: translateX(20px) translateY(-15px);
+              opacity: 0.6;
+            }
+            50% { 
+              transform: translateX(0) translateY(10px);
+              opacity: 0.4;
+            }
+            75% { 
+              transform: translateX(-20px) translateY(-10px);
+              opacity: 0.5;
+            }
+          }
+          @keyframes waveLineDash {
+            0% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: -100; }
+          }
+          @keyframes waveLineBlob {
+            0%, 100% { 
+              transform: translate(0, 0) scale(1);
+              opacity: 0.8;
+            }
+            50% { 
+              transform: translate(30px, -20px) scale(1.1);
+              opacity: 1;
+            }
+          }
+          @keyframes waveLineParticle {
+            0%, 100% { 
+              transform: translate(0, 0) scale(1);
+              opacity: 0.6;
+            }
+            50% { 
+              transform: translate(30px, -20px) scale(1.3);
+              opacity: 1;
+            }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Animated flow field - organic flowing lines
+  if (type === 'animated-flow-field') {
+    const tintStyle = useTintDirectly ? `hsl(${tintVar}` : 'hsl(var(--accent)';
+    const duration = parseFloat(getAnimationDuration());
+    
+    return (
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/5 to-background" />
+        
+        {/* Background glow */}
+        <div
+          className="absolute w-full h-full"
+          style={{
+            background: `
+              radial-gradient(ellipse 60% 40% at 20% 30%, ${tintStyle} / 0.08) 0%, transparent 60%),
+              radial-gradient(ellipse 50% 50% at 80% 70%, hsl(var(--primary) / 0.06) 0%, transparent 60%)
+            `,
+          }}
+        />
+        
+        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 1440 900">
+          <defs>
+            <linearGradient id="flowGrad1" x1="0%" y1="50%" x2="100%" y2="50%">
+              <stop offset="0%" stopColor={useTintDirectly ? `hsl(${tintVar} / 0)` : "hsl(var(--accent) / 0)"} />
+              <stop offset="50%" stopColor={useTintDirectly ? `hsl(${tintVar} / 0.5)` : "hsl(var(--accent) / 0.5)"} />
+              <stop offset="100%" stopColor={useTintDirectly ? `hsl(${tintVar} / 0)` : "hsl(var(--accent) / 0)"} />
+            </linearGradient>
+            <linearGradient id="flowGrad2" x1="0%" y1="50%" x2="100%" y2="50%">
+              <stop offset="0%" stopColor="hsl(var(--primary) / 0)" />
+              <stop offset="50%" stopColor="hsl(var(--primary) / 0.3)" />
+              <stop offset="100%" stopColor="hsl(var(--primary) / 0)" />
+            </linearGradient>
+          </defs>
+          
+          {/* Organic flowing curves */}
+          {Array.from({ length: 12 }).map((_, i) => {
+            const yBase = 100 + (i * 70);
+            const amplitude = 40 + (i % 3) * 20;
+            return (
+              <path
+                key={i}
+                d={`M-100,${yBase} C200,${yBase - amplitude} 400,${yBase + amplitude} 720,${yBase} S1100,${yBase - amplitude * 0.7} 1540,${yBase}`}
+                fill="none"
+                stroke={`url(#flowGrad${i % 2 + 1})`}
+                strokeWidth={1.5 - (i % 4) * 0.2}
+                strokeLinecap="round"
+                style={{
+                  animation: `flowFieldCurve ${duration + i * 0.3}s ease-in-out infinite`,
+                  animationDelay: `${i * 0.15}s`,
+                  opacity: 0.3 + (i % 3) * 0.15,
+                }}
+              />
+            );
+          })}
+        </svg>
+        
+        <style>{`
+          @keyframes flowFieldCurve {
+            0%, 100% { 
+              transform: translateY(0) scaleY(1);
+              opacity: 0.3;
+            }
+            50% { 
+              transform: translateY(-10px) scaleY(1.05);
+              opacity: 0.5;
+            }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Animated neon grid
+  if (type === 'animated-neon-grid') {
+    const tintStyle = useTintDirectly ? `hsl(${tintVar}` : 'hsl(var(--accent)';
+    const duration = parseFloat(getAnimationDuration());
+    
+    return (
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-background to-muted/10" />
+        
+        {/* Grid lines */}
+        <svg className="absolute inset-0 w-full h-full opacity-30" preserveAspectRatio="none" viewBox="0 0 100 100">
+          <defs>
+            <pattern id="neonGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+              <path 
+                d="M 10 0 L 0 0 0 10" 
+                fill="none" 
+                stroke={useTintDirectly ? `hsl(${tintVar} / 0.3)` : "hsl(var(--accent) / 0.3)"}
+                strokeWidth="0.1"
+              />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#neonGrid)" />
+        </svg>
+        
+        {/* Animated glow lines */}
+        <div 
+          className="absolute w-full h-[2px]"
+          style={{
+            top: '30%',
+            background: `linear-gradient(90deg, transparent, ${tintStyle} / 0.8), transparent)`,
+            boxShadow: useTintDirectly 
+              ? `0 0 20px hsl(${tintVar} / 0.5), 0 0 40px hsl(${tintVar} / 0.3)` 
+              : `0 0 20px hsl(var(--accent) / 0.5), 0 0 40px hsl(var(--accent) / 0.3)`,
+            animation: `neonScan ${duration}s linear infinite`,
+          }}
+        />
+        <div 
+          className="absolute h-full w-[2px]"
+          style={{
+            left: '20%',
+            background: `linear-gradient(180deg, transparent, hsl(var(--primary) / 0.6), transparent)`,
+            boxShadow: `0 0 15px hsl(var(--primary) / 0.4)`,
+            animation: `neonScanV ${duration * 1.5}s linear infinite`,
+          }}
+        />
+        
+        {/* Intersection glows */}
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-3 h-3 rounded-full"
+            style={{
+              left: `${20 + (i % 3) * 30}%`,
+              top: `${25 + Math.floor(i / 3) * 35}%`,
+              background: useTintDirectly ? `hsl(${tintVar})` : 'hsl(var(--accent))',
+              boxShadow: useTintDirectly 
+                ? `0 0 10px hsl(${tintVar}), 0 0 20px hsl(${tintVar} / 0.5)` 
+                : `0 0 10px hsl(var(--accent)), 0 0 20px hsl(var(--accent) / 0.5)`,
+              animation: `neonPulse ${duration / 2}s ease-in-out infinite`,
+              animationDelay: `${i * 0.2}s`,
+            }}
+          />
+        ))}
+        
+        <style>{`
+          @keyframes neonScan {
+            0% { transform: translateX(-100%); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateX(200%); opacity: 0; }
+          }
+          @keyframes neonScanV {
+            0% { transform: translateY(-100%); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(200%); opacity: 0; }
+          }
+          @keyframes neonPulse {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.5); opacity: 1; }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   // Default gradient background
   return (
     <div className="absolute inset-0 overflow-hidden">
