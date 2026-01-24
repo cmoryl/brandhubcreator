@@ -25,6 +25,7 @@ import { EventHistorySection } from './EventHistorySection';
 import { EventVideosSection } from './EventVideosSection';
 import { EventLocationSection } from './EventLocationSection';
 import { EventWebsiteSection } from './EventWebsiteSection';
+import { SubEventsSection, LinkedEventGuide } from './SubEventsSection';
 import { Separator } from '@/components/ui/separator';
 
 export interface FullEventPageProps {
@@ -333,6 +334,31 @@ export const FullEventPage = ({
             onTemplateSpecsChange={editHandler((templateSpecs) => updateEvent({ templateSpecs }))}
           />
         );
+      case 'subevents': {
+        // Convert linkedGuides to the expected format
+        const linkedEvents: LinkedEventGuide[] = (event.linkedGuides || [])
+          .filter(g => g.type === 'event')
+          .map(g => ({
+            id: g.id,
+            type: 'event' as const,
+            slug: g.slug || '',
+            name: g.name || '',
+            region: g.region,
+            accentColor: g.accentColor,
+            location: g.location,
+            dates: g.dates,
+            attendees: g.attendees,
+            coverImage: g.coverImage,
+          }));
+        
+        if (linkedEvents.length === 0) return null;
+        
+        return (
+          <SubEventsSection
+            linkedGuides={linkedEvents}
+          />
+        );
+      }
       default:
         return null;
     }

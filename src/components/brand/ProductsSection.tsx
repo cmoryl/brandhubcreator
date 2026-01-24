@@ -55,8 +55,8 @@ export interface GuideItem {
 
 interface LinkedGuide {
   id: string;
-  guideId: string;
-  guideType: 'brand' | 'product';
+  guideId?: string;
+  guideType?: 'brand' | 'product';
 }
 
 interface ProductsSectionProps {

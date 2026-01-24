@@ -501,6 +501,9 @@ const EventEditor = () => {
         return <BrochuresSection brochures={event.brochures || []} onBrochuresChange={editHandler((brochures) => updateEvent({ brochures }))} layout={getSectionLayout('brochures')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('brochures', layout) : undefined} />;
       case 'templatespecs':
         return <TemplateSpecsSection templateSpecs={event.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateEvent({ templateSpecs }))} />;
+      case 'subevents':
+        // Sub-events only shown on master events - handled by FullEventPage
+        return null;
       default:
         return null;
     }
