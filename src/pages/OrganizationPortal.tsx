@@ -4,7 +4,7 @@
  * Refactored to use modular hooks and components
  */
 
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,11 +18,12 @@ import { useEvents } from '@/contexts/EventContext';
 import { useSEO } from '@/hooks/useSEO';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { usePortalData, useFilteredPortalData } from '@/hooks/usePortalData';
+import { usePortalPagination } from '@/hooks/usePortalPagination';
 import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PortalBrandCard, PortalProductCard, PortalEventCard, PortalGridSkeleton } from '@/components/portal';
+import { PortalBrandCard, PortalProductCard, PortalEventCard, PortalGridSkeleton, PortalPagination } from '@/components/portal';
 import { toast } from 'sonner';
 
 // Lazy load admin components
@@ -49,6 +50,23 @@ const OrganizationPortal = () => {
     events,
     searchQuery
   );
+
+  // Pagination reset key - changes when search or tab changes
+  const paginationResetKey = useMemo(() => `${searchQuery}-${activeTab}`, [searchQuery, activeTab]);
+
+  // Pagination for each category (12 items per page)
+  const brandsPagination = usePortalPagination(filteredBrands, { 
+    itemsPerPage: 12, 
+    resetKey: `brands-${searchQuery}` 
+  });
+  const productsPagination = usePortalPagination(filteredProducts, { 
+    itemsPerPage: 12, 
+    resetKey: `products-${searchQuery}` 
+  });
+  const eventsPagination = usePortalPagination(filteredEvents, { 
+    itemsPerPage: 12, 
+    resetKey: `events-${searchQuery}` 
+  });
   
   // Check if user can edit
   const canEdit = user && (isAdmin || (userRole && ['owner', 'admin', 'member'].includes(userRole)));
@@ -347,12 +365,28 @@ const OrganizationPortal = () => {
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                   <Building2 className="h-5 w-5 text-muted-foreground" />
                   Brand Guidelines
+                  {brandsPagination.showPagination && (
+                    <Badge variant="secondary" className="ml-2">
+                      {brandsPagination.startIndex + 1}-{brandsPagination.endIndex} of {brandsPagination.totalItems}
+                    </Badge>
+                  )}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {filteredBrands.map((brand, index) => (
+                  {brandsPagination.paginatedItems.map((brand, index) => (
                     <PortalBrandCard key={brand.id} brand={brand} index={index} orgColors={orgColors} />
                   ))}
                 </div>
+                {brandsPagination.showPagination && activeTab === 'all' && (
+                  <div className="mt-4 text-center">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setActiveTab('brands')}
+                    >
+                      View all {filteredBrands.length} brands
+                    </Button>
+                  </div>
+                )}
               </section>
             )}
 
@@ -361,12 +395,28 @@ const OrganizationPortal = () => {
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                   <Package className="h-5 w-5 text-muted-foreground" />
                   Product Guidelines
+                  {productsPagination.showPagination && (
+                    <Badge variant="secondary" className="ml-2">
+                      {productsPagination.startIndex + 1}-{productsPagination.endIndex} of {productsPagination.totalItems}
+                    </Badge>
+                  )}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {filteredProducts.map((product, index) => (
+                  {productsPagination.paginatedItems.map((product, index) => (
                     <PortalProductCard key={product.id} product={product} index={index} orgColors={orgColors} />
                   ))}
                 </div>
+                {productsPagination.showPagination && activeTab === 'all' && (
+                  <div className="mt-4 text-center">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setActiveTab('products')}
+                    >
+                      View all {filteredProducts.length} products
+                    </Button>
+                  </div>
+                )}
               </section>
             )}
 
@@ -375,12 +425,28 @@ const OrganizationPortal = () => {
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-muted-foreground" />
                   Event Brand Kits
+                  {eventsPagination.showPagination && (
+                    <Badge variant="secondary" className="ml-2">
+                      {eventsPagination.startIndex + 1}-{eventsPagination.endIndex} of {eventsPagination.totalItems}
+                    </Badge>
+                  )}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {filteredEvents.map((event, index) => (
+                  {eventsPagination.paginatedItems.map((event, index) => (
                     <PortalEventCard key={event.id} event={event} index={index} orgColors={orgColors} />
                   ))}
                 </div>
+                {eventsPagination.showPagination && activeTab === 'all' && (
+                  <div className="mt-4 text-center">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setActiveTab('events')}
+                    >
+                      View all {filteredEvents.length} events
+                    </Button>
+                  </div>
+                )}
               </section>
             )}
 
@@ -393,11 +459,23 @@ const OrganizationPortal = () => {
             {filteredBrands.length === 0 ? (
               <EmptyState searchQuery={searchQuery} type="brands" />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredBrands.map((brand, index) => (
-                  <PortalBrandCard key={brand.id} brand={brand} index={index} orgColors={orgColors} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {brandsPagination.paginatedItems.map((brand, index) => (
+                    <PortalBrandCard key={brand.id} brand={brand} index={index} orgColors={orgColors} />
+                  ))}
+                </div>
+                {brandsPagination.showPagination && (
+                  <PortalPagination
+                    currentPage={brandsPagination.currentPage}
+                    totalPages={brandsPagination.totalPages}
+                    onPageChange={brandsPagination.goToPage}
+                    totalItems={brandsPagination.totalItems}
+                    startIndex={brandsPagination.startIndex}
+                    endIndex={brandsPagination.endIndex}
+                  />
+                )}
+              </>
             )}
           </TabsContent>
 
@@ -405,11 +483,23 @@ const OrganizationPortal = () => {
             {filteredProducts.length === 0 ? (
               <EmptyState searchQuery={searchQuery} type="products" />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProducts.map((product, index) => (
-                  <PortalProductCard key={product.id} product={product} index={index} orgColors={orgColors} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {productsPagination.paginatedItems.map((product, index) => (
+                    <PortalProductCard key={product.id} product={product} index={index} orgColors={orgColors} />
+                  ))}
+                </div>
+                {productsPagination.showPagination && (
+                  <PortalPagination
+                    currentPage={productsPagination.currentPage}
+                    totalPages={productsPagination.totalPages}
+                    onPageChange={productsPagination.goToPage}
+                    totalItems={productsPagination.totalItems}
+                    startIndex={productsPagination.startIndex}
+                    endIndex={productsPagination.endIndex}
+                  />
+                )}
+              </>
             )}
           </TabsContent>
 
@@ -423,11 +513,23 @@ const OrganizationPortal = () => {
                 isCreatingEvent={isCreatingEvent}
               />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredEvents.map((event, index) => (
-                  <PortalEventCard key={event.id} event={event} index={index} orgColors={orgColors} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {eventsPagination.paginatedItems.map((event, index) => (
+                    <PortalEventCard key={event.id} event={event} index={index} orgColors={orgColors} />
+                  ))}
+                </div>
+                {eventsPagination.showPagination && (
+                  <PortalPagination
+                    currentPage={eventsPagination.currentPage}
+                    totalPages={eventsPagination.totalPages}
+                    onPageChange={eventsPagination.goToPage}
+                    totalItems={eventsPagination.totalItems}
+                    startIndex={eventsPagination.startIndex}
+                    endIndex={eventsPagination.endIndex}
+                  />
+                )}
+              </>
             )}
           </TabsContent>
         </Tabs>
