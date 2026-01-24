@@ -345,6 +345,7 @@ const OrganizationPortal = () => {
                   updatedAt: b.updatedAt,
                   coverImage: b.hero?.coverImage,
                   color: b.colors?.[0]?.hex,
+                  linkedGuides: b.linkedGuides?.map((g: any) => g.id) || [],
                 }))}
                 products={products.map(p => ({
                   id: p.id,
@@ -355,6 +356,7 @@ const OrganizationPortal = () => {
                   coverImage: p.hero?.coverImage,
                   color: p.colors?.[0]?.hex,
                   parentBrandId: p.parentBrandId || undefined,
+                  linkedGuides: p.linkedGuides?.map((g: any) => g.id) || [],
                 }))}
                 events={events.map(e => ({
                   id: e.id,

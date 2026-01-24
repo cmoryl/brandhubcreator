@@ -26,6 +26,11 @@ export interface PortalOrganization {
   portalSettings: OrganizationPortalSettings;
 }
 
+export interface PortalLinkedGuide {
+  id: string;
+  type: 'brand' | 'product' | 'event';
+}
+
 export interface PortalBrand {
   id: string;
   name: string;
@@ -38,6 +43,7 @@ export interface PortalBrand {
     coverImage?: string;
   };
   colors?: Array<{ id: string; hex: string }>;
+  linkedGuides?: PortalLinkedGuide[];
 }
 
 export interface PortalProduct {
@@ -53,6 +59,7 @@ export interface PortalProduct {
     coverImage?: string;
   };
   colors?: Array<{ id: string; hex: string }>;
+  linkedGuides?: PortalLinkedGuide[];
 }
 
 export interface PortalLinkedEvent {
@@ -106,8 +113,8 @@ interface PortalDataActions {
 export type UsePortalDataReturn = PortalDataState & PortalDataActions;
 
 // Optimized select queries - only fetch card-relevant data with minimal JSON paths
-const BRAND_CARD_SELECT = 'id, name, slug, is_public, updated_at, hero:guide_data->hero, colors:guide_data->colors';
-const PRODUCT_CARD_SELECT = 'id, name, slug, is_public, parent_brand_id, updated_at, hero:guide_data->hero, colors:guide_data->colors';
+const BRAND_CARD_SELECT = 'id, name, slug, is_public, updated_at, hero:guide_data->hero, colors:guide_data->colors, linkedGuides:guide_data->linkedGuides';
+const PRODUCT_CARD_SELECT = 'id, name, slug, is_public, parent_brand_id, updated_at, hero:guide_data->hero, colors:guide_data->colors, linkedGuides:guide_data->linkedGuides';
 const EVENT_CARD_SELECT = 'id, name, slug, is_public, parent_brand_id, updated_at, hero:guide_data->hero, colors:guide_data->colors, eventDetails:guide_data->eventDetails, linkedGuides:guide_data->linkedGuides';
 
 // Cache for recently fetched data to prevent duplicate requests
@@ -171,6 +178,9 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
       updatedAt: row.updated_at,
       hero: row.hero ?? undefined,
       colors: row.colors ?? undefined,
+      linkedGuides: Array.isArray(row.linkedGuides) 
+        ? row.linkedGuides.map((g: any) => ({ id: g.id, type: g.type }))
+        : undefined,
     }));
 
     const mappedProducts: PortalProduct[] = (productsRes.data || []).map((row: any) => ({
@@ -182,6 +192,9 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
       updatedAt: row.updated_at,
       hero: row.hero ?? undefined,
       colors: row.colors ?? undefined,
+      linkedGuides: Array.isArray(row.linkedGuides) 
+        ? row.linkedGuides.map((g: any) => ({ id: g.id, type: g.type }))
+        : undefined,
     }));
 
     const mappedEvents: PortalEvent[] = (eventsRes.data || []).map((row: any) => ({

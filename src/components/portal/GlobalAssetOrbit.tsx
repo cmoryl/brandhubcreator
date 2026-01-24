@@ -21,6 +21,7 @@ interface LinkedEntity {
   coverImage?: string;
   color?: string;
   parentBrandId?: string;
+  linkedGuides?: string[]; // IDs of linked products/events
 }
 
 interface GlobalAssetOrbitProps {
@@ -173,9 +174,20 @@ export const GlobalAssetOrbit = ({
     };
   }, []);
 
-  const handleEntityClick = (entity: LinkedEntity) => {
+  const handleEntityClick = (entity: LinkedEntity, e?: React.MouseEvent) => {
+    // If shift/ctrl click, filter instead of navigate
+    if (e?.shiftKey || e?.ctrlKey || e?.metaKey) {
+      const filterType = entity.type === 'brand' ? 'brands' : entity.type === 'product' ? 'products' : 'events';
+      handleFilterClick(filterType);
+      return;
+    }
     const config = TYPE_CONFIG[entity.type];
     navigate(`${config.path}/${entity.slug || entity.id}`);
+  };
+
+  const handleEntityFilterClick = (entity: LinkedEntity) => {
+    const filterType = entity.type === 'brand' ? 'brands' : entity.type === 'product' ? 'products' : 'events';
+    handleFilterClick(filterType);
   };
 
   const handleFilterClick = (filter: 'brands' | 'products' | 'events') => {
@@ -184,7 +196,7 @@ export const GlobalAssetOrbit = ({
     onFilterChange?.(newFilter);
   };
 
-  // Get hierarchy lines for hovered entity
+  // Get hierarchy lines for hovered entity - show all linked guides
   const hierarchyLines = useMemo(() => {
     if (!activeEntity || hoveredIndex === null) return [];
     
@@ -204,24 +216,47 @@ export const GlobalAssetOrbit = ({
       orbitData[activeEntity.type === 'brand' ? 'inner' : activeEntity.type === 'product' ? 'middle' : 'outer'].length
     );
 
-    if (activeEntity.type === 'product' && activeEntity.parentBrandId) {
+    if (activeEntity.type === 'product') {
       // Product -> Parent Brand -> Center
-      const parentBrandIndex = orbitData.inner.findIndex(b => b.id === activeEntity.parentBrandId);
-      if (parentBrandIndex >= 0) {
-        const brandPos = getPos('inner', parentBrandIndex, orbitData.inner.length);
-        lines.push({ from: hoveredPos, to: brandPos, color: entityColor });
-        lines.push({ from: brandPos, to: { x: 200, y: 200 }, color: TYPE_COLORS.brand });
+      if (activeEntity.parentBrandId) {
+        const parentBrandIndex = orbitData.inner.findIndex(b => b.id === activeEntity.parentBrandId);
+        if (parentBrandIndex >= 0) {
+          const brandPos = getPos('inner', parentBrandIndex, orbitData.inner.length);
+          lines.push({ from: hoveredPos, to: brandPos, color: entityColor });
+          lines.push({ from: brandPos, to: { x: 200, y: 200 }, color: TYPE_COLORS.brand });
+        } else {
+          lines.push({ from: hoveredPos, to: { x: 200, y: 200 }, color: entityColor });
+        }
       } else {
         lines.push({ from: hoveredPos, to: { x: 200, y: 200 }, color: entityColor });
+      }
+      
+      // Show linked sub-products
+      if (activeEntity.linkedGuides?.length) {
+        orbitData.middle.forEach((p, i) => {
+          if (activeEntity.linkedGuides?.includes(p.id)) {
+            const productPos = getPos('middle', i, orbitData.middle.length);
+            lines.push({ from: hoveredPos, to: productPos, color: TYPE_COLORS.product });
+          }
+        });
       }
     } else if (activeEntity.type === 'brand') {
       // Brand -> Center
       lines.push({ from: hoveredPos, to: { x: 200, y: 200 }, color: entityColor });
-      // Brand -> Child Products
+      
+      // Brand -> Child Products (by parentBrandId OR linkedGuides)
       orbitData.middle.forEach((p, i) => {
-        if (p.parentBrandId === activeEntity.id) {
+        if (p.parentBrandId === activeEntity.id || activeEntity.linkedGuides?.includes(p.id)) {
           const productPos = getPos('middle', i, orbitData.middle.length);
           lines.push({ from: hoveredPos, to: productPos, color: TYPE_COLORS.product });
+        }
+      });
+      
+      // Brand -> Child Events
+      orbitData.outer.forEach((e, i) => {
+        if (e.parentBrandId === activeEntity.id || activeEntity.linkedGuides?.includes(e.id)) {
+          const eventPos = getPos('outer', i, orbitData.outer.length);
+          lines.push({ from: hoveredPos, to: eventPos, color: TYPE_COLORS.event });
         }
       });
     } else if (activeEntity.type === 'event') {
@@ -427,7 +462,8 @@ export const GlobalAssetOrbit = ({
                   setActiveEntity(null);
                   setIsPaused(false);
                 }}
-                onClick={() => handleEntityClick(entity)}
+                onClick={(e) => handleEntityClick(entity, e)}
+                onFilterClick={() => handleEntityFilterClick(entity)}
                 spinDuration="55s"
                 spinReverse={false}
                 size="md"
@@ -471,7 +507,8 @@ export const GlobalAssetOrbit = ({
                   setActiveEntity(null);
                   setIsPaused(false);
                 }}
-                onClick={() => handleEntityClick(entity)}
+                onClick={(e) => handleEntityClick(entity, e)}
+                onFilterClick={() => handleEntityFilterClick(entity)}
                 spinDuration="70s"
                 spinReverse
                 size="sm"
@@ -515,7 +552,8 @@ export const GlobalAssetOrbit = ({
                   setActiveEntity(null);
                   setIsPaused(false);
                 }}
-                onClick={() => handleEntityClick(entity)}
+                onClick={(e) => handleEntityClick(entity, e)}
+                onFilterClick={() => handleEntityFilterClick(entity)}
                 spinDuration="85s"
                 spinReverse={false}
                 size="sm"
@@ -538,7 +576,8 @@ interface EntityIconProps {
   animationStyle: string;
   onHover: () => void;
   onLeave: () => void;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
+  onFilterClick: () => void;
   spinDuration: string;
   spinReverse?: boolean;
   size?: 'sm' | 'md';
@@ -554,6 +593,7 @@ const EntityIcon = ({
   onHover,
   onLeave,
   onClick,
+  onFilterClick,
   spinDuration,
   spinReverse,
   size = 'md',
@@ -618,11 +658,11 @@ const EntityIcon = ({
           )}
         </div>
         
-        {/* Tooltip */}
+        {/* Tooltip with filter button */}
         <div 
           className={cn(
-            "absolute left-1/2 -translate-x-1/2 transition-all duration-300 pointer-events-none",
-            isActive ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-3 scale-90"
+            "absolute left-1/2 -translate-x-1/2 transition-all duration-300",
+            isActive ? "opacity-100 translate-y-0 scale-100 pointer-events-auto" : "opacity-0 translate-y-3 scale-90 pointer-events-none"
           )}
           style={{ top: 'calc(100% + 10px)', zIndex: 50 }}
         >
@@ -638,9 +678,20 @@ const EntityIcon = ({
               <Icon className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.8)' }} />
               <span className="text-[10px] text-white/80">{config.label}</span>
             </div>
-            <div className="flex items-center gap-1 mt-1.5 pt-1.5 border-t border-white/20">
-              <ArrowUpRight className="w-2.5 h-2.5 text-white/60" />
-              <span className="text-[9px] text-white/60">Click to open</span>
+            <div className="flex items-center gap-2 mt-1.5 pt-1.5 border-t border-white/20">
+              <div className="flex items-center gap-1">
+                <ArrowUpRight className="w-2.5 h-2.5 text-white/60" />
+                <span className="text-[9px] text-white/60">Click to open</span>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFilterClick();
+                }}
+                className="text-[9px] text-white/80 hover:text-white px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 transition-colors"
+              >
+                Filter
+              </button>
             </div>
           </div>
           <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45" style={{ background: typeColor }} />
