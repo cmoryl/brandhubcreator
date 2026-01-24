@@ -26,6 +26,7 @@ import { EventVideosSection } from './EventVideosSection';
 import { EventLocationSection } from './EventLocationSection';
 import { EventWebsiteSection } from './EventWebsiteSection';
 import { SubEventsSection, LinkedEventGuide } from './SubEventsSection';
+import { SharedAssetsSection, SharedAsset } from './SharedAssetsSection';
 import { Separator } from '@/components/ui/separator';
 
 export interface FullEventPageProps {
@@ -356,6 +357,27 @@ export const FullEventPage = ({
         return (
           <SubEventsSection
             linkedGuides={linkedEvents}
+          />
+        );
+      }
+      case 'sharedassets': {
+        const sharedAssets: SharedAsset[] = ((event as any).sharedAssets || []).map((a: any) => ({
+          id: a.id,
+          name: a.name,
+          type: a.type || 'other',
+          url: a.url,
+          previewUrl: a.previewUrl,
+          description: a.description,
+          fileType: a.fileType,
+          isRequired: a.isRequired,
+          tags: a.tags,
+        }));
+        
+        return (
+          <SharedAssetsSection
+            assets={sharedAssets}
+            onAssetsChange={canEdit ? (assets) => updateEvent({ sharedAssets: assets } as any) : undefined}
+            isEditable={canEdit}
           />
         );
       }

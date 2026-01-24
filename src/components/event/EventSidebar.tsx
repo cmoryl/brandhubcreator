@@ -99,6 +99,7 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   templatespecs: { label: 'Template Specs', icon: Ruler, category: 'Collateral' },
   products: { label: 'Products', icon: Shield, category: 'Collateral' },
   subevents: { label: 'Regional Events', icon: Globe, category: 'Identity' },
+  sharedassets: { label: 'Shared Assets', icon: FolderArchive, category: 'Resources' },
 };
 
 export const EventSidebar = ({ 
