@@ -112,7 +112,7 @@ export const ReorderableBrandSidebar = ({
   const visibleCount = sectionOrder.length - hiddenSections.length;
 
   return (
-    <aside className="w-64 h-full bg-sidebar border-r border-sidebar-border flex flex-col animate-slide-in-left overflow-hidden">
+    <aside className="w-64 h-full bg-sidebar border-r border-sidebar-border flex flex-col animate-slide-in-left">
       {/* Brand header */}
       <div className="p-4 border-b border-sidebar-border animate-fade-in" style={{ animationDelay: '0.1s' }}>
         <h2 className="font-semibold text-sidebar-foreground truncate">{brandName || 'Brand Guide'}</h2>

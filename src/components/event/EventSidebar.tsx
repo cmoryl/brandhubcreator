@@ -145,7 +145,7 @@ export const EventSidebar = ({
   const visibleCount = sectionOrder.length - hiddenSections.length;
 
   return (
-    <aside className="w-64 h-full bg-sidebar border-r border-sidebar-border flex flex-col animate-slide-in-left overflow-hidden">
+    <aside className="w-64 h-full bg-sidebar border-r border-sidebar-border flex flex-col animate-slide-in-left">
       {/* Event header */}
       <div className="p-4 border-b border-sidebar-border animate-fade-in" style={{ animationDelay: '0.1s' }}>
         <div className="flex items-center gap-2 mb-1">
