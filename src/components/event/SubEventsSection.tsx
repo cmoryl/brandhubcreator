@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Users, ExternalLink, Globe, Building2 } from 'lucide-react';
+import { WorldMapVisualization } from './WorldMapVisualization';
 
 export interface LinkedEventGuide {
   id: string;
@@ -36,6 +37,34 @@ const getRegionIcon = (region?: string) => {
   return REGION_ICONS[region.toUpperCase()] || <Globe className="h-4 w-4" />;
 };
 
+// Map region to approximate world map coordinates (percentage-based)
+const getMapCoordinates = (region?: string, location?: string): { x: number; y: number } => {
+  // Default coordinates by region
+  const regionCoords: Record<string, { x: number; y: number }> = {
+    'USA': { x: 18, y: 38 },      // San Francisco area
+    'EMEA': { x: 48, y: 28 },     // London/Europe
+    'APAC': { x: 78, y: 52 },     // Singapore area
+    'LATAM': { x: 25, y: 65 },    // South America
+  };
+
+  if (region && regionCoords[region.toUpperCase()]) {
+    return regionCoords[region.toUpperCase()];
+  }
+
+  // Fallback based on location string
+  if (location) {
+    const loc = location.toLowerCase();
+    if (loc.includes('san francisco') || loc.includes('california')) return { x: 15, y: 38 };
+    if (loc.includes('new york')) return { x: 22, y: 36 };
+    if (loc.includes('london')) return { x: 48, y: 26 };
+    if (loc.includes('singapore')) return { x: 78, y: 55 };
+    if (loc.includes('tokyo') || loc.includes('japan')) return { x: 85, y: 38 };
+    if (loc.includes('sydney') || loc.includes('australia')) return { x: 88, y: 72 };
+  }
+
+  return { x: 50, y: 50 }; // Center fallback
+};
+
 export const SubEventsSection = ({
   linkedGuides,
   customSubtitle,
@@ -46,12 +75,36 @@ export const SubEventsSection = ({
     [linkedGuides]
   );
 
+  // Transform linked guides to map locations
+  const mapLocations = useMemo(() => {
+    return eventGuides.map((event) => {
+      const coords = getMapCoordinates(event.region, event.location);
+      // Parse city and country from location string
+      const locationParts = event.location?.split(',') || [];
+      const city = locationParts[0]?.trim() || event.location || 'TBD';
+      const country = locationParts[1]?.trim() || event.region || '';
+
+      return {
+        id: event.id,
+        name: event.name,
+        city,
+        country,
+        slug: event.slug,
+        accentColor: event.accentColor,
+        dates: event.dates,
+        attendees: event.attendees,
+        x: coords.x,
+        y: coords.y,
+      };
+    });
+  }, [eventGuides]);
+
   if (eventGuides.length === 0) {
     return null;
   }
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-8">
       <div className="space-y-2">
         <h2 className="text-xl sm:text-2xl font-serif font-semibold text-foreground">
           Regional Events
@@ -69,6 +122,15 @@ export const SubEventsSection = ({
           The regional events below inherit branding from this guide
         </p>
       </div>
+
+      {/* World Map Visualization */}
+      {mapLocations.length > 0 && (
+        <WorldMapVisualization
+          locations={mapLocations}
+          title="Global Conference Locations"
+          subtitle="Click a location to view the regional event guide"
+        />
+      )}
 
       {/* Grid of sub-events with clear visual hierarchy */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
