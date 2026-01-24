@@ -40,6 +40,7 @@ import { HeroBackground } from '@/components/HeroBackground';
 import { ParticleEmbers } from '@/components/ParticleEmbers';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { BaseGuide } from '@/types/brand';
 import { Organization } from '@/types/organization';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
@@ -383,9 +384,10 @@ const BrandsIndex = () => {
                 <span className="hidden md:inline">Help</span>
               </Button>
 
-              <SyncStatusIndicator />
+              {/* Sync Status - Only show on desktop or when logged in */}
+              {user && <SyncStatusIndicator />}
 
-              {/* Public Portal - icon only on mobile */}
+              {/* Public Portal - only show for logged-in users with org */}
               {user && organization && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -393,7 +395,7 @@ const BrandsIndex = () => {
                       variant="outline" 
                       size="sm"
                       onClick={() => window.open(`/org/${organization.slug}`, '_blank')}
-                      className="gap-2 p-2 sm:px-3"
+                      className="gap-2 p-2 sm:px-3 hidden sm:flex"
                     >
                       <Globe className="h-5 w-5 sm:h-4 sm:w-4" />
                       <span className="hidden md:inline">Public Portal</span>
@@ -610,23 +612,24 @@ const BrandsIndex = () => {
         </div>
       </div>
 
-      {/* How It Works Section */}
+      {/* How It Works Section - Accordion on mobile */}
       {settings.pageSections?.howItWorks !== false && (
-        <section className="py-16 bg-muted/30 border-y border-border">
+        <section className="py-10 sm:py-16 bg-muted/30 border-y border-border">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
+            <div className="text-center mb-6 sm:mb-12">
               <div className="p-3 bg-accent/10 rounded-xl w-fit mx-auto mb-4">
                 <Zap className="h-6 w-6 text-accent" />
               </div>
-              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
+              <h2 className="text-xl sm:text-3xl font-semibold text-foreground mb-2 sm:mb-3">
                 How It Works
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
                 Create your professional brand guide in three simple steps.
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Desktop: Grid layout */}
+            <div className="hidden sm:grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
                 <div className="w-12 h-12 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
                   1
@@ -657,24 +660,67 @@ const BrandsIndex = () => {
                 </p>
               </div>
             </div>
+
+            {/* Mobile: Accordion layout */}
+            <Accordion type="single" collapsible className="sm:hidden">
+              <AccordionItem value="step-1" className="border-border/50">
+                <AccordionTrigger className="hover:no-underline py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                      1
+                    </div>
+                    <span className="font-semibold text-foreground text-left">Create Your Brand</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pl-11 pb-4 text-sm text-muted-foreground">
+                  Sign in and click "New Brand" to start building your brand guide. Give it a name and you are ready to go.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="step-2" className="border-border/50">
+                <AccordionTrigger className="hover:no-underline py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                      2
+                    </div>
+                    <span className="font-semibold text-foreground text-left">Add Your Elements</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pl-11 pb-4 text-sm text-muted-foreground">
+                  Define your colors, typography, logos, imagery guidelines, and all the elements that make your brand unique.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="step-3" className="border-border/50">
+                <AccordionTrigger className="hover:no-underline py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                      3
+                    </div>
+                    <span className="font-semibold text-foreground text-left">Share With Your Team</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pl-11 pb-4 text-sm text-muted-foreground">
+                  Share your brand guide link with anyone. They can view it instantly without needing an account.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </section>
       )}
 
-      {/* Services Section */}
+      {/* Services Section - Compact on mobile */}
       {settings.pageSections?.services !== false && (
-        <section className="py-16 border-b border-border">
+        <section className="py-10 sm:py-16 border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
+            <div className="text-center mb-6 sm:mb-12">
+              <h2 className="text-xl sm:text-3xl font-semibold text-foreground mb-2 sm:mb-3">
                 What We Offer
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
                 Comprehensive tools to build, manage, and share your brand identity
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Service 1 */}
+            {/* Desktop: Grid */}
+            <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="group bg-card rounded-xl p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300">
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                   <Palette className="h-6 w-6 text-primary" />
@@ -683,7 +729,6 @@ const BrandsIndex = () => {
                 <p className="text-sm text-muted-foreground">Create comprehensive style guides for consistent branding</p>
               </div>
               
-              {/* Service 2 */}
               <div className="group bg-card rounded-xl p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300">
                 <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
                   <Layers className="h-6 w-6 text-accent" />
@@ -692,7 +737,6 @@ const BrandsIndex = () => {
                 <p className="text-sm text-muted-foreground">Organize logos, colors, and typography in one place</p>
               </div>
               
-              {/* Service 3 */}
               <div className="group bg-card rounded-xl p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300">
                 <div className="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center mb-4 group-hover:bg-green-500/20 transition-colors">
                   <Share2 className="h-6 w-6 text-green-600 dark:text-green-400" />
@@ -701,13 +745,44 @@ const BrandsIndex = () => {
                 <p className="text-sm text-muted-foreground">Share brand guides with clients and team members</p>
               </div>
               
-              {/* Service 4 */}
               <div className="group bg-card rounded-xl p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300">
                 <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4 group-hover:bg-blue-500/20 transition-colors">
                   <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">PDF Export</h3>
                 <p className="text-sm text-muted-foreground">Generate professional PDF brand books instantly</p>
+              </div>
+            </div>
+
+            {/* Mobile: Horizontal scroll cards */}
+            <div className="flex sm:hidden gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
+              <div className="flex-shrink-0 w-[70vw] snap-start bg-card rounded-xl p-4 border border-border">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+                  <Palette className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground text-sm mb-1">Brand Guidelines</h3>
+                <p className="text-xs text-muted-foreground">Comprehensive style guides for consistent branding</p>
+              </div>
+              <div className="flex-shrink-0 w-[70vw] snap-start bg-card rounded-xl p-4 border border-border">
+                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-3">
+                  <Layers className="h-5 w-5 text-accent" />
+                </div>
+                <h3 className="font-semibold text-foreground text-sm mb-1">Asset Management</h3>
+                <p className="text-xs text-muted-foreground">Organize logos, colors, and typography in one place</p>
+              </div>
+              <div className="flex-shrink-0 w-[70vw] snap-start bg-card rounded-xl p-4 border border-border">
+                <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center mb-3">
+                  <Share2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                </div>
+                <h3 className="font-semibold text-foreground text-sm mb-1">Easy Sharing</h3>
+                <p className="text-xs text-muted-foreground">Share brand guides with clients and team members</p>
+              </div>
+              <div className="flex-shrink-0 w-[70vw] snap-start bg-card rounded-xl p-4 border border-border">
+                <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center mb-3">
+                  <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h3 className="font-semibold text-foreground text-sm mb-1">PDF Export</h3>
+                <p className="text-xs text-muted-foreground">Generate professional PDF brand books instantly</p>
               </div>
             </div>
           </div>
@@ -780,21 +855,22 @@ const BrandsIndex = () => {
       )}
 
 
-      {/* FAQ Preview Section */}
+      {/* FAQ Preview Section - Accordion on mobile */}
       {settings.pageSections?.faqPreview !== false && (
-        <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <section className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
+            <div className="text-center mb-6 sm:mb-12">
               <div className="p-3 bg-accent/10 rounded-xl w-fit mx-auto mb-4">
                 <HelpCircle className="h-6 w-6 text-accent" />
               </div>
-              <h2 className="text-3xl font-bold text-foreground mb-4">Frequently Asked Questions</h2>
-              <p className="text-lg text-muted-foreground">
+              <h2 className="text-xl sm:text-3xl font-bold text-foreground mb-2 sm:mb-4">Frequently Asked Questions</h2>
+              <p className="text-sm sm:text-lg text-muted-foreground">
                 Quick answers to common questions about BrandHub.
               </p>
             </div>
             
-            <div className="grid gap-4 mb-8">
+            {/* Desktop: Card layout */}
+            <div className="hidden sm:grid gap-4 mb-8">
               <Card className="p-6 border-border/50 hover:border-accent/30 transition-colors">
                 <h3 className="font-semibold text-foreground mb-2">What is BrandHub?</h3>
                 <p className="text-muted-foreground">BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines with live previews, version control, and team collaboration features.</p>
@@ -825,48 +901,84 @@ const BrandsIndex = () => {
                 <p className="text-muted-foreground">Organizations allow teams to collaborate on brand guides together. Owners and admins can invite members, manage roles, customize the public portal, and control access to all organization brands.</p>
               </Card>
             </div>
+
+            {/* Mobile: Accordion layout */}
+            <Accordion type="single" collapsible className="sm:hidden mb-6">
+              <AccordionItem value="faq-1" className="border-border/50">
+                <AccordionTrigger className="text-left text-sm font-semibold py-3">
+                  What is BrandHub?
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground pb-4">
+                  BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines with live previews and team collaboration.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="faq-2" className="border-border/50">
+                <AccordionTrigger className="text-left text-sm font-semibold py-3">
+                  What admin features are available?
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground pb-4">
+                  Administrators get user approvals, AI-powered market intelligence, brand health analytics, bulk repair tools, and activity logging.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="faq-3" className="border-border/50">
+                <AccordionTrigger className="text-left text-sm font-semibold py-3">
+                  Can I share my brand guide publicly?
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground pb-4">
+                  Yes! All brand guides can be made publicly viewable. Share the link with anyone—no login required for viewers.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="faq-4" className="border-border/50">
+                <AccordionTrigger className="text-left text-sm font-semibold py-3">
+                  What sections can I include?
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground pb-4">
+                  Over 25 sections: colors, typography, logos, imagery, patterns, gradients, icons, social media guidelines, templates, and more.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
             
             <div className="text-center">
               <Button variant="outline" onClick={() => navigate('/knowledge')} className="gap-2">
                 <BookOpen className="h-4 w-4" />
-                View All FAQs & Tutorials
+                <span className="hidden sm:inline">View All FAQs & Tutorials</span>
+                <span className="sm:hidden">View All FAQs</span>
               </Button>
             </div>
           </div>
         </section>
       )}
 
-      {/* About Section */}
+      {/* About Section - Compact on mobile */}
       {!user && settings.pageSections?.about !== false && (
-        <section id="about" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30 border-t border-border/30">
+        <section id="about" className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 bg-muted/30 border-t border-border/30">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-foreground mb-6">About BrandHub</h2>
-            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <h2 className="text-xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">About BrandHub</h2>
+            <p className="text-sm sm:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
               BrandHub is the modern platform for creating, managing, and sharing professional brand guidelines. 
-              Whether you're a startup building your first brand or an enterprise managing multiple product lines, 
-              we provide the tools you need to maintain brand consistency across every touchpoint.
+              Whether you're a startup or enterprise, we provide the tools for brand consistency.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+            <div className="grid grid-cols-3 gap-4 sm:gap-8 mt-8 sm:mt-12">
               <div className="text-center">
-                <div className="text-4xl font-bold text-primary mb-2">500+</div>
-                <p className="text-muted-foreground">Brand Guides Created</p>
+                <div className="text-2xl sm:text-4xl font-bold text-primary mb-1 sm:mb-2">500+</div>
+                <p className="text-xs sm:text-base text-muted-foreground">Brand Guides</p>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold text-primary mb-2">50+</div>
-                <p className="text-muted-foreground">Organizations</p>
+                <div className="text-2xl sm:text-4xl font-bold text-primary mb-1 sm:mb-2">50+</div>
+                <p className="text-xs sm:text-base text-muted-foreground">Organizations</p>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold text-primary mb-2">25+</div>
-                <p className="text-muted-foreground">Sections Available</p>
+                <div className="text-2xl sm:text-4xl font-bold text-primary mb-1 sm:mb-2">25+</div>
+                <p className="text-xs sm:text-base text-muted-foreground">Sections</p>
               </div>
             </div>
           </div>
         </section>
       )}
 
-      {/* Learn More Section - Interactive Form */}
+      {/* Learn More Section - Compact on mobile */}
       {!user && (
-        <section id="learn-more" className="py-20 px-4 sm:px-6 lg:px-8 border-t border-border/30">
+        <section id="learn-more" className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 border-t border-border/30">
           <div className="max-w-2xl mx-auto">
             <Suspense fallback={<div className="text-center text-muted-foreground">Loading...</div>}>
               <LearnMoreCard />
@@ -875,100 +987,112 @@ const BrandsIndex = () => {
         </section>
       )}
 
-      {/* Contact & Support Section */}
+      {/* Contact & Support Section - Simplified on mobile */}
       {!user && settings.pageSections?.contact !== false && (
-        <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/20">
+        <section id="contact" className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 bg-muted/20">
           <div className="max-w-5xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="p-6 border-border/50 hover:border-accent/30 transition-all hover:shadow-lg group">
-                <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <HelpCircle className="h-6 w-6 text-accent" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+              <Card className="p-4 sm:p-6 border-border/50 hover:border-accent/30 transition-all hover:shadow-lg group">
+                <div className="flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0">
+                  <div className="p-2 sm:p-3 bg-accent/10 rounded-xl sm:mb-4 group-hover:scale-110 transition-transform">
+                    <HelpCircle className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground text-sm sm:text-base sm:mb-2">Help Center</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block sm:mb-4">
+                      Browse tutorials, FAQs, and documentation.
+                    </p>
+                  </div>
+                  <Button variant="ghost" onClick={() => navigate('/knowledge')} className="gap-1 p-0 h-auto text-primary text-sm hover:text-primary/80">
+                    <span className="hidden sm:inline">Visit</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
                 </div>
-                <h3 className="font-semibold text-foreground mb-2">Help Center</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Browse tutorials, FAQs, and documentation.
-                </p>
-                <Button variant="ghost" onClick={() => navigate('/knowledge')} className="gap-2 p-0 h-auto text-primary font-medium hover:text-primary/80">
-                  Visit Help Center
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
               </Card>
               
-              <Card className="p-6 border-border/50 hover:border-accent/30 transition-all hover:shadow-lg group">
-                <div className="p-3 bg-primary/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <Building2 className="h-6 w-6 text-primary" />
+              <Card className="p-4 sm:p-6 border-border/50 hover:border-accent/30 transition-all hover:shadow-lg group">
+                <div className="flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0">
+                  <div className="p-2 sm:p-3 bg-primary/10 rounded-xl sm:mb-4 group-hover:scale-110 transition-transform">
+                    <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground text-sm sm:text-base sm:mb-2">Enterprise</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block sm:mb-4">
+                      Custom solutions for large organizations.
+                    </p>
+                  </div>
+                  <Button variant="ghost" onClick={() => navigate('/contact')} className="gap-1 p-0 h-auto text-primary text-sm hover:text-primary/80">
+                    <span className="hidden sm:inline">Contact</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
                 </div>
-                <h3 className="font-semibold text-foreground mb-2">Enterprise</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Custom solutions for large organizations.
-                </p>
-                <Button variant="ghost" onClick={() => navigate('/contact')} className="gap-2 p-0 h-auto text-primary hover:text-primary/80">
-                  Contact Sales
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
               </Card>
               
-              <Card className="p-6 border-border/50 hover:border-accent/30 transition-all hover:shadow-lg group">
-                <div className="p-3 bg-green-500/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <Globe className="h-6 w-6 text-green-500" />
+              <Card className="p-4 sm:p-6 border-border/50 hover:border-accent/30 transition-all hover:shadow-lg group">
+                <div className="flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0">
+                  <div className="p-2 sm:p-3 bg-green-500/10 rounded-xl sm:mb-4 group-hover:scale-110 transition-transform">
+                    <Globe className="h-5 w-5 sm:h-6 sm:w-6 text-green-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground text-sm sm:text-base sm:mb-2">Public Portal</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block sm:mb-4">
+                      See how organization portals work.
+                    </p>
+                  </div>
+                  <Button variant="ghost" onClick={() => navigate('/org/transperfect')} className="gap-1 p-0 h-auto text-green-700 dark:text-green-400 text-sm hover:text-green-600 dark:hover:text-green-300">
+                    <span className="hidden sm:inline">View</span>
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
                 </div>
-                <h3 className="font-semibold text-foreground mb-2">Public Portal</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  See how organization portals work.
-                </p>
-                <Button variant="ghost" onClick={() => navigate('/org/transperfect')} className="gap-2 p-0 h-auto text-green-700 dark:text-green-400 font-medium hover:text-green-600 dark:hover:text-green-300">
-                  View Example
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
               </Card>
             </div>
           </div>
         </section>
       )}
 
-      {/* Sign Up CTA Section */}
+      {/* Sign Up CTA Section - Compact on mobile */}
       {!user && settings.pageSections?.signupCta !== false && (
-        <section id="signup" className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <section id="signup" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
           {/* Animated background */}
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/10 to-primary/5" />
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 hidden sm:block">
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" />
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
           </div>
           
           <div className="relative max-w-3xl mx-auto text-center">
-            <Badge variant="secondary" className="mb-4 gap-1">
+            <Badge variant="secondary" className="mb-3 sm:mb-4 gap-1">
               <Zap className="h-3 w-3" />
               Get Started Free
             </Badge>
-            <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 sm:mb-6">
               Ready to transform your
               <span className="block text-accent">brand management?</span>
             </h2>
-            <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
-              Join teams creating professional brand guidelines with AI-powered analytics and seamless collaboration.
+            <p className="text-sm sm:text-lg text-muted-foreground mb-6 sm:mb-10 max-w-xl mx-auto">
+              Join teams creating professional brand guidelines with AI-powered analytics.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" onClick={() => navigate('/auth')} className="gap-2 group text-base h-12 px-8">
-                <Plus className="h-5 w-5 group-hover:rotate-90 transition-transform" />
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+              <Button size="lg" onClick={() => navigate('/auth')} className="gap-2 group text-sm sm:text-base h-11 sm:h-12 px-6 sm:px-8">
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5 group-hover:rotate-90 transition-transform" />
                 Create Free Account
               </Button>
-              <Button size="lg" variant="outline" onClick={() => navigate('/auth')} className="gap-2 text-base h-12 px-8">
-                <Lock className="h-5 w-5" />
+              <Button size="lg" variant="outline" onClick={() => navigate('/auth')} className="gap-2 text-sm sm:text-base h-11 sm:h-12 px-6 sm:px-8">
+                <Lock className="h-4 w-4 sm:h-5 sm:w-5" />
                 Sign In
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground mt-8 flex items-center justify-center gap-4 flex-wrap">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-6 sm:mt-8 flex items-center justify-center gap-3 sm:gap-4 flex-wrap">
               <span className="flex items-center gap-1.5">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                No credit card required
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                No credit card
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                Free tier available
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                Free tier
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircle className="h-4 w-4 text-green-500" />
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
                 Cancel anytime
               </span>
             </p>
