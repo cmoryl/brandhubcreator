@@ -69,16 +69,15 @@ const BrandsIndex = () => {
 
   // Redirect authenticated users to their organization portal
   // Only redirect once auth and org context are fully loaded to avoid flickering
-  // TEMPORARILY DISABLED FOR TESTING - uncomment to restore auto-redirect
-  // useEffect(() => {
-  //   if (authLoading || orgLoading) return; // Wait for both to settle
-  //   if (accessStatus !== 'ready') return; // Wait for access verification
-  //   
-  //   if (user && organization) {
-  //     // User has an organization - redirect to their org portal
-  //     navigate(`/org/${organization.slug}`, { replace: true });
-  //   }
-  // }, [user, organization, accessStatus, authLoading, orgLoading, navigate]);
+  useEffect(() => {
+    if (authLoading || orgLoading) return; // Wait for both to settle
+    if (accessStatus !== 'ready') return; // Wait for access verification
+    
+    if (user && organization) {
+      // User has an organization - redirect to their org portal
+      navigate(`/org/${organization.slug}`, { replace: true });
+    }
+  }, [user, organization, accessStatus, authLoading, orgLoading, navigate]);
 
   // Redirect unapproved users to pending approval page
   // Only do this once access has been VERIFIED (otherwise a backend/network hiccup looks like "pending approval").
@@ -416,14 +415,23 @@ const BrandsIndex = () => {
                         <DropdownMenuSeparator />
                       </>
                     )}
-                    {organization && (
+                    {/* Organization link - show loading state if org is loading */}
+                    {orgLoading ? (
+                      <>
+                        <DropdownMenuItem disabled className="gap-2 text-muted-foreground">
+                          <Building2 className="h-4 w-4 animate-pulse" />
+                          Loading organization...
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    ) : organization ? (
                       <>
                         <DropdownMenuItem 
                           onClick={() => navigate(`/org/${organization.slug}`)} 
                           className="gap-2"
                         >
                           <Building2 className="h-4 w-4" />
-                          View Public Portal
+                          Go to {organization.name}
                         </DropdownMenuItem>
                         {(userRole === 'owner' || userRole === 'admin') && (
                           <>
@@ -439,7 +447,7 @@ const BrandsIndex = () => {
                         )}
                         <DropdownMenuSeparator />
                       </>
-                    )}
+                    ) : null}
                     {/* Backup Option for editors */}
                     {canEdit && (brands.length > 0 || products.length > 0) && (
                       <>
