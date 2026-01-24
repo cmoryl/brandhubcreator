@@ -1005,6 +1005,312 @@ export const HeroBackground = React.forwardRef<
     );
   }
 
+  // NEW: Animated sine lines - flowing purple-to-cyan sine waves (like reference image 1)
+  if (type === 'animated-sine-lines') {
+    const duration = parseFloat(getAnimationDuration());
+    const lineCount = 12;
+    
+    return (
+      <div className="absolute inset-0 overflow-hidden bg-black">
+        {/* Pure black background */}
+        <div className="absolute inset-0 bg-black" />
+        
+        {/* Main wave SVG container */}
+        <svg 
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 1920 1080"
+          preserveAspectRatio="xMidYMid slice"
+        >
+          {/* Gradient definitions */}
+          <defs>
+            <linearGradient id="sineGradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#a855f7" stopOpacity="0.9" />
+              <stop offset="30%" stopColor="#c084fc" stopOpacity="1" />
+              <stop offset="50%" stopColor="#8b5cf6" stopOpacity="0.9" />
+              <stop offset="70%" stopColor="#6366f1" stopOpacity="1" />
+              <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.9" />
+            </linearGradient>
+            <linearGradient id="sineGradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#d946ef" stopOpacity="0.7" />
+              <stop offset="40%" stopColor="#a855f7" stopOpacity="0.8" />
+              <stop offset="60%" stopColor="#7c3aed" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.7" />
+            </linearGradient>
+            {/* Glow filter */}
+            <filter id="sineGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          
+          {/* Multiple sine wave lines */}
+          {Array.from({ length: lineCount }).map((_, i) => {
+            const baseY = 540; // Center vertically
+            const amplitude = 80 + (i % 3) * 30;
+            const frequency = 0.8 + (i % 4) * 0.1;
+            const phaseOffset = i * 15;
+            const yOffset = (i - lineCount / 2) * 12;
+            
+            // Generate smooth sine wave path
+            const points: string[] = [];
+            for (let x = -100; x <= 2020; x += 20) {
+              const y = baseY + yOffset + 
+                Math.sin((x * frequency * Math.PI) / 400 + phaseOffset * 0.1) * amplitude +
+                Math.sin((x * frequency * 0.5 * Math.PI) / 400 + phaseOffset * 0.05) * (amplitude * 0.3);
+              points.push(`${x},${y}`);
+            }
+            const pathD = `M${points.join(' L')}`;
+            
+            return (
+              <path
+                key={`sine-${i}`}
+                d={pathD}
+                fill="none"
+                stroke={i % 2 === 0 ? "url(#sineGradient1)" : "url(#sineGradient2)"}
+                strokeWidth={1 + (i % 3) * 0.3}
+                filter="url(#sineGlow)"
+                opacity={0.5 + (i % 4) * 0.1}
+                style={{
+                  animation: `sineFlow${i % 3} ${duration + i * 0.5}s ease-in-out infinite`,
+                  animationDelay: `${i * 0.15}s`,
+                }}
+              />
+            );
+          })}
+        </svg>
+        
+        {/* Subtle vignette */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.3) 100%)',
+          }}
+        />
+        
+        <style>{`
+          @keyframes sineFlow0 {
+            0%, 100% { transform: translateX(0) scaleY(1); }
+            25% { transform: translateX(-30px) scaleY(1.05); }
+            50% { transform: translateX(-60px) scaleY(0.95); }
+            75% { transform: translateX(-30px) scaleY(1.02); }
+          }
+          @keyframes sineFlow1 {
+            0%, 100% { transform: translateX(0) scaleY(1); }
+            25% { transform: translateX(20px) scaleY(0.97); }
+            50% { transform: translateX(40px) scaleY(1.03); }
+            75% { transform: translateX(20px) scaleY(0.98); }
+          }
+          @keyframes sineFlow2 {
+            0%, 100% { transform: translateX(0) scaleY(1); }
+            33% { transform: translateX(-40px) scaleY(1.04); }
+            66% { transform: translateX(-20px) scaleY(0.96); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // NEW: Animated data particles - flowing waves with particles and deep blue atmosphere (like reference image 2)
+  if (type === 'animated-data-particles') {
+    const duration = parseFloat(getAnimationDuration());
+    const particleCount = 120;
+    const waveLineCount = 16;
+    
+    return (
+      <div className="absolute inset-0 overflow-hidden" style={{ background: 'hsl(222 47% 4%)' }}>
+        {/* Deep blue gradient base */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(ellipse 100% 60% at 50% 60%, hsl(210 80% 15% / 0.4) 0%, transparent 60%),
+              radial-gradient(ellipse 80% 50% at 30% 55%, hsl(200 70% 12% / 0.5) 0%, transparent 50%),
+              radial-gradient(ellipse 80% 50% at 70% 55%, hsl(220 70% 12% / 0.5) 0%, transparent 50%),
+              linear-gradient(to bottom, hsl(222 47% 3%) 0%, hsl(215 50% 8%) 50%, hsl(222 47% 3%) 100%)
+            `,
+          }}
+        />
+        
+        {/* Wave lines with perspective */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            perspective: '800px',
+            perspectiveOrigin: '50% 40%',
+          }}
+        >
+          <svg 
+            className="absolute w-full h-full"
+            viewBox="0 0 1920 1080"
+            preserveAspectRatio="xMidYMid slice"
+            style={{
+              transform: 'rotateX(45deg) translateZ(-100px)',
+              transformOrigin: '50% 60%',
+            }}
+          >
+            <defs>
+              <linearGradient id="dataLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.1" />
+                <stop offset="30%" stopColor="#06b6d4" stopOpacity="0.5" />
+                <stop offset="50%" stopColor="#22d3ee" stopOpacity="0.8" />
+                <stop offset="70%" stopColor="#06b6d4" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="#0284c7" stopOpacity="0.1" />
+              </linearGradient>
+              <filter id="dataGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="1.5" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            
+            {/* Flowing wave lines */}
+            {Array.from({ length: waveLineCount }).map((_, i) => {
+              const baseY = 400 + i * 40;
+              const amplitude = 30 + (i % 4) * 15;
+              
+              const points: string[] = [];
+              for (let x = -100; x <= 2020; x += 30) {
+                const y = baseY + 
+                  Math.sin((x * Math.PI) / 300 + i * 0.5) * amplitude +
+                  Math.sin((x * Math.PI) / 600 + i * 0.3) * (amplitude * 0.5);
+                points.push(`${x},${y}`);
+              }
+              const pathD = `M${points.join(' L')}`;
+              
+              return (
+                <path
+                  key={`data-line-${i}`}
+                  d={pathD}
+                  fill="none"
+                  stroke="url(#dataLineGrad)"
+                  strokeWidth={0.8 + (i % 3) * 0.3}
+                  filter="url(#dataGlow)"
+                  opacity={0.3 + (i % 4) * 0.1}
+                  style={{
+                    animation: `dataWaveFlow ${duration + i * 0.3}s ease-in-out infinite`,
+                    animationDelay: `${i * 0.1}s`,
+                  }}
+                />
+              );
+            })}
+          </svg>
+        </div>
+        
+        {/* Floating particles */}
+        {Array.from({ length: particleCount }).map((_, i) => {
+          const size = Math.random() * 4 + 1;
+          const x = Math.random() * 100;
+          const y = 30 + Math.random() * 50;
+          const opacity = 0.2 + Math.random() * 0.5;
+          const delay = Math.random() * duration;
+          const particleDuration = duration + Math.random() * 5;
+          
+          return (
+            <div
+              key={`dp-${i}`}
+              className="absolute rounded-full"
+              style={{
+                width: `${size}px`,
+                height: `${size}px`,
+                left: `${x}%`,
+                top: `${y}%`,
+                background: `hsl(${190 + Math.random() * 30} 80% ${60 + Math.random() * 20}%)`,
+                boxShadow: `0 0 ${size * 2}px hsl(195 80% 60% / 0.6), 0 0 ${size * 4}px hsl(195 80% 50% / 0.3)`,
+                opacity,
+                animation: `dataParticleFloat ${particleDuration}s ease-in-out infinite`,
+                animationDelay: `${delay}s`,
+              }}
+            />
+          );
+        })}
+        
+        {/* Bokeh blur circles */}
+        {Array.from({ length: 15 }).map((_, i) => {
+          const size = 40 + Math.random() * 80;
+          const x = Math.random() * 100;
+          const y = 20 + Math.random() * 60;
+          
+          return (
+            <div
+              key={`bokeh-${i}`}
+              className="absolute rounded-full"
+              style={{
+                width: `${size}px`,
+                height: `${size}px`,
+                left: `${x}%`,
+                top: `${y}%`,
+                background: `radial-gradient(circle, hsl(200 60% 40% / 0.15) 0%, transparent 70%)`,
+                filter: 'blur(20px)',
+                animation: `bokehPulse ${duration * 1.5 + i * 0.5}s ease-in-out infinite`,
+                animationDelay: `${i * 0.3}s`,
+              }}
+            />
+          );
+        })}
+        
+        {/* Top and bottom fade */}
+        <div 
+          className="absolute inset-x-0 top-0 h-1/4 pointer-events-none"
+          style={{ background: 'linear-gradient(to bottom, hsl(222 47% 3%) 0%, transparent 100%)' }}
+        />
+        <div 
+          className="absolute inset-x-0 bottom-0 h-1/4 pointer-events-none"
+          style={{ background: 'linear-gradient(to top, hsl(222 47% 3%) 0%, transparent 100%)' }}
+        />
+        
+        <style>{`
+          @keyframes dataWaveFlow {
+            0%, 100% { 
+              transform: translateX(0);
+              opacity: 0.4;
+            }
+            25% {
+              transform: translateX(-30px);
+              opacity: 0.6;
+            }
+            50% { 
+              transform: translateX(-60px);
+              opacity: 0.5;
+            }
+            75% {
+              transform: translateX(-30px);
+              opacity: 0.7;
+            }
+          }
+          @keyframes dataParticleFloat {
+            0%, 100% { 
+              transform: translate(0, 0) scale(1);
+            }
+            25% { 
+              transform: translate(8px, -12px) scale(1.1);
+            }
+            50% { 
+              transform: translate(-5px, -8px) scale(0.9);
+            }
+            75% { 
+              transform: translate(6px, -4px) scale(1.05);
+            }
+          }
+          @keyframes bokehPulse {
+            0%, 100% { 
+              opacity: 0.3;
+              transform: scale(1);
+            }
+            50% { 
+              opacity: 0.5;
+              transform: scale(1.1);
+            }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   // Default gradient background
   return (
     <div className="absolute inset-0 overflow-hidden">

@@ -51,6 +51,8 @@ const backgroundTypes: { type: HeroBackgroundType; name: string; icon: typeof Im
   { type: 'animated-wave-lines', name: 'Wave Lines', icon: Waves, description: 'Flowing gradient lines' },
   { type: 'animated-flow-field', name: 'Flow Field', icon: Waves, description: 'Organic flowing curves' },
   { type: 'animated-neon-grid', name: 'Neon Grid', icon: LayoutGrid, description: 'Neon grid with glow' },
+  { type: 'animated-sine-lines', name: 'Sine Lines', icon: Waves, description: 'Purple-cyan sine waves' },
+  { type: 'animated-data-particles', name: 'Data Particles', icon: Sparkles, description: 'Wave lines with particles' },
 ];
 
 // Exported as a forwardRef component for lazy loading compatibility
