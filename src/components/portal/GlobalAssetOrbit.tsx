@@ -789,6 +789,63 @@ export const GlobalAssetOrbit = ({
         />
       )}
       
+      
+      {/* Hierarchy Legend */}
+      <div 
+        className="absolute bottom-2 left-2 flex flex-col gap-1.5 p-2.5 rounded-lg backdrop-blur-sm transition-opacity duration-300"
+        style={{ 
+          background: `${primaryColor}10`,
+          border: `1px solid ${primaryColor}20`,
+          opacity: isHovering ? 1 : 0.7,
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <div 
+            className="w-5 h-5 rounded-md flex items-center justify-center"
+            style={{ background: `${primaryColor}30`, border: `1px solid ${primaryColor}50` }}
+          >
+            <Building2 className="w-3 h-3" style={{ color: primaryColor }} />
+          </div>
+          <span className="text-[10px] font-medium" style={{ color: primaryColor }}>Brands</span>
+          <div className="flex items-center gap-1 ml-1">
+            <div className="w-4 h-0.5 rounded-full" style={{ background: primaryColor, opacity: 0.9 }} />
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: primaryColor }} />
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <div 
+            className="w-5 h-5 rounded-md flex items-center justify-center"
+            style={{ background: `${primaryColor}25`, border: `1px solid ${primaryColor}40` }}
+          >
+            <Package className="w-3 h-3" style={{ color: primaryColor }} />
+          </div>
+          <span className="text-[10px] font-medium" style={{ color: primaryColor }}>Products</span>
+          <div className="flex items-center gap-1 ml-1">
+            <div className="w-4 h-0.5 rounded-full" style={{ background: primaryColor, opacity: 0.7 }} />
+            <div className="w-1 h-1 rounded-full" style={{ background: primaryColor }} />
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <div 
+            className="w-5 h-5 rounded-md flex items-center justify-center"
+            style={{ background: `${primaryColor}20`, border: `1px solid ${primaryColor}30` }}
+          >
+            <Calendar className="w-3 h-3" style={{ color: primaryColor }} />
+          </div>
+          <span className="text-[10px] font-medium" style={{ color: primaryColor }}>Events</span>
+          <div className="flex items-center gap-1 ml-1">
+            <div className="w-4 h-0.5 rounded-full" style={{ background: primaryColor, opacity: 0.5 }} />
+            <div className="w-1 h-1 rounded-full" style={{ background: primaryColor, opacity: 0.7 }} />
+          </div>
+        </div>
+        
+        <div className="mt-1 pt-1 border-t" style={{ borderColor: `${primaryColor}20` }}>
+          <p className="text-[8px] opacity-60" style={{ color: primaryColor }}>Hover to see connections</p>
+        </div>
+      </div>
+
       <style>{`
         @keyframes float {
           0% { transform: translateY(0px) translateX(0px); opacity: 0.25; }
