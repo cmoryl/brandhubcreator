@@ -288,10 +288,14 @@ const EventEditor = () => {
     }
   }, [viewMode]);
 
-  // Consolidate loading
+  // Optimized loading: prevents flash for fast loads
   const needsPublicData = !contextEvent && !publicEvent;
   const rawLoading = needsPublicData && publicEventLoading;
-  const stableLoading = useStableLoading(rawLoading, 50, 6000);
+  const stableLoading = useStableLoading(rawLoading, {
+    showDelay: 100,
+    minDisplayTime: 300,
+    maxLoadingTime: 6000
+  });
 
   if (stableLoading) {
     return (

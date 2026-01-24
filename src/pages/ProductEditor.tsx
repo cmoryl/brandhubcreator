@@ -258,12 +258,14 @@ const ProductEditor = () => {
     }
   };
 
-  // Consolidate loading states with stability to prevent flickers
-  // Only block on publicProductLoading if we don't have a product yet
-  // Auth loading shouldn't block public content display
+  // Optimized loading: prevents flash for fast loads
   const needsPublicData = !contextProduct && !publicProduct;
   const rawLoading = needsPublicData && publicProductLoading;
-  const stableLoading = useStableLoading(rawLoading, 50, 6000);
+  const stableLoading = useStableLoading(rawLoading, {
+    showDelay: 100,
+    minDisplayTime: 300,
+    maxLoadingTime: 6000
+  });
 
   // ALL HOOKS MUST BE DECLARED BEFORE ANY EARLY RETURNS
   const handleSectionOrderChange = useCallback((newOrder: SectionId[]) => {

@@ -190,7 +190,11 @@ const BrandsIndex = () => {
   // Show skeleton loading state during initial auth check
   // But still render the page shell so users see something immediately
   const rawDataLoading = authLoading || (isLoading && brands.length === 0 && products.length === 0);
-  const showDataLoading = useStableLoading(rawDataLoading, 50, 5000);
+  const showDataLoading = useStableLoading(rawDataLoading, {
+    showDelay: 100,
+    minDisplayTime: 200,
+    maxLoadingTime: 5000
+  });
 
   const handleCreateItem = async () => {
     if (newItemName.trim()) {

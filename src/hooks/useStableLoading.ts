@@ -2,79 +2,118 @@ import { useState, useRef, useEffect } from 'react';
 
 /**
  * Hook to stabilize a loading flag to prevent UI flickering.
- * Ensures a minimum display time before hiding the loading state,
- * AND a maximum time after which loading is forced off (escape hatch).
+ * Now includes a delay before showing loading to prevent flash for fast loads.
  * 
  * @param isLoading - The raw loading state
- * @param minDisplayTime - Minimum time (ms) to show loading once it starts (default: 50ms)
- * @param maxLoadingTime - Maximum time (ms) after which loading is forced off (default: 8000ms)
+ * @param options - Configuration options
  * @returns Stabilized loading state
  */
+export interface StableLoadingOptions {
+  /** Delay before showing loading state (prevents flash for fast loads) */
+  showDelay?: number;
+  /** Minimum time to show loading once visible */
+  minDisplayTime?: number;
+  /** Maximum time after which loading is forced off */
+  maxLoadingTime?: number;
+}
+
 export function useStableLoading(
   isLoading: boolean,
-  minDisplayTime: number = 50,
-  maxLoadingTime: number = 8000
+  options: StableLoadingOptions | number = {}
 ): boolean {
-  const [stableLoading, setStableLoading] = useState(isLoading);
+  // Support legacy signature: useStableLoading(isLoading, minDisplayTime, maxLoadingTime)
+  const opts: StableLoadingOptions = typeof options === 'number' 
+    ? { minDisplayTime: options } 
+    : options;
+  
+  const {
+    showDelay = 150,      // Wait 150ms before showing loading
+    minDisplayTime = 300, // Show for at least 300ms once visible
+    maxLoadingTime = 8000 // Force off after 8s
+  } = opts;
+
+  const [stableLoading, setStableLoading] = useState(false);
   const loadingStartRef = useRef<number | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const maxTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // Clear any pending timeouts
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
+    // Clear pending timeouts
+    if (showTimeoutRef.current) {
+      clearTimeout(showTimeoutRef.current);
+      showTimeoutRef.current = null;
+    }
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
     }
 
     if (isLoading) {
-      // Loading started
+      // Loading started - delay before showing to prevent flash
       if (!loadingStartRef.current) {
         loadingStartRef.current = Date.now();
-      }
-      setStableLoading(true);
-      
-      // Set max loading timeout as escape hatch
-      if (!maxTimeoutRef.current) {
-        maxTimeoutRef.current = setTimeout(() => {
-          console.warn('[useStableLoading] Max loading time exceeded, forcing load complete');
-          setStableLoading(false);
-          loadingStartRef.current = null;
-        }, maxLoadingTime);
+        
+        showTimeoutRef.current = setTimeout(() => {
+          setStableLoading(true);
+          
+          // Set max loading timeout as escape hatch
+          if (!maxTimeoutRef.current) {
+            maxTimeoutRef.current = setTimeout(() => {
+              console.warn('[useStableLoading] Max loading time exceeded, forcing load complete');
+              setStableLoading(false);
+              loadingStartRef.current = null;
+            }, maxLoadingTime);
+          }
+        }, showDelay);
       }
     } else {
-      // Loading finished - ensure minimum display time
+      // Loading finished
       if (loadingStartRef.current) {
         const elapsed = Date.now() - loadingStartRef.current;
-        const remaining = Math.max(0, minDisplayTime - elapsed);
         
-        timeoutRef.current = setTimeout(() => {
-          setStableLoading(false);
+        // If loading finished before showDelay, never show the loading state
+        if (elapsed < showDelay) {
           loadingStartRef.current = null;
-          // Clear max timeout since loading completed naturally
+          // Clear max timeout
           if (maxTimeoutRef.current) {
             clearTimeout(maxTimeoutRef.current);
             maxTimeoutRef.current = null;
           }
-        }, remaining);
-      } else {
-        setStableLoading(false);
+          return;
+        }
+        
+        // If we're showing loading, ensure minimum display time
+        if (stableLoading) {
+          const visibleTime = elapsed - showDelay;
+          const remaining = Math.max(0, minDisplayTime - visibleTime);
+          
+          hideTimeoutRef.current = setTimeout(() => {
+            setStableLoading(false);
+            loadingStartRef.current = null;
+            if (maxTimeoutRef.current) {
+              clearTimeout(maxTimeoutRef.current);
+              maxTimeoutRef.current = null;
+            }
+          }, remaining);
+        } else {
+          loadingStartRef.current = null;
+        }
       }
     }
 
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      if (showTimeoutRef.current) clearTimeout(showTimeoutRef.current);
+      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     };
-  }, [isLoading, minDisplayTime, maxLoadingTime]);
+  }, [isLoading, showDelay, minDisplayTime, maxLoadingTime, stableLoading]);
 
   // Cleanup max timeout on unmount
   useEffect(() => {
     return () => {
-      if (maxTimeoutRef.current) {
-        clearTimeout(maxTimeoutRef.current);
-      }
+      if (maxTimeoutRef.current) clearTimeout(maxTimeoutRef.current);
+      if (showTimeoutRef.current) clearTimeout(showTimeoutRef.current);
+      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     };
   }, []);
 
@@ -122,4 +161,23 @@ export function useConsolidatedLoading(
   }, [loadingStates, debounceMs]);
 
   return isLoading;
+
+}
+
+/**
+ * Hook for optimized page loading - prevents flash for fast loads
+ * while ensuring smooth transitions for slower ones.
+ */
+export function usePageLoading(
+  isDataLoading: boolean,
+  hasData: boolean
+): boolean {
+  // Only show loading if we need data AND don't have it yet
+  const needsLoading = isDataLoading && !hasData;
+  
+  return useStableLoading(needsLoading, {
+    showDelay: 100,      // Wait 100ms before showing (most loads complete faster)
+    minDisplayTime: 400, // Show for at least 400ms for smooth UX
+    maxLoadingTime: 10000
+  });
 }
