@@ -78,43 +78,43 @@ export default function DemoGuideViewer() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Demo Header Banner */}
+      {/* Demo Header Banner - Compact on mobile */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-b border-border backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="gap-2 shrink-0">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="gap-1 sm:gap-2 shrink-0 h-8 sm:h-9 px-2 sm:px-3">
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Back</span>
             </Button>
-            <div className="h-6 w-px bg-border hidden sm:block" />
-            <Badge variant="secondary" className="gap-1 shrink-0">
+            <div className="h-5 w-px bg-border hidden sm:block" />
+            <Badge variant="secondary" className="gap-1 shrink-0 text-xs h-6">
               <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
               <span className="hidden xs:inline">Demo</span>
             </Badge>
-            <Badge variant="outline" className="gap-1 hidden sm:flex">
+            <Badge variant="outline" className="gap-1 hidden md:flex text-xs">
               {getTypeIcon()}
               {industry}
             </Badge>
             {isEvent && (
-              <Badge className="bg-accent text-accent-foreground gap-1 hidden md:flex">
+              <Badge className="bg-accent text-accent-foreground gap-1 hidden lg:flex text-xs">
                 <Calendar className="h-3 w-3" />
                 New Feature
               </Badge>
             )}
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             <ThemeToggle />
-            <Button size="sm" onClick={() => navigate('/auth')} className="gap-2">
+            <Button size="sm" onClick={() => navigate('/auth')} className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-4 text-xs sm:text-sm">
               <span className="hidden sm:inline">Create Your Own</span>
               <span className="sm:hidden">Sign Up</span>
-              <ExternalLink className="h-4 w-4 hidden sm:block" />
+              <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 hidden sm:block" />
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Breadcrumbs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      {/* Breadcrumbs - Hidden on mobile for cleaner look */}
+      <div className="hidden sm:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <AppBreadcrumbs
           items={[
             { label: 'Demo Guides', icon: Star, href: '/' },
@@ -125,7 +125,7 @@ export default function DemoGuideViewer() {
       </div>
 
       {/* Full Brand Page Content - wrapped in proper container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-0 pb-6 sm:pb-8">
         <FullBrandPage
           brand={fullGuide as BrandGuide | ProductGuide}
           brandId={demoGuide.id}
@@ -140,21 +140,21 @@ export default function DemoGuideViewer() {
 
       {/* Bottom CTA Banner */}
       <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-t border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 text-center">
-          <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 text-center">
+          <h3 className="text-lg sm:text-2xl font-semibold text-foreground mb-2 sm:mb-3">
             Like what you see?
           </h3>
-          <p className="text-muted-foreground mb-6 max-w-xl mx-auto text-sm sm:text-base">
+          <p className="text-muted-foreground mb-4 sm:mb-6 max-w-xl mx-auto text-sm sm:text-base">
             {isEvent 
               ? 'Create your own professional event brand kits with all the features you\'ve just explored.'
               : 'Create your own professional brand guidelines with all the features you\'ve just explored.'
             }
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <Button size="lg" onClick={() => navigate('/auth')} className="gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center">
+            <Button size="lg" onClick={() => navigate('/auth')} className="gap-2 h-11 sm:h-12">
               Get Started Free
             </Button>
-            <Button size="lg" variant="outline" onClick={() => navigate('/')}>
+            <Button size="lg" variant="outline" onClick={() => navigate('/')} className="h-11 sm:h-12">
               Explore More Demos
             </Button>
           </div>

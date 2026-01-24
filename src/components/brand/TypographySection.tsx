@@ -56,9 +56,9 @@ export const TypographySection = ({ typography, onTypographyChange, customSubtit
   };
 
   return (
-    <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1">
+    <section className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="flex-1 min-w-0">
           <SectionHeader
             title="Typography"
             defaultSubtitle="Define your brand's type system"
@@ -68,13 +68,15 @@ export const TypographySection = ({ typography, onTypographyChange, customSubtit
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button onClick={addTypography} size="sm" className="gap-2 shrink-0">
-          <Plus className="h-4 w-4" />
-          Add Style
-        </Button>
+        {onTypographyChange && (
+          <Button onClick={addTypography} size="sm" className="gap-2 shrink-0 w-full sm:w-auto">
+            <Plus className="h-4 w-4" />
+            Add Style
+          </Button>
+        )}
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {typography.map((type, index) => (
           <div
             key={type.id}

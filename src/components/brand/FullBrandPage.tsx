@@ -115,7 +115,7 @@ const SectionWrapper = memo(({
       </ScrollAnimate>
       {!isLast && (
         <ScrollAnimate animation="fade-up" delay={100} duration={400}>
-          <Separator className="my-12" />
+          <Separator className="my-8 sm:my-12" />
         </ScrollAnimate>
       )}
     </div>
@@ -285,7 +285,7 @@ export const FullBrandPage = ({
   );
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-10 sm:space-y-16">
       {visibleSections.map((sectionId, index) => {
         const isHidden = hiddenSections.includes(sectionId);
         

@@ -129,8 +129,8 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
   );
 
   return (
-    <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+    <section className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <SectionHeader
             title="Visual Direction"
@@ -148,16 +148,16 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
             onValueChange={(value) => value && setViewMode(value as ViewMode)}
             className="border rounded-md"
           >
-            <ToggleGroupItem value="split" aria-label="Split view" className="px-2">
+            <ToggleGroupItem value="split" aria-label="Split view" className="px-2 h-8 sm:h-9">
               <Rows3 className="h-4 w-4" />
             </ToggleGroupItem>
-            <ToggleGroupItem value="grid-2" aria-label="2 column grid" className="px-2">
+            <ToggleGroupItem value="grid-2" aria-label="2 column grid" className="px-2 h-8 sm:h-9">
               <Grid2X2 className="h-4 w-4" />
             </ToggleGroupItem>
-            <ToggleGroupItem value="grid-3" aria-label="3 column grid" className="px-2">
+            <ToggleGroupItem value="grid-3" aria-label="3 column grid" className="px-2 h-8 sm:h-9 hidden sm:flex">
               <Grid3X3 className="h-4 w-4" />
             </ToggleGroupItem>
-            <ToggleGroupItem value="grid-4" aria-label="4 column grid" className="px-2">
+            <ToggleGroupItem value="grid-4" aria-label="4 column grid" className="px-2 h-8 sm:h-9 hidden md:flex">
               <LayoutGrid className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>
@@ -174,7 +174,7 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
 
       {viewMode === 'split' ? (
         /* Split View - Original Do/Don't columns */
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
           {/* Do's */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-green-600">

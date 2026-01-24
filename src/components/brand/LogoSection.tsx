@@ -99,8 +99,8 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
   }, {} as Record<BrandLogo['variant'], BrandLogo[]>);
 
   return (
-    <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+    <section className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <SectionHeader
             title="Logos"
@@ -111,10 +111,10 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        {logos.length > 0 && (
-          <Button onClick={downloadAllLogos} variant="outline" size="sm" className="gap-2 shrink-0">
+        {logos.length > 0 && onLogosChange && (
+          <Button onClick={downloadAllLogos} variant="outline" size="sm" className="gap-2 shrink-0 w-full sm:w-auto">
             <Package className="h-4 w-4" />
-            Download All Logos
+            <span className="sm:inline">Download All</span>
           </Button>
         )}
       </div>
@@ -127,10 +127,10 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
         className="hidden"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {(['primary', 'secondary', 'reversed', 'monochrome', 'icon', 'wordmark'] as const).map((variant) => (
-          <div key={variant} className="space-y-3">
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+          <div key={variant} className="space-y-2 sm:space-y-3">
+            <h3 className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide">
               {variantLabels[variant]}
             </h3>
             

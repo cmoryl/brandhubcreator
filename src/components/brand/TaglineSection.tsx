@@ -137,8 +137,8 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
   const bgStyles = getBackgroundStyles();
 
   return (
-    <section className="space-y-6">
-      <div className="flex items-center justify-between">
+    <section className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <SectionHeader
           title="Corporate Tagline"
           defaultSubtitle="Your brand's memorable signature phrases"
@@ -147,7 +147,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
           isEditing={isEditing}
           onEditToggle={() => setIsEditing(!isEditing)}
         />
-        {isEditing && (
+        {isEditing && onTaglineChange && (
           <div className="flex items-center gap-2">
             {/* Font Settings Button */}
             <Popover>
