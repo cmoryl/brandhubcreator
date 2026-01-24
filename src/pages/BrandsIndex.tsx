@@ -74,7 +74,11 @@ const BrandsIndex = () => {
     if (accessStatus !== 'ready') return; // Wait for access verification
     
     if (user && organization) {
-      // User has an organization - redirect to their org portal
+      // Show welcome toast and redirect to org portal
+      toast.success(`Welcome back!`, {
+        description: `Taking you to ${organization.name}...`,
+        duration: 3000,
+      });
       navigate(`/org/${organization.slug}`, { replace: true });
     }
   }, [user, organization, accessStatus, authLoading, orgLoading, navigate]);
