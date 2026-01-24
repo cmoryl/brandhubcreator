@@ -68,9 +68,9 @@ export const CaseStudiesSection = ({ caseStudies, onCaseStudiesChange, customSub
   };
 
   return (
-    <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex-1">
+    <section className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="flex-1 min-w-0">
           <SectionHeader
             title="Proof Shards"
             defaultSubtitle="Repository of historical success models"
@@ -89,10 +89,13 @@ export const CaseStudiesSection = ({ caseStudies, onCaseStudiesChange, customSub
               size="sm"
             />
           )}
-          <Button onClick={addCaseStudy} size="sm" className="gap-2 shrink-0">
-            <Plus className="h-4 w-4" />
-            Add Case Study
-          </Button>
+          {onCaseStudiesChange && (
+            <Button onClick={addCaseStudy} size="sm" className="gap-2 shrink-0">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Add Case Study</span>
+              <span className="sm:hidden">Add</span>
+            </Button>
+          )}
         </div>
       </div>
 

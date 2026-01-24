@@ -14,7 +14,7 @@ export const IdentitySection = ({ identity, onIdentityChange, customSubtitle, on
   const [isEditing, setIsEditing] = useState(false);
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-4 sm:space-y-6">
       <SectionHeader
         title="Narrative Architecture"
         defaultSubtitle="Define your brand's soul and mission"
@@ -24,10 +24,10 @@ export const IdentitySection = ({ identity, onIdentityChange, customSubtitle, on
         onEditToggle={() => setIsEditing(!isEditing)}
       />
 
-      <div className="grid gap-6">
+      <div className="grid gap-4 sm:gap-6">
         {/* Mission Statement */}
-        <div className="bg-card rounded-xl p-6 border border-border">
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">Mission Statement</h3>
+        <div className="bg-card rounded-xl p-4 sm:p-6 border border-border">
+          <h3 className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2 sm:mb-3">Mission Statement</h3>
           {isEditing ? (
             <Textarea
               value={identity.missionStatement}
@@ -36,7 +36,7 @@ export const IdentitySection = ({ identity, onIdentityChange, customSubtitle, on
               className="min-h-[100px] resize-none"
             />
           ) : (
-            <p className="text-lg text-foreground leading-relaxed">
+            <p className="text-base sm:text-lg text-foreground leading-relaxed">
               {identity.missionStatement || 'Define your brand\'s purpose and reason for existence.'}
             </p>
           )}
