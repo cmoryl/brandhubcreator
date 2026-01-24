@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { 
   Wrench, Play, RotateCcw, CheckCircle, XCircle, 
-  AlertTriangle, Loader2, Package, Palette, Eye, EyeOff
+  AlertTriangle, Loader2, Package, Palette, Eye, EyeOff,
+  Database, LayoutGrid, Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +23,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+type RepairMode = 'section-order' | 'guide-data' | 'full';
 
 interface RepairResult {
   id: string;
@@ -36,11 +40,13 @@ interface RollbackEntry {
   type: 'brand' | 'product';
   originalSectionOrder: string[] | null;
   originalHiddenSections: string[] | null;
+  originalGuideData?: Record<string, unknown>;
 }
 
 interface RepairResponse {
   success: boolean;
   action: string;
+  mode?: RepairMode;
   results: RepairResult[];
   rollbackData?: RollbackEntry[];
   totalProcessed: number;
@@ -49,9 +55,28 @@ interface RepairResponse {
   totalErrors: number;
 }
 
+const MODE_INFO: Record<RepairMode, { label: string; description: string; icon: typeof LayoutGrid }> = {
+  'section-order': {
+    label: 'Section Order',
+    description: 'Normalize section_order and hidden_sections. Adds missing sections like socialassets and templatespecs.',
+    icon: LayoutGrid,
+  },
+  'guide-data': {
+    label: 'Guide Data',
+    description: 'Fix guide_data structure. Adds missing objects (hero, identity), normalizes legacy fields (typography, templates).',
+    icon: Database,
+  },
+  'full': {
+    label: 'Full Repair',
+    description: 'Complete repair: section order + hidden sections + guide_data structure normalization.',
+    icon: Sparkles,
+  },
+};
+
 export const BulkRepairTool = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
+  const [mode, setMode] = useState<RepairMode>('section-order');
   const [results, setResults] = useState<RepairResult[]>([]);
   const [rollbackData, setRollbackData] = useState<RollbackEntry[]>([]);
   const [summary, setSummary] = useState<{ processed: number; repaired: number; skipped: number; errors: number } | null>(null);
@@ -65,7 +90,7 @@ export const BulkRepairTool = () => {
     }
 
     const response = await supabase.functions.invoke('bulk-repair-guides', {
-      body: { action, rollbackData: data },
+      body: { action, mode, rollbackData: data },
     });
 
     if (response.error) {
@@ -155,19 +180,46 @@ export const BulkRepairTool = () => {
   const skippedCount = results.filter(r => r.status === 'skipped').length;
   const errorCount = results.filter(r => r.status === 'error').length;
 
+  const ModeIcon = MODE_INFO[mode].icon;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Wrench className="h-5 w-5" />
-          Bulk Section Order Repair
+          Bulk Guide Repair Tool
         </CardTitle>
         <CardDescription>
-          Normalize section_order and hidden_sections for all brands and products. 
-          This adds missing sections (like socialassets) and cleans invalid hidden entries.
+          Repair and normalize all brands and products across the platform.
+          Preview changes before applying and rollback if needed.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Repair Mode Selector */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Repair Mode</label>
+          <Tabs value={mode} onValueChange={(v) => setMode(v as RepairMode)}>
+            <TabsList className="grid w-full grid-cols-3" aria-label="Repair mode selection">
+              <TabsTrigger value="section-order" className="gap-2 text-xs sm:text-sm" aria-label="Section order repair mode">
+                <LayoutGrid className="h-4 w-4 hidden sm:block" />
+                Section Order
+              </TabsTrigger>
+              <TabsTrigger value="guide-data" className="gap-2 text-xs sm:text-sm" aria-label="Guide data repair mode">
+                <Database className="h-4 w-4 hidden sm:block" />
+                Guide Data
+              </TabsTrigger>
+              <TabsTrigger value="full" className="gap-2 text-xs sm:text-sm" aria-label="Full repair mode">
+                <Sparkles className="h-4 w-4 hidden sm:block" />
+                Full Repair
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <p className="text-xs text-muted-foreground mt-1 p-2 bg-muted/50 rounded">
+            <ModeIcon className="h-3 w-3 inline mr-1" />
+            {MODE_INFO[mode].description}
+          </p>
+        </div>
+
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-3">
           <Button
@@ -201,10 +253,11 @@ export const BulkRepairTool = () => {
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Confirm Bulk Repair</AlertDialogTitle>
+                <AlertDialogTitle>Confirm Bulk Repair ({MODE_INFO[mode].label})</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will update all brands and products to include any missing sections 
-                  (like socialassets) in their section_order. A rollback option will be available after completion.
+                  {MODE_INFO[mode].description}
+                  <br /><br />
+                  This will update all brands and products. A rollback option will be available after completion.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -232,8 +285,8 @@ export const BulkRepairTool = () => {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Confirm Rollback</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will restore {rollbackData.length} guides to their original section_order 
-                    and hidden_sections values from before the last repair.
+                    This will restore {rollbackData.length} guides to their original values from before the last repair.
+                    This includes section_order, hidden_sections, and guide_data if modified.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -328,12 +381,15 @@ export const BulkRepairTool = () => {
                       </div>
 
                       {showDetails && (
-                        <div className="mt-1 text-xs text-muted-foreground">
+                        <div className="mt-2 text-xs text-muted-foreground space-y-0.5">
                           {result.changes.map((change, i) => (
-                            <p key={i}>{change}</p>
+                            <p key={i} className="flex items-start gap-1">
+                              <span className="text-primary">•</span>
+                              {change}
+                            </p>
                           ))}
                           {result.error && (
-                            <p className="text-red-500">{result.error}</p>
+                            <p className="text-red-500">Error: {result.error}</p>
                           )}
                         </div>
                       )}
@@ -361,7 +417,12 @@ export const BulkRepairTool = () => {
         {results.length === 0 && !isLoading && !isPreviewing && (
           <div className="text-center py-8 text-muted-foreground">
             <Wrench className="h-12 w-12 mx-auto mb-3 opacity-20" />
-            <p>Click "Preview Changes" to see which guides need repair.</p>
+            <p className="mb-2">Select a repair mode and click "Preview Changes" to see which guides need repair.</p>
+            <p className="text-xs">
+              <strong>Section Order:</strong> Adds missing sections (socialassets, templatespecs)<br />
+              <strong>Guide Data:</strong> Fixes legacy field formats and missing objects<br />
+              <strong>Full Repair:</strong> Both of the above
+            </p>
           </div>
         )}
       </CardContent>
