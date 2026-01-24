@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, lazy, Suspense, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink, BarChart3, Users, FolderCheck, TrendingUp, FileSearch, ShieldCheck, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink, BarChart3, Users, FolderCheck, TrendingUp, FileSearch, ShieldCheck, CheckCircle, ChevronDown } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { AnimatedHeroCanvas } from '@/components/AnimatedHeroCanvas';
@@ -577,6 +577,20 @@ const BrandsIndex = () => {
                 <span className="text-sm text-foreground">Real-time Collaboration</span>
               </div>
             </div>
+          </div>
+
+          {/* Scroll Indicator - Mobile only */}
+          <div className="flex sm:hidden justify-center mt-6 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+            <button 
+              onClick={() => window.scrollTo({ top: window.innerHeight - 100, behavior: 'smooth' })}
+              className="flex flex-col items-center gap-1 text-muted-foreground/60 hover:text-muted-foreground transition-colors touch-manipulation"
+              aria-label="Scroll to explore"
+            >
+              <span className="text-xs">Scroll to explore</span>
+              <div className="animate-bounce">
+                <ChevronDown className="h-5 w-5" />
+              </div>
+            </button>
           </div>
         </div>
       </div>
