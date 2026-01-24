@@ -94,8 +94,9 @@ const ProductEditor = () => {
   const { userRole: orgRole, organization } = useOrganization();
 
   // Check if user can edit: global admin OR org member with appropriate role
+  // During auth loading, we preserve potential edit access for logged-in users to avoid UI flicker
   const canEditOrg = orgRole && ['owner', 'admin', 'member'].includes(orgRole);
-  const canEdit = user && (isAdmin || canEditOrg);
+  const canEdit = user && (isAdmin || canEditOrg || authLoading);
   
   // Treat organization owners/admins as "admins" within the guide as well.
   // Otherwise they are treated as viewers and hiddenSections can hide key areas (e.g., Social sections).
