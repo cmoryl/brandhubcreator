@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { ChevronRight, Home, Building2, Package, FileText, Shield, HelpCircle, Settings, Star, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -40,13 +41,16 @@ const ROUTE_MAPPINGS: Record<string, BreadcrumbConfig> = {
   '/pending-approval': { label: 'Pending Approval', icon: Users },
 };
 
-export function AppBreadcrumbs({ 
+export const AppBreadcrumbs = React.forwardRef<
+  HTMLElement,
+  AppBreadcrumbsProps
+>(({ 
   items, 
   currentPage, 
   currentIcon: CurrentIcon, 
   className,
   showHome = true 
-}: AppBreadcrumbsProps) {
+}, ref) => {
   const location = useLocation();
   const pathSegments = location.pathname.split('/').filter(Boolean);
 
@@ -178,4 +182,6 @@ export function AppBreadcrumbs({
       </BreadcrumbList>
     </Breadcrumb>
   );
-}
+});
+
+AppBreadcrumbs.displayName = "AppBreadcrumbs";
