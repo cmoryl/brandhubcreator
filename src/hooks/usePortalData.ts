@@ -343,12 +343,33 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
 };
 
 // Helper hook for filtering portal data
+// Excludes sub-events (events that are linked from other parent events) from main grid
 export const useFilteredPortalData = (
   brands: PortalBrand[],
   products: PortalProduct[],
   events: PortalEvent[],
   searchQuery: string
 ) => {
+  // Build set of sub-event IDs (events linked from other events)
+  const subEventIds = useMemo(() => {
+    const ids = new Set<string>();
+    events.forEach(event => {
+      if (event.linkedGuides && Array.isArray(event.linkedGuides)) {
+        event.linkedGuides.forEach(linked => {
+          if (linked.id) {
+            ids.add(linked.id);
+          }
+        });
+      }
+    });
+    return ids;
+  }, [events]);
+
+  // Filter to only show master/parent events (exclude sub-events)
+  const masterEvents = useMemo(() => {
+    return events.filter(event => !subEventIds.has(event.id));
+  }, [events, subEventIds]);
+
   const filteredBrands = useMemo(() => {
     if (!searchQuery.trim()) return brands;
     const query = searchQuery.toLowerCase();
@@ -376,9 +397,9 @@ export const useFilteredPortalData = (
   }, [products, searchQuery]);
 
   const filteredEvents = useMemo(() => {
-    if (!searchQuery.trim()) return events;
+    if (!searchQuery.trim()) return masterEvents;
     const query = searchQuery.toLowerCase();
-    return events.filter(event => {
+    return masterEvents.filter(event => {
       const hero = event.hero || { name: event.name, tagline: '' };
       const eventDetails = event.eventDetails || { eventName: '', eventDates: '', location: '' };
       return (
@@ -389,7 +410,7 @@ export const useFilteredPortalData = (
         eventDetails.location?.toLowerCase().includes(query)
       );
     });
-  }, [events, searchQuery]);
+  }, [masterEvents, searchQuery]);
 
   const totalResults = filteredBrands.length + filteredProducts.length + filteredEvents.length;
 
