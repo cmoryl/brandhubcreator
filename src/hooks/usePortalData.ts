@@ -119,7 +119,7 @@ const EVENT_CARD_SELECT = 'id, name, slug, is_public, parent_brand_id, updated_a
 
 // Cache for recently fetched data to prevent duplicate requests
 const dataCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 30000; // 30 seconds
+const CACHE_TTL = 5000; // 5 seconds - shorter to pick up changes faster
 
 export const usePortalData = (slug: string | undefined): UsePortalDataReturn => {
   const [organization, setOrganization] = useState<PortalOrganization | null>(null);
@@ -354,10 +354,14 @@ export const useFilteredPortalData = (
   const subEventIds = useMemo(() => {
     const ids = new Set<string>();
     events.forEach(event => {
-      if (event.linkedGuides && Array.isArray(event.linkedGuides)) {
-        event.linkedGuides.forEach(linked => {
-          if (linked.id) {
-            ids.add(linked.id);
+      // Check linkedGuides array - these are sub-events that belong to this parent
+      const guides = event.linkedGuides;
+      if (guides && Array.isArray(guides)) {
+        guides.forEach((linked: any) => {
+          // linked could be PortalLinkedEvent with id property
+          const linkedId = typeof linked === 'string' ? linked : linked?.id;
+          if (linkedId) {
+            ids.add(linkedId);
           }
         });
       }
