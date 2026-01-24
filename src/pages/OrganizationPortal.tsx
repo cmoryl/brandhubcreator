@@ -4,7 +4,7 @@
  * Refactored to use modular hooks and components
  */
 
-import { useState, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -67,6 +67,26 @@ const OrganizationPortal = () => {
 
   // Stabilize loading state
   const stableLoading = useStableLoading(isLoading, 50, 6000);
+
+  // Show welcome toast if redirected from sign-in
+  useEffect(() => {
+    const welcomeData = sessionStorage.getItem('welcomeToast');
+    if (welcomeData) {
+      try {
+        const { orgName, timestamp } = JSON.parse(welcomeData);
+        // Only show if within last 10 seconds (prevent stale toasts)
+        if (Date.now() - timestamp < 10000) {
+          toast.success('Welcome back!', {
+            description: `You're now viewing ${orgName}`,
+            duration: 4000,
+          });
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
+      sessionStorage.removeItem('welcomeToast');
+    }
+  }, []);
 
   // Handle creating a new event
   const handleCreateEvent = async () => {

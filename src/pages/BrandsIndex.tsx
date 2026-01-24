@@ -74,16 +74,12 @@ const BrandsIndex = () => {
     if (accessStatus !== 'ready') return; // Wait for access verification
     
     if (user && organization) {
-      // Show welcome toast and redirect to org portal
-      // Small delay ensures toast is visible before navigation
-      toast.success(`Welcome back!`, {
-        description: `Taking you to ${organization.name}...`,
-        duration: 4000,
-      });
-      // Navigate after a brief moment so the toast is seen
-      setTimeout(() => {
-        navigate(`/org/${organization.slug}`, { replace: true });
-      }, 500);
+      // Store welcome message in sessionStorage to show after navigation
+      sessionStorage.setItem('welcomeToast', JSON.stringify({
+        orgName: organization.name,
+        timestamp: Date.now()
+      }));
+      navigate(`/org/${organization.slug}`, { replace: true });
     }
   }, [user, organization, accessStatus, authLoading, orgLoading, navigate]);
 
