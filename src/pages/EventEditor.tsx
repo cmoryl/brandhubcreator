@@ -27,6 +27,8 @@ import { EventHistorySection } from '@/components/event/EventHistorySection';
 import { EventVideosSection } from '@/components/event/EventVideosSection';
 import { EventLocationSection } from '@/components/event/EventLocationSection';
 import { EventWebsiteSection } from '@/components/event/EventWebsiteSection';
+import { SubEventsManager, LinkedEventGuide } from '@/components/event/SubEventsManager';
+import { SharedAssetsSection, SharedAsset } from '@/components/event/SharedAssetsSection';
 import { HeroSection } from '@/components/brand/HeroSection';
 import { TaglineSection } from '@/components/brand/TaglineSection';
 import { ColorPaletteSection } from '@/components/brand/ColorPaletteSection';
@@ -502,12 +504,54 @@ const EventEditor = () => {
         return <BrochuresSection brochures={event.brochures || []} onBrochuresChange={editHandler((brochures) => updateEvent({ brochures }))} layout={getSectionLayout('brochures')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('brochures', layout) : undefined} />;
       case 'templatespecs':
         return <TemplateSpecsSection templateSpecs={event.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateEvent({ templateSpecs }))} />;
-      case 'subevents':
-        // Sub-events only shown on master events - handled by FullEventPage
-        return null;
-      case 'sharedassets':
-        // Shared assets only shown on master events - handled by FullEventPage
-        return null;
+      case 'subevents': {
+        // Convert linkedGuides to the expected format
+        const linkedEvents: LinkedEventGuide[] = ((event as any).linkedGuides || [])
+          .filter((g: any) => g.type === 'event')
+          .map((g: any) => ({
+            id: g.id,
+            type: 'event' as const,
+            slug: g.slug || '',
+            name: g.name || '',
+            region: g.region,
+            accentColor: g.accentColor,
+            location: g.location,
+            dates: g.dates,
+            attendees: g.attendees,
+            coverImage: g.coverImage,
+          }));
+        
+        return (
+          <SubEventsManager
+            eventId={event.id}
+            linkedGuides={linkedEvents}
+            onLinkedGuidesChange={(guides) => updateEvent({ linkedGuides: guides } as any)}
+            masterEventName={event.hero?.name || 'Master Event'}
+            masterEventSlug={event.slug}
+          />
+        );
+      }
+      case 'sharedassets': {
+        const sharedAssets: SharedAsset[] = ((event as any).sharedAssets || []).map((a: any) => ({
+          id: a.id,
+          name: a.name,
+          type: a.type || 'other',
+          url: a.url,
+          previewUrl: a.previewUrl,
+          description: a.description,
+          fileType: a.fileType,
+          isRequired: a.isRequired,
+          tags: a.tags,
+        }));
+        
+        return (
+          <SharedAssetsSection
+            assets={sharedAssets}
+            onAssetsChange={canEdit ? (assets) => updateEvent({ sharedAssets: assets } as any) : undefined}
+            isEditable={canEdit || false}
+          />
+        );
+      }
       default:
         return null;
     }
