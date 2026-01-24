@@ -1,8 +1,15 @@
 /**
  * Portal Card Components
  * Reusable card components for the organization portal
+ * 
+ * Features:
+ * - Optimized image loading with priority for visible cards
+ * - Keyboard navigation support via focusedIndex
+ * - Responsive srcset generation for different viewports
+ * - Smooth hover animations
  */
 
+import React, { memo } from 'react';
 import { ArrowRight, Globe, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { PortalBrand, PortalProduct, PortalEvent } from '@/hooks/usePortalData';
+import { cn } from '@/lib/utils';
 
 interface CardColors {
   primary: string;
@@ -20,21 +28,22 @@ interface BrandCardProps {
   brand: PortalBrand;
   index: number;
   orgColors: CardColors;
+  isFocused?: boolean;
 }
 
 interface ProductCardProps {
   product: PortalProduct;
   index: number;
   orgColors: CardColors;
+  isFocused?: boolean;
 }
 
 interface EventCardProps {
   event: PortalEvent;
   index: number;
   orgColors: CardColors;
+  isFocused?: boolean;
 }
-
-import React from 'react';
 
 interface ColorStripesProps {
   colors?: Array<{ id: string; hex: string }>;
@@ -88,8 +97,9 @@ const ColorDots = React.forwardRef<HTMLDivElement, ColorDotsProps>(
 );
 ColorDots.displayName = 'ColorDots';
 
-export const PortalBrandCard = React.forwardRef<HTMLDivElement, BrandCardProps>(
-  ({ brand, index, orgColors }, ref) => {
+// Memoized brand card for performance
+export const PortalBrandCard = memo(React.forwardRef<HTMLDivElement, BrandCardProps>(
+  ({ brand, index, orgColors, isFocused = false }, ref) => {
     const navigate = useNavigate();
     const hero = brand.hero || { name: brand.name, tagline: '' };
     const colors = brand.colors;
@@ -98,9 +108,15 @@ export const PortalBrandCard = React.forwardRef<HTMLDivElement, BrandCardProps>(
     return (
       <Card 
         ref={ref}
-        className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
+        className={cn(
+          "group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg",
+          isFocused && "ring-2 ring-primary ring-offset-2"
+        )}
         style={{ animationDelay: `${index * 0.05}s` }}
         onClick={() => navigate(`/brand/${brand.slug || brand.id}`)}
+        role="gridcell"
+        tabIndex={-1}
+        aria-label={`${hero.name} brand guidelines`}
       >
         <CardContent className="p-0">
           <div className="relative h-44 overflow-hidden">
@@ -110,7 +126,7 @@ export const PortalBrandCard = React.forwardRef<HTMLDivElement, BrandCardProps>(
                 alt={hero.name}
                 className="w-full h-full transition-transform duration-500 group-hover:scale-105"
                 objectFit="cover"
-                priority={index < 3}
+                priority={index < 6}
                 sizes="portalCard"
                 autoSrcset
               />
@@ -141,11 +157,12 @@ export const PortalBrandCard = React.forwardRef<HTMLDivElement, BrandCardProps>(
       </Card>
     );
   }
-);
+));
 PortalBrandCard.displayName = 'PortalBrandCard';
 
-export const PortalProductCard = React.forwardRef<HTMLDivElement, ProductCardProps>(
-  ({ product, index, orgColors }, ref) => {
+// Memoized product card for performance
+export const PortalProductCard = memo(React.forwardRef<HTMLDivElement, ProductCardProps>(
+  ({ product, index, orgColors, isFocused = false }, ref) => {
     const navigate = useNavigate();
     const hero = product.hero || { name: product.name, tagline: '' };
     const colors = product.colors;
@@ -154,9 +171,15 @@ export const PortalProductCard = React.forwardRef<HTMLDivElement, ProductCardPro
     return (
       <Card 
         ref={ref}
-        className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
+        className={cn(
+          "group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg",
+          isFocused && "ring-2 ring-primary ring-offset-2"
+        )}
         style={{ animationDelay: `${index * 0.05}s` }}
         onClick={() => navigate(`/product/${product.slug || product.id}`)}
+        role="gridcell"
+        tabIndex={-1}
+        aria-label={`${hero.name} product guidelines`}
       >
         <CardContent className="p-0">
           <div className="relative h-44 overflow-hidden">
@@ -166,7 +189,7 @@ export const PortalProductCard = React.forwardRef<HTMLDivElement, ProductCardPro
                 alt={hero.name}
                 className="w-full h-full transition-transform duration-500 group-hover:scale-105"
                 objectFit="cover"
-                priority={index < 3}
+                priority={index < 6}
                 sizes="portalCard"
                 autoSrcset
               />
@@ -197,11 +220,12 @@ export const PortalProductCard = React.forwardRef<HTMLDivElement, ProductCardPro
       </Card>
     );
   }
-);
+));
 PortalProductCard.displayName = 'PortalProductCard';
 
-export const PortalEventCard = React.forwardRef<HTMLDivElement, EventCardProps>(
-  ({ event, index, orgColors }, ref) => {
+// Memoized event card for performance
+export const PortalEventCard = memo(React.forwardRef<HTMLDivElement, EventCardProps>(
+  ({ event, index, orgColors, isFocused = false }, ref) => {
     const navigate = useNavigate();
     const hero = event.hero || { name: event.name, tagline: '' };
     const eventDetails = event.eventDetails || { eventName: '', eventDates: '', location: '' };
@@ -211,9 +235,15 @@ export const PortalEventCard = React.forwardRef<HTMLDivElement, EventCardProps>(
     return (
       <Card 
         ref={ref}
-        className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
+        className={cn(
+          "group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg",
+          isFocused && "ring-2 ring-primary ring-offset-2"
+        )}
         style={{ animationDelay: `${index * 0.05}s` }}
         onClick={() => navigate(`/event/${event.slug || event.id}`)}
+        role="gridcell"
+        tabIndex={-1}
+        aria-label={`${hero.name || eventDetails.eventName} event brand kit`}
       >
         <CardContent className="p-0">
           <div className="relative h-44 overflow-hidden">
@@ -223,7 +253,7 @@ export const PortalEventCard = React.forwardRef<HTMLDivElement, EventCardProps>(
                 alt={hero.name}
                 className="w-full h-full transition-transform duration-500 group-hover:scale-105"
                 objectFit="cover"
-                priority={index < 3}
+                priority={index < 6}
                 sizes="portalCard"
                 autoSrcset
               />
@@ -263,5 +293,5 @@ export const PortalEventCard = React.forwardRef<HTMLDivElement, EventCardProps>(
       </Card>
     );
   }
-);
+));
 PortalEventCard.displayName = 'PortalEventCard';
