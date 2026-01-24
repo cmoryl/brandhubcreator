@@ -36,11 +36,11 @@ interface GlobalAssetOrbitProps {
   onFilterChange?: (filter: 'all' | 'brands' | 'products' | 'events') => void;
 }
 
-// Distinct colors for each entity type
+// Distinct colors for each entity type - teal for brands, purple for products, amber for events
 const TYPE_COLORS = {
-  brand: '#0ea5e9',    // Sky blue
-  product: '#8b5cf6',  // Purple
-  event: '#f59e0b',    // Amber
+  brand: '#14b8a6',    // Teal (as user requested)
+  product: '#8b5cf6',  // Purple (as user requested)
+  event: '#f59e0b',    // Amber for events
 };
 
 // Circular icon wrappers for each type
@@ -619,23 +619,23 @@ const EntityIcon = ({
             background: isActive 
               ? `linear-gradient(135deg, ${typeColor}, ${typeColor}cc)`
               : isRelated
-                ? `linear-gradient(135deg, ${typeColor}60, ${typeColor}40)`
-                : `linear-gradient(135deg, ${typeColor}35, ${typeColor}15)`,
+                ? `linear-gradient(135deg, ${typeColor}80, ${typeColor}60)`
+                : `linear-gradient(135deg, ${typeColor}50, ${typeColor}30)`,
             boxShadow: isActive 
-              ? `0 0 30px ${typeColor}60, 0 8px 32px ${typeColor}40`
+              ? `0 0 35px ${typeColor}80, 0 8px 32px ${typeColor}50, inset 0 1px 2px rgba(255,255,255,0.3)`
               : isRelated
-                ? `0 0 25px ${typeColor}50, 0 0 40px ${typeColor}30`
-                : `0 0 12px ${typeColor}20`,
-            border: `2px solid ${typeColor}${isActive ? '' : isRelated ? '90' : '60'}`,
-            transform: `scale(${isActive ? 1.3 : isRelated ? 1.15 : 1})`,
+                ? `0 0 30px ${typeColor}60, 0 0 50px ${typeColor}40, inset 0 1px 2px rgba(255,255,255,0.2)`
+                : `0 0 15px ${typeColor}40, inset 0 1px 2px rgba(255,255,255,0.1)`,
+            border: `2px solid ${typeColor}${isActive ? '' : isRelated ? '' : '90'}`,
+            transform: `scale(${isActive ? 1.35 : isRelated ? 1.2 : 1})`,
           }}
         >
           <Icon 
             className={cn(iconSize, "transition-all duration-300")}
             style={{ 
-              color: isActive ? '#ffffff' : isRelated ? typeColor : typeColor,
-              filter: isHighlighted ? 'drop-shadow(0 0 5px rgba(255,255,255,0.5))' : 'none',
-              opacity: isHighlighted ? 1 : 0.85,
+              color: isActive ? '#ffffff' : isRelated ? '#ffffff' : typeColor,
+              filter: isHighlighted ? 'drop-shadow(0 0 6px rgba(255,255,255,0.6))' : 'drop-shadow(0 0 2px rgba(0,0,0,0.3))',
+              opacity: 1,
             }}
             isActive={isActive}
           />
@@ -649,10 +649,11 @@ const EntityIcon = ({
           {/* Pulse ring for related items */}
           {isRelated && !isActive && (
             <div 
-              className="absolute inset-0 rounded-full animate-pulse"
+              className="absolute inset-[-4px] rounded-full"
               style={{ 
                 border: `2px solid ${typeColor}`,
-                opacity: 0.5,
+                opacity: 0.7,
+                animation: 'pulse 1.5s ease-in-out infinite',
               }}
             />
           )}
