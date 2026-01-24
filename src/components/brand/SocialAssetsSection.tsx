@@ -345,10 +345,25 @@ const PlatformDetailModal = ({
     reader.readAsDataURL(file);
   }, [asset, onUpdate]);
 
+  const handleProfileIconDrop = useCallback((file: File) => {
+    if (!asset) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      onUpdate(asset.id, { profileIconUrl: event.target?.result as string });
+    };
+    reader.readAsDataURL(file);
+  }, [asset, onUpdate]);
+
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: handleFileDrop,
     accept: 'image/*',
     maxSize: 10 * 1024 * 1024, // 10MB limit for social assets
+  });
+
+  const profileIconDropZone = useDropZone({
+    onFileDrop: handleProfileIconDrop,
+    accept: 'image/*',
+    maxSize: 5 * 1024 * 1024, // 5MB limit for profile icons
   });
 
   if (!asset) return null;
@@ -439,25 +454,67 @@ const PlatformDetailModal = ({
               {/* Profile section showing where avatar appears */}
               <div className="relative px-4 pb-3">
                 {/* User icon placeholder - positioned to overlap header */}
-                <div className={cn(
-                  "absolute border-4 border-card bg-muted rounded-full flex items-center justify-center overflow-hidden",
-                  asset.platform === 'LinkedIn' && "-top-12 left-4 w-24 h-24",
-                  asset.platform === 'X (Twitter)' && "-top-10 left-4 w-20 h-20",
-                  asset.platform === 'Facebook' && "-top-8 left-4 w-[100px] h-[100px]",
-                  asset.platform === 'YouTube' && "-top-8 left-4 w-16 h-16",
-                  asset.platform === 'Instagram' && "-top-6 left-1/2 -translate-x-1/2 w-20 h-20",
-                  asset.platform === 'TikTok' && "-top-6 left-1/2 -translate-x-1/2 w-24 h-24",
-                  !['LinkedIn', 'X (Twitter)', 'Facebook', 'YouTube', 'Instagram', 'TikTok'].includes(asset.platform) && "-top-8 left-4 w-16 h-16"
-                )}>
-                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-primary/40">
-                      {asset.platform.charAt(0)}
-                    </span>
-                  </div>
-                  <span className="absolute bottom-0.5 right-0.5 text-[8px] text-muted-foreground bg-card/80 px-1 rounded">
-                    Avatar
+                <div 
+                  className={cn(
+                    "absolute border-4 border-card bg-muted rounded-full flex items-center justify-center overflow-hidden cursor-pointer group/avatar transition-all",
+                    asset.platform === 'LinkedIn' && "-top-12 left-4 w-24 h-24",
+                    asset.platform === 'X (Twitter)' && "-top-10 left-4 w-20 h-20",
+                    asset.platform === 'Facebook' && "-top-8 left-4 w-[100px] h-[100px]",
+                    asset.platform === 'YouTube' && "-top-8 left-4 w-16 h-16",
+                    asset.platform === 'Instagram' && "-top-6 left-1/2 -translate-x-1/2 w-20 h-20",
+                    asset.platform === 'TikTok' && "-top-6 left-1/2 -translate-x-1/2 w-24 h-24",
+                    !['LinkedIn', 'X (Twitter)', 'Facebook', 'YouTube', 'Instagram', 'TikTok'].includes(asset.platform) && "-top-8 left-4 w-16 h-16",
+                    profileIconDropZone.isDragging && "ring-2 ring-primary ring-offset-2"
+                  )}
+                  onClick={profileIconDropZone.openFilePicker}
+                  onDragOver={profileIconDropZone.dragHandlers.onDragOver}
+                  onDragLeave={profileIconDropZone.dragHandlers.onDragLeave}
+                  onDrop={profileIconDropZone.dragHandlers.onDrop}
+                >
+                  {asset.profileIconUrl ? (
+                    <>
+                      <img 
+                        src={asset.profileIconUrl} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center">
+                        <Upload className="h-4 w-4 text-white" />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center group-hover/avatar:from-primary/30 group-hover/avatar:to-accent/30 transition-all">
+                        <span className="text-2xl font-bold text-primary/40 group-hover/avatar:opacity-0 transition-opacity">
+                          {asset.platform.charAt(0)}
+                        </span>
+                        <Upload className="absolute h-5 w-5 text-primary/60 opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
+                      </div>
+                    </>
+                  )}
+                  <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-muted-foreground whitespace-nowrap opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                    Click to upload
                   </span>
                 </div>
+                
+                {/* Remove profile icon button */}
+                {asset.profileIconUrl && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onUpdate(asset.id, { profileIconUrl: '' }); }}
+                    className={cn(
+                      "absolute z-10 p-1 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors",
+                      asset.platform === 'LinkedIn' && "-top-12 left-24 translate-x-1",
+                      asset.platform === 'X (Twitter)' && "-top-10 left-20 translate-x-1",
+                      asset.platform === 'Facebook' && "-top-8 left-[100px] translate-x-1",
+                      asset.platform === 'YouTube' && "-top-8 left-16 translate-x-1",
+                      asset.platform === 'Instagram' && "-top-6 left-1/2 translate-x-8",
+                      asset.platform === 'TikTok' && "-top-6 left-1/2 translate-x-10",
+                      !['LinkedIn', 'X (Twitter)', 'Facebook', 'YouTube', 'Instagram', 'TikTok'].includes(asset.platform) && "-top-8 left-16 translate-x-1"
+                    )}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
                 
                 {/* Username/handle placeholder */}
                 <div className={cn(
@@ -473,6 +530,7 @@ const PlatformDetailModal = ({
             </div>
             
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleInputChange} className="hidden" />
+            <input ref={profileIconDropZone.fileInputRef} type="file" accept="image/*" onChange={profileIconDropZone.handleInputChange} className="hidden" />
           </div>
 
           {/* Size Specifications */}

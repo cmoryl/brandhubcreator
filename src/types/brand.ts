@@ -360,6 +360,7 @@ export interface BrandSocialAssetSpec {
   storySize?: string; // Story/vertical format size
   reelSize?: string; // Reel/video format size
   coverSize?: string; // Cover/banner format size
+  profileIconUrl?: string; // Custom profile icon/avatar for platform preview
 }
 
 // DISPLAY BANNERS - Industry Standard Specs
