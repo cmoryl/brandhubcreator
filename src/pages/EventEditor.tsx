@@ -94,6 +94,16 @@ const EventEditor = () => {
     window.scrollTo(0, 0);
   }, [eventSlug]);
 
+  // Scroll to section when sidebar nav is clicked
+  useEffect(() => {
+    if (scrollToSection && viewMode === 'full') {
+      const element = document.getElementById(scrollToSection);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }, [scrollToSection, viewMode]);
+
   // Helper to check if the param is a UUID
   const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
   
