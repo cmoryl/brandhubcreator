@@ -6,10 +6,19 @@
 
 import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus } from 'lucide-react';
+import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { HeroBackground } from '@/components/HeroBackground';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,8 +41,8 @@ const AppSettingsEditor = lazy(() => import('@/components/admin/AppSettingsEdito
 const OrganizationPortal = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { user, isAdmin } = useAuth();
-  const { userRole } = useOrganization();
+  const { user, isAdmin, signOut } = useAuth();
+  const { userRole, organization: contextOrg } = useOrganization();
   const { addEvent } = useEvents();
   
   // Use the new portal data hook
@@ -197,17 +206,6 @@ const OrganizationPortal = () => {
               </span>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-              {user && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => navigate('/')}
-                  className="gap-1.5 sm:gap-2 h-9 sm:h-8 px-2 sm:px-3"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  <span className="hidden sm:inline">Dashboard</span>
-                </Button>
-              )}
               {canEdit && (
                 <Suspense fallback={null}>
                   <AppSettingsEditor />
@@ -218,6 +216,92 @@ const OrganizationPortal = () => {
                 Public Portal
               </Badge>
               <ThemeToggle />
+              
+              {/* User Area / Admin Menu */}
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="relative">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-accent/10 text-accent text-sm font-medium">
+                          {user.email?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      {isAdmin && (
+                        <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-accent border-2 border-background" />
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.email}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          {isAdmin ? (
+                            <>
+                              <Shield className="h-3 w-3 text-accent" />
+                              <span className="text-accent">Admin</span>
+                            </>
+                          ) : userRole ? (
+                            <>
+                              <User className="h-3 w-3" />
+                              <span className="capitalize">{userRole}</span>
+                            </>
+                          ) : (
+                            'Viewer'
+                          )}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    
+                    {/* Quick Navigation */}
+                    <DropdownMenuItem onClick={() => navigate('/')} className="gap-2 cursor-pointer">
+                      <LayoutDashboard className="h-4 w-4" />
+                      Dashboard
+                    </DropdownMenuItem>
+                    
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuItem onClick={() => navigate('/admin')} className="gap-2 cursor-pointer">
+                          <Shield className="h-4 w-4" />
+                          Admin Panel
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate(`/org/${slug}/settings`)} className="gap-2 cursor-pointer">
+                          <Settings className="h-4 w-4" />
+                          Organization Settings
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    
+                    {canEdit && userRole && ['owner', 'admin'].includes(userRole) && (
+                      <DropdownMenuItem onClick={() => navigate(`/org/${slug}/settings`)} className="gap-2 cursor-pointer">
+                        <Users className="h-4 w-4" />
+                        Manage Members
+                      </DropdownMenuItem>
+                    )}
+                    
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => signOut()} 
+                      className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate('/auth')}
+                  className="gap-2"
+                >
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">Sign In</span>
+                </Button>
+              )}
             </div>
           </div>
         </header>
