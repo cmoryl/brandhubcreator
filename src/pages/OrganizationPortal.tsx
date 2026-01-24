@@ -32,7 +32,7 @@ import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PortalBrandCard, PortalProductCard, PortalEventCard, PortalGridSkeleton, PortalPagination } from '@/components/portal';
+import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, PortalGridSkeleton, PortalPagination } from '@/components/portal';
 import { toast } from 'sonner';
 
 // Lazy load admin components
@@ -517,7 +517,7 @@ const OrganizationPortal = () => {
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {eventsPagination.paginatedItems.map((event, index) => (
-                    <PortalEventCard key={event.id} event={event} index={index} orgColors={orgColors} />
+                    <HierarchicalEventCard key={event.id} event={event} index={index} orgColors={orgColors} />
                   ))}
                 </div>
                 {eventsPagination.showPagination && activeTab === 'all' && (
@@ -600,7 +600,7 @@ const OrganizationPortal = () => {
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {eventsPagination.paginatedItems.map((event, index) => (
-                    <PortalEventCard key={event.id} event={event} index={index} orgColors={orgColors} />
+                    <HierarchicalEventCard key={event.id} event={event} index={index} orgColors={orgColors} />
                   ))}
                 </div>
                 {eventsPagination.showPagination && (

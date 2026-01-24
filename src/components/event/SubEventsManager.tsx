@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Calendar, Link2, ExternalLink, Trash2, GripVertical, Globe, MapPin, Users, Sparkles } from 'lucide-react';
+import { Plus, Calendar, Link2, ExternalLink, Trash2, GripVertical, Globe, MapPin, Users, Sparkles, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from '@/components/brand/SectionHeader';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +10,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useEvents } from '@/contexts/EventContext';
+import { EventGuide } from '@/types/event';
+import { SubEventCreationWizard } from './SubEventCreationWizard';
 import {
   DndContext,
   closestCenter,
@@ -91,6 +93,7 @@ interface SubEventsManagerProps {
   eventId: string;
   linkedGuides: LinkedEventGuide[];
   onLinkedGuidesChange: (guides: LinkedEventGuide[]) => void;
+  masterEvent?: EventGuide;
   masterEventName?: string;
   masterEventSlug?: string;
   customSubtitle?: string;
@@ -241,6 +244,7 @@ export const SubEventsManager = ({
   eventId,
   linkedGuides,
   onLinkedGuidesChange,
+  masterEvent,
   masterEventName = 'Master Event',
   masterEventSlug,
   customSubtitle,
@@ -249,6 +253,7 @@ export const SubEventsManager = ({
   const [availableEvents, setAvailableEvents] = useState<EventItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<LinkedEventGuide | null>(null);
@@ -419,11 +424,19 @@ export const SubEventsManager = ({
 
       {/* Action buttons */}
       <div className="flex flex-wrap gap-3">
+        {/* Wizard button - primary action when masterEvent is available */}
+        {masterEvent && (
+          <Button onClick={() => setIsWizardOpen(true)} className="gap-2">
+            <Wand2 className="h-4 w-4" />
+            Create with Wizard
+          </Button>
+        )}
+        
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" className="gap-2">
               <Plus className="h-4 w-4" />
-              Create Sub-Event
+              Quick Create
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
@@ -699,6 +712,19 @@ export const SubEventsManager = ({
             )
           ))}
         </div>
+      )}
+
+      {/* Creation Wizard */}
+      {masterEvent && (
+        <SubEventCreationWizard
+          isOpen={isWizardOpen}
+          onClose={() => setIsWizardOpen(false)}
+          masterEvent={masterEvent}
+          onEventCreated={(linkedGuide) => {
+            onLinkedGuidesChange([...linkedGuides, linkedGuide]);
+            fetchAvailableEvents();
+          }}
+        />
       )}
     </section>
   );
