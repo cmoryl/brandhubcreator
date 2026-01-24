@@ -97,7 +97,7 @@ export const GlobalAssetOrbit = ({
   const [hoveredOrbit, setHoveredOrbit] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'brands' | 'products' | 'events'>('all');
-  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
+  const [iconPos, setIconPos] = useState<{ x: number; y: number } | null>(null);
 
   const centerLetter = organizationName.charAt(0).toUpperCase();
 
@@ -220,35 +220,25 @@ export const GlobalAssetOrbit = ({
   }, [activeEntity, orbitData]);
 
   const animationStyle = isPaused ? 'paused' : 'running';
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      setMousePos({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      });
-    }
-  }, []);
 
   return (
     <div 
       ref={containerRef}
       className={cn('relative', className)}
       onMouseEnter={() => setIsHovering(true)}
-      onMouseMove={handleMouseMove}
       onMouseLeave={() => {
         setIsHovering(false);
         setActiveEntity(null);
         setHoveredIndex(null);
         setHoveredOrbit(null);
-        setMousePos(null);
+        setIconPos(null);
       }}
     >
       {/* Top Left Legend - Single line horizontal layout */}
       <div 
-        className="absolute top-2 left-2 z-20 flex flex-row items-center gap-1 px-2 py-1.5 rounded-full backdrop-blur-md transition-all duration-300"
+        className="absolute top-2 left-2 z-20 flex flex-row items-center gap-2 px-3 py-2 rounded-full backdrop-blur-md transition-all duration-300"
         style={{ 
-          background: 'rgba(0,0,0,0.5)',
+          background: 'rgba(0,0,0,0.6)',
           border: '1px solid rgba(255,255,255,0.15)',
         }}
       >
@@ -256,57 +246,66 @@ export const GlobalAssetOrbit = ({
           onClick={() => handleFilterClick('brands')}
           className={cn(
             "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200",
-            activeFilter === 'brands' ? 'bg-white/15' : 'hover:bg-white/10'
+            activeFilter === 'brands' ? 'bg-white/20' : 'hover:bg-white/10'
           )}
         >
           <div 
-            className="w-3 h-3 rounded-full flex items-center justify-center"
+            className="w-3.5 h-3.5 rounded-full flex items-center justify-center"
             style={{ background: `${TYPE_COLORS.brand}40`, border: `1.5px solid ${TYPE_COLORS.brand}` }}
           >
             <BrandIcon className="w-2 h-2" style={{ color: TYPE_COLORS.brand }} />
           </div>
-          <span className="text-[9px] font-medium" style={{ color: TYPE_COLORS.brand }}>
-            {entityCounts.brands}
+          <span className="text-[10px] font-medium" style={{ color: TYPE_COLORS.brand }}>
+            Brands
+          </span>
+          <span className="text-[9px] font-medium text-white/60">
+            ({entityCounts.brands})
           </span>
         </button>
         
-        <div className="w-px h-3 bg-white/20" />
+        <div className="w-px h-4 bg-white/20" />
         
         <button
           onClick={() => handleFilterClick('products')}
           className={cn(
             "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200",
-            activeFilter === 'products' ? 'bg-white/15' : 'hover:bg-white/10'
+            activeFilter === 'products' ? 'bg-white/20' : 'hover:bg-white/10'
           )}
         >
           <div 
-            className="w-3 h-3 rounded-full flex items-center justify-center"
+            className="w-3.5 h-3.5 rounded-full flex items-center justify-center"
             style={{ background: `${TYPE_COLORS.product}40`, border: `1.5px solid ${TYPE_COLORS.product}` }}
           >
             <ProductIcon className="w-2 h-2" style={{ color: TYPE_COLORS.product }} />
           </div>
-          <span className="text-[9px] font-medium" style={{ color: TYPE_COLORS.product }}>
-            {entityCounts.products}
+          <span className="text-[10px] font-medium" style={{ color: TYPE_COLORS.product }}>
+            Products
+          </span>
+          <span className="text-[9px] font-medium text-white/60">
+            ({entityCounts.products})
           </span>
         </button>
         
-        <div className="w-px h-3 bg-white/20" />
+        <div className="w-px h-4 bg-white/20" />
         
         <button
           onClick={() => handleFilterClick('events')}
           className={cn(
             "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200",
-            activeFilter === 'events' ? 'bg-white/15' : 'hover:bg-white/10'
+            activeFilter === 'events' ? 'bg-white/20' : 'hover:bg-white/10'
           )}
         >
           <div 
-            className="w-3 h-3 rounded-full flex items-center justify-center"
+            className="w-3.5 h-3.5 rounded-full flex items-center justify-center"
             style={{ background: `${TYPE_COLORS.event}40`, border: `1.5px solid ${TYPE_COLORS.event}` }}
           >
             <EventIcon className="w-2 h-2" style={{ color: TYPE_COLORS.event }} />
           </div>
-          <span className="text-[9px] font-medium" style={{ color: TYPE_COLORS.event }}>
-            {entityCounts.events}
+          <span className="text-[10px] font-medium" style={{ color: TYPE_COLORS.event }}>
+            Events
+          </span>
+          <span className="text-[9px] font-medium text-white/60">
+            ({entityCounts.events})
           </span>
         </button>
       </div>
@@ -424,17 +423,20 @@ export const GlobalAssetOrbit = ({
                 isRelated={!isActive && relatedEntityIds.has(entity.id)}
                 isPaused={isPaused}
                 animationStyle={animationStyle}
-                onHover={() => {
+                containerRef={containerRef}
+                onHover={(pos) => {
                   setHoveredIndex(i);
                   setHoveredOrbit('inner');
                   setActiveEntity(entity);
                   setIsPaused(true);
+                  setIconPos(pos);
                 }}
                 onLeave={() => {
                   setHoveredIndex(null);
                   setHoveredOrbit(null);
                   setActiveEntity(null);
                   setIsPaused(false);
+                  setIconPos(null);
                 }}
                 onClick={(e) => handleEntityClick(entity, e)}
                 onFilterClick={() => handleEntityFilterClick(entity)}
@@ -470,17 +472,20 @@ export const GlobalAssetOrbit = ({
                 isRelated={!isActive && relatedEntityIds.has(entity.id)}
                 isPaused={isPaused}
                 animationStyle={animationStyle}
-                onHover={() => {
+                containerRef={containerRef}
+                onHover={(pos) => {
                   setHoveredIndex(i);
                   setHoveredOrbit('middle');
                   setActiveEntity(entity);
                   setIsPaused(true);
+                  setIconPos(pos);
                 }}
                 onLeave={() => {
                   setHoveredIndex(null);
                   setHoveredOrbit(null);
                   setActiveEntity(null);
                   setIsPaused(false);
+                  setIconPos(null);
                 }}
                 onClick={(e) => handleEntityClick(entity, e)}
                 onFilterClick={() => handleEntityFilterClick(entity)}
@@ -516,17 +521,20 @@ export const GlobalAssetOrbit = ({
                 isRelated={!isActive && relatedEntityIds.has(entity.id)}
                 isPaused={isPaused}
                 animationStyle={animationStyle}
-                onHover={() => {
+                containerRef={containerRef}
+                onHover={(pos) => {
                   setHoveredIndex(i);
                   setHoveredOrbit('outer');
                   setActiveEntity(entity);
                   setIsPaused(true);
+                  setIconPos(pos);
                 }}
                 onLeave={() => {
                   setHoveredIndex(null);
                   setHoveredOrbit(null);
                   setActiveEntity(null);
                   setIsPaused(false);
+                  setIconPos(null);
                 }}
                 onClick={(e) => handleEntityClick(entity, e)}
                 onFilterClick={() => handleEntityFilterClick(entity)}
@@ -539,11 +547,11 @@ export const GlobalAssetOrbit = ({
         </div>
       )}
       
-      {/* Tooltip follows mouse position */}
+      {/* Tooltip appears above hovered icon */}
       <TooltipOverlay 
         entity={activeEntity} 
         containerRef={containerRef}
-        mousePos={mousePos}
+        iconPos={iconPos}
         onFilterClick={() => {
           if (activeEntity) {
             handleEntityFilterClick(activeEntity);
@@ -561,16 +569,17 @@ interface EntityIconProps {
   x: number;
   y: number;
   isActive: boolean;
-  isRelated: boolean; // NEW: highlight if related to hovered entity
+  isRelated: boolean;
   isPaused: boolean;
   animationStyle: string;
-  onHover: () => void;
+  onHover: (iconPos: { x: number; y: number }) => void;
   onLeave: () => void;
   onClick: (e: React.MouseEvent) => void;
   onFilterClick: () => void;
   spinDuration: string;
   spinReverse?: boolean;
   size?: 'sm' | 'md';
+  containerRef: React.RefObject<HTMLDivElement>;
 }
 
 const EntityIcon = ({
@@ -588,7 +597,9 @@ const EntityIcon = ({
   spinDuration,
   spinReverse,
   size = 'md',
+  containerRef,
 }: EntityIconProps) => {
+  const iconRef = useRef<HTMLDivElement>(null);
   const config = TYPE_CONFIG[entity.type];
   const Icon = config.Icon;
   const typeColor = config.color;
@@ -598,9 +609,21 @@ const EntityIcon = ({
   
   // Determine visual state: active > related > default
   const isHighlighted = isActive || isRelated;
+
+  const handleMouseEnter = useCallback(() => {
+    if (iconRef.current && containerRef.current) {
+      const iconRect = iconRef.current.getBoundingClientRect();
+      const containerRect = containerRef.current.getBoundingClientRect();
+      onHover({
+        x: iconRect.left - containerRect.left + iconRect.width / 2,
+        y: iconRect.top - containerRect.top,
+      });
+    }
+  }, [onHover, containerRef]);
   
   return (
     <div
+      ref={iconRef}
       className="absolute group pointer-events-auto"
       style={{ 
         left: `${x}%`, 
@@ -611,7 +634,7 @@ const EntityIcon = ({
         marginTop: `${-boxSize / 2}px`,
         cursor: 'pointer',
       }}
-      onMouseEnter={onHover}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={onLeave}
       onClick={onClick}
     >
@@ -685,13 +708,13 @@ const EntityIcon = ({
 interface TooltipOverlayProps {
   entity: LinkedEntity | null;
   containerRef: React.RefObject<HTMLDivElement>;
-  mousePos: { x: number; y: number } | null;
+  iconPos: { x: number; y: number } | null;
   onFilterClick: () => void;
   relatedCount: number;
 }
 
-const TooltipOverlay = ({ entity, mousePos, onFilterClick, relatedCount }: TooltipOverlayProps) => {
-  if (!entity || !mousePos) return null;
+const TooltipOverlay = ({ entity, iconPos, relatedCount }: TooltipOverlayProps) => {
+  if (!entity || !iconPos) return null;
   
   const config = TYPE_CONFIG[entity.type];
   const Icon = config.Icon;
@@ -701,13 +724,13 @@ const TooltipOverlay = ({ entity, mousePos, onFilterClick, relatedCount }: Toolt
     <div 
       className="absolute z-[100] pointer-events-none animate-scale-in"
       style={{ 
-        left: `${mousePos.x}px`,
-        top: `${mousePos.y - 10}px`,
+        left: `${iconPos.x}px`,
+        top: `${iconPos.y - 8}px`,
         transform: 'translate(-50%, -100%)',
       }}
     >
       <div 
-        className="px-3 py-2 rounded-lg shadow-lg backdrop-blur-md pointer-events-auto"
+        className="px-3 py-2 rounded-lg shadow-lg backdrop-blur-md"
         style={{ 
           background: `linear-gradient(145deg, ${typeColor}f0, ${typeColor}dd)`,
           boxShadow: `0 4px 20px ${typeColor}60`,
@@ -723,7 +746,7 @@ const TooltipOverlay = ({ entity, mousePos, onFilterClick, relatedCount }: Toolt
           )}
         </div>
       </div>
-      {/* Arrow pointing down toward cursor */}
+      {/* Arrow pointing down toward icon */}
       <div 
         className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45" 
         style={{ background: `${typeColor}dd` }} 
