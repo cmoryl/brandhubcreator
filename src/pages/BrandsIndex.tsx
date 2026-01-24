@@ -105,6 +105,19 @@ const BrandsIndex = () => {
   const [viewingOrg, setViewingOrg] = useState<Organization | null>(null);
   const fileInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
   const [showBackupReminder, setShowBackupReminder] = useState(false);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
+
+  // Hide scroll indicator after user scrolls past threshold
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 100) {
+        setShowScrollIndicator(false);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const recentlyUpdated = getRecentlyUpdated();
   const allFavorites = getFavorites();
@@ -577,21 +590,23 @@ const BrandsIndex = () => {
                 <span className="text-sm text-foreground">Real-time Collaboration</span>
               </div>
             </div>
-          </div>
+        </div>
 
-          {/* Scroll Indicator - Mobile only */}
-          <div className="flex sm:hidden justify-center mt-6 animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <button 
-              onClick={() => window.scrollTo({ top: window.innerHeight - 100, behavior: 'smooth' })}
-              className="flex flex-col items-center gap-1 text-muted-foreground/60 hover:text-muted-foreground transition-colors touch-manipulation"
-              aria-label="Scroll to explore"
-            >
-              <span className="text-xs">Scroll to explore</span>
-              <div className="animate-bounce">
-                <ChevronDown className="h-5 w-5" />
-              </div>
-            </button>
-          </div>
+          {/* Scroll Indicator - Mobile only, hides after scrolling */}
+          {showScrollIndicator && (
+            <div className="flex sm:hidden justify-center mt-6 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+              <button 
+                onClick={() => window.scrollTo({ top: window.innerHeight - 100, behavior: 'smooth' })}
+                className="flex flex-col items-center gap-1 text-muted-foreground/60 hover:text-muted-foreground transition-colors touch-manipulation"
+                aria-label="Scroll to explore"
+              >
+                <span className="text-xs">Scroll to explore</span>
+                <div className="animate-bounce">
+                  <ChevronDown className="h-5 w-5" />
+                </div>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
