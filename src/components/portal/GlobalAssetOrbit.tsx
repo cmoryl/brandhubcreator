@@ -100,21 +100,25 @@ export const GlobalAssetOrbit = ({
 
   const centerLetter = organizationName.charAt(0).toUpperCase();
 
-  // Organize entities by orbit level
-  const orbitData = useMemo(() => ({
-    inner: [...brands]
+  // Organize entities by orbit level - brands inner, products middle, events outer
+  const orbitData = useMemo(() => {
+    const inner = [...brands]
       .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime())
       .slice(0, 6)
-      .map(b => ({ ...b, type: 'brand' as const })),
-    middle: [...products]
+      .map(b => ({ ...b, type: 'brand' as const }));
+    
+    const middle = [...products]
       .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime())
       .slice(0, 8)
-      .map(p => ({ ...p, type: 'product' as const })),
-    outer: [...events]
+      .map(p => ({ ...p, type: 'product' as const }));
+    
+    const outer = [...events]
       .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime())
       .slice(0, 6)
-      .map(e => ({ ...e, type: 'event' as const })),
-  }), [brands, products, events]);
+      .map(e => ({ ...e, type: 'event' as const }));
+    
+    return { inner, middle, outer };
+  }, [brands, products, events]);
 
   const entityCounts = useMemo(() => ({
     brands: brands.length,
@@ -167,87 +171,9 @@ export const GlobalAssetOrbit = ({
     onFilterChange?.(newFilter);
   };
 
-  // Get hierarchy lines for hovered entity - show all linked guides
-  const hierarchyLines = useMemo(() => {
-    if (!activeEntity || hoveredIndex === null) return [];
-    
-    const lines: { from: { x: number; y: number }; to: { x: number; y: number }; color: string }[] = [];
-    
-    const getPos = (orbit: string, index: number, total: number) => {
-      const radii: Record<string, number> = { inner: 75, middle: 115, outer: 155 };
-      const r = radii[orbit] || 100;
-      const angle = (index * 360 / total - 90) * (Math.PI / 180);
-      return { x: 200 + r * Math.cos(angle), y: 200 + r * Math.sin(angle) };
-    };
-
-    const entityColor = TYPE_COLORS[activeEntity.type];
-    const hoveredPos = getPos(
-      activeEntity.type === 'brand' ? 'inner' : activeEntity.type === 'product' ? 'middle' : 'outer',
-      hoveredIndex,
-      orbitData[activeEntity.type === 'brand' ? 'inner' : activeEntity.type === 'product' ? 'middle' : 'outer'].length
-    );
-
-    if (activeEntity.type === 'product') {
-      // Product -> Parent Brand -> Center
-      if (activeEntity.parentBrandId) {
-        const parentBrandIndex = orbitData.inner.findIndex(b => b.id === activeEntity.parentBrandId);
-        if (parentBrandIndex >= 0) {
-          const brandPos = getPos('inner', parentBrandIndex, orbitData.inner.length);
-          lines.push({ from: hoveredPos, to: brandPos, color: entityColor });
-          lines.push({ from: brandPos, to: { x: 200, y: 200 }, color: TYPE_COLORS.brand });
-        } else {
-          lines.push({ from: hoveredPos, to: { x: 200, y: 200 }, color: entityColor });
-        }
-      } else {
-        lines.push({ from: hoveredPos, to: { x: 200, y: 200 }, color: entityColor });
-      }
-      
-      // Show linked sub-products
-      if (activeEntity.linkedGuides?.length) {
-        orbitData.middle.forEach((p, i) => {
-          if (activeEntity.linkedGuides?.includes(p.id)) {
-            const productPos = getPos('middle', i, orbitData.middle.length);
-            lines.push({ from: hoveredPos, to: productPos, color: TYPE_COLORS.product });
-          }
-        });
-      }
-    } else if (activeEntity.type === 'brand') {
-      // Brand -> Center
-      lines.push({ from: hoveredPos, to: { x: 200, y: 200 }, color: entityColor });
-      
-      // Brand -> Child Products (by parentBrandId OR linkedGuides)
-      orbitData.middle.forEach((p, i) => {
-        if (p.parentBrandId === activeEntity.id || activeEntity.linkedGuides?.includes(p.id)) {
-          const productPos = getPos('middle', i, orbitData.middle.length);
-          lines.push({ from: hoveredPos, to: productPos, color: TYPE_COLORS.product });
-        }
-      });
-      
-      // Brand -> Child Events
-      orbitData.outer.forEach((e, i) => {
-        if (e.parentBrandId === activeEntity.id || activeEntity.linkedGuides?.includes(e.id)) {
-          const eventPos = getPos('outer', i, orbitData.outer.length);
-          lines.push({ from: hoveredPos, to: eventPos, color: TYPE_COLORS.event });
-        }
-      });
-    } else if (activeEntity.type === 'event') {
-      // Event -> Parent Brand or Center
-      if (activeEntity.parentBrandId) {
-        const parentBrandIndex = orbitData.inner.findIndex(b => b.id === activeEntity.parentBrandId);
-        if (parentBrandIndex >= 0) {
-          const brandPos = getPos('inner', parentBrandIndex, orbitData.inner.length);
-          lines.push({ from: hoveredPos, to: brandPos, color: entityColor });
-          lines.push({ from: brandPos, to: { x: 200, y: 200 }, color: TYPE_COLORS.brand });
-        } else {
-          lines.push({ from: hoveredPos, to: { x: 200, y: 200 }, color: entityColor });
-        }
-      } else {
-        lines.push({ from: hoveredPos, to: { x: 200, y: 200 }, color: entityColor });
-      }
-    }
-
-    return lines;
-  }, [activeEntity, hoveredIndex, orbitData]);
+  // Simple connection indicator - just show a pulse on center when entity is hovered
+  // (Rotating hierarchy lines don't work because orbits are in constant rotation)
+  const showCenterConnection = activeEntity !== null;
 
   const animationStyle = isPaused ? 'paused' : 'running';
 
@@ -326,6 +252,14 @@ export const GlobalAssetOrbit = ({
         </button>
       </div>
 
+      {/* Inline styles for SVG animations */}
+      <style>{`
+        @keyframes pulse-ring {
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(1.05); }
+        }
+      `}</style>
+
       {/* Main SVG */}
       <svg viewBox="0 0 400 400" className="w-full h-full" style={{ overflow: 'visible' }}>
         <defs>
@@ -357,23 +291,32 @@ export const GlobalAssetOrbit = ({
           ))}
         </g>
         
-        {/* Hierarchy connection dots */}
-        {hierarchyLines.map((line, i) => {
-          const pathD = `M ${line.from.x} ${line.from.y} Q ${(line.from.x + line.to.x) / 2 + (200 - (line.from.x + line.to.x) / 2) * 0.3} ${(line.from.y + line.to.y) / 2 + (200 - (line.from.y + line.to.y) / 2) * 0.3} ${line.to.x} ${line.to.y}`;
-          return (
-            <g key={`line-${i}`}>
-              {[0, 0.25, 0.5, 0.75].map((offset, dotIdx) => (
-                <circle key={`dot-${dotIdx}`} r={1.5 - dotIdx * 0.2} fill={line.color} fillOpacity={0.8 - dotIdx * 0.15}>
-                  <animateMotion dur="2s" repeatCount="indefinite" begin={`${offset * 2}s`} path={pathD} />
-                </circle>
-              ))}
-            </g>
-          );
-        })}
-        
-        {/* Central circle */}
-        <circle cx="200" cy="200" r="38" fill="url(#center-grad)" stroke={primaryColor} strokeWidth="2" strokeOpacity="0.6" />
+        {/* Central circle - with pulse when entity hovered */}
+        <circle 
+          cx="200" 
+          cy="200" 
+          r="38" 
+          fill="url(#center-grad)" 
+          stroke={activeEntity ? TYPE_COLORS[activeEntity.type] : primaryColor} 
+          strokeWidth={activeEntity ? 3 : 2} 
+          strokeOpacity={activeEntity ? 0.9 : 0.6}
+          style={{ transition: 'all 0.3s ease' }}
+        />
         <circle cx="200" cy="200" r="50" fill={primaryColor} fillOpacity="0.08" />
+        
+        {/* Pulse ring when hovering an entity */}
+        {activeEntity && (
+          <circle 
+            cx="200" 
+            cy="200" 
+            r="55" 
+            fill="none" 
+            stroke={TYPE_COLORS[activeEntity.type]} 
+            strokeWidth="2"
+            strokeOpacity="0.4"
+            style={{ animation: 'pulse 1.5s ease-in-out infinite' }}
+          />
+        )}
       </svg>
       
       {/* Center Icon */}
@@ -533,6 +476,17 @@ export const GlobalAssetOrbit = ({
           })}
         </div>
       )}
+      
+      {/* Fixed position tooltip overlay - rendered at container level, not in rotating orbit */}
+      <TooltipOverlay 
+        entity={activeEntity} 
+        containerRef={containerRef}
+        onFilterClick={() => {
+          if (activeEntity) {
+            handleEntityFilterClick(activeEntity);
+          }
+        }}
+      />
     </div>
   );
 };
@@ -591,7 +545,7 @@ const EntityIcon = ({
       onMouseLeave={onLeave}
       onClick={onClick}
     >
-      {/* Counter-rotation wrapper - only for the icon, not tooltip */}
+      {/* Counter-rotation wrapper - only for the icon */}
       <div 
         className="w-full h-full flex items-center justify-center"
         style={{ 
@@ -632,45 +586,62 @@ const EntityIcon = ({
           )}
         </div>
       </div>
-      
-      {/* Tooltip - OUTSIDE counter-rotation wrapper for fixed position */}
+    </div>
+  );
+};
+
+// Tooltip component rendered at container level (not inside rotating orbit)
+interface TooltipOverlayProps {
+  entity: LinkedEntity | null;
+  containerRef: React.RefObject<HTMLDivElement>;
+  onFilterClick: () => void;
+}
+
+const TooltipOverlay = ({ entity, containerRef, onFilterClick }: TooltipOverlayProps) => {
+  if (!entity) return null;
+  
+  const config = TYPE_CONFIG[entity.type];
+  const Icon = config.Icon;
+  const typeColor = config.color;
+  
+  return (
+    <div 
+      className="absolute z-[100] pointer-events-auto animate-fade-in"
+      style={{ 
+        left: '50%',
+        bottom: '10%',
+        transform: 'translateX(-50%)',
+      }}
+    >
       <div 
-        className={cn(
-          "absolute left-1/2 -translate-x-1/2 transition-all duration-300",
-          isActive ? "opacity-100 translate-y-0 scale-100 pointer-events-auto" : "opacity-0 translate-y-3 scale-90 pointer-events-none"
-        )}
-        style={{ top: 'calc(100% + 6px)', zIndex: 100 }}
+        className="px-4 py-3 rounded-xl shadow-xl min-w-[160px]"
+        style={{ 
+          background: `linear-gradient(145deg, ${typeColor}, ${typeColor}dd)`,
+          boxShadow: `0 10px 30px ${typeColor}50`,
+        }}
       >
-        <div 
-          className="px-3 py-2 rounded-xl shadow-xl min-w-[140px]"
-          style={{ 
-            background: `linear-gradient(145deg, ${typeColor}, ${typeColor}dd)`,
-            boxShadow: `0 10px 30px ${typeColor}50`,
-          }}
-        >
-          <p className="text-xs font-bold text-white truncate max-w-[130px]">{entity.name}</p>
-          <div className="flex items-center gap-1 mt-0.5">
-            <Icon className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.8)' }} />
-            <span className="text-[10px] text-white/80">{config.label}</span>
-          </div>
-          <div className="flex items-center gap-2 mt-1.5 pt-1.5 border-t border-white/20">
-            <div className="flex items-center gap-1">
-              <ArrowUpRight className="w-2.5 h-2.5 text-white/60" />
-              <span className="text-[9px] text-white/60">Click to open</span>
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onFilterClick();
-              }}
-              className="text-[9px] text-white/80 hover:text-white px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 transition-colors"
-            >
-              Filter
-            </button>
-          </div>
+        <p className="text-sm font-bold text-white truncate max-w-[200px]">{entity.name}</p>
+        <div className="flex items-center gap-1.5 mt-1">
+          <Icon className="w-3.5 h-3.5" style={{ color: 'rgba(255,255,255,0.8)' }} />
+          <span className="text-xs text-white/80">{config.label}</span>
         </div>
-        <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 rounded-sm" style={{ background: typeColor }} />
+        <div className="flex items-center gap-3 mt-2 pt-2 border-t border-white/20">
+          <div className="flex items-center gap-1">
+            <ArrowUpRight className="w-3 h-3 text-white/60" />
+            <span className="text-[10px] text-white/60">Click to open</span>
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onFilterClick();
+            }}
+            className="text-[10px] text-white/80 hover:text-white px-2 py-1 rounded bg-white/10 hover:bg-white/20 transition-colors"
+          >
+            Filter
+          </button>
+        </div>
       </div>
+      <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45 rounded-sm" style={{ background: typeColor }} />
     </div>
   );
 };
