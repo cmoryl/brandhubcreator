@@ -21,7 +21,9 @@ export type HeroBackgroundType =
   | 'animated-dataflow'
   | 'animated-wave-lines'
   | 'animated-flow-field'
-  | 'animated-neon-grid';
+  | 'animated-neon-grid'
+  | 'animated-sine-lines'
+  | 'animated-data-particles';
 
 export interface HeroBackground {
   type: HeroBackgroundType;
