@@ -1,9 +1,11 @@
+import { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, Building2, Package, Calendar, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
+import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
 import type { BrandGuide, ProductGuide, SectionId } from '@/types/brand';
@@ -13,6 +15,8 @@ import type { EventGuide, EventSectionId } from '@/types/event';
 export default function DemoGuideViewer() {
   const { type, slug } = useParams<{ type: 'brand' | 'product' | 'event'; slug: string }>();
   const navigate = useNavigate();
+  const [activeSection, setActiveSection] = useState<SectionId | null>(null);
+  const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
 
   // Find the demo guide based on type
   const demoGuide = (() => {
@@ -25,6 +29,18 @@ export default function DemoGuideViewer() {
     }
     return undefined;
   })();
+
+  const sectionOrder = (demoGuide?.sectionOrder || []) as SectionId[];
+
+  const handleSectionSelect = useCallback((sectionId: SectionId) => {
+    setScrollToSection(sectionId);
+    // Clear after a short delay to allow re-selection of the same section
+    setTimeout(() => setScrollToSection(null), 100);
+  }, []);
+
+  const handleSectionVisible = useCallback((sectionId: SectionId) => {
+    setActiveSection(sectionId);
+  }, []);
 
   if (!demoGuide) {
     return (
@@ -130,13 +146,24 @@ export default function DemoGuideViewer() {
           brand={fullGuide as BrandGuide | ProductGuide}
           brandId={demoGuide.id}
           onBrandUpdate={() => {}} // No-op for demo
-          sectionOrder={(demoGuide.sectionOrder || []) as SectionId[]}
+          sectionOrder={sectionOrder}
+          scrollToSection={scrollToSection}
+          onSectionVisible={handleSectionVisible}
           hiddenSections={[]}
           isAdmin={false}
           heroFullWidth={true}
           canEdit={false}
         />
       </div>
+
+      {/* Mobile Section Navigation */}
+      <MobileSectionNav
+        sectionOrder={sectionOrder}
+        hiddenSections={[]}
+        activeSection={activeSection || undefined}
+        onSectionSelect={handleSectionSelect}
+        brandName={demoGuide.hero.name}
+      />
 
       {/* Bottom CTA Banner */}
       <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-t border-border">
