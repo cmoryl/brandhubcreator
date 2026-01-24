@@ -484,33 +484,40 @@ const BrandsIndex = () => {
 
         {/* Hero Content - Mobile optimized with Parallax */}
         <div 
-          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-12 pb-16 sm:pb-24"
+          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-12 sm:pb-24"
           style={{ transform: `translateY(${parallaxOffset * 0.15}px)` }}
         >
           <div className="max-w-3xl">
-            <div className="flex flex-wrap items-center gap-2 mb-4 sm:mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <div className="px-2.5 sm:px-3 py-1 bg-accent/10 rounded-full border border-accent/20">
+            {/* Badges - simplified on mobile */}
+            <div className="flex flex-wrap items-center gap-2 mb-6 sm:mb-8 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+              <div className="px-3 py-1.5 bg-accent/10 rounded-full border border-accent/20">
                 <span className="text-xs font-medium text-accent">{settings.heroBadgeText}</span>
               </div>
               {canEdit && (
-                <div className="px-2.5 sm:px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20">
+                <div className="px-3 py-1.5 bg-green-500/10 rounded-full border border-green-500/20">
                   <span className="text-xs font-medium text-green-600 dark:text-green-400">Edit Mode</span>
                 </div>
               )}
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold text-foreground mb-4 sm:mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            
+            {/* Headline - more compact on mobile */}
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold text-foreground mb-4 sm:mb-6 leading-[1.2] sm:leading-tight animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               Create stunning<br />
               <span className="text-digital-live text-accent" data-text="Live">Live</span> Brand Guides.
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+            
+            {/* Description - hidden on very small screens if too crowded */}
+            <p className="text-sm sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
               {settings.heroDescription}
             </p>
+            
+            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
               {canEdit ? (
                 <>
                   <Button 
                     size="lg" 
-                    className="gap-2 w-full sm:w-auto touch-manipulation"
+                    className="gap-2 w-full sm:w-auto touch-manipulation h-12 sm:h-11"
                     onClick={() => { setNewItemType('brand'); setIsNewDialogOpen(true); }}
                   >
                     <Plus className="h-5 w-5" />
@@ -519,7 +526,7 @@ const BrandsIndex = () => {
                   <Button 
                     size="lg" 
                     variant="outline"
-                    className="gap-2 w-full sm:w-auto touch-manipulation"
+                    className="gap-2 w-full sm:w-auto touch-manipulation h-12 sm:h-11"
                     onClick={() => { setNewItemType('product'); setIsNewDialogOpen(true); }}
                   >
                     <Package className="h-5 w-5" />
@@ -529,7 +536,7 @@ const BrandsIndex = () => {
               ) : (
                 <Button 
                   size="lg" 
-                  className="gap-2 w-full sm:w-auto touch-manipulation"
+                  className="gap-2 w-full sm:w-auto touch-manipulation h-12 sm:h-11"
                   onClick={() => navigate('/auth')}
                 >
                   <Lock className="h-5 w-5" />
@@ -540,23 +547,23 @@ const BrandsIndex = () => {
 
             {/* Create Organization CTA for users without an org */}
             {user && !organization && !orgLoading && (
-              <div className="mt-8 p-4 bg-accent/10 rounded-xl border border-accent/20 animate-fade-in-up" style={{ animationDelay: '0.45s' }}>
+              <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-accent/10 rounded-xl border border-accent/20 animate-fade-in-up" style={{ animationDelay: '0.45s' }}>
                 <div className="flex items-center gap-3">
-                  <Building2 className="h-5 w-5 text-accent" />
-                  <div className="flex-1">
+                  <Building2 className="h-5 w-5 text-accent flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground">Create your organization</p>
-                    <p className="text-xs text-muted-foreground">Set up your team workspace to share brands and invite members</p>
+                    <p className="text-xs text-muted-foreground hidden sm:block">Set up your team workspace to share brands and invite members</p>
                   </div>
-                  <Button size="sm" onClick={() => navigate('/onboarding')} className="gap-2">
+                  <Button size="sm" onClick={() => navigate('/onboarding')} className="gap-1.5 flex-shrink-0">
                     <Plus className="h-4 w-4" />
-                    Create
+                    <span className="hidden sm:inline">Create</span>
                   </Button>
                 </div>
               </div>
             )}
 
-            {/* Marketing Highlights - Replaces Stats */}
-            <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+            {/* Marketing Highlights - Hidden on mobile to reduce clutter */}
+            <div className="hidden sm:flex flex-wrap items-center gap-4 sm:gap-6 mt-10 sm:mt-12 pt-6 sm:pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
               <div className="flex items-center gap-2 px-3 py-2 bg-accent/10 rounded-lg border border-accent/20">
                 <CheckCircle className="h-4 w-4 text-accent" />
                 <span className="text-sm text-foreground">Always Up-to-Date</span>
