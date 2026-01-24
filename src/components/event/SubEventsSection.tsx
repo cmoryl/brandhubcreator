@@ -123,12 +123,14 @@ export const SubEventsSection = ({
         </p>
       </div>
 
-      {/* World Map Visualization */}
+      {/* World Map Visualization with Statistics */}
       {mapLocations.length > 0 && (
         <WorldMapVisualization
           locations={mapLocations}
           title="Global Conference Locations"
-          subtitle="Click a location to view the regional event guide"
+          subtitle="Hover to see connections • Click a location to view the regional event guide"
+          showStats={true}
+          showYearOverYear={true}
         />
       )}
 
