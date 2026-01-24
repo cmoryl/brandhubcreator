@@ -181,12 +181,23 @@ function DemoGuideGrid({ items, type }: { items: typeof DEMO_BRANDS | typeof DEM
               <div 
                 className={`relative h-40 sm:h-48 bg-gradient-to-br ${gradientClass} overflow-hidden`}
               >
-                {/* Cover Image Overlay */}
+                {/* Cover Image - use img element for LCP optimization on first 2 items */}
                 {item.hero.coverImage && (
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-40 transition-opacity"
-                    style={{ backgroundImage: `url(${item.hero.coverImage})` }}
-                  />
+                  index < 2 ? (
+                    <img 
+                      src={item.hero.coverImage}
+                      alt=""
+                      loading="eager"
+                      fetchPriority="high"
+                      decoding="async"
+                      className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity"
+                    />
+                  ) : (
+                    <div 
+                      className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-40 transition-opacity"
+                      style={{ backgroundImage: `url(${item.hero.coverImage})` }}
+                    />
+                  )
                 )}
                 
                 {/* Pattern Overlay */}
