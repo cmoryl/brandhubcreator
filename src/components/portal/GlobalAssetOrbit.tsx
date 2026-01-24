@@ -232,65 +232,69 @@ export const GlobalAssetOrbit = ({
         setHoveredOrbit(null);
       }}
     >
-      {/* Top Left Legend with Click-to-Filter */}
+      {/* Top Left Legend - Single line horizontal layout */}
       <div 
-        className="absolute top-2 left-2 z-20 flex flex-col gap-1 p-2 rounded-lg backdrop-blur-md transition-all duration-300"
+        className="absolute top-2 left-2 z-20 flex flex-row items-center gap-1 px-2 py-1.5 rounded-full backdrop-blur-md transition-all duration-300"
         style={{ 
-          background: 'rgba(0,0,0,0.4)',
-          border: '1px solid rgba(255,255,255,0.1)',
+          background: 'rgba(0,0,0,0.5)',
+          border: '1px solid rgba(255,255,255,0.15)',
         }}
       >
         <button
           onClick={() => handleFilterClick('brands')}
           className={cn(
-            "flex items-center gap-2 px-2 py-1 rounded-md transition-all duration-200 text-left",
-            activeFilter === 'brands' ? 'bg-white/10' : 'hover:bg-white/5'
+            "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200",
+            activeFilter === 'brands' ? 'bg-white/15' : 'hover:bg-white/10'
           )}
         >
           <div 
-            className="w-4 h-4 rounded-full flex items-center justify-center"
-            style={{ background: `${TYPE_COLORS.brand}30`, border: `1.5px solid ${TYPE_COLORS.brand}` }}
+            className="w-3 h-3 rounded-full flex items-center justify-center"
+            style={{ background: `${TYPE_COLORS.brand}40`, border: `1.5px solid ${TYPE_COLORS.brand}` }}
           >
-            <BrandIcon className="w-2.5 h-2.5" style={{ color: TYPE_COLORS.brand }} />
+            <BrandIcon className="w-2 h-2" style={{ color: TYPE_COLORS.brand }} />
           </div>
-          <span className="text-[10px] font-medium" style={{ color: TYPE_COLORS.brand }}>
-            Brands ({entityCounts.brands})
+          <span className="text-[9px] font-medium" style={{ color: TYPE_COLORS.brand }}>
+            {entityCounts.brands}
           </span>
         </button>
+        
+        <div className="w-px h-3 bg-white/20" />
         
         <button
           onClick={() => handleFilterClick('products')}
           className={cn(
-            "flex items-center gap-2 px-2 py-1 rounded-md transition-all duration-200 text-left",
-            activeFilter === 'products' ? 'bg-white/10' : 'hover:bg-white/5'
+            "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200",
+            activeFilter === 'products' ? 'bg-white/15' : 'hover:bg-white/10'
           )}
         >
           <div 
-            className="w-4 h-4 rounded-full flex items-center justify-center"
-            style={{ background: `${TYPE_COLORS.product}30`, border: `1.5px solid ${TYPE_COLORS.product}` }}
+            className="w-3 h-3 rounded-full flex items-center justify-center"
+            style={{ background: `${TYPE_COLORS.product}40`, border: `1.5px solid ${TYPE_COLORS.product}` }}
           >
-            <ProductIcon className="w-2.5 h-2.5" style={{ color: TYPE_COLORS.product }} />
+            <ProductIcon className="w-2 h-2" style={{ color: TYPE_COLORS.product }} />
           </div>
-          <span className="text-[10px] font-medium" style={{ color: TYPE_COLORS.product }}>
-            Products ({entityCounts.products})
+          <span className="text-[9px] font-medium" style={{ color: TYPE_COLORS.product }}>
+            {entityCounts.products}
           </span>
         </button>
+        
+        <div className="w-px h-3 bg-white/20" />
         
         <button
           onClick={() => handleFilterClick('events')}
           className={cn(
-            "flex items-center gap-2 px-2 py-1 rounded-md transition-all duration-200 text-left",
-            activeFilter === 'events' ? 'bg-white/10' : 'hover:bg-white/5'
+            "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200",
+            activeFilter === 'events' ? 'bg-white/15' : 'hover:bg-white/10'
           )}
         >
           <div 
-            className="w-4 h-4 rounded-full flex items-center justify-center"
-            style={{ background: `${TYPE_COLORS.event}30`, border: `1.5px solid ${TYPE_COLORS.event}` }}
+            className="w-3 h-3 rounded-full flex items-center justify-center"
+            style={{ background: `${TYPE_COLORS.event}40`, border: `1.5px solid ${TYPE_COLORS.event}` }}
           >
-            <EventIcon className="w-2.5 h-2.5" style={{ color: TYPE_COLORS.event }} />
+            <EventIcon className="w-2 h-2" style={{ color: TYPE_COLORS.event }} />
           </div>
-          <span className="text-[10px] font-medium" style={{ color: TYPE_COLORS.event }}>
-            Events ({entityCounts.events})
+          <span className="text-[9px] font-medium" style={{ color: TYPE_COLORS.event }}>
+            {entityCounts.events}
           </span>
         </button>
       </div>
@@ -681,47 +685,35 @@ const TooltipOverlay = ({ entity, containerRef, onFilterClick, relatedCount }: T
   
   return (
     <div 
-      className="absolute z-[100] pointer-events-auto animate-fade-in"
+      className="absolute z-[100] pointer-events-auto animate-scale-in"
       style={{ 
         left: '50%',
-        bottom: '10%',
-        transform: 'translateX(-50%)',
+        top: '50%',
+        transform: 'translate(-50%, -120%)',
       }}
     >
       <div 
-        className="px-4 py-3 rounded-xl shadow-xl min-w-[180px]"
+        className="px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm"
         style={{ 
-          background: `linear-gradient(145deg, ${typeColor}, ${typeColor}dd)`,
-          boxShadow: `0 10px 30px ${typeColor}50`,
+          background: `linear-gradient(145deg, ${typeColor}ee, ${typeColor}cc)`,
+          boxShadow: `0 4px 20px ${typeColor}60`,
+          border: '1px solid rgba(255,255,255,0.2)',
         }}
       >
-        <p className="text-sm font-bold text-white truncate max-w-[200px]">{entity.name}</p>
-        <div className="flex items-center gap-1.5 mt-1">
-          <Icon className="w-3.5 h-3.5" style={{ color: 'rgba(255,255,255,0.8)' }} />
-          <span className="text-xs text-white/80">{config.label}</span>
+        <p className="text-xs font-semibold text-white truncate max-w-[160px]">{entity.name}</p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <Icon className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.8)' }} />
+          <span className="text-[10px] text-white/70">{config.label}</span>
           {relatedCount > 0 && (
-            <span className="text-[10px] text-white/60 ml-1">
-              • {relatedCount} linked
-            </span>
+            <span className="text-[9px] text-white/50">• {relatedCount} linked</span>
           )}
         </div>
-        <div className="flex items-center gap-3 mt-2 pt-2 border-t border-white/20">
-          <div className="flex items-center gap-1">
-            <ArrowUpRight className="w-3 h-3 text-white/60" />
-            <span className="text-[10px] text-white/60">Click to open</span>
-          </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onFilterClick();
-            }}
-            className="text-[10px] text-white/80 hover:text-white px-2 py-1 rounded bg-white/10 hover:bg-white/20 transition-colors"
-          >
-            Filter
-          </button>
-        </div>
       </div>
-      <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45 rounded-sm" style={{ background: typeColor }} />
+      {/* Arrow pointing down toward center */}
+      <div 
+        className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45" 
+        style={{ background: `${typeColor}cc` }} 
+      />
     </div>
   );
 };
