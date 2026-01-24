@@ -351,6 +351,7 @@ const OrganizationPortal = () => {
                   updatedAt: p.updatedAt,
                   coverImage: p.hero?.coverImage,
                   color: p.colors?.[0]?.hex,
+                  parentBrandId: p.parentBrandId || undefined,
                 }))}
                 events={events.map(e => ({
                   id: e.id,
