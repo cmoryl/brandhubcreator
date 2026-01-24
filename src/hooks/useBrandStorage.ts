@@ -116,6 +116,31 @@ const asArray = <T,>(value: unknown, fallback: T[] = []): T[] =>
 const asObject = <T extends object>(value: unknown, fallback: T): T =>
   value && typeof value === 'object' && !Array.isArray(value) ? (value as T) : fallback;
 
+// Normalize legacy typography data (family -> fontFamily, role -> usage)
+const normalizeTypography = (typography: unknown[]): unknown[] =>
+  typography.map((t: any) => ({
+    ...t,
+    fontFamily: t.fontFamily || t.family || 'Inter, sans-serif',
+    usage: t.usage || t.role || 'General',
+    weight: t.weight || '400',
+  }));
+
+// Normalize legacy templates data (category -> fileType)
+const normalizeTemplates = (templates: unknown[]): unknown[] =>
+  templates.map((t: any) => ({
+    ...t,
+    fileType: t.fileType || t.category || 'other',
+    fileSize: t.fileSize || '',
+  }));
+
+// Normalize legacy brochures data (ensure previewUrl exists)
+const normalizeBrochures = (brochures: unknown[]): unknown[] =>
+  brochures.map((b: any) => ({
+    ...b,
+    previewUrl: b.previewUrl || b.imageUrl || '',
+    title: b.title || b.name || 'Untitled',
+  }));
+
 const dbToBrandGuide = (db: DbBrand): BrandGuide => {
   const guideData = asObject<Record<string, unknown>>(db.guide_data, {});
 
@@ -138,7 +163,7 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     colorCombinations: asArray(guideData.colorCombinations, []) as BrandGuide['colorCombinations'],
     gradients: asArray(guideData.gradients, []) as BrandGuide['gradients'],
     patterns: asArray(guideData.patterns, []) as BrandGuide['patterns'],
-    typography: asArray(guideData.typography, []) as BrandGuide['typography'],
+    typography: normalizeTypography(asArray(guideData.typography, [])) as BrandGuide['typography'],
     textStyles: asArray(guideData.textStyles, []) as BrandGuide['textStyles'],
     iconography: asArray(guideData.iconography, []) as BrandGuide['iconography'],
     socialIcons: asArray(guideData.socialIcons, []) as BrandGuide['socialIcons'],
@@ -155,8 +180,8 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     misuse: asArray(guideData.misuse, []) as BrandGuide['misuse'],
     atmosphere: asObject(guideData.atmosphere, { style: 'gradient', animate: true, opacity: 0.5, blur: 0 }) as BrandGuide['atmosphere'],
     caseStudies: asArray(guideData.caseStudies, []) as BrandGuide['caseStudies'],
-    brochures: asArray(guideData.brochures, []) as BrandGuide['brochures'],
-    templates: asArray(guideData.templates, []) as BrandGuide['templates'],
+    brochures: normalizeBrochures(asArray(guideData.brochures, [])) as BrandGuide['brochures'],
+    templates: normalizeTemplates(asArray(guideData.templates, [])) as BrandGuide['templates'],
     services: asArray(guideData.services, []) as BrandGuide['services'],
     linkedGuides: asArray(guideData.linkedGuides, []) as BrandGuide['linkedGuides'],
     templateSpecs: asArray(guideData.templateSpecs, []) as BrandGuide['templateSpecs'],
@@ -194,7 +219,7 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
     colorCombinations: asArray(guideData.colorCombinations, []) as ProductGuide['colorCombinations'],
     gradients: asArray(guideData.gradients, []) as ProductGuide['gradients'],
     patterns: asArray(guideData.patterns, []) as ProductGuide['patterns'],
-    typography: asArray(guideData.typography, []) as ProductGuide['typography'],
+    typography: normalizeTypography(asArray(guideData.typography, [])) as ProductGuide['typography'],
     textStyles: asArray(guideData.textStyles, []) as ProductGuide['textStyles'],
     iconography: asArray(guideData.iconography, []) as ProductGuide['iconography'],
     socialIcons: asArray(guideData.socialIcons, []) as ProductGuide['socialIcons'],
@@ -211,8 +236,8 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
     misuse: asArray(guideData.misuse, []) as ProductGuide['misuse'],
     atmosphere: asObject(guideData.atmosphere, { style: 'gradient', animate: true, opacity: 0.5, blur: 0 }) as ProductGuide['atmosphere'],
     caseStudies: asArray(guideData.caseStudies, []) as ProductGuide['caseStudies'],
-    brochures: asArray(guideData.brochures, []) as ProductGuide['brochures'],
-    templates: asArray(guideData.templates, []) as ProductGuide['templates'],
+    brochures: normalizeBrochures(asArray(guideData.brochures, [])) as ProductGuide['brochures'],
+    templates: normalizeTemplates(asArray(guideData.templates, [])) as ProductGuide['templates'],
     services: asArray(guideData.services, []) as ProductGuide['services'],
     linkedGuides: asArray(guideData.linkedGuides, []) as ProductGuide['linkedGuides'],
     templateSpecs: asArray(guideData.templateSpecs, []) as ProductGuide['templateSpecs'],
