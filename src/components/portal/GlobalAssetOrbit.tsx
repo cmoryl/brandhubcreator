@@ -303,8 +303,8 @@ export const GlobalAssetOrbit = ({
         }
       `}</style>
 
-      {/* Main SVG */}
-      <svg viewBox="0 0 400 400" className="w-full h-full" style={{ overflow: 'visible' }}>
+      {/* Main SVG - pointer-events none so icons can be clicked */}
+      <svg viewBox="0 0 400 400" className="w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
         <defs>
           <radialGradient id="center-grad" cx="30%" cy="30%">
             <stop offset="0%" stopColor={primaryColor} stopOpacity="0.6" />
@@ -385,10 +385,10 @@ export const GlobalAssetOrbit = ({
         </div>
       </div>
       
-      {/* Brand icons (inner orbit) */}
+      {/* Brand icons (inner orbit) - teal colored */}
       {orbitData.inner.length > 0 && (
         <div 
-          className="absolute inset-0"
+          className="absolute inset-0 pointer-events-none"
           style={{ transformOrigin: 'center', animation: `spin 55s linear infinite reverse`, animationPlayState: animationStyle }}
         >
           {orbitData.inner.map((entity, i) => {
@@ -431,10 +431,10 @@ export const GlobalAssetOrbit = ({
         </div>
       )}
       
-      {/* Product icons (middle orbit) */}
+      {/* Product icons (middle orbit) - purple colored */}
       {orbitData.middle.length > 0 && (
         <div 
-          className="absolute inset-0"
+          className="absolute inset-0 pointer-events-none"
           style={{ transformOrigin: 'center', animation: `spin 70s linear infinite`, animationPlayState: animationStyle }}
         >
           {orbitData.middle.map((entity, i) => {
@@ -477,10 +477,10 @@ export const GlobalAssetOrbit = ({
         </div>
       )}
       
-      {/* Event icons (outer orbit) */}
+      {/* Event icons (outer orbit) - amber colored */}
       {orbitData.outer.length > 0 && (
         <div 
-          className="absolute inset-0"
+          className="absolute inset-0 pointer-events-none"
           style={{ transformOrigin: 'center', animation: `spin 85s linear infinite reverse`, animationPlayState: animationStyle }}
         >
           {orbitData.outer.map((entity, i) => {
@@ -584,7 +584,7 @@ const EntityIcon = ({
   
   return (
     <div
-      className="absolute group"
+      className="absolute group pointer-events-auto"
       style={{ 
         left: `${x}%`, 
         top: `${y}%`,
@@ -592,6 +592,7 @@ const EntityIcon = ({
         height: `${boxSize}px`,
         marginLeft: `${-boxSize / 2}px`,
         marginTop: `${-boxSize / 2}px`,
+        cursor: 'pointer',
       }}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
