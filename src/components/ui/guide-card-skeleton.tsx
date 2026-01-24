@@ -14,21 +14,22 @@ interface GuideCardSkeletonProps {
 export const GuideCardSkeleton = React.forwardRef<HTMLDivElement, GuideCardSkeletonProps>(
   ({ count = 3 }, ref) => {
     return (
-      <div ref={ref} className="contents">
+      <>
         {Array.from({ length: count }).map((_, i) => (
           <Card 
             key={i}
+            ref={i === 0 ? ref : undefined}
             className="overflow-hidden border-0 bg-card shadow-lg animate-pulse"
             style={{ animationDelay: `${i * 0.1}s` }}
           >
             <CardContent className="p-0">
               {/* Cover image placeholder */}
-              <div className="h-44 bg-muted/50">
+              <div className="h-36 sm:h-44 bg-muted/50">
                 <Skeleton className="w-full h-full rounded-none" />
               </div>
               
               {/* Content */}
-              <div className="p-5">
+              <div className="p-4 sm:p-5">
                 {/* Title */}
                 <Skeleton className="h-5 w-3/4 mb-2" />
                 
@@ -39,7 +40,7 @@ export const GuideCardSkeleton = React.forwardRef<HTMLDivElement, GuideCardSkele
                 {/* Color swatches */}
                 <div className="flex gap-1 mb-4">
                   {Array.from({ length: 5 }).map((_, j) => (
-                    <Skeleton key={j} className="w-6 h-6 rounded-full" />
+                    <Skeleton key={j} className="w-5 h-5 sm:w-6 sm:h-6 rounded-full" />
                   ))}
                 </div>
                 
@@ -49,7 +50,7 @@ export const GuideCardSkeleton = React.forwardRef<HTMLDivElement, GuideCardSkele
             </CardContent>
           </Card>
         ))}
-      </div>
+      </>
     );
   }
 );
