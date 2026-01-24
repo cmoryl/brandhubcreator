@@ -48,8 +48,8 @@ export const GradientsSection = ({ gradients, onGradientsChange, customSubtitle,
   };
 
   return (
-    <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+    <section className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <SectionHeader
             title="Gradients"
@@ -69,10 +69,13 @@ export const GradientsSection = ({ gradients, onGradientsChange, customSubtitle,
               size="sm"
             />
           )}
-          <Button onClick={addGradient} size="sm" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Gradient
-          </Button>
+          {onGradientsChange && (
+            <Button onClick={addGradient} size="sm" className="gap-2">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Add Gradient</span>
+              <span className="sm:hidden">Add</span>
+            </Button>
+          )}
         </div>
       </div>
 

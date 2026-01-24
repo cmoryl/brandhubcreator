@@ -247,8 +247,8 @@ export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle,
   }, {} as Record<string, BrandTemplate[]>);
 
   return (
-    <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+    <section className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <SectionHeader
             title="Master Scaffolds"
