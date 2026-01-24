@@ -264,19 +264,19 @@ export function FeaturesShowcase() {
           <Tabs defaultValue="core" className="w-full">
             <div className="flex justify-center mb-12">
               <TabsList className="grid w-full max-w-2xl grid-cols-4 h-12">
-                <TabsTrigger value="core" className="gap-2 text-sm">
+                <TabsTrigger value="core" className="gap-2 text-sm" aria-label="Core features">
                   <Layers className="h-4 w-4" />
                   <span className="hidden sm:inline">Core</span>
                 </TabsTrigger>
-                <TabsTrigger value="events" className="gap-2 text-sm">
+                <TabsTrigger value="events" className="gap-2 text-sm" aria-label="Event features">
                   <Calendar className="h-4 w-4" />
                   <span className="hidden sm:inline">Events</span>
                 </TabsTrigger>
-                <TabsTrigger value="analytics" className="gap-2 text-sm">
+                <TabsTrigger value="analytics" className="gap-2 text-sm" aria-label="AI and analytics features">
                   <BarChart3 className="h-4 w-4" />
                   <span className="hidden sm:inline">AI</span>
                 </TabsTrigger>
-                <TabsTrigger value="admin" className="gap-2 text-sm">
+                <TabsTrigger value="admin" className="gap-2 text-sm" aria-label="Admin features">
                   <ShieldCheck className="h-4 w-4" />
                   <span className="hidden sm:inline">Admin</span>
                 </TabsTrigger>
