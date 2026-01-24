@@ -43,56 +43,27 @@ const TYPE_COLORS = {
   event: '#f59e0b',    // Amber
 };
 
-// Stylized SVG icons for each type
+// Circular icon wrappers for each type
 const BrandIcon = ({ className, style, isActive }: { className?: string; style?: React.CSSProperties; isActive?: boolean }) => (
   <svg viewBox="0 0 24 24" fill="none" className={className} style={style}>
-    <path 
-      d="M12 2L4 8L6 18H18L20 8L12 2Z" 
-      stroke="currentColor" 
-      strokeWidth={isActive ? 2.5 : 2}
-      strokeLinejoin="round"
-      fill={isActive ? 'currentColor' : 'none'}
-      fillOpacity={isActive ? 0.2 : 0}
-    />
-    <path 
-      d="M12 2V10M4 8L12 10M20 8L12 10" 
-      stroke="currentColor" 
-      strokeWidth={isActive ? 2 : 1.5}
-      strokeLinecap="round"
-    />
-    <circle cx="12" cy="14" r="2" fill="currentColor" />
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={isActive ? 2.5 : 2} fill={isActive ? 'currentColor' : 'none'} fillOpacity={isActive ? 0.2 : 0} />
+    <path d="M12 7V12L15 15" stroke="currentColor" strokeWidth={isActive ? 2 : 1.5} strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="12" cy="12" r="2" fill="currentColor" />
   </svg>
 );
 
 const ProductIcon = ({ className, style, isActive }: { className?: string; style?: React.CSSProperties; isActive?: boolean }) => (
   <svg viewBox="0 0 24 24" fill="none" className={className} style={style}>
-    <path 
-      d="M12 2L21 7V17L12 22L3 17V7L12 2Z" 
-      stroke="currentColor" 
-      strokeWidth={isActive ? 2.5 : 2}
-      strokeLinejoin="round"
-      fill={isActive ? 'currentColor' : 'none'}
-      fillOpacity={isActive ? 0.2 : 0}
-    />
-    <path 
-      d="M12 22V12M3 7L12 12M21 7L12 12" 
-      stroke="currentColor" 
-      strokeWidth={isActive ? 2 : 1.5}
-      strokeLinecap="round"
-    />
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={isActive ? 2.5 : 2} fill={isActive ? 'currentColor' : 'none'} fillOpacity={isActive ? 0.2 : 0} />
+    <path d="M8 12L11 15L16 9" stroke="currentColor" strokeWidth={isActive ? 2 : 1.5} strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
 const EventIcon = ({ className, style, isActive }: { className?: string; style?: React.CSSProperties; isActive?: boolean }) => (
   <svg viewBox="0 0 24 24" fill="none" className={className} style={style}>
-    <path 
-      d="M12 2L14 9H21L15.5 13L17.5 21L12 16L6.5 21L8.5 13L3 9H10L12 2Z" 
-      stroke="currentColor" 
-      strokeWidth={isActive ? 2.5 : 2}
-      strokeLinejoin="round"
-      fill={isActive ? 'currentColor' : 'none'}
-      fillOpacity={isActive ? 0.25 : 0}
-    />
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={isActive ? 2.5 : 2} fill={isActive ? 'currentColor' : 'none'} fillOpacity={isActive ? 0.25 : 0} />
+    <path d="M12 8V12L14 14" stroke="currentColor" strokeWidth={isActive ? 2 : 1.5} strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth={1} fill="none" />
   </svg>
 );
 
@@ -308,8 +279,8 @@ export const GlobalAssetOrbit = ({
           )}
         >
           <div 
-            className="w-4 h-4 rounded flex items-center justify-center"
-            style={{ background: `${TYPE_COLORS.brand}30`, border: `1px solid ${TYPE_COLORS.brand}` }}
+            className="w-4 h-4 rounded-full flex items-center justify-center"
+            style={{ background: `${TYPE_COLORS.brand}30`, border: `1.5px solid ${TYPE_COLORS.brand}` }}
           >
             <BrandIcon className="w-2.5 h-2.5" style={{ color: TYPE_COLORS.brand }} />
           </div>
@@ -326,8 +297,8 @@ export const GlobalAssetOrbit = ({
           )}
         >
           <div 
-            className="w-4 h-4 rounded flex items-center justify-center"
-            style={{ background: `${TYPE_COLORS.product}30`, border: `1px solid ${TYPE_COLORS.product}` }}
+            className="w-4 h-4 rounded-full flex items-center justify-center"
+            style={{ background: `${TYPE_COLORS.product}30`, border: `1.5px solid ${TYPE_COLORS.product}` }}
           >
             <ProductIcon className="w-2.5 h-2.5" style={{ color: TYPE_COLORS.product }} />
           </div>
@@ -344,8 +315,8 @@ export const GlobalAssetOrbit = ({
           )}
         >
           <div 
-            className="w-4 h-4 rounded flex items-center justify-center"
-            style={{ background: `${TYPE_COLORS.event}30`, border: `1px solid ${TYPE_COLORS.event}` }}
+            className="w-4 h-4 rounded-full flex items-center justify-center"
+            style={{ background: `${TYPE_COLORS.event}30`, border: `1.5px solid ${TYPE_COLORS.event}` }}
           >
             <EventIcon className="w-2.5 h-2.5" style={{ color: TYPE_COLORS.event }} />
           </div>
@@ -602,7 +573,7 @@ const EntityIcon = ({
   const Icon = config.Icon;
   const typeColor = config.color;
   const iconSize = size === 'sm' ? 'w-4 h-4' : 'w-5 h-5';
-  const padding = size === 'sm' ? 'p-2' : 'p-2.5';
+  const circleSize = size === 'sm' ? 32 : 40;
   const boxSize = size === 'sm' ? 40 : 48;
   
   return (
@@ -620,7 +591,7 @@ const EntityIcon = ({
       onMouseLeave={onLeave}
       onClick={onClick}
     >
-      {/* Counter-rotation wrapper */}
+      {/* Counter-rotation wrapper - only for the icon, not tooltip */}
       <div 
         className="w-full h-full flex items-center justify-center"
         style={{ 
@@ -629,17 +600,20 @@ const EntityIcon = ({
           animationPlayState: animationStyle,
         }}
       >
+        {/* Circular icon container */}
         <div 
-          className={cn("relative rounded-xl cursor-pointer transition-all duration-300 ease-out", padding, isActive && "z-20")}
+          className={cn("relative rounded-full cursor-pointer transition-all duration-300 ease-out flex items-center justify-center", isActive && "z-20")}
           style={{ 
+            width: `${circleSize}px`,
+            height: `${circleSize}px`,
             background: isActive 
               ? `linear-gradient(135deg, ${typeColor}, ${typeColor}cc)`
               : `linear-gradient(135deg, ${typeColor}35, ${typeColor}15)`,
             boxShadow: isActive 
               ? `0 0 30px ${typeColor}60, 0 8px 32px ${typeColor}40`
               : `0 0 12px ${typeColor}20`,
-            border: `1.5px solid ${typeColor}${isActive ? '' : '50'}`,
-            transform: `scale(${isActive ? 1.4 : 1})`,
+            border: `2px solid ${typeColor}${isActive ? '' : '60'}`,
+            transform: `scale(${isActive ? 1.3 : 1})`,
           }}
         >
           <Icon 
@@ -652,50 +626,50 @@ const EntityIcon = ({
           />
           
           {isActive && (
-            <div className="absolute -top-1 -right-1 p-0.5 rounded-full animate-scale-in" style={{ background: typeColor }}>
-              <ExternalLink className="w-2.5 h-2.5 text-white" />
+            <div className="absolute -top-0.5 -right-0.5 p-0.5 rounded-full animate-scale-in" style={{ background: typeColor }}>
+              <ExternalLink className="w-2 h-2 text-white" />
             </div>
           )}
         </div>
-        
-        {/* Tooltip with filter button */}
+      </div>
+      
+      {/* Tooltip - OUTSIDE counter-rotation wrapper for fixed position */}
+      <div 
+        className={cn(
+          "absolute left-1/2 -translate-x-1/2 transition-all duration-300",
+          isActive ? "opacity-100 translate-y-0 scale-100 pointer-events-auto" : "opacity-0 translate-y-3 scale-90 pointer-events-none"
+        )}
+        style={{ top: 'calc(100% + 6px)', zIndex: 100 }}
+      >
         <div 
-          className={cn(
-            "absolute left-1/2 -translate-x-1/2 transition-all duration-300",
-            isActive ? "opacity-100 translate-y-0 scale-100 pointer-events-auto" : "opacity-0 translate-y-3 scale-90 pointer-events-none"
-          )}
-          style={{ top: 'calc(100% + 10px)', zIndex: 50 }}
+          className="px-3 py-2 rounded-xl shadow-xl min-w-[140px]"
+          style={{ 
+            background: `linear-gradient(145deg, ${typeColor}, ${typeColor}dd)`,
+            boxShadow: `0 10px 30px ${typeColor}50`,
+          }}
         >
-          <div 
-            className="px-3 py-2 rounded-lg shadow-xl min-w-[130px]"
-            style={{ 
-              background: `linear-gradient(145deg, ${typeColor}, ${typeColor}dd)`,
-              boxShadow: `0 10px 30px ${typeColor}50`,
-            }}
-          >
-            <p className="text-xs font-bold text-white truncate">{entity.name}</p>
-            <div className="flex items-center gap-1 mt-0.5">
-              <Icon className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.8)' }} />
-              <span className="text-[10px] text-white/80">{config.label}</span>
-            </div>
-            <div className="flex items-center gap-2 mt-1.5 pt-1.5 border-t border-white/20">
-              <div className="flex items-center gap-1">
-                <ArrowUpRight className="w-2.5 h-2.5 text-white/60" />
-                <span className="text-[9px] text-white/60">Click to open</span>
-              </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onFilterClick();
-                }}
-                className="text-[9px] text-white/80 hover:text-white px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 transition-colors"
-              >
-                Filter
-              </button>
-            </div>
+          <p className="text-xs font-bold text-white truncate max-w-[130px]">{entity.name}</p>
+          <div className="flex items-center gap-1 mt-0.5">
+            <Icon className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.8)' }} />
+            <span className="text-[10px] text-white/80">{config.label}</span>
           </div>
-          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45" style={{ background: typeColor }} />
+          <div className="flex items-center gap-2 mt-1.5 pt-1.5 border-t border-white/20">
+            <div className="flex items-center gap-1">
+              <ArrowUpRight className="w-2.5 h-2.5 text-white/60" />
+              <span className="text-[9px] text-white/60">Click to open</span>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onFilterClick();
+              }}
+              className="text-[9px] text-white/80 hover:text-white px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 transition-colors"
+            >
+              Filter
+            </button>
+          </div>
         </div>
+        <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 rounded-sm" style={{ background: typeColor }} />
       </div>
     </div>
   );
