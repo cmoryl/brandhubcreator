@@ -20,7 +20,7 @@ interface HeroStats {
 
 interface HeroSectionProps {
   hero: BrandHero;
-  onHeroChange: (hero: BrandHero) => void;
+  onHeroChange?: (hero: BrandHero) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   fullWidth?: boolean;
@@ -40,6 +40,8 @@ export const HeroSection = ({
   enhancedMode = true,
   onOpenIntelligence,
 }: HeroSectionProps) => {
+  // Only allow editing if onHeroChange is provided (canEdit mode)
+  const canEdit = !!onHeroChange;
   const [isEditing, setIsEditing] = useState(false);
   const [parallaxOffset, setParallaxOffset] = useState(0);
   const [animatedStats, setAnimatedStats] = useState<HeroStats>({});
@@ -136,6 +138,7 @@ export const HeroSection = ({
   }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'coverImage' | 'logoUrl' | 'coverVideo') => {
+    if (!onHeroChange) return;
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -148,6 +151,7 @@ export const HeroSection = ({
   };
 
   const handleVideoUrlInput = () => {
+    if (!onHeroChange) return;
     const url = prompt('Enter video URL (MP4 or WebM):');
     if (url) {
       onHeroChange({ ...hero, coverVideo: url, useVideo: true });
@@ -155,6 +159,7 @@ export const HeroSection = ({
   };
 
   const toggleMediaType = (value: string) => {
+    if (!onHeroChange) return;
     if (value === 'video' || value === 'image') {
       onHeroChange({ ...hero, useVideo: value === 'video' });
     }
@@ -257,21 +262,23 @@ export const HeroSection = ({
             </div>
           )}
           
-          {/* Edit button - z-30 to be above everything */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsEditing(!isEditing);
-            }}
-            className="absolute top-4 right-4 z-30 bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 hover:text-white shadow-lg"
-          >
-            {isEditing ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-          </Button>
+          {/* Edit button - z-30 to be above everything - Only show if canEdit */}
+          {canEdit && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditing(!isEditing);
+              }}
+              className="absolute top-4 right-4 z-30 bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 hover:text-white shadow-lg"
+            >
+              {isEditing ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
+            </Button>
+          )}
           
-          {/* Edit overlay with media type controls */}
-          {isEditing && (
+          {/* Edit overlay with media type controls - Only show if canEdit and isEditing */}
+          {canEdit && isEditing && (
             <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
               {/* Media type toggle */}
               <div className="pointer-events-auto">
@@ -378,10 +385,10 @@ export const HeroSection = ({
                 <div className="flex gap-4 sm:gap-6 items-end flex-1">
                   {/* Logo with enhanced styling - smaller on mobile */}
                   <div
-                    className={`relative shrink-0 w-20 h-20 sm:w-32 sm:h-32 lg:w-44 lg:h-44 xl:w-52 xl:h-52 bg-white border-2 sm:border-4 border-white rounded-2xl sm:rounded-3xl shadow-2xl flex items-center justify-center overflow-hidden transform transition-all duration-300 hover:scale-105 ${isEditing ? 'cursor-pointer group/logo' : ''}`}
+                    className={`relative shrink-0 w-20 h-20 sm:w-32 sm:h-32 lg:w-44 lg:h-44 xl:w-52 xl:h-52 bg-white border-2 sm:border-4 border-white rounded-2xl sm:rounded-3xl shadow-2xl flex items-center justify-center overflow-hidden transform transition-all duration-300 hover:scale-105 ${canEdit && isEditing ? 'cursor-pointer group/logo' : ''}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      isEditing && logoInputRef.current?.click();
+                      canEdit && isEditing && logoInputRef.current?.click();
                     }}
                   >
                     {hero.logoUrl ? (
@@ -395,7 +402,7 @@ export const HeroSection = ({
                     ) : (
                       <Image className="h-8 w-8 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-muted-foreground" />
                     )}
-                    {isEditing && (
+                    {canEdit && isEditing && (
                       <div className="absolute inset-0 bg-black/50 rounded-2xl sm:rounded-3xl flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity">
                         <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                       </div>
@@ -407,18 +414,18 @@ export const HeroSection = ({
 
                   {/* Name & Tagline */}
                   <div className="flex-1 space-y-1 sm:space-y-3 pb-1 sm:pb-2 min-w-0">
-                    {isEditing ? (
+                    {canEdit && isEditing ? (
                       <>
                         <Input
                           value={hero.name}
-                          onChange={(e) => onHeroChange({ ...hero, name: e.target.value })}
+                          onChange={(e) => onHeroChange?.({ ...hero, name: e.target.value })}
                           placeholder="Brand Name"
                           className="text-xl sm:text-3xl lg:text-5xl xl:text-6xl font-serif font-bold h-auto py-1 sm:py-2 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 rounded-xl"
                           onClick={(e) => e.stopPropagation()}
                         />
                         <Textarea
                           value={hero.tagline}
-                          onChange={(e) => onHeroChange({ ...hero, tagline: e.target.value })}
+                          onChange={(e) => onHeroChange?.({ ...hero, tagline: e.target.value })}
                           placeholder="Your brand tagline..."
                           className="text-sm sm:text-lg lg:text-2xl resize-none bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 rounded-xl min-h-[60px] sm:min-h-[80px]"
                           onClick={(e) => e.stopPropagation()}
