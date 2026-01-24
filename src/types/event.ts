@@ -250,12 +250,14 @@ export type EventSectionId =
   | 'eventhistory'      // Past events archive
   | 'eventvideos'       // Event videos & promos
   | 'eventlocation'     // Venue & location info
-  | 'eventwebsites';    // Event website links
+  | 'eventwebsites'     // Event website links
+  | 'subevents';        // Sub-events / regional events
 
 // Default Event Section Order
 export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'hero',
   'eventdetails',
+  'subevents',           // Show sub-events right after details for master events
   'tagline',
   'eventwebsites',
   'eventlocation',

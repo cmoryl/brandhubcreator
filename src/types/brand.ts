@@ -322,11 +322,21 @@ export interface TemplateSpec {
   notes?: string;
 }
 
-// LINKED GUIDES - References to other brand/product guides
+// LINKED GUIDES - References to other brand/product/event guides
 export interface LinkedGuideReference {
   id: string;
-  guideId: string;
-  guideType: 'brand' | 'product';
+  guideId?: string; // Legacy field
+  guideType?: 'brand' | 'product'; // Legacy field
+  // Extended fields for event sub-guides
+  type?: 'brand' | 'product' | 'event';
+  slug?: string;
+  name?: string;
+  region?: string;
+  accentColor?: string;
+  location?: string;
+  dates?: string;
+  attendees?: number;
+  coverImage?: string;
 }
 
 // SERVICES - Service Offerings
