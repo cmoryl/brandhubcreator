@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, forwardRef, ImgHTMLAttributes } from 'react';
+import { useState, useRef, useEffect, forwardRef, ImgHTMLAttributes, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 
 interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'onLoad' | 'onError'> {
@@ -9,16 +9,29 @@ interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
   blur?: boolean;
   priority?: boolean;
+  placeholderColor?: string;
   onLoadComplete?: () => void;
   onLoadError?: () => void;
 }
 
+// Generate a tiny SVG placeholder for blur-up effect
+const generatePlaceholder = (color: string = 'hsl(var(--muted))') => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 3"><rect fill="${color}" width="4" height="3"/></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+};
+
+// Dominant color extraction would go here for real blur-up
+// For now, we use muted background with gradient shimmer
+const generateShimmerGradient = () => 
+  'linear-gradient(90deg, hsl(var(--muted)) 0%, hsl(var(--muted-foreground) / 0.1) 50%, hsl(var(--muted)) 100%)';
+
 /**
  * OptimizedImage - A performance-optimized image component with:
  * - Lazy loading via Intersection Observer
- * - Blur-up placeholder effect
+ * - Blur-up placeholder effect with shimmer animation
  * - Error fallback handling
  * - Aspect ratio preservation
+ * - Priority preloading for LCP images
  */
 export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
   src,
@@ -28,31 +41,43 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
   objectFit = 'cover',
   blur = true,
   priority = false,
+  placeholderColor,
   className,
   onLoadComplete,
   onLoadError,
   style,
   ...props
 }, ref) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const [loadState, setLoadState] = useState<'idle' | 'loading' | 'loaded' | 'error'>(
+    priority ? 'loading' : 'idle'
+  );
   const [isInView, setIsInView] = useState(priority);
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Intersection Observer for lazy loading
+  const isLoaded = loadState === 'loaded';
+  const hasError = loadState === 'error';
+
+  // Memoize placeholder to prevent re-renders
+  const placeholderSrc = useMemo(
+    () => generatePlaceholder(placeholderColor),
+    [placeholderColor]
+  );
+
+  // Intersection Observer for lazy loading with larger margin for smoother experience
   useEffect(() => {
-    if (priority) return;
+    if (priority || isInView) return;
     
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsInView(true);
+          setLoadState('loading');
           observer.disconnect();
         }
       },
       { 
-        rootMargin: '100px', // Start loading 100px before visible
+        rootMargin: '200px', // Start loading 200px before visible for smoother transitions
         threshold: 0.01 
       }
     );
@@ -62,15 +87,16 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
     }
 
     return () => observer.disconnect();
-  }, [priority]);
+  }, [priority, isInView]);
 
-  // Preload priority images
+  // Preload priority images using link preload
   useEffect(() => {
     if (priority && src) {
       const link = document.createElement('link');
       link.rel = 'preload';
       link.as = 'image';
       link.href = src;
+      link.fetchPriority = 'high';
       document.head.appendChild(link);
       return () => {
         document.head.removeChild(link);
@@ -79,14 +105,12 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
   }, [priority, src]);
 
   const handleLoad = () => {
-    setIsLoaded(true);
-    setHasError(false);
+    setLoadState('loaded');
     onLoadComplete?.();
   };
 
   const handleError = () => {
-    setHasError(true);
-    setIsLoaded(true);
+    setLoadState('error');
     onLoadError?.();
   };
 
@@ -103,7 +127,6 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
   return (
     <div
       ref={(node) => {
-        // Handle both refs
         containerRef.current = node;
         if (typeof ref === 'function') {
           ref(node);
@@ -121,17 +144,45 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
         aspectRatio: aspectRatio,
       }}
     >
-      {/* Placeholder/skeleton */}
-      {!isLoaded && (
+      {/* Blur-up placeholder with shimmer animation */}
+      <div 
+        className={cn(
+          'absolute inset-0 transition-opacity duration-500 ease-out',
+          isLoaded ? 'opacity-0' : 'opacity-100'
+        )}
+        aria-hidden="true"
+      >
+        {/* Base color layer */}
+        <div className="absolute inset-0 bg-muted" />
+        
+        {/* Shimmer animation overlay */}
         <div 
           className={cn(
-            'absolute inset-0 bg-muted animate-pulse',
-            blur && 'backdrop-blur-sm'
+            'absolute inset-0 animate-shimmer',
+            isLoaded && 'animate-none'
           )}
+          style={{
+            backgroundImage: generateShimmerGradient(),
+            backgroundSize: '200% 100%',
+          }}
         />
-      )}
+        
+        {/* Blur placeholder image for actual blur-up effect */}
+        {blur && (
+          <img
+            src={placeholderSrc}
+            alt=""
+            aria-hidden="true"
+            className={cn(
+              'absolute inset-0 w-full h-full',
+              objectFitClass,
+              'blur-xl scale-110 opacity-50'
+            )}
+          />
+        )}
+      </div>
       
-      {/* Actual image */}
+      {/* Actual image - only render when in view */}
       {isInView && (
         <img
           ref={imgRef}
@@ -139,13 +190,13 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
           alt={alt}
           loading={priority ? 'eager' : 'lazy'}
           decoding={priority ? 'sync' : 'async'}
+          fetchPriority={priority ? 'high' : 'auto'}
           onLoad={handleLoad}
           onError={handleError}
           className={cn(
-            'w-full h-full transition-opacity duration-300',
+            'w-full h-full transition-all duration-500 ease-out',
             objectFitClass,
-            isLoaded ? 'opacity-100' : 'opacity-0',
-            blur && !isLoaded && 'blur-sm scale-105'
+            isLoaded ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-sm scale-[1.02]'
           )}
           {...props}
         />
