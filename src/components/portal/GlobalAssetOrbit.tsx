@@ -175,6 +175,49 @@ export const GlobalAssetOrbit = ({
   // (Rotating hierarchy lines don't work because orbits are in constant rotation)
   const showCenterConnection = activeEntity !== null;
 
+  // Calculate which entities are related to the hovered entity
+  const relatedEntityIds = useMemo(() => {
+    if (!activeEntity) return new Set<string>();
+    
+    const related = new Set<string>();
+    
+    // If hovering a product, highlight its parent brand and any linked guides
+    if (activeEntity.type === 'product') {
+      if (activeEntity.parentBrandId) {
+        related.add(activeEntity.parentBrandId);
+      }
+      activeEntity.linkedGuides?.forEach(id => related.add(id));
+    }
+    
+    // If hovering a brand, highlight products/events that belong to it or are linked
+    if (activeEntity.type === 'brand') {
+      // Find products with this brand as parent
+      orbitData.middle.forEach(p => {
+        if (p.parentBrandId === activeEntity.id) {
+          related.add(p.id);
+        }
+      });
+      // Find events with this brand as parent
+      orbitData.outer.forEach(e => {
+        if (e.parentBrandId === activeEntity.id) {
+          related.add(e.id);
+        }
+      });
+      // Add any linked guides
+      activeEntity.linkedGuides?.forEach(id => related.add(id));
+    }
+    
+    // If hovering an event, highlight its parent brand and any linked guides
+    if (activeEntity.type === 'event') {
+      if (activeEntity.parentBrandId) {
+        related.add(activeEntity.parentBrandId);
+      }
+      activeEntity.linkedGuides?.forEach(id => related.add(id));
+    }
+    
+    return related;
+  }, [activeEntity, orbitData]);
+
   const animationStyle = isPaused ? 'paused' : 'running';
 
   return (
@@ -362,6 +405,7 @@ export const GlobalAssetOrbit = ({
                 x={x}
                 y={y}
                 isActive={isActive}
+                isRelated={!isActive && relatedEntityIds.has(entity.id)}
                 isPaused={isPaused}
                 animationStyle={animationStyle}
                 onHover={() => {
@@ -407,6 +451,7 @@ export const GlobalAssetOrbit = ({
                 x={x}
                 y={y}
                 isActive={isActive}
+                isRelated={!isActive && relatedEntityIds.has(entity.id)}
                 isPaused={isPaused}
                 animationStyle={animationStyle}
                 onHover={() => {
@@ -452,6 +497,7 @@ export const GlobalAssetOrbit = ({
                 x={x}
                 y={y}
                 isActive={isActive}
+                isRelated={!isActive && relatedEntityIds.has(entity.id)}
                 isPaused={isPaused}
                 animationStyle={animationStyle}
                 onHover={() => {
@@ -486,6 +532,7 @@ export const GlobalAssetOrbit = ({
             handleEntityFilterClick(activeEntity);
           }
         }}
+        relatedCount={relatedEntityIds.size}
       />
     </div>
   );
@@ -497,6 +544,7 @@ interface EntityIconProps {
   x: number;
   y: number;
   isActive: boolean;
+  isRelated: boolean; // NEW: highlight if related to hovered entity
   isPaused: boolean;
   animationStyle: string;
   onHover: () => void;
@@ -513,6 +561,7 @@ const EntityIcon = ({
   x,
   y,
   isActive,
+  isRelated,
   isPaused,
   animationStyle,
   onHover,
@@ -529,6 +578,9 @@ const EntityIcon = ({
   const iconSize = size === 'sm' ? 'w-4 h-4' : 'w-5 h-5';
   const circleSize = size === 'sm' ? 32 : 40;
   const boxSize = size === 'sm' ? 40 : 48;
+  
+  // Determine visual state: active > related > default
+  const isHighlighted = isActive || isRelated;
   
   return (
     <div
@@ -556,25 +608,34 @@ const EntityIcon = ({
       >
         {/* Circular icon container */}
         <div 
-          className={cn("relative rounded-full cursor-pointer transition-all duration-300 ease-out flex items-center justify-center", isActive && "z-20")}
+          className={cn(
+            "relative rounded-full cursor-pointer transition-all duration-300 ease-out flex items-center justify-center",
+            isActive && "z-20",
+            isRelated && !isActive && "z-10"
+          )}
           style={{ 
             width: `${circleSize}px`,
             height: `${circleSize}px`,
             background: isActive 
               ? `linear-gradient(135deg, ${typeColor}, ${typeColor}cc)`
-              : `linear-gradient(135deg, ${typeColor}35, ${typeColor}15)`,
+              : isRelated
+                ? `linear-gradient(135deg, ${typeColor}60, ${typeColor}40)`
+                : `linear-gradient(135deg, ${typeColor}35, ${typeColor}15)`,
             boxShadow: isActive 
               ? `0 0 30px ${typeColor}60, 0 8px 32px ${typeColor}40`
-              : `0 0 12px ${typeColor}20`,
-            border: `2px solid ${typeColor}${isActive ? '' : '60'}`,
-            transform: `scale(${isActive ? 1.3 : 1})`,
+              : isRelated
+                ? `0 0 25px ${typeColor}50, 0 0 40px ${typeColor}30`
+                : `0 0 12px ${typeColor}20`,
+            border: `2px solid ${typeColor}${isActive ? '' : isRelated ? '90' : '60'}`,
+            transform: `scale(${isActive ? 1.3 : isRelated ? 1.15 : 1})`,
           }}
         >
           <Icon 
             className={cn(iconSize, "transition-all duration-300")}
             style={{ 
-              color: isActive ? '#ffffff' : typeColor,
-              filter: isActive ? 'drop-shadow(0 0 5px rgba(255,255,255,0.5))' : 'none',
+              color: isActive ? '#ffffff' : isRelated ? typeColor : typeColor,
+              filter: isHighlighted ? 'drop-shadow(0 0 5px rgba(255,255,255,0.5))' : 'none',
+              opacity: isHighlighted ? 1 : 0.85,
             }}
             isActive={isActive}
           />
@@ -583,6 +644,17 @@ const EntityIcon = ({
             <div className="absolute -top-0.5 -right-0.5 p-0.5 rounded-full animate-scale-in" style={{ background: typeColor }}>
               <ExternalLink className="w-2 h-2 text-white" />
             </div>
+          )}
+          
+          {/* Pulse ring for related items */}
+          {isRelated && !isActive && (
+            <div 
+              className="absolute inset-0 rounded-full animate-pulse"
+              style={{ 
+                border: `2px solid ${typeColor}`,
+                opacity: 0.5,
+              }}
+            />
           )}
         </div>
       </div>
@@ -595,9 +667,10 @@ interface TooltipOverlayProps {
   entity: LinkedEntity | null;
   containerRef: React.RefObject<HTMLDivElement>;
   onFilterClick: () => void;
+  relatedCount: number;
 }
 
-const TooltipOverlay = ({ entity, containerRef, onFilterClick }: TooltipOverlayProps) => {
+const TooltipOverlay = ({ entity, containerRef, onFilterClick, relatedCount }: TooltipOverlayProps) => {
   if (!entity) return null;
   
   const config = TYPE_CONFIG[entity.type];
@@ -614,7 +687,7 @@ const TooltipOverlay = ({ entity, containerRef, onFilterClick }: TooltipOverlayP
       }}
     >
       <div 
-        className="px-4 py-3 rounded-xl shadow-xl min-w-[160px]"
+        className="px-4 py-3 rounded-xl shadow-xl min-w-[180px]"
         style={{ 
           background: `linear-gradient(145deg, ${typeColor}, ${typeColor}dd)`,
           boxShadow: `0 10px 30px ${typeColor}50`,
@@ -624,6 +697,11 @@ const TooltipOverlay = ({ entity, containerRef, onFilterClick }: TooltipOverlayP
         <div className="flex items-center gap-1.5 mt-1">
           <Icon className="w-3.5 h-3.5" style={{ color: 'rgba(255,255,255,0.8)' }} />
           <span className="text-xs text-white/80">{config.label}</span>
+          {relatedCount > 0 && (
+            <span className="text-[10px] text-white/60 ml-1">
+              • {relatedCount} linked
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-3 mt-2 pt-2 border-t border-white/20">
           <div className="flex items-center gap-1">
