@@ -249,6 +249,11 @@ export type BrandBackgroundType =
   | 'animated-spotlight'
   | 'animated-mesh-waves'
   | 'animated-dataflow'
+  | 'animated-wave-lines'
+  | 'animated-flow-field'
+  | 'animated-neon-grid'
+  | 'animated-sine-lines'
+  | 'animated-data-particles'
   | 'solid';
 
 export interface BrandPageSettings {
