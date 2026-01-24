@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect, useRef } from 'react';
 import { EventSectionId, DEFAULT_EVENT_SECTION_ORDER, EventGuide } from '@/types/event';
 import { HeroSection } from '@/components/brand/HeroSection';
 import { TaglineSection } from '@/components/brand/TaglineSection';
@@ -27,7 +27,7 @@ import { EventLocationSection } from './EventLocationSection';
 import { EventWebsiteSection } from './EventWebsiteSection';
 import { Separator } from '@/components/ui/separator';
 
-interface FullEventPageProps {
+export interface FullEventPageProps {
   event: EventGuide;
   eventId: string;
   onEventUpdate?: (updates: Partial<EventGuide>) => void;
@@ -36,6 +36,8 @@ interface FullEventPageProps {
   isAdmin?: boolean;
   canEdit?: boolean;
   heroFullWidth?: boolean;
+  scrollToSection?: EventSectionId | null;
+  onSectionVisible?: (sectionId: EventSectionId) => void;
 }
 
 export const FullEventPage = ({
@@ -47,7 +49,60 @@ export const FullEventPage = ({
   isAdmin = false,
   canEdit = false,
   heroFullWidth = false,
+  scrollToSection = null,
+  onSectionVisible,
 }: FullEventPageProps) => {
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Scroll to section when scrollToSection changes
+  useEffect(() => {
+    if (scrollToSection) {
+      const element = document.getElementById(scrollToSection);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Add highlight flash after scroll completes
+        const flashTimeout = setTimeout(() => {
+          element.classList.add('section-highlight-flash');
+          const cleanupTimeout = setTimeout(() => {
+            element.classList.remove('section-highlight-flash');
+          }, 1300);
+          return () => clearTimeout(cleanupTimeout);
+        }, 400);
+        
+        return () => clearTimeout(flashTimeout);
+      }
+    }
+  }, [scrollToSection]);
+
+  // Intersection observer for section visibility
+  useEffect(() => {
+    if (!onSectionVisible) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const sectionId = entry.target.id as EventSectionId;
+            if (sectionId && sectionOrder.includes(sectionId)) {
+              onSectionVisible(sectionId);
+            }
+          }
+        });
+      },
+      { threshold: 0.3, rootMargin: '-80px 0px -50% 0px' }
+    );
+
+    // Observe all section elements
+    sectionOrder.forEach((sectionId) => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, [sectionOrder, onSectionVisible]);
   // Helper to conditionally create change handler
   const editHandler = useCallback(<T,>(handler: (value: T) => void) => {
     return canEdit && onEventUpdate ? handler : undefined;
