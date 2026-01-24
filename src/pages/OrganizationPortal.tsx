@@ -331,6 +331,8 @@ const OrganizationPortal = () => {
               <GlobalAssetOrbit 
                 primaryColor={organization.accentColor || orgColors.primary}
                 secondaryColor={orgColors.secondary}
+                organizationName={organization.name}
+                organizationLogo={organization.logoUrl}
                 className="w-full h-full"
                 brands={brands.map(b => ({
                   id: b.id,
