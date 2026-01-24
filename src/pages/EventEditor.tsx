@@ -50,6 +50,7 @@ import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { HeroBackground } from '@/components/HeroBackground';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { MobileEventSectionNav } from '@/components/event/MobileEventSectionNav';
+import { ParentEventBanner } from '@/components/event/ParentEventBanner';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -746,6 +747,16 @@ const EventEditor = () => {
                 currentIcon={Calendar}
                 className="mb-6"
               />
+
+              {/* Parent Event Banner for sub-events */}
+              {(event as any).parentEventSlug && (
+                <ParentEventBanner
+                  parentEventSlug={(event as any).parentEventSlug}
+                  parentEventName="GlobalLink NEXT"
+                  region={(event as any).region}
+                  accentColor={(event as any).regionAccentColor}
+                />
+              )}
               
               {viewMode === 'sections' ? (
                 <div className="animate-zoom-in">
