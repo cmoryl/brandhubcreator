@@ -8,6 +8,7 @@ import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSetti
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { supabase } from '@/integrations/supabase/client';
+import { normalizeBrandGuide } from '@/lib/guideNormalization';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -169,61 +170,22 @@ const BrandEditor = () => {
             navigate(`/brand/${data.slug}`, { replace: true });
           }
 
-          // Convert DB format to BrandGuide (defensive: legacy guide_data can contain invalid shapes)
-          const asArray = <T,>(value: unknown, fallback: T[] = []): T[] =>
-            Array.isArray(value) ? (value as T[]) : fallback;
-
-          const asObject = <T extends object>(value: unknown, fallback: T): T =>
-            value && typeof value === 'object' && !Array.isArray(value) ? (value as T) : fallback;
-
-          const guideData = asObject<Record<string, unknown>>(data.guide_data, {});
-
-          const brand: BrandGuide = {
+          // Convert DB format to BrandGuide using centralized normalization
+          const guideData = typeof data.guide_data === 'object' && data.guide_data ? data.guide_data : {};
+          const brand = normalizeBrandGuide({
+            ...guideData,
             id: data.id,
-            type: 'brand',
             slug: data.slug,
             organizationId: data.organization_id,
-            isFavorite: data.is_favorite ?? false,
-            isPublic: data.is_public ?? false,
-            sectionOrder: (Array.isArray(data.section_order) ? (data.section_order as SectionId[]) : DEFAULT_SECTION_ORDER),
-            hiddenSections: (Array.isArray(data.hidden_sections) ? (data.hidden_sections as SectionId[]) : []),
-            hero: asObject(guideData.hero, { name: data.name, tagline: '', coverImage: '', logoUrl: '' }) as BrandGuide['hero'],
-            tagline: asObject(guideData.tagline, { primary: '', secondary: '', variations: [] }) as BrandGuide['tagline'],
-            identity: asObject(guideData.identity, { missionStatement: '', archetype: '', toneOfVoice: [] }) as BrandGuide['identity'],
-            values: asArray(guideData.values, []) as BrandGuide['values'],
-            logos: asArray(guideData.logos, []) as BrandGuide['logos'],
-            brandIcons: asArray(guideData.brandIcons, []) as BrandGuide['brandIcons'],
-            colors: asArray(guideData.colors, []) as BrandGuide['colors'],
-            colorCombinations: asArray(guideData.colorCombinations, []) as BrandGuide['colorCombinations'],
-            gradients: asArray(guideData.gradients, []) as BrandGuide['gradients'],
-            patterns: asArray(guideData.patterns, []) as BrandGuide['patterns'],
-            typography: asArray(guideData.typography, []) as BrandGuide['typography'],
-            textStyles: asArray(guideData.textStyles, []) as BrandGuide['textStyles'],
-            iconography: asArray(guideData.iconography, []) as BrandGuide['iconography'],
-            socialIcons: asArray(guideData.socialIcons, []) as BrandGuide['socialIcons'],
-            imagery: asArray(guideData.imagery, []) as BrandGuide['imagery'],
-            social: asArray(guideData.social, []) as BrandGuide['social'],
-            socialAssets: asArray(guideData.socialAssets, []) as BrandGuide['socialAssets'],
-            displayBanners: asArray(guideData.displayBanners, []) as BrandGuide['displayBanners'],
-            websites: asArray(guideData.websites, []) as BrandGuide['websites'],
-            signatures: asArray(guideData.signatures, []) as BrandGuide['signatures'],
-            emailBanners: asArray(guideData.emailBanners, []) as BrandGuide['emailBanners'],
-            qr: asObject(guideData.qr, { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' }) as BrandGuide['qr'],
-            videos: asArray(guideData.videos, []) as BrandGuide['videos'],
-            assets: asArray(guideData.assets, []) as BrandGuide['assets'],
-            misuse: asArray(guideData.misuse, []) as BrandGuide['misuse'],
-            atmosphere: asObject(guideData.atmosphere, { style: 'gradient', animate: true, opacity: 0.5, blur: 0 }) as BrandGuide['atmosphere'],
-            caseStudies: asArray(guideData.caseStudies, []) as BrandGuide['caseStudies'],
-            brochures: asArray(guideData.brochures, []) as BrandGuide['brochures'],
-            templates: asArray(guideData.templates, []) as BrandGuide['templates'],
-            templateSpecs: asArray(guideData.templateSpecs, []) as BrandGuide['templateSpecs'],
-            services: asArray(guideData.services, []) as BrandGuide['services'],
-            linkedGuides: asArray(guideData.linkedGuides, []) as BrandGuide['linkedGuides'],
-            sectionSubtitles: asObject(guideData.sectionSubtitles, {}) as BrandGuide['sectionSubtitles'],
-            pageSettings: asObject(guideData.pageSettings, DEFAULT_PAGE_SETTINGS) as BrandGuide['pageSettings'],
-            createdAt: new Date(data.created_at),
-            updatedAt: new Date(data.updated_at),
-          };
+            isFavorite: data.is_favorite,
+            isPublic: data.is_public,
+            sectionOrder: data.section_order,
+            hiddenSections: data.hidden_sections,
+            createdAt: data.created_at,
+            updatedAt: data.updated_at,
+            // Ensure hero name is set from data.name if not in guide_data
+            hero: { ...(guideData as any)?.hero, name: (guideData as any)?.hero?.name || data.name },
+          });
           setPublicBrand(brand);
         }
       } catch (err) {

@@ -1,11 +1,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { BrandGuide, ProductGuide, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, DEFAULT_TEMPLATE_SPECS } from '@/types/brand';
+import { BrandGuide, ProductGuide, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, DEFAULT_TEMPLATE_SPECS, SectionId } from '@/types/brand';
 import { DEFAULT_SOCIAL_ASSETS, DEFAULT_DISPLAY_BANNERS } from '@/lib/socialAssetDefaults';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Json } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
+import { 
+  safeArray, 
+  safeObject, 
+  normalizeTypography, 
+  normalizeTemplates, 
+  normalizeBrochures 
+} from '@/lib/guideNormalization';
 
 // Debounce delay for database syncing (ms)
 const SYNC_DEBOUNCE_MS = 500;
@@ -108,38 +115,10 @@ const mergeSectionOrder = (dbOrder: string[] | null): BrandGuide['sectionOrder']
   return [...dbOrder, ...missingSections] as BrandGuide['sectionOrder'];
 };
 
-// Defensive helpers: old/legacy guide_data can contain invalid shapes.
-// If we don't normalize, the UI can crash when it expects arrays/objects.
-const asArray = <T,>(value: unknown, fallback: T[] = []): T[] =>
-  Array.isArray(value) ? (value as T[]) : fallback;
-
-const asObject = <T extends object>(value: unknown, fallback: T): T =>
-  value && typeof value === 'object' && !Array.isArray(value) ? (value as T) : fallback;
-
-// Normalize legacy typography data (family -> fontFamily, role -> usage)
-const normalizeTypography = (typography: unknown[]): unknown[] =>
-  typography.map((t: any) => ({
-    ...t,
-    fontFamily: t.fontFamily || t.family || 'Inter, sans-serif',
-    usage: t.usage || t.role || 'General',
-    weight: t.weight || '400',
-  }));
-
-// Normalize legacy templates data (category -> fileType)
-const normalizeTemplates = (templates: unknown[]): unknown[] =>
-  templates.map((t: any) => ({
-    ...t,
-    fileType: t.fileType || t.category || 'other',
-    fileSize: t.fileSize || '',
-  }));
-
-// Normalize legacy brochures data (ensure previewUrl exists)
-const normalizeBrochures = (brochures: unknown[]): unknown[] =>
-  brochures.map((b: any) => ({
-    ...b,
-    previewUrl: b.previewUrl || b.imageUrl || '',
-    title: b.title || b.name || 'Untitled',
-  }));
+// Use shared normalization utilities from lib/guideNormalization
+// Local aliases for backward compatibility within this file
+const asArray = safeArray;
+const asObject = safeObject;
 
 const dbToBrandGuide = (db: DbBrand): BrandGuide => {
   const guideData = asObject<Record<string, unknown>>(db.guide_data, {});
