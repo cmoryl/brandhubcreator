@@ -133,6 +133,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="org/:slug/settings"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <OrganizationSettings />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="contact"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
