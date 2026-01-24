@@ -131,6 +131,60 @@ const ProductEditor = () => {
     window.scrollTo(0, 0);
   }, [productSlug]);
 
+  // Scroll to section when sidebar nav is clicked, then flash highlight
+  React.useEffect(() => {
+    if (scrollToSection && viewMode === 'full') {
+      const element = document.getElementById(scrollToSection);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Add highlight flash after scroll completes
+        const flashTimeout = setTimeout(() => {
+          element.classList.add('section-highlight-flash');
+          
+          // Remove the class after animation completes
+          const cleanupTimeout = setTimeout(() => {
+            element.classList.remove('section-highlight-flash');
+          }, 1300);
+          
+          return () => clearTimeout(cleanupTimeout);
+        }, 400); // Wait for scroll to mostly complete
+        
+        return () => clearTimeout(flashTimeout);
+      }
+    }
+  }, [scrollToSection, viewMode]);
+
+  // Sync sidebar with scroll position using Intersection Observer
+  React.useEffect(() => {
+    if (viewMode !== 'full') return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const sectionId = entry.target.id as SectionId;
+            if (sectionId && DEFAULT_SECTION_ORDER.includes(sectionId)) {
+              setActiveSection(sectionId);
+            }
+          }
+        });
+      },
+      { threshold: 0.3, rootMargin: '-80px 0px -50% 0px' }
+    );
+
+    // Observe all section elements
+    const sectionElements = document.querySelectorAll('[id]');
+    sectionElements.forEach((el) => {
+      // Only observe valid section IDs
+      if (DEFAULT_SECTION_ORDER.includes(el.id as SectionId)) {
+        observer.observe(el);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, [viewMode]);
+
   // Helper to check if the param is a UUID
   const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
