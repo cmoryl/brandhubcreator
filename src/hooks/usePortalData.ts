@@ -55,6 +55,20 @@ export interface PortalProduct {
   colors?: Array<{ id: string; hex: string }>;
 }
 
+export interface PortalLinkedEvent {
+  id: string;
+  type: 'event';
+  slug: string;
+  name: string;
+  region?: string;
+  accentColor?: string;
+  location?: string;
+  dates?: string;
+  venue?: string;
+  attendees?: number;
+  coverImage?: string;
+}
+
 export interface PortalEvent {
   id: string;
   name: string;
@@ -73,6 +87,7 @@ export interface PortalEvent {
     location: string;
   };
   colors?: Array<{ id: string; hex: string }>;
+  linkedGuides?: PortalLinkedEvent[];
 }
 
 interface PortalDataState {
@@ -93,7 +108,7 @@ export type UsePortalDataReturn = PortalDataState & PortalDataActions;
 // Optimized select queries - only fetch card-relevant data with minimal JSON paths
 const BRAND_CARD_SELECT = 'id, name, slug, is_public, updated_at, hero:guide_data->hero, colors:guide_data->colors';
 const PRODUCT_CARD_SELECT = 'id, name, slug, is_public, parent_brand_id, updated_at, hero:guide_data->hero, colors:guide_data->colors';
-const EVENT_CARD_SELECT = 'id, name, slug, is_public, parent_brand_id, updated_at, hero:guide_data->hero, colors:guide_data->colors, eventDetails:guide_data->eventDetails';
+const EVENT_CARD_SELECT = 'id, name, slug, is_public, parent_brand_id, updated_at, hero:guide_data->hero, colors:guide_data->colors, eventDetails:guide_data->eventDetails, linkedGuides:guide_data->linkedGuides';
 
 // Cache for recently fetched data to prevent duplicate requests
 const dataCache = new Map<string, { data: any; timestamp: number }>();
@@ -179,6 +194,9 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
       hero: row.hero ?? undefined,
       eventDetails: row.eventDetails ?? undefined,
       colors: row.colors ?? undefined,
+      linkedGuides: Array.isArray(row.linkedGuides) 
+        ? row.linkedGuides.filter((g: any) => g.type === 'event')
+        : undefined,
     }));
 
     const result = { brands: mappedBrands, products: mappedProducts, events: mappedEvents };
