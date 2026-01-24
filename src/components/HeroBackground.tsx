@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useAppSettings, HeroBackgroundType } from '@/contexts/AppSettingsContext';
 
 interface HeroBackgroundProps {
@@ -35,14 +36,17 @@ const hexToHSLValues = (hex: string): { h: number; s: number; l: number } | null
   return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
 };
 
-export const HeroBackground = ({ 
+export const HeroBackground = React.forwardRef<
+  HTMLDivElement,
+  HeroBackgroundProps
+>(({ 
   type: propType, 
   image: propImage, 
   animationSpeed: propSpeed,
   overlay: propOverlay,
   overlayOpacity: propOpacity,
   tintColor
-}: HeroBackgroundProps = {}) => {
+}, ref) => {
   const { settings } = useAppSettings();
   const { heroBackground } = settings;
 
@@ -693,4 +697,6 @@ export const HeroBackground = ({
       <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
     </div>
   );
-};
+});
+
+HeroBackground.displayName = "HeroBackground";
