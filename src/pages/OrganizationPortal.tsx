@@ -334,6 +334,9 @@ const OrganizationPortal = () => {
                 organizationName={organization.name}
                 organizationLogo={organization.logoUrl}
                 className="w-full h-full"
+                onFilterChange={(filter) => {
+                  setActiveTab(filter);
+                }}
                 brands={brands.map(b => ({
                   id: b.id,
                   name: b.hero?.name || b.name,
@@ -361,6 +364,7 @@ const OrganizationPortal = () => {
                   updatedAt: e.updatedAt,
                   coverImage: e.hero?.coverImage,
                   color: e.colors?.[0]?.hex,
+                  parentBrandId: e.parentBrandId || undefined,
                 }))}
               />
             </div>
