@@ -256,7 +256,7 @@ const OrganizationPortal = () => {
                     <DropdownMenuSeparator />
                     
                     {/* Quick Navigation */}
-                    <DropdownMenuItem onClick={() => navigate('/')} className="gap-2 cursor-pointer">
+                    <DropdownMenuItem onClick={() => navigate(`/org/${slug}`)} className="gap-2 cursor-pointer">
                       <LayoutDashboard className="h-4 w-4" />
                       Dashboard
                     </DropdownMenuItem>
