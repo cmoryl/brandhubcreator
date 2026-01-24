@@ -9,13 +9,7 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Building2,
-  Package,
-  Calendar,
-  ArrowUpRight,
-  ExternalLink,
-} from 'lucide-react';
+import { ArrowUpRight, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface LinkedEntity {
@@ -40,10 +34,73 @@ interface GlobalAssetOrbitProps {
   events?: LinkedEntity[];
 }
 
+// Distinct colors for each entity type
+const TYPE_COLORS = {
+  brand: '#0ea5e9',    // Sky blue
+  product: '#8b5cf6',  // Purple
+  event: '#f59e0b',    // Amber
+};
+
+// Stylized SVG icons for each type
+const BrandIcon = ({ className, style, isActive }: { className?: string; style?: React.CSSProperties; isActive?: boolean }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className} style={style}>
+    {/* Abstract crown/diamond shape for brands */}
+    <path 
+      d="M12 2L4 8L6 18H18L20 8L12 2Z" 
+      stroke="currentColor" 
+      strokeWidth={isActive ? 2.5 : 2}
+      strokeLinejoin="round"
+      fill={isActive ? 'currentColor' : 'none'}
+      fillOpacity={isActive ? 0.2 : 0}
+    />
+    <path 
+      d="M12 2V10M4 8L12 10M20 8L12 10" 
+      stroke="currentColor" 
+      strokeWidth={isActive ? 2 : 1.5}
+      strokeLinecap="round"
+    />
+    <circle cx="12" cy="14" r="2" fill="currentColor" />
+  </svg>
+);
+
+const ProductIcon = ({ className, style, isActive }: { className?: string; style?: React.CSSProperties; isActive?: boolean }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className} style={style}>
+    {/* Abstract hexagonal/cube shape for products */}
+    <path 
+      d="M12 2L21 7V17L12 22L3 17V7L12 2Z" 
+      stroke="currentColor" 
+      strokeWidth={isActive ? 2.5 : 2}
+      strokeLinejoin="round"
+      fill={isActive ? 'currentColor' : 'none'}
+      fillOpacity={isActive ? 0.2 : 0}
+    />
+    <path 
+      d="M12 22V12M3 7L12 12M21 7L12 12" 
+      stroke="currentColor" 
+      strokeWidth={isActive ? 2 : 1.5}
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const EventIcon = ({ className, style, isActive }: { className?: string; style?: React.CSSProperties; isActive?: boolean }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className} style={style}>
+    {/* Abstract starburst/spark shape for events */}
+    <path 
+      d="M12 2L14 9H21L15.5 13L17.5 21L12 16L6.5 21L8.5 13L3 9H10L12 2Z" 
+      stroke="currentColor" 
+      strokeWidth={isActive ? 2.5 : 2}
+      strokeLinejoin="round"
+      fill={isActive ? 'currentColor' : 'none'}
+      fillOpacity={isActive ? 0.25 : 0}
+    />
+  </svg>
+);
+
 const TYPE_CONFIG = {
-  brand: { Icon: Building2, label: 'Brand Guide', path: '/brand', orbit: 'inner' },
-  product: { Icon: Package, label: 'Product Guide', path: '/product', orbit: 'middle' },
-  event: { Icon: Calendar, label: 'Event Kit', path: '/event', orbit: 'outer' },
+  brand: { Icon: BrandIcon, label: 'Brand Guide', path: '/brand', orbit: 'inner', color: TYPE_COLORS.brand },
+  product: { Icon: ProductIcon, label: 'Product Guide', path: '/product', orbit: 'middle', color: TYPE_COLORS.product },
+  event: { Icon: EventIcon, label: 'Event Kit', path: '/event', orbit: 'outer', color: TYPE_COLORS.event },
 };
 
 // Seeded random for consistent but varied patterns
@@ -460,13 +517,16 @@ export const GlobalAssetOrbit = ({
           const dotSize = isOrgConnection ? 6 : isParentChild ? 5 : 3;
           const animDuration = isOrgConnection ? '1s' : isParentChild ? '1.3s' : '1.8s';
           
+          // Get color based on the hovered entity type
+          const lineColor = activeEntity ? TYPE_COLORS[activeEntity.type] : primaryColor;
+          
           return (
             <g key={`hier-${i}`} filter="url(#glow-soft-v2)">
               {/* Main connection line */}
               <path
                 d={`M ${fromPos.x} ${fromPos.y} Q ${midX} ${midY} ${toPos.x} ${toPos.y}`}
                 fill="none"
-                stroke={primaryColor}
+                stroke={lineColor}
                 strokeWidth={strokeWidth}
                 strokeOpacity={strokeOpacity}
                 strokeDasharray={isSibling ? "4 4" : "0"}
@@ -478,7 +538,7 @@ export const GlobalAssetOrbit = ({
                 <path
                   d={`M ${fromPos.x} ${fromPos.y} Q ${midX} ${midY} ${toPos.x} ${toPos.y}`}
                   fill="none"
-                  stroke={primaryColor}
+                  stroke={lineColor}
                   strokeWidth={strokeWidth + 4}
                   strokeOpacity={strokeOpacity * 0.3}
                   strokeDasharray={isSibling ? "4 4" : "0"}
@@ -488,7 +548,7 @@ export const GlobalAssetOrbit = ({
               {/* Animated dot traveling along line */}
               <circle 
                 r={dotSize} 
-                fill={primaryColor} 
+                fill={lineColor} 
                 fillOpacity="0.95"
               >
                 <animateMotion
@@ -502,7 +562,7 @@ export const GlobalAssetOrbit = ({
               {(isOrgConnection || isParentChild) && (
                 <circle 
                   r={dotSize * 0.6} 
-                  fill={primaryColor} 
+                  fill={lineColor} 
                   fillOpacity="0.7"
                 >
                   <animateMotion
@@ -521,7 +581,7 @@ export const GlobalAssetOrbit = ({
                   cy={toPos.y}
                   r={dotSize + 2}
                   fill="none"
-                  stroke={primaryColor}
+                  stroke={lineColor}
                   strokeWidth="2"
                   strokeOpacity="0.6"
                   className="animate-scale-in"
@@ -628,7 +688,6 @@ export const GlobalAssetOrbit = ({
                 y={y}
                 isActive={isActive}
                 orbitPaused={orbitPaused}
-                primaryColor={primaryColor}
                 onHover={() => {
                   setHoveredIndex(i);
                   setHoveredOrbit('inner');
@@ -677,7 +736,6 @@ export const GlobalAssetOrbit = ({
                 y={y}
                 isActive={isActive}
                 orbitPaused={orbitPaused}
-                primaryColor={primaryColor}
                 onHover={() => {
                   setHoveredIndex(i);
                   setHoveredOrbit('middle');
@@ -725,7 +783,6 @@ export const GlobalAssetOrbit = ({
                 y={y}
                 isActive={isActive}
                 orbitPaused={orbitPaused}
-                primaryColor={primaryColor}
                 onHover={() => {
                   setHoveredIndex(i);
                   setHoveredOrbit('outer');
@@ -794,55 +851,55 @@ export const GlobalAssetOrbit = ({
       <div 
         className="absolute bottom-2 left-2 flex flex-col gap-1.5 p-2.5 rounded-lg backdrop-blur-sm transition-opacity duration-300"
         style={{ 
-          background: `${primaryColor}10`,
-          border: `1px solid ${primaryColor}20`,
+          background: 'rgba(0,0,0,0.3)',
+          border: '1px solid rgba(255,255,255,0.1)',
           opacity: isHovering ? 1 : 0.7,
         }}
       >
         <div className="flex items-center gap-2">
           <div 
             className="w-5 h-5 rounded-md flex items-center justify-center"
-            style={{ background: `${primaryColor}30`, border: `1px solid ${primaryColor}50` }}
+            style={{ background: `${TYPE_COLORS.brand}30`, border: `1px solid ${TYPE_COLORS.brand}60` }}
           >
-            <Building2 className="w-3 h-3" style={{ color: primaryColor }} />
+            <BrandIcon className="w-3.5 h-3.5" style={{ color: TYPE_COLORS.brand }} />
           </div>
-          <span className="text-[10px] font-medium" style={{ color: primaryColor }}>Brands</span>
-          <div className="flex items-center gap-1 ml-1">
-            <div className="w-4 h-0.5 rounded-full" style={{ background: primaryColor, opacity: 0.9 }} />
-            <div className="w-1.5 h-1.5 rounded-full" style={{ background: primaryColor }} />
+          <span className="text-[10px] font-medium" style={{ color: TYPE_COLORS.brand }}>Brands</span>
+          <div className="flex items-center gap-1 ml-auto">
+            <div className="w-5 h-0.5 rounded-full" style={{ background: TYPE_COLORS.brand }} />
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: TYPE_COLORS.brand }} />
           </div>
         </div>
         
         <div className="flex items-center gap-2">
           <div 
             className="w-5 h-5 rounded-md flex items-center justify-center"
-            style={{ background: `${primaryColor}25`, border: `1px solid ${primaryColor}40` }}
+            style={{ background: `${TYPE_COLORS.product}30`, border: `1px solid ${TYPE_COLORS.product}60` }}
           >
-            <Package className="w-3 h-3" style={{ color: primaryColor }} />
+            <ProductIcon className="w-3.5 h-3.5" style={{ color: TYPE_COLORS.product }} />
           </div>
-          <span className="text-[10px] font-medium" style={{ color: primaryColor }}>Products</span>
-          <div className="flex items-center gap-1 ml-1">
-            <div className="w-4 h-0.5 rounded-full" style={{ background: primaryColor, opacity: 0.7 }} />
-            <div className="w-1 h-1 rounded-full" style={{ background: primaryColor }} />
+          <span className="text-[10px] font-medium" style={{ color: TYPE_COLORS.product }}>Products</span>
+          <div className="flex items-center gap-1 ml-auto">
+            <div className="w-5 h-0.5 rounded-full" style={{ background: TYPE_COLORS.product }} />
+            <div className="w-1 h-1 rounded-full" style={{ background: TYPE_COLORS.product }} />
           </div>
         </div>
         
         <div className="flex items-center gap-2">
           <div 
             className="w-5 h-5 rounded-md flex items-center justify-center"
-            style={{ background: `${primaryColor}20`, border: `1px solid ${primaryColor}30` }}
+            style={{ background: `${TYPE_COLORS.event}30`, border: `1px solid ${TYPE_COLORS.event}60` }}
           >
-            <Calendar className="w-3 h-3" style={{ color: primaryColor }} />
+            <EventIcon className="w-3.5 h-3.5" style={{ color: TYPE_COLORS.event }} />
           </div>
-          <span className="text-[10px] font-medium" style={{ color: primaryColor }}>Events</span>
-          <div className="flex items-center gap-1 ml-1">
-            <div className="w-4 h-0.5 rounded-full" style={{ background: primaryColor, opacity: 0.5 }} />
-            <div className="w-1 h-1 rounded-full" style={{ background: primaryColor, opacity: 0.7 }} />
+          <span className="text-[10px] font-medium" style={{ color: TYPE_COLORS.event }}>Events</span>
+          <div className="flex items-center gap-1 ml-auto">
+            <div className="w-5 h-0.5 rounded-full" style={{ background: TYPE_COLORS.event }} />
+            <div className="w-1 h-1 rounded-full" style={{ background: TYPE_COLORS.event, opacity: 0.8 }} />
           </div>
         </div>
         
-        <div className="mt-1 pt-1 border-t" style={{ borderColor: `${primaryColor}20` }}>
-          <p className="text-[8px] opacity-60" style={{ color: primaryColor }}>Hover to see connections</p>
+        <div className="mt-1 pt-1 border-t border-white/10">
+          <p className="text-[8px] text-white/50">Hover to see connections</p>
         </div>
       </div>
 
@@ -859,13 +916,12 @@ export const GlobalAssetOrbit = ({
 // Entity Icon sub-component
 interface EntityIconProps {
   entity: LinkedEntity;
-  Icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
-  config: { label: string; path: string };
+  Icon: React.ComponentType<{ className?: string; style?: React.CSSProperties; isActive?: boolean }>;
+  config: { label: string; path: string; color: string };
   x: number;
   y: number;
   isActive: boolean;
   orbitPaused: boolean;
-  primaryColor: string;
   onHover: () => void;
   onLeave: () => void;
   onClick: () => void;
@@ -882,7 +938,6 @@ const EntityIcon = ({
   y,
   isActive,
   orbitPaused,
-  primaryColor,
   onHover,
   onLeave,
   onClick,
@@ -890,9 +945,9 @@ const EntityIcon = ({
   spinReverse,
   size = 'md',
 }: EntityIconProps) => {
-  const sizeClasses = size === 'sm' ? 'w-10 h-10' : 'w-12 h-12';
   const iconSize = size === 'sm' ? 'w-4 h-4' : 'w-5 h-5';
   const padding = size === 'sm' ? 'p-2' : 'p-2.5';
+  const typeColor = config.color;
   
   return (
     <div
@@ -927,27 +982,28 @@ const EntityIcon = ({
           )}
           style={{ 
             background: isActive 
-              ? `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)`
-              : `linear-gradient(135deg, ${primaryColor}35, ${primaryColor}15)`,
+              ? `linear-gradient(135deg, ${typeColor}, ${typeColor}cc)`
+              : `linear-gradient(135deg, ${typeColor}35, ${typeColor}15)`,
             boxShadow: isActive 
-              ? `0 0 30px ${primaryColor}60, 0 8px 32px ${primaryColor}40`
-              : `0 0 12px ${primaryColor}20`,
-            border: `1.5px solid ${primaryColor}${isActive ? '' : '40'}`,
+              ? `0 0 30px ${typeColor}60, 0 8px 32px ${typeColor}40`
+              : `0 0 12px ${typeColor}20`,
+            border: `1.5px solid ${typeColor}${isActive ? '' : '50'}`,
             transform: `scale(${isActive ? 1.4 : 1})`,
           }}
         >
           <Icon 
             className={cn(iconSize, "transition-all duration-300")}
             style={{ 
-              color: isActive ? '#ffffff' : primaryColor,
+              color: isActive ? '#ffffff' : typeColor,
               filter: isActive ? 'drop-shadow(0 0 5px rgba(255,255,255,0.5))' : 'none',
             }}
+            isActive={isActive}
           />
           
           {isActive && (
             <div 
               className="absolute -top-1 -right-1 p-0.5 rounded-full animate-scale-in"
-              style={{ background: primaryColor }}
+              style={{ background: typeColor }}
             >
               <ExternalLink className="w-2.5 h-2.5 text-white" />
             </div>
@@ -965,13 +1021,13 @@ const EntityIcon = ({
           <div 
             className="px-3 py-2 rounded-lg shadow-xl min-w-[130px]"
             style={{ 
-              background: `linear-gradient(145deg, ${primaryColor}, ${primaryColor}dd)`,
-              boxShadow: `0 10px 30px ${primaryColor}50`,
+              background: `linear-gradient(145deg, ${typeColor}, ${typeColor}dd)`,
+              boxShadow: `0 10px 30px ${typeColor}50`,
             }}
           >
             <p className="text-xs font-bold text-white truncate">{entity.name}</p>
             <div className="flex items-center gap-1 mt-0.5">
-              <Icon className="w-3 h-3 text-white/80" />
+              <Icon className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.8)' }} />
               <span className="text-[10px] text-white/80">{config.label}</span>
             </div>
             <div className="flex items-center gap-1 mt-1.5 pt-1.5 border-t border-white/20">
@@ -981,7 +1037,7 @@ const EntityIcon = ({
           </div>
           <div 
             className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45"
-            style={{ background: primaryColor }}
+            style={{ background: typeColor }}
           />
         </div>
       </div>
