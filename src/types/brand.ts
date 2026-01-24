@@ -326,7 +326,7 @@ export interface TemplateSpec {
 export interface LinkedGuideReference {
   id: string;
   guideId?: string; // Legacy field
-  guideType?: 'brand' | 'product'; // Legacy field
+  guideType?: 'brand' | 'product' | 'event';
   // Extended fields for event sub-guides
   type?: 'brand' | 'product' | 'event';
   slug?: string;
