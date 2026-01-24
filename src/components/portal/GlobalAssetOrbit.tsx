@@ -97,6 +97,7 @@ export const GlobalAssetOrbit = ({
   const [hoveredOrbit, setHoveredOrbit] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'brands' | 'products' | 'events'>('all');
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
 
   const centerLetter = organizationName.charAt(0).toUpperCase();
 
@@ -219,17 +220,28 @@ export const GlobalAssetOrbit = ({
   }, [activeEntity, orbitData]);
 
   const animationStyle = isPaused ? 'paused' : 'running';
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setMousePos({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+    }
+  }, []);
 
   return (
     <div 
       ref={containerRef}
       className={cn('relative', className)}
       onMouseEnter={() => setIsHovering(true)}
+      onMouseMove={handleMouseMove}
       onMouseLeave={() => {
         setIsHovering(false);
         setActiveEntity(null);
         setHoveredIndex(null);
         setHoveredOrbit(null);
+        setMousePos(null);
       }}
     >
       {/* Top Left Legend - Single line horizontal layout */}
@@ -527,10 +539,11 @@ export const GlobalAssetOrbit = ({
         </div>
       )}
       
-      {/* Fixed position tooltip overlay - rendered at container level, not in rotating orbit */}
+      {/* Tooltip follows mouse position */}
       <TooltipOverlay 
         entity={activeEntity} 
         containerRef={containerRef}
+        mousePos={mousePos}
         onFilterClick={() => {
           if (activeEntity) {
             handleEntityFilterClick(activeEntity);
@@ -672,12 +685,13 @@ const EntityIcon = ({
 interface TooltipOverlayProps {
   entity: LinkedEntity | null;
   containerRef: React.RefObject<HTMLDivElement>;
+  mousePos: { x: number; y: number } | null;
   onFilterClick: () => void;
   relatedCount: number;
 }
 
-const TooltipOverlay = ({ entity, containerRef, onFilterClick, relatedCount }: TooltipOverlayProps) => {
-  if (!entity) return null;
+const TooltipOverlay = ({ entity, mousePos, onFilterClick, relatedCount }: TooltipOverlayProps) => {
+  if (!entity || !mousePos) return null;
   
   const config = TYPE_CONFIG[entity.type];
   const Icon = config.Icon;
@@ -685,34 +699,34 @@ const TooltipOverlay = ({ entity, containerRef, onFilterClick, relatedCount }: T
   
   return (
     <div 
-      className="absolute z-[100] pointer-events-auto animate-scale-in"
+      className="absolute z-[100] pointer-events-none animate-scale-in"
       style={{ 
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -120%)',
+        left: `${mousePos.x}px`,
+        top: `${mousePos.y - 10}px`,
+        transform: 'translate(-50%, -100%)',
       }}
     >
       <div 
-        className="px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm"
+        className="px-3 py-2 rounded-lg shadow-lg backdrop-blur-md pointer-events-auto"
         style={{ 
-          background: `linear-gradient(145deg, ${typeColor}ee, ${typeColor}cc)`,
+          background: `linear-gradient(145deg, ${typeColor}f0, ${typeColor}dd)`,
           boxShadow: `0 4px 20px ${typeColor}60`,
-          border: '1px solid rgba(255,255,255,0.2)',
+          border: '1px solid rgba(255,255,255,0.25)',
         }}
       >
         <p className="text-xs font-semibold text-white truncate max-w-[160px]">{entity.name}</p>
         <div className="flex items-center gap-1.5 mt-0.5">
-          <Icon className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.8)' }} />
-          <span className="text-[10px] text-white/70">{config.label}</span>
+          <Icon className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.85)' }} />
+          <span className="text-[10px] text-white/75">{config.label}</span>
           {relatedCount > 0 && (
-            <span className="text-[9px] text-white/50">• {relatedCount} linked</span>
+            <span className="text-[9px] text-white/55">• {relatedCount} linked</span>
           )}
         </div>
       </div>
-      {/* Arrow pointing down toward center */}
+      {/* Arrow pointing down toward cursor */}
       <div 
-        className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45" 
-        style={{ background: `${typeColor}cc` }} 
+        className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45" 
+        style={{ background: `${typeColor}dd` }} 
       />
     </div>
   );
