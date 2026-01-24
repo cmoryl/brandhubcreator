@@ -43,6 +43,10 @@ export interface BrandHero {
   name: string;
   tagline: string;
   coverImage: string;
+  /** Optional video URL for animated hero backgrounds (MP4/WebM) */
+  coverVideo?: string;
+  /** Whether to use video instead of image when both are present */
+  useVideo?: boolean;
   logoUrl: string;
 }
 

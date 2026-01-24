@@ -267,11 +267,15 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
 OptimizedImage.displayName = 'OptimizedImage';
 
 /**
- * BackgroundImage - Optimized background image with lazy loading
+ * BackgroundImage - Optimized background image/video with lazy loading
  */
 interface BackgroundImageProps {
   src: string;
   fallbackSrc?: string;
+  /** Optional video source for animated backgrounds (MP4/WebM) */
+  videoSrc?: string;
+  /** Whether to prefer video over image when both are available */
+  preferVideo?: boolean;
   children?: React.ReactNode;
   className?: string;
   overlayClassName?: string;
@@ -284,6 +288,8 @@ interface BackgroundImageProps {
 export const BackgroundImage = forwardRef<HTMLDivElement, BackgroundImageProps>(({
   src,
   fallbackSrc,
+  videoSrc,
+  preferVideo = true,
   children,
   className,
   overlayClassName,
@@ -294,8 +300,13 @@ export const BackgroundImage = forwardRef<HTMLDivElement, BackgroundImageProps>(
 }, ref) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [videoError, setVideoError] = useState(false);
   const [isInView, setIsInView] = useState(priority);
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Determine if we should show video
+  const showVideo = videoSrc && preferVideo && !videoError;
 
   // Intersection Observer
   useEffect(() => {
@@ -350,18 +361,42 @@ export const BackgroundImage = forwardRef<HTMLDivElement, BackgroundImageProps>(
       className={cn('relative overflow-hidden', className)}
       onClick={onClick}
     >
-      {/* Background layer */}
-      <div
-        className={cn(
-          'absolute inset-0 bg-cover bg-center transition-opacity duration-500',
-          isLoaded ? 'opacity-100' : 'opacity-0',
-          parallax && 'will-change-transform'
-        )}
-        style={{
-          backgroundImage: isInView && currentSrc ? `url(${currentSrc})` : undefined,
-          transform: parallax ? `translateY(${parallaxOffset}px) scale(1.1)` : undefined,
-        }}
-      />
+      {/* Video background layer */}
+      {showVideo && isInView && (
+        <video
+          ref={videoRef}
+          className={cn(
+            'absolute inset-0 w-full h-full object-cover transition-opacity duration-500',
+            isLoaded ? 'opacity-100' : 'opacity-0',
+            parallax && 'will-change-transform'
+          )}
+          style={{
+            transform: parallax ? `translateY(${parallaxOffset}px) scale(1.1)` : undefined,
+          }}
+          src={videoSrc}
+          autoPlay
+          loop
+          muted
+          playsInline
+          onLoadedData={() => setIsLoaded(true)}
+          onError={() => setVideoError(true)}
+        />
+      )}
+
+      {/* Image background layer (fallback or primary) */}
+      {!showVideo && (
+        <div
+          className={cn(
+            'absolute inset-0 bg-cover bg-center transition-opacity duration-500',
+            isLoaded ? 'opacity-100' : 'opacity-0',
+            parallax && 'will-change-transform'
+          )}
+          style={{
+            backgroundImage: isInView && currentSrc ? `url(${currentSrc})` : undefined,
+            transform: parallax ? `translateY(${parallaxOffset}px) scale(1.1)` : undefined,
+          }}
+        />
+      )}
       
       {/* Placeholder */}
       {!isLoaded && (

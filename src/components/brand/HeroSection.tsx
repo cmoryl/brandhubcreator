@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
-import { Upload, Image, Pencil, Check, TrendingUp, Eye, Users, Share2, Heart, BarChart3, Sparkles, Brain } from 'lucide-react';
+import { Upload, Image, Pencil, Check, TrendingUp, Eye, Users, Share2, Heart, BarChart3, Sparkles, Brain, Video, ImageIcon } from 'lucide-react';
 import { BrandHero } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BackgroundImage } from '@/components/ui/optimized-image';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface HeroStats {
   views?: number;
@@ -44,6 +46,7 @@ export const HeroSection = ({
   const [isVisible, setIsVisible] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   // Default stats for demo
@@ -124,7 +127,7 @@ export const HeroSection = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'coverImage' | 'logoUrl') => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'coverImage' | 'logoUrl' | 'coverVideo') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -134,6 +137,19 @@ export const HeroSection = ({
       onHeroChange({ ...hero, [field]: url });
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleVideoUrlInput = () => {
+    const url = prompt('Enter video URL (MP4 or WebM):');
+    if (url) {
+      onHeroChange({ ...hero, coverVideo: url, useVideo: true });
+    }
+  };
+
+  const toggleMediaType = (value: string) => {
+    if (value === 'video' || value === 'image') {
+      onHeroChange({ ...hero, useVideo: value === 'video' });
+    }
   };
 
   const formatNumber = (num: number) => {
@@ -157,6 +173,13 @@ export const HeroSection = ({
         className="hidden"
       />
       <input
+        ref={videoInputRef}
+        type="file"
+        accept="video/mp4,video/webm,video/*"
+        onChange={(e) => handleFileUpload(e, 'coverVideo')}
+        className="hidden"
+      />
+      <input
         ref={logoInputRef}
         type="file"
         accept="image/*"
@@ -169,15 +192,17 @@ export const HeroSection = ({
         ref={heroRef}
         className={`relative overflow-hidden ${fullWidth ? '-mx-4 sm:-mx-6 lg:-mx-8 xl:-mx-12 2xl:-mx-16' : '-mx-4 sm:-mx-6 lg:-mx-8'}`}
       >
-        {/* Cover Image - Enhanced Height with Parallax and optimized loading */}
+        {/* Cover Image/Video - Enhanced Height with Parallax and optimized loading */}
         <BackgroundImage
           src={hero.coverImage || ''}
+          videoSrc={hero.coverVideo}
+          preferVideo={hero.useVideo ?? true}
           fallbackSrc=""
           className={`relative ${heroHeight} cursor-pointer group`}
           priority={true}
           parallax={true}
           parallaxOffset={parallaxOffset}
-          onClick={() => isEditing && coverInputRef.current?.click()}
+          onClick={() => isEditing && (hero.useVideo ? videoInputRef.current?.click() : coverInputRef.current?.click())}
         >
           {/* Fallback gradient when no image */}
           {!hero.coverImage && (
@@ -237,13 +262,72 @@ export const HeroSection = ({
             {isEditing ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
           </Button>
           
-          {/* Edit overlay */}
+          {/* Edit overlay with media type controls */}
           {isEditing && (
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              <div className="text-white flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20">
-                <Upload className="h-5 w-5" />
-                <span className="font-medium">Upload Cover Image</span>
+            <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              {/* Media type toggle */}
+              <div className="pointer-events-auto">
+                <ToggleGroup 
+                  type="single" 
+                  value={hero.useVideo ? 'video' : 'image'} 
+                  onValueChange={toggleMediaType}
+                  className="bg-white/10 backdrop-blur-md rounded-full p-1 border border-white/20"
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ToggleGroupItem 
+                        value="image" 
+                        className="text-white data-[state=on]:bg-white/20 data-[state=on]:text-white rounded-full px-4"
+                      >
+                        <ImageIcon className="h-4 w-4 mr-2" />
+                        Image
+                      </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>Use static image background</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ToggleGroupItem 
+                        value="video" 
+                        className="text-white data-[state=on]:bg-white/20 data-[state=on]:text-white rounded-full px-4"
+                      >
+                        <Video className="h-4 w-4 mr-2" />
+                        Video
+                      </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>Use looping video background</TooltipContent>
+                  </Tooltip>
+                </ToggleGroup>
               </div>
+              
+              {/* Upload prompt */}
+              <div className="text-white flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20 pointer-events-auto cursor-pointer"
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     if (hero.useVideo) {
+                       videoInputRef.current?.click();
+                     } else {
+                       coverInputRef.current?.click();
+                     }
+                   }}
+              >
+                <Upload className="h-5 w-5" />
+                <span className="font-medium">Upload {hero.useVideo ? 'Video' : 'Image'}</span>
+              </div>
+
+              {/* Video URL option */}
+              {hero.useVideo && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleVideoUrlInput();
+                  }}
+                  className="text-white/80 text-sm underline hover:text-white transition-colors pointer-events-auto"
+                >
+                  Or paste video URL
+                </button>
+              )}
             </div>
           )}
 
