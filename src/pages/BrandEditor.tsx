@@ -56,6 +56,7 @@ import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { HeroBackground } from '@/components/HeroBackground';
 import { BackToTopButton } from '@/components/BackToTopButton';
+import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -737,6 +738,15 @@ const BrandEditor = () => {
           </main>
         </div>
       </div>
+      
+      {/* Mobile Section Navigation */}
+      <MobileSectionNav
+        sectionOrder={sectionOrder}
+        hiddenSections={hiddenSections}
+        activeSection={activeSection}
+        onSectionSelect={handleSectionChange}
+        brandName={brand.hero.name}
+      />
       
       {/* Back to top button */}
       <BackToTopButton />

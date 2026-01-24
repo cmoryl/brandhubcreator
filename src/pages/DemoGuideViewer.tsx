@@ -7,6 +7,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { FullEventPage } from '@/components/event/FullEventPage';
 import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
+import { MobileEventSectionNav } from '@/components/event/MobileEventSectionNav';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
 import type { BrandGuide, ProductGuide, SectionId } from '@/types/brand';
@@ -17,7 +18,9 @@ export default function DemoGuideViewer() {
   const { type, slug } = useParams<{ type: 'brand' | 'product' | 'event'; slug: string }>();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<SectionId | null>(null);
+  const [activeEventSection, setActiveEventSection] = useState<EventSectionId | null>(null);
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
+  const [scrollToEventSection, setScrollToEventSection] = useState<EventSectionId | null>(null);
 
   // Find the demo guide based on type
   const demoGuide = (() => {
@@ -40,8 +43,17 @@ export default function DemoGuideViewer() {
     setTimeout(() => setScrollToSection(null), 100);
   }, []);
 
+  const handleEventSectionSelect = useCallback((sectionId: EventSectionId) => {
+    setScrollToEventSection(sectionId);
+    setTimeout(() => setScrollToEventSection(null), 100);
+  }, []);
+
   const handleSectionVisible = useCallback((sectionId: SectionId) => {
     setActiveSection(sectionId);
+  }, []);
+
+  const handleEventSectionVisible = useCallback((sectionId: EventSectionId) => {
+    setActiveEventSection(sectionId);
   }, []);
 
   if (!demoGuide) {
@@ -149,6 +161,8 @@ export default function DemoGuideViewer() {
             isAdmin={false}
             heroFullWidth={true}
             canEdit={false}
+            scrollToSection={scrollToEventSection}
+            onSectionVisible={handleEventSectionVisible}
           />
         ) : (
           <FullBrandPage
@@ -166,8 +180,16 @@ export default function DemoGuideViewer() {
         )}
       </div>
 
-      {/* Mobile Section Navigation - only for brand/product */}
-      {!isEvent && (
+      {/* Mobile Section Navigation */}
+      {isEvent ? (
+        <MobileEventSectionNav
+          sectionOrder={(demoGuide.sectionOrder || []) as EventSectionId[]}
+          hiddenSections={[]}
+          activeSection={activeEventSection || undefined}
+          onSectionSelect={handleEventSectionSelect}
+          eventName={demoGuide.hero.name}
+        />
+      ) : (
         <MobileSectionNav
           sectionOrder={sectionOrder}
           hiddenSections={[]}

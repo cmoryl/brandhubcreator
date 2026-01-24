@@ -35,6 +35,8 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
+import { DEFAULT_SECTION_ORDER } from '@/types/brand';
 
 const createDefaultBrand = (name: string = 'My Brand'): BrandGuide => ({
   id: crypto.randomUUID(),
@@ -254,6 +256,15 @@ const Index = () => {
           </main>
         </div>
       </div>
+      
+      {/* Mobile Section Navigation */}
+      <MobileSectionNav
+        sectionOrder={DEFAULT_SECTION_ORDER}
+        hiddenSections={[]}
+        activeSection={activeSection}
+        onSectionSelect={handleSectionChange}
+        brandName={currentBrand.hero.name}
+      />
     </TooltipProvider>
   );
 };

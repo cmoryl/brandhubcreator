@@ -49,6 +49,7 @@ import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { HeroBackground } from '@/components/HeroBackground';
 import { BackToTopButton } from '@/components/BackToTopButton';
+import { MobileEventSectionNav } from '@/components/event/MobileEventSectionNav';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -750,6 +751,15 @@ const EventEditor = () => {
           </main>
         </div>
       </div>
+      
+      {/* Mobile Section Navigation */}
+      <MobileEventSectionNav
+        sectionOrder={sectionOrder}
+        hiddenSections={hiddenSections}
+        activeSection={activeSection}
+        onSectionSelect={handleSectionChange}
+        eventName={event.hero.name}
+      />
       
       {/* Back to top button */}
       <BackToTopButton />

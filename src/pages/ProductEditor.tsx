@@ -54,6 +54,7 @@ import { BrandBackupManager } from '@/components/brand/BrandBackupManager';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { BackToTopButton } from '@/components/BackToTopButton';
+import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -577,6 +578,15 @@ const ProductEditor = () => {
           </main>
         </div>
       </div>
+      
+      {/* Mobile Section Navigation */}
+      <MobileSectionNav
+        sectionOrder={sectionOrder}
+        hiddenSections={hiddenSections}
+        activeSection={activeSection}
+        onSectionSelect={handleSectionChange}
+        brandName={currentProduct.hero.name}
+      />
       
       {/* Back to top button */}
       <BackToTopButton />
