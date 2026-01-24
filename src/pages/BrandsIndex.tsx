@@ -75,11 +75,15 @@ const BrandsIndex = () => {
     
     if (user && organization) {
       // Show welcome toast and redirect to org portal
+      // Small delay ensures toast is visible before navigation
       toast.success(`Welcome back!`, {
         description: `Taking you to ${organization.name}...`,
-        duration: 3000,
+        duration: 4000,
       });
-      navigate(`/org/${organization.slug}`, { replace: true });
+      // Navigate after a brief moment so the toast is seen
+      setTimeout(() => {
+        navigate(`/org/${organization.slug}`, { replace: true });
+      }, 500);
     }
   }, [user, organization, accessStatus, authLoading, orgLoading, navigate]);
 
