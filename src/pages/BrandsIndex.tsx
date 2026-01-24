@@ -413,7 +413,7 @@ const BrandsIndex = () => {
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="gap-2">
+                    <Button variant="ghost" className="gap-2" aria-label="User account menu">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-accent/10 text-accent text-sm">
                           {user.email?.charAt(0).toUpperCase()}
@@ -1003,7 +1003,7 @@ const BrandsIndex = () => {
                       Browse tutorials, FAQs, and documentation.
                     </p>
                   </div>
-                  <Button variant="ghost" onClick={() => navigate('/knowledge')} className="gap-1 p-0 h-auto text-primary text-sm hover:text-primary/80">
+                  <Button variant="ghost" onClick={() => navigate('/knowledge')} className="gap-1 p-0 h-auto text-primary text-sm hover:text-primary/80" aria-label="Visit Help Center">
                     <span className="hidden sm:inline">Visit</span>
                     <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -1021,7 +1021,7 @@ const BrandsIndex = () => {
                       Custom solutions for large organizations.
                     </p>
                   </div>
-                  <Button variant="ghost" onClick={() => navigate('/contact')} className="gap-1 p-0 h-auto text-primary text-sm hover:text-primary/80">
+                  <Button variant="ghost" onClick={() => navigate('/contact')} className="gap-1 p-0 h-auto text-primary text-sm hover:text-primary/80" aria-label="Contact Enterprise">
                     <span className="hidden sm:inline">Contact</span>
                     <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -1039,7 +1039,7 @@ const BrandsIndex = () => {
                       See how organization portals work.
                     </p>
                   </div>
-                  <Button variant="ghost" onClick={() => navigate('/org/transperfect')} className="gap-1 p-0 h-auto text-green-700 dark:text-green-400 text-sm hover:text-green-600 dark:hover:text-green-300">
+                  <Button variant="ghost" onClick={() => navigate('/org/transperfect')} className="gap-1 p-0 h-auto text-green-700 dark:text-green-400 text-sm hover:text-green-600 dark:hover:text-green-300" aria-label="View Public Portal">
                     <span className="hidden sm:inline">View</span>
                     <ExternalLink className="h-4 w-4" />
                   </Button>
