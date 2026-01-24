@@ -571,8 +571,8 @@ const BrandEditor = () => {
           />
         )}
 
-        {/* Desktop Sidebar - Sticky */}
-        <div className="hidden lg:block sticky top-0 h-screen z-10">
+        {/* Desktop Sidebar - Fixed position for persistent visibility */}
+        <div className="hidden lg:block fixed top-0 left-0 h-screen w-64 z-30">
           <ReorderableBrandSidebar 
             activeSection={activeSection} 
             onSectionChange={handleSectionChange} 
@@ -584,6 +584,9 @@ const BrandEditor = () => {
             isAdmin={isGuideAdmin}
           />
         </div>
+        
+        {/* Sidebar spacer for fixed positioning */}
+        <div className="hidden lg:block w-64 flex-shrink-0" />
 
         {/* Mobile Sidebar */}
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
