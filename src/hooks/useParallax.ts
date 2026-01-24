@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 interface ParallaxOptions {
   speed?: number; // 0-1, lower = slower parallax
@@ -7,20 +7,42 @@ interface ParallaxOptions {
 
 export function useParallax({ speed = 0.5, maxOffset = 100 }: ParallaxOptions = {}) {
   const [offset, setOffset] = useState(0);
+  const rafRef = useRef<number | null>(null);
+  const lastScrollY = useRef(0);
+
+  const updateOffset = useCallback(() => {
+    const calculatedOffset = Math.min(lastScrollY.current * speed, maxOffset);
+    setOffset(calculatedOffset);
+    rafRef.current = null;
+  }, [speed, maxOffset]);
 
   const handleScroll = useCallback(() => {
-    const scrollY = window.scrollY;
-    const calculatedOffset = Math.min(scrollY * speed, maxOffset);
-    setOffset(calculatedOffset);
-  }, [speed, maxOffset]);
+    // Cache scroll position without forcing layout
+    lastScrollY.current = window.scrollY;
+    
+    // Batch updates with requestAnimationFrame to avoid forced reflows
+    if (rafRef.current === null) {
+      rafRef.current = requestAnimationFrame(updateOffset);
+    }
+  }, [updateOffset]);
 
   useEffect(() => {
     // Use passive listener for better performance
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial call
     
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
+    // Defer initial read to next frame to avoid forced reflow during render
+    rafRef.current = requestAnimationFrame(() => {
+      lastScrollY.current = window.scrollY;
+      updateOffset();
+    });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, [handleScroll, updateOffset]);
 
   return offset;
 }
@@ -29,12 +51,13 @@ export function useParallax({ speed = 0.5, maxOffset = 100 }: ParallaxOptions = 
 export function useElementParallax(elementRef: React.RefObject<HTMLElement>, options: ParallaxOptions = {}) {
   const { speed = 0.3, maxOffset = 50 } = options;
   const [transform, setTransform] = useState('translateY(0px)');
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const element = elementRef.current;
     if (!element) return;
 
-    const handleScroll = () => {
+    const updateTransform = () => {
       const rect = element.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
       
@@ -47,12 +70,27 @@ export function useElementParallax(elementRef: React.RefObject<HTMLElement>, opt
         const offset = Math.min(Math.max(progress * 100 * speed, -maxOffset), maxOffset);
         setTransform(`translateY(${offset}px)`);
       }
+      rafRef.current = null;
+    };
+
+    const handleScroll = () => {
+      // Batch updates with requestAnimationFrame to avoid forced reflows
+      if (rafRef.current === null) {
+        rafRef.current = requestAnimationFrame(updateTransform);
+      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
+    
+    // Defer initial calculation to next frame
+    rafRef.current = requestAnimationFrame(updateTransform);
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
   }, [elementRef, speed, maxOffset]);
 
   return transform;
