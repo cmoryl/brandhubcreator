@@ -125,11 +125,11 @@ export const ColorPaletteSection = ({
   const testingCombinations = colorCombinations.filter(c => c.status === 'testing');
 
   return (
-    <section className="space-y-8">
+    <section className="space-y-6 sm:space-y-8">
       {/* Color Palette */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex-1">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="flex-1 min-w-0">
             <SectionHeader
               title="Color Palette"
               defaultSubtitle="Define your brand's color system with all color formats"
@@ -140,7 +140,7 @@ export const ColorPaletteSection = ({
             />
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {colors.length > 0 && (
+            {colors.length > 0 && onColorsChange && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
@@ -176,7 +176,7 @@ export const ColorPaletteSection = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {colors.map((color, index) => {
             const formats = getAllColorFormats(color.hex);
             
@@ -186,10 +186,10 @@ export const ColorPaletteSection = ({
                 className="group relative bg-card rounded-xl overflow-hidden shadow-sm border border-border animate-scale-in"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="flex">
+                <div className="flex flex-col sm:flex-row">
                   {/* Color swatch */}
                   <div
-                    className="w-32 min-h-[200px] relative cursor-pointer transition-transform hover:scale-[1.02] shrink-0"
+                    className="w-full sm:w-28 lg:w-32 h-24 sm:h-auto sm:min-h-[180px] relative cursor-pointer transition-transform hover:scale-[1.02] shrink-0"
                     style={{ backgroundColor: color.hex }}
                     onClick={() => copyValue(color.hex, 'HEX')}
                   >

@@ -255,7 +255,7 @@ export const ValuesSection = ({ values, onValuesChange, customSubtitle, onSubtit
   };
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-4 sm:space-y-6">
       <input
         ref={fileInputRef}
         type="file"
@@ -264,8 +264,8 @@ export const ValuesSection = ({ values, onValuesChange, customSubtitle, onSubtit
         className="hidden"
       />
 
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="flex-1 min-w-0">
           <SectionHeader
             title="Philosophical Pillars"
             defaultSubtitle="Define your organization's core values and ethical framework"
@@ -275,13 +275,15 @@ export const ValuesSection = ({ values, onValuesChange, customSubtitle, onSubtit
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button onClick={addValue} size="sm" className="gap-2 shrink-0">
-          <Plus className="h-4 w-4" />
-          Add Value
-        </Button>
+        {onValuesChange && (
+          <Button onClick={addValue} size="sm" className="gap-2 shrink-0 w-full sm:w-auto">
+            <Plus className="h-4 w-4" />
+            Add Value
+          </Button>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {values.map((value, index) => {
           const extValue = value as ExtendedBrandValue;
           const IconComponent = getIconComponent(value.icon);
