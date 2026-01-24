@@ -18,7 +18,10 @@ export type HeroBackgroundType =
   | 'animated-geometric'
   | 'animated-spotlight'
   | 'animated-mesh-waves'
-  | 'animated-dataflow';
+  | 'animated-dataflow'
+  | 'animated-wave-lines'
+  | 'animated-flow-field'
+  | 'animated-neon-grid';
 
 export interface HeroBackground {
   type: HeroBackgroundType;

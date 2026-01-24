@@ -46,6 +46,11 @@ const backgroundTypes: { type: HeroBackgroundType; name: string; icon: typeof Im
   { type: 'animated-aurora', name: 'Aurora', icon: Waves, description: 'Northern lights effect' },
   { type: 'animated-geometric', name: 'Geometric', icon: LayoutGrid, description: 'Floating geometric shapes' },
   { type: 'animated-spotlight', name: 'Spotlight', icon: Sparkles, description: 'Moving spotlight effect' },
+  { type: 'animated-mesh-waves', name: 'Mesh Waves', icon: LayoutGrid, description: 'Grid with wave lines' },
+  { type: 'animated-dataflow', name: 'Dataflow', icon: Waves, description: 'Data stream animation' },
+  { type: 'animated-wave-lines', name: 'Wave Lines', icon: Waves, description: 'Flowing gradient lines' },
+  { type: 'animated-flow-field', name: 'Flow Field', icon: Waves, description: 'Organic flowing curves' },
+  { type: 'animated-neon-grid', name: 'Neon Grid', icon: LayoutGrid, description: 'Neon grid with glow' },
 ];
 
 // Exported as a forwardRef component for lazy loading compatibility
