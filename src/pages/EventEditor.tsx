@@ -48,6 +48,7 @@ import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEdi
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { HeroBackground } from '@/components/HeroBackground';
+import { BackToTopButton } from '@/components/BackToTopButton';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -748,6 +749,9 @@ const EventEditor = () => {
           </main>
         </div>
       </div>
+      
+      {/* Back to top button */}
+      <BackToTopButton />
     </TooltipProvider>
   );
 };
