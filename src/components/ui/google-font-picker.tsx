@@ -85,11 +85,23 @@ export interface FontSettings {
 }
 
 export const DEFAULT_FONT_SETTINGS: FontSettings = {
-  fontFamily: 'Playfair Display',
-  fontWeight: '700',
+  fontFamily: 'Poppins',
+  fontWeight: '300',
   fontSize: 48,
-  letterSpacing: -0.5,
-  lineHeight: 1.2,
+  letterSpacing: 0.5,
+  lineHeight: 1.3,
+  textTransform: 'none',
+  textAlign: 'center',
+  fontStyle: 'normal',
+};
+
+// Preset for corporate taglines - Poppins Light
+export const TAGLINE_FONT_PRESET: FontSettings = {
+  fontFamily: 'Poppins',
+  fontWeight: '300',
+  fontSize: 48,
+  letterSpacing: 0.5,
+  lineHeight: 1.3,
   textTransform: 'none',
   textAlign: 'center',
   fontStyle: 'normal',
