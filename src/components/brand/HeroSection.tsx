@@ -106,8 +106,16 @@ export const HeroSection = ({
     return () => observer.disconnect();
   }, []);
 
-  // Parallax scroll effect for hero image
+  // Parallax scroll effect for hero image - disabled on mobile to prevent touch jank
   useEffect(() => {
+    // Skip parallax on mobile/touch devices for smoother experience
+    const isMobile = window.matchMedia('(max-width: 640px)').matches || 
+                     'ontouchstart' in window;
+    if (isMobile) {
+      setParallaxOffset(0);
+      return;
+    }
+
     const handleScroll = () => {
       if (!heroRef.current) return;
       
