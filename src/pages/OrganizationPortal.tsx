@@ -316,22 +316,54 @@ const OrganizationPortal = () => {
         </div>
 
         {/* Hero Content */}
-        <div className={`relative z-10 ${heroFullWidth ? 'px-4 sm:px-6 lg:px-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} pt-4 sm:pt-8 pb-16 sm:pb-24`}>
-          <div className="relative">
-            {/* Global Asset Orbit - Large, positioned behind/overlapping content */}
+        <div className={`relative z-10 ${heroFullWidth ? 'px-4 sm:px-6 lg:px-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} pt-4 sm:pt-8 pb-16 sm:pb-24 overflow-visible`}>
+          <div className="relative min-h-[400px] lg:min-h-[480px]">
+            {/* Global Asset Orbit - Large, positioned to overlap content */}
             <div 
-              className="hidden lg:block absolute -right-8 xl:-right-4 top-1/2 -translate-y-1/2 z-0 pointer-events-auto animate-fade-in"
-              style={{ animationDelay: '0.4s' }}
+              className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-0 pointer-events-auto animate-fade-in"
+              style={{ 
+                animationDelay: '0.3s',
+                right: '-5%',
+                width: 'clamp(500px, 55vw, 750px)',
+                height: 'clamp(500px, 55vw, 750px)',
+              }}
             >
               <GlobalAssetOrbit 
                 primaryColor={organization.accentColor || orgColors.primary}
                 secondaryColor={orgColors.secondary}
-                className="w-[420px] h-[420px] xl:w-[520px] xl:h-[520px] 2xl:w-[600px] 2xl:h-[600px]"
+                className="w-full h-full"
+                brands={brands.map(b => ({
+                  id: b.id,
+                  name: b.hero?.name || b.name,
+                  slug: b.slug || undefined,
+                  type: 'brand' as const,
+                  updatedAt: b.updatedAt,
+                  coverImage: b.hero?.coverImage,
+                  color: b.colors?.[0]?.hex,
+                }))}
+                products={products.map(p => ({
+                  id: p.id,
+                  name: p.hero?.name || p.name,
+                  slug: p.slug || undefined,
+                  type: 'product' as const,
+                  updatedAt: p.updatedAt,
+                  coverImage: p.hero?.coverImage,
+                  color: p.colors?.[0]?.hex,
+                }))}
+                events={events.map(e => ({
+                  id: e.id,
+                  name: e.hero?.name || e.name,
+                  slug: e.slug || undefined,
+                  type: 'event' as const,
+                  updatedAt: e.updatedAt,
+                  coverImage: e.hero?.coverImage,
+                  color: e.colors?.[0]?.hex,
+                }))}
               />
             </div>
 
             {/* Text content */}
-            <div className="relative z-10 max-w-xl xl:max-w-2xl">
+            <div className="relative z-10 max-w-lg xl:max-w-xl">
               <div className="flex items-center gap-2 mb-4 sm:mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                 <div 
                   className="px-2.5 sm:px-3 py-1 rounded-full border"
@@ -354,12 +386,12 @@ const OrganizationPortal = () => {
                   {organization.name}
                 </span>
               </h1>
-              <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-lg animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+              <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-md animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
                 Explore our public brand guidelines and resources.
               </p>
 
               {/* Search Bar */}
-              <div className="max-w-md animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
+              <div className="max-w-sm animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
                 <SearchInput
                   value={searchQuery}
                   onChange={setSearchQuery}
@@ -374,7 +406,7 @@ const OrganizationPortal = () => {
               </div>
 
               {/* Stats */}
-              <div className="flex items-center gap-6 sm:gap-8 mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+              <div className="flex items-center gap-6 sm:gap-8 mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
                 <div>
                   <p className="text-2xl sm:text-3xl font-semibold text-foreground">{brands.length}</p>
                   <p className="text-xs sm:text-sm text-muted-foreground">Public Brands</p>
