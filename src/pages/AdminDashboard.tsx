@@ -41,6 +41,7 @@ import { UserApprovalManager } from '@/components/admin/UserApprovalManager';
 import { BrandAnalyticsHub } from '@/components/admin/BrandAnalyticsHub';
 import { BulkRepairTool } from '@/components/admin/BulkRepairTool';
 import { HiddenSectionsScanner } from '@/components/admin/HiddenSectionsScanner';
+import { MembersManager } from '@/components/admin/MembersManager';
 
 interface DashboardStats {
   totalUsers: number;
@@ -602,6 +603,10 @@ export default function AdminDashboard() {
               <Building2 className="h-4 w-4" />
               Organizations
             </TabsTrigger>
+            <TabsTrigger value="members" className="gap-2 shrink-0">
+              <Users className="h-4 w-4" />
+              Members
+            </TabsTrigger>
             <TabsTrigger value="content" className="gap-2 shrink-0">
               <Palette className="h-4 w-4" />
               Content
@@ -955,6 +960,11 @@ export default function AdminDashboard() {
                 </ScrollArea>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Members Tab */}
+          <TabsContent value="members" className="space-y-6">
+            <MembersManager />
           </TabsContent>
 
           {/* Content Tab */}
