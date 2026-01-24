@@ -459,9 +459,9 @@ const ProductEditor = () => {
   return (
     <TooltipProvider>
       <UnsavedChangesBlocker />
-      <div className="min-h-screen bg-background flex">
-        {/* Desktop Sidebar */}
-        <div className="hidden lg:block sticky top-0 h-screen">
+      <div className="min-h-screen bg-background flex relative">
+        {/* Desktop Sidebar - Sticky */}
+        <div className="hidden lg:block sticky top-0 h-screen z-10">
           <ReorderableBrandSidebar 
             activeSection={activeSection} 
             onSectionChange={handleSectionChange} 
@@ -491,7 +491,7 @@ const ProductEditor = () => {
         </Sheet>
 
         {/* Main content */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 relative z-10">
           {/* Header */}
           <header className={getHeaderClasses()}>
             <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
