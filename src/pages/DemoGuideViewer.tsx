@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
+import { FullEventPage } from '@/components/event/FullEventPage';
 import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
@@ -31,6 +32,7 @@ export default function DemoGuideViewer() {
   })();
 
   const sectionOrder = (demoGuide?.sectionOrder || []) as SectionId[];
+  const isEvent = type === 'event';
 
   const handleSectionSelect = useCallback((sectionId: SectionId) => {
     setScrollToSection(sectionId);
@@ -88,10 +90,6 @@ export default function DemoGuideViewer() {
     }
   };
 
-  // For events, we'll render a simplified view using the FullBrandPage
-  // which can handle the common sections, or show event-specific content
-  const isEvent = type === 'event';
-
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Demo Header Banner - Compact on mobile */}
@@ -114,7 +112,7 @@ export default function DemoGuideViewer() {
             {isEvent && (
               <Badge className="bg-accent text-accent-foreground gap-1 hidden lg:flex text-xs">
                 <Calendar className="h-3 w-3" />
-                New Feature
+                Event Kit
               </Badge>
             )}
           </div>
@@ -140,30 +138,44 @@ export default function DemoGuideViewer() {
         />
       </div>
 
-      {/* Full Brand Page Content - wrapped in proper container */}
+      {/* Page Content - Use different component for events */}
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-0 pb-6 sm:pb-8">
-        <FullBrandPage
-          brand={fullGuide as BrandGuide | ProductGuide}
-          brandId={demoGuide.id}
-          onBrandUpdate={() => {}} // No-op for demo
-          sectionOrder={sectionOrder}
-          scrollToSection={scrollToSection}
-          onSectionVisible={handleSectionVisible}
-          hiddenSections={[]}
-          isAdmin={false}
-          heroFullWidth={true}
-          canEdit={false}
-        />
+        {isEvent ? (
+          <FullEventPage
+            event={fullGuide as EventGuide}
+            eventId={demoGuide.id}
+            sectionOrder={(demoGuide.sectionOrder || []) as EventSectionId[]}
+            hiddenSections={[]}
+            isAdmin={false}
+            heroFullWidth={true}
+            canEdit={false}
+          />
+        ) : (
+          <FullBrandPage
+            brand={fullGuide as BrandGuide | ProductGuide}
+            brandId={demoGuide.id}
+            onBrandUpdate={() => {}} // No-op for demo
+            sectionOrder={sectionOrder}
+            scrollToSection={scrollToSection}
+            onSectionVisible={handleSectionVisible}
+            hiddenSections={[]}
+            isAdmin={false}
+            heroFullWidth={true}
+            canEdit={false}
+          />
+        )}
       </div>
 
-      {/* Mobile Section Navigation */}
-      <MobileSectionNav
-        sectionOrder={sectionOrder}
-        hiddenSections={[]}
-        activeSection={activeSection || undefined}
-        onSectionSelect={handleSectionSelect}
-        brandName={demoGuide.hero.name}
-      />
+      {/* Mobile Section Navigation - only for brand/product */}
+      {!isEvent && (
+        <MobileSectionNav
+          sectionOrder={sectionOrder}
+          hiddenSections={[]}
+          activeSection={activeSection || undefined}
+          onSectionSelect={handleSectionSelect}
+          brandName={demoGuide.hero.name}
+        />
+      )}
 
       {/* Bottom CTA Banner */}
       <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-t border-border">
