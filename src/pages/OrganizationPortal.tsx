@@ -317,9 +317,21 @@ const OrganizationPortal = () => {
 
         {/* Hero Content */}
         <div className={`relative z-10 ${heroFullWidth ? 'px-4 sm:px-6 lg:px-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} pt-4 sm:pt-8 pb-16 sm:pb-24`}>
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 lg:gap-12">
-            {/* Left side - Text content */}
-            <div className="max-w-3xl lg:max-w-xl xl:max-w-2xl">
+          <div className="relative">
+            {/* Global Asset Orbit - Large, positioned behind/overlapping content */}
+            <div 
+              className="hidden lg:block absolute -right-8 xl:-right-4 top-1/2 -translate-y-1/2 z-0 pointer-events-auto animate-fade-in"
+              style={{ animationDelay: '0.4s' }}
+            >
+              <GlobalAssetOrbit 
+                primaryColor={organization.accentColor || orgColors.primary}
+                secondaryColor={orgColors.secondary}
+                className="w-[420px] h-[420px] xl:w-[520px] xl:h-[520px] 2xl:w-[600px] 2xl:h-[600px]"
+              />
+            </div>
+
+            {/* Text content */}
+            <div className="relative z-10 max-w-xl xl:max-w-2xl">
               <div className="flex items-center gap-2 mb-4 sm:mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                 <div 
                   className="px-2.5 sm:px-3 py-1 rounded-full border"
@@ -342,7 +354,7 @@ const OrganizationPortal = () => {
                   {organization.name}
                 </span>
               </h1>
-              <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+              <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-lg animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
                 Explore our public brand guidelines and resources.
               </p>
 
@@ -380,15 +392,6 @@ const OrganizationPortal = () => {
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Right side - Global Asset Orbit */}
-            <div className="hidden lg:flex items-center justify-center animate-fade-in-up lg:flex-shrink-0" style={{ animationDelay: '0.5s' }}>
-              <GlobalAssetOrbit 
-                primaryColor={organization.accentColor || orgColors.primary}
-                secondaryColor={orgColors.secondary}
-                className="w-[280px] h-[280px] xl:w-[340px] xl:h-[340px]"
-              />
             </div>
           </div>
         </div>
