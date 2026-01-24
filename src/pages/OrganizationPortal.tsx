@@ -32,7 +32,7 @@ import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, PortalGridSkeleton, PortalPagination, PortalAdminActions } from '@/components/portal';
+import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit } from '@/components/portal';
 import { toast } from 'sonner';
 
 // Lazy load admin components
@@ -317,66 +317,78 @@ const OrganizationPortal = () => {
 
         {/* Hero Content */}
         <div className={`relative z-10 ${heroFullWidth ? 'px-4 sm:px-6 lg:px-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} pt-4 sm:pt-8 pb-16 sm:pb-24`}>
-          <div className="max-w-3xl">
-            <div className="flex items-center gap-2 mb-4 sm:mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <div 
-                className="px-2.5 sm:px-3 py-1 rounded-full border"
-                style={{ 
-                  backgroundColor: `${organization.accentColor || orgColors.primary}10`,
-                  borderColor: `${organization.accentColor || orgColors.primary}30`
-                }}
-              >
-                <span 
-                  className="text-xs font-medium"
-                  style={{ color: organization.accentColor || orgColors.primary }}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 lg:gap-12">
+            {/* Left side - Text content */}
+            <div className="max-w-3xl lg:max-w-xl xl:max-w-2xl">
+              <div className="flex items-center gap-2 mb-4 sm:mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+                <div 
+                  className="px-2.5 sm:px-3 py-1 rounded-full border"
+                  style={{ 
+                    backgroundColor: `${organization.accentColor || orgColors.primary}10`,
+                    borderColor: `${organization.accentColor || orgColors.primary}30`
+                  }}
                 >
-                  Brand Portal
+                  <span 
+                    className="text-xs font-medium"
+                    style={{ color: organization.accentColor || orgColors.primary }}
+                  >
+                    Brand Portal
+                  </span>
+                </div>
+              </div>
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-semibold text-foreground mb-4 sm:mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                Welcome to<br />
+                <span style={{ color: organization.accentColor || orgColors.primary }}>
+                  {organization.name}
                 </span>
+              </h1>
+              <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+                Explore our public brand guidelines and resources.
+              </p>
+
+              {/* Search Bar */}
+              <div className="max-w-md animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
+                <SearchInput
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder="Search brands and products..."
+                  className="w-full"
+                />
+                {searchQuery && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Found {totalResults} result{totalResults !== 1 ? 's' : ''} for "{searchQuery}"
+                  </p>
+                )}
+              </div>
+
+              {/* Stats */}
+              <div className="flex items-center gap-6 sm:gap-8 mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                <div>
+                  <p className="text-2xl sm:text-3xl font-semibold text-foreground">{brands.length}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Public Brands</p>
+                </div>
+                {products.length > 0 && (
+                  <div>
+                    <p className="text-2xl sm:text-3xl font-semibold text-foreground">{products.length}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Public Products</p>
+                  </div>
+                )}
+                {events.length > 0 && (
+                  <div>
+                    <p className="text-2xl sm:text-3xl font-semibold text-foreground">{events.length}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Public Events</p>
+                  </div>
+                )}
               </div>
             </div>
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-semibold text-foreground mb-4 sm:mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              Welcome to<br />
-              <span style={{ color: organization.accentColor || orgColors.primary }}>
-                {organization.name}
-              </span>
-            </h1>
-            <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              Explore our public brand guidelines and resources.
-            </p>
 
-            {/* Search Bar */}
-            <div className="max-w-md animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
-              <SearchInput
-                value={searchQuery}
-                onChange={setSearchQuery}
-                placeholder="Search brands and products..."
-                className="w-full"
+            {/* Right side - Global Asset Orbit */}
+            <div className="hidden lg:flex items-center justify-center animate-fade-in-up lg:flex-shrink-0" style={{ animationDelay: '0.5s' }}>
+              <GlobalAssetOrbit 
+                primaryColor={organization.accentColor || orgColors.primary}
+                secondaryColor={orgColors.secondary}
+                className="w-[280px] h-[280px] xl:w-[340px] xl:h-[340px]"
               />
-              {searchQuery && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Found {totalResults} result{totalResults !== 1 ? 's' : ''} for "{searchQuery}"
-                </p>
-              )}
-            </div>
-
-            {/* Stats */}
-            <div className="flex items-center gap-6 sm:gap-8 mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-              <div>
-                <p className="text-2xl sm:text-3xl font-semibold text-foreground">{brands.length}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">Public Brands</p>
-              </div>
-              {products.length > 0 && (
-                <div>
-                  <p className="text-2xl sm:text-3xl font-semibold text-foreground">{products.length}</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Public Products</p>
-                </div>
-              )}
-              {events.length > 0 && (
-                <div>
-                  <p className="text-2xl sm:text-3xl font-semibold text-foreground">{events.length}</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Public Events</p>
-                </div>
-              )}
             </div>
           </div>
         </div>
