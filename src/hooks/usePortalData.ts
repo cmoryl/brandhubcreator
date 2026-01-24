@@ -1,6 +1,13 @@
 /**
  * usePortalData Hook
  * Manages public portal data fetching with optimized performance
+ * 
+ * Performance optimizations:
+ * - Parallel data fetching for brands, products, events
+ * - JSON-path selection to minimize payload size
+ * - Debounced refetch on tab focus
+ * - Request deduplication via fetchIdRef
+ * - Memoized content mapping
  */
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
@@ -83,10 +90,14 @@ interface PortalDataActions {
 
 export type UsePortalDataReturn = PortalDataState & PortalDataActions;
 
-// Optimized select queries - only fetch card-relevant data
+// Optimized select queries - only fetch card-relevant data with minimal JSON paths
 const BRAND_CARD_SELECT = 'id, name, slug, is_public, updated_at, hero:guide_data->hero, colors:guide_data->colors';
 const PRODUCT_CARD_SELECT = 'id, name, slug, is_public, parent_brand_id, updated_at, hero:guide_data->hero, colors:guide_data->colors';
 const EVENT_CARD_SELECT = 'id, name, slug, is_public, parent_brand_id, updated_at, hero:guide_data->hero, colors:guide_data->colors, eventDetails:guide_data->eventDetails';
+
+// Cache for recently fetched data to prevent duplicate requests
+const dataCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 30000; // 30 seconds
 
 export const usePortalData = (slug: string | undefined): UsePortalDataReturn => {
   const [organization, setOrganization] = useState<PortalOrganization | null>(null);
@@ -97,33 +108,44 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
   const [error, setError] = useState<string | null>(null);
 
   const fetchIdRef = useRef(0);
+  const isMountedRef = useRef(true);
 
-  const fetchContent = useCallback(async (orgId: string) => {
-    const brandsQuery = (supabase
-      .from('brands')
-      .select(BRAND_CARD_SELECT as any)
-      .eq('organization_id', orgId)
-      .eq('is_public', true)
-      .order('updated_at', { ascending: false }) as unknown) as PromiseLike<any>;
+  // Cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
-    const productsQuery = (supabase
-      .from('products')
-      .select(PRODUCT_CARD_SELECT as any)
-      .eq('organization_id', orgId)
-      .eq('is_public', true)
-      .order('updated_at', { ascending: false }) as unknown) as PromiseLike<any>;
+  const fetchContent = useCallback(async (orgId: string, useCache = true) => {
+    // Check cache first
+    const cacheKey = `portal-content-${orgId}`;
+    const cached = dataCache.get(cacheKey);
+    if (useCache && cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return cached.data;
+    }
 
-    const eventsQuery = (supabase
-      .from('events')
-      .select(EVENT_CARD_SELECT as any)
-      .eq('organization_id', orgId)
-      .eq('is_public', true)
-      .order('updated_at', { ascending: false }) as unknown) as PromiseLike<any>;
-
+    // Parallel fetch with optimized queries
     const [brandsRes, productsRes, eventsRes] = await Promise.all([
-      brandsQuery,
-      productsQuery,
-      eventsQuery,
+      supabase
+        .from('brands')
+        .select(BRAND_CARD_SELECT as any)
+        .eq('organization_id', orgId)
+        .eq('is_public', true)
+        .order('updated_at', { ascending: false }),
+      supabase
+        .from('products')
+        .select(PRODUCT_CARD_SELECT as any)
+        .eq('organization_id', orgId)
+        .eq('is_public', true)
+        .order('updated_at', { ascending: false }),
+      supabase
+        .from('events')
+        .select(EVENT_CARD_SELECT as any)
+        .eq('organization_id', orgId)
+        .eq('is_public', true)
+        .order('updated_at', { ascending: false }),
     ]);
 
     const mappedBrands: PortalBrand[] = (brandsRes.data || []).map((row: any) => ({
@@ -159,7 +181,12 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
       colors: row.colors ?? undefined,
     }));
 
-    return { brands: mappedBrands, products: mappedProducts, events: mappedEvents };
+    const result = { brands: mappedBrands, products: mappedProducts, events: mappedEvents };
+    
+    // Update cache
+    dataCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    
+    return result;
   }, []);
 
   const fetchData = useCallback(async () => {
@@ -225,21 +252,33 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
     fetchData();
   }, [fetchData]);
 
-  // Refetch on tab focus
+  // Refetch on tab focus with longer debounce and cache bypass
   useEffect(() => {
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let isRefetching = false;
 
     const debouncedRefetch = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        if (organization) {
-          fetchContent(organization.id).then(content => {
-            setBrands(content.brands);
-            setProducts(content.products);
-            setEvents(content.events);
-          }).catch(console.error);
+      if (isRefetching) return;
+      
+      debounceTimer = setTimeout(async () => {
+        if (organization && isMountedRef.current) {
+          isRefetching = true;
+          try {
+            // Bypass cache on focus refetch to get fresh data
+            const content = await fetchContent(organization.id, false);
+            if (isMountedRef.current) {
+              setBrands(content.brands);
+              setProducts(content.products);
+              setEvents(content.events);
+            }
+          } catch (err) {
+            console.error('[usePortalData] Refetch error:', err);
+          } finally {
+            isRefetching = false;
+          }
         }
-      }, 300);
+      }, 500); // Longer debounce for focus events
     };
 
     const onFocus = () => debouncedRefetch();
