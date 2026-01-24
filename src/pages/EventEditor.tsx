@@ -257,9 +257,10 @@ const EventEditor = () => {
   
   const event = contextEvent || publicEvent;
   
-  // Check if user can edit
+  // Check if user can edit: global admin OR org member with appropriate role
+  // During auth loading, we preserve potential edit access for logged-in users to avoid UI flicker
   const canEditOrg = orgRole && ['owner', 'admin', 'member'].includes(orgRole);
-  const canEdit = user && (isAdmin || canEditOrg);
+  const canEdit = user && (isAdmin || canEditOrg || authLoading);
   const isGuideAdmin = Boolean(isAdmin || canEditOrg);
   
   const sectionOrder = useMemo(() => event?.sectionOrder || DEFAULT_EVENT_SECTION_ORDER, [event?.sectionOrder]);

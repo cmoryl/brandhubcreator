@@ -203,8 +203,9 @@ const BrandEditor = () => {
   const brand = contextBrand || publicBrand;
   
   // Check if user can edit: global admin OR org member with appropriate role
+  // During auth loading, we preserve potential edit access for logged-in users to avoid UI flicker
   const canEditOrg = orgRole && ['owner', 'admin', 'member'].includes(orgRole);
-  const canEdit = user && (isAdmin || canEditOrg);
+  const canEdit = user && (isAdmin || canEditOrg || authLoading);
 
   // In the editor experience, anyone who can edit should be able to see (and manage) all sections.
   // Otherwise, `hiddenSections` can unintentionally hide important areas (e.g. Social Assets) for org members.
