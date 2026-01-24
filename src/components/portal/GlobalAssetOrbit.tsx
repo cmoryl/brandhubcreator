@@ -36,11 +36,11 @@ interface GlobalAssetOrbitProps {
   onFilterChange?: (filter: 'all' | 'brands' | 'products' | 'events') => void;
 }
 
-// Distinct colors for each entity type - teal for brands, purple for products, amber for events
+// Distinct colors for each entity type - teal for brands, light blue for products, amber for events
 const TYPE_COLORS = {
-  brand: '#14b8a6',    // Teal (as user requested)
-  product: '#8b5cf6',  // Purple (as user requested)
-  event: '#f59e0b',    // Amber for events
+  brand: '#14b8a6',    // Teal
+  product: '#38bdf8',  // Light blue (sky-400)
+  event: '#f59e0b',    // Amber
 };
 
 // Circular icon wrappers for each type
@@ -98,6 +98,8 @@ export const GlobalAssetOrbit = ({
   const [isPaused, setIsPaused] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'brands' | 'products' | 'events'>('all');
   const [iconPos, setIconPos] = useState<{ x: number; y: number } | null>(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const centerLetter = organizationName.charAt(0).toUpperCase();
 
@@ -171,6 +173,46 @@ export const GlobalAssetOrbit = ({
     setActiveFilter(newFilter);
     onFilterChange?.(newFilter);
   };
+
+  // Delayed tooltip show to prevent flickering
+  const handleEntityHover = useCallback((
+    entity: LinkedEntity,
+    index: number,
+    orbit: string,
+    pos: { x: number; y: number }
+  ) => {
+    // Clear any pending timeout
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+    }
+    
+    // Immediately update state for visual feedback
+    setHoveredIndex(index);
+    setHoveredOrbit(orbit);
+    setActiveEntity(entity);
+    setIsPaused(true);
+    setIconPos(pos);
+    
+    // Delay showing the tooltip
+    tooltipTimeoutRef.current = setTimeout(() => {
+      setShowTooltip(true);
+    }, 150); // 150ms delay
+  }, []);
+
+  const handleEntityLeave = useCallback(() => {
+    // Clear any pending timeout
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+      tooltipTimeoutRef.current = null;
+    }
+    
+    setHoveredIndex(null);
+    setHoveredOrbit(null);
+    setActiveEntity(null);
+    setIsPaused(false);
+    setIconPos(null);
+    setShowTooltip(false);
+  }, []);
 
   // Simple connection indicator - just show a pulse on center when entity is hovered
   // (Rotating hierarchy lines don't work because orbits are in constant rotation)
@@ -424,20 +466,8 @@ export const GlobalAssetOrbit = ({
                 isPaused={isPaused}
                 animationStyle={animationStyle}
                 containerRef={containerRef}
-                onHover={(pos) => {
-                  setHoveredIndex(i);
-                  setHoveredOrbit('inner');
-                  setActiveEntity(entity);
-                  setIsPaused(true);
-                  setIconPos(pos);
-                }}
-                onLeave={() => {
-                  setHoveredIndex(null);
-                  setHoveredOrbit(null);
-                  setActiveEntity(null);
-                  setIsPaused(false);
-                  setIconPos(null);
-                }}
+                onHover={(pos) => handleEntityHover(entity, i, 'inner', pos)}
+                onLeave={handleEntityLeave}
                 onClick={(e) => handleEntityClick(entity, e)}
                 onFilterClick={() => handleEntityFilterClick(entity)}
                 spinDuration="55s"
@@ -449,7 +479,7 @@ export const GlobalAssetOrbit = ({
         </div>
       )}
       
-      {/* Product icons (middle orbit) - purple colored */}
+      {/* Product icons (middle orbit) - light blue colored */}
       {orbitData.middle.length > 0 && (
         <div 
           className="absolute inset-0 pointer-events-none"
@@ -473,20 +503,8 @@ export const GlobalAssetOrbit = ({
                 isPaused={isPaused}
                 animationStyle={animationStyle}
                 containerRef={containerRef}
-                onHover={(pos) => {
-                  setHoveredIndex(i);
-                  setHoveredOrbit('middle');
-                  setActiveEntity(entity);
-                  setIsPaused(true);
-                  setIconPos(pos);
-                }}
-                onLeave={() => {
-                  setHoveredIndex(null);
-                  setHoveredOrbit(null);
-                  setActiveEntity(null);
-                  setIsPaused(false);
-                  setIconPos(null);
-                }}
+                onHover={(pos) => handleEntityHover(entity, i, 'middle', pos)}
+                onLeave={handleEntityLeave}
                 onClick={(e) => handleEntityClick(entity, e)}
                 onFilterClick={() => handleEntityFilterClick(entity)}
                 spinDuration="70s"
@@ -522,20 +540,8 @@ export const GlobalAssetOrbit = ({
                 isPaused={isPaused}
                 animationStyle={animationStyle}
                 containerRef={containerRef}
-                onHover={(pos) => {
-                  setHoveredIndex(i);
-                  setHoveredOrbit('outer');
-                  setActiveEntity(entity);
-                  setIsPaused(true);
-                  setIconPos(pos);
-                }}
-                onLeave={() => {
-                  setHoveredIndex(null);
-                  setHoveredOrbit(null);
-                  setActiveEntity(null);
-                  setIsPaused(false);
-                  setIconPos(null);
-                }}
+                onHover={(pos) => handleEntityHover(entity, i, 'outer', pos)}
+                onLeave={handleEntityLeave}
                 onClick={(e) => handleEntityClick(entity, e)}
                 onFilterClick={() => handleEntityFilterClick(entity)}
                 spinDuration="85s"
@@ -547,18 +553,20 @@ export const GlobalAssetOrbit = ({
         </div>
       )}
       
-      {/* Tooltip appears above hovered icon */}
-      <TooltipOverlay 
-        entity={activeEntity} 
-        containerRef={containerRef}
-        iconPos={iconPos}
-        onFilterClick={() => {
-          if (activeEntity) {
-            handleEntityFilterClick(activeEntity);
-          }
-        }}
-        relatedCount={relatedEntityIds.size}
-      />
+      {/* Tooltip appears above hovered icon with delay */}
+      {showTooltip && (
+        <TooltipOverlay 
+          entity={activeEntity} 
+          containerRef={containerRef}
+          iconPos={iconPos}
+          onFilterClick={() => {
+            if (activeEntity) {
+              handleEntityFilterClick(activeEntity);
+            }
+          }}
+          relatedCount={relatedEntityIds.size}
+        />
+      )}
     </div>
   );
 };
