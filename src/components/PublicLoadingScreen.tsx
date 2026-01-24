@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { 
@@ -70,7 +70,7 @@ function getLoadingText(type: 'brand' | 'product' | 'portal' | 'event', name?: s
   }
 }
 
-export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
+export const PublicLoadingScreen = forwardRef<HTMLDivElement, PublicLoadingScreenProps>(function PublicLoadingScreen({ type, name }, ref) {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const [currentTip, setCurrentTip] = useState(0);
@@ -108,7 +108,7 @@ export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
   const CurrentTipIcon = shuffledTips[currentTip].icon;
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-b from-background via-background to-muted/30 flex flex-col">
+    <div ref={ref} className="min-h-screen min-h-[100dvh] bg-gradient-to-b from-background via-background to-muted/30 flex flex-col">
       {/* Header - Mobile optimized */}
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm safe-area-inset-top">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
@@ -245,7 +245,7 @@ export function PublicLoadingScreen({ type, name }: PublicLoadingScreenProps) {
       </footer>
     </div>
   );
-}
+});
 
 // Compact version for inline use
 export function PublicLoadingInline({ type }: { type: 'brand' | 'product' }) {
