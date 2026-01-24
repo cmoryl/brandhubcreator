@@ -158,10 +158,10 @@ export const HeroSection = ({
     return num.toString();
   };
 
-  // Enhanced height for wow factor
+  // Enhanced height for wow factor - reduced on mobile for better viewport fit
   const heroHeight = enhancedMode 
-    ? 'h-[420px] sm:h-[500px] lg:h-[600px] xl:h-[700px]' 
-    : 'h-64 sm:h-80 lg:h-96';
+    ? 'h-[320px] sm:h-[420px] lg:h-[550px] xl:h-[650px]' 
+    : 'h-56 sm:h-72 lg:h-96';
 
   return (
     <section>
@@ -219,11 +219,11 @@ export const HeroSection = ({
           <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
           <div className="absolute inset-0 z-10 bg-gradient-to-b from-primary/10 via-transparent to-accent/10 mix-blend-overlay" />
           
-          {/* Animated ambient glow */}
+          {/* Animated ambient glow - hidden on mobile for performance */}
           {enhancedMode && (
             <>
-              <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] animate-pulse" />
-              <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/20 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
+              <div className="hidden sm:block absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] animate-pulse" />
+              <div className="hidden sm:block absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/20 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
             </>
           )}
           
@@ -231,9 +231,9 @@ export const HeroSection = ({
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           
-          {/* Floating particles effect */}
+          {/* Floating particles effect - hidden on mobile */}
           {enhancedMode && (
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="hidden sm:block absolute inset-0 overflow-hidden pointer-events-none">
               {[...Array(6)].map((_, i) => (
                 <div
                   key={i}
@@ -331,9 +331,9 @@ export const HeroSection = ({
             </div>
           )}
 
-          {/* Stats Panel - Top Left - z-20 to be above overlays */}
+          {/* Stats Panel - Top Left - Hidden on mobile to reduce clutter */}
           {showStats && enhancedMode && (
-            <div className={`absolute top-4 left-4 sm:top-6 sm:left-6 z-20 flex flex-col gap-2 transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}>
+            <div className={`hidden sm:flex absolute top-4 left-4 sm:top-6 sm:left-6 z-20 flex-col gap-2 transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}>
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 shadow-lg">
                 <div className="flex items-center gap-1.5">
                   <BarChart3 className="h-4 w-4 text-white" />
@@ -364,13 +364,13 @@ export const HeroSection = ({
 
           {/* Main Content Area - z-20 to be above overlays */}
           <div className="absolute inset-0 flex items-end z-20">
-            <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 pb-6 sm:pb-8 lg:pb-12">
-              <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start lg:items-end justify-between">
+            <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 pb-4 sm:pb-8 lg:pb-12">
+              <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-start lg:items-end justify-between">
                 {/* Left: Logo & Brand Info */}
-                <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end flex-1">
-                  {/* Logo with enhanced styling */}
+                <div className="flex gap-4 sm:gap-6 items-end flex-1">
+                  {/* Logo with enhanced styling - smaller on mobile */}
                   <div
-                    className={`relative shrink-0 w-28 h-28 sm:w-36 sm:h-36 lg:w-48 lg:h-48 xl:w-56 xl:h-56 bg-white border-4 border-white rounded-3xl shadow-2xl flex items-center justify-center overflow-hidden transform transition-all duration-300 hover:scale-105 ${isEditing ? 'cursor-pointer group/logo' : ''}`}
+                    className={`relative shrink-0 w-20 h-20 sm:w-32 sm:h-32 lg:w-44 lg:h-44 xl:w-52 xl:h-52 bg-white border-2 sm:border-4 border-white rounded-2xl sm:rounded-3xl shadow-2xl flex items-center justify-center overflow-hidden transform transition-all duration-300 hover:scale-105 ${isEditing ? 'cursor-pointer group/logo' : ''}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       isEditing && logoInputRef.current?.click();
@@ -380,48 +380,48 @@ export const HeroSection = ({
                       <img 
                         src={hero.logoUrl} 
                         alt="Logo" 
-                        className="max-h-full max-w-full object-contain p-4 lg:p-6"
+                        className="max-h-full max-w-full object-contain p-2 sm:p-4 lg:p-6"
                         loading="eager"
                         decoding="async"
                       />
                     ) : (
-                      <Image className="h-12 w-12 lg:h-16 lg:w-16 text-muted-foreground" />
+                      <Image className="h-8 w-8 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-muted-foreground" />
                     )}
                     {isEditing && (
-                      <div className="absolute inset-0 bg-black/50 rounded-3xl flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity">
-                        <Upload className="h-8 w-8 text-white" />
+                      <div className="absolute inset-0 bg-black/50 rounded-2xl sm:rounded-3xl flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity">
+                        <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                       </div>
                     )}
                     
-                    {/* Logo glow effect */}
-                    <div className="absolute -inset-2 bg-gradient-to-br from-primary/30 to-accent/30 rounded-3xl blur-2xl -z-10 animate-pulse" />
+                    {/* Logo glow effect - hidden on mobile */}
+                    <div className="hidden sm:block absolute -inset-2 bg-gradient-to-br from-primary/30 to-accent/30 rounded-3xl blur-2xl -z-10 animate-pulse" />
                   </div>
 
                   {/* Name & Tagline */}
-                  <div className="flex-1 space-y-3 pb-2">
+                  <div className="flex-1 space-y-1 sm:space-y-3 pb-1 sm:pb-2 min-w-0">
                     {isEditing ? (
                       <>
                         <Input
                           value={hero.name}
                           onChange={(e) => onHeroChange({ ...hero, name: e.target.value })}
                           placeholder="Brand Name"
-                          className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-bold h-auto py-2 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 rounded-xl"
+                          className="text-xl sm:text-3xl lg:text-5xl xl:text-6xl font-serif font-bold h-auto py-1 sm:py-2 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 rounded-xl"
                           onClick={(e) => e.stopPropagation()}
                         />
                         <Textarea
                           value={hero.tagline}
                           onChange={(e) => onHeroChange({ ...hero, tagline: e.target.value })}
                           placeholder="Your brand tagline..."
-                          className="text-lg sm:text-xl lg:text-2xl resize-none bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 rounded-xl min-h-[80px]"
+                          className="text-sm sm:text-lg lg:text-2xl resize-none bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 rounded-xl min-h-[60px] sm:min-h-[80px]"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </>
                     ) : (
                       <>
-                        <h1 className={`text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-bold text-white drop-shadow-lg tracking-tight transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                        <h1 className={`text-xl sm:text-3xl lg:text-5xl xl:text-6xl font-serif font-bold text-white drop-shadow-lg tracking-tight transition-all duration-700 leading-tight ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                           {hero.name || 'Brand Name'}
                         </h1>
-                        <p className={`text-lg sm:text-xl lg:text-2xl text-white/90 drop-shadow-md max-w-3xl transition-all duration-700 delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                        <p className={`text-sm sm:text-lg lg:text-2xl text-white/90 drop-shadow-md max-w-3xl transition-all duration-700 delay-100 line-clamp-2 sm:line-clamp-none ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                           {hero.tagline || 'Your brand tagline goes here'}
                         </p>
                       </>
@@ -429,9 +429,9 @@ export const HeroSection = ({
                   </div>
                 </div>
 
-                {/* Right: Social & Engagement Stats */}
+                {/* Right: Social & Engagement Stats - Hidden on mobile */}
                 {showStats && enhancedMode && (
-                  <div className={`flex flex-wrap lg:flex-col gap-3 lg:gap-4 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+                  <div className={`hidden lg:flex flex-col gap-4 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
                     <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-5 py-3 border border-white/20 shadow-lg hover:bg-white/15 transition-colors">
                       <div className="p-2 bg-white/20 rounded-xl">
                         <Eye className="h-5 w-5 text-white" />
