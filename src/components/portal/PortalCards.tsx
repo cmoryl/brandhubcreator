@@ -34,42 +34,59 @@ interface EventCardProps {
   orgColors: CardColors;
 }
 
-const ColorStripes = ({ colors, fallbackGradient }: { colors?: Array<{ id: string; hex: string }>; fallbackGradient: string }) => (
-  <div className="w-full h-full flex">
-    {colors && colors.length > 0 ? (
-      colors.slice(0, 4).map((color) => (
-        <div 
-          key={color.id} 
-          className="flex-1 transition-all duration-500 group-hover:flex-[1.1]"
-          style={{ backgroundColor: color.hex }}
-        />
-      ))
-    ) : (
-      <div className="flex-1" style={{ background: fallbackGradient }} />
-    )}
-  </div>
-);
+import React from 'react';
 
-const ColorDots = ({ colors }: { colors?: Array<{ id: string; hex: string }> }) => {
-  if (!colors || colors.length === 0) return null;
-  
-  return (
-    <div className="flex gap-1 mb-4">
-      {colors.slice(0, 5).map((color) => (
-        <div 
-          key={color.id}
-          className="w-6 h-6 rounded-full border-2 border-background shadow-sm"
-          style={{ backgroundColor: color.hex }}
-        />
-      ))}
-      {colors.length > 5 && (
-        <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
-          +{colors.length - 5}
-        </div>
+interface ColorStripesProps {
+  colors?: Array<{ id: string; hex: string }>;
+  fallbackGradient: string;
+}
+
+const ColorStripes = React.forwardRef<HTMLDivElement, ColorStripesProps>(
+  ({ colors, fallbackGradient }, ref) => (
+    <div ref={ref} className="w-full h-full flex">
+      {colors && colors.length > 0 ? (
+        colors.slice(0, 4).map((color) => (
+          <div 
+            key={color.id} 
+            className="flex-1 transition-all duration-500 group-hover:flex-[1.1]"
+            style={{ backgroundColor: color.hex }}
+          />
+        ))
+      ) : (
+        <div className="flex-1" style={{ background: fallbackGradient }} />
       )}
     </div>
-  );
-};
+  )
+);
+ColorStripes.displayName = 'ColorStripes';
+
+interface ColorDotsProps {
+  colors?: Array<{ id: string; hex: string }>;
+}
+
+const ColorDots = React.forwardRef<HTMLDivElement, ColorDotsProps>(
+  ({ colors }, ref) => {
+    if (!colors || colors.length === 0) return null;
+    
+    return (
+      <div ref={ref} className="flex gap-1 mb-4">
+        {colors.slice(0, 5).map((color) => (
+          <div 
+            key={color.id}
+            className="w-6 h-6 rounded-full border-2 border-background shadow-sm"
+            style={{ backgroundColor: color.hex }}
+          />
+        ))}
+        {colors.length > 5 && (
+          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
+            +{colors.length - 5}
+          </div>
+        )}
+      </div>
+    );
+  }
+);
+ColorDots.displayName = 'ColorDots';
 
 export const PortalBrandCard = ({ brand, index, orgColors }: BrandCardProps) => {
   const navigate = useNavigate();
