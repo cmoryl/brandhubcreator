@@ -914,7 +914,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
               <div key={spec.id} className={cn("p-3 rounded-lg mb-3 pdf-avoid-break", t.card)}>
                 <h3 className={cn("font-semibold text-sm mb-2", t.text)}>{spec.name}</h3>
                 <div className="grid grid-cols-2 gap-2">
-                  {spec.items.map((item) => (
+                  {(spec.items || []).map((item) => (
                     <div key={item.id} className={cn("p-2 rounded border text-xs", t.border)}>
                       <div className="flex items-center gap-1 mb-1">
                         <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
