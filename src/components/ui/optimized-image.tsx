@@ -31,9 +31,7 @@ interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 
   fallbackSrc?: string;
   aspectRatio?: string;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
-  blur?: boolean;
   priority?: boolean;
-  placeholderColor?: string;
   /** Responsive image sources for srcset */
   responsiveSources?: ResponsiveImageSource[];
   /** Sizes attribute - use IMAGE_SIZES presets or custom string */
@@ -43,12 +41,6 @@ interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 
   onLoadComplete?: () => void;
   onLoadError?: () => void;
 }
-
-// Generate a tiny SVG placeholder for blur-up effect
-const generatePlaceholder = (color: string = 'hsl(var(--muted))') => {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 3"><rect fill="${color}" width="4" height="3"/></svg>`;
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
-};
 
 // Shimmer gradient for loading state
 const generateShimmerGradient = () => 
@@ -109,9 +101,7 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
   fallbackSrc = '/placeholder.svg',
   aspectRatio,
   objectFit = 'cover',
-  blur = true,
   priority = false,
-  placeholderColor,
   responsiveSources,
   sizes,
   autoSrcset = false,
@@ -130,12 +120,6 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
 
   const isLoaded = loadState === 'loaded';
   const hasError = loadState === 'error';
-
-  // Memoize placeholder to prevent re-renders
-  const placeholderSrc = useMemo(
-    () => generatePlaceholder(placeholderColor),
-    [placeholderColor]
-  );
 
   // Compute srcset and sizes
   const computedSrcset = useMemo(() => {
@@ -239,43 +223,22 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
         aspectRatio: aspectRatio,
       }}
     >
-      {/* Blur-up placeholder with shimmer animation */}
-      <div 
-        className={cn(
-          'absolute inset-0 transition-opacity duration-500 ease-out',
-          isLoaded ? 'opacity-0 pointer-events-none' : 'opacity-100'
-        )}
-        aria-hidden="true"
-      >
-        {/* Base color layer */}
-        <div className="absolute inset-0 bg-muted" />
-        
-        {/* Shimmer animation overlay */}
+      {/* Blur-up placeholder with shimmer animation - single unified layer */}
+      {!isLoaded && (
         <div 
-          className={cn(
-            'absolute inset-0 animate-shimmer',
-            isLoaded && 'animate-none'
-          )}
-          style={{
-            backgroundImage: generateShimmerGradient(),
-            backgroundSize: '200% 100%',
-          }}
-        />
-        
-        {/* Blur placeholder image for actual blur-up effect */}
-        {blur && (
-          <img
-            src={placeholderSrc}
-            alt=""
-            aria-hidden="true"
-            className={cn(
-              'absolute inset-0 w-full h-full',
-              objectFitClass,
-              'blur-xl scale-110 opacity-50'
-            )}
+          className="absolute inset-0 transition-opacity duration-500 ease-out"
+          aria-hidden="true"
+        >
+          {/* Base color + shimmer in one layer */}
+          <div 
+            className="absolute inset-0 bg-muted animate-shimmer"
+            style={{
+              backgroundImage: generateShimmerGradient(),
+              backgroundSize: '200% 100%',
+            }}
           />
-        )}
-      </div>
+        </div>
+      )}
       
       {/* Actual image - only render when in view */}
       {isInView && (
@@ -287,7 +250,6 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
           alt={alt}
           loading={priority ? 'eager' : 'lazy'}
           decoding={priority ? 'sync' : 'async'}
-          fetchPriority={priority ? 'high' : 'auto'}
           onLoad={handleLoad}
           onError={handleError}
           className={cn(
