@@ -26,6 +26,7 @@ import { EventVideosSection } from './EventVideosSection';
 import { EventLocationSection } from './EventLocationSection';
 import { EventWebsiteSection } from './EventWebsiteSection';
 import { SubEventsSection, LinkedEventGuide } from './SubEventsSection';
+import { SubEventsManager } from './SubEventsManager';
 import { SharedAssetsSection, SharedAsset } from './SharedAssetsSection';
 import { Separator } from '@/components/ui/separator';
 
@@ -352,6 +353,20 @@ export const FullEventPage = ({
             coverImage: g.coverImage,
           }));
         
+        // If in edit mode, show the manager; otherwise show the display section
+        if (canEdit) {
+          return (
+            <SubEventsManager
+              eventId={eventId}
+              linkedGuides={linkedEvents}
+              onLinkedGuidesChange={(guides) => updateEvent({ linkedGuides: guides } as any)}
+              masterEventName={event.hero?.name || 'Master Event'}
+              masterEventSlug={event.slug}
+            />
+          );
+        }
+        
+        // Display-only mode - only show if there are sub-events
         if (linkedEvents.length === 0) return null;
         
         return (
