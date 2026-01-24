@@ -1,9 +1,11 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain, Building2 } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, ProductGuide } from '@/types/brand';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
@@ -109,7 +111,10 @@ const ProductEditor = () => {
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
 
-  // Public product fallback (for logged-out users / public URLs)
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
   const [publicProduct, setPublicProduct] = useState<ProductGuide | null>(null);
   // Initialize to true to prevent hooks ordering issues during initial render
   const [publicProductLoading, setPublicProductLoading] = useState(true);
@@ -444,9 +449,14 @@ const ProductEditor = () => {
                     </Button>
                   </SheetTrigger>
                 </Sheet>
-                <Button variant="ghost" size="icon" onClick={() => navigate(organization ? `/org/${organization.slug}` : '/')}>
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={() => navigate(organization ? `/org/${organization.slug}` : '/')}>
+                      <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Back to Dashboard</TooltipContent>
+                </Tooltip>
                 <div className="flex items-center gap-2">
                   <img 
                     src={theme === 'dark' ? tpLogoWhite : tpLogoColor} 
@@ -463,8 +473,13 @@ const ProductEditor = () => {
                     <Package className="h-3 w-3" />
                     Product
                   </Badge>
-                  <span className="font-medium text-foreground">{currentProduct.hero.name}</span>
-                  <SyncStatusIndicator compact />
+                  <span className="font-medium text-foreground truncate max-w-[150px] sm:max-w-[200px]">{currentProduct.hero.name}</span>
+                  {canEdit && (
+                    <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
+                      Editing
+                    </Badge>
+                  )}
+                  {canEdit && <SyncStatusIndicator compact />}
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -538,9 +553,40 @@ const ProductEditor = () => {
                   </Tooltip>
                 </ToggleGroup>
                 <ThemeToggle />
-                <div className="text-xs text-muted-foreground hidden sm:block">
-                  Saved {currentProduct.updatedAt.toLocaleTimeString()}
-                </div>
+                {user ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-accent/10 text-accent text-sm">
+                            {user.email?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem className="text-xs text-muted-foreground">
+                        {user.email}
+                      </DropdownMenuItem>
+                      {isAdmin && (
+                        <DropdownMenuItem className="gap-2 text-accent">
+                          <Shield className="h-4 w-4" />
+                          Admin
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut} className="gap-2">
+                        <LogOut className="h-4 w-4" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="gap-2">
+                    <Lock className="h-4 w-4" />
+                    Login
+                  </Button>
+                )}
               </div>
             </div>
           </header>
