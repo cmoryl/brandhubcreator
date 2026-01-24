@@ -59,7 +59,7 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
   const { addBrand, addProduct, brands, products } = useBrands();
   const { addEvent, events } = useEvents();
 
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
 
   // Dialog states
