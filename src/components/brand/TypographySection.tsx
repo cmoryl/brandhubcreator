@@ -155,9 +155,9 @@ export const TypographySection = ({ typography, onTypographyChange, customSubtit
                     {type.previewText || DEFAULT_PREVIEW_TEXT}
                   </p>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="font-mono">{type.fontFamily.split(',')[0]}</span>
+                    <span className="font-mono">{type.fontFamily?.split(',')[0] || 'Unknown'}</span>
                     <span>•</span>
-                    <span>{type.usage}</span>
+                    <span>{type.usage || 'General'}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
