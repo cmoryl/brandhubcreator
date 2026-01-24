@@ -126,7 +126,7 @@ export const GlobalAssetOrbit = ({
   const [activeEntity, setActiveEntity] = useState<LinkedEntity | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [hoveredOrbit, setHoveredOrbit] = useState<string | null>(null);
-  const [orbitPaused, setOrbitPaused] = useState(false);
+  // Removed orbitPaused - rotation continues always
   const animationFrameRef = useRef<number>();
 
   // Get first letter for center
@@ -474,7 +474,7 @@ export const GlobalAssetOrbit = ({
         
         {/* Outermost orbit - Events ring */}
         <g 
-          className={orbitPaused ? '' : 'animate-[spin_100s_linear_infinite]'}
+          className="animate-[spin_100s_linear_infinite]"
           style={{ transformOrigin: '200px 200px' }}
         >
           {generateRandomDots.outermost.map((dot, i) => (
@@ -492,7 +492,7 @@ export const GlobalAssetOrbit = ({
         
         {/* Outer orbit dots */}
         <g 
-          className={orbitPaused ? '' : 'animate-[spin_80s_linear_infinite_reverse]'}
+          className="animate-[spin_80s_linear_infinite_reverse]"
           style={{ transformOrigin: '200px 200px' }}
         >
           {generateRandomDots.outer.map((dot, i) => (
@@ -510,7 +510,7 @@ export const GlobalAssetOrbit = ({
         
         {/* Middle orbit - Products ring */}
         <g 
-          className={orbitPaused ? '' : 'animate-[spin_65s_linear_infinite]'}
+          className="animate-[spin_65s_linear_infinite]"
           style={{ transformOrigin: '200px 200px' }}
         >
           {generateRandomDots.middle.map((dot, i) => (
@@ -528,7 +528,7 @@ export const GlobalAssetOrbit = ({
         
         {/* Inner orbit - Brands ring */}
         <g 
-          className={orbitPaused ? '' : 'animate-[spin_50s_linear_infinite_reverse]'}
+          className="animate-[spin_50s_linear_infinite_reverse]"
           style={{ transformOrigin: '200px 200px' }}
         >
           {generateRandomDots.inner.map((dot, i) => (
@@ -546,7 +546,7 @@ export const GlobalAssetOrbit = ({
         
         {/* Core orbit */}
         <g 
-          className={orbitPaused ? '' : 'animate-[spin_35s_linear_infinite]'}
+          className="animate-[spin_35s_linear_infinite]"
           style={{ transformOrigin: '200px 200px' }}
         >
           {generateRandomDots.core.map((dot, i) => (
@@ -585,11 +585,11 @@ export const GlobalAssetOrbit = ({
           const midX = (fromPos.x + toPos.x) / 2 + (200 - (fromPos.x + toPos.x) / 2) * centerPull;
           const midY = (fromPos.y + toPos.y) / 2 + (200 - (fromPos.y + toPos.y) / 2) * centerPull;
           
-          // Style based on connection type
+          // Style based on connection type - much smaller dots
           const isOrgConnection = line.type === 'org';
           const isParentChild = line.type === 'parent' || line.type === 'child';
-          const dotSize = isOrgConnection ? 7 : isParentChild ? 6 : 4;
-          const animDuration = isOrgConnection ? '1.2s' : isParentChild ? '1.5s' : '2s';
+          const dotSize = isOrgConnection ? 3 : isParentChild ? 2.5 : 2;
+          const animDuration = isOrgConnection ? '1.5s' : isParentChild ? '1.8s' : '2.2s';
           
           // Get color based on the hovered entity type
           const lineColor = activeEntity ? TYPE_COLORS[activeEntity.type] : primaryColor;
@@ -597,13 +597,13 @@ export const GlobalAssetOrbit = ({
           
           return (
             <g key={`hier-${i}`}>
-              {/* Multiple pulsing dots traveling along path */}
-              {[0, 0.33, 0.66].map((offset, dotIdx) => (
+              {/* Multiple small dots traveling along path */}
+              {[0, 0.25, 0.5, 0.75].map((offset, dotIdx) => (
                 <circle 
                   key={`dot-${dotIdx}`}
-                  r={dotSize - dotIdx * 1.5} 
+                  r={dotSize - dotIdx * 0.3} 
                   fill={lineColor} 
-                  fillOpacity={0.95 - dotIdx * 0.2}
+                  fillOpacity={0.9 - dotIdx * 0.15}
                 >
                   <animateMotion
                     dur={animDuration}
@@ -611,47 +611,21 @@ export const GlobalAssetOrbit = ({
                     begin={`${parseFloat(animDuration) * offset}s`}
                     path={pathD}
                   />
-                  {/* Pulsing animation */}
-                  <animate
-                    attributeName="r"
-                    values={`${dotSize - dotIdx * 1.5};${dotSize - dotIdx * 1.5 + 2};${dotSize - dotIdx * 1.5}`}
-                    dur="0.8s"
-                    repeatCount="indefinite"
-                  />
-                  <animate
-                    attributeName="fill-opacity"
-                    values={`${0.95 - dotIdx * 0.2};${0.6 - dotIdx * 0.15};${0.95 - dotIdx * 0.2}`}
-                    dur="0.8s"
-                    repeatCount="indefinite"
-                  />
                 </circle>
               ))}
               
-              {/* Connection point indicator at destination */}
+              {/* Small connection point indicator at destination */}
               {line.toOrbit !== 'center' && (
                 <circle
                   cx={toPos.x}
                   cy={toPos.y}
-                  r={dotSize + 3}
+                  r={dotSize + 2}
                   fill="none"
                   stroke={lineColor}
-                  strokeWidth="1.5"
-                  strokeOpacity="0.5"
+                  strokeWidth="1"
+                  strokeOpacity="0.4"
                   className="animate-scale-in"
-                >
-                  <animate
-                    attributeName="r"
-                    values={`${dotSize + 3};${dotSize + 6};${dotSize + 3}`}
-                    dur="1.2s"
-                    repeatCount="indefinite"
-                  />
-                  <animate
-                    attributeName="stroke-opacity"
-                    values="0.5;0.2;0.5"
-                    dur="1.2s"
-                    repeatCount="indefinite"
-                  />
-                </circle>
+                />
               )}
             </g>
           );
@@ -731,7 +705,7 @@ export const GlobalAssetOrbit = ({
       {/* Inner orbit - Brands (closest to center = direct org connection) */}
       {orbitData.inner.length > 0 && (
         <div 
-          className={cn("absolute inset-0", !orbitPaused && "animate-[spin_55s_linear_infinite_reverse]")}
+          className="absolute inset-0 animate-[spin_55s_linear_infinite_reverse]"
           style={{ transformOrigin: 'center' }}
         >
           {orbitData.inner.map((entity, i) => {
@@ -753,18 +727,15 @@ export const GlobalAssetOrbit = ({
                 x={x}
                 y={y}
                 isActive={isActive}
-                orbitPaused={orbitPaused}
                 onHover={() => {
                   setHoveredIndex(i);
                   setHoveredOrbit('inner');
                   setActiveEntity(entity);
-                  setOrbitPaused(true);
                 }}
                 onLeave={() => {
                   setHoveredIndex(null);
                   setHoveredOrbit(null);
                   setActiveEntity(null);
-                  // Don't reset orbitPaused - keep paused
                 }}
                 onClick={() => handleEntityClick(entity)}
                 spinDuration="55s"
@@ -779,7 +750,7 @@ export const GlobalAssetOrbit = ({
       {/* Middle orbit - Products */}
       {orbitData.middle.length > 0 && (
         <div 
-          className={cn("absolute inset-0", !orbitPaused && "animate-[spin_70s_linear_infinite]")}
+          className="absolute inset-0 animate-[spin_70s_linear_infinite]"
           style={{ transformOrigin: 'center' }}
         >
           {orbitData.middle.map((entity, i) => {
@@ -801,18 +772,15 @@ export const GlobalAssetOrbit = ({
                 x={x}
                 y={y}
                 isActive={isActive}
-                orbitPaused={orbitPaused}
                 onHover={() => {
                   setHoveredIndex(i);
                   setHoveredOrbit('middle');
                   setActiveEntity(entity);
-                  setOrbitPaused(true);
                 }}
                 onLeave={() => {
                   setHoveredIndex(null);
                   setHoveredOrbit(null);
                   setActiveEntity(null);
-                  // Don't reset orbitPaused - keep paused
                 }}
                 onClick={() => handleEntityClick(entity)}
                 spinDuration="70s"
@@ -826,7 +794,7 @@ export const GlobalAssetOrbit = ({
       {/* Outer orbit - Events */}
       {orbitData.outer.length > 0 && (
         <div 
-          className={cn("absolute inset-0", !orbitPaused && "animate-[spin_85s_linear_infinite_reverse]")}
+          className="absolute inset-0 animate-[spin_85s_linear_infinite_reverse]"
           style={{ transformOrigin: 'center' }}
         >
           {orbitData.outer.map((entity, i) => {
@@ -848,18 +816,15 @@ export const GlobalAssetOrbit = ({
                 x={x}
                 y={y}
                 isActive={isActive}
-                orbitPaused={orbitPaused}
                 onHover={() => {
                   setHoveredIndex(i);
                   setHoveredOrbit('outer');
                   setActiveEntity(entity);
-                  setOrbitPaused(true);
                 }}
                 onLeave={() => {
                   setHoveredIndex(null);
                   setHoveredOrbit(null);
                   setActiveEntity(null);
-                  // Don't reset orbitPaused - keep paused
                 }}
                 onClick={() => handleEntityClick(entity)}
                 spinDuration="85s"
@@ -987,7 +952,6 @@ interface EntityIconProps {
   x: number;
   y: number;
   isActive: boolean;
-  orbitPaused: boolean;
   onHover: () => void;
   onLeave: () => void;
   onClick: () => void;
@@ -1003,7 +967,6 @@ const EntityIcon = ({
   x,
   y,
   isActive,
-  orbitPaused,
   onHover,
   onLeave,
   onClick,
@@ -1031,13 +994,10 @@ const EntityIcon = ({
       onClick={onClick}
     >
       <div 
-        className={cn(
-          "w-full h-full flex items-center justify-center",
-          !orbitPaused && `animate-[spin_${spinDuration}_linear_infinite${spinReverse ? '_reverse' : ''}]`
-        )}
+        className="w-full h-full flex items-center justify-center"
         style={{ 
           transformOrigin: 'center',
-          animation: orbitPaused ? 'none' : `spin ${spinDuration} linear infinite ${spinReverse ? 'reverse' : ''}`,
+          animation: `spin ${spinDuration} linear infinite ${spinReverse ? 'reverse' : ''}`,
         }}
       >
         <div 
