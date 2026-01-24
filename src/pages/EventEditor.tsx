@@ -504,6 +504,9 @@ const EventEditor = () => {
       case 'subevents':
         // Sub-events only shown on master events - handled by FullEventPage
         return null;
+      case 'sharedassets':
+        // Shared assets only shown on master events - handled by FullEventPage
+        return null;
       default:
         return null;
     }
