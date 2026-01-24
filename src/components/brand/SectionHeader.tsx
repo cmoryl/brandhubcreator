@@ -24,11 +24,14 @@ export const SectionHeader = forwardRef<HTMLDivElement, SectionHeaderProps>(
     const [editingSubtitle, setEditingSubtitle] = useState(false);
     const displaySubtitle = customSubtitle || defaultSubtitle;
 
+    // Only allow editing if onSubtitleChange is provided (canEdit mode)
+    const canEdit = !!onSubtitleChange;
+
     return (
       <div ref={ref} className="flex items-start justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <h2 className="text-xl sm:text-2xl font-serif font-semibold text-foreground">{title}</h2>
-          {editingSubtitle && onSubtitleChange ? (
+          {editingSubtitle && canEdit ? (
             <div className="mt-2 space-y-2">
               <RichTextEditor
                 value={customSubtitle ?? ''}
@@ -48,30 +51,33 @@ export const SectionHeader = forwardRef<HTMLDivElement, SectionHeaderProps>(
             </div>
           ) : (
             <p 
-              className="text-sm sm:text-base text-muted-foreground mt-1 cursor-pointer hover:text-foreground/80 transition-colors group"
-              onClick={() => onSubtitleChange && setEditingSubtitle(true)}
-              title={onSubtitleChange ? "Click to edit subtitle" : undefined}
+              className={`text-sm sm:text-base text-muted-foreground mt-1 ${canEdit ? 'cursor-pointer hover:text-foreground/80 transition-colors group' : ''}`}
+              onClick={() => canEdit && setEditingSubtitle(true)}
+              title={canEdit ? "Click to edit subtitle" : undefined}
             >
               {customSubtitle ? (
                 <RichTextDisplay html={customSubtitle} />
               ) : (
                 displaySubtitle
               )}
-              {onSubtitleChange && (
+              {canEdit && (
                 <Pencil className="inline-block h-3 w-3 ml-2 opacity-0 group-hover:opacity-50 transition-opacity" />
               )}
             </p>
           )}
         </div>
-        <Button
-          variant={isEditing ? "default" : "outline"}
-          size="sm"
-          onClick={onEditToggle}
-          className="gap-1.5 sm:gap-2 shrink-0 h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
-        >
-          {isEditing ? <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
-          <span className="hidden sm:inline">{isEditing ? 'Done' : 'Edit'}</span>
-        </Button>
+        {/* Only show edit button if editing is allowed */}
+        {canEdit && (
+          <Button
+            variant={isEditing ? "default" : "outline"}
+            size="sm"
+            onClick={onEditToggle}
+            className="gap-1.5 sm:gap-2 shrink-0 h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
+          >
+            {isEditing ? <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+            <span className="hidden sm:inline">{isEditing ? 'Done' : 'Edit'}</span>
+          </Button>
+        )}
       </div>
     );
   }
