@@ -53,6 +53,7 @@ import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePane
 import { BrandBackupManager } from '@/components/brand/BrandBackupManager';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
+import { BackToTopButton } from '@/components/BackToTopButton';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -571,6 +572,9 @@ const ProductEditor = () => {
           </main>
         </div>
       </div>
+      
+      {/* Back to top button */}
+      <BackToTopButton />
     </TooltipProvider>
   );
 };
