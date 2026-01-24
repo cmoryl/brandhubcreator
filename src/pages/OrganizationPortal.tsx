@@ -32,7 +32,7 @@ import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, PortalGridSkeleton, PortalPagination } from '@/components/portal';
+import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, PortalGridSkeleton, PortalPagination, PortalAdminActions } from '@/components/portal';
 import { toast } from 'sonner';
 
 // Lazy load admin components
@@ -417,17 +417,6 @@ const OrganizationPortal = () => {
                 </TabsTrigger>
               </TabsList>
             </div>
-            {canEdit && (
-              <Button 
-                onClick={handleCreateEvent} 
-                disabled={isCreatingEvent}
-                size="sm"
-                className="gap-2 shrink-0"
-              >
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Add Event</span>
-              </Button>
-            )}
           </div>
 
           {/* All Content */}
@@ -627,6 +616,9 @@ const OrganizationPortal = () => {
           </p>
         </div>
       </footer>
+
+      {/* Admin Quick Actions Panel */}
+      {canEdit && <PortalAdminActions organizationSlug={slug} />}
     </div>
   );
 };
