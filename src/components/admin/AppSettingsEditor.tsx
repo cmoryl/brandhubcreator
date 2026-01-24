@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef, forwardRef } from 'react';
 import { Settings, Upload, X, Save, RotateCcw, Image, Sparkles, Waves, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,8 +48,9 @@ const backgroundTypes: { type: HeroBackgroundType; name: string; icon: typeof Im
   { type: 'animated-spotlight', name: 'Spotlight', icon: Sparkles, description: 'Moving spotlight effect' },
 ];
 
-// Exported as a named function component for lazy loading compatibility
-export function AppSettingsEditor() {
+// Exported as a forwardRef component for lazy loading compatibility
+export const AppSettingsEditor = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  function AppSettingsEditor(props, ref) {
   const { settings, updateSettings, resetColors } = useAppSettings();
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState<AppSettings>(settings);
@@ -724,4 +725,6 @@ export function AppSettingsEditor() {
       </DialogContent>
     </Dialog>
   );
-}
+});
+
+AppSettingsEditor.displayName = 'AppSettingsEditor';

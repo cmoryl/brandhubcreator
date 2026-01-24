@@ -88,162 +88,174 @@ const ColorDots = React.forwardRef<HTMLDivElement, ColorDotsProps>(
 );
 ColorDots.displayName = 'ColorDots';
 
-export const PortalBrandCard = ({ brand, index, orgColors }: BrandCardProps) => {
-  const navigate = useNavigate();
-  const hero = brand.hero || { name: brand.name, tagline: '' };
-  const colors = brand.colors;
-  const fallbackGradient = `linear-gradient(135deg, ${orgColors.primary}, ${orgColors.secondary})`;
+export const PortalBrandCard = React.forwardRef<HTMLDivElement, BrandCardProps>(
+  ({ brand, index, orgColors }, ref) => {
+    const navigate = useNavigate();
+    const hero = brand.hero || { name: brand.name, tagline: '' };
+    const colors = brand.colors;
+    const fallbackGradient = `linear-gradient(135deg, ${orgColors.primary}, ${orgColors.secondary})`;
 
-  return (
-    <Card 
-      className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
-      style={{ animationDelay: `${index * 0.05}s` }}
-      onClick={() => navigate(`/brand/${brand.slug || brand.id}`)}
-    >
-      <CardContent className="p-0">
-        <div className="relative h-44 overflow-hidden">
-          {hero.coverImage ? (
-            <OptimizedImage 
-              src={hero.coverImage} 
-              alt={hero.name}
-              className="w-full h-full transition-transform duration-500 group-hover:scale-105"
-              objectFit="cover"
-              priority={index < 3}
-            />
-          ) : (
-            <ColorStripes colors={colors} fallbackGradient={fallbackGradient} />
-          )}
-          <Badge className="absolute top-3 right-3 gap-1 bg-green-500/90 text-white">
-            <Globe className="h-3 w-3" />
-            Public
-          </Badge>
-        </div>
-        <div className="p-5">
-          <h3 className="font-semibold text-lg text-foreground mb-1 group-hover:text-accent transition-colors">
-            {hero.name}
-          </h3>
-          {hero.tagline && (
-            <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-              {hero.tagline}
-            </p>
-          )}
-          <ColorDots colors={colors} />
-          <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-accent/80">
-            View Guidelines
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+    return (
+      <Card 
+        ref={ref}
+        className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
+        style={{ animationDelay: `${index * 0.05}s` }}
+        onClick={() => navigate(`/brand/${brand.slug || brand.id}`)}
+      >
+        <CardContent className="p-0">
+          <div className="relative h-44 overflow-hidden">
+            {hero.coverImage ? (
+              <OptimizedImage 
+                src={hero.coverImage} 
+                alt={hero.name}
+                className="w-full h-full transition-transform duration-500 group-hover:scale-105"
+                objectFit="cover"
+                priority={index < 3}
+              />
+            ) : (
+              <ColorStripes colors={colors} fallbackGradient={fallbackGradient} />
+            )}
+            <Badge className="absolute top-3 right-3 gap-1 bg-green-500/90 text-white">
+              <Globe className="h-3 w-3" />
+              Public
+            </Badge>
+          </div>
+          <div className="p-5">
+            <h3 className="font-semibold text-lg text-foreground mb-1 group-hover:text-accent transition-colors">
+              {hero.name}
+            </h3>
+            {hero.tagline && (
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                {hero.tagline}
+              </p>
+            )}
+            <ColorDots colors={colors} />
+            <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-accent/80">
+              View Guidelines
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+);
+PortalBrandCard.displayName = 'PortalBrandCard';
 
-export const PortalProductCard = ({ product, index, orgColors }: ProductCardProps) => {
-  const navigate = useNavigate();
-  const hero = product.hero || { name: product.name, tagline: '' };
-  const colors = product.colors;
-  const fallbackGradient = `linear-gradient(135deg, ${orgColors.primary}, ${orgColors.secondary})`;
+export const PortalProductCard = React.forwardRef<HTMLDivElement, ProductCardProps>(
+  ({ product, index, orgColors }, ref) => {
+    const navigate = useNavigate();
+    const hero = product.hero || { name: product.name, tagline: '' };
+    const colors = product.colors;
+    const fallbackGradient = `linear-gradient(135deg, ${orgColors.primary}, ${orgColors.secondary})`;
 
-  return (
-    <Card 
-      className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
-      style={{ animationDelay: `${index * 0.05}s` }}
-      onClick={() => navigate(`/product/${product.slug || product.id}`)}
-    >
-      <CardContent className="p-0">
-        <div className="relative h-44 overflow-hidden">
-          {hero.coverImage ? (
-            <OptimizedImage 
-              src={hero.coverImage} 
-              alt={hero.name}
-              className="w-full h-full transition-transform duration-500 group-hover:scale-105"
-              objectFit="cover"
-              priority={index < 3}
-            />
-          ) : (
-            <ColorStripes colors={colors} fallbackGradient={fallbackGradient} />
-          )}
-          <Badge className="absolute top-3 right-3 gap-1 bg-green-500/90 text-white">
-            <Globe className="h-3 w-3" />
-            Public
-          </Badge>
-        </div>
-        <div className="p-5">
-          <h3 className="font-semibold text-lg text-foreground mb-1 group-hover:text-accent transition-colors">
-            {hero.name}
-          </h3>
-          {hero.tagline && (
-            <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-              {hero.tagline}
-            </p>
-          )}
-          <ColorDots colors={colors} />
-          <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-accent/80">
-            View Guidelines
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+    return (
+      <Card 
+        ref={ref}
+        className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
+        style={{ animationDelay: `${index * 0.05}s` }}
+        onClick={() => navigate(`/product/${product.slug || product.id}`)}
+      >
+        <CardContent className="p-0">
+          <div className="relative h-44 overflow-hidden">
+            {hero.coverImage ? (
+              <OptimizedImage 
+                src={hero.coverImage} 
+                alt={hero.name}
+                className="w-full h-full transition-transform duration-500 group-hover:scale-105"
+                objectFit="cover"
+                priority={index < 3}
+              />
+            ) : (
+              <ColorStripes colors={colors} fallbackGradient={fallbackGradient} />
+            )}
+            <Badge className="absolute top-3 right-3 gap-1 bg-green-500/90 text-white">
+              <Globe className="h-3 w-3" />
+              Public
+            </Badge>
+          </div>
+          <div className="p-5">
+            <h3 className="font-semibold text-lg text-foreground mb-1 group-hover:text-accent transition-colors">
+              {hero.name}
+            </h3>
+            {hero.tagline && (
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                {hero.tagline}
+              </p>
+            )}
+            <ColorDots colors={colors} />
+            <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-accent/80">
+              View Guidelines
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+);
+PortalProductCard.displayName = 'PortalProductCard';
 
-export const PortalEventCard = ({ event, index, orgColors }: EventCardProps) => {
-  const navigate = useNavigate();
-  const hero = event.hero || { name: event.name, tagline: '' };
-  const eventDetails = event.eventDetails || { eventName: '', eventDates: '', location: '' };
-  const colors = event.colors;
-  const fallbackGradient = `linear-gradient(135deg, ${orgColors.primary}, ${orgColors.secondary})`;
+export const PortalEventCard = React.forwardRef<HTMLDivElement, EventCardProps>(
+  ({ event, index, orgColors }, ref) => {
+    const navigate = useNavigate();
+    const hero = event.hero || { name: event.name, tagline: '' };
+    const eventDetails = event.eventDetails || { eventName: '', eventDates: '', location: '' };
+    const colors = event.colors;
+    const fallbackGradient = `linear-gradient(135deg, ${orgColors.primary}, ${orgColors.secondary})`;
 
-  return (
-    <Card 
-      className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
-      style={{ animationDelay: `${index * 0.05}s` }}
-      onClick={() => navigate(`/event/${event.slug || event.id}`)}
-    >
-      <CardContent className="p-0">
-        <div className="relative h-44 overflow-hidden">
-          {hero.coverImage ? (
-            <OptimizedImage 
-              src={hero.coverImage} 
-              alt={hero.name}
-              className="w-full h-full transition-transform duration-500 group-hover:scale-105"
-              objectFit="cover"
-              priority={index < 3}
-            />
-          ) : (
-            <ColorStripes colors={colors} fallbackGradient={fallbackGradient} />
-          )}
-          <Badge className="absolute top-3 right-3 gap-1 bg-green-500/90 text-white">
-            <Globe className="h-3 w-3" />
-            Public
-          </Badge>
-          <Badge className="absolute top-3 left-3 gap-1 bg-primary/90 text-primary-foreground">
-            <Calendar className="h-3 w-3" />
-            Event
-          </Badge>
-        </div>
-        <div className="p-5">
-          <h3 className="font-semibold text-lg text-foreground mb-1 group-hover:text-accent transition-colors">
-            {hero.name || eventDetails.eventName}
-          </h3>
-          {eventDetails.eventDates && (
-            <p className="text-sm text-muted-foreground mb-1">
-              {eventDetails.eventDates}
-            </p>
-          )}
-          {eventDetails.location && (
-            <p className="text-sm text-muted-foreground mb-2">
-              📍 {eventDetails.location}
-            </p>
-          )}
-          <ColorDots colors={colors} />
-          <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-accent/80">
-            View Guidelines
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+    return (
+      <Card 
+        ref={ref}
+        className="group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg"
+        style={{ animationDelay: `${index * 0.05}s` }}
+        onClick={() => navigate(`/event/${event.slug || event.id}`)}
+      >
+        <CardContent className="p-0">
+          <div className="relative h-44 overflow-hidden">
+            {hero.coverImage ? (
+              <OptimizedImage 
+                src={hero.coverImage} 
+                alt={hero.name}
+                className="w-full h-full transition-transform duration-500 group-hover:scale-105"
+                objectFit="cover"
+                priority={index < 3}
+              />
+            ) : (
+              <ColorStripes colors={colors} fallbackGradient={fallbackGradient} />
+            )}
+            <Badge className="absolute top-3 right-3 gap-1 bg-green-500/90 text-white">
+              <Globe className="h-3 w-3" />
+              Public
+            </Badge>
+            <Badge className="absolute top-3 left-3 gap-1 bg-primary/90 text-primary-foreground">
+              <Calendar className="h-3 w-3" />
+              Event
+            </Badge>
+          </div>
+          <div className="p-5">
+            <h3 className="font-semibold text-lg text-foreground mb-1 group-hover:text-accent transition-colors">
+              {hero.name || eventDetails.eventName}
+            </h3>
+            {eventDetails.eventDates && (
+              <p className="text-sm text-muted-foreground mb-1">
+                {eventDetails.eventDates}
+              </p>
+            )}
+            {eventDetails.location && (
+              <p className="text-sm text-muted-foreground mb-2">
+                📍 {eventDetails.location}
+              </p>
+            )}
+            <ColorDots colors={colors} />
+            <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-accent/80">
+              View Guidelines
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+);
+PortalEventCard.displayName = 'PortalEventCard';
