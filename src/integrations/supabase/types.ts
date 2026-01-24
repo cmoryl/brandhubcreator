@@ -533,6 +533,43 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_portal_org_safe: {
+        Args: { p_slug: string }
+        Returns: {
+          accent_color: string
+          id: string
+          logo_url: string
+          name: string
+          portal_settings: Json
+          primary_color: string
+          secondary_color: string
+          slug: string
+        }[]
+      }
+      get_public_brand_data: {
+        Args: { p_org_id?: string; p_slug?: string }
+        Returns: {
+          created_at: string
+          guide_data: Json
+          id: string
+          is_public: boolean
+          name: string
+          slug: string
+          updated_at: string
+        }[]
+      }
+      get_public_event_data: {
+        Args: { p_org_id?: string; p_slug?: string }
+        Returns: {
+          created_at: string
+          guide_data: Json
+          id: string
+          is_public: boolean
+          name: string
+          slug: string
+          updated_at: string
+        }[]
+      }
       get_public_organization_info: {
         Args: { _org_id?: string; _slug?: string }
         Returns: {
@@ -558,6 +595,18 @@ export type Database = {
           primary_color: string
           secondary_color: string
           slug: string
+        }[]
+      }
+      get_public_product_data: {
+        Args: { p_org_id?: string; p_slug?: string }
+        Returns: {
+          created_at: string
+          guide_data: Json
+          id: string
+          is_public: boolean
+          name: string
+          slug: string
+          updated_at: string
         }[]
       }
       has_role: {
