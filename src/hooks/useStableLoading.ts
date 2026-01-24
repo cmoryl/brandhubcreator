@@ -37,6 +37,12 @@ export function useStableLoading(
   const showTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const maxTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stableLoadingRef = useRef(false);
+
+  // Keep ref in sync with state to avoid dependency issues
+  useEffect(() => {
+    stableLoadingRef.current = stableLoading;
+  }, [stableLoading]);
 
   useEffect(() => {
     // Clear pending timeouts
@@ -84,7 +90,7 @@ export function useStableLoading(
         }
         
         // If we're showing loading, ensure minimum display time
-        if (stableLoading) {
+        if (stableLoadingRef.current) {
           const visibleTime = elapsed - showDelay;
           const remaining = Math.max(0, minDisplayTime - visibleTime);
           
@@ -106,7 +112,7 @@ export function useStableLoading(
       if (showTimeoutRef.current) clearTimeout(showTimeoutRef.current);
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     };
-  }, [isLoading, showDelay, minDisplayTime, maxLoadingTime, stableLoading]);
+  }, [isLoading, showDelay, minDisplayTime, maxLoadingTime]);
 
   // Cleanup max timeout on unmount
   useEffect(() => {
