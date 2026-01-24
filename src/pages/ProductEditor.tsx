@@ -93,6 +93,10 @@ const ProductEditor = () => {
   const { user, isAdmin, isApproved, isLoading: authLoading } = useAuth();
   const { userRole: orgRole, organization } = useOrganization();
 
+  // Check if user can edit: global admin OR org member with appropriate role
+  const canEditOrg = orgRole && ['owner', 'admin', 'member'].includes(orgRole);
+  const canEdit = user && (isAdmin || canEditOrg);
+  
   // Treat organization owners/admins as "admins" within the guide as well.
   // Otherwise they are treated as viewers and hiddenSections can hide key areas (e.g., Social sections).
   const isGuideAdmin = Boolean(isAdmin || (orgRole && ['owner', 'admin'].includes(orgRole)));
@@ -481,11 +485,11 @@ const ProductEditor = () => {
                   type="product"
                   isPublic={currentProduct.isPublic}
                   onPublicChange={(isPublic) => handleUpdateProduct({ isPublic })}
-                  canEdit={!!user && isAdmin}
+                  canEdit={canEdit || false}
                   organizationSlug={organization?.slug}
                 />
-                {isGuideAdmin && <BrandAuditButton brand={currentProduct} />}
-                {isGuideAdmin && (
+                {canEdit && <BrandAuditButton brand={currentProduct} />}
+                {canEdit && (
                   <Sheet open={intelligenceOpen} onOpenChange={setIntelligenceOpen}>
                     <SheetTrigger asChild>
                       <Button variant="ghost" size="icon" className="relative">
@@ -505,7 +509,7 @@ const ProductEditor = () => {
                     </SheetContent>
                   </Sheet>
                 )}
-                {isGuideAdmin && (
+                {canEdit && (
                   <BrandPageSettingsEditor 
                     settings={pageSettings} 
                     onSettingsChange={handlePageSettingsChange}
