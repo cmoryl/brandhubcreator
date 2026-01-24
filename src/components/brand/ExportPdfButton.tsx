@@ -31,7 +31,56 @@ const getSectionLabel = (sectionId: SectionId): string => {
   return meta?.label || sectionId;
 };
 
-export const ExportPdfButton = ({ guide }: ExportPdfButtonProps) => {
+export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
+  // Defensive normalization: some legacy/public fetch paths can provide partial guide data.
+  // If any array fields are undefined, render can crash with "Cannot read properties of undefined (reading 'map')".
+  const guide = useMemo(() => {
+    const g: any = (rawGuide as any) ?? {};
+    const safeArray = <T,>(v: any): T[] => (Array.isArray(v) ? (v as T[]) : []);
+    const safeObject = <T extends object>(v: any, fallback: T): T =>
+      v && typeof v === 'object' && !Array.isArray(v) ? (v as T) : fallback;
+
+    return {
+      ...g,
+      sectionOrder: safeArray<SectionId>(g.sectionOrder).length ? (g.sectionOrder as SectionId[]) : DEFAULT_SECTION_ORDER,
+      hero: safeObject(g.hero, { name: '', tagline: '', coverImage: '', logoUrl: '' }),
+      tagline: safeObject(g.tagline, { primary: '', secondary: '', variations: [] }),
+      identity: safeObject(g.identity, { missionStatement: '', archetype: '', toneOfVoice: [] }),
+      values: safeArray(g.values),
+      logos: safeArray(g.logos),
+      brandIcons: safeArray(g.brandIcons),
+      colors: safeArray(g.colors),
+      colorCombinations: safeArray(g.colorCombinations),
+      gradients: safeArray(g.gradients),
+      patterns: safeArray(g.patterns),
+      typography: safeArray(g.typography),
+      textStyles: safeArray(g.textStyles),
+      iconography: safeArray(g.iconography),
+      socialIcons: safeArray(g.socialIcons),
+      imagery: safeArray(g.imagery),
+      social: safeArray(g.social),
+      websites: safeArray(g.websites),
+      signatures: safeArray(g.signatures),
+      emailBanners: safeArray(g.emailBanners),
+      qr: safeObject(g.qr, { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' }),
+      videos: safeArray(g.videos),
+      assets: safeArray(g.assets),
+      misuse: safeArray(g.misuse),
+      atmosphere: safeObject(g.atmosphere, { style: 'gradient', animate: true, opacity: 0.5, blur: 0 }),
+      caseStudies: safeArray(g.caseStudies),
+      brochures: safeArray(g.brochures),
+      templates: safeArray(g.templates),
+      services: safeArray(g.services),
+      socialAssets: safeArray<BrandSocialAssetSpec>(g.socialAssets),
+      displayBanners: safeArray<BrandDisplayBannerSpec>(g.displayBanners),
+      linkedGuides: safeArray(g.linkedGuides),
+      templateSpecs: safeArray<TemplateSpec>(g.templateSpecs),
+      revenueData: safeArray(g.revenueData),
+      statistics: safeArray(g.statistics),
+      sectionSubtitles: safeObject(g.sectionSubtitles, {}),
+    } as BaseGuide;
+  }, [rawGuide]);
+
   const [isExporting, setIsExporting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [pdfTheme, setPdfTheme] = useState<PdfTheme>('light');
