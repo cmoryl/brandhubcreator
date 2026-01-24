@@ -319,15 +319,91 @@ export const GlobalAssetOrbit = ({
         }
       });
     } else if (activeEntity.type === 'event') {
-      // Events connect directly to org
-      lines.push({
-        fromOrbit: 'outer',
-        fromIndex: hoveredIndex,
-        toOrbit: 'center',
-        toIndex: 0,
-        type: 'org',
-        priority: 1
-      });
+      // Event → Parent Brand connection (if has parent)
+      const parentBrand = orbitData.inner.find(b => b.id === activeEntity.parentBrandId);
+      if (parentBrand) {
+        const parentIndex = orbitData.inner.indexOf(parentBrand);
+        if (parentIndex >= 0) {
+          // Event to Brand
+          lines.push({ 
+            fromOrbit: 'outer', 
+            fromIndex: hoveredIndex, 
+            toOrbit: 'inner', 
+            toIndex: parentIndex,
+            type: 'parent',
+            priority: 1
+          });
+          // Brand to Center (org) - show full chain
+          lines.push({
+            fromOrbit: 'inner',
+            fromIndex: parentIndex,
+            toOrbit: 'center',
+            toIndex: 0,
+            type: 'org',
+            priority: 2
+          });
+        }
+      } else {
+        // Check if event links to a product
+        const parentProduct = orbitData.middle.find(p => p.id === activeEntity.parentBrandId);
+        if (parentProduct) {
+          const productIndex = orbitData.middle.indexOf(parentProduct);
+          if (productIndex >= 0) {
+            // Event to Product
+            lines.push({
+              fromOrbit: 'outer',
+              fromIndex: hoveredIndex,
+              toOrbit: 'middle',
+              toIndex: productIndex,
+              type: 'parent',
+              priority: 1
+            });
+            // Product to its parent brand (if exists)
+            const productParentBrand = orbitData.inner.find(b => b.id === parentProduct.parentBrandId);
+            if (productParentBrand) {
+              const brandIndex = orbitData.inner.indexOf(productParentBrand);
+              if (brandIndex >= 0) {
+                lines.push({
+                  fromOrbit: 'middle',
+                  fromIndex: productIndex,
+                  toOrbit: 'inner',
+                  toIndex: brandIndex,
+                  type: 'parent',
+                  priority: 2
+                });
+                lines.push({
+                  fromOrbit: 'inner',
+                  fromIndex: brandIndex,
+                  toOrbit: 'center',
+                  toIndex: 0,
+                  type: 'org',
+                  priority: 3
+                });
+              }
+            } else {
+              // Product connects directly to org
+              lines.push({
+                fromOrbit: 'middle',
+                fromIndex: productIndex,
+                toOrbit: 'center',
+                toIndex: 0,
+                type: 'org',
+                priority: 2
+              });
+            }
+          }
+        } else {
+          // No parent - connect directly to org
+          lines.push({
+            fromOrbit: 'outer',
+            fromIndex: hoveredIndex,
+            toOrbit: 'center',
+            toIndex: 0,
+            type: 'org',
+            priority: 1
+          });
+        }
+      }
     }
     
     // Sort by priority so main connections render on top
@@ -355,10 +431,10 @@ export const GlobalAssetOrbit = ({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => {
         setIsHovering(false);
+        // Don't reset orbit paused state - keep it paused after interaction
         setActiveEntity(null);
         setHoveredIndex(null);
         setHoveredOrbit(null);
-        setOrbitPaused(false);
       }}
       style={{
         transform: getTransform3D(),
@@ -486,7 +562,7 @@ export const GlobalAssetOrbit = ({
           ))}
         </g>
         
-        {/* Hierarchy connection lines - render on hover */}
+        {/* Hierarchy connection lines - render on hover (pulsing dots only) */}
         {hierarchyLines.map((line, i) => {
           const fromPos = line.fromOrbit === 'center' 
             ? { x: 200, y: 200 }
@@ -512,80 +588,70 @@ export const GlobalAssetOrbit = ({
           // Style based on connection type
           const isOrgConnection = line.type === 'org';
           const isParentChild = line.type === 'parent' || line.type === 'child';
-          const strokeWidth = isOrgConnection ? 3 : isParentChild ? 2.5 : 1.5;
-          const strokeOpacity = isOrgConnection ? 0.9 : isParentChild ? 0.75 : 0.5;
-          const dotSize = isOrgConnection ? 6 : isParentChild ? 5 : 3;
-          const animDuration = isOrgConnection ? '1s' : isParentChild ? '1.3s' : '1.8s';
+          const dotSize = isOrgConnection ? 7 : isParentChild ? 6 : 4;
+          const animDuration = isOrgConnection ? '1.2s' : isParentChild ? '1.5s' : '2s';
           
           // Get color based on the hovered entity type
           const lineColor = activeEntity ? TYPE_COLORS[activeEntity.type] : primaryColor;
+          const pathD = `M ${fromPos.x} ${fromPos.y} Q ${midX} ${midY} ${toPos.x} ${toPos.y}`;
           
           return (
-            <g key={`hier-${i}`} filter="url(#glow-soft-v2)">
-              {/* Main connection line */}
-              <path
-                d={`M ${fromPos.x} ${fromPos.y} Q ${midX} ${midY} ${toPos.x} ${toPos.y}`}
-                fill="none"
-                stroke={lineColor}
-                strokeWidth={strokeWidth}
-                strokeOpacity={strokeOpacity}
-                strokeDasharray={isSibling ? "4 4" : "0"}
-                className="animate-fade-in"
-              />
-              
-              {/* Glow effect for main connections */}
-              {(isOrgConnection || isParentChild) && (
-                <path
-                  d={`M ${fromPos.x} ${fromPos.y} Q ${midX} ${midY} ${toPos.x} ${toPos.y}`}
-                  fill="none"
-                  stroke={lineColor}
-                  strokeWidth={strokeWidth + 4}
-                  strokeOpacity={strokeOpacity * 0.3}
-                  strokeDasharray={isSibling ? "4 4" : "0"}
-                />
-              )}
-              
-              {/* Animated dot traveling along line */}
-              <circle 
-                r={dotSize} 
-                fill={lineColor} 
-                fillOpacity="0.95"
-              >
-                <animateMotion
-                  dur={animDuration}
-                  repeatCount="indefinite"
-                  path={`M ${fromPos.x} ${fromPos.y} Q ${midX} ${midY} ${toPos.x} ${toPos.y}`}
-                />
-              </circle>
-              
-              {/* Second dot for primary connections */}
-              {(isOrgConnection || isParentChild) && (
+            <g key={`hier-${i}`}>
+              {/* Multiple pulsing dots traveling along path */}
+              {[0, 0.33, 0.66].map((offset, dotIdx) => (
                 <circle 
-                  r={dotSize * 0.6} 
+                  key={`dot-${dotIdx}`}
+                  r={dotSize - dotIdx * 1.5} 
                   fill={lineColor} 
-                  fillOpacity="0.7"
+                  fillOpacity={0.95 - dotIdx * 0.2}
                 >
                   <animateMotion
                     dur={animDuration}
                     repeatCount="indefinite"
-                    begin={`${parseFloat(animDuration) * 0.5}s`}
-                    path={`M ${fromPos.x} ${fromPos.y} Q ${midX} ${midY} ${toPos.x} ${toPos.y}`}
+                    begin={`${parseFloat(animDuration) * offset}s`}
+                    path={pathD}
+                  />
+                  {/* Pulsing animation */}
+                  <animate
+                    attributeName="r"
+                    values={`${dotSize - dotIdx * 1.5};${dotSize - dotIdx * 1.5 + 2};${dotSize - dotIdx * 1.5}`}
+                    dur="0.8s"
+                    repeatCount="indefinite"
+                  />
+                  <animate
+                    attributeName="fill-opacity"
+                    values={`${0.95 - dotIdx * 0.2};${0.6 - dotIdx * 0.15};${0.95 - dotIdx * 0.2}`}
+                    dur="0.8s"
+                    repeatCount="indefinite"
                   />
                 </circle>
-              )}
+              ))}
               
               {/* Connection point indicator at destination */}
               {line.toOrbit !== 'center' && (
                 <circle
                   cx={toPos.x}
                   cy={toPos.y}
-                  r={dotSize + 2}
+                  r={dotSize + 3}
                   fill="none"
                   stroke={lineColor}
-                  strokeWidth="2"
-                  strokeOpacity="0.6"
+                  strokeWidth="1.5"
+                  strokeOpacity="0.5"
                   className="animate-scale-in"
-                />
+                >
+                  <animate
+                    attributeName="r"
+                    values={`${dotSize + 3};${dotSize + 6};${dotSize + 3}`}
+                    dur="1.2s"
+                    repeatCount="indefinite"
+                  />
+                  <animate
+                    attributeName="stroke-opacity"
+                    values="0.5;0.2;0.5"
+                    dur="1.2s"
+                    repeatCount="indefinite"
+                  />
+                </circle>
               )}
             </g>
           );
@@ -698,7 +764,7 @@ export const GlobalAssetOrbit = ({
                   setHoveredIndex(null);
                   setHoveredOrbit(null);
                   setActiveEntity(null);
-                  setOrbitPaused(false);
+                  // Don't reset orbitPaused - keep paused
                 }}
                 onClick={() => handleEntityClick(entity)}
                 spinDuration="55s"
@@ -746,7 +812,7 @@ export const GlobalAssetOrbit = ({
                   setHoveredIndex(null);
                   setHoveredOrbit(null);
                   setActiveEntity(null);
-                  setOrbitPaused(false);
+                  // Don't reset orbitPaused - keep paused
                 }}
                 onClick={() => handleEntityClick(entity)}
                 spinDuration="70s"
@@ -793,7 +859,7 @@ export const GlobalAssetOrbit = ({
                   setHoveredIndex(null);
                   setHoveredOrbit(null);
                   setActiveEntity(null);
-                  setOrbitPaused(false);
+                  // Don't reset orbitPaused - keep paused
                 }}
                 onClick={() => handleEntityClick(entity)}
                 spinDuration="85s"
