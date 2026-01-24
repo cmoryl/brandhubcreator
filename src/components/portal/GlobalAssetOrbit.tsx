@@ -172,51 +172,83 @@ export const GlobalAssetOrbit = ({
     navigate(`${config.path}/${entity.slug || entity.id}`);
   };
 
-  // Get hierarchy connection lines
-  const getHierarchyLines = () => {
-    if (!activeEntity || hoveredIndex === null) return [];
+  // Get hierarchy connection lines - shows full chain on hover
+  const getHierarchyLines = useMemo(() => {
+    if (!activeEntity || hoveredIndex === null || hoveredOrbit === null) return [];
     
-    const lines: { fromOrbit: string; fromIndex: number; toOrbit: string; toIndex: number; type: 'parent' | 'sibling' }[] = [];
+    const lines: { 
+      fromOrbit: string; 
+      fromIndex: number; 
+      toOrbit: string; 
+      toIndex: number; 
+      type: 'parent' | 'child' | 'sibling' | 'org';
+      priority: number;
+    }[] = [];
     
     if (activeEntity.type === 'product') {
-      // Connect product to its parent brand
+      // Product → Parent Brand connection
       const parentBrand = orbitData.inner.find(b => b.id === activeEntity.parentBrandId);
       if (parentBrand) {
         const parentIndex = orbitData.inner.indexOf(parentBrand);
         if (parentIndex >= 0) {
+          // Product to Brand
           lines.push({ 
             fromOrbit: 'middle', 
             fromIndex: hoveredIndex, 
             toOrbit: 'inner', 
             toIndex: parentIndex,
-            type: 'parent'
+            type: 'parent',
+            priority: 1
+          });
+          // Brand to Center (org) - show full chain
+          lines.push({
+            fromOrbit: 'inner',
+            fromIndex: parentIndex,
+            toOrbit: 'center',
+            toIndex: 0,
+            type: 'org',
+            priority: 2
           });
         }
+      } else {
+        // No parent brand - connect directly to org
+        lines.push({
+          fromOrbit: 'middle',
+          fromIndex: hoveredIndex,
+          toOrbit: 'center',
+          toIndex: 0,
+          type: 'org',
+          priority: 1
+        });
       }
       
-      // Connect to sibling products (same parent)
-      orbitData.middle.forEach((p, i) => {
-        if (i !== hoveredIndex && p.parentBrandId === activeEntity.parentBrandId && activeEntity.parentBrandId) {
-          lines.push({
-            fromOrbit: 'middle',
-            fromIndex: hoveredIndex,
-            toOrbit: 'middle',
-            toIndex: i,
-            type: 'sibling'
-          });
-        }
-      });
+      // Sibling products (same parent)
+      if (activeEntity.parentBrandId) {
+        orbitData.middle.forEach((p, i) => {
+          if (i !== hoveredIndex && p.parentBrandId === activeEntity.parentBrandId) {
+            lines.push({
+              fromOrbit: 'middle',
+              fromIndex: hoveredIndex,
+              toOrbit: 'middle',
+              toIndex: i,
+              type: 'sibling',
+              priority: 3
+            });
+          }
+        });
+      }
     } else if (activeEntity.type === 'brand') {
-      // Connect brand to center (org)
+      // Brand → Center (org) connection
       lines.push({
         fromOrbit: 'inner',
         fromIndex: hoveredIndex,
         toOrbit: 'center',
         toIndex: 0,
-        type: 'parent'
+        type: 'org',
+        priority: 1
       });
       
-      // Connect brand to its products
+      // Brand → Child Products connections
       orbitData.middle.forEach((p, i) => {
         if (p.parentBrandId === activeEntity.id) {
           lines.push({
@@ -224,16 +256,28 @@ export const GlobalAssetOrbit = ({
             fromIndex: hoveredIndex,
             toOrbit: 'middle',
             toIndex: i,
-            type: 'parent'
+            type: 'child',
+            priority: 2
           });
         }
       });
+    } else if (activeEntity.type === 'event') {
+      // Events connect directly to org
+      lines.push({
+        fromOrbit: 'outer',
+        fromIndex: hoveredIndex,
+        toOrbit: 'center',
+        toIndex: 0,
+        type: 'org',
+        priority: 1
+      });
     }
     
-    return lines;
-  };
+    // Sort by priority so main connections render on top
+    return lines.sort((a, b) => a.priority - b.priority);
+  }, [activeEntity, hoveredIndex, hoveredOrbit, orbitData]);
 
-  const hierarchyLines = getHierarchyLines();
+  const hierarchyLines = getHierarchyLines;
 
   // Get position for orbit
   const getOrbitPosition = (orbit: string, index: number, total: number) => {
@@ -385,9 +429,9 @@ export const GlobalAssetOrbit = ({
           ))}
         </g>
         
-        {/* Hierarchy connection lines */}
+        {/* Hierarchy connection lines - render on hover */}
         {hierarchyLines.map((line, i) => {
-          const fromPos = line.toOrbit === 'center' 
+          const fromPos = line.fromOrbit === 'center' 
             ? { x: 200, y: 200 }
             : getOrbitPosition(
                 line.fromOrbit, 
@@ -402,31 +446,87 @@ export const GlobalAssetOrbit = ({
                 orbitData[line.toOrbit as keyof typeof orbitData]?.length || 1
               );
           
-          const midX = (fromPos.x + toPos.x) / 2 + (line.type === 'sibling' ? 0 : (200 - (fromPos.x + toPos.x) / 2) * 0.3);
-          const midY = (fromPos.y + toPos.y) / 2 + (line.type === 'sibling' ? 0 : (200 - (fromPos.y + toPos.y) / 2) * 0.3);
+          // Curve control point - pull toward center for hierarchy, straight for siblings
+          const isSibling = line.type === 'sibling';
+          const centerPull = isSibling ? 0 : 0.35;
+          const midX = (fromPos.x + toPos.x) / 2 + (200 - (fromPos.x + toPos.x) / 2) * centerPull;
+          const midY = (fromPos.y + toPos.y) / 2 + (200 - (fromPos.y + toPos.y) / 2) * centerPull;
+          
+          // Style based on connection type
+          const isOrgConnection = line.type === 'org';
+          const isParentChild = line.type === 'parent' || line.type === 'child';
+          const strokeWidth = isOrgConnection ? 3 : isParentChild ? 2.5 : 1.5;
+          const strokeOpacity = isOrgConnection ? 0.9 : isParentChild ? 0.75 : 0.5;
+          const dotSize = isOrgConnection ? 6 : isParentChild ? 5 : 3;
+          const animDuration = isOrgConnection ? '1s' : isParentChild ? '1.3s' : '1.8s';
           
           return (
             <g key={`hier-${i}`} filter="url(#glow-soft-v2)">
+              {/* Main connection line */}
               <path
                 d={`M ${fromPos.x} ${fromPos.y} Q ${midX} ${midY} ${toPos.x} ${toPos.y}`}
                 fill="none"
                 stroke={primaryColor}
-                strokeWidth={line.type === 'parent' ? "2.5" : "1.5"}
-                strokeOpacity={line.type === 'parent' ? "0.8" : "0.5"}
-                strokeDasharray={line.type === 'parent' ? "0" : "4 4"}
+                strokeWidth={strokeWidth}
+                strokeOpacity={strokeOpacity}
+                strokeDasharray={isSibling ? "4 4" : "0"}
+                className="animate-fade-in"
               />
+              
+              {/* Glow effect for main connections */}
+              {(isOrgConnection || isParentChild) && (
+                <path
+                  d={`M ${fromPos.x} ${fromPos.y} Q ${midX} ${midY} ${toPos.x} ${toPos.y}`}
+                  fill="none"
+                  stroke={primaryColor}
+                  strokeWidth={strokeWidth + 4}
+                  strokeOpacity={strokeOpacity * 0.3}
+                  strokeDasharray={isSibling ? "4 4" : "0"}
+                />
+              )}
+              
               {/* Animated dot traveling along line */}
               <circle 
-                r={line.type === 'parent' ? "5" : "3"} 
+                r={dotSize} 
                 fill={primaryColor} 
-                fillOpacity="0.9"
+                fillOpacity="0.95"
               >
                 <animateMotion
-                  dur={line.type === 'parent' ? "1.2s" : "1.8s"}
+                  dur={animDuration}
                   repeatCount="indefinite"
                   path={`M ${fromPos.x} ${fromPos.y} Q ${midX} ${midY} ${toPos.x} ${toPos.y}`}
                 />
               </circle>
+              
+              {/* Second dot for primary connections */}
+              {(isOrgConnection || isParentChild) && (
+                <circle 
+                  r={dotSize * 0.6} 
+                  fill={primaryColor} 
+                  fillOpacity="0.7"
+                >
+                  <animateMotion
+                    dur={animDuration}
+                    repeatCount="indefinite"
+                    begin={`${parseFloat(animDuration) * 0.5}s`}
+                    path={`M ${fromPos.x} ${fromPos.y} Q ${midX} ${midY} ${toPos.x} ${toPos.y}`}
+                  />
+                </circle>
+              )}
+              
+              {/* Connection point indicator at destination */}
+              {line.toOrbit !== 'center' && (
+                <circle
+                  cx={toPos.x}
+                  cy={toPos.y}
+                  r={dotSize + 2}
+                  fill="none"
+                  stroke={primaryColor}
+                  strokeWidth="2"
+                  strokeOpacity="0.6"
+                  className="animate-scale-in"
+                />
+              )}
             </g>
           );
         })}
