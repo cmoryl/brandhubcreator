@@ -43,6 +43,11 @@ const backgroundTypes: { type: BrandBackgroundType; name: string; icon: typeof I
   { type: 'animated-spotlight', name: 'Spotlight', icon: Sparkles, description: 'Moving spotlight effect' },
   { type: 'animated-mesh-waves', name: 'Mesh Lines', icon: LayoutGrid, description: 'Animated mesh wave lines' },
   { type: 'animated-dataflow', name: 'Data Flow', icon: Waves, description: 'Glowing data particle waves' },
+  { type: 'animated-wave-lines', name: 'Wave Lines', icon: Waves, description: 'Flowing gradient wave lines' },
+  { type: 'animated-flow-field', name: 'Flow Field', icon: Waves, description: 'Organic flowing curves' },
+  { type: 'animated-neon-grid', name: 'Neon Grid', icon: LayoutGrid, description: 'Cyberpunk neon grid effect' },
+  { type: 'animated-sine-lines', name: 'Sine Lines', icon: Waves, description: 'Purple-cyan sine waves' },
+  { type: 'animated-data-particles', name: 'Data Particles', icon: Sparkles, description: 'Wave lines with particles' },
 ];
 
 const headerStyles = [
@@ -167,7 +172,7 @@ export const BrandPageSettingsEditor = ({ settings, onSettingsChange }: BrandPag
 
             <div className="space-y-3">
               <Label>Background Type</Label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-64 overflow-y-auto pr-1">
                 {backgroundTypes.map((bg) => (
                   <button
                     key={bg.type}
@@ -181,7 +186,7 @@ export const BrandPageSettingsEditor = ({ settings, onSettingsChange }: BrandPag
                     <bg.icon className={`h-4 w-4 ${
                       formData.backgroundType === bg.type ? 'text-accent' : 'text-muted-foreground'
                     }`} />
-                    <span className="text-xs font-medium">{bg.name}</span>
+                    <span className="text-[10px] font-medium text-center leading-tight">{bg.name}</span>
                   </button>
                 ))}
               </div>
