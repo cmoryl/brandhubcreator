@@ -28,9 +28,7 @@ const TYPE_COLORS = {
 export const OrbitLegend = React.forwardRef<HTMLDivElement, OrbitLegendProps>(
   ({ className, value, onValueChange, counts, ...props }, ref) => {
     const handleClick = React.useCallback(
-      (next: Exclude<OrbitFilter, "all">, e: React.PointerEvent | React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
+      (next: Exclude<OrbitFilter, "all">) => {
         const newValue = value === next ? "all" : next;
         onValueChange(newValue);
       },
@@ -49,15 +47,12 @@ export const OrbitLegend = React.forwardRef<HTMLDivElement, OrbitLegendProps>(
           border: "1px solid rgba(255,255,255,0.2)",
           pointerEvents: 'auto',
         }}
-        onPointerDownCapture={(e) => e.stopPropagation()}
-        onClickCapture={(e) => e.stopPropagation()}
         {...props}
       >
         {/* Brands Button */}
         <button
           type="button"
-          onPointerDown={(e) => handleClick("brands", e)}
-          onClick={(e) => e.stopPropagation()}
+          onClick={() => handleClick("brands")}
           className={cn(
             "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all duration-200 cursor-pointer select-none",
             value === "brands" 
@@ -65,7 +60,8 @@ export const OrbitLegend = React.forwardRef<HTMLDivElement, OrbitLegendProps>(
               : "hover:bg-white/15 opacity-80 hover:opacity-100"
           )}
           style={{ 
-            boxShadow: value === 'brands' ? `0 0 12px ${TYPE_COLORS.brands}60` : undefined 
+            boxShadow: value === 'brands' ? `0 0 12px ${TYPE_COLORS.brands}60` : undefined,
+            pointerEvents: 'auto',
           }}
         >
           <div 
@@ -93,8 +89,7 @@ export const OrbitLegend = React.forwardRef<HTMLDivElement, OrbitLegendProps>(
         {/* Products Button */}
         <button
           type="button"
-          onPointerDown={(e) => handleClick("products", e)}
-          onClick={(e) => e.stopPropagation()}
+          onClick={() => handleClick("products")}
           className={cn(
             "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all duration-200 cursor-pointer select-none",
             value === "products" 
@@ -102,7 +97,8 @@ export const OrbitLegend = React.forwardRef<HTMLDivElement, OrbitLegendProps>(
               : "hover:bg-white/15 opacity-80 hover:opacity-100"
           )}
           style={{ 
-            boxShadow: value === 'products' ? `0 0 12px ${TYPE_COLORS.products}60` : undefined 
+            boxShadow: value === 'products' ? `0 0 12px ${TYPE_COLORS.products}60` : undefined,
+            pointerEvents: 'auto',
           }}
         >
           <div 
@@ -130,8 +126,7 @@ export const OrbitLegend = React.forwardRef<HTMLDivElement, OrbitLegendProps>(
         {/* Events Button */}
         <button
           type="button"
-          onPointerDown={(e) => handleClick("events", e)}
-          onClick={(e) => e.stopPropagation()}
+          onClick={() => handleClick("events")}
           className={cn(
             "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all duration-200 cursor-pointer select-none",
             value === "events" 
@@ -139,7 +134,8 @@ export const OrbitLegend = React.forwardRef<HTMLDivElement, OrbitLegendProps>(
               : "hover:bg-white/15 opacity-80 hover:opacity-100"
           )}
           style={{ 
-            boxShadow: value === 'events' ? `0 0 12px ${TYPE_COLORS.events}60` : undefined 
+            boxShadow: value === 'events' ? `0 0 12px ${TYPE_COLORS.events}60` : undefined,
+            pointerEvents: 'auto',
           }}
         >
           <div 
