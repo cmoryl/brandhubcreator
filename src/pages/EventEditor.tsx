@@ -309,50 +309,18 @@ const EventEditor = () => {
     }
   }, [viewMode]);
 
-  // Optimized loading: prevents flash for fast loads
-  // IMPORTANT: Never block a public event page on context loading.
-  // If the user deep-links to a public sub-event, the org/event context may still be initializing
-  // (or never initialize if no org is selected), which would otherwise cause an infinite loading screen.
-  const contextLoading = Boolean(user && isLoading);
-  const needsPublicData = !contextEvent && !publicEvent;
-  const rawLoading = !event && (contextLoading || (needsPublicData && publicEventLoading));
-  const stableLoading = useStableLoading(rawLoading, {
-    showDelay: 100,
-    minDisplayTime: 300,
-    maxLoadingTime: 6000
-  });
+  // Stable update function - must be before early returns to maintain hooks order
+  const updateEvent = useCallback((updates: Partial<EventGuide>) => {
+    if (event) {
+      updateEventContext(event.id, updates);
+    }
+  }, [event, updateEventContext]);
 
-  if (stableLoading) {
-    return (
-      <PublicLoadingScreen 
-        type="event" 
-        name={publicEvent?.hero?.name || eventSlug}
-        organizationName={organization?.name}
-      />
-    );
-  }
-
-  if (!event) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold text-foreground mb-2">Event not found</h1>
-          <p className="text-muted-foreground mb-4">The event you're looking for doesn't exist.</p>
-          <Button onClick={() => navigate('/')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  const updateEvent = (updates: Partial<EventGuide>) => {
-    updateEventContext(event.id, updates);
-  };
-
-  // Unified section renderer - used by both single-section and full-page views
-  const renderSectionContent = useCallback((sectionId: EventSectionId) => {
+  // Unified section renderer - must be defined before early returns to maintain hooks order
+  // Returns null if event is not loaded yet
+  const renderSectionContent = useCallback((sectionId: EventSectionId): React.ReactNode => {
+    if (!event) return null;
+    
     // Helper to conditionally create change handler
     const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
     
@@ -459,23 +427,22 @@ const EventEditor = () => {
         return <EventLocationSection location={event.eventLocation || { venueName: '', address: '', city: '', country: '', venueMaps: [] }} onUpdate={(eventLocation) => updateEvent({ eventLocation })} isEditable={canEdit || false} />;
       case 'assets': 
         return <AssetsSection assets={event.assets} onAssetsChange={editHandler((assets) => updateEvent({ assets }))} />;
-      case 'misuse':
+      case 'misuse': 
         return <MisuseSection misuse={event.misuse} onMisuseChange={editHandler((misuse) => updateEvent({ misuse }))} />;
-      case 'casestudies':
-        return <CaseStudiesSection caseStudies={event.caseStudies || []} onCaseStudiesChange={editHandler((caseStudies) => updateEvent({ caseStudies }))} layout={getSectionLayout('casestudies')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('casestudies', layout) : undefined} />;
-      case 'templates':
-        return <TemplatesSection templates={event.templates || []} onTemplatesChange={editHandler((templates) => updateEvent({ templates }))} layout={getSectionLayout('templates')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('templates', layout) : undefined} />;
-      case 'brochures':
-        return <BrochuresSection brochures={event.brochures || []} onBrochuresChange={editHandler((brochures) => updateEvent({ brochures }))} layout={getSectionLayout('brochures')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('brochures', layout) : undefined} />;
+      case 'casestudies': 
+        return <CaseStudiesSection caseStudies={event.caseStudies} onCaseStudiesChange={editHandler((caseStudies) => updateEvent({ caseStudies }))} />;
+      case 'templates': 
+        return <TemplatesSection templates={event.templates} onTemplatesChange={editHandler((templates) => updateEvent({ templates }))} />;
+      case 'brochures': 
+        return <BrochuresSection brochures={event.brochures} onBrochuresChange={editHandler((brochures) => updateEvent({ brochures }))} />;
       case 'templatespecs':
         return <TemplateSpecsSection templateSpecs={event.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateEvent({ templateSpecs }))} />;
       case 'subevents': {
-        // Convert linkedGuides to the expected format
         const linkedEvents: LinkedEventGuide[] = ((event as any).linkedGuides || [])
           .filter((g: any) => g.type === 'event')
           .map((g: any) => ({
             id: g.id,
-            type: 'event' as const,
+            type: 'event',
             slug: g.slug || '',
             name: g.name || '',
             region: g.region,
@@ -520,7 +487,45 @@ const EventEditor = () => {
       default:
         return null;
     }
-  }, [event, canEdit, getSectionLayout, handleSectionLayoutChange]);
+  }, [event, canEdit, updateEvent, getSectionLayout, handleSectionLayoutChange]);
+
+  // Optimized loading: prevents flash for fast loads
+  // IMPORTANT: Never block a public event page on context loading.
+  // If the user deep-links to a public sub-event, the org/event context may still be initializing
+  // (or never initialize if no org is selected), which would otherwise cause an infinite loading screen.
+  const contextLoading = Boolean(user && isLoading);
+  const needsPublicData = !contextEvent && !publicEvent;
+  const rawLoading = !event && (contextLoading || (needsPublicData && publicEventLoading));
+  const stableLoading = useStableLoading(rawLoading, {
+    showDelay: 100,
+    minDisplayTime: 300,
+    maxLoadingTime: 6000
+  });
+
+  if (stableLoading) {
+    return (
+      <PublicLoadingScreen 
+        type="event" 
+        name={publicEvent?.hero?.name || eventSlug}
+        organizationName={organization?.name}
+      />
+    );
+  }
+
+  if (!event) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-foreground mb-2">Event not found</h1>
+          <p className="text-muted-foreground mb-4">The event you're looking for doesn't exist.</p>
+          <Button onClick={() => navigate('/')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // Wrapper for single section view
   const renderSection = () => {
