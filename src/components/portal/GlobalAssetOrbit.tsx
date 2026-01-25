@@ -7,7 +7,7 @@
  * Features click-to-filter, pause on hover, and hierarchy visualization
  */
 
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { forwardRef, useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -44,28 +44,33 @@ const TYPE_COLORS = {
 };
 
 // Circular icon wrappers for each type
-const BrandIcon = ({ className, style, isActive }: { className?: string; style?: React.CSSProperties; isActive?: boolean }) => (
-  <svg viewBox="0 0 24 24" fill="none" className={className} style={style}>
+type OrbitIconProps = React.SVGProps<SVGSVGElement> & { isActive?: boolean };
+
+const BrandIcon = forwardRef<SVGSVGElement, OrbitIconProps>(({ className, style, isActive, ...props }, ref) => (
+  <svg ref={ref} viewBox="0 0 24 24" fill="none" className={className} style={style} {...props}>
     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={isActive ? 2.5 : 2} fill={isActive ? 'currentColor' : 'none'} fillOpacity={isActive ? 0.2 : 0} />
     <path d="M12 7V12L15 15" stroke="currentColor" strokeWidth={isActive ? 2 : 1.5} strokeLinecap="round" strokeLinejoin="round" />
     <circle cx="12" cy="12" r="2" fill="currentColor" />
   </svg>
-);
+));
+BrandIcon.displayName = 'BrandIcon';
 
-const ProductIcon = ({ className, style, isActive }: { className?: string; style?: React.CSSProperties; isActive?: boolean }) => (
-  <svg viewBox="0 0 24 24" fill="none" className={className} style={style}>
+const ProductIcon = forwardRef<SVGSVGElement, OrbitIconProps>(({ className, style, isActive, ...props }, ref) => (
+  <svg ref={ref} viewBox="0 0 24 24" fill="none" className={className} style={style} {...props}>
     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={isActive ? 2.5 : 2} fill={isActive ? 'currentColor' : 'none'} fillOpacity={isActive ? 0.2 : 0} />
     <path d="M8 12L11 15L16 9" stroke="currentColor" strokeWidth={isActive ? 2 : 1.5} strokeLinecap="round" strokeLinejoin="round" />
   </svg>
-);
+));
+ProductIcon.displayName = 'ProductIcon';
 
-const EventIcon = ({ className, style, isActive }: { className?: string; style?: React.CSSProperties; isActive?: boolean }) => (
-  <svg viewBox="0 0 24 24" fill="none" className={className} style={style}>
+const EventIcon = forwardRef<SVGSVGElement, OrbitIconProps>(({ className, style, isActive, ...props }, ref) => (
+  <svg ref={ref} viewBox="0 0 24 24" fill="none" className={className} style={style} {...props}>
     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={isActive ? 2.5 : 2} fill={isActive ? 'currentColor' : 'none'} fillOpacity={isActive ? 0.25 : 0} />
     <path d="M12 8V12L14 14" stroke="currentColor" strokeWidth={isActive ? 2 : 1.5} strokeLinecap="round" strokeLinejoin="round" />
     <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth={1} fill="none" />
   </svg>
-);
+));
+EventIcon.displayName = 'EventIcon';
 
 const TYPE_CONFIG = {
   brand: { Icon: BrandIcon, label: 'Brand Guide', path: '/brand', color: TYPE_COLORS.brand },

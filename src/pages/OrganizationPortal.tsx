@@ -320,7 +320,7 @@ const OrganizationPortal = () => {
           <div className="relative min-h-[400px] lg:min-h-[480px]">
             {/* Global Asset Orbit - Large, positioned to overlap content */}
             <div 
-              className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-0 pointer-events-auto animate-fade-in"
+               className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-30 pointer-events-auto animate-fade-in"
               style={{ 
                 animationDelay: '0.3s',
                 right: '-5%',
