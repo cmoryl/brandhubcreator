@@ -628,7 +628,7 @@ export const GlobalAssetOrbit = ({
         >
           {orbitData.inner.map((entity, i) => {
             const angle = (i * 360 / orbitData.inner.length - 90) * (Math.PI / 180);
-            const r = 75 / 400 * 100;
+            const r = 65 / 400 * 100; // Brands at 65px radius
             const x = 50 + r * Math.cos(angle);
             const y = 50 + r * Math.sin(angle);
             const isActive = hoveredIndex === i && hoveredOrbit === 'inner-0';
@@ -775,7 +775,7 @@ export const GlobalAssetOrbit = ({
         >
           {orbitData.middle.map((entity, i) => {
             const angle = (i * 360 / orbitData.middle.length - 90) * (Math.PI / 180);
-            const r = 115 / 400 * 100;
+            const r = 120 / 400 * 100; // Products at 120px radius
             const x = 50 + r * Math.cos(angle);
             const y = 50 + r * Math.sin(angle);
             const isActive = hoveredIndex === i && hoveredOrbit === 'middle-0';
@@ -856,7 +856,7 @@ export const GlobalAssetOrbit = ({
         >
           {orbitData.outer.map((entity, i) => {
             const angle = (i * 360 / orbitData.outer.length - 90) * (Math.PI / 180);
-            const r = 155 / 400 * 100;
+            const r = 175 / 400 * 100; // Events at 175px radius - outermost
             const x = 50 + r * Math.cos(angle);
             const y = 50 + r * Math.sin(angle);
             const isActive = hoveredIndex === i && hoveredOrbit === 'outer-0';
