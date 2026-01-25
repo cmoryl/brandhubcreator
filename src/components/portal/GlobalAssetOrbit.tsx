@@ -320,11 +320,12 @@ export const GlobalAssetOrbit = ({
     >
       {/* Top Left Legend - Single line horizontal layout */}
       <div 
-        className="absolute top-2 left-2 z-20 flex flex-row items-center gap-2 px-3 py-2 rounded-full backdrop-blur-md transition-all duration-300"
+        className="absolute top-2 left-2 z-30 flex flex-row items-center gap-2 px-3 py-2 rounded-full backdrop-blur-md transition-all duration-300 pointer-events-auto"
         style={{ 
           background: 'rgba(0,0,0,0.6)',
           border: '1px solid rgba(255,255,255,0.15)',
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={() => handleFilterClick('brands')}
