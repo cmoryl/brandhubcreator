@@ -335,6 +335,7 @@ const OrganizationPortal = () => {
                 organizationLogo={organization.logoUrl}
                 className="w-full h-full"
                 onFilterChange={(filter) => {
+                  console.log('[OrganizationPortal] orbit filter -> tab:', filter);
                   setActiveTab(filter);
                 }}
                 brands={brands.map(b => ({

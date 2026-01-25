@@ -335,7 +335,7 @@ export const GlobalAssetOrbit = ({
     >
       {/* Top Left Legend - Single line horizontal layout */}
       <div 
-        className="absolute top-2 left-2 z-30 flex flex-row items-center gap-2 px-3 py-2 rounded-full backdrop-blur-md transition-all duration-300 pointer-events-auto"
+        className="absolute top-2 left-2 z-[200] flex flex-row items-center gap-2 px-3 py-2 rounded-full backdrop-blur-md transition-all duration-300 pointer-events-auto"
         style={{ 
           background: 'rgba(0,0,0,0.6)',
           border: '1px solid rgba(255,255,255,0.15)',
@@ -346,6 +346,11 @@ export const GlobalAssetOrbit = ({
           e.stopPropagation();
         }}
       >
+        {/* Temporary debug indicator to confirm state changes */}
+        <span className="sr-only" aria-live="polite">
+          Active filter: {activeFilter}
+        </span>
+
         <button
           type="button"
           onPointerDown={(e) => {
@@ -445,7 +450,7 @@ export const GlobalAssetOrbit = ({
       `}</style>
 
       {/* Main SVG - pointer-events none so icons can be clicked */}
-      <svg viewBox="0 0 400 400" className="w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
+      <svg viewBox="0 0 400 400" className="relative z-0 w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
         <defs>
           <radialGradient id="center-grad" cx="30%" cy="30%">
             <stop offset="0%" stopColor={primaryColor} stopOpacity="0.6" />
@@ -528,7 +533,7 @@ export const GlobalAssetOrbit = ({
       </svg>
       
       {/* Center Icon */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[76px] h-[76px]">
+      <div className="absolute z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[76px] h-[76px]">
         <div 
           className="w-full h-full rounded-full flex flex-col items-center justify-center"
           style={{ 
@@ -553,7 +558,7 @@ export const GlobalAssetOrbit = ({
       {/* Brand icons (inner orbit) - teal colored */}
       {orbitData.inner.length > 0 && (activeFilter === 'all' || activeFilter === 'brands') && (
         <div 
-          className="absolute inset-0 pointer-events-none animate-fade-in"
+          className="absolute z-10 inset-0 pointer-events-none animate-fade-in"
           style={{ transformOrigin: 'center', animation: `spin 55s linear infinite reverse`, animationPlayState: animationStyle }}
         >
           {orbitData.inner.map((entity, i) => {
@@ -590,7 +595,7 @@ export const GlobalAssetOrbit = ({
       {/* Product icons (middle orbit) - light blue colored */}
       {orbitData.middle.length > 0 && (activeFilter === 'all' || activeFilter === 'products') && (
         <div 
-          className="absolute inset-0 pointer-events-none animate-fade-in"
+          className="absolute z-10 inset-0 pointer-events-none animate-fade-in"
           style={{ transformOrigin: 'center', animation: `spin 70s linear infinite`, animationPlayState: animationStyle }}
         >
           {orbitData.middle.map((entity, i) => {
@@ -627,7 +632,7 @@ export const GlobalAssetOrbit = ({
       {/* Event icons (outer orbit) - amber colored */}
       {orbitData.outer.length > 0 && (activeFilter === 'all' || activeFilter === 'events') && (
         <div 
-          className="absolute inset-0 pointer-events-none animate-fade-in"
+          className="absolute z-10 inset-0 pointer-events-none animate-fade-in"
           style={{ transformOrigin: 'center', animation: `spin 85s linear infinite reverse`, animationPlayState: animationStyle }}
         >
           {orbitData.outer.map((entity, i) => {
