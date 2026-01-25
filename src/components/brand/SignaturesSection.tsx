@@ -23,6 +23,10 @@ interface SignaturesSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
 }
 
+// TransPerfect Blue brand colors
+const TP_BLUE_DARK = '#003b71';
+const TP_BLUE_LIGHT = '#139cd8';
+
 const signatureTemplates = {
   full: {
     name: 'Full Signature',
@@ -30,9 +34,9 @@ const signatureTemplates = {
     description: 'Complete signature with logo, contact info, and banner area',
     template: `<table cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; max-width: 550px;">
   <tr>
-    <td style="padding-bottom: 12px; border-bottom: 2px solid #e94560;">
-      <p style="margin: 0; font-size: 18px; font-weight: bold; color: #1a1a2e;">[NAME]</p>
-      <p style="margin: 4px 0 0 0; font-size: 14px; color: #e94560; font-weight: 500;">[ROLE]</p>
+    <td style="padding-bottom: 12px; border-bottom: 2px solid ${TP_BLUE_LIGHT};">
+      <p style="margin: 0; font-size: 18px; font-weight: bold; color: ${TP_BLUE_DARK};">[NAME]</p>
+      <p style="margin: 4px 0 0 0; font-size: 14px; color: ${TP_BLUE_LIGHT}; font-weight: 500;">[ROLE]</p>
     </td>
   </tr>
   <tr>
@@ -43,11 +47,11 @@ const signatureTemplates = {
             <img src="[LOGO_URL]" alt="[COMPANY]" width="100" height="100" style="display: block;">
           </td>
           <td style="vertical-align: top;">
-            <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #1a1a2e;">[COMPANY]</p>
+            <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: ${TP_BLUE_DARK};">[COMPANY]</p>
             <p style="margin: 0 0 4px 0; font-size: 12px; color: #666;">[ADDRESS]</p>
-            <p style="margin: 8px 0 2px 0; font-size: 12px; color: #666;"><span style="color: #e94560; font-weight: bold;">P:</span> [PHONE]</p>
-            <p style="margin: 2px 0; font-size: 12px; color: #666;"><span style="color: #e94560; font-weight: bold;">E:</span> [EMAIL]</p>
-            <p style="margin: 2px 0; font-size: 12px; color: #666;"><span style="color: #e94560; font-weight: bold;">W:</span> [WEBSITE]</p>
+            <p style="margin: 8px 0 2px 0; font-size: 12px; color: #666;"><span style="color: ${TP_BLUE_LIGHT}; font-weight: bold;">P:</span> [PHONE]</p>
+            <p style="margin: 2px 0; font-size: 12px; color: #666;"><span style="color: ${TP_BLUE_LIGHT}; font-weight: bold;">E:</span> [EMAIL]</p>
+            <p style="margin: 2px 0; font-size: 12px; color: #666;"><span style="color: ${TP_BLUE_LIGHT}; font-weight: bold;">W:</span> [WEBSITE]</p>
           </td>
         </tr>
       </table>
@@ -77,10 +81,10 @@ const signatureTemplates = {
   </tr>
   <tr>
     <td>
-      <p style="margin: 0; font-size: 14px; color: #1a1a2e;">
-        <strong>[NAME]</strong> <span style="color: #999;">|</span> <span style="color: #e94560;">[ROLE]</span>
+      <p style="margin: 0; font-size: 14px; color: ${TP_BLUE_DARK};">
+        <strong>[NAME]</strong> <span style="color: #999;">|</span> <span style="color: ${TP_BLUE_LIGHT};">[ROLE]</span>
       </p>
-      <p style="margin: 4px 0 0 0; font-size: 12px; color: #666;">[COMPANY] <span style="color: #999;">|</span> <a href="https://[WEBSITE]" style="color: #e94560; text-decoration: none;">[WEBSITE]</a></p>
+      <p style="margin: 4px 0 0 0; font-size: 12px; color: #666;">[COMPANY] <span style="color: #999;">|</span> <a href="https://[WEBSITE]" style="color: ${TP_BLUE_LIGHT}; text-decoration: none;">[WEBSITE]</a></p>
     </td>
   </tr>
 </table>`,
@@ -186,6 +190,16 @@ export const SignaturesSection = ({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  // Convert file to base64 as a fallback when storage upload fails
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+    });
+  };
+
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, signatureId: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -212,7 +226,14 @@ export const SignaturesSection = ({
         .from('organization-assets')
         .upload(fileName, file, { upsert: true });
 
-      if (error) throw error;
+      if (error) {
+        // Fallback to base64 if storage upload fails (bucket may not exist)
+        console.warn('Storage upload failed, falling back to base64:', error);
+        const base64Url = await fileToBase64(file);
+        updateSignature(signatureId, { logoUrl: base64Url });
+        toast.success('Logo saved successfully');
+        return;
+      }
 
       const { data: urlData } = supabase.storage
         .from('organization-assets')
@@ -222,7 +243,14 @@ export const SignaturesSection = ({
       toast.success('Logo uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload logo');
+      // Last resort fallback to base64
+      try {
+        const base64Url = await fileToBase64(file);
+        updateSignature(signatureId, { logoUrl: base64Url });
+        toast.success('Logo saved successfully');
+      } catch (fallbackError) {
+        toast.error('Failed to upload logo');
+      }
     } finally {
       setUploadingLogoId(null);
       if (logoFileInputRef.current) {
@@ -257,7 +285,14 @@ export const SignaturesSection = ({
         .from('organization-assets')
         .upload(fileName, file, { upsert: true });
 
-      if (error) throw error;
+      if (error) {
+        // Fallback to base64 if storage upload fails
+        console.warn('Storage upload failed, falling back to base64:', error);
+        const base64Url = await fileToBase64(file);
+        updateEmailBanner(bannerId, { imageUrl: base64Url });
+        toast.success('Banner saved successfully');
+        return;
+      }
 
       const { data: urlData } = supabase.storage
         .from('organization-assets')
@@ -267,7 +302,14 @@ export const SignaturesSection = ({
       toast.success('Banner uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload banner');
+      // Last resort fallback to base64
+      try {
+        const base64Url = await fileToBase64(file);
+        updateEmailBanner(bannerId, { imageUrl: base64Url });
+        toast.success('Banner saved successfully');
+      } catch (fallbackError) {
+        toast.error('Failed to upload banner');
+      }
     } finally {
       setUploadingBannerId(null);
     }
