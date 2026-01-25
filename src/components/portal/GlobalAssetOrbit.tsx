@@ -217,8 +217,18 @@ export const GlobalAssetOrbit = ({
 
   const handleFilterClick = (filter: 'brands' | 'products' | 'events') => {
     const newFilter = activeFilter === filter ? 'all' : filter;
+    // Debug: confirm legend clicks are firing (removed later once verified)
+    console.log('[GlobalAssetOrbit] filter click:', { filter, newFilter });
     setActiveFilter(newFilter);
     onFilterChange?.(newFilter);
+
+    // Ensure any hover tooltip state doesn't interfere with perceived updates
+    setShowTooltip(false);
+    setActiveEntity(null);
+    setHoveredIndex(null);
+    setHoveredOrbit(null);
+    setIconPos(null);
+    setIsPaused(false);
   };
 
   // Delayed tooltip show to prevent flickering
@@ -331,12 +341,20 @@ export const GlobalAssetOrbit = ({
           border: '1px solid rgba(255,255,255,0.15)',
         }}
         onClick={(e) => e.stopPropagation()}
+        onPointerDownCapture={(e) => {
+          // Prevent any parent gesture/overlay from stealing the pointer event
+          e.stopPropagation();
+        }}
       >
         <button
           type="button"
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            // Some browsers/app shells fire click late; pointerdown is more reliable
+            handleFilterClick('brands');
+          }}
           onClick={(e) => {
             e.stopPropagation();
-            handleFilterClick('brands');
           }}
           className={cn(
             "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200 cursor-pointer",
@@ -361,9 +379,12 @@ export const GlobalAssetOrbit = ({
         
         <button
           type="button"
-          onClick={(e) => {
+          onPointerDown={(e) => {
             e.stopPropagation();
             handleFilterClick('products');
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
           }}
           className={cn(
             "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200 cursor-pointer",
@@ -388,9 +409,12 @@ export const GlobalAssetOrbit = ({
         
         <button
           type="button"
-          onClick={(e) => {
+          onPointerDown={(e) => {
             e.stopPropagation();
             handleFilterClick('events');
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
           }}
           className={cn(
             "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200 cursor-pointer",
