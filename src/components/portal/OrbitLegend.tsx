@@ -32,7 +32,6 @@ export const OrbitLegend = React.forwardRef<HTMLDivElement, OrbitLegendProps>(
         e.preventDefault();
         e.stopPropagation();
         const newValue = value === next ? "all" : next;
-        console.log('[OrbitLegend] filter click:', { current: value, clicked: next, newValue });
         onValueChange(newValue);
       },
       [onValueChange, value]
