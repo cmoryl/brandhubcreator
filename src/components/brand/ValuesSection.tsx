@@ -409,19 +409,23 @@ export const ValuesSection = ({ values, onValuesChange, customSubtitle, onSubtit
                   </Button>
                 </div>
               ) : (
-                <>
-                  <div className="flex items-start justify-between mb-4">
-                    {extValue.useImage && extValue.imageUrl ? (
-                      <div className="w-14 h-14 rounded-xl overflow-hidden shadow-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
-                        <img 
-                          src={extValue.imageUrl} 
-                          alt={value.text} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      </div>
-                    ) : (
+              <>
+                  {/* Full-width image at top for image mode */}
+                  {extValue.useImage && extValue.imageUrl && (
+                    <div className="absolute inset-x-0 top-0 h-32 rounded-t-xl overflow-hidden">
+                      <img 
+                        src={extValue.imageUrl} 
+                        alt={value.text} 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-card" />
+                    </div>
+                  )}
+                  
+                  <div className={`flex items-start justify-between ${extValue.useImage && extValue.imageUrl ? 'mt-24' : ''} mb-4`}>
+                    {!extValue.useImage || !extValue.imageUrl ? (
                       <div className="p-3 bg-accent/10 rounded-xl transition-all duration-300 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg group-hover:shadow-accent/20">
                         {IconComponent ? (
                           <IconComponent className="h-6 w-6 text-accent transition-transform duration-300 group-hover:scale-110" />
@@ -429,7 +433,7 @@ export const ValuesSection = ({ values, onValuesChange, customSubtitle, onSubtit
                           <Heart className="h-6 w-6 text-accent transition-transform duration-300 group-hover:scale-110" />
                         )}
                       </div>
-                    )}
+                    ) : <div />}
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => setEditingId(value.id)}
