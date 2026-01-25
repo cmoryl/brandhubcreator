@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb } from 'lucide-react';
+import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb, Minus, Briefcase, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseGuide, DEFAULT_SECTION_ORDER, SectionId, BrandSocialAssetSpec, BrandDisplayBannerSpec, TemplateSpec } from '@/types/brand';
 import { exportToPdf, PdfTheme, PaperSize, PAPER_SIZES, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
+import { PdfLayoutPreset, PDF_PRESETS } from '@/lib/pdfPresets';
 import { getAllColorFormats } from '@/lib/colorUtils';
 import { toast } from 'sonner';
 import QRCode from 'qrcode';
@@ -21,6 +22,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Switch } from '@/components/ui/switch';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import '@/styles/pdf-export.css';
 
@@ -64,6 +66,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
   const [showPreview, setShowPreview] = useState(false);
   const [pdfTheme, setPdfTheme] = useState<PdfTheme>('light');
   const [paperSize, setPaperSize] = useState<PaperSize>('a4');
+  const [layoutPreset, setLayoutPreset] = useState<PdfLayoutPreset>('professional');
   const [includeToc, setIncludeToc] = useState(true);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [selectedSections, setSelectedSections] = useState<Set<SectionId>>(new Set(DEFAULT_SECTION_ORDER));
@@ -1251,6 +1254,36 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
           <div className="flex gap-4 flex-1 overflow-hidden">
             {/* Left panel - Options */}
             <div className="w-72 shrink-0 flex flex-col gap-4 overflow-hidden">
+              {/* Layout Preset Selection */}
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">Layout Style</Label>
+                <RadioGroup value={layoutPreset} onValueChange={(v) => setLayoutPreset(v as PdfLayoutPreset)} className="space-y-2">
+                  {Object.values(PDF_PRESETS).map((preset) => {
+                    const PresetIcon = preset.id === 'minimal' ? Minus : preset.id === 'professional' ? Briefcase : Sparkles;
+                    return (
+                      <label
+                        key={preset.id}
+                        className={cn(
+                          "flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all",
+                          layoutPreset === preset.id 
+                            ? "border-primary bg-primary/5 ring-1 ring-primary/20" 
+                            : "border-border hover:border-primary/50 hover:bg-muted/50"
+                        )}
+                      >
+                        <RadioGroupItem value={preset.id} className="mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <PresetIcon className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-medium">{preset.label}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">{preset.description}</p>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </RadioGroup>
+              </div>
+
               {/* Theme & Paper Size */}
               <div className="space-y-3">
                 <div>
@@ -1381,7 +1414,12 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             {/* Right panel - Preview */}
             <div className="flex-1 overflow-hidden flex flex-col border rounded-lg">
               <div className="px-3 py-2 border-b bg-muted/50 flex items-center justify-between">
-                <span className="text-xs font-medium">Preview</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium">Preview</span>
+                  <span className="text-xs text-muted-foreground px-1.5 py-0.5 rounded bg-muted">
+                    {PDF_PRESETS[layoutPreset].label}
+                  </span>
+                </div>
                 <span className="text-xs text-muted-foreground">{paper.label}</span>
               </div>
               <ScrollArea className="flex-1">
@@ -1390,6 +1428,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                     ref={exportRef} 
                     className={cn(
                       "p-8 shadow-lg pdf-export-container rounded-sm",
+                      `pdf-preset-${layoutPreset}`,
                       pdfTheme === 'dark' ? 'pdf-theme-dark' : '',
                       t.bg
                     )}
