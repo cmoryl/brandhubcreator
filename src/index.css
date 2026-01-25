@@ -778,4 +778,26 @@ div[role="region"][aria-label^="Notifications"] {
   display: none !important;
 }
 
+/* PDF Export Styles */
+.pdf-export-container img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.pdf-avoid-break {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.pdf-page-break-before {
+  break-before: page;
+  page-break-before: always;
+}
+
+.pdf-page-break-after {
+  break-after: page;
+  page-break-after: always;
+}
+
 
