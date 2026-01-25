@@ -119,7 +119,7 @@ const EVENT_CARD_SELECT = 'id, name, slug, is_public, parent_brand_id, updated_a
 
 // Cache for recently fetched data to prevent duplicate requests
 const dataCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 5000; // 5 seconds - shorter to pick up changes faster
+const CACHE_TTL = 3000; // 3 seconds - short to pick up changes faster
 
 export const usePortalData = (slug: string | undefined): UsePortalDataReturn => {
   const [organization, setOrganization] = useState<PortalOrganization | null>(null);
@@ -131,12 +131,17 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
 
   const fetchIdRef = useRef(0);
   const isMountedRef = useRef(true);
+  const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   // Cleanup on unmount
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+      // Cleanup realtime subscription
+      if (realtimeChannelRef.current) {
+        supabase.removeChannel(realtimeChannelRef.current);
+      }
     };
   }, []);
 
@@ -282,6 +287,79 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Realtime subscription for auto-updating when new guides are added
+  useEffect(() => {
+    if (!organization?.id) return;
+
+    const orgId = organization.id;
+    
+    // Create a debounced refetch to avoid rapid re-fetches
+    let refetchTimeout: ReturnType<typeof setTimeout> | null = null;
+    const debouncedRealtimeRefetch = () => {
+      if (refetchTimeout) clearTimeout(refetchTimeout);
+      refetchTimeout = setTimeout(async () => {
+        if (isMountedRef.current) {
+          console.log('[usePortalData] Realtime update detected, refetching...');
+          try {
+            const content = await fetchContent(orgId, false); // Bypass cache
+            if (isMountedRef.current) {
+              setBrands(content.brands);
+              setProducts(content.products);
+              setEvents(content.events);
+            }
+          } catch (err) {
+            console.error('[usePortalData] Realtime refetch error:', err);
+          }
+        }
+      }, 300); // 300ms debounce for realtime updates
+    };
+
+    // Subscribe to changes on brands, products, and events tables
+    const channel = supabase
+      .channel(`portal-updates-${orgId}`)
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'brands',
+          filter: `organization_id=eq.${orgId}`
+        },
+        () => debouncedRealtimeRefetch()
+      )
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'products',
+          filter: `organization_id=eq.${orgId}`
+        },
+        () => debouncedRealtimeRefetch()
+      )
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'events',
+          filter: `organization_id=eq.${orgId}`
+        },
+        () => debouncedRealtimeRefetch()
+      )
+      .subscribe((status) => {
+        console.log('[usePortalData] Realtime subscription status:', status);
+      });
+
+    realtimeChannelRef.current = channel;
+
+    return () => {
+      if (refetchTimeout) clearTimeout(refetchTimeout);
+      supabase.removeChannel(channel);
+      realtimeChannelRef.current = null;
+    };
+  }, [organization?.id, fetchContent]);
 
   // Refetch on tab focus with longer debounce and cache bypass
   useEffect(() => {
