@@ -178,7 +178,7 @@ const OrganizationPortal = () => {
         <HeroBackground />
 
         {/* Header */}
-        <header className="relative z-10 animate-fade-in-down safe-area-inset-top">
+        <header className="relative z-50 animate-fade-in-down safe-area-inset-top">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-20 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               {organization.logoUrl ? (
@@ -307,7 +307,7 @@ const OrganizationPortal = () => {
         </header>
 
         {/* Breadcrumbs */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <div className="relative z-50 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
           <AppBreadcrumbs
             items={[]}
             currentPage={organization.name}
