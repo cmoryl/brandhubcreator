@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List } from 'lucide-react';
+import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseGuide, DEFAULT_SECTION_ORDER, SectionId, BrandSocialAssetSpec, BrandDisplayBannerSpec, TemplateSpec } from '@/types/brand';
 import { exportToPdf, PdfTheme, PaperSize, PAPER_SIZES, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
@@ -7,6 +7,7 @@ import { getAllColorFormats } from '@/lib/colorUtils';
 import { toast } from 'sonner';
 import QRCode from 'qrcode';
 import { normalizeGuide } from '@/lib/guideNormalization';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,28 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import '@/styles/pdf-export.css';
+
+// Intelligence data type
+interface BrandIntelligenceData {
+  brand_summary: string | null;
+  market_position: string | null;
+  target_audience: {
+    primary: string;
+    secondary: string[];
+    demographics: string[];
+  } | null;
+  competitive_advantages: string[];
+  brand_voice_profile: {
+    tone: string[];
+    personality: string[];
+    communication_style: string;
+  } | null;
+  growth_recommendations: {
+    priority: 'high' | 'medium' | 'low';
+    recommendation: string;
+    rationale: string;
+  }[];
+}
 
 interface ExportPdfButtonProps {
   guide: BaseGuide;
@@ -45,9 +68,39 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [selectedSections, setSelectedSections] = useState<Set<SectionId>>(new Set(DEFAULT_SECTION_ORDER));
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['core', 'visual']));
+  const [intelligence, setIntelligence] = useState<BrandIntelligenceData | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
 
   const sectionOrder = guide.sectionOrder || DEFAULT_SECTION_ORDER;
+
+  // Fetch intelligence data when preview opens
+  useEffect(() => {
+    if (showPreview && guide.id) {
+      const fetchIntelligence = async () => {
+        try {
+          const { data } = await supabase
+            .from('brand_intelligence')
+            .select('brand_summary, market_position, target_audience, competitive_advantages, brand_voice_profile, growth_recommendations')
+            .eq('entity_id', guide.id)
+            .single();
+          
+          if (data) {
+            setIntelligence({
+              brand_summary: data.brand_summary,
+              market_position: data.market_position,
+              target_audience: data.target_audience as BrandIntelligenceData['target_audience'],
+              competitive_advantages: (data.competitive_advantages as string[]) || [],
+              brand_voice_profile: data.brand_voice_profile as BrandIntelligenceData['brand_voice_profile'],
+              growth_recommendations: (data.growth_recommendations as BrandIntelligenceData['growth_recommendations']) || [],
+            });
+          }
+        } catch (err) {
+          console.log('No intelligence data found for guide');
+        }
+      };
+      fetchIntelligence();
+    }
+  }, [showPreview, guide.id]);
 
   // Generate QR code when preview opens
   useEffect(() => {
@@ -71,7 +124,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       const sectionsWithContent = sectionOrder.filter(id => hasSectionContent(id));
       setSelectedSections(new Set(sectionsWithContent));
     }
-  }, [showPreview, sectionOrder]);
+  }, [showPreview, sectionOrder, intelligence]);
 
   const hasSectionContent = useCallback((sectionId: SectionId): boolean => {
     switch (sectionId) {
@@ -82,6 +135,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'bythenumbers': return (guide.statistics?.length ?? 0) > 0;
       case 'services': return (guide.services?.length ?? 0) > 0;
       case 'revenue': return (guide.revenueData?.length ?? 0) > 0;
+      case 'brief': return !!(intelligence?.brand_summary || intelligence?.market_position || (intelligence?.growth_recommendations?.length ?? 0) > 0);
       case 'logos': return guide.logos.length > 0;
       case 'brandicon': return guide.brandIcons.length > 0;
       case 'colors': return guide.colors.length > 0;
@@ -107,7 +161,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'products': return (guide.linkedGuides?.length ?? 0) > 0;
       default: return false;
     }
-  }, [guide]);
+  }, [guide, intelligence]);
 
   const toggleSection = (sectionId: SectionId) => {
     setSelectedSections(prev => {
@@ -446,6 +500,140 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                 ))}
               </div>
             </div>
+          </div>
+        );
+
+      case 'brief':
+        if (!intelligence?.brand_summary && !intelligence?.market_position && (intelligence?.growth_recommendations?.length ?? 0) === 0) return null;
+        return (
+          <div id="pdf-section-brief" className={cn("py-6 border-b pdf-page-break-before", t.border)} key="brief">
+            <div className="pdf-section-header" style={{ marginBottom: '16px' }}>
+              <Brain className="h-5 w-5" />
+              <h2>Brand Brief & Intelligence</h2>
+            </div>
+            
+            {/* Brand Summary */}
+            {intelligence.brand_summary && (
+              <div className={cn("p-4 rounded-lg mb-4 pdf-avoid-break", t.card)}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Lightbulb className="h-4 w-4 text-amber-500" />
+                  <h3 className={cn("font-semibold text-sm", t.text)}>Executive Summary</h3>
+                </div>
+                <p className={cn("text-sm leading-relaxed", t.text)}>{intelligence.brand_summary}</p>
+              </div>
+            )}
+
+            {/* Market Position & Target Audience */}
+            <div className="pdf-grid-2" style={{ marginBottom: '16px' }}>
+              {intelligence.market_position && (
+                <div className={cn("p-4 rounded-lg pdf-avoid-break", t.card)}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target className="h-4 w-4 text-blue-500" />
+                    <h3 className={cn("font-semibold text-sm", t.text)}>Market Position</h3>
+                  </div>
+                  <p className={cn("text-xs", t.textMuted)}>{intelligence.market_position}</p>
+                </div>
+              )}
+              
+              {intelligence.target_audience && (
+                <div className={cn("p-4 rounded-lg pdf-avoid-break", t.card)}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="h-4 w-4 text-green-500" />
+                    <h3 className={cn("font-semibold text-sm", t.text)}>Target Audience</h3>
+                  </div>
+                  <p className={cn("text-xs font-medium mb-1", t.text)}>{intelligence.target_audience.primary}</p>
+                  {intelligence.target_audience.demographics?.length > 0 && (
+                    <p className={cn("text-xs", t.textMuted)}>
+                      {intelligence.target_audience.demographics.join(' • ')}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Competitive Advantages */}
+            {intelligence.competitive_advantages && intelligence.competitive_advantages.length > 0 && (
+              <div className={cn("p-4 rounded-lg mb-4 pdf-avoid-break", t.card)}>
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="h-4 w-4 text-purple-500" />
+                  <h3 className={cn("font-semibold text-sm", t.text)}>Competitive Advantages</h3>
+                </div>
+                <div className="pdf-grid-2">
+                  {intelligence.competitive_advantages.slice(0, 6).map((adv, idx) => (
+                    <div 
+                      key={idx} 
+                      className={cn("px-3 py-2 rounded-md text-xs font-medium pdf-avoid-break", 
+                        pdfTheme === 'dark' ? 'bg-purple-500/10 text-purple-300' : 'bg-purple-50 text-purple-700'
+                      )}
+                    >
+                      {adv}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Growth Recommendations */}
+            {intelligence.growth_recommendations && intelligence.growth_recommendations.length > 0 && (
+              <div className={cn("p-4 rounded-lg pdf-avoid-break", t.card)}>
+                <h3 className={cn("font-semibold text-sm mb-3", t.text)}>Strategic Recommendations</h3>
+                <div className="space-y-3">
+                  {intelligence.growth_recommendations.slice(0, 4).map((rec, idx) => (
+                    <div 
+                      key={idx} 
+                      className={cn("p-3 rounded-lg border-l-3 pdf-avoid-break",
+                        rec.priority === 'high' ? 'border-l-red-500 bg-red-500/5' :
+                        rec.priority === 'medium' ? 'border-l-amber-500 bg-amber-500/5' :
+                        'border-l-green-500 bg-green-500/5'
+                      )}
+                      style={{ borderLeftWidth: '3px' }}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={cn(
+                          "text-xs font-bold uppercase px-2 py-0.5 rounded",
+                          rec.priority === 'high' ? 'bg-red-100 text-red-700' :
+                          rec.priority === 'medium' ? 'bg-amber-100 text-amber-700' :
+                          'bg-green-100 text-green-700'
+                        )}>
+                          {rec.priority}
+                        </span>
+                      </div>
+                      <p className={cn("text-sm font-medium mb-1", t.text)}>{rec.recommendation}</p>
+                      {rec.rationale && (
+                        <p className={cn("text-xs", t.textMuted)}>{rec.rationale}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Brand Voice Profile */}
+            {intelligence.brand_voice_profile && (
+              <div className={cn("p-4 rounded-lg mt-4 pdf-avoid-break", t.card)}>
+                <h3 className={cn("font-semibold text-sm mb-3", t.text)}>Brand Voice Profile</h3>
+                <div className="pdf-grid-3">
+                  {intelligence.brand_voice_profile.tone?.length > 0 && (
+                    <div>
+                      <p className={cn("text-xs font-medium mb-1", t.textMuted)}>Tone</p>
+                      <p className={cn("text-sm", t.text)}>{intelligence.brand_voice_profile.tone.join(', ')}</p>
+                    </div>
+                  )}
+                  {intelligence.brand_voice_profile.personality?.length > 0 && (
+                    <div>
+                      <p className={cn("text-xs font-medium mb-1", t.textMuted)}>Personality</p>
+                      <p className={cn("text-sm", t.text)}>{intelligence.brand_voice_profile.personality.join(', ')}</p>
+                    </div>
+                  )}
+                  {intelligence.brand_voice_profile.communication_style && (
+                    <div>
+                      <p className={cn("text-xs font-medium mb-1", t.textMuted)}>Style</p>
+                      <p className={cn("text-sm", t.text)}>{intelligence.brand_voice_profile.communication_style}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -883,26 +1071,58 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'casestudies':
         if (guide.caseStudies.length === 0) return null;
         return (
-          <div id="pdf-section-casestudies" className={cn("py-6 border-b", t.border)} key="casestudies">
-            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Case Studies</h2>
-            <div className="space-y-3">
-              {guide.caseStudies.map((study) => (
-                <div key={study.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
+          <div id="pdf-section-casestudies" className={cn("py-6 border-b pdf-page-break-before", t.border)} key="casestudies">
+            <div className="pdf-section-header" style={{ marginBottom: '16px' }}>
+              <FileText className="h-5 w-5" />
+              <h2>Case Studies & Success Stories</h2>
+            </div>
+            <div className="space-y-4">
+              {guide.caseStudies.map((study, idx) => (
+                <div 
+                  key={study.id} 
+                  className={cn(
+                    "pdf-case-study-card pdf-avoid-break overflow-hidden",
+                    pdfTheme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'
+                  )}
+                  style={{ borderRadius: '12px' }}
+                >
                   {study.previewUrl && (
-                    <div className="aspect-[16/9] w-full overflow-hidden rounded mb-2">
+                    <div className="pdf-image-container pdf-image-16-9">
                       <img 
                         src={study.previewUrl} 
                         alt={study.title} 
-                        className="w-full h-full object-cover"
                         crossOrigin="anonymous"
                         loading="eager"
                       />
                     </div>
                   )}
-                  <h3 className={cn("font-semibold text-sm mb-1", t.text)}>{study.title}</h3>
-                  <p className={cn("text-xs", t.textMuted)}>{study.description}</p>
+                  <div className="pdf-case-study-content" style={{ padding: '16px' }}>
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <h3 className={cn("font-bold text-base", t.text)}>{study.title}</h3>
+                      <span 
+                        className={cn(
+                          "shrink-0 px-2 py-1 rounded-full text-xs font-medium",
+                          pdfTheme === 'dark' ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'
+                        )}
+                      >
+                        Case #{idx + 1}
+                      </span>
+                    </div>
+                    <p className={cn("text-sm leading-relaxed", t.textMuted)}>{study.description}</p>
+                  </div>
                 </div>
               ))}
+            </div>
+            
+            {/* Summary callout */}
+            <div 
+              className={cn("mt-4 p-4 rounded-lg border-l-4 pdf-avoid-break",
+                pdfTheme === 'dark' ? 'bg-blue-500/10 border-l-blue-400' : 'bg-blue-50 border-l-blue-500'
+              )}
+            >
+              <p className={cn("text-sm font-medium", t.text)}>
+                {guide.caseStudies.length} documented success {guide.caseStudies.length === 1 ? 'story' : 'stories'} demonstrating brand impact and market results.
+              </p>
             </div>
           </div>
         );

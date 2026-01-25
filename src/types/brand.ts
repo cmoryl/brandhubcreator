@@ -626,6 +626,7 @@ export type SectionId =
   | 'bythenumbers'
   | 'services'
   | 'revenue'
+  | 'brief'
   | 'logos'
   | 'brandicon'
   | 'colors'

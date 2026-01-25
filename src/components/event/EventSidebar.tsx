@@ -83,6 +83,7 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   bythenumbers: { label: 'By the Numbers', icon: Shield, category: 'Identity' },
   services: { label: 'Services', icon: Shield, category: 'Identity' },
   revenue: { label: 'Revenue', icon: Shield, category: 'Identity' },
+  brief: { label: 'Event Brief', icon: FileText, category: 'Identity' },
   logos: { label: 'Brand Logos', icon: Image, category: 'Visual' },
   brandicon: { label: 'Brand Icons', icon: Image, category: 'Visual' },
   patterns: { label: 'Patterns', icon: Shield, category: 'Visual' },

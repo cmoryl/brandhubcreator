@@ -136,6 +136,7 @@ export const SECTION_METADATA: SectionMeta[] = [
   { id: 'bythenumbers', label: 'By the Numbers', category: 'core' },
   { id: 'services', label: 'Services', category: 'core' },
   { id: 'revenue', label: 'Revenue Growth', category: 'core' },
+  { id: 'brief', label: 'Brand Brief & Intelligence', category: 'core' },
   
   // Visual Identity
   { id: 'logos', label: 'Logo Variations', category: 'visual' },
