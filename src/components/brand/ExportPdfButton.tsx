@@ -283,11 +283,15 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
         return (
           <div id="pdf-section-hero" className={cn("text-center py-12 border-b-4 pdf-avoid-break", t.accent)} key="hero">
             {guide.hero.logoUrl && (
-              <img 
-                src={guide.hero.logoUrl} 
-                alt={guide.hero.name}
-                className="h-20 mx-auto mb-6 object-contain"
-              />
+              <div className="flex justify-center mb-6">
+                <img 
+                  src={guide.hero.logoUrl} 
+                  alt={guide.hero.name}
+                  className="max-h-24 max-w-[200px] object-contain"
+                  crossOrigin="anonymous"
+                  loading="eager"
+                />
+              </div>
             )}
             <h1 className={cn("text-4xl font-bold mb-3", t.text)}>{guide.hero.name}</h1>
             <p className={cn("text-lg", t.textMuted)}>{guide.hero.tagline}</p>
@@ -295,11 +299,15 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
               {guide.type === 'brand' ? 'Brand' : 'Product'} Guidelines
             </div>
             {guide.hero.coverImage && (
-              <img 
-                src={guide.hero.coverImage} 
-                alt="Cover"
-                className="w-full h-40 object-cover mt-6 rounded-lg"
-              />
+              <div className="mt-6 w-full aspect-[16/9] overflow-hidden rounded-lg">
+                <img 
+                  src={guide.hero.coverImage} 
+                  alt="Cover"
+                  className="w-full h-full object-cover"
+                  crossOrigin="anonymous"
+                  loading="eager"
+                />
+              </div>
             )}
           </div>
         );
@@ -447,11 +455,15 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <div className="grid grid-cols-3 gap-3">
               {guide.logos.map((logo) => (
                 <div key={logo.id} className={cn("p-3 rounded-lg text-center pdf-avoid-break", t.card)}>
-                  <img 
-                    src={logo.url} 
-                    alt={logo.name}
-                    className="h-12 mx-auto mb-2 object-contain"
-                  />
+                  <div className="h-16 flex items-center justify-center mb-2">
+                    <img 
+                      src={logo.url} 
+                      alt={logo.name}
+                      className="max-h-full max-w-full object-contain"
+                      crossOrigin="anonymous"
+                      loading="eager"
+                    />
+                  </div>
                   <p className={cn("font-medium text-xs", t.text)}>{logo.name}</p>
                   <p className={cn("text-xs capitalize", t.textMuted)}>{logo.variant}</p>
                 </div>
@@ -468,7 +480,15 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <div className="grid grid-cols-4 gap-3">
               {guide.brandIcons.map((icon) => (
                 <div key={icon.id} className={cn("p-3 rounded-lg text-center pdf-avoid-break", t.card)}>
-                  <img src={icon.url} alt={icon.name} className="h-10 mx-auto mb-2" />
+                  <div className="h-12 flex items-center justify-center mb-2">
+                    <img 
+                      src={icon.url} 
+                      alt={icon.name} 
+                      className="max-h-full max-w-full object-contain"
+                      crossOrigin="anonymous"
+                      loading="eager"
+                    />
+                  </div>
                   <p className={cn("font-medium text-xs", t.text)}>{icon.name}</p>
                 </div>
               ))}
@@ -550,7 +570,15 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <div className="grid grid-cols-3 gap-3">
               {guide.patterns.map((pattern) => (
                 <div key={pattern.id} className={cn("p-2 rounded-lg pdf-avoid-break", t.card)}>
-                  <img src={pattern.url} alt={pattern.name} className="w-full h-16 object-cover rounded mb-1" />
+                  <div className="aspect-[4/3] w-full overflow-hidden rounded mb-1">
+                    <img 
+                      src={pattern.url} 
+                      alt={pattern.name} 
+                      className="w-full h-full object-cover"
+                      crossOrigin="anonymous"
+                      loading="eager"
+                    />
+                  </div>
                   <p className={cn("font-medium text-xs text-center", t.text)}>{pattern.name}</p>
                 </div>
               ))}
@@ -648,7 +676,15 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <div className="grid grid-cols-2 gap-3">
               {guide.imagery.map((img) => (
                 <div key={img.id} className={cn("p-2 rounded-lg pdf-avoid-break", t.card)}>
-                  <img src={img.url} alt={img.description} className="w-full h-24 object-cover rounded mb-1" />
+                  <div className="aspect-[16/10] w-full overflow-hidden rounded mb-1">
+                    <img 
+                      src={img.url} 
+                      alt={img.description} 
+                      className="w-full h-full object-cover"
+                      crossOrigin="anonymous"
+                      loading="eager"
+                    />
+                  </div>
                   <div className="flex items-center gap-1">
                     <span className={cn(
                       "text-xs px-1.5 py-0.5 rounded font-medium",
@@ -840,7 +876,15 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <div className="grid grid-cols-2 gap-3">
               {guide.misuse.map((item) => (
                 <div key={item.id} className={cn("p-2 rounded-lg pdf-avoid-break", t.card)}>
-                  <img src={item.url} alt={item.description} className="w-full h-20 object-contain mb-1 opacity-50" />
+                  <div className="aspect-[4/3] w-full overflow-hidden rounded mb-1 flex items-center justify-center opacity-50">
+                    <img 
+                      src={item.url} 
+                      alt={item.description} 
+                      className="max-w-full max-h-full object-contain"
+                      crossOrigin="anonymous"
+                      loading="eager"
+                    />
+                  </div>
                   <p className={cn("text-xs text-center text-red-500")}>{item.description}</p>
                 </div>
               ))}
@@ -857,7 +901,15 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
               {guide.caseStudies.map((study) => (
                 <div key={study.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
                   {study.previewUrl && (
-                    <img src={study.previewUrl} alt={study.title} className="w-full h-24 object-cover rounded mb-2" />
+                    <div className="aspect-[16/9] w-full overflow-hidden rounded mb-2">
+                      <img 
+                        src={study.previewUrl} 
+                        alt={study.title} 
+                        className="w-full h-full object-cover"
+                        crossOrigin="anonymous"
+                        loading="eager"
+                      />
+                    </div>
                   )}
                   <h3 className={cn("font-semibold text-sm mb-1", t.text)}>{study.title}</h3>
                   <p className={cn("text-xs", t.textMuted)}>{study.description}</p>
@@ -876,7 +928,15 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
               {guide.brochures.map((brochure) => (
                 <div key={brochure.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
                   {brochure.previewUrl && (
-                    <img src={brochure.previewUrl} alt={brochure.title} className="w-full h-20 object-cover rounded mb-1" />
+                    <div className="aspect-[3/4] w-full overflow-hidden rounded mb-1">
+                      <img 
+                        src={brochure.previewUrl} 
+                        alt={brochure.title} 
+                        className="w-full h-full object-cover"
+                        crossOrigin="anonymous"
+                        loading="eager"
+                      />
+                    </div>
                   )}
                   <p className={cn("font-medium text-xs", t.text)}>{brochure.title}</p>
                   <p className={cn("text-xs", t.textMuted)}>{brochure.category}</p>
@@ -1117,14 +1177,16 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                 <span className="text-xs text-muted-foreground">{paper.label}</span>
               </div>
               <ScrollArea className="flex-1">
-                <div className="p-4 flex justify-center">
+                <div className="p-4 flex justify-center bg-muted/30">
                   <div 
                     ref={exportRef} 
-                    className={cn("p-6 shadow-lg", t.bg)}
+                    className={cn("p-6 shadow-lg pdf-export-container", t.bg)}
                     style={{ 
-                      width: `${paper.width}mm`, 
-                      minHeight: `${paper.height}mm`,
+                      width: `${paper.width * 0.9}mm`,
+                      minHeight: `${paper.height * 0.5}mm`,
                       maxWidth: '100%',
+                      fontSize: '12px',
+                      lineHeight: '1.4',
                     }}
                   >
                     {/* Render Hero first */}

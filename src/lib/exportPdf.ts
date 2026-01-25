@@ -26,6 +26,33 @@ export const PAPER_SIZES: Record<PaperSize, PaperConfig> = {
   },
 };
 
+// Helper to preload images before PDF generation
+const preloadImages = async (element: HTMLElement): Promise<void> => {
+  const images = element.querySelectorAll('img');
+  const imagePromises = Array.from(images).map((img) => {
+    return new Promise<void>((resolve) => {
+      if (img.complete && img.naturalHeight !== 0) {
+        resolve();
+      } else {
+        img.onload = () => resolve();
+        img.onerror = () => resolve(); // Continue even if image fails
+        // Force reload if src is set
+        if (img.src) {
+          const src = img.src;
+          img.src = '';
+          img.src = src;
+        }
+      }
+    });
+  });
+  
+  // Wait for all images with a timeout
+  await Promise.race([
+    Promise.all(imagePromises),
+    new Promise(resolve => setTimeout(resolve, 5000)), // 5s timeout
+  ]);
+};
+
 export const exportToPdf = async (
   element: HTMLElement,
   guide: BaseGuide,
@@ -37,23 +64,42 @@ export const exportToPdf = async (
   
   const paper = PAPER_SIZES[paperSize];
   
+  // Preload all images before generating PDF
+  onProgress?.('Loading images...');
+  await preloadImages(element);
+  
+  // Calculate proper width for PDF rendering (mm to pixels at higher DPI for quality)
+  const pdfWidthPx = Math.round((paper.width - paper.margins[1] - paper.margins[3]) * 3.78);
+  
   const opt = {
     margin: paper.margins,
     filename: `${guide.hero.name.replace(/\s+/g, '_')}_Brand_Guide_${theme}_${paperSize.toUpperCase()}.pdf`,
-    image: { type: 'jpeg' as const, quality: 0.98 },
+    image: { type: 'jpeg' as const, quality: 0.95 },
     html2canvas: { 
       scale: 2,
       useCORS: true,
+      allowTaint: true,
       logging: false,
       letterRendering: true,
       backgroundColor: theme === 'dark' ? '#111827' : '#ffffff',
-      windowWidth: Math.round(paper.width * 3.78), // mm to pixels at 96dpi
+      windowWidth: pdfWidthPx,
+      imageTimeout: 15000, // 15 second timeout for images
+      onclone: (clonedDoc: Document) => {
+        // Ensure all images in cloned doc have proper styling for PDF
+        const imgs = clonedDoc.querySelectorAll('img');
+        imgs.forEach((img) => {
+          img.style.maxWidth = '100%';
+          img.style.height = 'auto';
+          img.crossOrigin = 'anonymous';
+        });
+      },
     },
     jsPDF: { 
       unit: 'mm' as const, 
       format: paperSize === 'a4' ? 'a4' : 'letter',
       orientation: 'portrait' as const,
       compress: true,
+      hotfixes: ['px_scaling'],
     },
     pagebreak: { 
       mode: ['avoid-all', 'css', 'legacy'],
