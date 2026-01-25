@@ -316,6 +316,10 @@ export const SignaturesSection = ({
   };
 
   const renderPreview = (signature: BrandSignature) => {
+    // Use custom accent color or default TransPerfect Blues
+    const accentColor = signature.accentColor || TP_BLUE_LIGHT;
+    const darkColor = signature.accentColor ? signature.accentColor : TP_BLUE_DARK;
+    
     let html = signature.html
       .replace(/\[NAME\]/g, signature.name)
       .replace(/\[ROLE\]/g, signature.role)
@@ -325,7 +329,10 @@ export const SignaturesSection = ({
       .replace(/\[WEBSITE\]/g, signature.website || 'www.company.com')
       .replace(/\[ADDRESS\]/g, signature.address || '123 Business St, City')
       .replace(/\[CONFIDENTIALITY\]/g, signature.confidentialityNotice || '')
-      .replace(/\[LOGO_URL\]/g, signature.logoUrl || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23f0f0f0" width="100" height="100" rx="4"/><text x="50" y="55" text-anchor="middle" fill="%23999" font-family="Arial" font-size="10">Logo</text></svg>');
+      .replace(/\[LOGO_URL\]/g, signature.logoUrl || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23f0f0f0" width="100" height="100" rx="4"/><text x="50" y="55" text-anchor="middle" fill="%23999" font-family="Arial" font-size="10">Logo</text></svg>')
+      // Replace accent colors in template with custom color
+      .replace(new RegExp(TP_BLUE_LIGHT, 'gi'), accentColor)
+      .replace(new RegExp(TP_BLUE_DARK, 'gi'), darkColor);
     
     return DOMPurify.sanitize(html, {
       ALLOWED_TAGS: ['table', 'tr', 'td', 'th', 'tbody', 'thead', 'p', 'img', 'a', 'strong', 'em', 'b', 'i', 'span', 'div', 'br', 'hr'],
@@ -661,6 +668,41 @@ export const SignaturesSection = ({
                       </div>
                     </div>
                   </div>
+
+                  {/* Accent Color */}
+                  <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider pt-4">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    Brand Accent Color
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={signature.accentColor || TP_BLUE_LIGHT}
+                      onChange={(e) => updateSignature(signature.id, { accentColor: e.target.value })}
+                      className="w-10 h-10 rounded border border-input cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <Input
+                        value={signature.accentColor || ''}
+                        onChange={(e) => updateSignature(signature.id, { accentColor: e.target.value })}
+                        placeholder={`Default: ${TP_BLUE_LIGHT}`}
+                        className="font-mono text-sm uppercase"
+                      />
+                    </div>
+                    {signature.accentColor && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => updateSignature(signature.id, { accentColor: undefined })}
+                        className="text-xs"
+                      >
+                        Reset
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Override the default TransPerfect Blue accent color for this signature
+                  </p>
 
                   {/* Confidentiality Notice */}
                   {signature.variant === 'full' && (
