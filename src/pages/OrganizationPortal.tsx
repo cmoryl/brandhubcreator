@@ -438,18 +438,27 @@ const OrganizationPortal = () => {
               </div>
             </div>
             
-            {/* Orbit Legend - positioned top-left, above content */}
-            <div className="absolute top-0 left-0 z-50 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-              <OrbitLegend
-                value={activeTab}
-                onValueChange={(newValue) => {
-                  console.log('[Portal] Legend filter change:', { from: activeTab, to: newValue });
-                  setActiveTab(newValue);
-                }}
-                counts={{ brands: brands.length, products: products.length, events: events.length }}
-              />
-            </div>
           </div>
+        </div>
+        
+        {/* Orbit Legend - positioned near the orbit on the right */}
+        <div 
+          className="hidden lg:block absolute z-50 animate-fade-in"
+          style={{ 
+            animationDelay: '0.4s',
+            right: 'clamp(40px, 8vw, 120px)',
+            top: '50%',
+            transform: 'translateY(-50%)',
+          }}
+        >
+          <OrbitLegend
+            value={activeTab}
+            onValueChange={(newValue) => {
+              console.log('[Portal] Legend filter change:', { from: activeTab, to: newValue });
+              setActiveTab(newValue);
+            }}
+            counts={{ brands: brands.length, products: products.length, events: events.length }}
+          />
         </div>
       </div>
 
