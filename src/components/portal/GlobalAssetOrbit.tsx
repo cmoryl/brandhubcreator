@@ -572,6 +572,32 @@ export const GlobalAssetOrbit = ({
             style={{ animation: 'pulse 1.5s ease-in-out infinite' }}
           />
         )}
+        
+        {/* Connection beam from center when hovering - shows hierarchy */}
+        {activeEntity && (
+          <g style={{ opacity: 0.6 }}>
+            <defs>
+              <linearGradient id="connection-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor={primaryColor} stopOpacity="0.8" />
+                <stop offset="100%" stopColor={TYPE_COLORS[activeEntity.type]} stopOpacity="0.3" />
+              </linearGradient>
+            </defs>
+            {/* Radial pulse from center */}
+            <circle 
+              cx="200" 
+              cy="200" 
+              r="40" 
+              fill="none" 
+              stroke={TYPE_COLORS[activeEntity.type]} 
+              strokeWidth="1.5"
+              strokeOpacity="0.5"
+              style={{ 
+                animation: 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite',
+                transformOrigin: '200px 200px',
+              }}
+            />
+          </g>
+        )}
       </svg>
       
       {/* Center Icon */}
