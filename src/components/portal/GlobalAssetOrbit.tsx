@@ -131,7 +131,7 @@ export const GlobalAssetOrbit = ({
   const MAX_EVENTS_ALL = 6;
   
   // Max items per ring when showing a single category (use multiple rings)
-  const ITEMS_PER_RING = 10;
+  const ITEMS_PER_RING = 7; // Fewer items per ring for better spacing
   
   // Rotation interval (in ms) - how often to cycle visible items
   const ROTATION_INTERVAL = 8000; // 8 seconds
@@ -631,9 +631,75 @@ export const GlobalAssetOrbit = ({
         </div>
       )}
       
+      {/* Glowing orbit rings when filtered */}
+      {activeFilter !== 'all' && (
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 400 400">
+          <defs>
+            <filter id="glow-filter" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          {activeFilter === 'brands' && orbitData.brandRings.map((_, ringIndex) => {
+            const radius = 55 + ringIndex * 55;
+            return (
+              <circle
+                key={`brand-glow-${ringIndex}`}
+                cx="200"
+                cy="200"
+                r={radius}
+                fill="none"
+                stroke={TYPE_COLORS.brand}
+                strokeWidth="1.5"
+                strokeOpacity={0.4 - ringIndex * 0.08}
+                filter="url(#glow-filter)"
+                style={{ animation: 'pulse 3s ease-in-out infinite', animationDelay: `${ringIndex * 0.3}s` }}
+              />
+            );
+          })}
+          {activeFilter === 'products' && orbitData.productRings.map((_, ringIndex) => {
+            const radius = 55 + ringIndex * 55;
+            return (
+              <circle
+                key={`product-glow-${ringIndex}`}
+                cx="200"
+                cy="200"
+                r={radius}
+                fill="none"
+                stroke={TYPE_COLORS.product}
+                strokeWidth="1.5"
+                strokeOpacity={0.4 - ringIndex * 0.08}
+                filter="url(#glow-filter)"
+                style={{ animation: 'pulse 3s ease-in-out infinite', animationDelay: `${ringIndex * 0.3}s` }}
+              />
+            );
+          })}
+          {activeFilter === 'events' && orbitData.eventRings.map((_, ringIndex) => {
+            const radius = 55 + ringIndex * 55;
+            return (
+              <circle
+                key={`event-glow-${ringIndex}`}
+                cx="200"
+                cy="200"
+                r={radius}
+                fill="none"
+                stroke={TYPE_COLORS.event}
+                strokeWidth="1.5"
+                strokeOpacity={0.4 - ringIndex * 0.08}
+                filter="url(#glow-filter)"
+                style={{ animation: 'pulse 3s ease-in-out infinite', animationDelay: `${ringIndex * 0.3}s` }}
+              />
+            );
+          })}
+        </svg>
+      )}
+
       {/* Multi-ring brands when filtered */}
       {activeFilter === 'brands' && orbitData.brandRings.map((ring, ringIndex) => {
-        const baseRadius = 60 + ringIndex * 45; // Start at 60, expand outward with more spacing
+        const baseRadius = 55 + ringIndex * 55; // Start closer, expand with more spacing
         const spinDuration = `${50 + ringIndex * 15}s`;
         const reverse = ringIndex % 2 === 0;
         
@@ -714,7 +780,7 @@ export const GlobalAssetOrbit = ({
       
       {/* Multi-ring products when filtered */}
       {activeFilter === 'products' && orbitData.productRings.map((ring, ringIndex) => {
-        const baseRadius = 60 + ringIndex * 45; // Start at 60, expand outward with more spacing
+        const baseRadius = 55 + ringIndex * 55; // Start closer, expand with more spacing
         const spinDuration = `${55 + ringIndex * 12}s`;
         const reverse = ringIndex % 2 === 1;
         
@@ -795,7 +861,7 @@ export const GlobalAssetOrbit = ({
       
       {/* Multi-ring events when filtered */}
       {activeFilter === 'events' && orbitData.eventRings.map((ring, ringIndex) => {
-        const baseRadius = 60 + ringIndex * 45; // Start at 60, expand outward with more spacing
+        const baseRadius = 55 + ringIndex * 55; // Start closer, expand with more spacing
         const spinDuration = `${60 + ringIndex * 15}s`;
         const reverse = ringIndex % 2 === 0;
         
