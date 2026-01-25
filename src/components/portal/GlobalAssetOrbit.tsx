@@ -602,15 +602,30 @@ export const GlobalAssetOrbit = ({
         )}
       </svg>
       
-      {/* Center Icon */}
+      {/* Center Icon - Click to reset filter */}
       <div className="absolute z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[76px] h-[76px]">
-        <div 
-          className="w-full h-full rounded-full flex items-center justify-center"
+        <button
+          type="button"
+          onClick={() => {
+            if (activeFilter !== 'all') {
+              if (controlledFilter === undefined) {
+                setInternalFilter('all');
+              }
+              onFilterChange?.('all');
+            }
+          }}
+          className={cn(
+            "w-full h-full rounded-full flex items-center justify-center transition-all duration-300 pointer-events-auto",
+            activeFilter !== 'all' && "cursor-pointer hover:scale-110"
+          )}
           style={{ 
             background: `linear-gradient(145deg, ${primaryColor}60, ${primaryColor}30)`,
-            boxShadow: `0 0 30px ${primaryColor}40`,
+            boxShadow: activeFilter !== 'all' 
+              ? `0 0 30px ${primaryColor}60, 0 0 50px ${primaryColor}30` 
+              : `0 0 30px ${primaryColor}40`,
             border: `2px solid ${primaryColor}80`,
           }}
+          title={activeFilter !== 'all' ? 'Click to show all' : organizationName}
         >
           {organizationLogo ? (
             <img src={organizationLogo} alt={organizationName} className="w-10 h-10 object-contain" style={{ filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
@@ -619,7 +634,7 @@ export const GlobalAssetOrbit = ({
               {centerLetter}
             </span>
           )}
-        </div>
+        </button>
       </div>
       
       {/* Brand icons - single ring in 'all' mode, multi-ring when filtered */}
