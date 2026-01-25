@@ -318,27 +318,32 @@ const OrganizationPortal = () => {
         {/* Hero Content */}
         <div className={`relative z-10 ${heroFullWidth ? 'px-4 sm:px-6 lg:px-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} pt-4 sm:pt-8 pb-16 sm:pb-24 overflow-visible`}>
           <div className="relative min-h-[400px] lg:min-h-[480px]">
-            {/* Global Asset Orbit - Large, positioned to overlap content */}
+            {/* Orbit Legend - positioned absolutely, clickable */}
+            <OrbitLegend
+              value={activeTab}
+              onValueChange={(newValue) => {
+                console.log('[Portal] Legend filter change:', { from: activeTab, to: newValue });
+                setActiveTab(newValue);
+              }}
+              counts={{ brands: brands.length, products: products.length, events: events.length }}
+              className="hidden lg:flex absolute z-50 animate-fade-in"
+              style={{ 
+                animationDelay: '0.3s',
+                right: '-5%',
+                top: 'calc(50% - 240px)',
+              }}
+            />
+            
+            {/* Global Asset Orbit - background layer, not clickable except icons */}
             <div 
-              className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-30 animate-fade-in"
+              className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-30 animate-fade-in pointer-events-none"
               style={{ 
                 animationDelay: '0.3s',
                 right: '-5%',
                 width: 'clamp(500px, 55vw, 750px)',
                 height: 'clamp(500px, 55vw, 750px)',
-                pointerEvents: 'none', // Let clicks pass through to orbit/legend
               }}
             >
-              {/* Legend positioned outside orbit, high z-index, pointer-events enabled */}
-              <OrbitLegend
-                value={activeTab}
-                onValueChange={(newValue) => {
-                  console.log('[Portal] Legend filter change:', { from: activeTab, to: newValue });
-                  setActiveTab(newValue);
-                }}
-                counts={{ brands: brands.length, products: products.length, events: events.length }}
-                style={{ pointerEvents: 'auto', zIndex: 400 }}
-              />
               <GlobalAssetOrbit
                 primaryColor={organization.accentColor || orgColors.primary}
                 secondaryColor={orgColors.secondary}
