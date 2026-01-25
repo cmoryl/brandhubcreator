@@ -332,7 +332,10 @@ const OrganizationPortal = () => {
               {/* Legend positioned outside orbit, high z-index, pointer-events enabled */}
               <OrbitLegend
                 value={activeTab}
-                onValueChange={setActiveTab}
+                onValueChange={(newValue) => {
+                  console.log('[Portal] Legend filter change:', { from: activeTab, to: newValue });
+                  setActiveTab(newValue);
+                }}
                 counts={{ brands: brands.length, products: products.length, events: events.length }}
                 style={{ pointerEvents: 'auto' }}
               />
@@ -344,7 +347,10 @@ const OrganizationPortal = () => {
                 className="w-full h-full"
                 filter={activeTab}
                 showLegend={false}
-                onFilterChange={setActiveTab}
+                onFilterChange={(filter) => {
+                  console.log('[Portal] Orbit filter change:', { filter });
+                  setActiveTab(filter);
+                }}
                 brands={brands.map(b => ({
                   id: b.id,
                   name: b.hero?.name || b.name,
