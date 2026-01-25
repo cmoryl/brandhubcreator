@@ -417,48 +417,20 @@ const OrganizationPortal = () => {
                 )}
               </div>
 
-              {/* Stats */}
-              <div className="flex items-center gap-6 sm:gap-8 mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-                <div>
-                  <p className="text-2xl sm:text-3xl font-semibold text-foreground">{brands.length}</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Public Brands</p>
-                </div>
-                {products.length > 0 && (
-                  <div>
-                    <p className="text-2xl sm:text-3xl font-semibold text-foreground">{products.length}</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Public Products</p>
-                  </div>
-                )}
-                {events.length > 0 && (
-                  <div>
-                    <p className="text-2xl sm:text-3xl font-semibold text-foreground">{events.length}</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Public Events</p>
-                  </div>
-                )}
+              {/* Orbit Legend - replaces stats, shown on md+ screens */}
+              <div className="hidden md:block mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                <OrbitLegend
+                  value={activeTab}
+                  onValueChange={(newValue) => {
+                    console.log('[Portal] Legend filter change:', { from: activeTab, to: newValue });
+                    setActiveTab(newValue);
+                  }}
+                  counts={{ brands: brands.length, products: products.length, events: events.length }}
+                />
               </div>
             </div>
             
           </div>
-        </div>
-        
-        {/* Orbit Legend - positioned near the orbit on the right */}
-        <div 
-          className="hidden lg:block absolute z-50 animate-fade-in"
-          style={{ 
-            animationDelay: '0.4s',
-            right: 'clamp(40px, 8vw, 120px)',
-            top: '50%',
-            transform: 'translateY(-50%)',
-          }}
-        >
-          <OrbitLegend
-            value={activeTab}
-            onValueChange={(newValue) => {
-              console.log('[Portal] Legend filter change:', { from: activeTab, to: newValue });
-              setActiveTab(newValue);
-            }}
-            counts={{ brands: brands.length, products: products.length, events: events.length }}
-          />
         </div>
       </div>
 
