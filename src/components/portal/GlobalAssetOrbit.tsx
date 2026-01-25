@@ -633,7 +633,7 @@ export const GlobalAssetOrbit = ({
       
       {/* Multi-ring brands when filtered */}
       {activeFilter === 'brands' && orbitData.brandRings.map((ring, ringIndex) => {
-        const baseRadius = 65 + ringIndex * 35; // Start at 65, expand outward
+        const baseRadius = 60 + ringIndex * 45; // Start at 60, expand outward with more spacing
         const spinDuration = `${50 + ringIndex * 15}s`;
         const reverse = ringIndex % 2 === 0;
         
@@ -714,7 +714,7 @@ export const GlobalAssetOrbit = ({
       
       {/* Multi-ring products when filtered */}
       {activeFilter === 'products' && orbitData.productRings.map((ring, ringIndex) => {
-        const baseRadius = 65 + ringIndex * 35; // Start at 65, expand outward
+        const baseRadius = 60 + ringIndex * 45; // Start at 60, expand outward with more spacing
         const spinDuration = `${55 + ringIndex * 12}s`;
         const reverse = ringIndex % 2 === 1;
         
@@ -795,7 +795,7 @@ export const GlobalAssetOrbit = ({
       
       {/* Multi-ring events when filtered */}
       {activeFilter === 'events' && orbitData.eventRings.map((ring, ringIndex) => {
-        const baseRadius = 65 + ringIndex * 35; // Start at 65, expand outward
+        const baseRadius = 60 + ringIndex * 45; // Start at 60, expand outward with more spacing
         const spinDuration = `${60 + ringIndex * 15}s`;
         const reverse = ringIndex % 2 === 0;
         
