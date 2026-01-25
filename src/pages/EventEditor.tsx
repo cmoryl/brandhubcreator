@@ -349,10 +349,12 @@ const EventEditor = () => {
   }, [viewMode]);
 
   // Optimized loading: prevents flash for fast loads
-  // Must wait for context events to load if user is logged in
-  const contextLoading = user && isLoading;
+  // IMPORTANT: Never block a public event page on context loading.
+  // If the user deep-links to a public sub-event, the org/event context may still be initializing
+  // (or never initialize if no org is selected), which would otherwise cause an infinite loading screen.
+  const contextLoading = Boolean(user && isLoading);
   const needsPublicData = !contextEvent && !publicEvent;
-  const rawLoading = contextLoading || (needsPublicData && publicEventLoading);
+  const rawLoading = !event && (contextLoading || (needsPublicData && publicEventLoading));
   const stableLoading = useStableLoading(rawLoading, {
     showDelay: 100,
     minDisplayTime: 300,
