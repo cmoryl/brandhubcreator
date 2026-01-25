@@ -32,7 +32,7 @@ import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit } from '@/components/portal';
+import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit, OrbitLegend } from '@/components/portal';
 import { toast } from 'sonner';
 
 // Lazy load admin components
@@ -328,12 +328,19 @@ const OrganizationPortal = () => {
                 height: 'clamp(500px, 55vw, 750px)',
               }}
             >
+              <OrbitLegend
+                value={activeTab}
+                onValueChange={setActiveTab}
+                counts={{ brands: brands.length, products: products.length, events: events.length }}
+              />
               <GlobalAssetOrbit 
                 primaryColor={organization.accentColor || orgColors.primary}
                 secondaryColor={orgColors.secondary}
                 organizationName={organization.name}
                 organizationLogo={organization.logoUrl}
                 className="w-full h-full"
+                filter={activeTab}
+                showLegend={false}
                 onFilterChange={(filter) => {
                   console.log('[OrganizationPortal] orbit filter -> tab:', filter);
                   setActiveTab(filter);

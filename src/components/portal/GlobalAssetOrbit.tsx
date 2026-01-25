@@ -33,6 +33,16 @@ interface GlobalAssetOrbitProps {
   brands?: LinkedEntity[];
   products?: LinkedEntity[];
   events?: LinkedEntity[];
+  /**
+   * Controlled filter value. When provided, the orbit becomes controlled by the parent.
+   * This is used to keep the orbit animation perfectly in sync with the portal tabs.
+   */
+  filter?: 'all' | 'brands' | 'products' | 'events';
+  /**
+   * Whether to render the internal legend.
+   * Some pages render the legend externally to avoid pointer-event conflicts.
+   */
+  showLegend?: boolean;
   onFilterChange?: (filter: 'all' | 'brands' | 'products' | 'events') => void;
 }
 
@@ -92,6 +102,8 @@ export const GlobalAssetOrbit = ({
   brands = [],
   products = [],
   events = [],
+  filter: controlledFilter,
+  showLegend = true,
   onFilterChange,
 }: GlobalAssetOrbitProps) => {
   const navigate = useNavigate();
@@ -101,7 +113,9 @@ export const GlobalAssetOrbit = ({
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [hoveredOrbit, setHoveredOrbit] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'brands' | 'products' | 'events'>('all');
+  const [internalFilter, setInternalFilter] = useState<'all' | 'brands' | 'products' | 'events'>('all');
+  const activeFilter = controlledFilter ?? internalFilter;
+
   const [iconPos, setIconPos] = useState<{ x: number; y: number } | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -219,7 +233,10 @@ export const GlobalAssetOrbit = ({
     const newFilter = activeFilter === filter ? 'all' : filter;
     // Debug: confirm legend clicks are firing (removed later once verified)
     console.log('[GlobalAssetOrbit] filter click:', { filter, newFilter });
-    setActiveFilter(newFilter);
+    // Uncontrolled mode: maintain internal state.
+    if (controlledFilter === undefined) {
+      setInternalFilter(newFilter);
+    }
     onFilterChange?.(newFilter);
 
     // Ensure any hover tooltip state doesn't interfere with perceived updates
@@ -333,113 +350,102 @@ export const GlobalAssetOrbit = ({
         setIconPos(null);
       }}
     >
-      {/* Top Left Legend - Single line horizontal layout */}
-      <div 
-        className="absolute top-2 left-2 z-[200] flex flex-row items-center gap-2 px-3 py-2 rounded-full backdrop-blur-md transition-all duration-300 pointer-events-auto"
-        style={{ 
-          background: 'rgba(0,0,0,0.6)',
-          border: '1px solid rgba(255,255,255,0.15)',
-        }}
-        onClick={(e) => e.stopPropagation()}
-        onPointerDownCapture={(e) => {
-          // Prevent any parent gesture/overlay from stealing the pointer event
-          e.stopPropagation();
-        }}
-      >
-        {/* Temporary debug indicator to confirm state changes */}
-        <span className="sr-only" aria-live="polite">
-          Active filter: {activeFilter}
-        </span>
-
-        <button
-          type="button"
-          onPointerDown={(e) => {
-            e.stopPropagation();
-            // Some browsers/app shells fire click late; pointerdown is more reliable
-            handleFilterClick('brands');
+      {showLegend && (
+        <div 
+          className="absolute top-2 left-2 z-[200] flex flex-row items-center gap-2 px-3 py-2 rounded-full backdrop-blur-md transition-all duration-300 pointer-events-auto"
+          style={{ 
+            background: 'rgba(0,0,0,0.6)',
+            border: '1px solid rgba(255,255,255,0.15)',
           }}
-          onClick={(e) => {
+          onClick={(e) => e.stopPropagation()}
+          onPointerDownCapture={(e) => {
+            // Prevent any parent gesture/overlay from stealing the pointer event
             e.stopPropagation();
           }}
-          className={cn(
-            "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200 cursor-pointer",
-            activeFilter === 'brands' ? 'bg-white/30 ring-1 ring-white/40' : 'hover:bg-white/10'
-          )}
         >
-          <div 
-            className="w-3.5 h-3.5 rounded-full flex items-center justify-center"
-            style={{ background: `${TYPE_COLORS.brand}40`, border: `1.5px solid ${TYPE_COLORS.brand}` }}
+          <button
+            type="button"
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              handleFilterClick('brands');
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            className={cn(
+              "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200 cursor-pointer",
+              activeFilter === 'brands' ? 'bg-white/30 ring-1 ring-white/40' : 'hover:bg-white/10'
+            )}
           >
-            <BrandIcon className="w-2 h-2" style={{ color: TYPE_COLORS.brand }} />
-          </div>
-          <span className="text-[10px] font-medium" style={{ color: TYPE_COLORS.brand }}>
-            Brands
-          </span>
-          <span className="text-[9px] font-medium text-white/60">
-            ({entityCounts.brands})
-          </span>
-        </button>
-        
-        <div className="w-px h-4 bg-white/20" />
-        
-        <button
-          type="button"
-          onPointerDown={(e) => {
-            e.stopPropagation();
-            handleFilterClick('products');
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-          className={cn(
-            "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200 cursor-pointer",
-            activeFilter === 'products' ? 'bg-white/30 ring-1 ring-white/40' : 'hover:bg-white/10'
-          )}
-        >
-          <div 
-            className="w-3.5 h-3.5 rounded-full flex items-center justify-center"
-            style={{ background: `${TYPE_COLORS.product}40`, border: `1.5px solid ${TYPE_COLORS.product}` }}
+            <div 
+              className="w-3.5 h-3.5 rounded-full flex items-center justify-center"
+              style={{ background: `${TYPE_COLORS.brand}40`, border: `1.5px solid ${TYPE_COLORS.brand}` }}
+            >
+              <BrandIcon className="w-2 h-2" style={{ color: TYPE_COLORS.brand }} />
+            </div>
+            <span className="text-[10px] font-medium" style={{ color: TYPE_COLORS.brand }}>
+              Brands
+            </span>
+            <span className="text-[9px] font-medium text-white/60">({entityCounts.brands})</span>
+          </button>
+          
+          <div className="w-px h-4 bg-white/20" />
+          
+          <button
+            type="button"
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              handleFilterClick('products');
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            className={cn(
+              "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200 cursor-pointer",
+              activeFilter === 'products' ? 'bg-white/30 ring-1 ring-white/40' : 'hover:bg-white/10'
+            )}
           >
-            <ProductIcon className="w-2 h-2" style={{ color: TYPE_COLORS.product }} />
-          </div>
-          <span className="text-[10px] font-medium" style={{ color: TYPE_COLORS.product }}>
-            Products
-          </span>
-          <span className="text-[9px] font-medium text-white/60">
-            ({entityCounts.products})
-          </span>
-        </button>
-        
-        <div className="w-px h-4 bg-white/20" />
-        
-        <button
-          type="button"
-          onPointerDown={(e) => {
-            e.stopPropagation();
-            handleFilterClick('events');
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-          className={cn(
-            "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200 cursor-pointer",
-            activeFilter === 'events' ? 'bg-white/30 ring-1 ring-white/40' : 'hover:bg-white/10'
-          )}
-        >
-          <div 
-            className="w-3.5 h-3.5 rounded-full flex items-center justify-center"
-            style={{ background: `${TYPE_COLORS.event}40`, border: `1.5px solid ${TYPE_COLORS.event}` }}
+            <div 
+              className="w-3.5 h-3.5 rounded-full flex items-center justify-center"
+              style={{ background: `${TYPE_COLORS.product}40`, border: `1.5px solid ${TYPE_COLORS.product}` }}
+            >
+              <ProductIcon className="w-2 h-2" style={{ color: TYPE_COLORS.product }} />
+            </div>
+            <span className="text-[10px] font-medium" style={{ color: TYPE_COLORS.product }}>
+              Products
+            </span>
+            <span className="text-[9px] font-medium text-white/60">({entityCounts.products})</span>
+          </button>
+          
+          <div className="w-px h-4 bg-white/20" />
+          
+          <button
+            type="button"
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              handleFilterClick('events');
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            className={cn(
+              "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200 cursor-pointer",
+              activeFilter === 'events' ? 'bg-white/30 ring-1 ring-white/40' : 'hover:bg-white/10'
+            )}
           >
-            <EventIcon className="w-2 h-2" style={{ color: TYPE_COLORS.event }} />
-          </div>
-          <span className="text-[10px] font-medium" style={{ color: TYPE_COLORS.event }}>
-            Events
-          </span>
-          <span className="text-[9px] font-medium text-white/60">
-            ({entityCounts.events})
-          </span>
-        </button>
-      </div>
+            <div 
+              className="w-3.5 h-3.5 rounded-full flex items-center justify-center"
+              style={{ background: `${TYPE_COLORS.event}40`, border: `1.5px solid ${TYPE_COLORS.event}` }}
+            >
+              <EventIcon className="w-2 h-2" style={{ color: TYPE_COLORS.event }} />
+            </div>
+            <span className="text-[10px] font-medium" style={{ color: TYPE_COLORS.event }}>
+              Events
+            </span>
+            <span className="text-[9px] font-medium text-white/60">({entityCounts.events})</span>
+          </button>
+        </div>
+      )}
 
       {/* Inline styles for SVG animations */}
       <style>{`
