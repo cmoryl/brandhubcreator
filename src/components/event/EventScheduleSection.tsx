@@ -214,7 +214,8 @@ export const EventScheduleSection = ({
     
     schedule.forEach(item => {
       // Try to extract day from time (e.g., "Day 1 - 9:00 AM" or just use "Day 1" as default)
-      const dayMatch = item.time.match(/Day\s*(\d+)/i);
+      const timeStr = item.time || '';
+      const dayMatch = timeStr.match(/Day\s*(\d+)/i);
       const day = dayMatch ? `Day ${dayMatch[1]}` : 'Day 1';
       
       if (!groups[day]) groups[day] = [];
@@ -224,8 +225,8 @@ export const EventScheduleSection = ({
     // Sort items within each day by time
     Object.keys(groups).forEach(day => {
       groups[day].sort((a, b) => {
-        const timeA = a.time.replace(/Day\s*\d+\s*-?\s*/i, '');
-        const timeB = b.time.replace(/Day\s*\d+\s*-?\s*/i, '');
+        const timeA = (a.time || '').replace(/Day\s*\d+\s*-?\s*/i, '');
+        const timeB = (b.time || '').replace(/Day\s*\d+\s*-?\s*/i, '');
         return timeA.localeCompare(timeB);
       });
     });
