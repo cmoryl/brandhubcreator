@@ -126,6 +126,7 @@ SectionWrapper.displayName = 'SectionWrapper';
 interface FullBrandPageProps {
   brand: BaseGuide;
   brandId: string;
+  organizationId?: string;
   onBrandUpdate: (updates: Partial<BaseGuide>) => void;
   scrollToSection?: SectionId | null;
   onSectionVisible?: (sectionId: SectionId) => void;
@@ -142,6 +143,7 @@ interface FullBrandPageProps {
 export const FullBrandPage = ({ 
   brand,
   brandId,
+  organizationId,
   onBrandUpdate, 
   scrollToSection,
   onSectionVisible,
@@ -241,7 +243,7 @@ export const FullBrandPage = ({
       case 'hero': return <HeroSection hero={brand.hero} onHeroChange={editHandler((hero) => onBrandUpdate({ hero }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} fullWidth={heroFullWidth} onOpenIntelligence={canEdit ? onOpenIntelligence : undefined} />;
       case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={editHandler((tagline) => onBrandUpdate({ tagline }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={editHandler((identity) => onBrandUpdate({ identity }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
-      case 'values': return <ValuesSection values={brand.values} onValuesChange={editHandler((values) => onBrandUpdate({ values }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'values': return <ValuesSection values={brand.values} onValuesChange={editHandler((values) => onBrandUpdate({ values }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} organizationId={organizationId} brandId={brandId} brandName={brand.hero.name} canEdit={canEdit} />;
       case 'bythenumbers': return <ByTheNumbersSection statistics={brand.statistics || []} onStatisticsChange={editHandler((statistics) => onBrandUpdate({ statistics }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} infographicLayout={brand.infographicLayout || 'infographic'} onLayoutChange={canEdit ? (infographicLayout: InfographicLayout) => onBrandUpdate({ infographicLayout }) : undefined} brandColors={brand.colors || []} />;
       case 'services': return <ServicesSection services={brand.services || []} onServicesChange={editHandler((services) => onBrandUpdate({ services }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'revenue': return <RevenueChartSection revenueData={brand.revenueData} onRevenueDataChange={editHandler((revenueData) => onBrandUpdate({ revenueData }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} />;
