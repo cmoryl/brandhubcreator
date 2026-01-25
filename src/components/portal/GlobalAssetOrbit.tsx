@@ -624,7 +624,7 @@ const EntityIcon = ({
       const containerRect = containerRef.current.getBoundingClientRect();
       onHover({
         x: iconRect.left - containerRect.left + iconRect.width / 2,
-        y: iconRect.top - containerRect.top,
+        y: iconRect.top - containerRect.top + iconRect.height / 2, // Center of icon
       });
     }
   }, [onHover, containerRef]);
@@ -733,16 +733,16 @@ const TooltipOverlay = ({ entity, iconPos, relatedCount }: TooltipOverlayProps) 
       className="absolute z-[100] pointer-events-none animate-scale-in"
       style={{ 
         left: `${iconPos.x}px`,
-        top: `${iconPos.y - 8}px`,
-        transform: 'translate(-50%, -100%)',
+        top: `${iconPos.y}px`,
+        transform: 'translate(-50%, -50%)', // Center over the icon
       }}
     >
       <div 
-        className="px-3 py-2 rounded-lg shadow-lg backdrop-blur-md"
+        className="px-3 py-2 rounded-lg shadow-2xl backdrop-blur-md"
         style={{ 
-          background: `linear-gradient(145deg, ${typeColor}f0, ${typeColor}dd)`,
-          boxShadow: `0 4px 20px ${typeColor}60`,
-          border: '1px solid rgba(255,255,255,0.25)',
+          background: `linear-gradient(145deg, ${typeColor}f5, ${typeColor}e8)`,
+          boxShadow: `0 8px 32px ${typeColor}80, 0 0 60px ${typeColor}40`,
+          border: '1px solid rgba(255,255,255,0.3)',
         }}
       >
         <p className="text-xs font-semibold text-white truncate max-w-[160px]">{entity.name}</p>
@@ -754,11 +754,6 @@ const TooltipOverlay = ({ entity, iconPos, relatedCount }: TooltipOverlayProps) 
           )}
         </div>
       </div>
-      {/* Arrow pointing down toward icon */}
-      <div 
-        className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45" 
-        style={{ background: `${typeColor}dd` }} 
-      />
     </div>
   );
 };
