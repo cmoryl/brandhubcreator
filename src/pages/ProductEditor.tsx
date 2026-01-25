@@ -419,7 +419,7 @@ const ProductEditor = () => {
       case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={(hero) => handleUpdateProduct({ hero })} onOpenIntelligence={user ? () => setIntelligenceOpen(true) : undefined} />;
       case 'tagline': return <TaglineSection tagline={currentProduct.tagline} onTaglineChange={(tagline) => handleUpdateProduct({ tagline })} />;
       case 'identity': return <IdentitySection identity={currentProduct.identity} onIdentityChange={(identity) => handleUpdateProduct({ identity })} />;
-      case 'values': return <ValuesSection values={currentProduct.values} onValuesChange={(values) => handleUpdateProduct({ values })} />;
+      case 'values': return <ValuesSection values={currentProduct.values} onValuesChange={(values) => handleUpdateProduct({ values })} organizationId={currentProduct.organizationId} brandId={currentProduct.id} brandName={currentProduct.hero.name} canEdit={!!user} />;
       case 'bythenumbers': return <ByTheNumbersSection statistics={currentProduct.statistics || []} onStatisticsChange={(statistics) => handleUpdateProduct({ statistics })} brandName={currentProduct.hero.name} infographicLayout={currentProduct.infographicLayout || 'infographic'} onLayoutChange={(infographicLayout) => handleUpdateProduct({ infographicLayout })} brandColors={currentProduct.colors || []} />;
       case 'services': return <ServicesSection services={currentProduct.services || []} onServicesChange={(services) => handleUpdateProduct({ services })} />;
       case 'revenue': return <RevenueChartSection revenueData={currentProduct.revenueData} onRevenueDataChange={(revenueData) => handleUpdateProduct({ revenueData })} brandName={currentProduct.hero.name} />;
@@ -669,6 +669,7 @@ const ProductEditor = () => {
                 <FullBrandPage 
                   brand={currentProduct}
                   brandId={currentProduct.id}
+                  organizationId={currentProduct.organizationId}
                   onBrandUpdate={handleUpdateProduct}
                   scrollToSection={scrollToSection}
                   onSectionVisible={handleSectionVisible}

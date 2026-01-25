@@ -31,13 +31,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SectionHeader } from './SectionHeader';
+import { SyncValuesButton } from './SyncValuesButton';
 import type { LucideIcon } from 'lucide-react';
 
 interface ValuesSectionProps {
   values: BrandValue[];
-  onValuesChange: (values: BrandValue[]) => void;
+  onValuesChange?: (values: BrandValue[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  organizationId?: string;
+  brandId?: string;
+  brandName?: string;
+  canEdit?: boolean;
 }
 
 interface IconCategory {
@@ -207,7 +212,16 @@ interface ExtendedBrandValue extends BrandValue {
   useImage?: boolean;
 }
 
-export const ValuesSection = ({ values, onValuesChange, customSubtitle, onSubtitleChange }: ValuesSectionProps) => {
+export const ValuesSection = ({ 
+  values, 
+  onValuesChange, 
+  customSubtitle, 
+  onSubtitleChange,
+  organizationId,
+  brandId,
+  brandName,
+  canEdit = true
+}: ValuesSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('Core Values');
@@ -215,6 +229,7 @@ export const ValuesSection = ({ values, onValuesChange, customSubtitle, onSubtit
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
 
   const addValue = () => {
+    if (!onValuesChange) return;
     const newValue: ExtendedBrandValue = {
       id: crypto.randomUUID(),
       text: 'New Value',
@@ -227,10 +242,12 @@ export const ValuesSection = ({ values, onValuesChange, customSubtitle, onSubtit
   };
 
   const updateValue = (id: string, updates: Partial<ExtendedBrandValue>) => {
+    if (!onValuesChange) return;
     onValuesChange(values.map(v => v.id === id ? { ...v, ...updates } : v));
   };
 
   const deleteValue = (id: string) => {
+    if (!onValuesChange) return;
     onValuesChange(values.filter(v => v.id !== id));
     if (editingId === id) setEditingId(null);
   };
@@ -275,11 +292,21 @@ export const ValuesSection = ({ values, onValuesChange, customSubtitle, onSubtit
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        {onValuesChange && (
-          <Button onClick={addValue} size="sm" className="gap-2 shrink-0 w-full sm:w-auto">
-            <Plus className="h-4 w-4" />
-            Add Value
-          </Button>
+        {canEdit && onValuesChange && (
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 w-full sm:w-auto">
+            {organizationId && brandId && brandName && (
+              <SyncValuesButton
+                values={values}
+                organizationId={organizationId}
+                brandId={brandId}
+                brandName={brandName}
+              />
+            )}
+            <Button onClick={addValue} size="sm" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Value
+            </Button>
+          </div>
         )}
       </div>
 
