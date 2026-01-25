@@ -7,7 +7,7 @@
  * Features click-to-filter, pause on hover, and hierarchy visualization
  */
 
-import { forwardRef, useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import React, { forwardRef, useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -851,9 +851,10 @@ interface TooltipOverlayProps {
   iconPos: { x: number; y: number } | null;
   onFilterClick: () => void;
   relatedCount: number;
-}
+};
 
-const TooltipOverlay = ({ entity, iconPos, relatedCount }: TooltipOverlayProps) => {
+const TooltipOverlay = React.forwardRef<HTMLDivElement, TooltipOverlayProps>(
+  ({ entity, iconPos, relatedCount }, ref) => {
   if (!entity || !iconPos) return null;
   
   const config = TYPE_CONFIG[entity.type];
@@ -888,4 +889,5 @@ const TooltipOverlay = ({ entity, iconPos, relatedCount }: TooltipOverlayProps) 
       </div>
     </div>
   );
-};
+});
+TooltipOverlay.displayName = 'TooltipOverlay';

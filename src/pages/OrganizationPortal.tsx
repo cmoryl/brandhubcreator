@@ -337,7 +337,7 @@ const OrganizationPortal = () => {
                   setActiveTab(newValue);
                 }}
                 counts={{ brands: brands.length, products: products.length, events: events.length }}
-                style={{ pointerEvents: 'auto' }}
+                style={{ pointerEvents: 'auto', zIndex: 400 }}
               />
               <GlobalAssetOrbit
                 primaryColor={organization.accentColor || orgColors.primary}
