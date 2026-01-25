@@ -125,28 +125,31 @@ export const GlobalAssetOrbit = ({
 
   const centerLetter = organizationName.charAt(0).toUpperCase();
 
-  // Max visible items per orbit
-  const MAX_BRANDS = 6;
-  const MAX_PRODUCTS = 8;
-  const MAX_EVENTS = 6;
+  // Max visible items per orbit when showing ALL categories
+  const MAX_BRANDS_ALL = 6;
+  const MAX_PRODUCTS_ALL = 8;
+  const MAX_EVENTS_ALL = 6;
+  
+  // Max items per ring when showing a single category (use multiple rings)
+  const ITEMS_PER_RING = 10;
   
   // Rotation interval (in ms) - how often to cycle visible items
   const ROTATION_INTERVAL = 8000; // 8 seconds
 
-  // Cycle through entities when there are more than max visible
+  // Cycle through entities when there are more than max visible (only in 'all' mode)
   useEffect(() => {
-    if (isPaused) return; // Don't rotate while hovering
+    if (isPaused || activeFilter !== 'all') return; // Don't rotate while hovering or when filtered
     
     const interval = setInterval(() => {
       setRotationOffset(prev => ({
-        brands: brands.length > MAX_BRANDS ? (prev.brands + 1) % brands.length : 0,
-        products: products.length > MAX_PRODUCTS ? (prev.products + 1) % products.length : 0,
-        events: events.length > MAX_EVENTS ? (prev.events + 1) % events.length : 0,
+        brands: brands.length > MAX_BRANDS_ALL ? (prev.brands + 1) % brands.length : 0,
+        products: products.length > MAX_PRODUCTS_ALL ? (prev.products + 1) % products.length : 0,
+        events: events.length > MAX_EVENTS_ALL ? (prev.events + 1) % events.length : 0,
       }));
     }, ROTATION_INTERVAL);
     
     return () => clearInterval(interval);
-  }, [brands.length, products.length, events.length, isPaused]);
+  }, [brands.length, products.length, events.length, isPaused, activeFilter]);
 
   // Organize entities by orbit level with rotation offset
   const orbitData = useMemo(() => {
@@ -163,7 +166,7 @@ export const GlobalAssetOrbit = ({
       .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime())
       .map(e => ({ ...e, type: 'event' as const }));
     
-    // Apply rotation offset to get visible slice
+    // Apply rotation offset to get visible slice (for 'all' mode)
     const getRotatedSlice = <T,>(arr: T[], offset: number, maxVisible: number): T[] => {
       if (arr.length <= maxVisible) return arr;
       const result: T[] = [];
@@ -173,16 +176,36 @@ export const GlobalAssetOrbit = ({
       return result;
     };
     
+    // Split items into multiple rings
+    const splitIntoRings = <T,>(arr: T[], itemsPerRing: number): T[][] => {
+      const rings: T[][] = [];
+      for (let i = 0; i < arr.length; i += itemsPerRing) {
+        rings.push(arr.slice(i, i + itemsPerRing));
+      }
+      return rings;
+    };
+    
+    // When filtered to a specific category, show ALL items in multiple rings
+    const isFiltered = activeFilter !== 'all';
+    
     return {
-      inner: getRotatedSlice(sortedBrands, rotationOffset.brands, MAX_BRANDS),
-      middle: getRotatedSlice(sortedProducts, rotationOffset.products, MAX_PRODUCTS),
-      outer: getRotatedSlice(sortedEvents, rotationOffset.events, MAX_EVENTS),
+      // Standard orbits for 'all' view
+      inner: isFiltered && activeFilter !== 'brands' ? [] : 
+             isFiltered ? sortedBrands : getRotatedSlice(sortedBrands, rotationOffset.brands, MAX_BRANDS_ALL),
+      middle: isFiltered && activeFilter !== 'products' ? [] : 
+              isFiltered ? sortedProducts : getRotatedSlice(sortedProducts, rotationOffset.products, MAX_PRODUCTS_ALL),
+      outer: isFiltered && activeFilter !== 'events' ? [] : 
+             isFiltered ? sortedEvents : getRotatedSlice(sortedEvents, rotationOffset.events, MAX_EVENTS_ALL),
+      // Multi-ring data for filtered views
+      brandRings: activeFilter === 'brands' ? splitIntoRings(sortedBrands, ITEMS_PER_RING) : [],
+      productRings: activeFilter === 'products' ? splitIntoRings(sortedProducts, ITEMS_PER_RING) : [],
+      eventRings: activeFilter === 'events' ? splitIntoRings(sortedEvents, ITEMS_PER_RING) : [],
       // Keep full lists for relationship lookups
       allBrands: sortedBrands,
       allProducts: sortedProducts,
       allEvents: sortedEvents,
     };
-  }, [brands, products, events, rotationOffset]);
+  }, [brands, products, events, rotationOffset, activeFilter]);
 
   // Debug logging
   useEffect(() => {
@@ -571,8 +594,8 @@ export const GlobalAssetOrbit = ({
         </div>
       </div>
       
-      {/* Brand icons (inner orbit) - teal colored */}
-      {orbitData.inner.length > 0 && (activeFilter === 'all' || activeFilter === 'brands') && (
+      {/* Brand icons - single ring in 'all' mode, multi-ring when filtered */}
+      {activeFilter === 'all' && orbitData.inner.length > 0 && (
         <div 
           className="absolute z-10 inset-0 pointer-events-none animate-fade-in"
           style={{ transformOrigin: 'center', animation: `spin 55s linear infinite reverse`, animationPlayState: animationStyle }}
@@ -582,7 +605,7 @@ export const GlobalAssetOrbit = ({
             const r = 75 / 400 * 100;
             const x = 50 + r * Math.cos(angle);
             const y = 50 + r * Math.sin(angle);
-            const isActive = hoveredIndex === i && hoveredOrbit === 'inner';
+            const isActive = hoveredIndex === i && hoveredOrbit === 'inner-0';
             
             return (
               <EntityIcon
@@ -595,7 +618,7 @@ export const GlobalAssetOrbit = ({
                 isPaused={isPaused}
                 animationStyle={animationStyle}
                 containerRef={containerRef}
-                onHover={(pos) => handleEntityHover(entity, i, 'inner', pos)}
+                onHover={(pos) => handleEntityHover(entity, i, 'inner-0', pos)}
                 onLeave={handleEntityLeave}
                 onClick={(e) => handleEntityClick(entity, e)}
                 onFilterClick={() => handleEntityFilterClick(entity)}
@@ -608,8 +631,52 @@ export const GlobalAssetOrbit = ({
         </div>
       )}
       
-      {/* Product icons (middle orbit) - light blue colored */}
-      {orbitData.middle.length > 0 && (activeFilter === 'all' || activeFilter === 'products') && (
+      {/* Multi-ring brands when filtered */}
+      {activeFilter === 'brands' && orbitData.brandRings.map((ring, ringIndex) => {
+        const baseRadius = 65 + ringIndex * 35; // Start at 65, expand outward
+        const spinDuration = `${50 + ringIndex * 15}s`;
+        const reverse = ringIndex % 2 === 0;
+        
+        return (
+          <div 
+            key={`brand-ring-${ringIndex}`}
+            className="absolute z-10 inset-0 pointer-events-none animate-fade-in"
+            style={{ transformOrigin: 'center', animation: `spin ${spinDuration} linear infinite ${reverse ? 'reverse' : ''}`, animationPlayState: animationStyle }}
+          >
+            {ring.map((entity, i) => {
+              const angle = (i * 360 / ring.length - 90) * (Math.PI / 180);
+              const r = baseRadius / 400 * 100;
+              const x = 50 + r * Math.cos(angle);
+              const y = 50 + r * Math.sin(angle);
+              const isActive = hoveredIndex === i && hoveredOrbit === `brand-${ringIndex}`;
+              
+              return (
+                <EntityIcon
+                  key={entity.id}
+                  entity={entity}
+                  x={x}
+                  y={y}
+                  isActive={isActive}
+                  isRelated={!isActive && relatedEntityIds.has(entity.id)}
+                  isPaused={isPaused}
+                  animationStyle={animationStyle}
+                  containerRef={containerRef}
+                  onHover={(pos) => handleEntityHover(entity, i, `brand-${ringIndex}`, pos)}
+                  onLeave={handleEntityLeave}
+                  onClick={(e) => handleEntityClick(entity, e)}
+                  onFilterClick={() => handleEntityFilterClick(entity)}
+                  spinDuration={spinDuration}
+                  spinReverse={!reverse}
+                  size={ringIndex === 0 ? 'md' : 'sm'}
+                />
+              );
+            })}
+          </div>
+        );
+      })}
+      
+      {/* Product icons - single ring in 'all' mode, multi-ring when filtered */}
+      {activeFilter === 'all' && orbitData.middle.length > 0 && (
         <div 
           className="absolute z-10 inset-0 pointer-events-none animate-fade-in"
           style={{ transformOrigin: 'center', animation: `spin 70s linear infinite`, animationPlayState: animationStyle }}
@@ -619,7 +686,7 @@ export const GlobalAssetOrbit = ({
             const r = 115 / 400 * 100;
             const x = 50 + r * Math.cos(angle);
             const y = 50 + r * Math.sin(angle);
-            const isActive = hoveredIndex === i && hoveredOrbit === 'middle';
+            const isActive = hoveredIndex === i && hoveredOrbit === 'middle-0';
             
             return (
               <EntityIcon
@@ -632,7 +699,7 @@ export const GlobalAssetOrbit = ({
                 isPaused={isPaused}
                 animationStyle={animationStyle}
                 containerRef={containerRef}
-                onHover={(pos) => handleEntityHover(entity, i, 'middle', pos)}
+                onHover={(pos) => handleEntityHover(entity, i, 'middle-0', pos)}
                 onLeave={handleEntityLeave}
                 onClick={(e) => handleEntityClick(entity, e)}
                 onFilterClick={() => handleEntityFilterClick(entity)}
@@ -645,8 +712,52 @@ export const GlobalAssetOrbit = ({
         </div>
       )}
       
-      {/* Event icons (outer orbit) - amber colored */}
-      {orbitData.outer.length > 0 && (activeFilter === 'all' || activeFilter === 'events') && (
+      {/* Multi-ring products when filtered */}
+      {activeFilter === 'products' && orbitData.productRings.map((ring, ringIndex) => {
+        const baseRadius = 65 + ringIndex * 35; // Start at 65, expand outward
+        const spinDuration = `${55 + ringIndex * 12}s`;
+        const reverse = ringIndex % 2 === 1;
+        
+        return (
+          <div 
+            key={`product-ring-${ringIndex}`}
+            className="absolute z-10 inset-0 pointer-events-none animate-fade-in"
+            style={{ transformOrigin: 'center', animation: `spin ${spinDuration} linear infinite ${reverse ? 'reverse' : ''}`, animationPlayState: animationStyle }}
+          >
+            {ring.map((entity, i) => {
+              const angle = (i * 360 / ring.length - 90) * (Math.PI / 180);
+              const r = baseRadius / 400 * 100;
+              const x = 50 + r * Math.cos(angle);
+              const y = 50 + r * Math.sin(angle);
+              const isActive = hoveredIndex === i && hoveredOrbit === `product-${ringIndex}`;
+              
+              return (
+                <EntityIcon
+                  key={entity.id}
+                  entity={entity}
+                  x={x}
+                  y={y}
+                  isActive={isActive}
+                  isRelated={!isActive && relatedEntityIds.has(entity.id)}
+                  isPaused={isPaused}
+                  animationStyle={animationStyle}
+                  containerRef={containerRef}
+                  onHover={(pos) => handleEntityHover(entity, i, `product-${ringIndex}`, pos)}
+                  onLeave={handleEntityLeave}
+                  onClick={(e) => handleEntityClick(entity, e)}
+                  onFilterClick={() => handleEntityFilterClick(entity)}
+                  spinDuration={spinDuration}
+                  spinReverse={!reverse}
+                  size={ringIndex === 0 ? 'md' : 'sm'}
+                />
+              );
+            })}
+          </div>
+        );
+      })}
+      
+      {/* Event icons - single ring in 'all' mode, multi-ring when filtered */}
+      {activeFilter === 'all' && orbitData.outer.length > 0 && (
         <div 
           className="absolute z-10 inset-0 pointer-events-none animate-fade-in"
           style={{ transformOrigin: 'center', animation: `spin 85s linear infinite reverse`, animationPlayState: animationStyle }}
@@ -656,7 +767,7 @@ export const GlobalAssetOrbit = ({
             const r = 155 / 400 * 100;
             const x = 50 + r * Math.cos(angle);
             const y = 50 + r * Math.sin(angle);
-            const isActive = hoveredIndex === i && hoveredOrbit === 'outer';
+            const isActive = hoveredIndex === i && hoveredOrbit === 'outer-0';
             
             return (
               <EntityIcon
@@ -669,7 +780,7 @@ export const GlobalAssetOrbit = ({
                 isPaused={isPaused}
                 animationStyle={animationStyle}
                 containerRef={containerRef}
-                onHover={(pos) => handleEntityHover(entity, i, 'outer', pos)}
+                onHover={(pos) => handleEntityHover(entity, i, 'outer-0', pos)}
                 onLeave={handleEntityLeave}
                 onClick={(e) => handleEntityClick(entity, e)}
                 onFilterClick={() => handleEntityFilterClick(entity)}
@@ -681,6 +792,50 @@ export const GlobalAssetOrbit = ({
           })}
         </div>
       )}
+      
+      {/* Multi-ring events when filtered */}
+      {activeFilter === 'events' && orbitData.eventRings.map((ring, ringIndex) => {
+        const baseRadius = 65 + ringIndex * 35; // Start at 65, expand outward
+        const spinDuration = `${60 + ringIndex * 15}s`;
+        const reverse = ringIndex % 2 === 0;
+        
+        return (
+          <div 
+            key={`event-ring-${ringIndex}`}
+            className="absolute z-10 inset-0 pointer-events-none animate-fade-in"
+            style={{ transformOrigin: 'center', animation: `spin ${spinDuration} linear infinite ${reverse ? 'reverse' : ''}`, animationPlayState: animationStyle }}
+          >
+            {ring.map((entity, i) => {
+              const angle = (i * 360 / ring.length - 90) * (Math.PI / 180);
+              const r = baseRadius / 400 * 100;
+              const x = 50 + r * Math.cos(angle);
+              const y = 50 + r * Math.sin(angle);
+              const isActive = hoveredIndex === i && hoveredOrbit === `event-${ringIndex}`;
+              
+              return (
+                <EntityIcon
+                  key={entity.id}
+                  entity={entity}
+                  x={x}
+                  y={y}
+                  isActive={isActive}
+                  isRelated={!isActive && relatedEntityIds.has(entity.id)}
+                  isPaused={isPaused}
+                  animationStyle={animationStyle}
+                  containerRef={containerRef}
+                  onHover={(pos) => handleEntityHover(entity, i, `event-${ringIndex}`, pos)}
+                  onLeave={handleEntityLeave}
+                  onClick={(e) => handleEntityClick(entity, e)}
+                  onFilterClick={() => handleEntityFilterClick(entity)}
+                  spinDuration={spinDuration}
+                  spinReverse={!reverse}
+                  size={ringIndex === 0 ? 'md' : 'sm'}
+                />
+              );
+            })}
+          </div>
+        );
+      })}
       
       {/* Tooltip appears above hovered icon with delay */}
       {showTooltip && (
