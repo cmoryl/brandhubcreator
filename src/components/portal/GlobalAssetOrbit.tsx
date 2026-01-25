@@ -412,24 +412,48 @@ export const GlobalAssetOrbit = ({
           </radialGradient>
         </defs>
         
-        {/* Outer ring dots */}
-        <g style={{ transformOrigin: '200px 200px', animation: `spin 90s linear infinite`, animationPlayState: animationStyle }}>
+        {/* Outer ring dots - events */}
+        <g 
+          style={{ 
+            transformOrigin: '200px 200px', 
+            animation: `spin 90s linear infinite`, 
+            animationPlayState: animationStyle,
+            opacity: activeFilter === 'all' || activeFilter === 'events' ? 1 : 0.15,
+            transition: 'opacity 0.3s ease',
+          }}
+        >
           {generateRingDots.outer.map((dot, i) => (
-            <circle key={`o-${i}`} cx={dot.x} cy={dot.y} r={dot.size} fill={primaryColor} fillOpacity={dot.opacity} />
+            <circle key={`o-${i}`} cx={dot.x} cy={dot.y} r={dot.size} fill={activeFilter === 'events' ? TYPE_COLORS.event : primaryColor} fillOpacity={dot.opacity} />
           ))}
         </g>
         
-        {/* Middle ring dots */}
-        <g style={{ transformOrigin: '200px 200px', animation: `spin 70s linear infinite reverse`, animationPlayState: animationStyle }}>
+        {/* Middle ring dots - products */}
+        <g 
+          style={{ 
+            transformOrigin: '200px 200px', 
+            animation: `spin 70s linear infinite reverse`, 
+            animationPlayState: animationStyle,
+            opacity: activeFilter === 'all' || activeFilter === 'products' ? 1 : 0.15,
+            transition: 'opacity 0.3s ease',
+          }}
+        >
           {generateRingDots.middle.map((dot, i) => (
-            <circle key={`m-${i}`} cx={dot.x} cy={dot.y} r={dot.size} fill={primaryColor} fillOpacity={dot.opacity} />
+            <circle key={`m-${i}`} cx={dot.x} cy={dot.y} r={dot.size} fill={activeFilter === 'products' ? TYPE_COLORS.product : primaryColor} fillOpacity={dot.opacity} />
           ))}
         </g>
         
-        {/* Inner ring dots */}
-        <g style={{ transformOrigin: '200px 200px', animation: `spin 50s linear infinite`, animationPlayState: animationStyle }}>
+        {/* Inner ring dots - brands */}
+        <g 
+          style={{ 
+            transformOrigin: '200px 200px', 
+            animation: `spin 50s linear infinite`, 
+            animationPlayState: animationStyle,
+            opacity: activeFilter === 'all' || activeFilter === 'brands' ? 1 : 0.15,
+            transition: 'opacity 0.3s ease',
+          }}
+        >
           {generateRingDots.inner.map((dot, i) => (
-            <circle key={`i-${i}`} cx={dot.x} cy={dot.y} r={dot.size} fill={primaryColor} fillOpacity={dot.opacity} />
+            <circle key={`i-${i}`} cx={dot.x} cy={dot.y} r={dot.size} fill={activeFilter === 'brands' ? TYPE_COLORS.brand : primaryColor} fillOpacity={dot.opacity} />
           ))}
         </g>
         
@@ -485,9 +509,9 @@ export const GlobalAssetOrbit = ({
       </div>
       
       {/* Brand icons (inner orbit) - teal colored */}
-      {orbitData.inner.length > 0 && (
+      {orbitData.inner.length > 0 && (activeFilter === 'all' || activeFilter === 'brands') && (
         <div 
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none animate-fade-in"
           style={{ transformOrigin: 'center', animation: `spin 55s linear infinite reverse`, animationPlayState: animationStyle }}
         >
           {orbitData.inner.map((entity, i) => {
@@ -522,9 +546,9 @@ export const GlobalAssetOrbit = ({
       )}
       
       {/* Product icons (middle orbit) - light blue colored */}
-      {orbitData.middle.length > 0 && (
+      {orbitData.middle.length > 0 && (activeFilter === 'all' || activeFilter === 'products') && (
         <div 
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none animate-fade-in"
           style={{ transformOrigin: 'center', animation: `spin 70s linear infinite`, animationPlayState: animationStyle }}
         >
           {orbitData.middle.map((entity, i) => {
@@ -559,9 +583,9 @@ export const GlobalAssetOrbit = ({
       )}
       
       {/* Event icons (outer orbit) - amber colored */}
-      {orbitData.outer.length > 0 && (
+      {orbitData.outer.length > 0 && (activeFilter === 'all' || activeFilter === 'events') && (
         <div 
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none animate-fade-in"
           style={{ transformOrigin: 'center', animation: `spin 85s linear infinite reverse`, animationPlayState: animationStyle }}
         >
           {orbitData.outer.map((entity, i) => {
