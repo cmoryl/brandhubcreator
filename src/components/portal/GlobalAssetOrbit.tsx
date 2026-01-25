@@ -131,7 +131,9 @@ export const GlobalAssetOrbit = ({
   const MAX_EVENTS_ALL = 6;
   
   // Max items per ring when showing a single category (use multiple rings)
-  const ITEMS_PER_RING = 7; // Fewer items per ring for better spacing
+  const ITEMS_PER_RING_BRANDS = 6;
+  const ITEMS_PER_RING_PRODUCTS = 7;
+  const ITEMS_PER_RING_EVENTS = 5; // Fewer events per ring for better spread
   
   // Rotation interval (in ms) - how often to cycle visible items
   const ROTATION_INTERVAL = 8000; // 8 seconds
@@ -197,9 +199,9 @@ export const GlobalAssetOrbit = ({
       outer: isFiltered && activeFilter !== 'events' ? [] : 
              isFiltered ? sortedEvents : getRotatedSlice(sortedEvents, rotationOffset.events, MAX_EVENTS_ALL),
       // Multi-ring data for filtered views
-      brandRings: activeFilter === 'brands' ? splitIntoRings(sortedBrands, ITEMS_PER_RING) : [],
-      productRings: activeFilter === 'products' ? splitIntoRings(sortedProducts, ITEMS_PER_RING) : [],
-      eventRings: activeFilter === 'events' ? splitIntoRings(sortedEvents, ITEMS_PER_RING) : [],
+      brandRings: activeFilter === 'brands' ? splitIntoRings(sortedBrands, ITEMS_PER_RING_BRANDS) : [],
+      productRings: activeFilter === 'products' ? splitIntoRings(sortedProducts, ITEMS_PER_RING_PRODUCTS) : [],
+      eventRings: activeFilter === 'events' ? splitIntoRings(sortedEvents, ITEMS_PER_RING_EVENTS) : [],
       // Keep full lists for relationship lookups
       allBrands: sortedBrands,
       allProducts: sortedProducts,
