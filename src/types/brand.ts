@@ -174,6 +174,8 @@ export interface BrandSignature {
   logoUrl?: string;
   variant?: 'full' | 'reply' | 'minimal';
   confidentialityNotice?: string;
+  // Custom accent color (overrides default TransPerfect Blue)
+  accentColor?: string;
 }
 
 // EMAIL BANNERS - Promotional banners below signatures
