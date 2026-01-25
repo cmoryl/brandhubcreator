@@ -333,10 +333,14 @@ export const GlobalAssetOrbit = ({
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          onClick={() => handleFilterClick('brands')}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleFilterClick('brands');
+          }}
           className={cn(
-            "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200",
-            activeFilter === 'brands' ? 'bg-white/20' : 'hover:bg-white/10'
+            "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200 cursor-pointer",
+            activeFilter === 'brands' ? 'bg-white/30 ring-1 ring-white/40' : 'hover:bg-white/10'
           )}
         >
           <div 
@@ -356,10 +360,14 @@ export const GlobalAssetOrbit = ({
         <div className="w-px h-4 bg-white/20" />
         
         <button
-          onClick={() => handleFilterClick('products')}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleFilterClick('products');
+          }}
           className={cn(
-            "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200",
-            activeFilter === 'products' ? 'bg-white/20' : 'hover:bg-white/10'
+            "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200 cursor-pointer",
+            activeFilter === 'products' ? 'bg-white/30 ring-1 ring-white/40' : 'hover:bg-white/10'
           )}
         >
           <div 
@@ -379,10 +387,14 @@ export const GlobalAssetOrbit = ({
         <div className="w-px h-4 bg-white/20" />
         
         <button
-          onClick={() => handleFilterClick('events')}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleFilterClick('events');
+          }}
           className={cn(
-            "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200",
-            activeFilter === 'events' ? 'bg-white/20' : 'hover:bg-white/10'
+            "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200 cursor-pointer",
+            activeFilter === 'events' ? 'bg-white/30 ring-1 ring-white/40' : 'hover:bg-white/10'
           )}
         >
           <div 
