@@ -22,8 +22,8 @@ const TYPE_COLORS = {
 
 /**
  * OrbitLegend
- * A small, reliable, pointer-safe overlay used to control the GlobalAssetOrbit filter.
- * Kept separate from the orbit animation layers to avoid SVG/overlay pointer-event conflicts.
+ * Interactive filter control for the GlobalAssetOrbit visualization.
+ * Click a category to filter, click again to show all.
  */
 export const OrbitLegend = React.forwardRef<HTMLDivElement, OrbitLegendProps>(
   ({ className, value, onValueChange, counts, style, ...props }, ref) => {
@@ -32,129 +32,109 @@ export const OrbitLegend = React.forwardRef<HTMLDivElement, OrbitLegendProps>(
         e.preventDefault();
         e.stopPropagation();
         const newValue = value === next ? "all" : next;
-        console.log('[OrbitLegend] Click:', { next, current: value, newValue });
         onValueChange(newValue);
       },
       [onValueChange, value]
     );
 
+    const isAll = value === "all";
+
     return (
       <div
         ref={ref}
         className={cn(
-          "absolute top-2 left-2 z-[300] flex flex-row items-center gap-2 px-3 py-2 rounded-full backdrop-blur-md transition-all duration-300",
+          "inline-flex items-center gap-1 p-1 rounded-lg bg-muted/80 backdrop-blur-sm border border-border/50",
           className
         )}
-        style={{
-          background: "rgba(0,0,0,0.7)",
-          border: "1px solid rgba(255,255,255,0.2)",
-          pointerEvents: 'auto',
-          ...style,
-        }}
+        style={style}
         {...props}
       >
-        {/* Brands Button */}
+        {/* Brands */}
         <button
           type="button"
           onClick={(e) => handleClick("brands", e)}
           className={cn(
-            "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all duration-200 cursor-pointer select-none",
+            "flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200",
             value === "brands" 
-              ? "bg-white/25 ring-2 ring-white/50 scale-105" 
-              : "hover:bg-white/15 opacity-80 hover:opacity-100"
+              ? "bg-background shadow-sm" 
+              : isAll 
+                ? "hover:bg-background/50" 
+                : "opacity-50 hover:opacity-75"
           )}
-          style={{ 
-            boxShadow: value === 'brands' ? `0 0 12px ${TYPE_COLORS.brands}60` : undefined,
-          }}
         >
           <div 
-            className="w-3 h-3 rounded-full"
+            className="w-2.5 h-2.5 rounded-full shrink-0"
             style={{ 
               background: TYPE_COLORS.brands,
-              boxShadow: `0 0 6px ${TYPE_COLORS.brands}` 
+              boxShadow: (value === 'brands' || isAll) ? `0 0 8px ${TYPE_COLORS.brands}` : undefined
             }}
           />
-          <span 
-            className="text-[11px] font-semibold"
-            style={{ color: value === 'brands' ? TYPE_COLORS.brands : '#ffffff' }}
-          >
+          <span className="text-xs font-medium text-foreground">
             Brands
           </span>
           {counts && (
-            <span className="text-[10px] font-medium text-white/60">
-              ({counts.brands})
+            <span className="text-xs text-muted-foreground">
+              {counts.brands}
             </span>
           )}
         </button>
 
-        <div className="w-px h-5 bg-white/20" />
-
-        {/* Products Button */}
+        {/* Products */}
         <button
           type="button"
           onClick={(e) => handleClick("products", e)}
           className={cn(
-            "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all duration-200 cursor-pointer select-none",
+            "flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200",
             value === "products" 
-              ? "bg-white/25 ring-2 ring-white/50 scale-105" 
-              : "hover:bg-white/15 opacity-80 hover:opacity-100"
+              ? "bg-background shadow-sm" 
+              : isAll 
+                ? "hover:bg-background/50" 
+                : "opacity-50 hover:opacity-75"
           )}
-          style={{ 
-            boxShadow: value === 'products' ? `0 0 12px ${TYPE_COLORS.products}60` : undefined,
-          }}
         >
           <div 
-            className="w-3 h-3 rounded-full"
+            className="w-2.5 h-2.5 rounded-full shrink-0"
             style={{ 
               background: TYPE_COLORS.products,
-              boxShadow: `0 0 6px ${TYPE_COLORS.products}` 
+              boxShadow: (value === 'products' || isAll) ? `0 0 8px ${TYPE_COLORS.products}` : undefined
             }}
           />
-          <span 
-            className="text-[11px] font-semibold"
-            style={{ color: value === 'products' ? TYPE_COLORS.products : '#ffffff' }}
-          >
+          <span className="text-xs font-medium text-foreground">
             Products
           </span>
           {counts && (
-            <span className="text-[10px] font-medium text-white/60">
-              ({counts.products})
+            <span className="text-xs text-muted-foreground">
+              {counts.products}
             </span>
           )}
         </button>
 
-        <div className="w-px h-5 bg-white/20" />
-
-        {/* Events Button */}
+        {/* Events */}
         <button
           type="button"
           onClick={(e) => handleClick("events", e)}
           className={cn(
-            "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all duration-200 cursor-pointer select-none",
+            "flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200",
             value === "events" 
-              ? "bg-white/25 ring-2 ring-white/50 scale-105" 
-              : "hover:bg-white/15 opacity-80 hover:opacity-100"
+              ? "bg-background shadow-sm" 
+              : isAll 
+                ? "hover:bg-background/50" 
+                : "opacity-50 hover:opacity-75"
           )}
-          style={{ 
-            boxShadow: value === 'events' ? `0 0 12px ${TYPE_COLORS.events}60` : undefined,
-          }}
         >
           <div 
-            className="w-3 h-3 rounded-full"
+            className="w-2.5 h-2.5 rounded-full shrink-0"
             style={{ 
               background: TYPE_COLORS.events,
-              boxShadow: `0 0 6px ${TYPE_COLORS.events}` 
+              boxShadow: (value === 'events' || isAll) ? `0 0 8px ${TYPE_COLORS.events}` : undefined
             }}
           />
-          <span 
-            className="text-[11px] font-semibold"
-            style={{ color: value === 'events' ? TYPE_COLORS.events : '#ffffff' }}
-          >
+          <span className="text-xs font-medium text-foreground">
             Events
           </span>
           {counts && (
-            <span className="text-[10px] font-medium text-white/60">
-              ({counts.events})
+            <span className="text-xs text-muted-foreground">
+              {counts.events}
             </span>
           )}
         </button>
