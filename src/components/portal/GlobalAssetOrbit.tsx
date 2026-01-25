@@ -100,28 +100,70 @@ export const GlobalAssetOrbit = ({
   const [iconPos, setIconPos] = useState<{ x: number; y: number } | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Rotation offset state for cycling through all entities
+  const [rotationOffset, setRotationOffset] = useState({ brands: 0, products: 0, events: 0 });
 
   const centerLetter = organizationName.charAt(0).toUpperCase();
 
-  // Organize entities by orbit level - brands inner, products middle, events outer
+  // Max visible items per orbit
+  const MAX_BRANDS = 6;
+  const MAX_PRODUCTS = 8;
+  const MAX_EVENTS = 6;
+  
+  // Rotation interval (in ms) - how often to cycle visible items
+  const ROTATION_INTERVAL = 8000; // 8 seconds
+
+  // Cycle through entities when there are more than max visible
+  useEffect(() => {
+    if (isPaused) return; // Don't rotate while hovering
+    
+    const interval = setInterval(() => {
+      setRotationOffset(prev => ({
+        brands: brands.length > MAX_BRANDS ? (prev.brands + 1) % brands.length : 0,
+        products: products.length > MAX_PRODUCTS ? (prev.products + 1) % products.length : 0,
+        events: events.length > MAX_EVENTS ? (prev.events + 1) % events.length : 0,
+      }));
+    }, ROTATION_INTERVAL);
+    
+    return () => clearInterval(interval);
+  }, [brands.length, products.length, events.length, isPaused]);
+
+  // Organize entities by orbit level with rotation offset
   const orbitData = useMemo(() => {
-    const inner = [...brands]
+    // Sort all entities by updated date
+    const sortedBrands = [...brands]
       .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime())
-      .slice(0, 6)
       .map(b => ({ ...b, type: 'brand' as const }));
     
-    const middle = [...products]
+    const sortedProducts = [...products]
       .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime())
-      .slice(0, 8)
       .map(p => ({ ...p, type: 'product' as const }));
     
-    const outer = [...events]
+    const sortedEvents = [...events]
       .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime())
-      .slice(0, 6)
       .map(e => ({ ...e, type: 'event' as const }));
     
-    return { inner, middle, outer };
-  }, [brands, products, events]);
+    // Apply rotation offset to get visible slice
+    const getRotatedSlice = <T,>(arr: T[], offset: number, maxVisible: number): T[] => {
+      if (arr.length <= maxVisible) return arr;
+      const result: T[] = [];
+      for (let i = 0; i < maxVisible; i++) {
+        result.push(arr[(offset + i) % arr.length]);
+      }
+      return result;
+    };
+    
+    return {
+      inner: getRotatedSlice(sortedBrands, rotationOffset.brands, MAX_BRANDS),
+      middle: getRotatedSlice(sortedProducts, rotationOffset.products, MAX_PRODUCTS),
+      outer: getRotatedSlice(sortedEvents, rotationOffset.events, MAX_EVENTS),
+      // Keep full lists for relationship lookups
+      allBrands: sortedBrands,
+      allProducts: sortedProducts,
+      allEvents: sortedEvents,
+    };
+  }, [brands, products, events, rotationOffset]);
 
   const entityCounts = useMemo(() => ({
     brands: brands.length,
@@ -234,14 +276,14 @@ export const GlobalAssetOrbit = ({
     
     // If hovering a brand, highlight products/events that belong to it or are linked
     if (activeEntity.type === 'brand') {
-      // Find products with this brand as parent
-      orbitData.middle.forEach(p => {
+      // Find products with this brand as parent (check all, not just visible)
+      orbitData.allProducts.forEach(p => {
         if (p.parentBrandId === activeEntity.id) {
           related.add(p.id);
         }
       });
-      // Find events with this brand as parent
-      orbitData.outer.forEach(e => {
+      // Find events with this brand as parent (check all, not just visible)
+      orbitData.allEvents.forEach(e => {
         if (e.parentBrandId === activeEntity.id) {
           related.add(e.id);
         }
