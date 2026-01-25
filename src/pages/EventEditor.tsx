@@ -349,8 +349,10 @@ const EventEditor = () => {
   }, [viewMode]);
 
   // Optimized loading: prevents flash for fast loads
+  // Must wait for context events to load if user is logged in
+  const contextLoading = user && isLoading;
   const needsPublicData = !contextEvent && !publicEvent;
-  const rawLoading = needsPublicData && publicEventLoading;
+  const rawLoading = contextLoading || (needsPublicData && publicEventLoading);
   const stableLoading = useStableLoading(rawLoading, {
     showDelay: 100,
     minDisplayTime: 300,
