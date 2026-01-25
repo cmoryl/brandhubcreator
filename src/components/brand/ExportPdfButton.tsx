@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb, Minus, Briefcase, Sparkles } from 'lucide-react';
+import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb, Minus, Briefcase, Sparkles, Palette, Layout, Image, Calendar, Type, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseGuide, DEFAULT_SECTION_ORDER, SectionId, BrandSocialAssetSpec, BrandDisplayBannerSpec, TemplateSpec } from '@/types/brand';
 import { exportToPdf, PdfTheme, PaperSize, PAPER_SIZES, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
-import { PdfLayoutPreset, PDF_PRESETS } from '@/lib/pdfPresets';
+import { PdfLayoutPreset, PDF_PRESETS, CoverPageConfig, DEFAULT_COVER_CONFIG, COVER_LAYOUTS, COVER_PATTERNS, getCoverPatternSvg } from '@/lib/pdfPresets';
 import { getAllColorFormats } from '@/lib/colorUtils';
 import { toast } from 'sonner';
 import QRCode from 'qrcode';
@@ -23,6 +23,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Slider } from '@/components/ui/slider';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import '@/styles/pdf-export.css';
 
@@ -67,6 +69,8 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
   const [pdfTheme, setPdfTheme] = useState<PdfTheme>('light');
   const [paperSize, setPaperSize] = useState<PaperSize>('a4');
   const [layoutPreset, setLayoutPreset] = useState<PdfLayoutPreset>('professional');
+  const [coverConfig, setCoverConfig] = useState<CoverPageConfig>(DEFAULT_COVER_CONFIG);
+  const [showCoverOptions, setShowCoverOptions] = useState(false);
   const [includeToc, setIncludeToc] = useState(true);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [selectedSections, setSelectedSections] = useState<Set<SectionId>>(new Set(DEFAULT_SECTION_ORDER));
@@ -75,6 +79,12 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
   const exportRef = useRef<HTMLDivElement>(null);
 
   const sectionOrder = guide.sectionOrder || DEFAULT_SECTION_ORDER;
+
+  // Get primary color from guide for default accent
+  const primaryColor = useMemo(() => {
+    const primaryColorObj = guide.colors.find(c => c.name.toLowerCase().includes('primary')) || guide.colors[0];
+    return primaryColorObj?.hex || '#003b71';
+  }, [guide.colors]);
 
   // Fetch intelligence data when preview opens
   useEffect(() => {
@@ -338,24 +348,82 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
 
     switch (sectionId) {
       case 'hero':
+        const bgColor = coverConfig.backgroundColor || (pdfTheme === 'dark' ? '#111827' : '#ffffff');
+        const accentColor = coverConfig.accentColor || primaryColor;
+        const patternBg = getCoverPatternSvg(coverConfig.pattern, accentColor, coverConfig.patternOpacity);
+        
         return (
-          <div id="pdf-section-hero" className="pdf-section-hero pdf-avoid-break" key="hero">
-            {guide.hero.logoUrl && (
-              <img 
-                src={guide.hero.logoUrl} 
-                alt={guide.hero.name}
-                className="pdf-logo"
-                crossOrigin="anonymous"
-                loading="eager"
+          <div 
+            id="pdf-section-hero" 
+            className={cn(
+              "pdf-section-hero pdf-avoid-break",
+              `pdf-cover-${coverConfig.layout}`
+            )} 
+            key="hero"
+            style={{
+              backgroundColor: bgColor,
+              backgroundImage: patternBg !== 'none' ? patternBg : undefined,
+              position: 'relative',
+            }}
+          >
+            {/* Full-bleed background image */}
+            {coverConfig.layout === 'full-bleed' && guide.hero.coverImage && coverConfig.showCoverImage && (
+              <div 
+                className="absolute inset-0 z-0"
+                style={{
+                  backgroundImage: `url(${guide.hero.coverImage})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  opacity: 0.3,
+                }}
               />
             )}
-            <h1 className="pdf-title">{guide.hero.name}</h1>
-            <p className="pdf-tagline">{guide.hero.tagline}</p>
-            <div style={{ marginTop: '16px', fontSize: '11px', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              {guide.type === 'brand' ? 'Brand' : 'Product'} Guidelines
+            
+            {/* Content container */}
+            <div className={cn(
+              "relative z-10",
+              coverConfig.layout === 'split' ? 'pdf-cover-split-content' : ''
+            )}>
+              {/* Logo */}
+              {coverConfig.showLogo && guide.hero.logoUrl && (
+                <img 
+                  src={guide.hero.logoUrl} 
+                  alt={guide.hero.name}
+                  className="pdf-logo"
+                  crossOrigin="anonymous"
+                  loading="eager"
+                />
+              )}
+              
+              {/* Title */}
+              <h1 className="pdf-title" style={{ color: accentColor !== primaryColor ? accentColor : undefined }}>
+                {guide.hero.name}
+              </h1>
+              
+              {/* Tagline */}
+              {coverConfig.showTagline && guide.hero.tagline && (
+                <p className="pdf-tagline">{guide.hero.tagline}</p>
+              )}
+              
+              {/* Document type label */}
+              <div style={{ marginTop: '16px', fontSize: '11px', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                {guide.type === 'brand' ? 'Brand' : 'Product'} Guidelines
+              </div>
+              
+              {/* Date */}
+              {coverConfig.showDate && (
+                <div style={{ marginTop: '12px', fontSize: '10px', opacity: 0.4 }}>
+                  {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
+                </div>
+              )}
             </div>
-            {guide.hero.coverImage && (
-              <div className="pdf-image-container pdf-image-16-9" style={{ marginTop: '24px', width: '100%' }}>
+            
+            {/* Cover image for non-full-bleed layouts */}
+            {coverConfig.layout !== 'full-bleed' && guide.hero.coverImage && coverConfig.showCoverImage && (
+              <div className={cn(
+                "pdf-image-container",
+                coverConfig.layout === 'split' ? 'pdf-cover-split-image' : 'pdf-image-16-9'
+              )} style={{ marginTop: coverConfig.layout !== 'split' ? '24px' : 0, width: coverConfig.layout !== 'split' ? '100%' : undefined }}>
                 <img 
                   src={guide.hero.coverImage} 
                   alt="Cover"
@@ -363,6 +431,14 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                   loading="eager"
                 />
               </div>
+            )}
+            
+            {/* Accent decoration */}
+            {coverConfig.layout === 'left-aligned' && (
+              <div 
+                className="absolute left-0 top-0 bottom-0 w-1"
+                style={{ backgroundColor: accentColor }}
+              />
             )}
           </div>
         );
@@ -1329,6 +1405,195 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                   />
                 </div>
               </div>
+              
+              {/* Cover Page Customization */}
+              <Collapsible open={showCoverOptions} onOpenChange={setShowCoverOptions}>
+                <CollapsibleTrigger asChild>
+                  <div className="flex items-center justify-between py-2 px-2 rounded-md bg-muted/50 cursor-pointer hover:bg-muted transition-colors">
+                    <div className="flex items-center gap-2">
+                      <Layout className="h-4 w-4 text-muted-foreground" />
+                      <Label className="text-xs font-medium cursor-pointer">Cover Page Options</Label>
+                    </div>
+                    <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", showCoverOptions && "rotate-180")} />
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-3 space-y-3">
+                  {/* Layout Selection */}
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Layout</Label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {COVER_LAYOUTS.map((layout) => (
+                        <button
+                          key={layout.id}
+                          onClick={() => setCoverConfig(prev => ({ ...prev, layout: layout.id }))}
+                          className={cn(
+                            "text-xs py-1.5 px-2 rounded border transition-all text-left",
+                            coverConfig.layout === layout.id 
+                              ? "border-primary bg-primary/10 text-primary" 
+                              : "border-border hover:border-primary/50"
+                          )}
+                        >
+                          {layout.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Pattern Selection */}
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Background Pattern</Label>
+                    <div className="flex flex-wrap gap-1">
+                      {COVER_PATTERNS.map((pattern) => (
+                        <button
+                          key={pattern.id}
+                          onClick={() => setCoverConfig(prev => ({ ...prev, pattern: pattern.id }))}
+                          className={cn(
+                            "text-xs py-1 px-2 rounded border transition-all",
+                            coverConfig.pattern === pattern.id 
+                              ? "border-primary bg-primary/10 text-primary" 
+                              : "border-border hover:border-primary/50"
+                          )}
+                        >
+                          {pattern.label}
+                        </button>
+                      ))}
+                    </div>
+                    {coverConfig.pattern !== 'none' && (
+                      <div className="mt-2">
+                        <Label className="text-xs text-muted-foreground mb-1 block">Pattern Opacity</Label>
+                        <Slider
+                          value={[coverConfig.patternOpacity * 100]}
+                          onValueChange={([v]) => setCoverConfig(prev => ({ ...prev, patternOpacity: v / 100 }))}
+                          max={20}
+                          min={1}
+                          step={1}
+                          className="w-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Color Pickers */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1 block">Background</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button className="w-full h-8 rounded border border-border flex items-center gap-2 px-2 hover:border-primary/50 transition-colors">
+                            <div 
+                              className="w-5 h-5 rounded border"
+                              style={{ backgroundColor: coverConfig.backgroundColor || (pdfTheme === 'dark' ? '#111827' : '#ffffff') }}
+                            />
+                            <span className="text-xs text-muted-foreground truncate">
+                              {coverConfig.backgroundColor || 'Default'}
+                            </span>
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-48 p-2" align="start">
+                          <div className="space-y-2">
+                            <button
+                              onClick={() => setCoverConfig(prev => ({ ...prev, backgroundColor: '' }))}
+                              className={cn("w-full text-xs py-1.5 px-2 rounded border text-left", !coverConfig.backgroundColor && "border-primary bg-primary/10")}
+                            >
+                              Default (from theme)
+                            </button>
+                            <div className="grid grid-cols-5 gap-1">
+                              {['#ffffff', '#f8fafc', '#1e293b', '#0f172a', '#111827', '#18181b', '#003b71', '#139cd8', '#0ea5e9', '#8b5cf6'].map((color) => (
+                                <button
+                                  key={color}
+                                  onClick={() => setCoverConfig(prev => ({ ...prev, backgroundColor: color }))}
+                                  className={cn("w-7 h-7 rounded border-2 transition-transform hover:scale-110", coverConfig.backgroundColor === color && "border-primary ring-2 ring-primary/30")}
+                                  style={{ backgroundColor: color }}
+                                />
+                              ))}
+                            </div>
+                            <input
+                              type="color"
+                              value={coverConfig.backgroundColor || '#ffffff'}
+                              onChange={(e) => setCoverConfig(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                              className="w-full h-8 cursor-pointer rounded"
+                            />
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1 block">Accent</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button className="w-full h-8 rounded border border-border flex items-center gap-2 px-2 hover:border-primary/50 transition-colors">
+                            <div 
+                              className="w-5 h-5 rounded border"
+                              style={{ backgroundColor: coverConfig.accentColor || primaryColor }}
+                            />
+                            <span className="text-xs text-muted-foreground truncate">
+                              {coverConfig.accentColor || 'Brand'}
+                            </span>
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-48 p-2" align="start">
+                          <div className="space-y-2">
+                            <button
+                              onClick={() => setCoverConfig(prev => ({ ...prev, accentColor: '' }))}
+                              className={cn("w-full text-xs py-1.5 px-2 rounded border text-left", !coverConfig.accentColor && "border-primary bg-primary/10")}
+                            >
+                              Brand Primary
+                            </button>
+                            <div className="grid grid-cols-5 gap-1">
+                              {guide.colors.slice(0, 10).map((color) => (
+                                <button
+                                  key={color.id}
+                                  onClick={() => setCoverConfig(prev => ({ ...prev, accentColor: color.hex }))}
+                                  className={cn("w-7 h-7 rounded border-2 transition-transform hover:scale-110", coverConfig.accentColor === color.hex && "border-primary ring-2 ring-primary/30")}
+                                  style={{ backgroundColor: color.hex }}
+                                  title={color.name}
+                                />
+                              ))}
+                            </div>
+                            <input
+                              type="color"
+                              value={coverConfig.accentColor || primaryColor}
+                              onChange={(e) => setCoverConfig(prev => ({ ...prev, accentColor: e.target.value }))}
+                              className="w-full h-8 cursor-pointer rounded"
+                            />
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                  
+                  {/* Element Toggles */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Show Elements</Label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {[
+                        { key: 'showLogo', label: 'Logo', icon: Image },
+                        { key: 'showTagline', label: 'Tagline', icon: Type },
+                        { key: 'showDate', label: 'Date', icon: Calendar },
+                        { key: 'showCoverImage', label: 'Cover Image', icon: Image },
+                      ].map(({ key, label, icon: Icon }) => (
+                        <button
+                          key={key}
+                          onClick={() => setCoverConfig(prev => ({ ...prev, [key]: !prev[key as keyof CoverPageConfig] }))}
+                          className={cn(
+                            "flex items-center gap-1.5 text-xs py-1.5 px-2 rounded border transition-all",
+                            coverConfig[key as keyof CoverPageConfig]
+                              ? "border-primary/50 bg-primary/5 text-foreground"
+                              : "border-border text-muted-foreground hover:border-primary/30"
+                          )}
+                        >
+                          {coverConfig[key as keyof CoverPageConfig] ? (
+                            <Eye className="h-3 w-3" />
+                          ) : (
+                            <EyeOff className="h-3 w-3" />
+                          )}
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
 
               {/* Section Selection */}
               <div className="flex-1 overflow-hidden flex flex-col">

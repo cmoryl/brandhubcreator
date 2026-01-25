@@ -2,6 +2,50 @@
 
 export type PdfLayoutPreset = 'minimal' | 'professional' | 'creative';
 
+// Cover Page Configuration
+export type CoverLayout = 'centered' | 'left-aligned' | 'split' | 'full-bleed';
+export type CoverPattern = 'none' | 'dots' | 'grid' | 'waves' | 'diagonal' | 'circles';
+
+export interface CoverPageConfig {
+  layout: CoverLayout;
+  pattern: CoverPattern;
+  backgroundColor: string;
+  accentColor: string;
+  showLogo: boolean;
+  showTagline: boolean;
+  showDate: boolean;
+  showCoverImage: boolean;
+  patternOpacity: number;
+}
+
+export const DEFAULT_COVER_CONFIG: CoverPageConfig = {
+  layout: 'centered',
+  pattern: 'none',
+  backgroundColor: '',
+  accentColor: '',
+  showLogo: true,
+  showTagline: true,
+  showDate: true,
+  showCoverImage: true,
+  patternOpacity: 0.05,
+};
+
+export const COVER_LAYOUTS: { id: CoverLayout; label: string; description: string }[] = [
+  { id: 'centered', label: 'Centered', description: 'Classic centered layout' },
+  { id: 'left-aligned', label: 'Left Aligned', description: 'Modern left-aligned' },
+  { id: 'split', label: 'Split', description: 'Content left, image right' },
+  { id: 'full-bleed', label: 'Full Bleed', description: 'Image background' },
+];
+
+export const COVER_PATTERNS: { id: CoverPattern; label: string }[] = [
+  { id: 'none', label: 'None' },
+  { id: 'dots', label: 'Dots' },
+  { id: 'grid', label: 'Grid' },
+  { id: 'waves', label: 'Waves' },
+  { id: 'diagonal', label: 'Diagonal' },
+  { id: 'circles', label: 'Circles' },
+];
+
 export interface PresetConfig {
   id: PdfLayoutPreset;
   label: string;
@@ -157,4 +201,24 @@ export const getPresetInlineStyles = (preset: PdfLayoutPreset) => {
       fontFamily: config.headingFont,
     },
   };
+};
+
+// Generate cover page pattern SVG
+export const getCoverPatternSvg = (pattern: CoverPattern, color: string, opacity: number): string => {
+  const patternColor = color || 'currentColor';
+  
+  switch (pattern) {
+    case 'dots':
+      return `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1.5' fill='${encodeURIComponent(patternColor)}' fill-opacity='${opacity}'/%3E%3C/svg%3E")`;
+    case 'grid':
+      return `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0V0zm1 1v38h38V1H1z' fill='${encodeURIComponent(patternColor)}' fill-opacity='${opacity}'/%3E%3C/svg%3E")`;
+    case 'waves':
+      return `url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10c25 0 25-10 50-10s25 10 50 10' stroke='${encodeURIComponent(patternColor)}' stroke-opacity='${opacity}' fill='none' stroke-width='1'/%3E%3C/svg%3E")`;
+    case 'diagonal':
+      return `url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M-1 1l2-2M0 10L10 0M9 11l2-2' stroke='${encodeURIComponent(patternColor)}' stroke-opacity='${opacity}' stroke-width='1'/%3E%3C/svg%3E")`;
+    case 'circles':
+      return `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='20' stroke='${encodeURIComponent(patternColor)}' stroke-opacity='${opacity}' fill='none' stroke-width='1'/%3E%3C/svg%3E")`;
+    default:
+      return 'none';
+  }
 };
