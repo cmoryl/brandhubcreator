@@ -52,7 +52,10 @@ export const OrbitLegend = React.forwardRef<HTMLDivElement, OrbitLegendProps>(
         {/* Brands Button */}
         <button
           type="button"
-          onClick={() => handleClick("brands")}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClick("brands");
+          }}
           className={cn(
             "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all duration-200 cursor-pointer select-none",
             value === "brands" 
@@ -89,7 +92,10 @@ export const OrbitLegend = React.forwardRef<HTMLDivElement, OrbitLegendProps>(
         {/* Products Button */}
         <button
           type="button"
-          onClick={() => handleClick("products")}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClick("products");
+          }}
           className={cn(
             "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all duration-200 cursor-pointer select-none",
             value === "products" 
@@ -126,7 +132,10 @@ export const OrbitLegend = React.forwardRef<HTMLDivElement, OrbitLegendProps>(
         {/* Events Button */}
         <button
           type="button"
-          onClick={() => handleClick("events")}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClick("events");
+          }}
           className={cn(
             "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all duration-200 cursor-pointer select-none",
             value === "events" 
