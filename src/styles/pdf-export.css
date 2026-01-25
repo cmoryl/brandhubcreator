@@ -694,3 +694,351 @@
     break-after: page !important;
   }
 }
+
+/* ========================================
+   PRESET: MINIMAL
+   Clean, distraction-free layout
+   ======================================== */
+
+.pdf-preset-minimal .pdf-section-hero {
+  border-bottom: none;
+  padding: 32px 24px;
+}
+
+.pdf-preset-minimal .pdf-section-header {
+  border-bottom: none;
+  margin-bottom: 20px;
+}
+
+.pdf-preset-minimal .pdf-section-header h2 {
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.pdf-preset-minimal .pdf-section-header .pdf-section-number {
+  display: none;
+}
+
+.pdf-preset-minimal .pdf-card,
+.pdf-preset-minimal .pdf-color-swatch,
+.pdf-preset-minimal .pdf-logo-item,
+.pdf-preset-minimal .pdf-value-card,
+.pdf-preset-minimal .pdf-stat-card {
+  background: transparent;
+  border-radius: 0;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.pdf-preset-minimal .pdf-value-card {
+  border-left: none;
+}
+
+.pdf-preset-minimal .pdf-type-specimen {
+  background: transparent;
+  padding: 20px 0;
+}
+
+.pdf-preset-minimal .pdf-grid-2,
+.pdf-preset-minimal .pdf-grid-3,
+.pdf-preset-minimal .pdf-grid-4 {
+  gap: 24px;
+}
+
+.pdf-preset-minimal .pdf-footer {
+  border-top: none;
+  opacity: 0.4;
+}
+
+/* Minimal Dark Theme */
+.pdf-preset-minimal.pdf-theme-dark .pdf-card,
+.pdf-preset-minimal.pdf-theme-dark .pdf-color-swatch,
+.pdf-preset-minimal.pdf-theme-dark .pdf-value-card {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ========================================
+   PRESET: PROFESSIONAL
+   Classic corporate layout
+   ======================================== */
+
+.pdf-preset-professional .pdf-section-hero {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0%, transparent 100%);
+  border-bottom-width: 3px;
+  padding: 48px 32px;
+}
+
+.pdf-preset-professional .pdf-section-header {
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+  border-bottom-width: 2px;
+}
+
+.pdf-preset-professional .pdf-section-header h2 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.pdf-preset-professional .pdf-section-header .pdf-section-number {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.pdf-preset-professional .pdf-card,
+.pdf-preset-professional .pdf-value-card {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.01);
+}
+
+.pdf-preset-professional .pdf-value-card {
+  border-left-width: 4px;
+}
+
+.pdf-preset-professional .pdf-color-swatch {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+}
+
+.pdf-preset-professional .pdf-stat-card {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+}
+
+.pdf-preset-professional .pdf-stat-value {
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.pdf-preset-professional .pdf-logo-item {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+}
+
+.pdf-preset-professional .pdf-case-study-card {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.pdf-preset-professional .pdf-toc-item {
+  border-left: 3px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.pdf-preset-professional .pdf-toc-item:hover {
+  border-left-color: currentColor;
+}
+
+/* Professional Dark Theme */
+.pdf-preset-professional.pdf-theme-dark .pdf-section-hero {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+}
+
+.pdf-preset-professional.pdf-theme-dark .pdf-card,
+.pdf-preset-professional.pdf-theme-dark .pdf-value-card,
+.pdf-preset-professional.pdf-theme-dark .pdf-stat-card,
+.pdf-preset-professional.pdf-theme-dark .pdf-case-study-card {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ========================================
+   PRESET: CREATIVE
+   Bold, dynamic layout with decorative elements
+   ======================================== */
+
+.pdf-preset-creative .pdf-section-hero {
+  position: relative;
+  padding: 64px 32px;
+  border-bottom: none;
+  overflow: hidden;
+}
+
+.pdf-preset-creative .pdf-section-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 60%;
+  height: 200%;
+  background: linear-gradient(135deg, currentColor 0%, transparent 60%);
+  opacity: 0.03;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.pdf-preset-creative .pdf-section-hero .pdf-title {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.pdf-preset-creative .pdf-section-header {
+  border-bottom: none;
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: 24px;
+}
+
+.pdf-preset-creative .pdf-section-header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, currentColor 0%, transparent 100%);
+  border-radius: 2px;
+}
+
+.pdf-preset-creative .pdf-section-header h2 {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.pdf-preset-creative .pdf-section-header .pdf-section-number {
+  width: 36px;
+  height: 36px;
+  font-size: 14px;
+  font-weight: 800;
+  border-radius: 12px;
+}
+
+.pdf-preset-creative .pdf-card,
+.pdf-preset-creative .pdf-value-card {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.03) 0%, rgba(0, 0, 0, 0.06) 100%);
+  border-radius: 16px;
+  padding: 20px;
+  border: none;
+}
+
+.pdf-preset-creative .pdf-value-card {
+  border-left: 4px solid currentColor;
+  border-radius: 0 16px 16px 0;
+}
+
+.pdf-preset-creative .pdf-color-swatch {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.pdf-preset-creative .pdf-color-preview {
+  border-radius: 12px;
+}
+
+.pdf-preset-creative .pdf-stat-card {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.05) 100%);
+  border-radius: 20px;
+  padding: 28px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.pdf-preset-creative .pdf-stat-card::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -30%;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(circle, currentColor 0%, transparent 70%);
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+.pdf-preset-creative .pdf-stat-value {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.pdf-preset-creative .pdf-logo-item {
+  border-radius: 20px;
+  padding: 28px;
+  background: linear-gradient(145deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.05) 100%);
+}
+
+.pdf-preset-creative .pdf-type-specimen {
+  border-radius: 16px;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.04) 100%);
+}
+
+.pdf-preset-creative .pdf-case-study-card {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.pdf-preset-creative .pdf-toc {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.04) 100%);
+  border-radius: 20px;
+  padding: 32px;
+}
+
+.pdf-preset-creative .pdf-toc-item {
+  border-radius: 12px;
+  transition: transform 0.2s;
+}
+
+.pdf-preset-creative .pdf-toc-item:hover {
+  transform: translateX(4px);
+}
+
+.pdf-preset-creative .pdf-footer {
+  border-top: none;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Creative Dark Theme */
+.pdf-preset-creative.pdf-theme-dark .pdf-card,
+.pdf-preset-creative.pdf-theme-dark .pdf-value-card,
+.pdf-preset-creative.pdf-theme-dark .pdf-stat-card,
+.pdf-preset-creative.pdf-theme-dark .pdf-logo-item,
+.pdf-preset-creative.pdf-theme-dark .pdf-type-specimen {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.06) 100%);
+}
+
+.pdf-preset-creative.pdf-theme-dark .pdf-toc {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.05) 100%);
+}
+
+/* ========================================
+   Spacing Utilities for Presets
+   ======================================== */
+
+.pdf-spacing-compact > div[id^="pdf-section-"] {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.pdf-spacing-normal > div[id^="pdf-section-"] {
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+.pdf-spacing-generous > div[id^="pdf-section-"] {
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+/* Grid density */
+.pdf-grid-dense .pdf-grid-2 { gap: 8px; }
+.pdf-grid-dense .pdf-grid-3 { gap: 6px; }
+.pdf-grid-dense .pdf-grid-4 { gap: 4px; }
+
+.pdf-grid-balanced .pdf-grid-2 { gap: 16px; }
+.pdf-grid-balanced .pdf-grid-3 { gap: 12px; }
+.pdf-grid-balanced .pdf-grid-4 { gap: 10px; }
+
+.pdf-grid-spacious .pdf-grid-2 { gap: 24px; }
+.pdf-grid-spacious .pdf-grid-3 { gap: 20px; }
+.pdf-grid-spacious .pdf-grid-4 { gap: 16px; }
