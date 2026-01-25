@@ -722,7 +722,7 @@ interface EntityIconProps {
   containerRef: React.RefObject<HTMLDivElement>;
 }
 
-const EntityIcon = ({
+const EntityIcon = React.forwardRef<HTMLDivElement, EntityIconProps>(({
   entity,
   x,
   y,
@@ -738,7 +738,7 @@ const EntityIcon = ({
   spinReverse,
   size = 'md',
   containerRef,
-}: EntityIconProps) => {
+}, ref) => {
   const iconRef = useRef<HTMLDivElement>(null);
   const config = TYPE_CONFIG[entity.type];
   const Icon = config.Icon;
@@ -842,7 +842,8 @@ const EntityIcon = ({
       </div>
     </div>
   );
-};
+});
+EntityIcon.displayName = 'EntityIcon';
 
 // Tooltip component rendered at container level (not inside rotating orbit)
 interface TooltipOverlayProps {
