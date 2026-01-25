@@ -42,6 +42,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   bythenumbers: { label: 'By the Numbers', icon: BarChart3, category: 'Identity' },
   services: { label: 'Our Services', icon: Briefcase, category: 'Identity' },
   revenue: { label: 'Revenue Growth', icon: TrendingUp, category: 'Identity' },
+  brief: { label: 'Brand Brief', icon: FileText, category: 'Identity' },
   logos: { label: 'Mark Repository', icon: Image, category: 'Visual' },
   brandicon: { label: 'Symbol Standards', icon: Bookmark, category: 'Visual' },
   colors: { label: 'Prismatic Lab', icon: Palette, category: 'Visual' },
