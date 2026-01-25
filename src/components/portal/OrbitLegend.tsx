@@ -26,7 +26,7 @@ const TYPE_COLORS = {
  * Kept separate from the orbit animation layers to avoid SVG/overlay pointer-event conflicts.
  */
 export const OrbitLegend = React.forwardRef<HTMLDivElement, OrbitLegendProps>(
-  ({ className, value, onValueChange, counts, ...props }, ref) => {
+  ({ className, value, onValueChange, counts, style, ...props }, ref) => {
     const handleClick = React.useCallback(
       (next: Exclude<OrbitFilter, "all">, e: React.MouseEvent) => {
         e.preventDefault();
@@ -49,6 +49,7 @@ export const OrbitLegend = React.forwardRef<HTMLDivElement, OrbitLegendProps>(
           background: "rgba(0,0,0,0.7)",
           border: "1px solid rgba(255,255,255,0.2)",
           pointerEvents: 'auto',
+          ...style,
         }}
         {...props}
       >
