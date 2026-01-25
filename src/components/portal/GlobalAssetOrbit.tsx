@@ -554,7 +554,7 @@ export const GlobalAssetOrbit = ({
       {/* Center Icon */}
       <div className="absolute z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[76px] h-[76px]">
         <div 
-          className="w-full h-full rounded-full flex flex-col items-center justify-center"
+          className="w-full h-full rounded-full flex items-center justify-center"
           style={{ 
             background: `linear-gradient(145deg, ${primaryColor}60, ${primaryColor}30)`,
             boxShadow: `0 0 30px ${primaryColor}40`,
@@ -568,9 +568,6 @@ export const GlobalAssetOrbit = ({
               {centerLetter}
             </span>
           )}
-          <span className="text-[9px] font-medium opacity-70" style={{ color: primaryColor }}>
-            {entityCounts.total} Assets
-          </span>
         </div>
       </div>
       
