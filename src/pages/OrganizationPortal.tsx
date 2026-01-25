@@ -174,7 +174,7 @@ const OrganizationPortal = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-visible">
         <HeroBackground />
 
         {/* Header */}
@@ -320,20 +320,26 @@ const OrganizationPortal = () => {
           <div className="relative min-h-[400px] lg:min-h-[480px]">
             {/* Global Asset Orbit - Large, positioned to overlap content */}
             <div 
-               className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-30 pointer-events-auto animate-fade-in"
+              className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-30 animate-fade-in"
               style={{ 
                 animationDelay: '0.3s',
                 right: '-5%',
                 width: 'clamp(500px, 55vw, 750px)',
                 height: 'clamp(500px, 55vw, 750px)',
+                pointerEvents: 'none', // Let clicks pass through to orbit/legend
               }}
             >
+              {/* Legend positioned outside orbit, high z-index, pointer-events enabled */}
               <OrbitLegend
                 value={activeTab}
-                onValueChange={setActiveTab}
+                onValueChange={(newFilter) => {
+                  console.log('[OrganizationPortal] OrbitLegend -> setActiveTab:', newFilter);
+                  setActiveTab(newFilter);
+                }}
                 counts={{ brands: brands.length, products: products.length, events: events.length }}
+                style={{ pointerEvents: 'auto' }}
               />
-              <GlobalAssetOrbit 
+              <GlobalAssetOrbit
                 primaryColor={organization.accentColor || orgColors.primary}
                 secondaryColor={orgColors.secondary}
                 organizationName={organization.name}

@@ -340,7 +340,7 @@ export const GlobalAssetOrbit = ({
   return (
     <div 
       ref={containerRef}
-      className={cn('relative', className)}
+      className={cn('relative pointer-events-auto', className)}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => {
         setIsHovering(false);
