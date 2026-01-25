@@ -22,6 +22,12 @@ import {
   BrandBrochure,
   StatisticItem,
 } from '@/types/brand';
+import { 
+  EventGuide, 
+  EventSectionId, 
+  DEFAULT_EVENT_SECTION_ORDER,
+  DEFAULT_EVENT_DETAILS,
+} from '@/types/event';
 
 // ============================================================
 // Core helper functions
@@ -187,4 +193,52 @@ export function normalizeBrandGuide(rawGuide: unknown): BrandGuide {
 export function normalizeProductGuide(rawGuide: unknown): ProductGuide {
   const normalized = normalizeGuide(rawGuide);
   return { ...normalized, type: 'product' } as ProductGuide;
+}
+
+/** Default event location */
+const DEFAULT_EVENT_LOCATION = {
+  venueName: '',
+  address: '',
+  city: '',
+  country: '',
+  venueMaps: [],
+};
+
+/**
+ * Normalize an event guide specifically.
+ * Ensures all event-specific fields have safe defaults.
+ */
+export function normalizeEventGuide(rawGuide: unknown): EventGuide {
+  const g: any = rawGuide ?? {};
+  const base = normalizeGuide(g);
+  
+  return {
+    ...base,
+    type: 'event',
+    
+    // Section ordering - use event-specific defaults
+    sectionOrder: safeArray<EventSectionId>(g.sectionOrder).length > 0 
+      ? g.sectionOrder 
+      : DEFAULT_EVENT_SECTION_ORDER,
+    hiddenSections: safeArray<EventSectionId>(g.hiddenSections),
+    
+    // Event-specific fields
+    eventDetails: safeObject(g.eventDetails, { 
+      ...DEFAULT_EVENT_DETAILS, 
+      eventName: g.hero?.name || g.name || '' 
+    }),
+    eventLogos: safeArray(g.eventLogos),
+    eventSignage: safeArray(g.eventSignage),
+    eventBanners: safeArray(g.eventBanners),
+    eventDigitalMaterials: safeArray(g.eventDigitalMaterials),
+    eventSchedule: safeArray(g.eventSchedule),
+    eventSpeakers: safeArray(g.eventSpeakers),
+    eventSponsors: safeArray(g.eventSponsors),
+    eventHistory: safeArray(g.eventHistory),
+    eventVideos: safeArray(g.eventVideos),
+    eventLocation: safeObject(g.eventLocation, DEFAULT_EVENT_LOCATION),
+    
+    // Parent reference for sub-events
+    parentBrandId: g.parentBrandId ?? g.parent_brand_id ?? undefined,
+  } as EventGuide;
 }

@@ -10,6 +10,7 @@ import { LayoutPreset } from '@/components/brand/LayoutSelector';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { supabase } from '@/integrations/supabase/client';
+import { normalizeEventGuide } from '@/lib/guideNormalization';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { useEvents } from '@/contexts/EventContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -190,63 +191,23 @@ const EventEditor = () => {
         const { data, error } = await query.maybeSingle();
         
         if (!error && data) {
-          // Convert to EventGuide - simplified version
-          const guideData = (data.guide_data || {}) as Record<string, unknown>;
-          const event: EventGuide = {
+          // Convert DB format to EventGuide using centralized normalization
+          const guideData = typeof data.guide_data === 'object' && data.guide_data ? data.guide_data : {};
+          const event = normalizeEventGuide({
+            ...guideData,
             id: data.id,
-            type: 'event',
             slug: data.slug,
             organizationId: data.organization_id,
-            parentBrandId: data.parent_brand_id || undefined,
-            isFavorite: data.is_favorite ?? false,
-            isPublic: data.is_public ?? false,
-            sectionOrder: (Array.isArray(data.section_order) ? data.section_order : DEFAULT_EVENT_SECTION_ORDER) as EventSectionId[],
-            hiddenSections: (Array.isArray(data.hidden_sections) ? data.hidden_sections : []) as EventSectionId[],
-            hero: (guideData.hero || { name: data.name, tagline: '', coverImage: '', logoUrl: '' }) as EventGuide['hero'],
-            tagline: (guideData.tagline || { primary: '', secondary: '', variations: [] }) as EventGuide['tagline'],
-            identity: (guideData.identity || { missionStatement: '', archetype: '', toneOfVoice: [] }) as EventGuide['identity'],
-            values: (Array.isArray(guideData.values) ? guideData.values : []) as EventGuide['values'],
-            eventDetails: (guideData.eventDetails || { eventName: data.name, eventDates: '', location: '' }) as EventGuide['eventDetails'],
-            eventLogos: (Array.isArray(guideData.eventLogos) ? guideData.eventLogos : []) as EventGuide['eventLogos'],
-            eventSignage: (Array.isArray(guideData.eventSignage) ? guideData.eventSignage : []) as EventGuide['eventSignage'],
-            eventBanners: (Array.isArray(guideData.eventBanners) ? guideData.eventBanners : []) as EventGuide['eventBanners'],
-            eventDigitalMaterials: (Array.isArray(guideData.eventDigitalMaterials) ? guideData.eventDigitalMaterials : []) as EventGuide['eventDigitalMaterials'],
-            eventSchedule: (Array.isArray(guideData.eventSchedule) ? guideData.eventSchedule : []) as EventGuide['eventSchedule'],
-            eventSpeakers: (Array.isArray(guideData.eventSpeakers) ? guideData.eventSpeakers : []) as EventGuide['eventSpeakers'],
-            eventSponsors: (Array.isArray(guideData.eventSponsors) ? guideData.eventSponsors : []) as EventGuide['eventSponsors'],
-            eventHistory: (Array.isArray(guideData.eventHistory) ? guideData.eventHistory : []) as EventGuide['eventHistory'],
-            eventVideos: (Array.isArray(guideData.eventVideos) ? guideData.eventVideos : []) as EventGuide['eventVideos'],
-            eventLocation: (guideData.eventLocation || { venueName: '', address: '', city: '', country: '', venueMaps: [] }) as EventGuide['eventLocation'],
-            logos: (Array.isArray(guideData.logos) ? guideData.logos : []) as EventGuide['logos'],
-            brandIcons: (Array.isArray(guideData.brandIcons) ? guideData.brandIcons : []) as EventGuide['brandIcons'],
-            colors: (Array.isArray(guideData.colors) ? guideData.colors : []) as EventGuide['colors'],
-            colorCombinations: (Array.isArray(guideData.colorCombinations) ? guideData.colorCombinations : []) as EventGuide['colorCombinations'],
-            gradients: (Array.isArray(guideData.gradients) ? guideData.gradients : []) as EventGuide['gradients'],
-            patterns: (Array.isArray(guideData.patterns) ? guideData.patterns : []) as EventGuide['patterns'],
-            typography: (Array.isArray(guideData.typography) ? guideData.typography : []) as EventGuide['typography'],
-            textStyles: (Array.isArray(guideData.textStyles) ? guideData.textStyles : []) as EventGuide['textStyles'],
-            iconography: (Array.isArray(guideData.iconography) ? guideData.iconography : []) as EventGuide['iconography'],
-            socialIcons: (Array.isArray(guideData.socialIcons) ? guideData.socialIcons : []) as EventGuide['socialIcons'],
-            imagery: (Array.isArray(guideData.imagery) ? guideData.imagery : []) as EventGuide['imagery'],
-            social: (Array.isArray(guideData.social) ? guideData.social : []) as EventGuide['social'],
-            socialAssets: (Array.isArray(guideData.socialAssets) ? guideData.socialAssets : []) as EventGuide['socialAssets'],
-            displayBanners: (Array.isArray(guideData.displayBanners) ? guideData.displayBanners : []) as EventGuide['displayBanners'],
-            websites: (Array.isArray(guideData.websites) ? guideData.websites : []) as EventGuide['websites'],
-            signatures: (Array.isArray(guideData.signatures) ? guideData.signatures : []) as EventGuide['signatures'],
-            emailBanners: (Array.isArray(guideData.emailBanners) ? guideData.emailBanners : []) as EventGuide['emailBanners'],
-            qr: (guideData.qr || { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' }) as EventGuide['qr'],
-            videos: (Array.isArray(guideData.videos) ? guideData.videos : []) as EventGuide['videos'],
-            assets: (Array.isArray(guideData.assets) ? guideData.assets : []) as EventGuide['assets'],
-            misuse: (Array.isArray(guideData.misuse) ? guideData.misuse : []) as EventGuide['misuse'],
-            atmosphere: (guideData.atmosphere || { style: 'gradient', animate: true, opacity: 0.5, blur: 0 }) as EventGuide['atmosphere'],
-            caseStudies: (Array.isArray(guideData.caseStudies) ? guideData.caseStudies : []) as EventGuide['caseStudies'],
-            brochures: (Array.isArray(guideData.brochures) ? guideData.brochures : []) as EventGuide['brochures'],
-            templates: (Array.isArray(guideData.templates) ? guideData.templates : []) as EventGuide['templates'],
-            services: (Array.isArray(guideData.services) ? guideData.services : []) as EventGuide['services'],
-            pageSettings: (guideData.pageSettings || DEFAULT_PAGE_SETTINGS) as EventGuide['pageSettings'],
-            createdAt: new Date(data.created_at),
-            updatedAt: new Date(data.updated_at),
-          };
+            parentBrandId: data.parent_brand_id,
+            isFavorite: data.is_favorite,
+            isPublic: data.is_public,
+            sectionOrder: data.section_order,
+            hiddenSections: data.hidden_sections,
+            createdAt: data.created_at,
+            updatedAt: data.updated_at,
+            // Ensure hero name is set from data.name if not in guide_data
+            hero: { ...(guideData as any)?.hero, name: (guideData as any)?.hero?.name || data.name },
+          });
           setPublicEvent(event);
         }
       } catch (err) {
