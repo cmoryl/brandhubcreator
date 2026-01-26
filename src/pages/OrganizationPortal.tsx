@@ -361,7 +361,7 @@ const OrganizationPortal = () => {
                   parentBrandId: p.parentBrandId || undefined,
                   linkedGuides: p.linkedGuides?.map((g: any) => g.id) || [],
                 }))}
-                events={events.map(e => ({
+                events={filteredEvents.map(e => ({
                   id: e.id,
                   name: e.hero?.name || e.name,
                   slug: e.slug || undefined,
