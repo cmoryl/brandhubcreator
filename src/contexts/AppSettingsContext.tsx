@@ -63,7 +63,7 @@ export interface AppSettings {
 }
 
 const defaultColors: ThemeColors = {
-  accent: '12 76% 61%', // coral
+  accent: '198 84% 46%', // TransPerfect light blue (#139cd8)
   accentForeground: '0 0% 100%',
   primary: '220 15% 20%',
   primaryForeground: '40 20% 98%',
