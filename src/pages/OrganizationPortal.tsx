@@ -172,6 +172,7 @@ const OrganizationPortal = () => {
 
   const portalSettings = organization.portalSettings || DEFAULT_PORTAL_SETTINGS;
   const heroFullWidth = portalSettings.heroFullWidth ?? false;
+  const heroKenBurns = portalSettings.heroKenBurns ?? false;
   const orgColors = {
     primary: organization.primaryColor || '#6366f1',
     secondary: organization.secondaryColor || '#8b5cf6',
@@ -181,7 +182,7 @@ const OrganizationPortal = () => {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="relative overflow-visible">
-        <HeroBackground />
+        <HeroBackground kenBurnsEffect={heroKenBurns} />
 
         {/* Header */}
         <header className="relative z-50 animate-fade-in-down safe-area-inset-top">

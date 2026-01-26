@@ -8,6 +8,8 @@ interface HeroBackgroundProps {
   overlay?: boolean;
   overlayOpacity?: number;
   tintColor?: string; // Custom color tint for animations
+  /** Apply Ken Burns (slow pan/zoom) effect to the entire background */
+  kenBurnsEffect?: boolean;
 }
 
 // Helper to convert hex to HSL values
@@ -45,7 +47,8 @@ export const HeroBackground = React.forwardRef<
   animationSpeed: propSpeed,
   overlay: propOverlay,
   overlayOpacity: propOpacity,
-  tintColor
+  tintColor,
+  kenBurnsEffect = false,
 }, ref) => {
   const { settings } = useAppSettings();
   const { heroBackground } = settings;
@@ -79,10 +82,13 @@ export const HeroBackground = React.forwardRef<
   const tintVar = getTintColorVar();
   const useTintDirectly = tintColor && hexToHSLValues(tintColor);
 
+  // Ken Burns wrapper class for optional slow pan/zoom
+  const kenBurnsClass = kenBurnsEffect ? 'animate-ken-burns' : '';
+
   // Image background
   if (type === 'image' && image) {
     return (
-      <div className="absolute inset-0">
+      <div className={`absolute inset-0 overflow-hidden ${kenBurnsClass}`}>
         <img
           src={image}
           alt="Hero background"
@@ -101,7 +107,7 @@ export const HeroBackground = React.forwardRef<
   // Animated gradient background
   if (type === 'animated-gradient') {
     return (
-      <div className="absolute inset-0 overflow-hidden">
+      <div className={`absolute inset-0 overflow-hidden ${kenBurnsClass}`}>
         <div 
           className="absolute inset-0"
           style={{

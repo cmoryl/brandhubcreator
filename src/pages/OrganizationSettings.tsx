@@ -71,6 +71,7 @@ const OrganizationSettings = () => {
   const [hidePlatformBranding, setHidePlatformBranding] = useState(organization?.hidePlatformBranding || false);
   const [logoUrl, setLogoUrl] = useState(organization?.logoUrl || '');
   const [portalHeroFullWidth, setPortalHeroFullWidth] = useState(organization?.portalSettings?.heroFullWidth || false);
+  const [portalHeroKenBurns, setPortalHeroKenBurns] = useState(organization?.portalSettings?.heroKenBurns || false);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -91,6 +92,7 @@ const OrganizationSettings = () => {
       setHidePlatformBranding(organization.hidePlatformBranding || false);
       setLogoUrl(organization.logoUrl || '');
       setPortalHeroFullWidth(organization.portalSettings?.heroFullWidth || false);
+      setPortalHeroKenBurns(organization.portalSettings?.heroKenBurns || false);
     }
   });
 
@@ -242,6 +244,7 @@ const OrganizationSettings = () => {
         logoUrl: logoUrl || null,
         portalSettings: {
           heroFullWidth: portalHeroFullWidth,
+          heroKenBurns: portalHeroKenBurns,
         },
       });
 
@@ -577,6 +580,20 @@ const OrganizationSettings = () => {
               <Switch
                 checked={portalHeroFullWidth}
                 onCheckedChange={setPortalHeroFullWidth}
+              />
+            </div>
+
+            {/* Ken Burns Effect toggle */}
+            <div className="flex items-center justify-between p-4 rounded-lg border border-border">
+              <div className="space-y-0.5">
+                <Label>Ken Burns Effect</Label>
+                <p className="text-sm text-muted-foreground">
+                  Apply slow pan/zoom animation to the portal hero background
+                </p>
+              </div>
+              <Switch
+                checked={portalHeroKenBurns}
+                onCheckedChange={setPortalHeroKenBurns}
               />
             </div>
           </CardContent>
