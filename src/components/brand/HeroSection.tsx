@@ -55,6 +55,7 @@ export const HeroSection = ({
   const [isVisible, setIsVisible] = useState(false);
   const [videoUploadDialogOpen, setVideoUploadDialogOpen] = useState(false);
   const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
+  const [kenBurnsPreview, setKenBurnsPreview] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -288,11 +289,11 @@ export const HeroSection = ({
           src={hero.coverImage || ''}
           videoSrc={hero.useVideo ? hero.coverVideo : undefined}
           preferVideo={hero.useVideo === true}
-          kenBurnsEffect={hero.useVideo !== true && hero.kenBurnsEffect === true}
+          kenBurnsEffect={hero.useVideo !== true && (hero.kenBurnsEffect === true || kenBurnsPreview)}
           fallbackSrc=""
           className={`relative ${heroHeight} cursor-pointer group`}
           priority={true}
-          parallax={hero.kenBurnsEffect !== true}
+          parallax={hero.kenBurnsEffect !== true && !kenBurnsPreview}
           parallaxOffset={parallaxOffset}
           onClick={() => isEditing && (hero.useVideo ? videoInputRef.current?.click() : coverInputRef.current?.click())}
         >
@@ -392,18 +393,30 @@ export const HeroSection = ({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
+                    setKenBurnsPreview(false);
                     toggleKenBurns();
                   }}
+                  onMouseEnter={() => {
+                    // Only show preview if effect is not already enabled
+                    if (hero.kenBurnsEffect !== true) {
+                      setKenBurnsPreview(true);
+                    }
+                  }}
+                  onMouseLeave={() => setKenBurnsPreview(false)}
                   className={cn(
                     "pointer-events-auto flex items-center gap-2 px-4 py-2 rounded-full border transition-all",
                     hero.kenBurnsEffect === true
                       ? "bg-white/25 border-white/40 text-white" 
-                      : "bg-white/10 border-white/20 text-white/80 hover:bg-white/15 hover:text-white"
+                      : kenBurnsPreview
+                        ? "bg-white/20 border-white/30 text-white ring-2 ring-white/30"
+                        : "bg-white/10 border-white/20 text-white/80 hover:bg-white/15 hover:text-white"
                   )}
-                  title="Ken Burns: Slow cinematic pan and zoom effect"
+                  title="Ken Burns: Slow cinematic pan and zoom effect (hover to preview)"
                 >
                   <Move className="h-4 w-4" />
-                  <span className="text-sm font-medium">Ken Burns Effect</span>
+                  <span className="text-sm font-medium">
+                    {kenBurnsPreview ? 'Preview...' : 'Ken Burns Effect'}
+                  </span>
                   {hero.kenBurnsEffect === true && <Check className="h-3 w-3" />}
                 </button>
               )}
