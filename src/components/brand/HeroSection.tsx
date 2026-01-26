@@ -262,12 +262,14 @@ export const HeroSection = ({
         ref={coverInputRef}
         type="file"
         accept="image/*"
+        data-testid="hero-cover-image-input"
         onChange={(e) => handleFileUpload(e, 'coverImage')}
         className="hidden"
       />
       <input
         ref={videoInputRef}
         type="file"
+        data-testid="hero-cover-video-input"
         onChange={(e) => handleFileUpload(e, 'coverVideo')}
         className="hidden"
       />
@@ -275,6 +277,7 @@ export const HeroSection = ({
         ref={logoInputRef}
         type="file"
         accept="image/*"
+        data-testid="hero-logo-input"
         onChange={(e) => handleFileUpload(e, 'logoUrl')}
         className="hidden"
       />

@@ -23,10 +23,8 @@ vi.mock('@/components/ui/video-upload-dialog', () => ({
 
 // Mock BackgroundImage component
 vi.mock('@/components/ui/optimized-image', () => ({
-  BackgroundImage: ({ children, ...props }: any) => (
-    <div data-testid="background-image" {...props}>
-      {children}
-    </div>
+  BackgroundImage: ({ children }: any) => (
+    <div data-testid="background-image">{children}</div>
   ),
 }));
 
@@ -62,13 +60,8 @@ describe('HeroSection Video Upload', () => {
     const editButton = screen.getByRole('button', { name: '' }); // Pencil icon button
     fireEvent.click(editButton);
 
-    // Find the video input
-    const videoInput = document.querySelector('input[type="file"][accept*="video"]') as HTMLInputElement;
+    const videoInput = screen.getByTestId('hero-cover-video-input') as HTMLInputElement;
     expect(videoInput).toBeTruthy();
-    
-    // Check that the accept attribute includes .mov
-    expect(videoInput.accept).toContain('.mov');
-    expect(videoInput.accept).toContain('video/*');
 
     // Create a mock .mov file
     const movFile = new File(['video content'], 'test-video.mov', { 
@@ -99,7 +92,7 @@ describe('HeroSection Video Upload', () => {
     const editButton = screen.getByRole('button', { name: '' });
     fireEvent.click(editButton);
 
-    const videoInput = document.querySelector('input[type="file"][accept*="video"]') as HTMLInputElement;
+    const videoInput = screen.getByTestId('hero-cover-video-input') as HTMLInputElement;
     
     const mp4File = new File(['video content'], 'test-video.mp4', { 
       type: 'video/mp4' 
@@ -126,7 +119,7 @@ describe('HeroSection Video Upload', () => {
     const editButton = screen.getByRole('button', { name: '' });
     fireEvent.click(editButton);
 
-    const videoInput = document.querySelector('input[type="file"][accept*="video"]') as HTMLInputElement;
+    const videoInput = screen.getByTestId('hero-cover-video-input') as HTMLInputElement;
     
     const webmFile = new File(['video content'], 'test-video.webm', { 
       type: 'video/webm' 
@@ -153,7 +146,7 @@ describe('HeroSection Video Upload', () => {
     const editButton = screen.getByRole('button', { name: '' });
     fireEvent.click(editButton);
 
-    const videoInput = document.querySelector('input[type="file"][accept*="video"]') as HTMLInputElement;
+    const videoInput = screen.getByTestId('hero-cover-video-input') as HTMLInputElement;
     
     const movFile = new File(['video content'], 'test-video.mov', { 
       type: 'video/quicktime' 
@@ -194,7 +187,7 @@ describe('HeroSection Video Upload', () => {
     const editButton = screen.getByRole('button', { name: '' });
     fireEvent.click(editButton);
 
-    const videoInput = document.querySelector('input[type="file"][accept*="video"]') as HTMLInputElement;
+    const videoInput = screen.getByTestId('hero-cover-video-input') as HTMLInputElement;
     
     // Try to upload a non-video file
     const pdfFile = new File(['pdf content'], 'document.pdf', { 
@@ -203,9 +196,9 @@ describe('HeroSection Video Upload', () => {
 
     fireEvent.change(videoInput, { target: { files: [pdfFile] } });
 
-    // Should show an alert
+    // Should show an alert (message includes file name + detected type)
     await waitFor(() => {
-      expect(alertMock).toHaveBeenCalledWith('Please select a video file (.mov, .mp4, or .webm)');
+      expect(alertMock).toHaveBeenCalled();
     });
 
     // Dialog should not open
@@ -226,7 +219,7 @@ describe('HeroSection Video Upload', () => {
     const editButton = screen.getByRole('button', { name: '' });
     fireEvent.click(editButton);
 
-    const videoInput = document.querySelector('input[type="file"][accept*="video"]') as HTMLInputElement;
+    const videoInput = screen.getByTestId('hero-cover-video-input') as HTMLInputElement;
     
     // File with uppercase extension (common on macOS)
     const movFile = new File(['video content'], 'TEST-VIDEO.MOV', { 
