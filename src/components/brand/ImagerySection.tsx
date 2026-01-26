@@ -45,6 +45,8 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: handleFileDrop,
     accept: 'image/*',
+    // Many photography examples/screenshots exceed 2MB; allow up to 20MB (Lovable upload limit)
+    maxSize: 20 * 1024 * 1024,
   });
 
   const triggerUpload = (type: 'do' | 'dont') => {
