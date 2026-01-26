@@ -274,5 +274,7 @@ export const formatFileSize = (bytes: number): string => {
  * Get accepted video formats string for file input
  */
 export const getAcceptedVideoFormats = (): string => {
-  return 'video/mp4,video/webm,video/quicktime,.mov,.mp4,.webm';
+  // Include both MIME types and file extensions for maximum browser compatibility
+  // video/* as fallback ensures .mov files are selectable on all platforms
+  return 'video/*,.mov,.mp4,.webm,.MOV,.MP4,.WEBM';
 };
