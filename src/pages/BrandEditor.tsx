@@ -8,6 +8,7 @@ import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSetti
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/integrations/supabase/types';
 import { normalizeBrandGuide } from '@/lib/guideNormalization';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { useBrands } from '@/contexts/BrandContext';
@@ -258,6 +259,57 @@ const BrandEditor = () => {
   
   // Use context brand if available, otherwise use fetched public brand
   const brand = contextBrand || publicBrand;
+
+  // If we are rendering a brand that came from the public fetch fallback (not in BrandContext),
+  // edits need to persist via a direct update from this page.
+  const syncPublicBrandToDb = useCallback(async (merged: BrandGuide) => {
+    try {
+      const {
+        id,
+        type,
+        slug,
+        organizationId,
+        isFavorite,
+        isPublic,
+        sectionOrder,
+        hiddenSections,
+        createdAt,
+        updatedAt,
+        ...cleanGuideData
+      } = merged as unknown as BrandGuide & Record<string, unknown>;
+
+      const { error } = await supabase
+        .from('brands')
+        .update({
+          name: merged.hero?.name || 'Brand',
+          guide_data: cleanGuideData as unknown as Json,
+          section_order: (merged.sectionOrder as string[] | null) ?? null,
+          hidden_sections: (merged.hiddenSections as string[] | null) ?? null,
+        })
+        .eq('id', merged.id);
+
+      if (error) {
+        console.error('[BrandEditor] Failed to save public-fallback brand updates:', error);
+      }
+    } catch (err) {
+      console.error('[BrandEditor] Exception saving public-fallback brand updates:', err);
+    }
+  }, []);
+
+  const applyBrandUpdates = useCallback((updates: Parameters<typeof updateBrandContext>[1]) => {
+    if (!brand) return;
+
+    // Normal path: editable brand is in BrandContext
+    if (contextBrand) {
+      updateBrandContext(brand.id, updates);
+      return;
+    }
+
+    // Fallback path: brand is coming from the public fetch state
+    const merged = { ...brand, ...updates, updatedAt: new Date() } as BrandGuide;
+    setPublicBrand(merged);
+    void syncPublicBrandToDb(merged);
+  }, [brand, contextBrand, syncPublicBrandToDb, updateBrandContext]);
   
   // Check if user can edit: global admin OR org member with appropriate role
   // During auth loading, we preserve potential edit access for logged-in users to avoid UI flicker
@@ -406,15 +458,15 @@ const BrandEditor = () => {
 
   const handlePageSettingsChange = useCallback((newSettings: BrandPageSettings) => {
     if (brand) {
-      updateBrandContext(brand.id, { pageSettings: newSettings });
+      applyBrandUpdates({ pageSettings: newSettings });
     }
-  }, [brand, updateBrandContext]);
+  }, [brand, applyBrandUpdates]);
 
   const handleSectionOrderChange = useCallback((newOrder: SectionId[]) => {
     if (brand) {
-      updateBrandContext(brand.id, { sectionOrder: newOrder });
+      applyBrandUpdates({ sectionOrder: newOrder });
     }
-  }, [brand, updateBrandContext]);
+  }, [brand, applyBrandUpdates]);
 
   // Auto-heal persisted sectionOrder when new sections are introduced
   useEffect(() => {
@@ -424,15 +476,15 @@ const BrandEditor = () => {
     const isDifferent =
       current.length !== normalized.length || current.some((id, i) => id !== normalized[i]);
     if (isDifferent) {
-      updateBrandContext(brand.id, { sectionOrder: normalized });
+      applyBrandUpdates({ sectionOrder: normalized });
     }
-  }, [brand?.id, brand?.sectionOrder, isGuideAdmin, updateBrandContext]);
+  }, [brand?.id, brand?.sectionOrder, isGuideAdmin, applyBrandUpdates]);
 
   const handleHiddenSectionsChange = useCallback((newHiddenSections: SectionId[]) => {
     if (brand) {
-      updateBrandContext(brand.id, { hiddenSections: newHiddenSections });
+      applyBrandUpdates({ hiddenSections: newHiddenSections });
     }
-  }, [brand, updateBrandContext]);
+  }, [brand, applyBrandUpdates]);
 
   // Auto-heal invalid hidden sections (e.g., ids removed/renamed)
   useEffect(() => {
@@ -442,9 +494,9 @@ const BrandEditor = () => {
     const isDifferent =
       current.length !== normalized.length || current.some((id, i) => id !== normalized[i]);
     if (isDifferent) {
-      updateBrandContext(brand.id, { hiddenSections: normalized });
+      applyBrandUpdates({ hiddenSections: normalized });
     }
-  }, [brand?.id, brand?.hiddenSections, sectionOrder, isGuideAdmin, updateBrandContext]);
+  }, [brand?.id, brand?.hiddenSections, sectionOrder, isGuideAdmin, applyBrandUpdates]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -502,7 +554,7 @@ const BrandEditor = () => {
   }
 
   const updateBrand = (updates: Parameters<typeof updateBrandContext>[1]) => {
-    updateBrandContext(brand.id, updates);
+    applyBrandUpdates(updates);
   };
 
   const renderSection = () => {
