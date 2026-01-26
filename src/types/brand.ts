@@ -397,8 +397,6 @@ export interface BrandWebinar {
   duration?: string;
   registrationUrl?: string;
   recordingUrl?: string;
-  link?: string;
-  linkLabel?: string;
   thumbnailUrl?: string;
   speakers?: string[];
   status: 'upcoming' | 'live' | 'recorded';

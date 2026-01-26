@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useState } from 'react';
 import { Plus, X, Briefcase, Upload, Palette, FileText, Share2, Zap, Settings, Users, Globe, Shield, Heart, Star, Sparkles, Layers, Package, Target, Award, TrendingUp, MessageSquare } from 'lucide-react';
 import { BrandService } from '@/types/brand';
@@ -57,8 +56,7 @@ interface ServicesSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
 }
 
-export const ServicesSection = React.forwardRef<HTMLElement, ServicesSectionProps>(
-  ({ services, onServicesChange, customSubtitle, onSubtitleChange }, ref) => {
+export const ServicesSection = ({ services, onServicesChange, customSubtitle, onSubtitleChange }: ServicesSectionProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<BrandService | null>(null);
@@ -126,7 +124,7 @@ export const ServicesSection = React.forwardRef<HTMLElement, ServicesSectionProp
   };
 
   return (
-    <section ref={ref as React.Ref<HTMLElement>} className="space-y-6">
+    <section className="space-y-6">
       <SectionHeader
         title="Our Services"
         defaultSubtitle="What we offer to help your business grow"
@@ -294,6 +292,4 @@ export const ServicesSection = React.forwardRef<HTMLElement, ServicesSectionProp
       </Dialog>
     </section>
   );
-});
-
-ServicesSection.displayName = "ServicesSection";
+};

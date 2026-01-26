@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { X, Download, Package, Upload, Image as ImageIcon, Link2, Maximize2 } from 'lucide-react';
+import { X, Download, Package, Upload, Image as ImageIcon, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SectionHeader } from './SectionHeader';
 import { toast } from 'sonner';
 import { useDropZone } from '@/components/ui/drop-zone';
@@ -81,51 +80,8 @@ export const UnifiedLogoSection = ({
   const [pendingVariant, setPendingVariant] = useState<string>(variants[0]?.value || 'primary');
   const [urlPopoverOpen, setUrlPopoverOpen] = useState<string | null>(null);
   const [urlInput, setUrlInput] = useState('');
-  const [previewLogo, setPreviewLogo] = useState<UnifiedLogo | null>(null);
 
   const canEdit = isEditable && !!onLogosChange;
-
-  const downloadVariation = async (logo: UnifiedLogo, bgType: string) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-      img.src = logo.url;
-    });
-
-    const padding = Math.max(img.width, img.height) * 0.2;
-    canvas.width = img.width + padding * 2;
-    canvas.height = img.height + padding * 2;
-
-    // Draw background based on type
-    if (bgType === 'light') {
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    } else if (bgType === 'dark') {
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    } else if (bgType === 'brand') {
-      ctx.fillStyle = 'hsl(var(--primary) / 0.1)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-    // transparent = no background fill
-
-    ctx.drawImage(img, padding, padding, img.width, img.height);
-
-    const link = document.createElement('a');
-    link.download = `${logo.name}-${bgType}.png`;
-    link.href = canvas.toDataURL('image/png');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success(`Downloaded ${logo.name} (${bgType})`);
-  };
 
   const handleFileDrop = useCallback((file: File, variant: string) => {
     if (!onLogosChange) return;
@@ -311,9 +267,8 @@ export const UnifiedLogoSection = ({
     return (
       <Card
         key={logo.id}
-        className="group relative overflow-hidden hover:border-primary/50 transition-colors animate-scale-in cursor-pointer"
+        className="group relative overflow-hidden hover:border-primary/50 transition-colors animate-scale-in"
         style={{ animationDelay: `${index * 50}ms` }}
-        onClick={() => setPreviewLogo(logo)}
       >
         {/* Primary Symbol preview for icon variants */}
         {isIconVariant && (
@@ -388,13 +343,6 @@ export const UnifiedLogoSection = ({
           <span className="py-1.5 text-muted-foreground">Brand</span>
         </div>
         
-        {/* Click to enlarge hint */}
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-          <div className="bg-background/80 backdrop-blur-sm rounded-md p-1.5 text-muted-foreground">
-            <Maximize2 className="h-4 w-4" />
-          </div>
-        </div>
-        
         {gridLayout === 'flat' && (
           <Badge className={cn("absolute top-2 left-2 text-xs z-10", getVariantColor(logo.variant))}>
             {getVariantLabel(logo.variant)}
@@ -446,7 +394,7 @@ export const UnifiedLogoSection = ({
                 canEdit ? "opacity-0 group-hover:opacity-100 transition-opacity" : ""
               )}>
                 <button
-                  onClick={(e) => { e.stopPropagation(); downloadLogo(logo); }}
+                  onClick={() => downloadLogo(logo)}
                   className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
                   title="Download"
                 >
@@ -455,14 +403,14 @@ export const UnifiedLogoSection = ({
                 {canEdit && (
                   <>
                     <button
-                      onClick={(e) => { e.stopPropagation(); setEditingId(logo.id); }}
+                      onClick={() => setEditingId(logo.id)}
                       className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
                       title="Edit"
                     >
                       <ImageIcon className="h-3.5 w-3.5" />
                     </button>
                     <button
-                      onClick={(e) => { e.stopPropagation(); deleteLogo(logo.id); }}
+                      onClick={() => deleteLogo(logo.id)}
                       className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
                       title="Delete"
                     >
@@ -475,77 +423,6 @@ export const UnifiedLogoSection = ({
           )}
         </CardContent>
       </Card>
-    );
-  };
-
-  // Logo Preview Modal
-  const LogoPreviewModal = () => {
-    if (!previewLogo) return null;
-    
-    const bgVariations = [
-      { id: 'light', label: 'Light Background', className: 'bg-white' },
-      { id: 'dark', label: 'Dark Background', className: 'bg-slate-900' },
-      { id: 'transparent', label: 'Transparent', className: "bg-[repeating-conic-gradient(#e5e7eb_0%_25%,#ffffff_0%_50%)] dark:bg-[repeating-conic-gradient(#374151_0%_25%,#1f2937_0%_50%)] bg-[length:16px_16px]" },
-      { id: 'brand', label: 'Brand Color', className: 'bg-primary/10' },
-    ];
-
-    return (
-      <Dialog open={!!previewLogo} onOpenChange={() => setPreviewLogo(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <span>{previewLogo.name}</span>
-              <Badge className={cn("text-xs", getVariantColor(previewLogo.variant))}>
-                {getVariantLabel(previewLogo.variant)}
-              </Badge>
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            {bgVariations.map((bg) => (
-              <div key={bg.id} className="border border-border rounded-lg overflow-hidden">
-                <div className={cn("relative p-8 flex items-center justify-center min-h-[200px]", bg.className)}>
-                  {/* Safe zone indicator */}
-                  <div className="absolute inset-6 border border-dashed border-muted-foreground/40 rounded pointer-events-none" />
-                  <img
-                    src={previewLogo.url}
-                    alt={`${previewLogo.name} on ${bg.label}`}
-                    className="max-h-32 max-w-full object-contain relative z-10"
-                  />
-                </div>
-                <div className="flex items-center justify-between p-3 bg-muted/30 border-t border-border">
-                  <span className="text-sm font-medium">{bg.label}</span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-1.5"
-                    onClick={() => downloadVariation(previewLogo, bg.id)}
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    Download
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          {/* Download all button */}
-          <div className="flex justify-end mt-4 pt-4 border-t border-border">
-            <Button
-              onClick={async () => {
-                for (const bg of bgVariations) {
-                  await downloadVariation(previewLogo, bg.id);
-                  await new Promise(r => setTimeout(r, 300));
-                }
-              }}
-              className="gap-2"
-            >
-              <Package className="h-4 w-4" />
-              Download All Variations
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     );
   };
 
@@ -680,8 +557,6 @@ export const UnifiedLogoSection = ({
           )}
         </>
       )}
-
-      <LogoPreviewModal />
     </section>
   );
 };

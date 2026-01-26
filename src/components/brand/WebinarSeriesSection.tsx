@@ -16,8 +16,6 @@ export interface WebinarItem {
   duration?: string;
   registrationUrl?: string;
   recordingUrl?: string;
-  link?: string;
-  linkLabel?: string;
   thumbnailUrl?: string;
   speakers?: string[];
   status: 'upcoming' | 'live' | 'recorded';
@@ -61,8 +59,6 @@ export const WebinarSeriesSection = ({
       duration: newWebinar.duration,
       registrationUrl: newWebinar.registrationUrl,
       recordingUrl: newWebinar.recordingUrl,
-      link: newWebinar.link,
-      linkLabel: newWebinar.linkLabel,
       thumbnailUrl: newWebinar.thumbnailUrl,
       speakers: newWebinar.speakers,
       status: newWebinar.status || 'upcoming',
@@ -169,20 +165,6 @@ export const WebinarSeriesSection = ({
                     placeholder="Recording URL"
                     className="h-8"
                   />
-                  <div className="flex gap-2">
-                    <Input
-                      value={webinar.link || ''}
-                      onChange={(e) => updateWebinar(webinar.id, { link: e.target.value })}
-                      placeholder="Custom link URL"
-                      className="h-8 flex-1"
-                    />
-                    <Input
-                      value={webinar.linkLabel || ''}
-                      onChange={(e) => updateWebinar(webinar.id, { linkLabel: e.target.value })}
-                      placeholder="Label"
-                      className="h-8 w-24"
-                    />
-                  </div>
                   <Input
                     value={webinar.thumbnailUrl || ''}
                     onChange={(e) => updateWebinar(webinar.id, { thumbnailUrl: e.target.value })}
@@ -250,16 +232,6 @@ export const WebinarSeriesSection = ({
                           Watch <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
-                      {webinar.link && (
-                        <a
-                          href={webinar.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary hover:underline flex items-center gap-1"
-                        >
-                          {webinar.linkLabel || 'Link'} <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
                     </div>
                     
                     {canEdit && (
@@ -317,20 +289,6 @@ export const WebinarSeriesSection = ({
                 placeholder="Thumbnail URL (optional)"
                 className="h-8"
               />
-              <div className="flex gap-2">
-                <Input
-                  value={newWebinar.link || ''}
-                  onChange={(e) => setNewWebinar({ ...newWebinar, link: e.target.value })}
-                  placeholder="Custom link URL (optional)"
-                  className="h-8 flex-1"
-                />
-                <Input
-                  value={newWebinar.linkLabel || ''}
-                  onChange={(e) => setNewWebinar({ ...newWebinar, linkLabel: e.target.value })}
-                  placeholder="Label"
-                  className="h-8 w-24"
-                />
-              </div>
               <div className="flex gap-2">
                 {(['upcoming', 'live', 'recorded'] as const).map((status) => (
                   <Button

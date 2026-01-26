@@ -265,21 +265,12 @@ export const TemplateSpecsSection = ({
   onSubtitleChange,
   brandColors = [],
 }: TemplateSpecsSectionProps) => {
-  const [selectedSpecId, setSelectedSpecId] = useState<string | null>(() => 
-    templateSpecs.length > 0 ? templateSpecs[0].id : null
-  );
+  const [selectedSpecId, setSelectedSpecId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [isDragMode, setIsDragMode] = useState(false);
-
-  // Auto-select first template spec when list changes and nothing is selected
-  useEffect(() => {
-    if (!selectedSpecId && templateSpecs.length > 0) {
-      setSelectedSpecId(templateSpecs[0].id);
-    }
-  }, [templateSpecs, selectedSpecId]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   
