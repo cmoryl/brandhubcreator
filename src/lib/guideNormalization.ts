@@ -21,6 +21,8 @@ import {
   BrandTemplate,
   BrandBrochure,
   StatisticItem,
+  BrandWebinar,
+  BrandAward,
 } from '@/types/brand';
 import { 
   EventGuide, 
@@ -161,6 +163,8 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     templateSpecs: safeArray<TemplateSpec>(g.templateSpecs),
     revenueData: safeArray<RevenueDataPoint>(g.revenueData),
     statistics: safeArray<StatisticItem>(g.statistics),
+    webinars: safeArray<BrandWebinar>(g.webinars),
+    awards: safeArray<BrandAward>(g.awards),
     
     // Objects
     qr: safeObject(g.qr, DEFAULT_QR),
