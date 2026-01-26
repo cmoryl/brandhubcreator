@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { HeroSection } from '../HeroSection';
 import { BrandHero } from '@/types/brand';
 
@@ -29,6 +30,11 @@ vi.mock('@/components/ui/optimized-image', () => ({
   ),
 }));
 
+// Helper to wrap components with TooltipProvider
+const renderWithProviders = (ui: React.ReactElement) => {
+  return render(<TooltipProvider>{ui}</TooltipProvider>);
+};
+
 describe('HeroSection Video Upload', () => {
   const mockHero: BrandHero = {
     name: 'Test Brand',
@@ -45,7 +51,7 @@ describe('HeroSection Video Upload', () => {
   });
 
   it('accepts .mov files for video upload', async () => {
-    render(
+    renderWithProviders(
       <HeroSection 
         hero={mockHero} 
         onHeroChange={mockOnHeroChange}
@@ -82,7 +88,7 @@ describe('HeroSection Video Upload', () => {
   });
 
   it('accepts .mp4 files for video upload', async () => {
-    render(
+    renderWithProviders(
       <HeroSection 
         hero={mockHero} 
         onHeroChange={mockOnHeroChange}
@@ -109,7 +115,7 @@ describe('HeroSection Video Upload', () => {
   });
 
   it('accepts .webm files for video upload', async () => {
-    render(
+    renderWithProviders(
       <HeroSection 
         hero={mockHero} 
         onHeroChange={mockOnHeroChange}
@@ -136,7 +142,7 @@ describe('HeroSection Video Upload', () => {
   });
 
   it('calls onHeroChange with video data after compression dialog confirms', async () => {
-    render(
+    renderWithProviders(
       <HeroSection 
         hero={mockHero} 
         onHeroChange={mockOnHeroChange}
@@ -177,7 +183,7 @@ describe('HeroSection Video Upload', () => {
   it('rejects non-video files with an alert', async () => {
     const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
-    render(
+    renderWithProviders(
       <HeroSection 
         hero={mockHero} 
         onHeroChange={mockOnHeroChange}
@@ -209,7 +215,7 @@ describe('HeroSection Video Upload', () => {
   });
 
   it('accepts uppercase .MOV extension files', async () => {
-    render(
+    renderWithProviders(
       <HeroSection 
         hero={mockHero} 
         onHeroChange={mockOnHeroChange}

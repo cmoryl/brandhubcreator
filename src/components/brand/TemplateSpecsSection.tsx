@@ -259,12 +259,14 @@ const SortableSpecItem = ({
 };
 
 export const TemplateSpecsSection = ({
-  templateSpecs,
+  templateSpecs: templateSpecsProp,
   onTemplateSpecsChange,
   customSubtitle,
   onSubtitleChange,
   brandColors = [],
 }: TemplateSpecsSectionProps) => {
+  // Defensive: ensure templateSpecs is always an array
+  const templateSpecs = Array.isArray(templateSpecsProp) ? templateSpecsProp : [];
   const [selectedSpecId, setSelectedSpecId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
