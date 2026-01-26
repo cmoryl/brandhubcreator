@@ -148,6 +148,12 @@ export const HeroSection = ({
 
     // For video files, use the compression dialog
     if (field === 'coverVideo') {
+      console.log('Video file selected:', {
+        name: file.name,
+        type: file.type,
+        size: file.size
+      });
+      
       // Accept any video file regardless of extension
       const isVideo = file.type.startsWith('video/') || 
                       file.name.toLowerCase().endsWith('.mov') ||
@@ -155,12 +161,16 @@ export const HeroSection = ({
                       file.name.toLowerCase().endsWith('.webm');
       
       if (!isVideo) {
-        alert('Please select a video file (.mov, .mp4, or .webm)');
+        const errorMsg = `File "${file.name}" is not a video file. Please select .mov, .mp4, or .webm files.\n\nFile type detected: ${file.type || 'unknown'}`;
+        console.error('Invalid video file:', { name: file.name, type: file.type });
+        alert(errorMsg);
         if (videoInputRef.current) {
           videoInputRef.current.value = '';
         }
         return;
       }
+      
+      console.log('Video file validated, opening compression dialog');
 
       setPendingVideoFile(file);
       setVideoUploadDialogOpen(true);
@@ -223,7 +233,6 @@ export const HeroSection = ({
       <input
         ref={videoInputRef}
         type="file"
-        accept="video/*,.mov,.mp4,.webm,.MOV,.MP4,.WEBM"
         onChange={(e) => handleFileUpload(e, 'coverVideo')}
         className="hidden"
       />
