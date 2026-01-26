@@ -15,6 +15,7 @@ import {
   ChevronUp,
   X,
   Layers,
+  Globe,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,10 +36,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { useBrands } from '@/contexts/BrandContext';
 import { useEvents } from '@/contexts/EventContext';
 import { toast } from 'sonner';
+import { ImportFromUrlDialog } from './ImportFromUrlDialog';
 
 interface PortalAdminActionsProps {
   className?: string;
@@ -68,6 +71,8 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
   const [showSubProductDialog, setShowSubProductDialog] = useState(false);
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [showExtendEventDialog, setShowExtendEventDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importType, setImportType] = useState<'brand' | 'event'>('event');
 
   // Form states
   const [newName, setNewName] = useState('');
@@ -75,6 +80,7 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
   const [selectedParentProduct, setSelectedParentProduct] = useState<string>('');
   const [selectedEvent, setSelectedEvent] = useState<string>('');
   const [newLocation, setNewLocation] = useState('');
+  const [importedBranding, setImportedBranding] = useState<any>(null);
   const [isCreating, setIsCreating] = useState(false);
 
   // Reset form state
@@ -85,6 +91,7 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
     setSelectedEvent('');
     setNewLocation('');
     setIsCreating(false);
+    setImportedBranding(null);
   };
 
   // Action handlers
@@ -153,7 +160,61 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
     try {
       const event = await addEvent(newName.trim());
       if (event) {
-        toast.success('Event created successfully');
+        // Apply imported branding if available
+        if (importedBranding) {
+          const { updateEvent } = await import('@/contexts/EventContext').then(m => ({ updateEvent: null }));
+          // We'll navigate and let the user see the pre-filled data
+          const updates: any = {
+            hero: {
+              ...event.hero,
+              name: importedBranding.name || event.hero?.name,
+              tagline: importedBranding.tagline || event.hero?.tagline,
+            },
+            colors: importedBranding.colors?.map((c: any, i: number) => ({
+              id: crypto.randomUUID(),
+              name: c.name,
+              hex: c.hex,
+              usage: c.usage,
+            })) || [],
+            typography: importedBranding.typography?.map((t: any) => ({
+              id: crypto.randomUUID(),
+              name: t.name,
+              fontFamily: t.fontFamily,
+              weight: '400',
+              usage: t.usage,
+            })) || [],
+            eventLogos: importedBranding.logoUrls?.map((url: string, i: number) => ({
+              id: crypto.randomUUID(),
+              name: `Logo ${i + 1}`,
+              url,
+              variant: 'full-color',
+            })) || [],
+          };
+          
+          if (importedBranding.eventDetails) {
+            updates.eventDetails = {
+              ...event.eventDetails,
+              eventName: importedBranding.eventDetails.eventName || importedBranding.name,
+              eventDates: importedBranding.eventDetails.eventDates,
+              location: importedBranding.eventDetails.location,
+              venue: importedBranding.eventDetails.venue,
+            };
+          }
+          
+          // Update the event with imported branding
+          const { supabase } = await import('@/integrations/supabase/client');
+          await supabase
+            .from('events')
+            .update({ 
+              guide_data: updates,
+              name: importedBranding.name || newName.trim(),
+            })
+            .eq('id', event.id);
+          
+          toast.success('Event created with imported branding!');
+        } else {
+          toast.success('Event created successfully');
+        }
         navigate(`/event/${event.slug || event.id}`);
       }
     } catch (err) {
@@ -237,6 +298,16 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
       description: 'New event brand kit',
       icon: <Calendar className="h-4 w-4" />,
       onClick: () => setShowEventDialog(true),
+    },
+    {
+      id: 'import-url',
+      label: 'Import from URL',
+      description: 'Extract branding from website',
+      icon: <Globe className="h-4 w-4" />,
+      onClick: () => {
+        setImportType('event');
+        setShowImportDialog(true);
+      },
     },
     {
       id: 'extend-event',
@@ -460,8 +531,8 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
       </Dialog>
 
       {/* Create Event Dialog */}
-      <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
-        <DialogContent>
+      <Dialog open={showEventDialog} onOpenChange={(open) => { setShowEventDialog(open); if (!open) resetForm(); }}>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
@@ -472,6 +543,55 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
+            {/* Import from URL Button */}
+            <div className="flex items-center justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => {
+                  setImportType('event');
+                  setShowImportDialog(true);
+                }}
+              >
+                <Globe className="h-4 w-4" />
+                Import from Website URL
+              </Button>
+            </div>
+
+            <Separator className="my-2" />
+
+            {/* Imported Branding Preview */}
+            {importedBranding && (
+              <div className="rounded-lg border bg-muted/50 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-muted-foreground">Imported Branding</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5"
+                    onClick={() => setImportedBranding(null)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+                <p className="font-medium text-sm">{importedBranding.name}</p>
+                {importedBranding.tagline && (
+                  <p className="text-xs text-muted-foreground">{importedBranding.tagline}</p>
+                )}
+                <div className="flex gap-1">
+                  {importedBranding.colors?.slice(0, 4).map((c: any, i: number) => (
+                    <div
+                      key={i}
+                      className="w-5 h-5 rounded-sm border"
+                      style={{ backgroundColor: c.hex }}
+                      title={`${c.name}: ${c.hex}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="event-name">Event Name</Label>
               <Input
@@ -489,7 +609,7 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
               Cancel
             </Button>
             <Button onClick={handleCreateEvent} disabled={!newName.trim() || isCreating}>
-              {isCreating ? 'Creating...' : 'Create Event'}
+              {isCreating ? 'Creating...' : importedBranding ? 'Create with Branding' : 'Create Event'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -546,6 +666,18 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Import from URL Dialog */}
+      <ImportFromUrlDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        type={importType}
+        onImport={(branding) => {
+          setImportedBranding(branding);
+          setNewName(branding.name || '');
+          setShowEventDialog(true);
+        }}
+      />
     </>
   );
 };
