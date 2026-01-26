@@ -182,102 +182,166 @@ export const UnifiedLogoSection = ({
     return acc;
   }, {} as Record<string, UnifiedLogo[]>);
 
-  const renderLogoCard = (logo: UnifiedLogo, index: number) => (
-    <Card
-      key={logo.id}
-      className="group relative overflow-hidden hover:border-primary/50 transition-colors animate-scale-in"
-      style={{ animationDelay: `${index * 50}ms` }}
-    >
-      <div className="aspect-video bg-[repeating-conic-gradient(hsl(var(--muted))_0%_25%,hsl(var(--background))_0%_50%)] bg-[length:20px_20px] flex items-center justify-center p-4 relative">
-        <img
-          src={logo.url}
-          alt={logo.name}
-          className="max-h-full max-w-full object-contain"
-          loading="lazy"
-          decoding="async"
-        />
+  // Safe zone wrapper component with dashed border indicating clear space
+  const SafeZoneWrapper = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+    <div className={cn("relative p-4", className)}>
+      {/* Safe zone indicator lines */}
+      <div className="absolute inset-3 border border-dashed border-muted-foreground/30 rounded pointer-events-none" />
+      <div className="absolute top-1 left-1/2 -translate-x-1/2 text-[9px] text-muted-foreground/50 uppercase tracking-wider">
+        safe zone
+      </div>
+      <div className="relative flex items-center justify-center min-h-[80px]">
+        {children}
+      </div>
+    </div>
+  );
+
+  const renderLogoCard = (logo: UnifiedLogo, index: number) => {
+    const isReversedVariant = logo.variant === 'reversed' || logo.variant === 'monochrome';
+    
+    return (
+      <Card
+        key={logo.id}
+        className="group relative overflow-hidden hover:border-primary/50 transition-colors animate-scale-in"
+        style={{ animationDelay: `${index * 50}ms` }}
+      >
+        {/* Multi-background logo display */}
+        <div className="grid grid-cols-2">
+          {/* Light background */}
+          <SafeZoneWrapper className="bg-white border-r border-b border-border/50">
+            <img
+              src={logo.url}
+              alt={`${logo.name} on light`}
+              className="max-h-16 max-w-full object-contain"
+              loading="lazy"
+              decoding="async"
+            />
+          </SafeZoneWrapper>
+          
+          {/* Dark background */}
+          <SafeZoneWrapper className="bg-slate-900 border-b border-border/50">
+            <img
+              src={logo.url}
+              alt={`${logo.name} on dark`}
+              className="max-h-16 max-w-full object-contain"
+              loading="lazy"
+              decoding="async"
+            />
+          </SafeZoneWrapper>
+          
+          {/* Checkered/transparent background */}
+          <SafeZoneWrapper className="bg-[repeating-conic-gradient(#e5e7eb_0%_25%,#ffffff_0%_50%)] dark:bg-[repeating-conic-gradient(#374151_0%_25%,#1f2937_0%_50%)] bg-[length:16px_16px] border-r border-border/50">
+            <img
+              src={logo.url}
+              alt={`${logo.name} transparent`}
+              className="max-h-16 max-w-full object-contain"
+              loading="lazy"
+              decoding="async"
+            />
+          </SafeZoneWrapper>
+          
+          {/* Brand color background */}
+          <SafeZoneWrapper className="bg-primary/10">
+            <img
+              src={logo.url}
+              alt={`${logo.name} on brand`}
+              className="max-h-16 max-w-full object-contain"
+              loading="lazy"
+              decoding="async"
+            />
+          </SafeZoneWrapper>
+        </div>
+        
+        {/* Background labels */}
+        <div className="grid grid-cols-4 text-[9px] text-center border-t border-border/50">
+          <span className="py-1 text-muted-foreground border-r border-border/50">Light</span>
+          <span className="py-1 text-muted-foreground border-r border-border/50">Dark</span>
+          <span className="py-1 text-muted-foreground border-r border-border/50">Transparent</span>
+          <span className="py-1 text-muted-foreground">Brand</span>
+        </div>
+        
         {gridLayout === 'flat' && (
-          <Badge className={cn("absolute top-2 left-2 text-xs", getVariantColor(logo.variant))}>
+          <Badge className={cn("absolute top-2 left-2 text-xs z-10", getVariantColor(logo.variant))}>
             {getVariantLabel(logo.variant)}
           </Badge>
         )}
-      </div>
-      
-      <CardContent className="p-3">
-        {editingId === logo.id && canEdit ? (
-          <div className="space-y-2">
-            <Input
-              value={logo.name}
-              onChange={(e) => updateLogo(logo.id, { name: e.target.value })}
-              placeholder="Logo name"
-              className="h-8"
-            />
-            <Select
-              value={logo.variant}
-              onValueChange={(value) => updateLogo(logo.id, { variant: value })}
-            >
-              <SelectTrigger className="h-8">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {variants.map((v) => (
-                  <SelectItem key={v.value} value={v.value}>{v.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              value={logo.description || ''}
-              onChange={(e) => updateLogo(logo.id, { description: e.target.value })}
-              placeholder="Description (optional)"
-              className="h-8"
-            />
-            <Button size="sm" variant="secondary" onClick={() => setEditingId(null)} className="w-full">
-              Done
-            </Button>
-          </div>
-        ) : (
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <h4 className="font-medium text-sm truncate">{logo.name}</h4>
-              {logo.description && (
-                <p className="text-xs text-muted-foreground truncate">{logo.description}</p>
-              )}
-            </div>
-            <div className={cn(
-              "flex items-center gap-1 shrink-0",
-              canEdit ? "opacity-0 group-hover:opacity-100 transition-opacity" : ""
-            )}>
-              <button
-                onClick={() => downloadLogo(logo)}
-                className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
-                title="Download"
+        
+        <CardContent className="p-3">
+          {editingId === logo.id && canEdit ? (
+            <div className="space-y-2">
+              <Input
+                value={logo.name}
+                onChange={(e) => updateLogo(logo.id, { name: e.target.value })}
+                placeholder="Logo name"
+                className="h-8"
+              />
+              <Select
+                value={logo.variant}
+                onValueChange={(value) => updateLogo(logo.id, { variant: value })}
               >
-                <Download className="h-3.5 w-3.5" />
-              </button>
-              {canEdit && (
-                <>
-                  <button
-                    onClick={() => setEditingId(logo.id)}
-                    className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
-                    title="Edit"
-                  >
-                    <ImageIcon className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    onClick={() => deleteLogo(logo.id)}
-                    className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                    title="Delete"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </>
-              )}
+                <SelectTrigger className="h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {variants.map((v) => (
+                    <SelectItem key={v.value} value={v.value}>{v.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                value={logo.description || ''}
+                onChange={(e) => updateLogo(logo.id, { description: e.target.value })}
+                placeholder="Description (optional)"
+                className="h-8"
+              />
+              <Button size="sm" variant="secondary" onClick={() => setEditingId(null)} className="w-full">
+                Done
+              </Button>
             </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
+          ) : (
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h4 className="font-medium text-sm truncate">{logo.name}</h4>
+                {logo.description && (
+                  <p className="text-xs text-muted-foreground truncate">{logo.description}</p>
+                )}
+              </div>
+              <div className={cn(
+                "flex items-center gap-1 shrink-0",
+                canEdit ? "opacity-0 group-hover:opacity-100 transition-opacity" : ""
+              )}>
+                <button
+                  onClick={() => downloadLogo(logo)}
+                  className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
+                  title="Download"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                </button>
+                {canEdit && (
+                  <>
+                    <button
+                      onClick={() => setEditingId(logo.id)}
+                      className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
+                      title="Edit"
+                    >
+                      <ImageIcon className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => deleteLogo(logo.id)}
+                      className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                      title="Delete"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
 
   const renderUploadZone = (variant: string) => (
     <div className="flex flex-col gap-2">
@@ -357,19 +421,19 @@ export const UnifiedLogoSection = ({
       />
 
       {showGroupedByVariant && gridLayout === 'grouped' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {variants.map((variant) => (
-            <div key={variant.value} className="space-y-3">
-              <div className="flex items-center gap-2">
+            <div key={variant.value} className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-border/50">
                 <Badge className={cn("text-xs", variant.color)}>
                   {variant.label}
                 </Badge>
                 <span className="text-xs text-muted-foreground">
-                  ({groupedLogos[variant.value]?.length || 0})
+                  ({groupedLogos[variant.value]?.length || 0} logo{(groupedLogos[variant.value]?.length || 0) !== 1 ? 's' : ''})
                 </span>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {groupedLogos[variant.value]?.map((logo, index) => renderLogoCard(logo, index))}
                 {canEdit && renderUploadZone(variant.value)}
               </div>
@@ -387,7 +451,7 @@ export const UnifiedLogoSection = ({
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {logos.map((logo, index) => renderLogoCard(logo, index))}
               {canEdit && (
                 <Card className="border-dashed flex items-center justify-center min-h-[200px]">
