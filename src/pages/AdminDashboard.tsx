@@ -42,7 +42,7 @@ import { BrandAnalyticsHub } from '@/components/admin/BrandAnalyticsHub';
 import { BulkRepairTool } from '@/components/admin/BulkRepairTool';
 import { HiddenSectionsScanner } from '@/components/admin/HiddenSectionsScanner';
 import { MembersManager } from '@/components/admin/MembersManager';
-import { ChunkedBackupManager } from '@/components/admin/ChunkedBackupManager';
+import { CompressedBackupManager } from '@/components/admin/CompressedBackupManager';
 
 interface DashboardStats {
   totalUsers: number;
@@ -1155,7 +1155,7 @@ export default function AdminDashboard() {
           <TabsContent value="backups" className="space-y-6">
             <div className="grid gap-6">
               {organizations.map((org) => (
-                <ChunkedBackupManager
+                <CompressedBackupManager
                   key={org.id}
                   organizationId={org.id}
                   organizationName={org.name}
