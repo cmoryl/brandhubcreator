@@ -30,6 +30,7 @@ import { BrochuresSection } from './BrochuresSection';
 import { TemplatesSection } from './TemplatesSection';
 import { TemplateSpecsSection } from './TemplateSpecsSection';
 import { ProductsSection } from './ProductsSection';
+import { EventsSection } from './EventsSection';
 import { WebinarSeriesSection } from './WebinarSeriesSection';
 import { Separator } from '@/components/ui/separator';
 import { ScrollAnimate, AnimationType } from '@/components/ui/scroll-animate';
@@ -65,7 +66,8 @@ const sectionAnimations: Record<string, AnimationType> = {
   brochures: 'fade-up',
   templates: 'zoom-in',
   templatespecs: 'fade-up',
-  products: 'fade-up'
+  products: 'fade-up',
+  events: 'fade-up'
 };
 
 // Memoized section wrapper with scroll animations
@@ -276,6 +278,11 @@ export const FullBrandPage = ({
         return brand.type === 'brand' 
           ? <ProductsSection brandId={brandId} linkedGuides={brand.linkedGuides || []} onLinkedGuidesChange={editHandler((linkedGuides) => onBrandUpdate({ linkedGuides }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />
           : <ProductsSection productId={brandId} linkedGuides={brand.linkedGuides || []} onLinkedGuidesChange={editHandler((linkedGuides) => onBrandUpdate({ linkedGuides }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />;
+      case 'events':
+        // Events section only for brands
+        return brand.type === 'brand' 
+          ? <EventsSection brandId={brandId} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />
+          : null;
       default: return null;
     }
   }, [brand, brandId, onBrandUpdate, sectionSubtitles, sectionLayouts, handleSubtitleChange, handleLayoutChange, heroFullWidth, onOpenIntelligence, canEdit]);
