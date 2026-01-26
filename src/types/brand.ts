@@ -115,6 +115,7 @@ export interface BrandTextStyle {
   size: string;
   weight: string;
   lineHeight: string;
+  sampleText?: string; // Custom sample text for preview
 }
 
 // ICONOGRAPHY - Neural Vectors

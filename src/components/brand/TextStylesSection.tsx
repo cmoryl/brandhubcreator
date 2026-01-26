@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { Plus, X, Pencil, Copy, Check, Wand2 } from 'lucide-react';
+import { Plus, X, Pencil, Copy, Check, Wand2, GripVertical, LayoutGrid, List } from 'lucide-react';
 import { BrandTextStyle } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SectionHeader } from './SectionHeader';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Label } from '@/components/ui/label';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 
 interface TextStylesSectionProps {
   textStyles: BrandTextStyle[];
@@ -23,6 +27,23 @@ interface TextStylesSectionProps {
 
 const tagOptions = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'p.lead', 'p.small', 'p.caption', 'blockquote', 'span', 'small'];
 const weightOptions = ['100', '200', '300', '400', '500', '600', '700', '800', '900'];
+
+// Default sample texts for each tag type
+const defaultSampleTexts: Record<string, string> = {
+  h1: 'Main Page Heading',
+  h2: 'Section Title',
+  h3: 'Subsection Heading',
+  h4: 'Card or Feature Title',
+  h5: 'Small Component Title',
+  h6: 'Label or Category',
+  'p.lead': 'This is a lead paragraph that introduces the main content. It\'s designed to capture attention and provide context.',
+  p: 'This is standard body text used throughout the content. It provides detailed information and maintains readability across different screen sizes.',
+  'p.small': 'Smaller text for secondary information or metadata.',
+  'p.caption': 'Caption text for images, tables, or figures.',
+  blockquote: '"Great design is about creating experiences that resonate with your audience."',
+  small: 'Fine print and legal disclaimers.',
+  span: 'Label Text',
+};
 
 // Approved text style presets
 const stylePresets = {
@@ -93,10 +114,13 @@ const presetCollections = [
   },
 ];
 
+type ViewMode = 'column' | 'list';
+
 export const TextStylesSection = ({ textStyles, onTextStylesChange, customSubtitle, onSubtitleChange }: TextStylesSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('column');
 
   const addTextStyle = () => {
     const newStyle: BrandTextStyle = {
@@ -105,6 +129,7 @@ export const TextStylesSection = ({ textStyles, onTextStylesChange, customSubtit
       size: '16px',
       weight: '400',
       lineHeight: '1.65',
+      sampleText: defaultSampleTexts['p'],
     };
     onTextStylesChange([...textStyles, newStyle]);
     setEditingId(newStyle.id);
@@ -117,6 +142,7 @@ export const TextStylesSection = ({ textStyles, onTextStylesChange, customSubtit
       size: preset.size,
       weight: preset.weight,
       lineHeight: preset.lineHeight,
+      sampleText: defaultSampleTexts[preset.tag],
     };
     onTextStylesChange([...textStyles, newStyle]);
   };
@@ -128,6 +154,7 @@ export const TextStylesSection = ({ textStyles, onTextStylesChange, customSubtit
       size: style.size,
       weight: style.weight,
       lineHeight: style.lineHeight,
+      sampleText: defaultSampleTexts[style.tag],
     }));
     onTextStylesChange(newStyles);
   };
@@ -176,12 +203,303 @@ export const TextStylesSection = ({ textStyles, onTextStylesChange, customSubtit
     return `<${tag}>`;
   };
 
+  // Get friendly name for tag
+  const getTagName = (tag: string) => {
+    const names: Record<string, string> = {
+      h1: 'Heading 1',
+      h2: 'Heading 2',
+      h3: 'Heading 3',
+      h4: 'Heading 4',
+      h5: 'Heading 5',
+      h6: 'Heading 6',
+      'p.lead': 'Lead Paragraph',
+      p: 'Body Text',
+      'p.small': 'Small Text',
+      'p.caption': 'Caption',
+      blockquote: 'Blockquote',
+      small: 'Fine Print',
+      span: 'Label',
+    };
+    return names[tag] || tag;
+  };
+
   // Get style category color
   const getTagColor = (tag: string) => {
-    if (tag.startsWith('h')) return 'bg-purple-500/20 text-purple-600 dark:text-purple-400';
-    if (tag.startsWith('p')) return 'bg-blue-500/20 text-blue-600 dark:text-blue-400';
-    if (tag === 'blockquote') return 'bg-amber-500/20 text-amber-600 dark:text-amber-400';
-    return 'bg-gray-500/20 text-gray-600 dark:text-gray-400';
+    if (tag.startsWith('h')) return 'bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30';
+    if (tag.startsWith('p')) return 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30';
+    if (tag === 'blockquote') return 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30';
+    return 'bg-gray-500/20 text-gray-600 dark:text-gray-400 border-gray-500/30';
+  };
+
+  // Group styles by category
+  const headingStyles = textStyles.filter(s => s.tag.startsWith('h'));
+  const paragraphStyles = textStyles.filter(s => s.tag.startsWith('p'));
+  const specialStyles = textStyles.filter(s => !s.tag.startsWith('h') && !s.tag.startsWith('p'));
+
+  const getSampleText = (style: BrandTextStyle) => {
+    return style.sampleText || defaultSampleTexts[style.tag] || 'Sample text';
+  };
+
+  const renderStyleCard = (style: BrandTextStyle, index: number) => {
+    const isEditing = editingId === style.id;
+
+    return (
+      <div
+        key={style.id}
+        className={cn(
+          "group relative bg-card rounded-xl border border-border transition-all",
+          isEditing ? "ring-2 ring-primary" : "hover:border-primary/50"
+        )}
+      >
+        {/* Header with tag and actions */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
+          <div className="flex items-center gap-3">
+            <code className={cn('px-2 py-1 rounded text-xs font-mono border', getTagColor(style.tag))}>
+              {getTagDisplay(style.tag)}
+            </code>
+            <span className="text-sm font-medium">{getTagName(style.tag)}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => copyCSS(style)}
+              className="h-8 gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              {copiedId === style.id ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              <span className="text-xs">{copiedId === style.id ? 'Copied' : 'CSS'}</span>
+            </Button>
+            <button
+              onClick={() => setEditingId(isEditing ? null : style.id)}
+              className={cn(
+                "p-2 rounded-md transition-colors",
+                isEditing ? "bg-primary text-primary-foreground" : "hover:bg-secondary opacity-0 group-hover:opacity-100"
+              )}
+              aria-label="Edit style"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => deleteTextStyle(style.id)}
+              className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors opacity-0 group-hover:opacity-100"
+              aria-label="Delete style"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Edit Form */}
+        {isEditing && (
+          <div className="p-4 space-y-4 bg-muted/30 border-b border-border/50">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Tag</Label>
+                <Select
+                  value={style.tag}
+                  onValueChange={(tag) => updateTextStyle(style.id, { tag, sampleText: style.sampleText || defaultSampleTexts[tag] })}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Tag" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="h1">{`<h1>`}</SelectItem>
+                    <SelectItem value="h2">{`<h2>`}</SelectItem>
+                    <SelectItem value="h3">{`<h3>`}</SelectItem>
+                    <SelectItem value="h4">{`<h4>`}</SelectItem>
+                    <SelectItem value="h5">{`<h5>`}</SelectItem>
+                    <SelectItem value="h6">{`<h6>`}</SelectItem>
+                    <SelectItem value="p.lead">{`<p.lead>`}</SelectItem>
+                    <SelectItem value="p">{`<p>`}</SelectItem>
+                    <SelectItem value="p.small">{`<p.small>`}</SelectItem>
+                    <SelectItem value="p.caption">{`<p.caption>`}</SelectItem>
+                    <SelectItem value="blockquote">{`<blockquote>`}</SelectItem>
+                    <SelectItem value="small">{`<small>`}</SelectItem>
+                    <SelectItem value="span">{`<span>`}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Size</Label>
+                <Input
+                  value={style.size}
+                  onChange={(e) => updateTextStyle(style.id, { size: e.target.value })}
+                  placeholder="16px"
+                  className="h-9"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Weight</Label>
+                <Select
+                  value={style.weight}
+                  onValueChange={(weight) => updateTextStyle(style.id, { weight })}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Weight" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="100">100 - Thin</SelectItem>
+                    <SelectItem value="200">200 - Extra Light</SelectItem>
+                    <SelectItem value="300">300 - Light</SelectItem>
+                    <SelectItem value="400">400 - Regular</SelectItem>
+                    <SelectItem value="500">500 - Medium</SelectItem>
+                    <SelectItem value="600">600 - Semi Bold</SelectItem>
+                    <SelectItem value="700">700 - Bold</SelectItem>
+                    <SelectItem value="800">800 - Extra Bold</SelectItem>
+                    <SelectItem value="900">900 - Black</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Line Height</Label>
+                <Input
+                  value={style.lineHeight}
+                  onChange={(e) => updateTextStyle(style.id, { lineHeight: e.target.value })}
+                  placeholder="1.65"
+                  className="h-9"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Sample Text</Label>
+              <Textarea
+                value={style.sampleText || ''}
+                onChange={(e) => updateTextStyle(style.id, { sampleText: e.target.value })}
+                placeholder={defaultSampleTexts[style.tag] || 'Enter sample text...'}
+                rows={2}
+                className="resize-none"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Live Preview */}
+        <div className="p-4">
+          <div 
+            style={{ 
+              fontSize: style.size, 
+              fontWeight: style.weight, 
+              lineHeight: style.lineHeight 
+            }}
+            className="text-foreground break-words"
+          >
+            {getSampleText(style)}
+          </div>
+          <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+            <span>Size: <strong className="text-foreground">{style.size}</strong></span>
+            <span>Weight: <strong className="text-foreground">{style.weight}</strong></span>
+            <span>Line: <strong className="text-foreground">{style.lineHeight}</strong></span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderColumnView = () => {
+    if (textStyles.length === 0) return null;
+
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Headings Column */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-purple-500/30">
+            <div className="w-3 h-3 rounded-full bg-purple-500" />
+            <h3 className="font-semibold text-sm text-purple-600 dark:text-purple-400">Headings</h3>
+            <span className="text-xs text-muted-foreground">({headingStyles.length})</span>
+          </div>
+          <div className="space-y-3">
+            {headingStyles.length > 0 ? (
+              headingStyles.map((style, index) => renderStyleCard(style, index))
+            ) : (
+              <div className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-lg">
+                No heading styles defined
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Paragraphs Column */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-blue-500/30">
+            <div className="w-3 h-3 rounded-full bg-blue-500" />
+            <h3 className="font-semibold text-sm text-blue-600 dark:text-blue-400">Paragraphs</h3>
+            <span className="text-xs text-muted-foreground">({paragraphStyles.length})</span>
+          </div>
+          <div className="space-y-3">
+            {paragraphStyles.length > 0 ? (
+              paragraphStyles.map((style, index) => renderStyleCard(style, index))
+            ) : (
+              <div className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-lg">
+                No paragraph styles defined
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Special Column */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-amber-500/30">
+            <div className="w-3 h-3 rounded-full bg-amber-500" />
+            <h3 className="font-semibold text-sm text-amber-600 dark:text-amber-400">Special</h3>
+            <span className="text-xs text-muted-foreground">({specialStyles.length})</span>
+          </div>
+          <div className="space-y-3">
+            {specialStyles.length > 0 ? (
+              specialStyles.map((style, index) => renderStyleCard(style, index))
+            ) : (
+              <div className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-lg">
+                No special styles defined
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderListView = () => {
+    return (
+      <div className="space-y-4">
+        {textStyles.map((style, index) => renderStyleCard(style, index))}
+      </div>
+    );
+  };
+
+  // Combined preview section showing all styles together
+  const renderCombinedPreview = () => {
+    if (textStyles.length === 0) return null;
+
+    // Get one of each main type for the preview
+    const h1 = textStyles.find(s => s.tag === 'h1');
+    const h2 = textStyles.find(s => s.tag === 'h2');
+    const h3 = textStyles.find(s => s.tag === 'h3');
+    const lead = textStyles.find(s => s.tag === 'p.lead');
+    const body = textStyles.find(s => s.tag === 'p');
+    const caption = textStyles.find(s => s.tag === 'p.caption' || s.tag === 'p.small');
+
+    const previewStyles = [h1, h2, lead, body, h3, body, caption].filter(Boolean);
+
+    if (previewStyles.length < 3) return null;
+
+    return (
+      <div className="mt-8 p-6 rounded-xl border border-border bg-card/50">
+        <h4 className="text-sm font-medium text-muted-foreground mb-4">Typography Preview</h4>
+        <div className="space-y-4 max-w-2xl">
+          {previewStyles.map((style, idx) => (
+            <div
+              key={`preview-${idx}`}
+              style={{
+                fontSize: style!.size,
+                fontWeight: style!.weight,
+                lineHeight: style!.lineHeight,
+              }}
+            >
+              {getSampleText(style!)}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -198,6 +516,16 @@ export const TextStylesSection = ({ textStyles, onTextStylesChange, customSubtit
           />
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          {/* View Toggle */}
+          <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} size="sm">
+            <ToggleGroupItem value="column" aria-label="Column view">
+              <LayoutGrid className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="list" aria-label="List view">
+              <List className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
+
           {/* Preset Collections Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -276,160 +604,24 @@ export const TextStylesSection = ({ textStyles, onTextStylesChange, customSubtit
         </div>
       </div>
 
-      <div className="space-y-4">
-        {textStyles.map((style, index) => (
-          <div
-            key={style.id}
-            className="group relative bg-card rounded-xl p-6 shadow-sm border border-border animate-slide-up"
-            style={{ animationDelay: `${index * 50}ms` }}
+      {/* Main Content */}
+      {textStyles.length === 0 ? (
+        <div className="space-y-4">
+          <button 
+            onClick={addTextStyle}
+            className="w-full h-32 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors"
           >
-            {editingId === style.id ? (
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <Select
-                  value={style.tag}
-                  onValueChange={(tag) => updateTextStyle(style.id, { tag })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tag" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="h1">{`<h1>`} - Display</SelectItem>
-                    <SelectItem value="h2">{`<h2>`} - Section</SelectItem>
-                    <SelectItem value="h3">{`<h3>`} - Subsection</SelectItem>
-                    <SelectItem value="h4">{`<h4>`} - Card Title</SelectItem>
-                    <SelectItem value="h5">{`<h5>`} - Small Title</SelectItem>
-                    <SelectItem value="h6">{`<h6>`} - Micro</SelectItem>
-                    <SelectItem value="p.lead">{`<p.lead>`} - Lead Paragraph</SelectItem>
-                    <SelectItem value="p">{`<p>`} - Body Text</SelectItem>
-                    <SelectItem value="p.small">{`<p.small>`} - Small Body</SelectItem>
-                    <SelectItem value="p.caption">{`<p.caption>`} - Caption</SelectItem>
-                    <SelectItem value="blockquote">{`<blockquote>`} - Quote</SelectItem>
-                    <SelectItem value="small">{`<small>`} - Fine Print</SelectItem>
-                    <SelectItem value="span">{`<span>`} - Label</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input
-                  value={style.size}
-                  onChange={(e) => updateTextStyle(style.id, { size: e.target.value })}
-                  placeholder="Size (e.g., 16px, 1rem)"
-                />
-                <Select
-                  value={style.weight}
-                  onValueChange={(weight) => updateTextStyle(style.id, { weight })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Weight" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="100">100 - Thin</SelectItem>
-                    <SelectItem value="200">200 - Extra Light</SelectItem>
-                    <SelectItem value="300">300 - Light</SelectItem>
-                    <SelectItem value="400">400 - Regular</SelectItem>
-                    <SelectItem value="500">500 - Medium</SelectItem>
-                    <SelectItem value="600">600 - Semi Bold</SelectItem>
-                    <SelectItem value="700">700 - Bold</SelectItem>
-                    <SelectItem value="800">800 - Extra Bold</SelectItem>
-                    <SelectItem value="900">900 - Black</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input
-                  value={style.lineHeight}
-                  onChange={(e) => updateTextStyle(style.id, { lineHeight: e.target.value })}
-                  placeholder="Line height (e.g., 1.65)"
-                />
-                <Button size="sm" variant="secondary" onClick={() => setEditingId(null)} className="sm:col-span-4">
-                  Done
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                  <code className={`px-3 py-1.5 rounded-md text-sm font-mono ${getTagColor(style.tag)}`}>
-                    {getTagDisplay(style.tag)}
-                  </code>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>Size: <strong className="text-foreground">{style.size}</strong></span>
-                    <span>Weight: <strong className="text-foreground">{style.weight}</strong></span>
-                    <span>Line Height: <strong className="text-foreground">{style.lineHeight}</strong></span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => copyCSS(style)}
-                    className="gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    {copiedId === style.id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    {copiedId === style.id ? 'Copied!' : 'Copy CSS'}
-                  </Button>
-                  <button
-                    onClick={() => setEditingId(style.id)}
-                    className="p-2 rounded-md hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100"
-                    aria-label="Edit style"
-                  >
-                    <Pencil className="h-4 w-4 text-muted-foreground" />
-                  </button>
-                  <button
-                    onClick={() => deleteTextStyle(style.id)}
-                    className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors opacity-0 group-hover:opacity-100"
-                    aria-label="Delete style"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Live Preview */}
-            {editingId !== style.id && (
-              <div className="mt-4 pt-4 border-t border-border/50">
-                <div 
-                  style={{ 
-                    fontSize: style.size, 
-                    fontWeight: style.weight, 
-                    lineHeight: style.lineHeight 
-                  }}
-                  className="text-foreground"
-                >
-                  {style.tag.startsWith('h') 
-                    ? 'The quick brown fox jumps over the lazy dog'
-                    : style.tag === 'blockquote'
-                    ? '"Design is not just what it looks like and feels like. Design is how it works."'
-                    : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'}
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-
-        {textStyles.length === 0 && (
-          <div className="space-y-4">
-            <button
-              onClick={addTextStyle}
-              className="w-full h-24 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors"
-            >
-              <Plus className="h-6 w-6" />
-              <span className="text-sm font-medium">Add your first text style</span>
-            </button>
-            
-            {/* Quick Start Suggestions */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {presetCollections.map((collection) => (
-                <button
-                  key={collection.name}
-                  onClick={() => applyPresetCollection(collection)}
-                  className="p-4 rounded-lg border border-border hover:border-accent hover:bg-accent/5 transition-colors text-left"
-                >
-                  <div className="font-medium text-sm">{collection.name}</div>
-                  <div className="text-xs text-muted-foreground mt-1">{collection.description}</div>
-                  <div className="text-xs text-accent mt-2">{collection.styles.length} styles →</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+            <Plus className="h-8 w-8" />
+            <span className="text-sm font-medium">Add your first text style</span>
+            <span className="text-xs">or use a preset collection above</span>
+          </button>
+        </div>
+      ) : (
+        <>
+          {viewMode === 'column' ? renderColumnView() : renderListView()}
+          {viewMode === 'column' && renderCombinedPreview()}
+        </>
+      )}
     </section>
   );
 };
