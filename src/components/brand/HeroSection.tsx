@@ -148,6 +148,20 @@ export const HeroSection = ({
 
     // For video files, use the compression dialog
     if (field === 'coverVideo') {
+      // Accept any video file regardless of extension
+      const isVideo = file.type.startsWith('video/') || 
+                      file.name.toLowerCase().endsWith('.mov') ||
+                      file.name.toLowerCase().endsWith('.mp4') ||
+                      file.name.toLowerCase().endsWith('.webm');
+      
+      if (!isVideo) {
+        alert('Please select a video file (.mov, .mp4, or .webm)');
+        if (videoInputRef.current) {
+          videoInputRef.current.value = '';
+        }
+        return;
+      }
+
       setPendingVideoFile(file);
       setVideoUploadDialogOpen(true);
       // Reset input for re-selection
@@ -209,7 +223,7 @@ export const HeroSection = ({
       <input
         ref={videoInputRef}
         type="file"
-        accept={getAcceptedVideoFormats()}
+        accept="video/*,.mov,.mp4,.webm,.MOV,.MP4,.WEBM"
         onChange={(e) => handleFileUpload(e, 'coverVideo')}
         className="hidden"
       />
@@ -309,30 +323,22 @@ export const HeroSection = ({
                   onValueChange={toggleMediaType}
                   className="bg-white/10 backdrop-blur-md rounded-full p-1 border border-white/20"
                 >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <ToggleGroupItem 
-                        value="image" 
-                        className="text-white data-[state=on]:bg-white/20 data-[state=on]:text-white rounded-full px-4"
-                      >
-                        <ImageIcon className="h-4 w-4 mr-2" />
-                        Image
-                      </ToggleGroupItem>
-                    </TooltipTrigger>
-                    <TooltipContent>Use static image background</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <ToggleGroupItem 
-                        value="video" 
-                        className="text-white data-[state=on]:bg-white/20 data-[state=on]:text-white rounded-full px-4"
-                      >
-                        <Video className="h-4 w-4 mr-2" />
-                        Video
-                      </ToggleGroupItem>
-                    </TooltipTrigger>
-                    <TooltipContent>Use looping video background</TooltipContent>
-                  </Tooltip>
+                  <ToggleGroupItem 
+                    value="image" 
+                    className="text-white data-[state=on]:bg-white/20 data-[state=on]:text-white rounded-full px-4"
+                    title="Use static image background"
+                  >
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    Image
+                  </ToggleGroupItem>
+                  <ToggleGroupItem 
+                    value="video" 
+                    className="text-white data-[state=on]:bg-white/20 data-[state=on]:text-white rounded-full px-4"
+                    title="Use looping video background"
+                  >
+                    <Video className="h-4 w-4 mr-2" />
+                    Video
+                  </ToggleGroupItem>
                 </ToggleGroup>
               </div>
               
