@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Upload, Image, Pencil, Check, TrendingUp, Eye, Users, Share2, Heart, BarChart3, Sparkles, Brain, Video, ImageIcon } from 'lucide-react';
+import { Upload, Image, Pencil, Check, TrendingUp, Eye, Users, Share2, Heart, BarChart3, Sparkles, Brain, Video, ImageIcon, Move } from 'lucide-react';
 import { BrandHero } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { VideoUploadDialog } from '@/components/ui/video-upload-dialog';
 import { getAcceptedVideoFormats } from '@/lib/videoCompression';
 import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
+import { cn } from '@/lib/utils';
 
 interface HeroStats {
   views?: number;
@@ -233,6 +234,11 @@ export const HeroSection = ({
     }
   };
 
+  const toggleKenBurns = () => {
+    if (!onHeroChange) return;
+    onHeroChange({ ...hero, kenBurnsEffect: !hero.kenBurnsEffect });
+  };
+
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
@@ -272,15 +278,16 @@ export const HeroSection = ({
         ref={heroRef}
         className={`relative overflow-hidden ${fullWidth ? '-mx-4 sm:-mx-6 lg:-mx-8 xl:-mx-12 2xl:-mx-16' : '-mx-4 sm:-mx-6 lg:-mx-8'}`}
       >
-        {/* Cover Image/Video - Enhanced Height with Parallax and optimized loading */}
+        {/* Cover Image/Video - Enhanced Height with Parallax/Ken Burns and optimized loading */}
         <BackgroundImage
           src={hero.coverImage || ''}
           videoSrc={hero.coverVideo}
           preferVideo={hero.useVideo ?? true}
+          kenBurnsEffect={!hero.useVideo && hero.kenBurnsEffect}
           fallbackSrc=""
           className={`relative ${heroHeight} cursor-pointer group`}
           priority={true}
-          parallax={true}
+          parallax={!hero.kenBurnsEffect}
           parallaxOffset={parallaxOffset}
           onClick={() => isEditing && (hero.useVideo ? videoInputRef.current?.click() : coverInputRef.current?.click())}
         >
@@ -373,6 +380,28 @@ export const HeroSection = ({
                   </ToggleGroupItem>
                 </ToggleGroup>
               </div>
+
+              {/* Ken Burns Effect Toggle - Only for images */}
+              {!hero.useVideo && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleKenBurns();
+                  }}
+                  className={cn(
+                    "pointer-events-auto flex items-center gap-2 px-4 py-2 rounded-full border transition-all",
+                    hero.kenBurnsEffect 
+                      ? "bg-white/25 border-white/40 text-white" 
+                      : "bg-white/10 border-white/20 text-white/80 hover:bg-white/15 hover:text-white"
+                  )}
+                  title="Ken Burns: Slow cinematic pan and zoom effect"
+                >
+                  <Move className="h-4 w-4" />
+                  <span className="text-sm font-medium">Ken Burns Effect</span>
+                  {hero.kenBurnsEffect && <Check className="h-3 w-3" />}
+                </button>
+              )}
               
               {/* Upload prompt */}
               <div className="text-white flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20 pointer-events-auto cursor-pointer"

@@ -47,6 +47,8 @@ export interface BrandHero {
   coverVideo?: string;
   /** Whether to use video instead of image when both are present */
   useVideo?: boolean;
+  /** Whether to apply Ken Burns (slow pan/zoom) effect to hero image */
+  kenBurnsEffect?: boolean;
   logoUrl: string;
 }
 
