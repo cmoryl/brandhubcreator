@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Calendar, Building2, Brain } from 'lucide-react';
+import { toast } from 'sonner';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { EventSectionId, DEFAULT_EVENT_SECTION_ORDER, EventGuide } from '@/types/event';
@@ -13,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { normalizeEventGuide } from '@/lib/guideNormalization';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { useEvents } from '@/contexts/EventContext';
+import { Json } from '@/integrations/supabase/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useSEO } from '@/hooks/useSEO';
@@ -166,21 +168,23 @@ const EventEditor = () => {
     return getEventBySlug(eventSlug);
   }, [eventSlug, getEvent, getEventBySlug]);
 
-  // Fetch public event if not in context
+  // Fetch public event if not in context AND context is done loading
   const hasFetchedPublicRef = useRef<string | null>(null);
   
   useEffect(() => {
     const fetchPublicEvent = async () => {
-      if (!eventSlug || contextEvent || hasFetchedPublicRef.current === eventSlug) return;
+      // Wait for context to finish loading before falling back to public fetch
+      // This prevents the race condition where we fetch public data while context is still loading
+      if (!eventSlug || contextEvent || isLoading || hasFetchedPublicRef.current === eventSlug) return;
       
       setPublicEventLoading(true);
       hasFetchedPublicRef.current = eventSlug;
       
       try {
+        // For logged-in users, try fetching without public filter first (they may own it)
         let query = supabase
           .from('events')
-          .select('*')
-          .eq('is_public', true);
+          .select('*');
         
         if (isUUID(eventSlug)) {
           query = query.eq('id', eventSlug);
@@ -218,7 +222,7 @@ const EventEditor = () => {
     };
     
     fetchPublicEvent();
-  }, [eventSlug, contextEvent]);
+  }, [eventSlug, contextEvent, isLoading]);
   
   const event = contextEvent || publicEvent;
   
@@ -310,11 +314,52 @@ const EventEditor = () => {
   }, [viewMode]);
 
   // Stable update function - must be before early returns to maintain hooks order
-  const updateEvent = useCallback((updates: Partial<EventGuide>) => {
-    if (event) {
+  // Handles both context events and directly-fetched public events
+  const updateEvent = useCallback(async (updates: Partial<EventGuide>) => {
+    if (!event) return;
+    
+    // If event is in context, use context updater
+    if (contextEvent) {
       updateEventContext(event.id, updates);
+      return;
     }
-  }, [event, updateEventContext]);
+    
+    // For public events not in context, update directly via Supabase
+    // This handles the case where user is editing an event loaded via public fetch
+    if (publicEvent && user) {
+      // Optimistic update to local state
+      setPublicEvent(prev => prev ? { ...prev, ...updates, updatedAt: new Date() } : null);
+      
+      // Sync to database
+      try {
+        const { hero, tagline, identity, values, eventDetails, ...rest } = { ...publicEvent, ...updates };
+        const guideData = {
+          hero, tagline, identity, values, eventDetails,
+          ...rest,
+        };
+        // Remove non-guide fields
+        const { id, type, slug, organizationId, parentBrandId, isFavorite, isPublic, sectionOrder, hiddenSections, createdAt, updatedAt, ...cleanGuideData } = guideData as EventGuide & Record<string, unknown>;
+        
+        const { error } = await supabase
+          .from('events')
+          .update({
+            name: hero?.name || publicEvent.hero.name,
+            guide_data: cleanGuideData as unknown as Json,
+            section_order: sectionOrder as string[] | null,
+            hidden_sections: hiddenSections as string[] | null,
+          })
+          .eq('id', event.id);
+        
+        if (error) {
+          console.error('Failed to update event:', error);
+          toast.error('Failed to save changes');
+        }
+      } catch (err) {
+        console.error('Failed to update event:', err);
+        toast.error('Failed to save changes');
+      }
+    }
+  }, [event, contextEvent, publicEvent, user, updateEventContext]);
 
   // Unified section renderer - must be defined before early returns to maintain hooks order
   // Returns null if event is not loaded yet
