@@ -27,7 +27,7 @@ const sections: { id: SectionId; label: string; icon: React.ElementType; categor
   { id: 'patterns', label: 'Geometric Primitives', icon: Grid3X3, category: 'Visual' },
   { id: 'typography', label: 'Type Registry', icon: Type, category: 'Typography' },
   { id: 'textstyles', label: 'CSS Hierarchies', icon: Code, category: 'Typography' },
-  { id: 'iconography', label: 'Neural Vectors', icon: Layers, category: 'Assets' },
+  { id: 'iconography', label: 'Iconography', icon: Layers, category: 'Assets' },
   { id: 'socialicons', label: 'Platform Markers', icon: Share2, category: 'Assets' },
   { id: 'imagery', label: 'Visual Direction', icon: Camera, category: 'Assets' },
   { id: 'social', label: 'Social Registry', icon: Users, category: 'Communication' },

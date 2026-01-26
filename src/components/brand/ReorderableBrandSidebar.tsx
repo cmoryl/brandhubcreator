@@ -51,7 +51,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   patterns: { label: 'Geometric Primitives', icon: Grid3X3, category: 'Visual' },
   typography: { label: 'Type Registry', icon: Type, category: 'Typography' },
   textstyles: { label: 'CSS Hierarchies', icon: Code, category: 'Typography' },
-  iconography: { label: 'Neural Vectors', icon: Layers, category: 'Assets' },
+  iconography: { label: 'Iconography', icon: Layers, category: 'Assets' },
   socialicons: { label: 'Platform Markers', icon: Share2, category: 'Assets' },
   imagery: { label: 'Visual Direction', icon: Camera, category: 'Assets' },
   social: { label: 'Social Registry', icon: Users, category: 'Communication' },
