@@ -191,9 +191,9 @@ export const HierarchicalEventCard = memo(React.forwardRef<HTMLDivElement, Hiera
                 </div>
               )}
               
-              <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-accent/80 text-sm">
+              <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-primary hover:bg-transparent text-sm">
                 View Guidelines
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </div>
           </CardContent>
