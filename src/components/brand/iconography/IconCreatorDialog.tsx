@@ -40,6 +40,9 @@ import {
   RotateCcw,
   Copy,
   Sparkles,
+  Grid,
+  ChevronRight,
+  ChevronLeft,
   type LucideIcon,
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
@@ -61,18 +64,68 @@ const LUCIDE_ICON_NAMES = Object.keys(LucideIcons).filter(
     key.charAt(0) === key.charAt(0).toUpperCase()
 );
 
-// Icon categories for filtering
-const LUCIDE_CATEGORIES: Record<string, string[]> = {
-  'Navigation': ['Home', 'Menu', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'ChevronLeft', 'ChevronRight', 'ChevronUp', 'ChevronDown', 'CornerUpLeft', 'CornerUpRight', 'Navigation', 'Compass', 'Map', 'MapPin'],
-  'Actions': ['Plus', 'Minus', 'X', 'Check', 'Edit', 'Trash', 'Copy', 'Clipboard', 'Download', 'Upload', 'Share', 'Send', 'Save', 'Refresh', 'RotateCcw', 'Undo', 'Redo'],
-  'Social': ['Facebook', 'Twitter', 'Instagram', 'Linkedin', 'Youtube', 'Github', 'Gitlab', 'Slack', 'Discord', 'Twitch'],
-  'Status': ['AlertCircle', 'AlertTriangle', 'Info', 'HelpCircle', 'CheckCircle', 'XCircle', 'Clock', 'Loader', 'Loader2', 'Hourglass'],
-  'Commerce': ['ShoppingCart', 'ShoppingBag', 'CreditCard', 'DollarSign', 'Euro', 'Wallet', 'Receipt', 'Gift', 'Package', 'Truck', 'Store'],
-  'Media': ['Play', 'Pause', 'SkipBack', 'SkipForward', 'Volume', 'Volume1', 'Volume2', 'VolumeX', 'Music', 'Video', 'Camera', 'Image', 'Film'],
-  'Communication': ['Mail', 'MessageCircle', 'MessageSquare', 'Phone', 'PhoneCall', 'Bell', 'BellRing', 'AtSign', 'Hash', 'Send'],
-  'Files': ['File', 'FileText', 'Folder', 'FolderOpen', 'Archive', 'Paperclip', 'Link', 'FileCode', 'FileImage', 'FilePlus'],
-  'Users': ['User', 'Users', 'UserPlus', 'UserMinus', 'UserCheck', 'UserX', 'Contact', 'Smile', 'Frown', 'Meh'],
-  'Settings': ['Settings', 'Sliders', 'SlidersHorizontal', 'Cog', 'Wrench', 'Tool', 'Hammer', 'Lock', 'Unlock', 'Key', 'Shield'],
+// Icon categories for filtering - expanded with more icons per category
+const LUCIDE_CATEGORIES: Record<string, { icons: string[]; description: string }> = {
+  'Navigation': {
+    icons: ['Home', 'Menu', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'ChevronLeft', 'ChevronRight', 'ChevronUp', 'ChevronDown', 'CornerUpLeft', 'CornerUpRight', 'Navigation', 'Compass', 'Map', 'MapPin', 'Move', 'MoveHorizontal', 'MoveVertical', 'Locate', 'LocateFixed', 'Navigation2', 'Route', 'Signpost'],
+    description: 'Arrows, menus & wayfinding'
+  },
+  'Actions': {
+    icons: ['Plus', 'Minus', 'X', 'Check', 'Edit', 'Edit2', 'Edit3', 'Trash', 'Trash2', 'Copy', 'Clipboard', 'ClipboardCheck', 'ClipboardCopy', 'Download', 'Upload', 'Share', 'Share2', 'Send', 'Save', 'Refresh', 'RotateCcw', 'RotateCw', 'Undo', 'Undo2', 'Redo', 'Redo2', 'ExternalLink', 'Link', 'Link2', 'Unlink', 'Maximize', 'Minimize', 'Maximize2', 'Minimize2'],
+    description: 'Common action buttons'
+  },
+  'Social': {
+    icons: ['Facebook', 'Twitter', 'Instagram', 'Linkedin', 'Youtube', 'Github', 'Gitlab', 'Slack', 'Discord', 'Twitch', 'Dribbble', 'Figma', 'Chrome', 'Codepen'],
+    description: 'Social media & platforms'
+  },
+  'Status': {
+    icons: ['AlertCircle', 'AlertTriangle', 'AlertOctagon', 'Info', 'HelpCircle', 'CheckCircle', 'CheckCircle2', 'XCircle', 'XOctagon', 'Clock', 'Clock1', 'Clock2', 'Clock3', 'Clock4', 'Loader', 'Loader2', 'Hourglass', 'Timer', 'TimerOff', 'Ban', 'CircleDot', 'CircleSlash'],
+    description: 'Alerts, loading & status'
+  },
+  'Commerce': {
+    icons: ['ShoppingCart', 'ShoppingBag', 'CreditCard', 'DollarSign', 'Euro', 'PoundSterling', 'Wallet', 'Wallet2', 'Receipt', 'Gift', 'Package', 'Package2', 'Truck', 'Store', 'Banknote', 'Coins', 'PiggyBank', 'BadgeDollarSign', 'BadgePercent', 'Percent', 'Tag', 'Tags', 'Barcode', 'QrCode'],
+    description: 'Shopping & payments'
+  },
+  'Media': {
+    icons: ['Play', 'Pause', 'PlayCircle', 'PauseCircle', 'SkipBack', 'SkipForward', 'Rewind', 'FastForward', 'Volume', 'Volume1', 'Volume2', 'VolumeX', 'Music', 'Music2', 'Music3', 'Music4', 'Video', 'VideoOff', 'Camera', 'CameraOff', 'Image', 'Images', 'Film', 'Clapperboard', 'Mic', 'MicOff', 'Headphones', 'Radio', 'Podcast', 'MonitorPlay'],
+    description: 'Audio, video & media'
+  },
+  'Communication': {
+    icons: ['Mail', 'MailOpen', 'MailPlus', 'MailMinus', 'MailCheck', 'MailX', 'MessageCircle', 'MessageSquare', 'MessagesSquare', 'Phone', 'PhoneCall', 'PhoneIncoming', 'PhoneOutgoing', 'PhoneMissed', 'PhoneOff', 'Bell', 'BellRing', 'BellOff', 'BellPlus', 'AtSign', 'Hash', 'Send', 'SendHorizontal', 'Reply', 'ReplyAll', 'Forward'],
+    description: 'Messages & notifications'
+  },
+  'Files': {
+    icons: ['File', 'FileText', 'FileCode', 'FileCode2', 'FileJson', 'FileImage', 'FileVideo', 'FileAudio', 'FileArchive', 'FilePlus', 'FilePlus2', 'FileMinus', 'FileCheck', 'FileX', 'FileSearch', 'FileEdit', 'Folder', 'FolderOpen', 'FolderPlus', 'FolderMinus', 'FolderCheck', 'FolderX', 'FolderSearch', 'Archive', 'Paperclip', 'FileBadge', 'FileSpreadsheet'],
+    description: 'Documents & folders'
+  },
+  'Users': {
+    icons: ['User', 'UserCircle', 'UserCircle2', 'Users', 'Users2', 'UserPlus', 'UserPlus2', 'UserMinus', 'UserMinus2', 'UserCheck', 'UserCheck2', 'UserX', 'UserX2', 'UserCog', 'Contact', 'Contact2', 'Smile', 'Frown', 'Meh', 'Angry', 'Laugh', 'PersonStanding', 'Accessibility', 'Baby', 'HeartHandshake'],
+    description: 'People & profiles'
+  },
+  'Settings': {
+    icons: ['Settings', 'Settings2', 'Sliders', 'SlidersHorizontal', 'Cog', 'Wrench', 'Tool', 'Hammer', 'Lock', 'LockOpen', 'Unlock', 'Key', 'KeyRound', 'Shield', 'ShieldCheck', 'ShieldAlert', 'ShieldOff', 'Eye', 'EyeOff', 'Filter', 'SortAsc', 'SortDesc', 'Gauge', 'ToggleLeft', 'ToggleRight'],
+    description: 'Configuration & security'
+  },
+  'Development': {
+    icons: ['Code', 'Code2', 'Terminal', 'TerminalSquare', 'Braces', 'Brackets', 'Bug', 'Database', 'Server', 'HardDrive', 'Cpu', 'Binary', 'GitBranch', 'GitCommit', 'GitMerge', 'GitPullRequest', 'GitFork', 'Webhook', 'Api', 'Blocks', 'Component', 'Puzzle', 'Variable'],
+    description: 'Code & technical'
+  },
+  'Layout': {
+    icons: ['Layout', 'LayoutDashboard', 'LayoutGrid', 'LayoutList', 'LayoutTemplate', 'PanelLeft', 'PanelRight', 'PanelTop', 'PanelBottom', 'Columns', 'Rows', 'Grid', 'Grid2x2', 'Grid3x3', 'Table', 'Table2', 'Kanban', 'GalleryHorizontal', 'GalleryVertical', 'Sidebar', 'SidebarOpen', 'SidebarClose', 'Layers', 'Layers2', 'Layers3'],
+    description: 'UI structure & grids'
+  },
+  'Charts': {
+    icons: ['BarChart', 'BarChart2', 'BarChart3', 'BarChart4', 'BarChartHorizontal', 'LineChart', 'PieChart', 'Activity', 'TrendingUp', 'TrendingDown', 'ArrowUpRight', 'ArrowDownRight', 'Target', 'Goal', 'Gauge', 'Percent', 'Calculator'],
+    description: 'Data visualization'
+  },
+  'Weather': {
+    icons: ['Sun', 'Moon', 'Cloud', 'CloudRain', 'CloudSnow', 'CloudLightning', 'CloudSun', 'CloudMoon', 'CloudFog', 'Cloudy', 'Wind', 'Snowflake', 'Thermometer', 'ThermometerSun', 'ThermometerSnowflake', 'Umbrella', 'Rainbow', 'Sunrise', 'Sunset', 'Eclipse'],
+    description: 'Climate & conditions'
+  },
+  'Nature': {
+    icons: ['Leaf', 'TreeDeciduous', 'TreePine', 'Trees', 'Flower', 'Flower2', 'Sprout', 'Mountain', 'MountainSnow', 'Waves', 'Droplet', 'Droplets', 'Flame', 'Zap', 'ZapOff', 'Star', 'Sparkle', 'Sparkles', 'Globe', 'Globe2', 'Earth'],
+    description: 'Environment & elements'
+  },
 };
 
 // Style presets - comprehensive collection for professional icon design
@@ -166,12 +219,13 @@ export const IconCreatorDialog = ({
   const [iconCategory, setIconCategory] = useState<string>('Other');
   const [iconName, setIconName] = useState('');
 
-  // Filter Lucide icons
+  // Filter Lucide icons - supports category grouping and search
   const filteredIcons = useMemo(() => {
     let icons = LUCIDE_ICON_NAMES;
     
     if (selectedCategory !== 'all') {
-      const categoryIcons = LUCIDE_CATEGORIES[selectedCategory] || [];
+      const categoryData = LUCIDE_CATEGORIES[selectedCategory];
+      const categoryIcons = categoryData?.icons || [];
       icons = icons.filter(name => categoryIcons.includes(name));
     }
     
@@ -182,6 +236,20 @@ export const IconCreatorDialog = ({
     
     return icons.slice(0, 200); // Limit for performance
   }, [searchQuery, selectedCategory]);
+
+  // Get icons grouped by category for "all" view
+  const groupedIcons = useMemo(() => {
+    if (selectedCategory !== 'all' || searchQuery) return null;
+    
+    const groups: Record<string, string[]> = {};
+    Object.entries(LUCIDE_CATEGORIES).forEach(([catName, catData]) => {
+      const validIcons = catData.icons.filter(name => LUCIDE_ICON_NAMES.includes(name));
+      if (validIcons.length > 0) {
+        groups[catName] = validIcons.slice(0, 12); // Show preview of 12 icons per category
+      }
+    });
+    return groups;
+  }, [selectedCategory, searchQuery]);
 
   // Toggle icon selection
   const toggleIconSelection = (iconName: string) => {
@@ -489,67 +557,193 @@ export const IconCreatorDialog = ({
 
               {/* Library Tab */}
               <TabsContent value="library" className="flex-1 flex flex-col space-y-4 overflow-hidden mt-4">
+                {/* Search and Filter Bar */}
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search 1400+ icons..."
+                      placeholder="Search 1500+ icons..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10"
                     />
+                    {searchQuery && (
+                      <button 
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-[200px]">
                       <SelectValue placeholder="All Categories" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      {Object.keys(LUCIDE_CATEGORIES).map(cat => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      <SelectItem value="all">
+                        <div className="flex items-center gap-2">
+                          <Grid className="h-4 w-4" />
+                          <span>All Categories</span>
+                        </div>
+                      </SelectItem>
+                      {Object.entries(LUCIDE_CATEGORIES).map(([cat, data]) => (
+                        <SelectItem key={cat} value={cat}>
+                          <div className="flex flex-col">
+                            <span>{cat}</span>
+                            <span className="text-xs text-muted-foreground">{data.description}</span>
+                          </div>
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
+                {/* Selection Info */}
                 {selectedIcons.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">{selectedIcons.length} selected</Badge>
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedIcons([])}>
+                  <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                    <Badge variant="secondary" className="gap-1">
+                      <Check className="h-3 w-3" />
+                      {selectedIcons.length} selected
+                    </Badge>
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedIcons([])} className="h-7 text-xs">
                       Clear all
                     </Button>
+                    <div className="flex-1" />
+                    <div className="flex gap-1 overflow-hidden max-w-[200px]">
+                      {selectedIcons.slice(0, 5).map(name => {
+                        const Icon = (LucideIcons as any)[name] as LucideIcon;
+                        return Icon ? <Icon key={name} className="h-4 w-4 text-muted-foreground" /> : null;
+                      })}
+                      {selectedIcons.length > 5 && (
+                        <span className="text-xs text-muted-foreground">+{selectedIcons.length - 5}</span>
+                      )}
+                    </div>
                   </div>
                 )}
 
+                {/* Icons Display */}
                 <ScrollArea className="flex-1">
-                  <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2 p-1">
-                    {filteredIcons.map((name) => {
-                      const IconComponent = (LucideIcons as any)[name] as LucideIcon;
-                      if (!IconComponent) return null;
-                      const isSelected = selectedIcons.includes(name);
-                      
-                      return (
-                        <button
-                          key={name}
-                          onClick={() => toggleIconSelection(name)}
-                          className={cn(
-                            'p-3 rounded-lg border flex flex-col items-center gap-1 transition-all',
-                            isSelected 
-                              ? 'border-primary bg-primary/10 ring-2 ring-primary/20' 
-                              : 'border-border hover:border-primary/50 hover:bg-muted/50'
-                          )}
-                          title={name}
-                        >
-                          {renderStyledIcon(IconComponent, 20)}
-                          {isSelected && (
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
-                              <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                  {/* Category Grouped View (when viewing all without search) */}
+                  {groupedIcons && !searchQuery ? (
+                    <div className="space-y-6 p-1">
+                      {Object.entries(groupedIcons).map(([catName, icons]) => (
+                        <div key={catName} className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-sm font-semibold text-foreground">{catName}</h4>
+                              <Badge variant="outline" className="text-xs">
+                                {LUCIDE_CATEGORIES[catName]?.icons.length || icons.length}
+                              </Badge>
                             </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => setSelectedCategory(catName)}
+                              className="text-xs h-7 gap-1"
+                            >
+                              View all
+                              <ChevronRight className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <p className="text-xs text-muted-foreground -mt-1">
+                            {LUCIDE_CATEGORIES[catName]?.description}
+                          </p>
+                          <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
+                            {icons.map((name) => {
+                              const IconComponent = (LucideIcons as any)[name] as LucideIcon;
+                              if (!IconComponent) return null;
+                              const isSelected = selectedIcons.includes(name);
+                              
+                              return (
+                                <button
+                                  key={name}
+                                  onClick={() => toggleIconSelection(name)}
+                                  className={cn(
+                                    'relative p-3 rounded-lg border flex flex-col items-center gap-1 transition-all group',
+                                    isSelected 
+                                      ? 'border-primary bg-primary/10 ring-2 ring-primary/20' 
+                                      : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                                  )}
+                                  title={name}
+                                >
+                                  {renderStyledIcon(IconComponent, 20)}
+                                  {isSelected && (
+                                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                                      <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                                    </div>
+                                  )}
+                                  <span className="sr-only">{name}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    /* Flat Grid View (when searching or viewing a specific category) */
+                    <div className="space-y-3 p-1">
+                      {selectedCategory !== 'all' && (
+                        <div className="flex items-center gap-2 mb-4">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setSelectedCategory('all')}
+                            className="gap-1 h-7"
+                          >
+                            <ChevronLeft className="h-3 w-3" />
+                            Back
+                          </Button>
+                          <h4 className="text-sm font-semibold">{selectedCategory}</h4>
+                          <Badge variant="outline" className="text-xs">{filteredIcons.length} icons</Badge>
+                        </div>
+                      )}
+                      {searchQuery && (
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Found {filteredIcons.length} icons matching "{searchQuery}"
+                        </p>
+                      )}
+                      <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
+                        {filteredIcons.map((name) => {
+                          const IconComponent = (LucideIcons as any)[name] as LucideIcon;
+                          if (!IconComponent) return null;
+                          const isSelected = selectedIcons.includes(name);
+                          
+                          return (
+                            <button
+                              key={name}
+                              onClick={() => toggleIconSelection(name)}
+                              className={cn(
+                                'relative p-3 rounded-lg border flex flex-col items-center gap-1 transition-all group',
+                                isSelected 
+                                  ? 'border-primary bg-primary/10 ring-2 ring-primary/20' 
+                                  : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                              )}
+                              title={name}
+                            >
+                              {renderStyledIcon(IconComponent, 20)}
+                              {isSelected && (
+                                <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                                  <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                                </div>
+                              )}
+                              <span className="text-[10px] text-muted-foreground truncate w-full text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                {name.replace(/([A-Z])/g, ' $1').trim()}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {filteredIcons.length === 0 && (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p>No icons found</p>
+                          <p className="text-xs">Try a different search term</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </ScrollArea>
               </TabsContent>
 
