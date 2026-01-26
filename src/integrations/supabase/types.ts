@@ -53,6 +53,56 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_history: {
+        Row: {
+          backup_path: string
+          backup_type: string
+          brands_count: number
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          file_size_bytes: number | null
+          id: string
+          organization_id: string
+          products_count: number
+          status: string
+        }
+        Insert: {
+          backup_path: string
+          backup_type?: string
+          brands_count?: number
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          organization_id: string
+          products_count?: number
+          status?: string
+        }
+        Update: {
+          backup_path?: string
+          backup_type?: string
+          brands_count?: number
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          organization_id?: string
+          products_count?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backup_history_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brand_intelligence: {
         Row: {
           analysis_count: number

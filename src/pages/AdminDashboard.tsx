@@ -42,6 +42,7 @@ import { BrandAnalyticsHub } from '@/components/admin/BrandAnalyticsHub';
 import { BulkRepairTool } from '@/components/admin/BulkRepairTool';
 import { HiddenSectionsScanner } from '@/components/admin/HiddenSectionsScanner';
 import { MembersManager } from '@/components/admin/MembersManager';
+import { BackupManager } from '@/components/admin/BackupManager';
 
 interface DashboardStats {
   totalUsers: number;
@@ -635,6 +636,10 @@ export default function AdminDashboard() {
               <Wrench className="h-4 w-4" />
               Repair
             </TabsTrigger>
+            <TabsTrigger value="backups" className="gap-2 shrink-0">
+              <HardDrive className="h-4 w-4" />
+              Backups
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -1144,6 +1149,28 @@ export default function AdminDashboard() {
           <TabsContent value="repair" className="space-y-6">
             <HiddenSectionsScanner />
             <BulkRepairTool />
+          </TabsContent>
+
+          {/* Backups Tab */}
+          <TabsContent value="backups" className="space-y-6">
+            <div className="grid gap-6">
+              {organizations.map((org) => (
+                <BackupManager
+                  key={org.id}
+                  organizationId={org.id}
+                  organizationName={org.name}
+                />
+              ))}
+              {organizations.length === 0 && (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                    <HardDrive className="h-12 w-12 mb-4 opacity-50" />
+                    <p className="text-lg font-medium">No organizations found</p>
+                    <p className="text-sm">Organizations will appear here for backup management</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </main>
