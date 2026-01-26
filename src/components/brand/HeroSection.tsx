@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, Image, Pencil, Check, TrendingUp, Eye, Users, Share2, Heart, BarChart3, Sparkles, Brain, Video, ImageIcon } from 'lucide-react';
 import { BrandHero } from '@/types/brand';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { BackgroundImage } from '@/components/ui/optimized-image';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { VideoUploadDialog } from '@/components/ui/video-upload-dialog';
+import { getAcceptedVideoFormats } from '@/lib/videoCompression';
 
 interface HeroStats {
   views?: number;
@@ -46,6 +48,8 @@ export const HeroSection = ({
   const [parallaxOffset, setParallaxOffset] = useState(0);
   const [animatedStats, setAnimatedStats] = useState<HeroStats>({});
   const [isVisible, setIsVisible] = useState(false);
+  const [videoUploadDialogOpen, setVideoUploadDialogOpen] = useState(false);
+  const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -142,6 +146,17 @@ export const HeroSection = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // For video files, use the compression dialog
+    if (field === 'coverVideo') {
+      setPendingVideoFile(file);
+      setVideoUploadDialogOpen(true);
+      // Reset input for re-selection
+      if (videoInputRef.current) {
+        videoInputRef.current.value = '';
+      }
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
       const url = event.target?.result as string;
@@ -150,9 +165,15 @@ export const HeroSection = ({
     reader.readAsDataURL(file);
   };
 
+  const handleVideoReady = useCallback((dataUrl: string) => {
+    if (!onHeroChange) return;
+    onHeroChange({ ...hero, coverVideo: dataUrl, useVideo: true });
+    setPendingVideoFile(null);
+  }, [hero, onHeroChange]);
+
   const handleVideoUrlInput = () => {
     if (!onHeroChange) return;
-    const url = prompt('Enter video URL (MP4 or WebM):');
+    const url = prompt('Enter video URL (MP4, WebM, or MOV):');
     if (url) {
       onHeroChange({ ...hero, coverVideo: url, useVideo: true });
     }
@@ -188,7 +209,7 @@ export const HeroSection = ({
       <input
         ref={videoInputRef}
         type="file"
-        accept="video/mp4,video/webm,video/*"
+        accept={getAcceptedVideoFormats()}
         onChange={(e) => handleFileUpload(e, 'coverVideo')}
         className="hidden"
       />
@@ -504,6 +525,14 @@ export const HeroSection = ({
           animation: float 4s ease-in-out infinite;
         }
       `}</style>
+
+      {/* Video upload dialog with compression */}
+      <VideoUploadDialog
+        open={videoUploadDialogOpen}
+        onOpenChange={setVideoUploadDialogOpen}
+        onVideoReady={handleVideoReady}
+        file={pendingVideoFile}
+      />
     </section>
   );
 };
