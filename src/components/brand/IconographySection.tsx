@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SectionHeader } from './SectionHeader';
-import { IconCreatorDialog } from './iconography/IconCreatorDialog';
+import { IconCreatorDialog, IconUsageGuidelines } from './iconography';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 import JSZip from 'jszip';
@@ -624,6 +624,12 @@ ${innerContent}
           </div>
         </div>
       )}
+
+      {/* Icon Usage Guidelines */}
+      <IconUsageGuidelines 
+        brandColors={brandColors}
+        primaryColor={brandColors[0]?.hex}
+      />
 
       {/* Icon Creator Dialog */}
       <IconCreatorDialog
