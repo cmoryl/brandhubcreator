@@ -30,10 +30,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Building2, Upload, Loader2, Palette, Globe, Eye, EyeOff, Trash2, Users, Mail, Crown, Shield, UserPlus, Layout, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Building2, Upload, Loader2, Palette, Globe, Eye, EyeOff, Trash2, Users, Mail, Crown, Shield, UserPlus, Layout, BarChart3, Library } from 'lucide-react';
 
-// Lazy load analytics component for performance
+// Lazy load analytics and icon library components for performance
 const OrganizationAnalytics = lazy(() => import('@/components/organization/OrganizationAnalytics'));
+import { IconLibraryManager } from '@/components/brand/iconography';
 import { z } from 'zod';
 
 import { MemberRole } from '@/lib/organization/types';
@@ -578,6 +579,31 @@ const OrganizationSettings = () => {
                 onCheckedChange={setPortalHeroFullWidth}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Icon Library Hierarchy */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Library className="h-5 w-5" />
+              Icon Library
+            </CardTitle>
+            <CardDescription>
+              Manage organization-wide icon libraries with hierarchical inheritance
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {organization?.id && (
+              <IconLibraryManager 
+                organizationId={organization.id}
+                brandColors={[
+                  { hex: primaryColor, name: 'Primary' },
+                  { hex: secondaryColor, name: 'Secondary' },
+                  { hex: accentColor, name: 'Accent' },
+                ]}
+              />
+            )}
           </CardContent>
         </Card>
 

@@ -328,6 +328,66 @@ export type Database = {
           },
         ]
       }
+      organization_icon_libraries: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          display_order: number
+          icons: Json
+          id: string
+          is_active: boolean
+          level: string
+          name: string
+          organization_id: string
+          parent_library_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_order?: number
+          icons?: Json
+          id?: string
+          is_active?: boolean
+          level?: string
+          name: string
+          organization_id: string
+          parent_library_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_order?: number
+          icons?: Json
+          id?: string
+          is_active?: boolean
+          level?: string
+          name?: string
+          organization_id?: string
+          parent_library_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_icon_libraries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_icon_libraries_parent_library_id_fkey"
+            columns: ["parent_library_id"]
+            isOneToOne: false
+            referencedRelation: "organization_icon_libraries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           created_at: string

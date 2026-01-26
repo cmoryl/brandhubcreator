@@ -1,0 +1,188 @@
+/**
+ * useIconLibraries - Hook for managing organization icon libraries
+ * Supports 3-level hierarchy: Core → Product Line → Brand
+ */
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { BrandIconography } from '@/types/brand';
+
+export interface IconLibrary {
+  id: string;
+  organization_id: string;
+  name: string;
+  level: 'core' | 'product_line' | 'brand';
+  description: string | null;
+  icons: BrandIconography[];
+  parent_library_id: string | null;
+  is_active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+}
+
+interface IconLibraryInsert {
+  organization_id: string;
+  name: string;
+  level: 'core' | 'product_line' | 'brand';
+  description?: string;
+  icons?: BrandIconography[];
+  parent_library_id?: string | null;
+  is_active?: boolean;
+  display_order?: number;
+}
+
+interface IconLibraryUpdate {
+  name?: string;
+  description?: string;
+  icons?: BrandIconography[];
+  is_active?: boolean;
+  display_order?: number;
+  parent_library_id?: string | null;
+}
+
+export const useIconLibraries = (organizationId: string | undefined) => {
+  const queryClient = useQueryClient();
+
+  const { data: libraries = [], isLoading, error } = useQuery({
+    queryKey: ['icon-libraries', organizationId],
+    queryFn: async () => {
+      if (!organizationId) return [];
+      
+      const { data, error } = await supabase
+        .from('organization_icon_libraries')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .order('level')
+        .order('display_order');
+
+      if (error) throw error;
+      
+      // Parse icons from JSONB
+      return (data || []).map(lib => ({
+        ...lib,
+        icons: (lib.icons as unknown as BrandIconography[]) || [],
+      })) as IconLibrary[];
+    },
+    enabled: !!organizationId,
+  });
+
+  const createLibrary = useMutation({
+    mutationFn: async (library: IconLibraryInsert) => {
+      const { data, error } = await supabase
+        .from('organization_icon_libraries')
+        .insert({
+          ...library,
+          icons: JSON.parse(JSON.stringify(library.icons || [])),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
+      toast.success('Icon library created');
+    },
+    onError: (error) => {
+      console.error('Failed to create icon library:', error);
+      toast.error('Failed to create icon library');
+    },
+  });
+
+  const updateLibrary = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: IconLibraryUpdate }) => {
+      const payload: Record<string, unknown> = { ...updates };
+      if (updates.icons) {
+        payload.icons = JSON.parse(JSON.stringify(updates.icons));
+      }
+      
+      const { data, error } = await supabase
+        .from('organization_icon_libraries')
+        .update(payload)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
+      toast.success('Icon library updated');
+    },
+    onError: (error) => {
+      console.error('Failed to update icon library:', error);
+      toast.error('Failed to update icon library');
+    },
+  });
+
+  const deleteLibrary = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('organization_icon_libraries')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
+      toast.success('Icon library deleted');
+    },
+    onError: (error) => {
+      console.error('Failed to delete icon library:', error);
+      toast.error('Failed to delete icon library');
+    },
+  });
+
+  // Get libraries grouped by level
+  const coreLibraries = libraries.filter(l => l.level === 'core' && l.is_active);
+  const productLineLibraries = libraries.filter(l => l.level === 'product_line' && l.is_active);
+  const brandLibraries = libraries.filter(l => l.level === 'brand' && l.is_active);
+
+  // Get all inherited icons for a brand (core + product line)
+  const getInheritedIcons = (productLineId?: string) => {
+    const inherited: { library: IconLibrary; icons: BrandIconography[] }[] = [];
+    
+    // Add all core icons
+    coreLibraries.forEach(lib => {
+      if (lib.icons.length > 0) {
+        inherited.push({ library: lib, icons: lib.icons });
+      }
+    });
+    
+    // Add product line icons if specified
+    if (productLineId) {
+      const productLib = productLineLibraries.find(l => l.id === productLineId);
+      if (productLib && productLib.icons.length > 0) {
+        inherited.push({ library: productLib, icons: productLib.icons });
+      }
+    } else {
+      // Add all product line icons
+      productLineLibraries.forEach(lib => {
+        if (lib.icons.length > 0) {
+          inherited.push({ library: lib, icons: lib.icons });
+        }
+      });
+    }
+    
+    return inherited;
+  };
+
+  return {
+    libraries,
+    coreLibraries,
+    productLineLibraries,
+    brandLibraries,
+    isLoading,
+    error,
+    createLibrary,
+    updateLibrary,
+    deleteLibrary,
+    getInheritedIcons,
+  };
+};
