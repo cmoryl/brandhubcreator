@@ -11,7 +11,7 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 
 interface ImagerySectionProps {
   imagery: BrandImagery[];
-  onImageryChange: (imagery: BrandImagery[]) => void;
+  onImageryChange?: (imagery: BrandImagery[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
 }
@@ -24,7 +24,10 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('split');
 
+  const canEdit = Boolean(onImageryChange);
+
   const handleFileDrop = useCallback((file: File) => {
+    if (!onImageryChange) return;
     const reader = new FileReader();
     reader.onload = (event) => {
       const url = event.target?.result as string;
@@ -50,10 +53,12 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
   };
 
   const updateImagery = (id: string, updates: Partial<BrandImagery>) => {
+    if (!onImageryChange) return;
     onImageryChange(imagery.map(i => i.id === id ? { ...i, ...updates } : i));
   };
 
   const deleteImagery = (id: string) => {
+    if (!onImageryChange) return;
     onImageryChange(imagery.filter(i => i.id !== id));
     if (editingId === id) setEditingId(null);
   };
@@ -79,27 +84,29 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
       <div className={`${viewMode === 'split' ? 'aspect-video' : 'aspect-square'} relative`}>
         <OptimizedImage src={img.url} alt={img.description} className="w-full h-full" objectFit="cover" />
         {img.type === 'dont' && <div className="absolute inset-0 bg-destructive/10" />}
-        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={() => setEditingId(img.id)}
-            className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-secondary"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </button>
-          <button
-            onClick={() => deleteImagery(img.id)}
-            className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
+        {canEdit && (
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={() => setEditingId(img.id)}
+              className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-secondary"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => deleteImagery(img.id)}
+              className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
         {/* Type badge */}
         <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium ${img.type === 'do' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
           {img.type === 'do' ? 'Do' : "Don't"}
         </div>
       </div>
       <div className="p-3">
-        {editingId === img.id ? (
+        {editingId === img.id && canEdit ? (
           <div className="space-y-2">
             <Input
               value={img.description}
@@ -184,20 +191,22 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
             </div>
             <div className="space-y-3">
               {doImages.map((img, index) => renderImageCard(img, index, 'border-green-200', 'hover:bg-green-50'))}
-              <button
-                onClick={() => triggerUpload('do')}
-                onDragOver={(e) => { setPendingType('do'); dragHandlers.onDragOver(e); }}
-                onDragLeave={dragHandlers.onDragLeave}
-                onDrop={(e) => { setPendingType('do'); dragHandlers.onDrop(e); }}
-                className={`w-full h-24 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors ${
-                  isDragging && pendingType === 'do'
-                    ? 'border-green-500 bg-green-50 text-green-600'
-                    : 'border-green-300 text-green-600 hover:bg-green-50'
-                }`}
-              >
-                <Upload className="h-5 w-5" />
-                <span className="text-sm font-medium">{isDragging && pendingType === 'do' ? 'Drop to add' : 'Add example'}</span>
-              </button>
+              {canEdit && (
+                <button
+                  onClick={() => triggerUpload('do')}
+                  onDragOver={(e) => { setPendingType('do'); dragHandlers.onDragOver(e); }}
+                  onDragLeave={dragHandlers.onDragLeave}
+                  onDrop={(e) => { setPendingType('do'); dragHandlers.onDrop(e); }}
+                  className={`w-full h-24 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors ${
+                    isDragging && pendingType === 'do'
+                      ? 'border-green-500 bg-green-50 text-green-600'
+                      : 'border-green-300 text-green-600 hover:bg-green-50'
+                  }`}
+                >
+                  <Upload className="h-5 w-5" />
+                  <span className="text-sm font-medium">{isDragging && pendingType === 'do' ? 'Drop to add' : 'Add example'}</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -210,36 +219,40 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
             </div>
             <div className="space-y-3">
               {dontImages.map((img, index) => renderImageCard(img, index, 'border-red-200', 'hover:bg-red-50'))}
-              <button
-                onClick={() => triggerUpload('dont')}
-                onDragOver={(e) => { setPendingType('dont'); dragHandlers.onDragOver(e); }}
-                onDragLeave={dragHandlers.onDragLeave}
-                onDrop={(e) => { setPendingType('dont'); dragHandlers.onDrop(e); }}
-                className={`w-full h-24 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors ${
-                  isDragging && pendingType === 'dont'
-                    ? 'border-red-500 bg-red-50 text-red-600'
-                    : 'border-red-300 text-red-600 hover:bg-red-50'
-                }`}
-              >
-                <Upload className="h-5 w-5" />
-                <span className="text-sm font-medium">{isDragging && pendingType === 'dont' ? 'Drop to add' : 'Add example'}</span>
-              </button>
+              {canEdit && (
+                <button
+                  onClick={() => triggerUpload('dont')}
+                  onDragOver={(e) => { setPendingType('dont'); dragHandlers.onDragOver(e); }}
+                  onDragLeave={dragHandlers.onDragLeave}
+                  onDrop={(e) => { setPendingType('dont'); dragHandlers.onDrop(e); }}
+                  className={`w-full h-24 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors ${
+                    isDragging && pendingType === 'dont'
+                      ? 'border-red-500 bg-red-50 text-red-600'
+                      : 'border-red-300 text-red-600 hover:bg-red-50'
+                  }`}
+                >
+                  <Upload className="h-5 w-5" />
+                  <span className="text-sm font-medium">{isDragging && pendingType === 'dont' ? 'Drop to add' : 'Add example'}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
       ) : (
         /* Grid View - All images in grid with type badges */
         <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <Button onClick={() => triggerUpload('do')} variant="outline" size="sm" className="gap-2 text-green-600 border-green-300 hover:bg-green-50">
-              <ThumbsUp className="h-4 w-4" />
-              Add Do
-            </Button>
-            <Button onClick={() => triggerUpload('dont')} variant="outline" size="sm" className="gap-2 text-red-600 border-red-300 hover:bg-red-50">
-              <ThumbsDown className="h-4 w-4" />
-              Add Don't
-            </Button>
-          </div>
+          {canEdit && (
+            <div className="flex items-center gap-4">
+              <Button onClick={() => triggerUpload('do')} variant="outline" size="sm" className="gap-2 text-green-600 border-green-300 hover:bg-green-50">
+                <ThumbsUp className="h-4 w-4" />
+                Add Do
+              </Button>
+              <Button onClick={() => triggerUpload('dont')} variant="outline" size="sm" className="gap-2 text-red-600 border-red-300 hover:bg-red-50">
+                <ThumbsDown className="h-4 w-4" />
+                Add Don't
+              </Button>
+            </div>
+          )}
           
           <div className={`grid ${getGridClass()} gap-4`}>
             {imagery.map((img, index) => 
