@@ -429,7 +429,7 @@ const ProductEditor = () => {
       case 'patterns': return <PatternsSection patterns={currentProduct.patterns} onPatternsChange={(patterns) => handleUpdateProduct({ patterns })} />;
       case 'typography': return <TypographySection typography={currentProduct.typography} onTypographyChange={(typography) => handleUpdateProduct({ typography })} />;
       case 'textstyles': return <TextStylesSection textStyles={currentProduct.textStyles} onTextStylesChange={(textStyles) => handleUpdateProduct({ textStyles })} />;
-      case 'iconography': return <IconographySection iconography={currentProduct.iconography} onIconographyChange={(iconography) => handleUpdateProduct({ iconography })} brandColors={currentProduct.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} />;
+      case 'iconography': return <IconographySection iconography={currentProduct.iconography} onIconographyChange={(iconography) => handleUpdateProduct({ iconography })} brandColors={currentProduct.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organization?.id} />;
       case 'socialicons': return <SocialIconsSection socialIcons={currentProduct.socialIcons} onSocialIconsChange={(socialIcons) => handleUpdateProduct({ socialIcons })} />;
       case 'imagery': return <ImagerySection imagery={currentProduct.imagery} onImageryChange={(imagery) => handleUpdateProduct({ imagery })} />;
       case 'social': return <SocialSection social={currentProduct.social} onSocialChange={(social) => handleUpdateProduct({ social })} />;

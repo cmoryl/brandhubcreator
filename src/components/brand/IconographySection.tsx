@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SectionHeader } from './SectionHeader';
-import { IconCreatorDialog, IconUsageGuidelines } from './iconography';
+import { IconCreatorDialog, IconUsageGuidelines, HierarchicalIconDisplay } from './iconography';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 import JSZip from 'jszip';
@@ -41,6 +41,8 @@ interface IconographySectionProps {
   defaultIconColor?: string;
   onDefaultIconColorChange?: (color: string) => void;
   brandColors?: Array<{ hex: string; name: string }>;
+  organizationId?: string;
+  productLineId?: string;
 }
 
 type GridSize = 'compact' | 'medium' | 'large';
@@ -61,6 +63,8 @@ export const IconographySection = ({
   defaultIconColor,
   onDefaultIconColorChange,
   brandColors = [],
+  organizationId,
+  productLineId,
 }: IconographySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -623,6 +627,16 @@ ${innerContent}
             })()}
           </div>
         </div>
+      )}
+
+      {/* Hierarchical Icon Display - shows inherited org icons */}
+      {organizationId && (
+        <HierarchicalIconDisplay
+          organizationId={organizationId}
+          brandIcons={iconography}
+          productLineId={productLineId}
+          iconColor={iconColor}
+        />
       )}
 
       {/* Icon Usage Guidelines */}

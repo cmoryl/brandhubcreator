@@ -525,7 +525,7 @@ const BrandEditor = () => {
       case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={editHandler((patterns) => updateBrand({ patterns }))} />;
       case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={editHandler((typography) => updateBrand({ typography }))} />;
       case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={editHandler((textStyles) => updateBrand({ textStyles }))} />;
-      case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={editHandler((iconography) => updateBrand({ iconography }))} brandColors={brand.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} />;
+      case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={editHandler((iconography) => updateBrand({ iconography }))} brandColors={brand.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organization?.id} />;
       case 'socialicons': return <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={editHandler((socialIcons) => updateBrand({ socialIcons }))} />;
       case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={editHandler((imagery) => updateBrand({ imagery }))} />;
       case 'social': return <SocialSection social={brand.social} onSocialChange={editHandler((social) => updateBrand({ social }))} />;
