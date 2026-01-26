@@ -326,7 +326,7 @@ const EventEditor = () => {
     
     switch (sectionId) {
       case 'hero': 
-        return <HeroSection hero={event.hero} onHeroChange={editHandler((hero) => updateEvent({ hero }))} />;
+        return <HeroSection hero={event.hero} onHeroChange={editHandler((hero) => updateEvent({ hero }))} guideData={event as unknown as Record<string, unknown>} />;
       case 'eventdetails':
         return <EventDetailsSection eventDetails={event.eventDetails} onUpdate={(eventDetails) => updateEvent({ eventDetails: { ...event.eventDetails, ...eventDetails } })} isEditable={canEdit || false} />;
       case 'tagline': 

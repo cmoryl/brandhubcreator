@@ -240,7 +240,7 @@ export const FullBrandPage = ({
     const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
 
     switch (sectionId) {
-      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={editHandler((hero) => onBrandUpdate({ hero }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} fullWidth={heroFullWidth} onOpenIntelligence={canEdit ? onOpenIntelligence : undefined} />;
+      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={editHandler((hero) => onBrandUpdate({ hero }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} fullWidth={heroFullWidth} onOpenIntelligence={canEdit ? onOpenIntelligence : undefined} guideData={brand as unknown as Record<string, unknown>} />;
       case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={editHandler((tagline) => onBrandUpdate({ tagline }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={editHandler((identity) => onBrandUpdate({ identity }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'values': return <ValuesSection values={brand.values} onValuesChange={editHandler((values) => onBrandUpdate({ values }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} organizationId={organizationId} brandId={brandId} brandName={brand.hero.name} canEdit={canEdit} />;

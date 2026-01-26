@@ -139,7 +139,7 @@ const Index = () => {
 
   const renderSection = () => {
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={currentBrand.hero} onHeroChange={(hero) => updateBrand({ hero })} />;
+      case 'hero': return <HeroSection hero={currentBrand.hero} onHeroChange={(hero) => updateBrand({ hero })} guideData={currentBrand as unknown as Record<string, unknown>} />;
       case 'tagline': return <TaglineSection tagline={currentBrand.tagline} onTaglineChange={(tagline) => updateBrand({ tagline })} />;
       case 'identity': return <IdentitySection identity={currentBrand.identity} onIdentityChange={(identity) => updateBrand({ identity })} />;
       case 'values': return <ValuesSection values={currentBrand.values} onValuesChange={(values) => updateBrand({ values })} />;
