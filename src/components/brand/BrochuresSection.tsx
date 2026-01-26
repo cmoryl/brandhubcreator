@@ -21,7 +21,9 @@ interface BrochuresSectionProps {
 
 const categoryOptions = ['Whitepaper', 'Capability Statement', 'Product Brochure', 'Company Overview', 'Pitch Deck', 'Annual Report', 'Other'];
 
-export const BrochuresSection = ({ brochures, onBrochuresChange, customSubtitle, onSubtitleChange, layout = 'grid-3', onLayoutChange }: BrochuresSectionProps) => {
+export const BrochuresSection = ({ brochures: brochuresProp, onBrochuresChange, customSubtitle, onSubtitleChange, layout = 'grid-3', onLayoutChange }: BrochuresSectionProps) => {
+  // Defensive: ensure brochures is always an array
+  const brochures = Array.isArray(brochuresProp) ? brochuresProp : [];
   const [editingId, setEditingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);

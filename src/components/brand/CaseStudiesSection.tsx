@@ -17,7 +17,9 @@ interface CaseStudiesSectionProps {
   onLayoutChange?: (layout: LayoutPreset) => void;
 }
 
-export const CaseStudiesSection = ({ caseStudies, onCaseStudiesChange, customSubtitle, onSubtitleChange, layout = 'grid-3', onLayoutChange }: CaseStudiesSectionProps) => {
+export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudiesChange, customSubtitle, onSubtitleChange, layout = 'grid-3', onLayoutChange }: CaseStudiesSectionProps) => {
+  // Defensive: ensure caseStudies is always an array
+  const caseStudies = Array.isArray(caseStudiesProp) ? caseStudiesProp : [];
   const [editingId, setEditingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);

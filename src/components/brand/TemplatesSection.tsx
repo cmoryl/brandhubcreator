@@ -107,7 +107,9 @@ const getDriveEmbedUrl = (url: string): string => {
   return url;
 };
 
-export const TemplatesSection = ({ templates, onTemplatesChange, customSubtitle, onSubtitleChange, layout = 'grid-2', onLayoutChange }: TemplatesSectionProps) => {
+export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, customSubtitle, onSubtitleChange, layout = 'grid-2', onLayoutChange }: TemplatesSectionProps) => {
+  // Defensive: ensure templates is always an array
+  const templates = Array.isArray(templatesProp) ? templatesProp : [];
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedFolderId, setExpandedFolderId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
