@@ -182,13 +182,17 @@ export const useBrandBackup = () => {
       // Extract the guide_data portion (everything except metadata fields)
       const { type, slug, isFavorite, isPublic, sectionOrder, hiddenSections, ...restGuideData } = guideData as any;
 
+      // Preserve the original is_public setting from the backup
+      // This allows users to import brands that were public and keep them public
+      const originalIsPublic = (guide as any).isPublic ?? backup.guide.isPublic ?? false;
+      
       const insertData = {
         user_id: user.id,
         organization_id: organizationId || null,
         name: guide.hero.name,
         slug: newSlug,
         is_favorite: false,
-        is_public: false,
+        is_public: originalIsPublic,
         section_order: sectionOrder || DEFAULT_SECTION_ORDER,
         hidden_sections: hiddenSections || [],
         guide_data: restGuideData,
