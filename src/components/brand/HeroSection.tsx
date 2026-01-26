@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Upload, Image, Pencil, Check, TrendingUp, Eye, Users, Share2, Heart, BarChart3, Sparkles, Brain, Video, ImageIcon } from 'lucide-react';
 import { BrandHero } from '@/types/brand';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { VideoUploadDialog } from '@/components/ui/video-upload-dialog';
 import { getAcceptedVideoFormats } from '@/lib/videoCompression';
+import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
 
 interface HeroStats {
   views?: number;
@@ -31,6 +32,8 @@ interface HeroSectionProps {
   enhancedMode?: boolean;
   /** Callback when user clicks the Brain icon in the hero (opens intelligence panel) */
   onOpenIntelligence?: () => void;
+  /** Full guide_data for calculating real health score */
+  guideData?: Record<string, unknown>;
 }
 
 export const HeroSection = ({ 
@@ -41,6 +44,7 @@ export const HeroSection = ({
   showStats = true,
   enhancedMode = true,
   onOpenIntelligence,
+  guideData,
 }: HeroSectionProps) => {
   // Only allow editing if onHeroChange is provided (canEdit mode)
   const canEdit = !!onHeroChange;
@@ -55,15 +59,19 @@ export const HeroSection = ({
   const videoInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
-  // Default stats for demo
-  const displayStats: HeroStats = stats || {
-    views: 12453,
-    shares: 847,
-    followers: 3241,
-    engagement: 78,
-    healthScore: 85,
-    trend: 'up',
-  };
+  // Calculate real health score from guide_data
+  const calculatedHealth = useMemo(() => {
+    return calculateBrandHealth(guideData);
+  }, [guideData]);
+
+  // Use calculated health score if guideData provided, otherwise fall back to stats prop
+  const displayStats: HeroStats = useMemo(() => {
+    if (stats) return stats;
+    return {
+      healthScore: calculatedHealth.overallScore,
+      trend: 'stable' as const,
+    };
+  }, [stats, calculatedHealth.overallScore]);
 
   // Animate stats counting up on visibility
   useEffect(() => {

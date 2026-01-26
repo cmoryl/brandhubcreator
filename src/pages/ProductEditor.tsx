@@ -416,7 +416,7 @@ const ProductEditor = () => {
 
   const renderSection = () => {
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={(hero) => handleUpdateProduct({ hero })} onOpenIntelligence={user ? () => setIntelligenceOpen(true) : undefined} />;
+      case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={(hero) => handleUpdateProduct({ hero })} onOpenIntelligence={user ? () => setIntelligenceOpen(true) : undefined} guideData={currentProduct as unknown as Record<string, unknown>} />;
       case 'tagline': return <TaglineSection tagline={currentProduct.tagline} onTaglineChange={(tagline) => handleUpdateProduct({ tagline })} />;
       case 'identity': return <IdentitySection identity={currentProduct.identity} onIdentityChange={(identity) => handleUpdateProduct({ identity })} />;
       case 'values': return <ValuesSection values={currentProduct.values} onValuesChange={(values) => handleUpdateProduct({ values })} organizationId={currentProduct.organizationId} brandId={currentProduct.id} brandName={currentProduct.hero.name} canEdit={!!user} />;
