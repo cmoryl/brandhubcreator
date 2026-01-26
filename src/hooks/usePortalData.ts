@@ -119,7 +119,7 @@ const EVENT_CARD_SELECT = 'id, name, slug, is_public, parent_brand_id, updated_a
 
 // Cache for recently fetched data to prevent duplicate requests
 const dataCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 3000; // 3 seconds - short to pick up changes faster
+const CACHE_TTL = 1000; // 1 second - fast to pick up changes quickly
 
 export const usePortalData = (slug: string | undefined): UsePortalDataReturn => {
   const [organization, setOrganization] = useState<PortalOrganization | null>(null);
