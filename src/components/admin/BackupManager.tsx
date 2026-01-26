@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -27,7 +28,8 @@ import {
   RefreshCw,
   History,
   Shield,
-  Trash2
+  Trash2,
+  HardDrive
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -57,6 +59,8 @@ export const BackupManager = ({ organizationId, organizationName }: BackupManage
   const [isRestoring, setIsRestoring] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState<BackupHistory | null>(null);
   const [showRestoreDialog, setShowRestoreDialog] = useState(false);
+  const [backupProgress, setBackupProgress] = useState(0);
+  const [backupStatus, setBackupStatus] = useState('');
   const [restoreOptions, setRestoreOptions] = useState({
     brands: true,
     products: true,
@@ -88,63 +92,299 @@ export const BackupManager = ({ organizationId, organizationName }: BackupManage
     }
   };
 
+  // Client-side backup - fetches data directly and uploads to storage
   const createBackup = async () => {
     setIsCreatingBackup(true);
+    setBackupProgress(0);
+    setBackupStatus('Starting backup...');
+    
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
         toast.error('You must be logged in to create backups');
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('backup-brands', {
-        body: { organizationId, backupType: 'manual' },
-      });
+      setBackupStatus('Fetching organization data...');
+      setBackupProgress(10);
 
-      if (error) throw error;
+      // Fetch org info
+      const { data: org, error: orgError } = await supabase
+        .from('organizations')
+        .select('id, name, slug')
+        .eq('id', organizationId)
+        .single();
 
-      if (data.success) {
-        toast.success(data.message || 'Backup created successfully');
-        fetchBackups();
-      } else {
-        throw new Error(data.error || 'Backup failed');
+      if (orgError || !org) {
+        throw new Error('Organization not found');
       }
+
+      setBackupStatus('Fetching brands...');
+      setBackupProgress(20);
+
+      // Fetch all brands
+      const { data: brands, error: brandsError } = await supabase
+        .from('brands')
+        .select('*')
+        .eq('organization_id', organizationId);
+
+      if (brandsError) throw brandsError;
+
+      setBackupStatus('Fetching products...');
+      setBackupProgress(40);
+
+      // Fetch all products
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('organization_id', organizationId);
+
+      if (productsError) throw productsError;
+
+      setBackupStatus('Fetching events...');
+      setBackupProgress(60);
+
+      // Fetch all events
+      const { data: events, error: eventsError } = await supabase
+        .from('events')
+        .select('*')
+        .eq('organization_id', organizationId);
+
+      if (eventsError) throw eventsError;
+
+      setBackupStatus('Creating backup file...');
+      setBackupProgress(70);
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      
+      // Create backup object
+      const backupData = {
+        version: '1.0',
+        createdAt: new Date().toISOString(),
+        backupType: 'manual',
+        organization: { id: org.id, name: org.name, slug: org.slug },
+        data: {
+          brands: brands || [],
+          products: products || [],
+          events: events || [],
+        },
+        counts: {
+          brands: brands?.length || 0,
+          products: products?.length || 0,
+          events: events?.length || 0,
+        }
+      };
+
+      const backupJson = JSON.stringify(backupData);
+      const backupPath = `${org.id}/${timestamp}/backup.json`;
+
+      setBackupStatus('Uploading to storage...');
+      setBackupProgress(80);
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('brand-backups')
+        .upload(backupPath, backupJson, {
+          contentType: 'application/json',
+          upsert: true,
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error(`Failed to upload: ${uploadError.message}`);
+      }
+
+      setBackupStatus('Recording backup history...');
+      setBackupProgress(90);
+
+      // Record in backup_history
+      const { error: historyError } = await supabase
+        .from('backup_history')
+        .insert({
+          organization_id: org.id,
+          backup_type: 'manual',
+          backup_path: backupPath,
+          brands_count: brands?.length || 0,
+          products_count: products?.length || 0,
+          file_size_bytes: backupJson.length,
+          created_by: user.id,
+          status: 'completed',
+        });
+
+      if (historyError) {
+        console.error('Failed to record backup history:', historyError);
+      }
+
+      setBackupProgress(100);
+      setBackupStatus('Complete!');
+      
+      toast.success(`Backed up ${brands?.length || 0} brands, ${products?.length || 0} products`);
+      fetchBackups();
     } catch (err) {
       console.error('Backup error:', err);
       toast.error(err instanceof Error ? err.message : 'Failed to create backup');
     } finally {
       setIsCreatingBackup(false);
+      setTimeout(() => {
+        setBackupProgress(0);
+        setBackupStatus('');
+      }, 2000);
     }
   };
 
+  // Client-side restore
   const restoreBackup = async () => {
     if (!selectedBackup) return;
 
     setIsRestoring(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
         toast.error('You must be logged in to restore backups');
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('restore-brand-backup', {
-        body: {
-          backupPath: selectedBackup.backup_path,
-          organizationId,
-          restoreOptions,
-        },
-      });
+      // Download the backup file
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from('brand-backups')
+        .download(selectedBackup.backup_path);
 
-      if (error) throw error;
-
-      if (data.success) {
-        toast.success(data.message || 'Backup restored successfully');
-        setShowRestoreDialog(false);
-        setSelectedBackup(null);
-      } else {
-        throw new Error(data.error || 'Restore failed');
+      if (downloadError) {
+        throw new Error(`Failed to download backup: ${downloadError.message}`);
       }
+
+      const backupText = await fileData.text();
+      const backupData = JSON.parse(backupText);
+
+      let restoredBrands = 0;
+      let restoredProducts = 0;
+      let restoredEvents = 0;
+
+      // Restore brands
+      if (restoreOptions.brands && backupData.data?.brands) {
+        for (const brand of backupData.data.brands) {
+          try {
+            if (restoreOptions.overwrite) {
+              // Upsert - update if exists, insert if not
+              const { error } = await supabase
+                .from('brands')
+                .upsert({
+                  ...brand,
+                  organization_id: organizationId,
+                  user_id: user.id,
+                  updated_at: new Date().toISOString(),
+                }, { onConflict: 'id' });
+              
+              if (!error) restoredBrands++;
+            } else {
+              // Check if exists
+              const { data: existing } = await supabase
+                .from('brands')
+                .select('id')
+                .eq('id', brand.id)
+                .single();
+              
+              if (!existing) {
+                const { error } = await supabase
+                  .from('brands')
+                  .insert({
+                    ...brand,
+                    organization_id: organizationId,
+                    user_id: user.id,
+                  });
+                
+                if (!error) restoredBrands++;
+              }
+            }
+          } catch (e) {
+            console.error('Error restoring brand:', e);
+          }
+        }
+      }
+
+      // Restore products
+      if (restoreOptions.products && backupData.data?.products) {
+        for (const product of backupData.data.products) {
+          try {
+            if (restoreOptions.overwrite) {
+              const { error } = await supabase
+                .from('products')
+                .upsert({
+                  ...product,
+                  organization_id: organizationId,
+                  user_id: user.id,
+                  updated_at: new Date().toISOString(),
+                }, { onConflict: 'id' });
+              
+              if (!error) restoredProducts++;
+            } else {
+              const { data: existing } = await supabase
+                .from('products')
+                .select('id')
+                .eq('id', product.id)
+                .single();
+              
+              if (!existing) {
+                const { error } = await supabase
+                  .from('products')
+                  .insert({
+                    ...product,
+                    organization_id: organizationId,
+                    user_id: user.id,
+                  });
+                
+                if (!error) restoredProducts++;
+              }
+            }
+          } catch (e) {
+            console.error('Error restoring product:', e);
+          }
+        }
+      }
+
+      // Restore events
+      if (restoreOptions.events && backupData.data?.events) {
+        for (const event of backupData.data.events) {
+          try {
+            if (restoreOptions.overwrite) {
+              const { error } = await supabase
+                .from('events')
+                .upsert({
+                  ...event,
+                  organization_id: organizationId,
+                  user_id: user.id,
+                  updated_at: new Date().toISOString(),
+                }, { onConflict: 'id' });
+              
+              if (!error) restoredEvents++;
+            } else {
+              const { data: existing } = await supabase
+                .from('events')
+                .select('id')
+                .eq('id', event.id)
+                .single();
+              
+              if (!existing) {
+                const { error } = await supabase
+                  .from('events')
+                  .insert({
+                    ...event,
+                    organization_id: organizationId,
+                    user_id: user.id,
+                  });
+                
+                if (!error) restoredEvents++;
+              }
+            }
+          } catch (e) {
+            console.error('Error restoring event:', e);
+          }
+        }
+      }
+
+      toast.success(`Restored ${restoredBrands} brands, ${restoredProducts} products, ${restoredEvents} events`);
+      setShowRestoreDialog(false);
+      setSelectedBackup(null);
     } catch (err) {
       console.error('Restore error:', err);
       toast.error(err instanceof Error ? err.message : 'Failed to restore backup');
@@ -177,6 +417,32 @@ export const BackupManager = ({ organizationId, organizationName }: BackupManage
     } catch (err) {
       console.error('Delete error:', err);
       toast.error('Failed to delete backup');
+    }
+  };
+
+  // Download backup as local JSON file
+  const downloadBackupLocal = async (backup: BackupHistory) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('brand-backups')
+        .download(backup.backup_path);
+
+      if (error) throw error;
+
+      const blob = new Blob([await data.text()], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup-${format(new Date(backup.created_at), 'yyyy-MM-dd-HHmm')}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Backup downloaded');
+    } catch (err) {
+      console.error('Download error:', err);
+      toast.error('Failed to download backup');
     }
   };
 
@@ -224,6 +490,17 @@ export const BackupManager = ({ organizationId, organizationName }: BackupManage
             </Button>
           </div>
         </div>
+        
+        {/* Backup Progress */}
+        {isCreatingBackup && (
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">{backupStatus}</span>
+              <span className="font-medium">{backupProgress}%</span>
+            </div>
+            <Progress value={backupProgress} className="h-2" />
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -277,6 +554,15 @@ export const BackupManager = ({ organizationId, organizationName }: BackupManage
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => downloadBackupLocal(backup)}
+                      disabled={backup.status !== 'completed'}
+                      title="Download to device"
+                    >
+                      <HardDrive className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
