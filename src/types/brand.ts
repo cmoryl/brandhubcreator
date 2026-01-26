@@ -388,6 +388,18 @@ export interface BrandDisplayBannerSpec {
   category?: 'desktop' | 'mobile' | 'video' | 'native'; // Banner category for grouping
 }
 
+// AWARDS - Awards & Recognition
+export interface BrandAward {
+  id: string;
+  title: string;
+  description: string;
+  year: number;
+  organization: string; // Awarding organization
+  imageUrl?: string;
+  linkUrl?: string;
+  category?: string; // e.g., "eDiscovery", "Legal Tech", "Company Culture"
+}
+
 // WEBINARS - Webinar Series
 export interface BrandWebinar {
   id: string;
@@ -610,6 +622,8 @@ export interface BaseGuide {
   infographicLayout?: InfographicLayout;
   // Webinars (Webinar Series)
   webinars?: BrandWebinar[];
+  // Awards (Awards & Recognition)
+  awards?: BrandAward[];
   // Metadata
   createdAt: Date;
   updatedAt: Date;
@@ -617,7 +631,7 @@ export interface BaseGuide {
 
 // Default section order
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
-  'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
+  'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
   'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
   'casestudies', 'brochures', 'templates', 'templatespecs', 'products', 'events'
@@ -643,6 +657,7 @@ export type SectionId =
   | 'bythenumbers'
   | 'services'
   | 'revenue'
+  | 'awards'
   | 'brief'
   | 'logos'
   | 'brandicon'
