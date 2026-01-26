@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { X, Download, Package, Upload, Image as ImageIcon, Link2 } from 'lucide-react';
+import { X, Download, Package, Upload, Image as ImageIcon, Link2, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { SectionHeader } from './SectionHeader';
 import { toast } from 'sonner';
 import { useDropZone } from '@/components/ui/drop-zone';
@@ -80,6 +81,7 @@ export const UnifiedLogoSection = ({
   const [pendingVariant, setPendingVariant] = useState<string>(variants[0]?.value || 'primary');
   const [urlPopoverOpen, setUrlPopoverOpen] = useState<string | null>(null);
   const [urlInput, setUrlInput] = useState('');
+  const [expandedLogo, setExpandedLogo] = useState<UnifiedLogo | null>(null);
 
   const canEdit = isEditable && !!onLogosChange;
 
@@ -270,6 +272,15 @@ export const UnifiedLogoSection = ({
         className="group relative overflow-hidden hover:border-primary/50 transition-colors animate-scale-in"
         style={{ animationDelay: `${index * 50}ms` }}
       >
+        {/* Expand button overlay */}
+        <button
+          onClick={() => setExpandedLogo(logo)}
+          className="absolute top-2 right-2 z-20 p-2 rounded-md bg-background/80 backdrop-blur-sm border border-border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
+          title="View larger"
+        >
+          <Maximize2 className="h-4 w-4" />
+        </button>
+        
         {/* Primary Symbol preview for icon variants */}
         {isIconVariant && (
           <div className="p-3 border-b border-border/50">
@@ -278,7 +289,7 @@ export const UnifiedLogoSection = ({
         )}
         
         {/* Multi-background logo display with X measurements */}
-        <div className="grid grid-cols-2">
+        <div className="grid grid-cols-2 cursor-pointer" onClick={() => setExpandedLogo(logo)}>
           {/* Light background */}
           <SafeZoneWrapper className="bg-white border-r border-b border-border/50" showMeasurements={index === 0}>
             <img
@@ -557,6 +568,80 @@ export const UnifiedLogoSection = ({
           )}
         </>
       )}
+      
+      {/* Expanded Logo Modal */}
+      <Dialog open={!!expandedLogo} onOpenChange={() => setExpandedLogo(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogTitle className="sr-only">{expandedLogo?.name} - Full View</DialogTitle>
+          {expandedLogo && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">{expandedLogo.name}</h3>
+                  <Badge className={cn("mt-1", getVariantColor(expandedLogo.variant))}>
+                    {getVariantLabel(expandedLogo.variant)}
+                  </Badge>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => downloadLogo(expandedLogo)}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+              </div>
+              
+              {/* Large logo display on multiple backgrounds */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Light background */}
+                <div className="bg-white border border-border rounded-lg p-8 flex items-center justify-center min-h-[200px]">
+                  <img
+                    src={expandedLogo.url}
+                    alt={`${expandedLogo.name} on light`}
+                    className="max-h-48 max-w-full object-contain"
+                  />
+                </div>
+                
+                {/* Dark background */}
+                <div className="bg-slate-900 border border-border rounded-lg p-8 flex items-center justify-center min-h-[200px]">
+                  <img
+                    src={expandedLogo.url}
+                    alt={`${expandedLogo.name} on dark`}
+                    className="max-h-48 max-w-full object-contain"
+                  />
+                </div>
+                
+                {/* Checkered/transparent background */}
+                <div className="bg-[repeating-conic-gradient(#e5e7eb_0%_25%,#ffffff_0%_50%)] dark:bg-[repeating-conic-gradient(#374151_0%_25%,#1f2937_0%_50%)] bg-[length:20px_20px] border border-border rounded-lg p-8 flex items-center justify-center min-h-[200px]">
+                  <img
+                    src={expandedLogo.url}
+                    alt={`${expandedLogo.name} transparent`}
+                    className="max-h-48 max-w-full object-contain"
+                  />
+                </div>
+                
+                {/* Brand color background */}
+                <div className="bg-primary/10 border border-border rounded-lg p-8 flex items-center justify-center min-h-[200px]">
+                  <img
+                    src={expandedLogo.url}
+                    alt={`${expandedLogo.name} on brand`}
+                    className="max-h-48 max-w-full object-contain"
+                  />
+                </div>
+              </div>
+              
+              {/* Background labels */}
+              <div className="grid grid-cols-4 gap-4 text-center text-sm text-muted-foreground">
+                <span>Light</span>
+                <span>Dark</span>
+                <span>Transparent</span>
+                <span>Brand</span>
+              </div>
+              
+              {expandedLogo.description && (
+                <p className="text-sm text-muted-foreground">{expandedLogo.description}</p>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
