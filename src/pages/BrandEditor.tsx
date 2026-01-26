@@ -91,7 +91,7 @@ const BrandEditor = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const previousThemeRef = useRef<string | undefined>(undefined);
-  const { getBrand, getBrandBySlug, updateBrand: updateBrandContext, toggleFavorite, isLoading } = useBrands();
+  const { getBrand, getBrandBySlug, updateBrand: updateBrandContext, toggleFavorite, isLoading, saveNow } = useBrands();
   const { user, isAdmin, isApproved, signOut, isLoading: authLoading } = useAuth();
   const { userRole: orgRole, organization } = useOrganization();
   
@@ -311,6 +311,12 @@ const BrandEditor = () => {
     // Normal path: editable brand is in BrandContext
     if (contextBrand) {
       updateBrandContext(brand.id, updates);
+
+      // Ken Burns is commonly toggled and then the page is refreshed immediately to verify.
+      // Force an immediate save to avoid losing the change due to debounced sync.
+      if (maybeHero && typeof maybeHero === 'object' && 'kenBurnsEffect' in maybeHero) {
+        void saveNow();
+      }
       return;
     }
 
