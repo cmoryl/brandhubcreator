@@ -75,14 +75,37 @@ const LUCIDE_CATEGORIES: Record<string, string[]> = {
   'Settings': ['Settings', 'Sliders', 'SlidersHorizontal', 'Cog', 'Wrench', 'Tool', 'Hammer', 'Lock', 'Unlock', 'Key', 'Shield'],
 };
 
-// Style presets
+// Style presets - comprehensive collection for professional icon design
 const STYLE_PRESETS = [
-  { id: 'outlined', name: 'Outlined', strokeWidth: 2, fill: false, cornerRadius: 'rounded' },
-  { id: 'filled', name: 'Filled', strokeWidth: 0, fill: true, cornerRadius: 'rounded' },
-  { id: 'duotone', name: 'Duo-tone', strokeWidth: 1.5, fill: true, cornerRadius: 'rounded', opacity: 0.3 },
-  { id: 'thin', name: 'Thin', strokeWidth: 1, fill: false, cornerRadius: 'rounded' },
-  { id: 'bold', name: 'Bold', strokeWidth: 3, fill: false, cornerRadius: 'rounded' },
-  { id: 'sharp', name: 'Sharp', strokeWidth: 2, fill: false, cornerRadius: 'sharp' },
+  // Core styles
+  { id: 'outlined', name: 'Outlined', strokeWidth: 2, fill: false, cornerRadius: 'rounded', description: 'Classic outline style' },
+  { id: 'filled', name: 'Filled', strokeWidth: 0, fill: true, cornerRadius: 'rounded', description: 'Solid filled icons' },
+  
+  // Minimalist styles
+  { id: 'minimalist', name: 'Minimalist', strokeWidth: 1, fill: false, cornerRadius: 'rounded', description: 'Ultra-clean thin lines' },
+  { id: 'hairline', name: 'Hairline', strokeWidth: 0.75, fill: false, cornerRadius: 'rounded', description: 'Delicate fine lines' },
+  
+  // Bold styles
+  { id: 'bold-outline', name: 'Bold Outline', strokeWidth: 2.5, fill: false, cornerRadius: 'rounded', description: 'Strong visible strokes' },
+  { id: 'extra-bold', name: 'Extra Bold', strokeWidth: 3.5, fill: false, cornerRadius: 'rounded', description: 'Maximum impact' },
+  
+  // Duo-tone & gradient styles
+  { id: 'duotone', name: 'Duo-tone', strokeWidth: 1.5, fill: true, cornerRadius: 'rounded', opacity: 0.2, description: 'Stroke with soft fill' },
+  { id: 'duotone-bold', name: 'Duo-tone Bold', strokeWidth: 2.5, fill: true, cornerRadius: 'rounded', opacity: 0.15, description: 'Bold stroke with fill' },
+  { id: 'glass', name: 'Glass', strokeWidth: 1.5, fill: true, cornerRadius: 'soft', opacity: 0.1, description: 'Subtle glassmorphic effect' },
+  
+  // Sharp & geometric styles
+  { id: 'sharp', name: 'Sharp', strokeWidth: 2, fill: false, cornerRadius: 'sharp', description: 'Angular geometric corners' },
+  { id: 'sharp-bold', name: 'Sharp Bold', strokeWidth: 2.5, fill: false, cornerRadius: 'sharp', description: 'Bold geometric style' },
+  { id: 'sharp-filled', name: 'Sharp Filled', strokeWidth: 0, fill: true, cornerRadius: 'sharp', description: 'Solid geometric icons' },
+  
+  // Soft styles
+  { id: 'soft-rounded', name: 'Soft Rounded', strokeWidth: 2, fill: false, cornerRadius: 'soft', description: 'Extra-rounded friendly look' },
+  { id: 'soft-filled', name: 'Soft Filled', strokeWidth: 0, fill: true, cornerRadius: 'soft', description: 'Rounded filled icons' },
+  
+  // Special effect styles
+  { id: 'thick-stroke', name: 'Thick Stroke', strokeWidth: 4, fill: false, cornerRadius: 'rounded', description: 'Very heavy strokes' },
+  { id: 'subtle', name: 'Subtle', strokeWidth: 1.25, fill: false, cornerRadius: 'rounded', opacity: 0.7, description: 'Muted appearance' },
 ];
 
 // Export sizes
@@ -633,19 +656,33 @@ export const IconCreatorDialog = ({
           <div className="space-y-6 overflow-y-auto">
             <div className="space-y-3">
               <Label className="text-sm font-medium">Style Presets</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {STYLE_PRESETS.map((preset) => (
-                  <Button
-                    key={preset.id}
-                    variant={activePreset === preset.id ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => applyPreset(preset.id)}
-                    className="justify-start"
-                  >
-                    {preset.name}
-                  </Button>
-                ))}
-              </div>
+              <ScrollArea className="h-[180px] pr-3">
+                <div className="grid grid-cols-2 gap-2">
+                  {STYLE_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => applyPreset(preset.id)}
+                      className={cn(
+                        'group relative flex flex-col items-start gap-0.5 p-2 rounded-lg border text-left transition-all',
+                        activePreset === preset.id 
+                          ? 'bg-primary text-primary-foreground border-primary' 
+                          : 'bg-card hover:bg-accent hover:border-accent border-border'
+                      )}
+                    >
+                      <span className="text-xs font-medium truncate w-full">{preset.name}</span>
+                      <span className={cn(
+                        'text-[10px] truncate w-full',
+                        activePreset === preset.id ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                      )}>
+                        {preset.description}
+                      </span>
+                      {activePreset === preset.id && (
+                        <Check className="absolute top-1.5 right-1.5 h-3 w-3" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
 
             <div className="space-y-3">
@@ -671,11 +708,17 @@ export const IconCreatorDialog = ({
                 onValueChange={(v) => v && setIconStyle(s => ({ ...s, cornerRadius: v as any }))}
                 className="justify-start"
               >
-                <ToggleGroupItem value="sharp" aria-label="Sharp corners">
+                <ToggleGroupItem value="sharp" aria-label="Sharp corners" className="gap-1.5">
                   <Square className="h-4 w-4" />
+                  <span className="text-xs">Sharp</span>
                 </ToggleGroupItem>
-                <ToggleGroupItem value="rounded" aria-label="Rounded corners">
+                <ToggleGroupItem value="rounded" aria-label="Rounded corners" className="gap-1.5">
                   <Circle className="h-4 w-4" />
+                  <span className="text-xs">Rounded</span>
+                </ToggleGroupItem>
+                <ToggleGroupItem value="soft" aria-label="Soft corners" className="gap-1.5">
+                  <div className="h-4 w-4 rounded-md border-2 border-current" />
+                  <span className="text-xs">Soft</span>
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
