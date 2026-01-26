@@ -241,8 +241,6 @@ export const HeroSection = ({
       <input
         ref={videoInputRef}
         type="file"
-        accept="video/*,.mov,.mp4,.webm"
-        data-testid="video-file-input"
         onChange={(e) => handleFileUpload(e, 'coverVideo')}
         className="hidden"
       />
