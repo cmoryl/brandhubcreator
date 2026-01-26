@@ -48,10 +48,15 @@ const OrganizationPortal = () => {
   // Use the new portal data hook
   const { organization, brands, products, events, isLoading: dataLoading, error } = usePortalData(slug);
   
-  // Simplified loading: Only show loading when we don't have data yet.
-  // Once we have org data, never show the full-screen loader again (use skeletons for partial updates).
+  // Track if initial data load has completed (prevents skeleton flicker on refetch)
   const hasInitialData = !!organization;
+  const hasEverHadContent = brands.length > 0 || products.length > 0 || events.length > 0;
+  
+  // Only show full-screen loading on very first load (no org data yet)
   const needsFullScreenLoading = !hasInitialData && dataLoading;
+  
+  // Only show skeleton grids on initial content load, not on background refetches
+  const showSkeletons = dataLoading && !hasEverHadContent;
   
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'brands' | 'products' | 'events'>('all');
@@ -480,7 +485,7 @@ const OrganizationPortal = () => {
 
           {/* All Content */}
           <TabsContent value="all" className="space-y-16">
-            {dataLoading && brands.length === 0 && products.length === 0 && (
+            {showSkeletons && (
               <div className="space-y-12 sm:space-y-16">
                 <section>
                   <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
@@ -492,7 +497,7 @@ const OrganizationPortal = () => {
               </div>
             )}
 
-            {!dataLoading && filteredBrands.length > 0 && (
+            {!showSkeletons && filteredBrands.length > 0 && (
               <section>
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                   <Building2 className="h-5 w-5 text-muted-foreground" />
@@ -522,7 +527,7 @@ const OrganizationPortal = () => {
               </section>
             )}
 
-            {!dataLoading && filteredProducts.length > 0 && (
+            {!showSkeletons && filteredProducts.length > 0 && (
               <section>
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                   <Package className="h-5 w-5 text-muted-foreground" />
@@ -552,7 +557,7 @@ const OrganizationPortal = () => {
               </section>
             )}
 
-            {!dataLoading && filteredEvents.length > 0 && (
+            {!showSkeletons && filteredEvents.length > 0 && (
               <section>
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-muted-foreground" />
@@ -582,7 +587,7 @@ const OrganizationPortal = () => {
               </section>
             )}
 
-            {!dataLoading && totalResults === 0 && (
+            {!showSkeletons && totalResults === 0 && (
               <EmptyState searchQuery={searchQuery} type="all" />
             )}
           </TabsContent>
