@@ -29,7 +29,7 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange }: A
   const [isEditing, setIsEditing] = useState(false);
   const [editingAward, setEditingAward] = useState<BrandAward | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>('year-desc');
-  const [viewMode, setViewMode] = useState<ViewMode>('timeline');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
