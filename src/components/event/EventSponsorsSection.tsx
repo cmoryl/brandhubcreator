@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Trash2, Check, X, Crown, Star, Medal, Award, Users, ExternalLink } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Plus, Trash2, Check, X, Crown, Star, Medal, Award, Users, ExternalLink, Upload, Link } from 'lucide-react';
 import { EventSponsor } from '@/types/event';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
 interface EventSponsorsSectionProps {
@@ -38,11 +39,31 @@ export const EventSponsorsSection = ({
   subtitle,
 }: EventSponsorsSectionProps) => {
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [logoInputMode, setLogoInputMode] = useState<'upload' | 'url'>('upload');
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [newItem, setNewItem] = useState<Partial<EventSponsor>>({
     name: '',
     tier: 'gold',
     logoUrl: '',
   });
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate image file
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (PNG, JPG, SVG, etc.)');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      setNewItem({ ...newItem, logoUrl: dataUrl });
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleAdd = () => {
     if (!newItem.name) return;
@@ -59,6 +80,8 @@ export const EventSponsorsSection = ({
     
     onUpdate([...sponsors, item]);
     setNewItem({ name: '', tier: 'gold', logoUrl: '' });
+    setLogoInputMode('upload');
+    if (logoInputRef.current) logoInputRef.current.value = '';
     setIsAddingNew(false);
   };
 
@@ -126,13 +149,52 @@ export const EventSponsorsSection = ({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Logo URL</Label>
-                <Input
-                  value={newItem.logoUrl || ''}
-                  onChange={(e) => setNewItem({ ...newItem, logoUrl: e.target.value })}
-                  placeholder="https://..."
-                />
+              <div className="space-y-2 md:col-span-2">
+                <Label>Logo</Label>
+                <Tabs value={logoInputMode} onValueChange={(v) => setLogoInputMode(v as 'upload' | 'url')} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 h-9">
+                    <TabsTrigger value="upload" className="text-xs gap-1.5">
+                      <Upload className="h-3.5 w-3.5" />
+                      Upload
+                    </TabsTrigger>
+                    <TabsTrigger value="url" className="text-xs gap-1.5">
+                      <Link className="h-3.5 w-3.5" />
+                      URL
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="upload" className="mt-2">
+                    <div className="flex gap-2">
+                      <input
+                        ref={logoInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => logoInputRef.current?.click()}
+                        className="flex-1 gap-2"
+                      >
+                        <Upload className="h-4 w-4" />
+                        {newItem.logoUrl ? 'Change Logo' : 'Upload Logo'}
+                      </Button>
+                      {newItem.logoUrl && (
+                        <div className="h-10 w-10 border rounded flex items-center justify-center bg-white">
+                          <img src={newItem.logoUrl} alt="Preview" className="max-h-8 max-w-8 object-contain" />
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="url" className="mt-2">
+                    <Input
+                      value={newItem.logoUrl || ''}
+                      onChange={(e) => setNewItem({ ...newItem, logoUrl: e.target.value })}
+                      placeholder="https://example.com/logo.png"
+                    />
+                  </TabsContent>
+                </Tabs>
               </div>
               <div className="space-y-2">
                 <Label>Website URL (optional)</Label>
