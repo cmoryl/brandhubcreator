@@ -139,10 +139,16 @@ export const useIconLibraries = (organizationId: string | undefined) => {
     },
   });
 
-  // Get libraries grouped by level
-  const coreLibraries = libraries.filter(l => l.level === 'core' && l.is_active);
-  const productLineLibraries = libraries.filter(l => l.level === 'product_line' && l.is_active);
-  const brandLibraries = libraries.filter(l => l.level === 'brand' && l.is_active);
+  // Get libraries grouped by level, sorted by display_order
+  const coreLibraries = libraries
+    .filter(l => l.level === 'core' && l.is_active)
+    .sort((a, b) => a.display_order - b.display_order);
+  const productLineLibraries = libraries
+    .filter(l => l.level === 'product_line' && l.is_active)
+    .sort((a, b) => a.display_order - b.display_order);
+  const brandLibraries = libraries
+    .filter(l => l.level === 'brand' && l.is_active)
+    .sort((a, b) => a.display_order - b.display_order);
 
   // Get all inherited icons for a brand (core + product line)
   const getInheritedIcons = (productLineId?: string) => {
