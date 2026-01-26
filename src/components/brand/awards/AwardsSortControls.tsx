@@ -24,8 +24,8 @@ interface AwardsSortControlsProps {
 const sortLabels: Record<SortOption, { label: string; icon: React.ReactNode }> = {
   'year-desc': { label: 'Newest First', icon: <Calendar className="h-3.5 w-3.5" /> },
   'year-asc': { label: 'Oldest First', icon: <Calendar className="h-3.5 w-3.5" /> },
-  'organization': { label: 'By Organization', icon: <Building2 className="h-3.5 w-3.5" /> },
-  'title': { label: 'By Title', icon: <Trophy className="h-3.5 w-3.5" /> },
+  'organization': { label: 'Organization', icon: <Building2 className="h-3.5 w-3.5" /> },
+  'title': { label: 'Title', icon: <Trophy className="h-3.5 w-3.5" /> },
 };
 
 const AwardsSortControls: React.FC<AwardsSortControlsProps> = ({
@@ -36,26 +36,30 @@ const AwardsSortControls: React.FC<AwardsSortControlsProps> = ({
   totalCount,
 }) => {
   return (
-    <div className="flex items-center justify-between gap-4 py-3 px-1">
+    <div className="flex items-center justify-between gap-4 py-2">
       <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">
-          <span className="font-semibold text-foreground">{totalCount}</span> awards
-        </span>
+        <div className="flex items-center gap-2 text-sm">
+          <Trophy className="h-4 w-4 text-primary" />
+          <span className="font-semibold text-foreground">{totalCount}</span>
+          <span className="text-muted-foreground">total awards</span>
+        </div>
+        
+        <div className="w-px h-5 bg-border" />
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2 h-8">
+            <Button variant="ghost" size="sm" className="gap-2 h-8 text-muted-foreground hover:text-foreground">
               <ArrowUpDown className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{sortLabels[sortOption].label}</span>
+              <span className="text-xs">{sortLabels[sortOption].label}</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
+          <DropdownMenuContent align="start" className="w-44">
             {(Object.keys(sortLabels) as SortOption[]).map((option) => (
               <DropdownMenuItem
                 key={option}
                 onClick={() => onSortChange(option)}
                 className={cn(
-                  "gap-2 cursor-pointer",
+                  "gap-2 cursor-pointer text-sm",
                   sortOption === option && "bg-accent"
                 )}
               >
@@ -71,19 +75,19 @@ const AwardsSortControls: React.FC<AwardsSortControlsProps> = ({
         type="single" 
         value={viewMode} 
         onValueChange={(value) => value && onViewModeChange(value as ViewMode)}
-        className="bg-muted rounded-md p-0.5"
+        className="bg-muted/50 rounded-lg p-0.5 border border-border/50"
       >
         <ToggleGroupItem 
           value="timeline" 
           aria-label="Timeline view"
-          className="h-7 px-2.5 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+          className="h-7 w-8 data-[state=on]:bg-background data-[state=on]:shadow-sm rounded-md"
         >
           <List className="h-3.5 w-3.5" />
         </ToggleGroupItem>
         <ToggleGroupItem 
           value="grid" 
           aria-label="Grid view"
-          className="h-7 px-2.5 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+          className="h-7 w-8 data-[state=on]:bg-background data-[state=on]:shadow-sm rounded-md"
         >
           <LayoutGrid className="h-3.5 w-3.5" />
         </ToggleGroupItem>
