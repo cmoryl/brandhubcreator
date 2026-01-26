@@ -25,7 +25,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useEvents } from '@/contexts/EventContext';
 import { useSEO } from '@/hooks/useSEO';
-import { useStableLoading, useConsolidatedLoading } from '@/hooks/useStableLoading';
+import { useStableLoading } from '@/hooks/useStableLoading';
 import { usePortalData, useFilteredPortalData } from '@/hooks/usePortalData';
 import { usePortalPagination } from '@/hooks/usePortalPagination';
 import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
@@ -41,17 +41,17 @@ const AppSettingsEditor = lazy(() => import('@/components/admin/AppSettingsEdito
 const OrganizationPortal = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { user, isAdmin, signOut, isLoading: authLoading, accessStatus } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
   const { userRole, organization: contextOrg } = useOrganization();
   const { addEvent } = useEvents();
   
   // Use the new portal data hook
   const { organization, brands, products, events, isLoading: dataLoading, error } = usePortalData(slug);
   
-  // Consolidate auth + data loading to prevent flicker
-  // Only consider auth loading if we're still in initial session check (not access checks)
-  const isInitialAuthLoading = authLoading && accessStatus === 'idle';
-  const combinedLoading = useConsolidatedLoading([isInitialAuthLoading, dataLoading], 100);
+  // Simplified loading: Only show loading when we don't have data yet.
+  // Once we have org data, never show the full-screen loader again (use skeletons for partial updates).
+  const hasInitialData = !!organization;
+  const needsFullScreenLoading = !hasInitialData && dataLoading;
   
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'brands' | 'products' | 'events'>('all');
@@ -98,11 +98,11 @@ const OrganizationPortal = () => {
   });
 
   // Optimized loading: prevents flash for fast loads
-  // Uses consolidated loading state to prevent auth->data transition flicker
-  const stableLoading = useStableLoading(combinedLoading, {
-    showDelay: 150,       // Slightly longer delay to let auth settle
-    minDisplayTime: 250,  // Shorter display time for snappier feel
-    maxLoadingTime: 6000
+  // Only triggers full-screen loading when we have no data at all
+  const stableLoading = useStableLoading(needsFullScreenLoading, {
+    showDelay: 200,       // Wait 200ms before showing - most loads complete faster
+    minDisplayTime: 300,  // If shown, display for at least 300ms
+    maxLoadingTime: 8000
   });
 
   // Show welcome toast if redirected from sign-in
