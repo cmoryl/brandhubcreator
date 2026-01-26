@@ -388,6 +388,21 @@ export interface BrandDisplayBannerSpec {
   category?: 'desktop' | 'mobile' | 'video' | 'native'; // Banner category for grouping
 }
 
+// WEBINARS - Webinar Series
+export interface BrandWebinar {
+  id: string;
+  title: string;
+  description?: string;
+  date?: string;
+  duration?: string;
+  registrationUrl?: string;
+  recordingUrl?: string;
+  thumbnailUrl?: string;
+  speakers?: string[];
+  status: 'upcoming' | 'live' | 'recorded';
+  attendees?: number;
+}
+
 // SECTION LAYOUTS - Per-section layout preferences
 export type LayoutPreset = 
   | 'grid-2'      // 2 columns
@@ -593,6 +608,8 @@ export interface BaseGuide {
   statistics?: StatisticItem[];
   // Infographic layout for By the Numbers section
   infographicLayout?: InfographicLayout;
+  // Webinars (Webinar Series)
+  webinars?: BrandWebinar[];
   // Metadata
   createdAt: Date;
   updatedAt: Date;
@@ -600,7 +617,7 @@ export interface BaseGuide {
 
 // Default section order
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
-  'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'logos', 'brandicon', 'colors', 'gradients', 
+  'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
   'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
   'casestudies', 'brochures', 'templates', 'templatespecs', 'products'
@@ -649,6 +666,7 @@ export type SectionId =
   | 'brochures'
   | 'templates'
   | 'templatespecs'
+  | 'webinars'
   | 'products';
 
 // Statistic item for By the Numbers section

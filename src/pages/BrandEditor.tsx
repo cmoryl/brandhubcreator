@@ -47,6 +47,7 @@ import { BrochuresSection } from '@/components/brand/BrochuresSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { ProductsSection } from '@/components/brand/ProductsSection';
+import { WebinarSeriesSection } from '@/components/brand/WebinarSeriesSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
@@ -516,6 +517,7 @@ const BrandEditor = () => {
       case 'bythenumbers': return <ByTheNumbersSection statistics={brand.statistics || []} onStatisticsChange={editHandler((statistics) => updateBrand({ statistics }))} brandName={brand.hero.name} infographicLayout={brand.infographicLayout || 'infographic'} onLayoutChange={canEdit ? (infographicLayout) => updateBrand({ infographicLayout }) : undefined} brandColors={brand.colors || []} />;
       case 'services': return <ServicesSection services={brand.services || []} onServicesChange={editHandler((services) => updateBrand({ services }))} />;
       case 'revenue': return <RevenueChartSection revenueData={brand.revenueData} onRevenueDataChange={editHandler((revenueData) => updateBrand({ revenueData }))} brandName={brand.hero.name} />;
+      case 'webinars': return <WebinarSeriesSection webinars={brand.webinars || []} onWebinarsChange={editHandler((webinars) => updateBrand({ webinars }))} />;
       case 'logos': return <LogoSection logos={brand.logos} onLogosChange={editHandler((logos) => updateBrand({ logos }))} />;
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={editHandler((brandIcons) => updateBrand({ brandIcons }))} />;
       case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={editHandler((colors) => updateBrand({ colors }))} colorCombinations={brand.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateBrand({ colorCombinations }))} brandName={brand.hero.name} />;

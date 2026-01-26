@@ -182,22 +182,87 @@ export const UnifiedLogoSection = ({
     return acc;
   }, {} as Record<string, UnifiedLogo[]>);
 
-  // Safe zone wrapper component with dashed border indicating clear space
-  const SafeZoneWrapper = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <div className={cn("relative p-4", className)}>
-      {/* Safe zone indicator lines */}
-      <div className="absolute inset-3 border border-dashed border-muted-foreground/30 rounded pointer-events-none" />
-      <div className="absolute top-1 left-1/2 -translate-x-1/2 text-[9px] text-muted-foreground/50 uppercase tracking-wider">
-        safe zone
-      </div>
+  // Safe zone wrapper component with X-unit measurement indicators
+  const SafeZoneWrapper = ({ children, className, showMeasurements = false }: { children: React.ReactNode; className?: string; showMeasurements?: boolean }) => (
+    <div className={cn("relative p-6", className)}>
+      {/* Safe zone border */}
+      <div className="absolute inset-4 border border-dashed border-muted-foreground/40 rounded pointer-events-none" />
+      
+      {/* X-unit measurement indicators */}
+      {showMeasurements && (
+        <>
+          {/* Top measurement */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 flex flex-col items-center">
+            <div className="h-4 w-px bg-muted-foreground/40" />
+            <span className="text-[8px] text-muted-foreground/60 font-mono">1X</span>
+          </div>
+          {/* Bottom measurement */}
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center">
+            <span className="text-[8px] text-muted-foreground/60 font-mono">1X</span>
+            <div className="h-4 w-px bg-muted-foreground/40" />
+          </div>
+          {/* Left measurement */}
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center">
+            <div className="w-4 h-px bg-muted-foreground/40" />
+            <span className="text-[8px] text-muted-foreground/60 font-mono ml-0.5">1X</span>
+          </div>
+          {/* Right measurement */}
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center">
+            <span className="text-[8px] text-muted-foreground/60 font-mono mr-0.5">1X</span>
+            <div className="w-4 h-px bg-muted-foreground/40" />
+          </div>
+        </>
+      )}
+      
       <div className="relative flex items-center justify-center min-h-[80px]">
         {children}
       </div>
     </div>
   );
 
+  // Primary Symbol with social circle preview
+  const PrimarySymbolPreview = ({ logo }: { logo: UnifiedLogo }) => (
+    <div className="border border-border rounded-lg p-4 bg-card">
+      <div className="text-xs font-medium text-muted-foreground mb-3 flex items-center gap-2">
+        <span className="uppercase tracking-wider">Primary Symbol</span>
+        <Badge variant="outline" className="text-[10px]">Social Avatar</Badge>
+      </div>
+      <div className="grid grid-cols-4 gap-3">
+        {/* Square version */}
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-16 h-16 bg-white rounded-lg border border-border flex items-center justify-center p-2 relative">
+            <div className="absolute inset-2 border border-dashed border-muted-foreground/30 rounded" />
+            <img src={logo.url} alt="Square" className="max-h-10 max-w-10 object-contain relative z-10" />
+          </div>
+          <span className="text-[9px] text-muted-foreground">Square</span>
+        </div>
+        {/* Circle version - Social */}
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-16 h-16 bg-white rounded-full border border-border flex items-center justify-center p-2 overflow-hidden">
+            <img src={logo.url} alt="Circle" className="max-h-10 max-w-10 object-contain" />
+          </div>
+          <span className="text-[9px] text-muted-foreground">Circle</span>
+        </div>
+        {/* Dark circle */}
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-16 h-16 bg-slate-900 rounded-full border border-border flex items-center justify-center p-2 overflow-hidden">
+            <img src={logo.url} alt="Dark Circle" className="max-h-10 max-w-10 object-contain" />
+          </div>
+          <span className="text-[9px] text-muted-foreground">Dark</span>
+        </div>
+        {/* Brand color circle */}
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-16 h-16 bg-primary rounded-full border border-border flex items-center justify-center p-2 overflow-hidden">
+            <img src={logo.url} alt="Brand Circle" className="max-h-10 max-w-10 object-contain" />
+          </div>
+          <span className="text-[9px] text-muted-foreground">Brand</span>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderLogoCard = (logo: UnifiedLogo, index: number) => {
-    const isReversedVariant = logo.variant === 'reversed' || logo.variant === 'monochrome';
+    const isIconVariant = logo.variant === 'icon' || logo.variant === 'event-primary';
     
     return (
       <Card
@@ -205,10 +270,17 @@ export const UnifiedLogoSection = ({
         className="group relative overflow-hidden hover:border-primary/50 transition-colors animate-scale-in"
         style={{ animationDelay: `${index * 50}ms` }}
       >
-        {/* Multi-background logo display */}
+        {/* Primary Symbol preview for icon variants */}
+        {isIconVariant && (
+          <div className="p-3 border-b border-border/50">
+            <PrimarySymbolPreview logo={logo} />
+          </div>
+        )}
+        
+        {/* Multi-background logo display with X measurements */}
         <div className="grid grid-cols-2">
           {/* Light background */}
-          <SafeZoneWrapper className="bg-white border-r border-b border-border/50">
+          <SafeZoneWrapper className="bg-white border-r border-b border-border/50" showMeasurements={index === 0}>
             <img
               src={logo.url}
               alt={`${logo.name} on light`}
@@ -219,7 +291,7 @@ export const UnifiedLogoSection = ({
           </SafeZoneWrapper>
           
           {/* Dark background */}
-          <SafeZoneWrapper className="bg-slate-900 border-b border-border/50">
+          <SafeZoneWrapper className="bg-slate-900 border-b border-border/50" showMeasurements={index === 0}>
             <img
               src={logo.url}
               alt={`${logo.name} on dark`}
@@ -252,12 +324,23 @@ export const UnifiedLogoSection = ({
           </SafeZoneWrapper>
         </div>
         
+        {/* Safe zone legend */}
+        <div className="px-3 py-2 bg-muted/30 border-t border-b border-border/50">
+          <div className="flex items-center justify-between text-[9px] text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-px border-t border-dashed border-muted-foreground/60" />
+              <span>Clear space = 1X (height of symbol)</span>
+            </span>
+            <span className="text-muted-foreground/60">Min size: 24px</span>
+          </div>
+        </div>
+        
         {/* Background labels */}
-        <div className="grid grid-cols-4 text-[9px] text-center border-t border-border/50">
-          <span className="py-1 text-muted-foreground border-r border-border/50">Light</span>
-          <span className="py-1 text-muted-foreground border-r border-border/50">Dark</span>
-          <span className="py-1 text-muted-foreground border-r border-border/50">Transparent</span>
-          <span className="py-1 text-muted-foreground">Brand</span>
+        <div className="grid grid-cols-4 text-[9px] text-center border-b border-border/50">
+          <span className="py-1.5 text-muted-foreground border-r border-border/50">Light</span>
+          <span className="py-1.5 text-muted-foreground border-r border-border/50">Dark</span>
+          <span className="py-1.5 text-muted-foreground border-r border-border/50">Transparent</span>
+          <span className="py-1.5 text-muted-foreground">Brand</span>
         </div>
         
         {gridLayout === 'flat' && (
