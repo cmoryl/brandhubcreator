@@ -250,6 +250,7 @@ const Index = () => {
                   onBrandUpdate={updateBrand}
                   scrollToSection={scrollToSection}
                   onSectionVisible={handleSectionVisible}
+                  canEdit={true}
                 />
               )}
             </div>
