@@ -59,6 +59,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useToast } from '@/hooks/use-toast';
 import { format, subDays, endOfDay, eachDayOfInterval, parseISO } from 'date-fns';
+import { LocationAnalytics } from './LocationAnalytics';
 
 interface ActivityData {
   date: string;
@@ -572,9 +573,10 @@ export const OrganizationAnalytics = () => {
 
             {/* Charts */}
             <Tabs defaultValue="activity" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="activity" className="text-xs sm:text-sm">Activity</TabsTrigger>
                 <TabsTrigger value="growth" className="text-xs sm:text-sm">Growth</TabsTrigger>
+                <TabsTrigger value="location" className="text-xs sm:text-sm">Location</TabsTrigger>
                 <TabsTrigger value="distribution" className="text-xs sm:text-sm">Distribution</TabsTrigger>
               </TabsList>
 
@@ -668,6 +670,10 @@ export const OrganizationAnalytics = () => {
                 <p className="text-center text-xs text-muted-foreground mt-4">
                   Cumulative content growth over time
                 </p>
+              </TabsContent>
+
+              <TabsContent value="location" className="pt-4">
+                <LocationAnalytics organizationId={organization?.id} dateRange={dateRange} />
               </TabsContent>
 
               <TabsContent value="distribution" className="pt-4">
