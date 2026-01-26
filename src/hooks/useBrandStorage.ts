@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { BrandGuide, ProductGuide, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, DEFAULT_TEMPLATE_SPECS, SectionId } from '@/types/brand';
+import { BrandGuide, ProductGuide, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, DEFAULT_TEMPLATE_SPECS, SectionId, BrandAward, BrandWebinar } from '@/types/brand';
 import { DEFAULT_SOCIAL_ASSETS, DEFAULT_DISPLAY_BANNERS } from '@/lib/socialAssetDefaults';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -166,6 +166,8 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     templateSpecs: asArray(guideData.templateSpecs, []) as BrandGuide['templateSpecs'],
     revenueData: asArray(guideData.revenueData, []) as BrandGuide['revenueData'],
     statistics: asArray(guideData.statistics, []) as BrandGuide['statistics'],
+    webinars: asArray(guideData.webinars, []) as BrandWebinar[],
+    awards: asArray(guideData.awards, []) as BrandAward[],
     infographicLayout: (guideData.infographicLayout as BrandGuide['infographicLayout']) || 'infographic',
     sectionSubtitles: asObject(guideData.sectionSubtitles, {}) as BrandGuide['sectionSubtitles'],
     sectionLayouts: asObject(guideData.sectionLayouts, {}) as BrandGuide['sectionLayouts'],
@@ -222,6 +224,8 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
     templateSpecs: asArray(guideData.templateSpecs, []) as ProductGuide['templateSpecs'],
     revenueData: asArray(guideData.revenueData, []) as ProductGuide['revenueData'],
     statistics: asArray(guideData.statistics, []) as ProductGuide['statistics'],
+    webinars: asArray(guideData.webinars, []) as BrandWebinar[],
+    awards: asArray(guideData.awards, []) as BrandAward[],
     infographicLayout: (guideData.infographicLayout as ProductGuide['infographicLayout']) || 'infographic',
     sectionSubtitles: asObject(guideData.sectionSubtitles, {}) as ProductGuide['sectionSubtitles'],
     sectionLayouts: asObject(guideData.sectionLayouts, {}) as ProductGuide['sectionLayouts'],
