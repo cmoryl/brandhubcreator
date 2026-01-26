@@ -235,8 +235,13 @@ export const HeroSection = ({
   };
 
   const toggleKenBurns = () => {
-    if (!onHeroChange) return;
-    onHeroChange({ ...hero, kenBurnsEffect: !hero.kenBurnsEffect });
+    if (!onHeroChange) {
+      console.warn('[HeroSection] toggleKenBurns: No onHeroChange handler');
+      return;
+    }
+    const newValue = !hero.kenBurnsEffect;
+    console.log('[HeroSection] toggleKenBurns:', { from: hero.kenBurnsEffect, to: newValue });
+    onHeroChange({ ...hero, kenBurnsEffect: newValue });
   };
 
   const formatNumber = (num: number) => {
@@ -281,13 +286,13 @@ export const HeroSection = ({
         {/* Cover Image/Video - Enhanced Height with Parallax/Ken Burns and optimized loading */}
         <BackgroundImage
           src={hero.coverImage || ''}
-          videoSrc={hero.coverVideo}
-          preferVideo={hero.useVideo ?? true}
-          kenBurnsEffect={!hero.useVideo && hero.kenBurnsEffect}
+          videoSrc={hero.useVideo ? hero.coverVideo : undefined}
+          preferVideo={hero.useVideo === true}
+          kenBurnsEffect={hero.useVideo !== true && hero.kenBurnsEffect === true}
           fallbackSrc=""
           className={`relative ${heroHeight} cursor-pointer group`}
           priority={true}
-          parallax={!hero.kenBurnsEffect}
+          parallax={hero.kenBurnsEffect !== true}
           parallaxOffset={parallaxOffset}
           onClick={() => isEditing && (hero.useVideo ? videoInputRef.current?.click() : coverInputRef.current?.click())}
         >
@@ -381,8 +386,8 @@ export const HeroSection = ({
                 </ToggleGroup>
               </div>
 
-              {/* Ken Burns Effect Toggle - Only for images */}
-              {!hero.useVideo && (
+              {/* Ken Burns Effect Toggle - Only for images (when not using video) */}
+              {hero.useVideo !== true && (
                 <button
                   type="button"
                   onClick={(e) => {
@@ -391,7 +396,7 @@ export const HeroSection = ({
                   }}
                   className={cn(
                     "pointer-events-auto flex items-center gap-2 px-4 py-2 rounded-full border transition-all",
-                    hero.kenBurnsEffect 
+                    hero.kenBurnsEffect === true
                       ? "bg-white/25 border-white/40 text-white" 
                       : "bg-white/10 border-white/20 text-white/80 hover:bg-white/15 hover:text-white"
                   )}
@@ -399,7 +404,7 @@ export const HeroSection = ({
                 >
                   <Move className="h-4 w-4" />
                   <span className="text-sm font-medium">Ken Burns Effect</span>
-                  {hero.kenBurnsEffect && <Check className="h-3 w-3" />}
+                  {hero.kenBurnsEffect === true && <Check className="h-3 w-3" />}
                 </button>
               )}
               
