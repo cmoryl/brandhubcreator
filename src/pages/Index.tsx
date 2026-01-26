@@ -150,7 +150,7 @@ const Index = () => {
       case 'patterns': return <PatternsSection patterns={currentBrand.patterns} onPatternsChange={(patterns) => updateBrand({ patterns })} />;
       case 'typography': return <TypographySection typography={currentBrand.typography} onTypographyChange={(typography) => updateBrand({ typography })} />;
       case 'textstyles': return <TextStylesSection textStyles={currentBrand.textStyles} onTextStylesChange={(textStyles) => updateBrand({ textStyles })} />;
-      case 'iconography': return <IconographySection iconography={currentBrand.iconography} onIconographyChange={(iconography) => updateBrand({ iconography })} />;
+      case 'iconography': return <IconographySection iconography={currentBrand.iconography} onIconographyChange={(iconography) => updateBrand({ iconography })} brandColors={currentBrand.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} />;
       case 'socialicons': return <SocialIconsSection socialIcons={currentBrand.socialIcons} onSocialIconsChange={(socialIcons) => updateBrand({ socialIcons })} />;
       case 'imagery': return <ImagerySection imagery={currentBrand.imagery} onImageryChange={(imagery) => updateBrand({ imagery })} />;
       case 'social': return <SocialSection social={currentBrand.social} onSocialChange={(social) => updateBrand({ social })} />;

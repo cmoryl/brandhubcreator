@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SectionHeader } from './SectionHeader';
+import { IconCreatorDialog } from './iconography/IconCreatorDialog';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 import JSZip from 'jszip';
@@ -39,6 +40,7 @@ interface IconographySectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   defaultIconColor?: string;
   onDefaultIconColorChange?: (color: string) => void;
+  brandColors?: Array<{ hex: string; name: string }>;
 }
 
 type GridSize = 'compact' | 'medium' | 'large';
@@ -57,7 +59,8 @@ export const IconographySection = ({
   customSubtitle, 
   onSubtitleChange,
   defaultIconColor,
-  onDefaultIconColorChange 
+  onDefaultIconColorChange,
+  brandColors = [],
 }: IconographySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -65,6 +68,7 @@ export const IconographySection = ({
   const [gridSize, setGridSize] = useState<GridSize>('medium');
   const [iconColor, setIconColor] = useState<string>(defaultIconColor || 'currentColor');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [showIconCreator, setShowIconCreator] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const ICONS_PREVIEW_LIMIT = 8;
@@ -475,9 +479,13 @@ ${innerContent}
             <Upload className="h-4 w-4" />
             Upload SVG
           </Button>
-          <Button onClick={addIcon} size="sm" className="gap-2">
+          <Button onClick={addIcon} size="sm" className="gap-2" variant="outline">
             <Plus className="h-4 w-4" />
             Add Icon
+          </Button>
+          <Button onClick={() => setShowIconCreator(true)} size="sm" className="gap-2">
+            <Sparkles className="h-4 w-4" />
+            Icon Creator
           </Button>
         </div>
       </div>
@@ -616,6 +624,16 @@ ${innerContent}
           </div>
         </div>
       )}
+
+      {/* Icon Creator Dialog */}
+      <IconCreatorDialog
+        open={showIconCreator}
+        onOpenChange={setShowIconCreator}
+        onSave={(newIcons) => {
+          onIconographyChange([...iconography, ...newIcons]);
+        }}
+        brandColors={brandColors}
+      />
     </section>
   );
 };

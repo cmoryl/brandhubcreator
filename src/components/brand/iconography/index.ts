@@ -1,0 +1,1 @@
+export { IconCreatorDialog } from './IconCreatorDialog';
