@@ -1,10 +1,9 @@
-import { useState } from 'react';
-import { Award, Plus, Trash2, ExternalLink, Building2 } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Award, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +13,9 @@ import {
 } from '@/components/ui/dialog';
 import { BrandAward } from '@/types/brand';
 import { SectionHeader } from './SectionHeader';
+import AwardCard from './awards/AwardCard';
+import AwardsTimeline from './awards/AwardsTimeline';
+import AwardsSortControls, { SortOption, ViewMode } from './awards/AwardsSortControls';
 
 interface AwardsSectionProps {
   awards: BrandAward[];
@@ -26,6 +28,8 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange }: A
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingAward, setEditingAward] = useState<BrandAward | null>(null);
+  const [sortOption, setSortOption] = useState<SortOption>('year-desc');
+  const [viewMode, setViewMode] = useState<ViewMode>('timeline');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -92,20 +96,41 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange }: A
     }
   };
 
-  // Group awards by year
-  const awardsByYear = awards.reduce((acc, award) => {
-    const year = award.year;
-    if (!acc[year]) acc[year] = [];
-    acc[year].push(award);
-    return acc;
-  }, {} as Record<number, BrandAward[]>);
+  // Sort awards based on selected option
+  const sortedAwards = useMemo(() => {
+    const sorted = [...awards];
+    switch (sortOption) {
+      case 'year-desc':
+        return sorted.sort((a, b) => b.year - a.year);
+      case 'year-asc':
+        return sorted.sort((a, b) => a.year - b.year);
+      case 'organization':
+        return sorted.sort((a, b) => a.organization.localeCompare(b.organization));
+      case 'title':
+        return sorted.sort((a, b) => a.title.localeCompare(b.title));
+      default:
+        return sorted;
+    }
+  }, [awards, sortOption]);
 
-  const sortedYears = Object.keys(awardsByYear)
-    .map(Number)
-    .sort((a, b) => b - a);
+  // Group awards by year for timeline view
+  const { awardsByYear, sortedYears } = useMemo(() => {
+    const grouped = sortedAwards.reduce((acc, award) => {
+      const year = award.year;
+      if (!acc[year]) acc[year] = [];
+      acc[year].push(award);
+      return acc;
+    }, {} as Record<number, BrandAward[]>);
+
+    const years = Object.keys(grouped)
+      .map(Number)
+      .sort((a, b) => sortOption === 'year-asc' ? a - b : b - a);
+
+    return { awardsByYear: grouped, sortedYears: years };
+  }, [sortedAwards, sortOption]);
 
   return (
-    <section id="awards" className="space-y-6">
+    <section id="awards" className="space-y-4">
       <SectionHeader
         title="Awards & Recognition"
         defaultSubtitle="Industry recognition and achievements"
@@ -219,87 +244,38 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange }: A
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-8">
-          {sortedYears.map((year) => (
-            <div key={year} className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="text-sm font-semibold px-3 py-1">
-                  {year}
-                </Badge>
-                <div className="h-px flex-1 bg-border" />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {awardsByYear[year].map((award) => (
-                  <Card
-                    key={award.id}
-                    className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer"
-                    onClick={() => canEdit && handleEdit(award)}
-                  >
-                    {award.imageUrl && (
-                      <div className="aspect-[16/9] overflow-hidden bg-muted">
-                        <img
-                          src={award.imageUrl}
-                          alt={award.title}
-                          className="w-full h-full object-contain p-4"
-                        />
-                      </div>
-                    )}
-                    <CardContent className={award.imageUrl ? 'pt-4' : 'pt-6'}>
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <h3 className="font-semibold text-sm leading-tight line-clamp-2">
-                            {award.title}
-                          </h3>
-                          {canEdit && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(award.id);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Building2 className="h-3 w-3" />
-                          <span>{award.organization}</span>
-                        </div>
+        <div className="space-y-2">
+          <AwardsSortControls
+            sortOption={sortOption}
+            onSortChange={setSortOption}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            totalCount={awards.length}
+          />
 
-                        {award.category && (
-                          <Badge variant="outline" className="text-xs">
-                            {award.category}
-                          </Badge>
-                        )}
-
-                        {award.description && (
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {award.description}
-                          </p>
-                        )}
-
-                        {award.linkUrl && (
-                          <a
-                            href={award.linkUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2"
-                          >
-                            Learn more <ExternalLink className="h-3 w-3" />
-                          </a>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+          {viewMode === 'timeline' ? (
+            <AwardsTimeline
+              awardsByYear={awardsByYear}
+              sortedYears={sortedYears}
+              canEdit={canEdit}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              {sortedAwards.map((award, index) => (
+                <AwardCard
+                  key={award.id}
+                  award={award}
+                  canEdit={canEdit}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  compact
+                  animationDelay={index * 30}
+                />
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
     </section>
