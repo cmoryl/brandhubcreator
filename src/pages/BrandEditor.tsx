@@ -299,6 +299,15 @@ const BrandEditor = () => {
   const applyBrandUpdates = useCallback((updates: Parameters<typeof updateBrandContext>[1]) => {
     if (!brand) return;
 
+    // Debug: verify Ken Burns toggle is flowing into the save pipeline
+    const maybeHero = (updates as any)?.hero;
+    if (maybeHero && typeof maybeHero === 'object' && 'kenBurnsEffect' in maybeHero) {
+      console.log('[BrandEditor] applyBrandUpdates: hero.kenBurnsEffect update', {
+        brandId: brand.id,
+        kenBurnsEffect: (maybeHero as any).kenBurnsEffect,
+      });
+    }
+
     // Normal path: editable brand is in BrandContext
     if (contextBrand) {
       updateBrandContext(brand.id, updates);
