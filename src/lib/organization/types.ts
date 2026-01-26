@@ -14,10 +14,13 @@ export interface OrganizationFeatures {
 
 export interface OrganizationPortalSettings {
   heroFullWidth?: boolean;
+  /** Whether the portal hero background shows Ken Burns (slow pan/zoom) animation */
+  heroKenBurns?: boolean;
 }
 
 export const DEFAULT_PORTAL_SETTINGS: OrganizationPortalSettings = {
   heroFullWidth: false,
+  heroKenBurns: false,
 };
 
 export const DEFAULT_FEATURES: OrganizationFeatures = {
