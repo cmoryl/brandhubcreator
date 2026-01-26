@@ -232,6 +232,19 @@ const EventEditor = () => {
   const canEdit = user && (isAdmin || canEditOrg || authLoading);
   const isGuideAdmin = Boolean(isAdmin || canEditOrg);
   
+  // Debug logging for permission issues
+  console.log('[EventEditor] Permission check:', { 
+    hasUser: !!user, 
+    isAdmin, 
+    orgRole, 
+    canEditOrg, 
+    authLoading, 
+    canEdit,
+    isGuideAdmin,
+    hasContextEvent: !!contextEvent,
+    hasPublicEvent: !!publicEvent
+  });
+  
   const sectionOrder = useMemo(() => event?.sectionOrder || DEFAULT_EVENT_SECTION_ORDER, [event?.sectionOrder]);
   const hiddenSections = useMemo(() => event?.hiddenSections || [], [event?.hiddenSections]);
   const sectionLayouts = useMemo(() => event?.sectionLayouts || {}, [event?.sectionLayouts]);
@@ -316,7 +329,10 @@ const EventEditor = () => {
   // Stable update function - must be before early returns to maintain hooks order
   // Handles both context events and directly-fetched public events
   const updateEvent = useCallback(async (updates: Partial<EventGuide>) => {
-    if (!event) return;
+    if (!event) {
+      console.warn('[EventEditor] updateEvent called but no event loaded');
+      return;
+    }
     
     // If event is in context, use context updater
     if (contextEvent) {
@@ -326,38 +342,56 @@ const EventEditor = () => {
     
     // For public events not in context, update directly via Supabase
     // This handles the case where user is editing an event loaded via public fetch
-    if (publicEvent && user) {
-      // Optimistic update to local state
+    if (publicEvent) {
+      // Optimistic update to local state immediately (so UI updates)
       setPublicEvent(prev => prev ? { ...prev, ...updates, updatedAt: new Date() } : null);
+      
+      // Only sync to database if user is authenticated
+      if (!user) {
+        console.warn('[EventEditor] User not authenticated, local state updated but not synced to database');
+        toast.error('Please sign in to save changes');
+        return;
+      }
       
       // Sync to database
       try {
-        const { hero, tagline, identity, values, eventDetails, ...rest } = { ...publicEvent, ...updates };
+        const mergedEvent = { ...publicEvent, ...updates };
+        const { hero, tagline, identity, values, eventDetails, ...rest } = mergedEvent;
         const guideData = {
           hero, tagline, identity, values, eventDetails,
           ...rest,
         };
-        // Remove non-guide fields
+        // Remove non-guide fields that shouldn't be in guide_data
         const { id, type, slug, organizationId, parentBrandId, isFavorite, isPublic, sectionOrder, hiddenSections, createdAt, updatedAt, ...cleanGuideData } = guideData as EventGuide & Record<string, unknown>;
+        
+        console.log('[EventEditor] Syncing event update to database:', { eventId: event.id, heroName: hero?.name });
         
         const { error } = await supabase
           .from('events')
           .update({
             name: hero?.name || publicEvent.hero.name,
             guide_data: cleanGuideData as unknown as Json,
-            section_order: sectionOrder as string[] | null,
-            hidden_sections: hiddenSections as string[] | null,
+            section_order: mergedEvent.sectionOrder as string[] | null,
+            hidden_sections: mergedEvent.hiddenSections as string[] | null,
           })
           .eq('id', event.id);
         
         if (error) {
-          console.error('Failed to update event:', error);
+          console.error('[EventEditor] Failed to update event:', error);
           toast.error('Failed to save changes');
+          // Revert optimistic update on error
+          setPublicEvent(publicEvent);
+        } else {
+          console.log('[EventEditor] Event updated successfully');
         }
       } catch (err) {
-        console.error('Failed to update event:', err);
+        console.error('[EventEditor] Failed to update event:', err);
         toast.error('Failed to save changes');
+        // Revert optimistic update on error
+        setPublicEvent(publicEvent);
       }
+    } else {
+      console.warn('[EventEditor] updateEvent called but no publicEvent available');
     }
   }, [event, contextEvent, publicEvent, user, updateEventContext]);
 
@@ -367,10 +401,17 @@ const EventEditor = () => {
     if (!event) return null;
     
     // Helper to conditionally create change handler
-    const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
+    const editHandler = <T,>(handler: (value: T) => void) => {
+      if (!canEdit) {
+        console.log('[EventEditor] editHandler: canEdit is false, returning undefined for', sectionId);
+        return undefined;
+      }
+      return handler;
+    };
     
     switch (sectionId) {
       case 'hero': 
+        console.log('[EventEditor] Rendering hero section with canEdit:', canEdit);
         return <HeroSection hero={event.hero} onHeroChange={editHandler((hero) => updateEvent({ hero }))} guideData={event as unknown as Record<string, unknown>} />;
       case 'eventdetails':
         return <EventDetailsSection eventDetails={event.eventDetails} onUpdate={(eventDetails) => updateEvent({ eventDetails: { ...event.eventDetails, ...eventDetails } })} isEditable={canEdit || false} />;

@@ -150,13 +150,23 @@ export const HeroSection = ({
   }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'coverImage' | 'logoUrl' | 'coverVideo') => {
-    if (!onHeroChange) return;
+    console.log('[HeroSection] handleFileUpload called:', { field, hasOnHeroChange: !!onHeroChange });
+    
+    if (!onHeroChange) {
+      console.warn('[HeroSection] No onHeroChange handler provided - editing is disabled');
+      return;
+    }
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.warn('[HeroSection] No file selected');
+      return;
+    }
+
+    console.log('[HeroSection] File selected:', { name: file.name, type: file.type, size: file.size, field });
 
     // For video files, use the compression dialog
     if (field === 'coverVideo') {
-      console.log('Video file selected:', {
+      console.log('[HeroSection] Video file selected:', {
         name: file.name,
         type: file.type,
         size: file.size
@@ -170,7 +180,7 @@ export const HeroSection = ({
       
       if (!isVideo) {
         const errorMsg = `File "${file.name}" is not a video file. Please select .mov, .mp4, or .webm files.\n\nFile type detected: ${file.type || 'unknown'}`;
-        console.error('Invalid video file:', { name: file.name, type: file.type });
+        console.error('[HeroSection] Invalid video file:', { name: file.name, type: file.type });
         alert(errorMsg);
         if (videoInputRef.current) {
           videoInputRef.current.value = '';
@@ -178,7 +188,7 @@ export const HeroSection = ({
         return;
       }
       
-      console.log('Video file validated, opening compression dialog');
+      console.log('[HeroSection] Video file validated, opening compression dialog');
 
       setPendingVideoFile(file);
       setVideoUploadDialogOpen(true);
@@ -189,10 +199,15 @@ export const HeroSection = ({
       return;
     }
 
+    console.log('[HeroSection] Reading image file as Data URL...');
     const reader = new FileReader();
     reader.onload = (event) => {
       const url = event.target?.result as string;
+      console.log('[HeroSection] Image loaded, calling onHeroChange with', field, 'length:', url?.length);
       onHeroChange({ ...hero, [field]: url });
+    };
+    reader.onerror = (error) => {
+      console.error('[HeroSection] FileReader error:', error);
     };
     reader.readAsDataURL(file);
   };
