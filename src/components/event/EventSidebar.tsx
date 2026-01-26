@@ -2,7 +2,7 @@ import {
   Shield, Quote, Calendar, MapPin, Image, Palette, Type, Camera, 
   Users, LayoutGrid, FolderArchive, Ban, Flag, Presentation, Crown,
   Blend, Clock, Mic2, UserCircle, History, Video, MapPinned,
-  FileText, BookOpen, Layers, Ruler, Globe
+  FileText, BookOpen, Layers, Ruler, Globe, Award
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -102,6 +102,7 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   subevents: { label: 'Regional Events', icon: Globe, category: 'Identity' },
   sharedassets: { label: 'Shared Assets', icon: FolderArchive, category: 'Resources' },
   webinars: { label: 'Webinar Series', icon: Presentation, category: 'Resources' },
+  awards: { label: 'Awards & Recognition', icon: Award, category: 'Resources' },
   events: { label: 'Events', icon: Calendar, category: 'Collateral' },
 };
 

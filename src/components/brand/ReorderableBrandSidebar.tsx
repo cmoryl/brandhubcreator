@@ -1,7 +1,7 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, Globe,
-  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase, LayoutGrid, TrendingUp, BarChart3, Presentation, Calendar
+  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase, LayoutGrid, TrendingUp, BarChart3, Presentation, Calendar, Award
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -42,6 +42,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   bythenumbers: { label: 'By the Numbers', icon: BarChart3, category: 'Identity' },
   services: { label: 'Our Services', icon: Briefcase, category: 'Identity' },
   revenue: { label: 'Revenue Growth', icon: TrendingUp, category: 'Identity' },
+  awards: { label: 'Awards & Recognition', icon: Award, category: 'Identity' },
   brief: { label: 'Brand Brief', icon: FileText, category: 'Identity' },
   logos: { label: 'Mark Repository', icon: Image, category: 'Visual' },
   brandicon: { label: 'Symbol Standards', icon: Bookmark, category: 'Visual' },
