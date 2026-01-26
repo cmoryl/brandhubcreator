@@ -393,16 +393,38 @@ export const HeroSection = ({
           {/* Stats Panel - Top Left - Hidden on mobile to reduce clutter */}
           {showStats && enhancedMode && (
             <div className={`hidden sm:flex absolute top-4 left-4 sm:top-6 sm:left-6 z-20 flex-col gap-2 transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}>
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 shadow-lg">
-                <div className="flex items-center gap-1.5">
-                  <BarChart3 className="h-4 w-4 text-white" />
-                  <span className="text-white/80 text-sm">Health</span>
-                </div>
-                <span className="text-white font-bold">{animatedStats.healthScore || 0}%</span>
-                {displayStats.trend === 'up' && (
-                  <TrendingUp className="h-4 w-4 text-green-400" />
-                )}
-              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 shadow-lg cursor-help">
+                    <div className="flex items-center gap-1.5">
+                      <BarChart3 className="h-4 w-4 text-white" />
+                      <span className="text-white/80 text-sm">Health</span>
+                    </div>
+                    <span className="text-white font-bold">{animatedStats.healthScore || 0}%</span>
+                    {displayStats.trend === 'up' && (
+                      <TrendingUp className="h-4 w-4 text-green-400" />
+                    )}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs p-3 bg-popover/95 backdrop-blur-sm">
+                  <div className="space-y-2">
+                    <p className="font-semibold text-sm">Brand Completeness: {calculatedHealth.overallScore}%</p>
+                    <p className="text-xs text-muted-foreground">{calculatedHealth.filledSections}/{calculatedHealth.totalSections} sections filled</p>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs mt-2">
+                      {calculatedHealth.breakdown.map((item) => (
+                        <div key={item.section} className="flex items-center gap-1">
+                          {item.filled ? (
+                            <Check className="h-3 w-3 text-green-500 shrink-0" />
+                          ) : (
+                            <span className="h-3 w-3 rounded-full border border-muted-foreground/30 shrink-0" />
+                          )}
+                          <span className={item.filled ? 'text-foreground' : 'text-muted-foreground'}>{item.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
               <Badge variant="secondary" className="bg-white/10 backdrop-blur-md border-white/20 text-white w-fit">
                 <Sparkles className="h-3 w-3 mr-1" />
                 Brand Guide Active
