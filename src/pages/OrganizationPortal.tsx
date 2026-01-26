@@ -25,7 +25,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useEvents } from '@/contexts/EventContext';
 import { useSEO } from '@/hooks/useSEO';
-import { useStableLoading } from '@/hooks/useStableLoading';
+import { useStableLoading, useConsolidatedLoading } from '@/hooks/useStableLoading';
 import { usePortalData, useFilteredPortalData } from '@/hooks/usePortalData';
 import { usePortalPagination } from '@/hooks/usePortalPagination';
 import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
@@ -41,12 +41,17 @@ const AppSettingsEditor = lazy(() => import('@/components/admin/AppSettingsEdito
 const OrganizationPortal = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, signOut, isLoading: authLoading, accessStatus } = useAuth();
   const { userRole, organization: contextOrg } = useOrganization();
   const { addEvent } = useEvents();
   
   // Use the new portal data hook
-  const { organization, brands, products, events, isLoading, error } = usePortalData(slug);
+  const { organization, brands, products, events, isLoading: dataLoading, error } = usePortalData(slug);
+  
+  // Consolidate auth + data loading to prevent flicker
+  // Only consider auth loading if we're still in initial session check (not access checks)
+  const isInitialAuthLoading = authLoading && accessStatus === 'idle';
+  const combinedLoading = useConsolidatedLoading([isInitialAuthLoading, dataLoading], 100);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'brands' | 'products' | 'events'>('all');
@@ -93,9 +98,10 @@ const OrganizationPortal = () => {
   });
 
   // Optimized loading: prevents flash for fast loads
-  const stableLoading = useStableLoading(isLoading, {
-    showDelay: 100,
-    minDisplayTime: 300,
+  // Uses consolidated loading state to prevent auth->data transition flicker
+  const stableLoading = useStableLoading(combinedLoading, {
+    showDelay: 150,       // Slightly longer delay to let auth settle
+    minDisplayTime: 250,  // Shorter display time for snappier feel
     maxLoadingTime: 6000
   });
 
@@ -473,7 +479,7 @@ const OrganizationPortal = () => {
 
           {/* All Content */}
           <TabsContent value="all" className="space-y-16">
-            {isLoading && brands.length === 0 && products.length === 0 && (
+            {dataLoading && brands.length === 0 && products.length === 0 && (
               <div className="space-y-12 sm:space-y-16">
                 <section>
                   <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
@@ -485,7 +491,7 @@ const OrganizationPortal = () => {
               </div>
             )}
 
-            {!isLoading && filteredBrands.length > 0 && (
+            {!dataLoading && filteredBrands.length > 0 && (
               <section>
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                   <Building2 className="h-5 w-5 text-muted-foreground" />
@@ -515,7 +521,7 @@ const OrganizationPortal = () => {
               </section>
             )}
 
-            {!isLoading && filteredProducts.length > 0 && (
+            {!dataLoading && filteredProducts.length > 0 && (
               <section>
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                   <Package className="h-5 w-5 text-muted-foreground" />
@@ -545,7 +551,7 @@ const OrganizationPortal = () => {
               </section>
             )}
 
-            {!isLoading && filteredEvents.length > 0 && (
+            {!dataLoading && filteredEvents.length > 0 && (
               <section>
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-muted-foreground" />
@@ -575,7 +581,7 @@ const OrganizationPortal = () => {
               </section>
             )}
 
-            {!isLoading && totalResults === 0 && (
+            {!dataLoading && totalResults === 0 && (
               <EmptyState searchQuery={searchQuery} type="all" />
             )}
           </TabsContent>
