@@ -387,17 +387,19 @@ export const BackgroundImage = forwardRef<HTMLDivElement, BackgroundImageProps>(
       )}
 
       {/* Image background layer (fallback or primary) */}
+      {/* Ken Burns and Parallax are MUTUALLY EXCLUSIVE - Ken Burns wins when enabled */}
       {!showVideo && (
         <div
           className={cn(
             'absolute inset-0 bg-cover bg-center transition-opacity duration-500',
             isLoaded ? 'opacity-100' : 'opacity-0',
-            parallax && !kenBurnsEffect && 'will-change-transform',
-            kenBurnsEffect && 'animate-ken-burns'
+            // Ken Burns takes priority - disable parallax transforms when Ken Burns is active
+            kenBurnsEffect ? 'animate-ken-burns' : (parallax && 'will-change-transform')
           )}
           style={{
             backgroundImage: isInView && currentSrc ? `url(${currentSrc})` : undefined,
-            transform: parallax && !kenBurnsEffect ? `translateY(${parallaxOffset}px) scale(1.1)` : undefined,
+            // Only apply parallax transform when Ken Burns is OFF
+            transform: !kenBurnsEffect && parallax ? `translateY(${parallaxOffset}px) scale(1.1)` : undefined,
           }}
         />
       )}
