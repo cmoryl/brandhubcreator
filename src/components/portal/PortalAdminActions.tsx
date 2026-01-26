@@ -16,6 +16,7 @@ import {
   X,
   Layers,
   Globe,
+  FileUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,6 +43,7 @@ import { useBrands } from '@/contexts/BrandContext';
 import { useEvents } from '@/contexts/EventContext';
 import { toast } from 'sonner';
 import { ImportFromUrlDialog } from './ImportFromUrlDialog';
+import { BrandBackupDialog } from '@/components/brand/BrandBackupDialog';
 
 interface PortalAdminActionsProps {
   className?: string;
@@ -73,6 +75,7 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
   const [showExtendEventDialog, setShowExtendEventDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importType, setImportType] = useState<'brand' | 'event'>('event');
+  const [showBackupDialog, setShowBackupDialog] = useState(false);
 
   // Form states
   const [newName, setNewName] = useState('');
@@ -315,6 +318,13 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
       description: 'Add location/region',
       icon: <MapPin className="h-4 w-4" />,
       onClick: () => setShowExtendEventDialog(true),
+    },
+    {
+      id: 'import-backup',
+      label: 'Import Backup',
+      description: 'Restore from JSON file',
+      icon: <FileUp className="h-4 w-4" />,
+      onClick: () => setShowBackupDialog(true),
     },
   ];
 
@@ -677,6 +687,13 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
           setNewName(branding.name || '');
           setShowEventDialog(true);
         }}
+      />
+
+      {/* Import from Backup Dialog */}
+      <BrandBackupDialog
+        showFullBackup={true}
+        open={showBackupDialog}
+        onOpenChange={setShowBackupDialog}
       />
     </>
   );

@@ -39,12 +39,16 @@ interface BrandBackupDialogProps {
   guide?: BrandGuide | ProductGuide;
   showFullBackup?: boolean;
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export const BrandBackupDialog = ({
   guide,
   showFullBackup = false,
   trigger,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: BrandBackupDialogProps) => {
   const { brands, products, refetch } = useBrands();
   const { organization } = useOrganization();
@@ -56,7 +60,12 @@ export const BrandBackupDialog = ({
     importFullBackup,
   } = useBrandBackup();
 
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  // Support both controlled and uncontrolled modes
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? (controlledOnOpenChange || (() => {})) : setInternalOpen;
   const [activeTab, setActiveTab] = useState<'export' | 'import'>('export');
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -286,14 +295,16 @@ export const BrandBackupDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button variant="outline" size="sm" className="gap-2">
-            <FileJson className="h-4 w-4" />
-            Backup
-          </Button>
-        )}
-      </DialogTrigger>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button variant="outline" size="sm" className="gap-2">
+              <FileJson className="h-4 w-4" />
+              Backup
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
