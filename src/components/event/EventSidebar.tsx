@@ -102,6 +102,7 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   subevents: { label: 'Regional Events', icon: Globe, category: 'Identity' },
   sharedassets: { label: 'Shared Assets', icon: FolderArchive, category: 'Resources' },
   webinars: { label: 'Webinar Series', icon: Presentation, category: 'Resources' },
+  events: { label: 'Events', icon: Calendar, category: 'Collateral' },
 };
 
 export const EventSidebar = ({ 

@@ -620,7 +620,7 @@ export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
   'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
-  'casestudies', 'brochures', 'templates', 'templatespecs', 'products'
+  'casestudies', 'brochures', 'templates', 'templatespecs', 'products', 'events'
 ];
 
 // Main Brand Guide interface (extends base)
@@ -667,7 +667,8 @@ export type SectionId =
   | 'templates'
   | 'templatespecs'
   | 'webinars'
-  | 'products';
+  | 'products'
+  | 'events';
 
 // Statistic item for By the Numbers section
 export interface StatisticItem {

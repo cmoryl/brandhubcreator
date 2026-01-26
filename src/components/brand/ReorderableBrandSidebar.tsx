@@ -1,7 +1,7 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, Globe,
-  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase, LayoutGrid, TrendingUp, BarChart3, Presentation
+  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase, LayoutGrid, TrendingUp, BarChart3, Presentation, Calendar
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -67,6 +67,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   templatespecs: { label: 'Template Specs', icon: FileText, category: 'Collateral' },
   webinars: { label: 'Webinar Series', icon: Presentation, category: 'Resources' },
   products: { label: 'Products', icon: Package, category: 'Collateral' },
+  events: { label: 'Events', icon: Calendar, category: 'Collateral' },
 };
 
 export const ReorderableBrandSidebar = ({ 
