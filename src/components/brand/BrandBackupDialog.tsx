@@ -13,7 +13,9 @@ import {
   Package,
   AlertCircle,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  RefreshCw,
+  Plus,
 } from 'lucide-react';
 import {
   Dialog,
@@ -28,6 +30,10 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { useBrandBackup, BrandBackupData, FullBackupData } from '@/hooks/useBrandBackup';
 import { BrandGuide, ProductGuide } from '@/types/brand';
@@ -58,6 +64,7 @@ export const BrandBackupDialog = ({
     parseBackupFile,
     importGuide,
     importFullBackup,
+    mergeGuide,
   } = useBrandBackup();
 
   const [internalOpen, setInternalOpen] = useState(false);
@@ -73,6 +80,11 @@ export const BrandBackupDialog = ({
   const [importPreview, setImportPreview] = useState<BrandBackupData | FullBackupData | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Merge mode state
+  const [importMode, setImportMode] = useState<'create' | 'update'>('create');
+  const [selectedExistingGuide, setSelectedExistingGuide] = useState<string>('');
+  const [overwriteExisting, setOverwriteExisting] = useState(false);
 
   const handleExport = useCallback(() => {
     if (guide) {
@@ -167,14 +179,34 @@ export const BrandBackupDialog = ({
         await refetch();
         toast.success(`Successfully imported ${importPreview.brands.length} brands and ${importPreview.products.length} products`);
       } else {
-        // Single guide
-        setImportProgress(50);
-        const result = await importGuide(importPreview, organization?.id);
-        setImportProgress(100);
-        
-        if (result.success) {
-          await refetch();
-          toast.success(`Successfully imported "${importPreview.guide.hero.name}"`);
+        // Single guide - check if we're creating new or updating existing
+        if (importMode === 'update' && selectedExistingGuide) {
+          // Merge into existing guide
+          setImportProgress(50);
+          const result = await mergeGuide(importPreview, selectedExistingGuide, {
+            overwriteExisting,
+          });
+          setImportProgress(100);
+          
+          if (result.success) {
+            await refetch();
+            const sectionCount = result.mergedSections.length;
+            if (sectionCount > 0) {
+              toast.success(`Updated "${importPreview.guide.hero.name}" with ${sectionCount} section${sectionCount > 1 ? 's' : ''}`);
+            } else {
+              toast.info('No new sections to merge - the existing guide already has this data');
+            }
+          }
+        } else {
+          // Create new guide
+          setImportProgress(50);
+          const result = await importGuide(importPreview, organization?.id);
+          setImportProgress(100);
+          
+          if (result.success) {
+            await refetch();
+            toast.success(`Successfully imported "${importPreview.guide.hero.name}"`);
+          }
         }
       }
 
@@ -192,7 +224,22 @@ export const BrandBackupDialog = ({
     setImportPreview(null);
     setImportError(null);
     setImportProgress(0);
+    setImportMode('create');
+    setSelectedExistingGuide('');
+    setOverwriteExisting(false);
   };
+
+  // Get matching guides for the update dropdown
+  const getMatchingGuides = useCallback(() => {
+    if (!importPreview || 'brands' in importPreview) return [];
+    
+    const backupType = importPreview.type;
+    if (backupType === 'brand') {
+      return brands.map(b => ({ id: b.id, name: b.hero?.name || 'Unnamed Brand' }));
+    } else {
+      return products.map(p => ({ id: p.id, name: p.hero?.name || 'Unnamed Product' }));
+    }
+  }, [importPreview, brands, products]);
 
   const renderGuideStats = (guideData: BrandGuide | ProductGuide) => {
     const stats = [
@@ -373,14 +420,81 @@ export const BrandBackupDialog = ({
                   </Button>
                 </div>
 
-                <ScrollArea className="h-[280px] pr-2">
+                <ScrollArea className="h-[200px] pr-2">
                   {renderImportPreview()}
                 </ScrollArea>
+
+                {/* Import Mode Selection - only for single guide imports */}
+                {!('brands' in importPreview) && (
+                  <div className="space-y-3 p-3 rounded-lg border bg-muted/30">
+                    <Label className="text-sm font-medium">Import Mode</Label>
+                    <RadioGroup 
+                      value={importMode} 
+                      onValueChange={(v) => setImportMode(v as 'create' | 'update')}
+                      className="flex gap-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="create" id="create" />
+                        <Label htmlFor="create" className="flex items-center gap-1.5 cursor-pointer">
+                          <Plus className="h-3.5 w-3.5" />
+                          Create New
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="update" id="update" />
+                        <Label htmlFor="update" className="flex items-center gap-1.5 cursor-pointer">
+                          <RefreshCw className="h-3.5 w-3.5" />
+                          Update Existing
+                        </Label>
+                      </div>
+                    </RadioGroup>
+
+                    {importMode === 'update' && (
+                      <div className="space-y-3 pt-2">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="existing-guide" className="text-xs text-muted-foreground">
+                            Select {importPreview.type === 'brand' ? 'brand' : 'product'} to update
+                          </Label>
+                          <Select value={selectedExistingGuide} onValueChange={setSelectedExistingGuide}>
+                            <SelectTrigger id="existing-guide">
+                              <SelectValue placeholder={`Select a ${importPreview.type}...`} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {getMatchingGuides().map((g) => (
+                                <SelectItem key={g.id} value={g.id}>
+                                  {g.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="overwrite" className="text-xs">
+                              Overwrite existing data
+                            </Label>
+                            <p className="text-[10px] text-muted-foreground">
+                              Replace sections that already have content
+                            </p>
+                          </div>
+                          <Switch 
+                            id="overwrite" 
+                            checked={overwriteExisting} 
+                            onCheckedChange={setOverwriteExisting}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {isProcessing && importProgress > 0 && (
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Importing...</span>
+                      <span className="text-muted-foreground">
+                        {importMode === 'update' ? 'Updating...' : 'Importing...'}
+                      </span>
                       <span className="font-medium">{importProgress}%</span>
                     </div>
                     <Progress value={importProgress} className="h-2" />
@@ -399,17 +513,26 @@ export const BrandBackupDialog = ({
                   <Button 
                     onClick={handleImport} 
                     className="flex-1 gap-2"
-                    disabled={isProcessing}
+                    disabled={isProcessing || (importMode === 'update' && !selectedExistingGuide)}
                   >
                     {isProcessing ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        Importing...
+                        {importMode === 'update' ? 'Updating...' : 'Importing...'}
                       </>
                     ) : (
                       <>
-                        <Check className="h-4 w-4" />
-                        Import Now
+                        {importMode === 'update' ? (
+                          <>
+                            <RefreshCw className="h-4 w-4" />
+                            Update Now
+                          </>
+                        ) : (
+                          <>
+                            <Check className="h-4 w-4" />
+                            Import Now
+                          </>
+                        )}
                       </>
                     )}
                   </Button>

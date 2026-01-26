@@ -222,6 +222,151 @@ export const useBrandBackup = () => {
     }
   }, [user]);
 
+  // Merge a backup into an existing guide (updates existing entry with new sections)
+  const mergeGuide = useCallback(async (
+    backup: BrandBackupData,
+    existingGuideId: string,
+    mergeOptions: {
+      overwriteExisting?: boolean;  // If true, overwrite even if existing section has data
+      sectionsToMerge?: string[];   // Specific sections to merge, or all if undefined
+    } = {}
+  ): Promise<{ success: boolean; mergedSections: string[] }> => {
+    if (!user) {
+      toast.error('Please sign in to update guides');
+      return { success: false, mergedSections: [] };
+    }
+
+    const { overwriteExisting = false, sectionsToMerge } = mergeOptions;
+
+    try {
+      const tableName = backup.type === 'brand' ? 'brands' : 'products';
+      const incomingGuide = backup.guide;
+      
+      // Fetch the existing guide data
+      const { data: existingData, error: fetchError } = await supabase
+        .from(tableName)
+        .select('*')
+        .eq('id', existingGuideId)
+        .single();
+
+      if (fetchError || !existingData) {
+        toast.error('Could not find the existing guide');
+        return { success: false, mergedSections: [] };
+      }
+
+      const existingGuideData = existingData.guide_data as any || {};
+      const incomingGuideData = { ...incomingGuide } as any;
+      
+      // Remove metadata fields from incoming data
+      delete incomingGuideData.id;
+      delete incomingGuideData.createdAt;
+      delete incomingGuideData.updatedAt;
+      delete incomingGuideData.organizationId;
+      delete incomingGuideData.type;
+      delete incomingGuideData.slug;
+      delete incomingGuideData.isFavorite;
+      delete incomingGuideData.isPublic;
+      delete incomingGuideData.sectionOrder;
+      delete incomingGuideData.hiddenSections;
+
+      // Track which sections were merged
+      const mergedSections: string[] = [];
+
+      // Define array-based sections that should be merged element-by-element
+      const arraySections = [
+        'colors', 'typography', 'logos', 'assets', 'patterns', 'gradients',
+        'iconography', 'imagery', 'socialMedia', 'brandCollateral', 
+        'caseStudies', 'brandApplications', 'documents', 'templates',
+        'brochures', 'speakers', 'schedule', 'sponsors', 'eventLogos'
+      ];
+
+      // Merge the guide data
+      const mergedGuideData = { ...existingGuideData };
+
+      for (const [key, incomingValue] of Object.entries(incomingGuideData)) {
+        // Skip if we have a specific list and this section isn't in it
+        if (sectionsToMerge && !sectionsToMerge.includes(key)) {
+          continue;
+        }
+
+        const existingValue = existingGuideData[key];
+        
+        // Check if this section should be merged
+        if (arraySections.includes(key) && Array.isArray(incomingValue)) {
+          // For arrays, merge by adding new items
+          const existingArray = Array.isArray(existingValue) ? existingValue : [];
+          
+          if (overwriteExisting || existingArray.length === 0) {
+            // Replace or set if empty
+            if ((incomingValue as any[]).length > 0) {
+              mergedGuideData[key] = incomingValue;
+              mergedSections.push(key);
+            }
+          } else {
+            // Merge: add items that don't exist (by name or id)
+            const existingIds = new Set(existingArray.map((item: any) => item.id || item.name));
+            const newItems = (incomingValue as any[]).filter(
+              (item: any) => !existingIds.has(item.id) && !existingIds.has(item.name)
+            );
+            if (newItems.length > 0) {
+              mergedGuideData[key] = [...existingArray, ...newItems];
+              mergedSections.push(key);
+            }
+          }
+        } else if (typeof incomingValue === 'object' && incomingValue !== null && !Array.isArray(incomingValue)) {
+          // For objects (like hero, eventDetails), deep merge
+          const existingObj = (typeof existingValue === 'object' && existingValue !== null) ? existingValue : {};
+          
+          if (overwriteExisting) {
+            mergedGuideData[key] = { ...existingObj, ...incomingValue };
+            mergedSections.push(key);
+          } else {
+            // Only fill in missing fields
+            const merged = { ...existingObj };
+            let hasNewFields = false;
+            for (const [subKey, subValue] of Object.entries(incomingValue as object)) {
+              if (merged[subKey] === undefined || merged[subKey] === null || merged[subKey] === '') {
+                merged[subKey] = subValue;
+                hasNewFields = true;
+              }
+            }
+            if (hasNewFields) {
+              mergedGuideData[key] = merged;
+              mergedSections.push(key);
+            }
+          }
+        } else if (incomingValue !== undefined && incomingValue !== null) {
+          // For primitive values
+          if (overwriteExisting || existingValue === undefined || existingValue === null || existingValue === '') {
+            mergedGuideData[key] = incomingValue;
+            mergedSections.push(key);
+          }
+        }
+      }
+
+      // Update the guide in the database
+      const { error: updateError } = await supabase
+        .from(tableName)
+        .update({
+          guide_data: mergedGuideData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existingGuideId);
+
+      if (updateError) {
+        console.error('Failed to merge guide:', updateError);
+        toast.error(`Failed to update guide: ${updateError.message}`);
+        return { success: false, mergedSections: [] };
+      }
+
+      return { success: true, mergedSections };
+    } catch (err) {
+      console.error('Merge error:', err);
+      toast.error('An error occurred during merge');
+      return { success: false, mergedSections: [] };
+    }
+  }, [user]);
+
   // Import a full backup
   const importFullBackup = useCallback(async (
     backup: FullBackupData,
@@ -346,6 +491,7 @@ export const useBrandBackup = () => {
     parseBackupFile,
     importGuide,
     importFullBackup,
+    mergeGuide,
     
     // Auto-backup functions
     createAutoBackup,
