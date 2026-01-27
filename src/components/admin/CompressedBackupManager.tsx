@@ -82,6 +82,7 @@ export const CompressedBackupManager = ({ organizationId, organizationName }: Co
     brands: true,
     products: true,
     events: true,
+    intelligence: true,
     overwrite: false,
   });
 
@@ -139,6 +140,7 @@ export const CompressedBackupManager = ({ organizationId, organizationName }: Co
       let restoredBrands = 0;
       let restoredProducts = 0;
       let restoredEvents = 0;
+      let restoredIntelligence = 0;
 
       if (isZipBackup) {
         // Download and extract ZIP
@@ -278,6 +280,77 @@ export const CompressedBackupManager = ({ organizationId, organizationName }: Co
               }
             } catch (e) {
               console.error('Error restoring event:', e);
+            }
+          }
+        }
+
+        // Restore brand intelligence from ZIP
+        if (restoreOptions.intelligence) {
+          const intelligenceFiles = Object.keys(zip.files).filter(f => f.startsWith('intelligence/') && f.endsWith('.json'));
+          for (const file of intelligenceFiles) {
+            try {
+              const content = await zip.file(file)?.async('string');
+              if (!content) continue;
+              
+              const intelligenceData = JSON.parse(content);
+              // Extract entity type from path: intelligence/brands/id.json or intelligence/products/id.json
+              const pathParts = file.split('/');
+              const entityType = pathParts[1]?.replace(/s$/, '') as 'brand' | 'product' | 'event'; // Remove trailing 's'
+              
+              if (restoreOptions.overwrite) {
+                // Check if intelligence record exists
+                const { data: existing } = await supabase
+                  .from('brand_intelligence')
+                  .select('id')
+                  .eq('entity_id', intelligenceData.entity_id)
+                  .eq('entity_type', intelligenceData.entity_type)
+                  .maybeSingle();
+
+                if (existing) {
+                  const { error } = await supabase
+                    .from('brand_intelligence')
+                    .update({
+                      ...intelligenceData,
+                      id: existing.id,
+                      organization_id: organizationId,
+                      updated_at: new Date().toISOString(),
+                    })
+                    .eq('id', existing.id);
+                  if (!error) restoredIntelligence++;
+                } else {
+                  const { id: _, ...dataWithoutId } = intelligenceData;
+                  const { error } = await supabase
+                    .from('brand_intelligence')
+                    .insert({
+                      ...dataWithoutId,
+                      organization_id: organizationId,
+                      created_by: user.id,
+                    });
+                  if (!error) restoredIntelligence++;
+                }
+              } else {
+                // Skip if already exists
+                const { data: existing } = await supabase
+                  .from('brand_intelligence')
+                  .select('id')
+                  .eq('entity_id', intelligenceData.entity_id)
+                  .eq('entity_type', intelligenceData.entity_type)
+                  .maybeSingle();
+
+                if (!existing) {
+                  const { id: _, ...dataWithoutId } = intelligenceData;
+                  const { error } = await supabase
+                    .from('brand_intelligence')
+                    .insert({
+                      ...dataWithoutId,
+                      organization_id: organizationId,
+                      created_by: user.id,
+                    });
+                  if (!error) restoredIntelligence++;
+                }
+              }
+            } catch (e) {
+              console.error('Error restoring intelligence:', e);
             }
           }
         }
@@ -433,7 +506,8 @@ export const CompressedBackupManager = ({ organizationId, organizationName }: Co
         }
       }
 
-      toast.success(`Restored ${restoredBrands} brands, ${restoredProducts} products, ${restoredEvents} events`);
+      const intelligenceNote = restoredIntelligence > 0 ? ` + ${restoredIntelligence} intelligence records` : '';
+      toast.success(`Restored ${restoredBrands} brands, ${restoredProducts} products, ${restoredEvents} events${intelligenceNote}`);
       setShowRestoreDialog(false);
       setSelectedBackup(null);
     } catch (err) {
@@ -909,6 +983,20 @@ export const CompressedBackupManager = ({ organizationId, organizationName }: Co
                   />
                   <span>Events</span>
                 </Label>
+                <Label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={restoreOptions.intelligence}
+                    onCheckedChange={(checked) =>
+                      setRestoreOptions((prev) => ({ ...prev, intelligence: !!checked }))
+                    }
+                  />
+                  <div>
+                    <span>Brand Intelligence</span>
+                    <p className="text-xs text-muted-foreground font-normal">
+                      Knowledge entries, analysis results, and insights
+                    </p>
+                  </div>
+                </Label>
               </div>
             </div>
 
@@ -934,7 +1022,7 @@ export const CompressedBackupManager = ({ organizationId, organizationName }: Co
             <AlertDialogCancel disabled={isRestoring}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={restoreBackup}
-              disabled={isRestoring || (!restoreOptions.brands && !restoreOptions.products && !restoreOptions.events)}
+              disabled={isRestoring || (!restoreOptions.brands && !restoreOptions.products && !restoreOptions.events && !restoreOptions.intelligence)}
             >
               {isRestoring ? (
                 <>
