@@ -486,7 +486,7 @@ const EventEditor = () => {
       case 'eventsponsors':
         return <EventSponsorsSection sponsors={event.eventSponsors || []} onUpdate={(eventSponsors) => updateEvent({ eventSponsors })} isEditable={canEdit || false} />;
       case 'eventschedule':
-        return <EventScheduleSection schedule={event.eventSchedule || []} onUpdate={(eventSchedule) => updateEvent({ eventSchedule })} speakers={event.eventSpeakers || []} isEditable={canEdit || false} />;
+        return <EventScheduleSection schedule={event.eventSchedule || []} onUpdate={(eventSchedule) => updateEvent({ eventSchedule })} speakers={event.eventSpeakers || []} isEditable={canEdit || false} eventName={event.hero.name || event.eventDetails?.eventName || 'Event'} eventDates={event.eventDetails?.eventDates} eventLocation={event.eventDetails?.location} />;
       case 'eventhistory':
         return <EventHistorySection history={event.eventHistory || []} onUpdate={(eventHistory) => updateEvent({ eventHistory })} isEditable={canEdit || false} />;
       case 'eventvideos':
