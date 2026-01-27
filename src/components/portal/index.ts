@@ -9,3 +9,4 @@ export { PortalPagination } from './PortalPagination';
 export { PortalAdminActions } from './PortalAdminActions';
 export { GlobalAssetOrbit } from './GlobalAssetOrbit';
 export { OrbitLegend } from './OrbitLegend';
+export { MobileStickyTabs } from './MobileStickyTabs';
