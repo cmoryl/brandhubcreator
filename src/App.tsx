@@ -14,6 +14,10 @@ import { GlobalErrorLogger } from "@/components/GlobalErrorLogger";
 import { ConnectionBanner } from "@/components/ConnectionBanner";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { PageSkeleton, BrandEditorSkeleton, AuthPageSkeleton } from "@/components/PageSkeleton";
+import { checkAndClearExpiredCaches } from "@/lib/cacheManager";
+
+// Check and clear expired caches on app initialization
+checkAndClearExpiredCaches();
 
 // Lazy load pages for faster initial load
 const BrandsIndex = lazy(() => import("./pages/BrandsIndex"));
