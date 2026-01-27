@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Upload, Image, Pencil, Check, TrendingUp, Eye, Users, Share2, Heart, BarChart3, Sparkles, Brain, Video, ImageIcon, Move } from 'lucide-react';
+import { Upload, Image, Pencil, Check, TrendingUp, Eye, Users, Share2, Heart, BarChart3, Sparkles, Brain, Video, ImageIcon, Move, Loader2 } from 'lucide-react';
 import { BrandHero } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { VideoUploadDialog } from '@/components/ui/video-upload-dialog';
 import { getAcceptedVideoFormats } from '@/lib/videoCompression';
 import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { cn } from '@/lib/utils';
 
 interface HeroStats {
@@ -35,6 +36,10 @@ interface HeroSectionProps {
   onOpenIntelligence?: () => void;
   /** Full guide_data for calculating real health score */
   guideData?: Record<string, unknown>;
+  /** Entity type for storage upload (brand, event, product) */
+  entityType?: 'brand' | 'event' | 'product';
+  /** Entity ID for storage upload */
+  entityId?: string;
 }
 
 export const HeroSection = ({ 
@@ -46,6 +51,8 @@ export const HeroSection = ({
   enhancedMode = true,
   onOpenIntelligence,
   guideData,
+  entityType = 'brand',
+  entityId,
 }: HeroSectionProps) => {
   // Only allow editing if onHeroChange is provided (canEdit mode)
   const canEdit = !!onHeroChange;
@@ -60,6 +67,12 @@ export const HeroSection = ({
   const coverInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
+
+  // Storage upload hook for persisting images
+  const { uploadFile, isUploading } = useStorageUpload({ 
+    entityType, 
+    entityId: entityId || (guideData?.id as string) 
+  });
 
   // Calculate real health score from guide_data
   const calculatedHealth = useMemo(() => {
@@ -151,7 +164,7 @@ export const HeroSection = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'coverImage' | 'logoUrl' | 'coverVideo') => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'coverImage' | 'logoUrl' | 'coverVideo') => {
     if (!onHeroChange) {
       return;
     }
@@ -186,6 +199,33 @@ export const HeroSection = ({
       return;
     }
 
+    // For images, try to upload to storage first (preferred)
+    // Fall back to base64 if storage upload is not available (no entityId)
+    const storageEntityId = entityId || (guideData?.id as string);
+    
+    if (storageEntityId) {
+      // Map field to storage file type
+      const fileTypeMap: Record<string, 'hero' | 'logo' | 'cover' | 'asset'> = {
+        coverImage: 'hero',
+        logoUrl: 'logo',
+      };
+      const fileType = fileTypeMap[field] || 'asset';
+      
+      const result = await uploadFile(file, fileType);
+      if (result) {
+        onHeroChange({ ...hero, [field]: result.url });
+      }
+      // Reset file input
+      if (field === 'coverImage' && coverInputRef.current) {
+        coverInputRef.current.value = '';
+      } else if (field === 'logoUrl' && logoInputRef.current) {
+        logoInputRef.current.value = '';
+      }
+      return;
+    }
+
+    // Fallback to base64 for entities without ID (shouldn't happen in practice)
+    console.warn('[HeroSection] No entity ID available, falling back to base64 encoding');
     const reader = new FileReader();
     reader.onload = (event) => {
       const url = event.target?.result as string;
@@ -403,18 +443,32 @@ export const HeroSection = ({
               )}
               
               {/* Upload prompt */}
-              <div className="text-white flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20 pointer-events-auto cursor-pointer"
-                   onClick={(e) => {
-                     e.stopPropagation();
-                     if (hero.useVideo) {
-                       videoInputRef.current?.click();
-                     } else {
-                       coverInputRef.current?.click();
-                     }
-                   }}
+              <div 
+                className={cn(
+                  "text-white flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20 pointer-events-auto",
+                  isUploading ? "opacity-70 cursor-wait" : "cursor-pointer hover:bg-white/20"
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isUploading) return;
+                  if (hero.useVideo) {
+                    videoInputRef.current?.click();
+                  } else {
+                    coverInputRef.current?.click();
+                  }
+                }}
               >
-                <Upload className="h-5 w-5" />
-                <span className="font-medium">Upload {hero.useVideo ? 'Video' : 'Image'}</span>
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="font-medium">Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-5 w-5" />
+                    <span className="font-medium">Upload {hero.useVideo ? 'Video' : 'Image'}</span>
+                  </>
+                )}
               </div>
 
               {/* Video URL option */}
