@@ -46,17 +46,19 @@ const OrganizationPortal = () => {
   const { addEvent } = useEvents();
   
   // Use the new portal data hook
-  const { organization, brands, products, events, isLoading: dataLoading, error } = usePortalData(slug);
+  const { organization, brands, products, events, isLoading: dataLoading, hasFetchedOnce, error } = usePortalData(slug);
   
-  // Track if initial data load has completed (prevents skeleton flicker on refetch)
+  // Track if we have meaningful content (prevents flicker on background refetches)
+  const hasContent = brands.length > 0 || products.length > 0 || events.length > 0;
   const hasInitialData = !!organization;
-  const hasEverHadContent = brands.length > 0 || products.length > 0 || events.length > 0;
   
-  // Only show full-screen loading on very first load (no org data yet)
-  const needsFullScreenLoading = !hasInitialData && dataLoading;
+  // Full-screen loading: only show when fetch started but no org data yet
+  // The key is: don't show loading before fetch starts OR after we have data
+  const needsFullScreenLoading = hasFetchedOnce && !hasInitialData && dataLoading;
   
-  // Only show skeleton grids on initial content load, not on background refetches
-  const showSkeletons = dataLoading && !hasEverHadContent;
+  // Skeleton loading: only show when actively fetching AND we have no content yet
+  // Once we have content, background refetches are silent (no skeletons)
+  const showSkeletons = hasFetchedOnce && dataLoading && !hasContent;
   
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'brands' | 'products' | 'events'>('all');

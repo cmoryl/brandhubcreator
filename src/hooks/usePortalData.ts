@@ -103,6 +103,8 @@ interface PortalDataState {
   products: PortalProduct[];
   events: PortalEvent[];
   isLoading: boolean;
+  /** Whether initial fetch has been triggered (prevents skeleton flash before data request) */
+  hasFetchedOnce: boolean;
   error: string | null;
 }
 
@@ -126,7 +128,10 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
   const [brands, setBrands] = useState<PortalBrand[]>([]);
   const [products, setProducts] = useState<PortalProduct[]>([]);
   const [events, setEvents] = useState<PortalEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Start with isLoading false to prevent immediate flash - will be set true when fetch starts
+  const [isLoading, setIsLoading] = useState(false);
+  // Track if initial fetch has been triggered (different from isLoading)
+  const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchIdRef = useRef(0);
@@ -229,10 +234,12 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
     if (!slug) {
       setError('Organization not found');
       setIsLoading(false);
+      setHasFetchedOnce(true);
       return;
     }
 
     const fetchId = ++fetchIdRef.current;
+    setHasFetchedOnce(true);
     setIsLoading(true);
 
     try {
@@ -300,7 +307,6 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
       if (refetchTimeout) clearTimeout(refetchTimeout);
       refetchTimeout = setTimeout(async () => {
         if (isMountedRef.current) {
-          console.log('[usePortalData] Realtime update detected, refetching...');
           try {
             const content = await fetchContent(orgId, false); // Bypass cache
             if (isMountedRef.current) {
@@ -348,9 +354,7 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
         },
         () => debouncedRealtimeRefetch()
       )
-      .subscribe((status) => {
-        console.log('[usePortalData] Realtime subscription status:', status);
-      });
+      .subscribe();
 
     realtimeChannelRef.current = channel;
 
@@ -415,6 +419,8 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
     products,
     events,
     isLoading,
+    /** Whether initial fetch has been triggered (prevents skeleton flash before data request) */
+    hasFetchedOnce,
     error,
     refetch,
   };
