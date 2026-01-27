@@ -40,7 +40,8 @@ export const useOrganizationData = (): UseOrganizationDataReturn => {
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [members, setMembers] = useState<OrganizationMember[]>([]);
   const [userRole, setUserRole] = useState<MemberRole | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Start with isLoading false to prevent flash - will be set true when fetch starts
+  const [isLoading, setIsLoading] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   
   // Track if initial fetch completed to avoid double-fetching

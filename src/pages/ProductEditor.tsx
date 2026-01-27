@@ -117,8 +117,10 @@ const ProductEditor = () => {
     navigate('/');
   };
   const [publicProduct, setPublicProduct] = useState<ProductGuide | null>(null);
-  // Initialize to true to prevent hooks ordering issues during initial render
-  const [publicProductLoading, setPublicProductLoading] = useState(true);
+  // Start as false to prevent flash - will be set true when fetch actually starts
+  const [publicProductLoading, setPublicProductLoading] = useState(false);
+  // Track if fetch has been initiated to handle the "skip if context has data" case
+  const fetchInitiatedRef = React.useRef(false);
 
   // Redirect unapproved users to pending approval page (admins are always allowed)
   React.useEffect(() => {
