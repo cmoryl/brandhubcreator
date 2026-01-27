@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { exportSchedule, ExportFormat } from '@/lib/scheduleExport';
 import { exportScheduleToPdf } from '@/lib/scheduleExportPdf';
-import { importScheduleFromFile, generateSampleCSV, ImportResult } from '@/lib/scheduleImport';
+import { importScheduleFromFile, generateSampleCSV, generateSampleExcel, isSupportedImportFile, ImportResult } from '@/lib/scheduleImport';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
@@ -263,8 +263,8 @@ export const EventScheduleSection = ({
     const file = e.target.files?.[0];
     if (!file) return;
     
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      toast.error('Please select a CSV file');
+    if (!isSupportedImportFile(file.name)) {
+      toast.error('Please select a CSV or Excel (.xlsx) file');
       return;
     }
     
@@ -290,18 +290,31 @@ export const EventScheduleSection = ({
     setImportResult(null);
   };
 
-  const handleDownloadTemplate = () => {
-    const csv = generateSampleCSV();
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'schedule-template.csv';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    toast.success('Template downloaded');
+  const handleDownloadTemplate = (format: 'csv' | 'xlsx') => {
+    if (format === 'xlsx') {
+      const blob = generateSampleExcel();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'schedule-template.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success('Excel template downloaded');
+    } else {
+      const csv = generateSampleCSV();
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'schedule-template.csv';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success('CSV template downloaded');
+    }
   };
 
   const sensors = useSensors(
@@ -559,7 +572,7 @@ export const EventScheduleSection = ({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".csv"
+                accept=".csv,.xlsx,.xls"
                 onChange={handleFileSelect}
                 className="hidden"
               />
@@ -574,7 +587,7 @@ export const EventScheduleSection = ({
                     <span className="hidden sm:inline">Import</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>Import Schedule</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
@@ -582,15 +595,23 @@ export const EventScheduleSection = ({
                     className="gap-2 cursor-pointer"
                   >
                     <FileSpreadsheet className="h-4 w-4" />
-                    Import from CSV
+                    Import from CSV or Excel
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Download Template</DropdownMenuLabel>
                   <DropdownMenuItem 
-                    onClick={handleDownloadTemplate} 
+                    onClick={() => handleDownloadTemplate('csv')} 
                     className="gap-2 cursor-pointer"
                   >
                     <Download className="h-4 w-4" />
-                    Download Template
+                    CSV Template
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => handleDownloadTemplate('xlsx')} 
+                    className="gap-2 cursor-pointer"
+                  >
+                    <Download className="h-4 w-4" />
+                    Excel Template (.xlsx)
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

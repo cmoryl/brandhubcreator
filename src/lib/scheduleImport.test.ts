@@ -1,12 +1,41 @@
 /**
  * Schedule Import Tests
- * Verifies CSV parsing and schedule import functionality
+ * Verifies CSV and Excel parsing and schedule import functionality
  */
 
 import { describe, it, expect } from 'vitest';
-import { importScheduleFromCSV, generateSampleCSV } from './scheduleImport';
+import { 
+  importScheduleFromCSV, 
+  importScheduleFromExcel,
+  generateSampleCSV, 
+  generateSampleExcel,
+  isSupportedImportFile,
+  getImportFileType 
+} from './scheduleImport';
 
 describe('Schedule Import', () => {
+  describe('File Type Detection', () => {
+    it('should detect CSV files', () => {
+      expect(isSupportedImportFile('schedule.csv')).toBe(true);
+      expect(isSupportedImportFile('SCHEDULE.CSV')).toBe(true);
+      expect(getImportFileType('schedule.csv')).toBe('csv');
+    });
+
+    it('should detect Excel files', () => {
+      expect(isSupportedImportFile('schedule.xlsx')).toBe(true);
+      expect(isSupportedImportFile('SCHEDULE.XLSX')).toBe(true);
+      expect(isSupportedImportFile('schedule.xls')).toBe(true);
+      expect(getImportFileType('schedule.xlsx')).toBe('xlsx');
+      expect(getImportFileType('schedule.xls')).toBe('xlsx');
+    });
+
+    it('should reject unsupported files', () => {
+      expect(isSupportedImportFile('schedule.txt')).toBe(false);
+      expect(isSupportedImportFile('schedule.json')).toBe(false);
+      expect(getImportFileType('schedule.pdf')).toBe(null);
+    });
+  });
+
   describe('generateSampleCSV', () => {
     it('should generate a valid CSV template', () => {
       const csv = generateSampleCSV();
@@ -28,6 +57,16 @@ describe('Schedule Import', () => {
     });
   });
 
+  describe('generateSampleExcel', () => {
+    it('should generate a valid Excel blob', () => {
+      const blob = generateSampleExcel();
+      
+      expect(blob).toBeInstanceOf(Blob);
+      expect(blob.type).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      expect(blob.size).toBeGreaterThan(0);
+    });
+  });
+
   describe('importScheduleFromCSV', () => {
     it('should parse a valid CSV with all columns', () => {
       const csv = `Time,Title,Description,Speaker,Location,Session Type
@@ -39,6 +78,7 @@ describe('Schedule Import', () => {
       expect(result.success).toBe(true);
       expect(result.items.length).toBe(2);
       expect(result.errors.length).toBe(0);
+      expect(result.fileType).toBe('csv');
       
       // Check first item
       expect(result.items[0].title).toBe('Opening Keynote');
@@ -148,6 +188,17 @@ describe('Schedule Import', () => {
       const workshop = result.items.find(i => i.title.includes('Workshop'));
       expect(workshop).toBeDefined();
       expect(workshop?.track).toBe('workshop');
+    });
+  });
+
+  describe('importScheduleFromExcel', () => {
+    it('should handle invalid Excel data gracefully', () => {
+      // Pass invalid data to trigger error handling
+      const result = importScheduleFromExcel(new ArrayBuffer(0));
+      
+      expect(result.success).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.fileType).toBe('xlsx');
     });
   });
 });
