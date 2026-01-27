@@ -37,13 +37,13 @@ const SubEventItem = memo(({ subEvent, accentColor }: SubEventItemProps) => {
   return (
     <button
       onClick={() => navigate(`/event/${subEvent.slug}`)}
-      className="w-full flex items-center gap-3 p-3 rounded-lg border bg-card/50 hover:bg-muted/50 transition-colors text-left group"
+      className="w-full flex items-center gap-3 p-3 sm:p-3 rounded-lg border bg-card/50 hover:bg-muted/50 transition-colors text-left group min-h-[56px] touch-manipulation"
       style={{ borderColor: accentColor ? `${accentColor}40` : undefined }}
     >
       {/* Region indicator */}
       {subEvent.region && (
         <div
-          className="w-2 h-8 rounded-full flex-shrink-0"
+          className="w-1.5 sm:w-2 h-8 rounded-full flex-shrink-0"
           style={{ backgroundColor: subEvent.accentColor || accentColor || 'hsl(var(--primary))' }}
         />
       )}
@@ -52,29 +52,29 @@ const SubEventItem = memo(({ subEvent, accentColor }: SubEventItemProps) => {
         <p className="font-medium text-sm truncate group-hover:text-accent transition-colors">
           {subEvent.name}
         </p>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+        <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
           {subEvent.region && (
             <span className="flex items-center gap-1">
-              <Globe className="h-3 w-3" />
-              {subEvent.region}
+              <Globe className="h-3 w-3 flex-shrink-0" />
+              <span className="truncate max-w-[60px] sm:max-w-none">{subEvent.region}</span>
             </span>
           )}
           {subEvent.location && (
-            <span className="flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
-              {subEvent.location}
+            <span className="flex items-center gap-1 hidden sm:flex">
+              <MapPin className="h-3 w-3 flex-shrink-0" />
+              <span className="truncate max-w-[100px]">{subEvent.location}</span>
             </span>
           )}
           {subEvent.dates && (
             <span className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              {subEvent.dates}
+              <Calendar className="h-3 w-3 flex-shrink-0" />
+              <span className="truncate max-w-[80px] sm:max-w-none">{subEvent.dates}</span>
             </span>
           )}
         </div>
       </div>
       
-      <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+      <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 hidden sm:block" />
     </button>
   );
 });
@@ -206,8 +206,9 @@ export const HierarchicalEventCard = memo(React.forwardRef<HTMLDivElement, Hiera
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full justify-between text-muted-foreground hover:text-foreground h-9"
+                className="w-full justify-between text-muted-foreground hover:text-foreground h-11 sm:h-9 touch-manipulation"
                 onClick={(e) => e.stopPropagation()}
+                aria-label={`${isExpanded ? 'Collapse' : 'Expand'} regional events`}
               >
                 <span className="flex items-center gap-2 text-xs">
                   <Calendar className="h-3.5 w-3.5" />

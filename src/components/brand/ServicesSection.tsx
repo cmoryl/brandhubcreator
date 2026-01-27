@@ -147,14 +147,14 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
         onEditToggle={() => setIsEditing(!isEditing)}
       />
 
-      {/* Services Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Services Grid - horizontal scroll on mobile, grid on larger screens */}
+      <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 overflow-x-auto pb-4 sm:pb-0 sm:overflow-visible -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory scrollbar-hide">
         {services.map((service) => {
           const IconComponent = getIconComponent(service.icon);
           return (
             <Card 
               key={service.id} 
-              className="group relative bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 overflow-hidden"
+              className="group relative bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 overflow-hidden flex-shrink-0 w-[280px] sm:w-auto snap-start"
             >
               {/* Header Image */}
               {service.headerImage && (
@@ -175,25 +175,27 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
                   <Button 
                     variant="secondary" 
                     size="icon" 
-                    className="h-7 w-7"
+                    className="h-8 w-8 sm:h-7 sm:w-7"
                     onClick={() => openEditDialog(service)}
+                    aria-label={`Edit ${service.name}`}
                   >
-                    <Settings className="h-3 w-3" />
+                    <Settings className="h-4 w-4 sm:h-3 sm:w-3" />
                   </Button>
                   <Button 
                     variant="destructive" 
                     size="icon" 
-                    className="h-7 w-7"
+                    className="h-8 w-8 sm:h-7 sm:w-7"
                     onClick={() => handleDelete(service.id)}
+                    aria-label={`Delete ${service.name}`}
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-4 w-4 sm:h-3 sm:w-3" />
                   </Button>
                 </div>
               )}
-              <CardContent className={service.headerImage ? "p-4 pt-0 -mt-6 relative z-10" : "p-6"}>
+              <CardContent className={service.headerImage ? "p-4 pt-0 -mt-6 relative z-10" : "p-4 sm:p-6"}>
                 {/* Icon or Image */}
                 {service.imageUrl ? (
-                  <div className="w-12 h-12 rounded-lg overflow-hidden mb-4 border border-border/50 shadow-sm">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden mb-3 sm:mb-4 border border-border/50 shadow-sm">
                     <img 
                       src={service.imageUrl} 
                       alt={service.name}
@@ -201,12 +203,12 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
                     />
                   </div>
                 ) : !service.headerImage && (
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                    <IconComponent className="h-6 w-6 text-primary" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 group-hover:bg-primary/20 transition-colors">
+                    <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                   </div>
                 )}
-                <h3 className="font-semibold text-foreground mb-2">{service.name}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-2">{service.description}</p>
+                <h3 className="font-semibold text-foreground mb-1.5 sm:mb-2 text-sm sm:text-base">{service.name}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{service.description}</p>
               </CardContent>
             </Card>
           );
@@ -215,14 +217,14 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
         {/* Add Service Card */}
         {isEditing && (
           <Card 
-            className="border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors"
+            className="border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors flex-shrink-0 w-[280px] sm:w-auto snap-start"
             onClick={openAddDialog}
           >
-            <CardContent className="p-6 flex flex-col items-center justify-center h-full min-h-[160px]">
-              <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mb-4">
-                <Plus className="h-6 w-6 text-muted-foreground" />
+            <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center h-full min-h-[140px] sm:min-h-[160px]">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-muted flex items-center justify-center mb-3 sm:mb-4">
+                <Plus className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
               </div>
-              <p className="text-sm text-muted-foreground">Add Service</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Add Service</p>
             </CardContent>
           </Card>
         )}

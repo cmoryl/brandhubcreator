@@ -115,7 +115,7 @@ export const AppBreadcrumbs = React.forwardRef<
 
   return (
     <Breadcrumb className={cn('mb-4', className)}>
-      <BreadcrumbList className="flex-wrap">
+      <BreadcrumbList className="flex-wrap text-sm">
         {/* Home link */}
         {showHome && (
           <>
@@ -123,16 +123,16 @@ export const AppBreadcrumbs = React.forwardRef<
               <BreadcrumbLink asChild>
                 <Link 
                   to="/" 
-                  className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors min-h-[44px] sm:min-h-0 px-1"
                 >
-                  <Home className="h-4 w-4" />
+                  <Home className="h-4 w-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Home</span>
                 </Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             {(hasIntermediateItems || currentPage) && (
               <BreadcrumbSeparator>
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
               </BreadcrumbSeparator>
             )}
           </>
@@ -146,23 +146,23 @@ export const AppBreadcrumbs = React.forwardRef<
           return (
             <BreadcrumbItem key={index}>
               {isLast ? (
-                <BreadcrumbPage className="flex items-center gap-1.5 font-medium">
-                  {Icon && <Icon className="h-4 w-4" />}
-                  <span className="truncate max-w-[200px]">{item.label}</span>
+                <BreadcrumbPage className="flex items-center gap-1.5 font-medium min-h-[44px] sm:min-h-0 px-1">
+                  {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
+                  <span className="truncate max-w-[120px] sm:max-w-[200px]">{item.label}</span>
                 </BreadcrumbPage>
               ) : (
                 <>
                   <BreadcrumbLink asChild>
                     <Link 
                       to={item.href || '/'} 
-                      className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                      className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors min-h-[44px] sm:min-h-0 px-1"
                     >
-                      {Icon && <Icon className="h-4 w-4" />}
-                      <span className="truncate max-w-[150px]">{item.label}</span>
+                      {Icon && <Icon className="h-4 w-4 flex-shrink-0 hidden sm:block" />}
+                      <span className="truncate max-w-[80px] sm:max-w-[150px]">{item.label}</span>
                     </Link>
                   </BreadcrumbLink>
                   <BreadcrumbSeparator>
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
                   </BreadcrumbSeparator>
                 </>
               )}
@@ -173,9 +173,9 @@ export const AppBreadcrumbs = React.forwardRef<
         {/* Current page (final item, not a link) */}
         {currentPage && (
           <BreadcrumbItem>
-            <BreadcrumbPage className="flex items-center gap-1.5 font-medium text-foreground">
-              {CurrentIcon && <CurrentIcon className="h-4 w-4" />}
-              <span className="truncate max-w-[200px] sm:max-w-[300px]">{currentPage}</span>
+            <BreadcrumbPage className="flex items-center gap-1.5 font-medium text-foreground min-h-[44px] sm:min-h-0 px-1">
+              {CurrentIcon && <CurrentIcon className="h-4 w-4 flex-shrink-0 hidden sm:block" />}
+              <span className="truncate max-w-[140px] sm:max-w-[300px]">{currentPage}</span>
             </BreadcrumbPage>
           </BreadcrumbItem>
         )}
