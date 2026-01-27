@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from 'react';
 import { BrandGuide, ProductGuide, BaseGuide } from '@/types/brand';
 import { useBrandStorage } from '@/hooks/useBrandStorage';
+import { CACHE_KEYS } from '@/lib/cacheManager';
 
 interface BrandContextType {
   brands: BrandGuide[];
@@ -29,6 +30,8 @@ interface BrandContextType {
   hasPendingChanges: () => boolean;
   saveNow: () => Promise<void>;
   refetch: () => Promise<void>;
+  /** Clear local cache (for cache management) */
+  clearLocalCache: () => void;
 }
 
 const BrandContext = createContext<BrandContextType | undefined>(undefined);
@@ -36,8 +39,17 @@ const BrandContext = createContext<BrandContextType | undefined>(undefined);
 export const BrandProvider = ({ children }: { children: ReactNode }) => {
   const storage = useBrandStorage();
 
+  // Add clearLocalCache function
+  const clearLocalCache = () => {
+    try {
+      localStorage.removeItem(CACHE_KEYS.BRANDS);
+    } catch {
+      // Ignore errors
+    }
+  };
+
   return (
-    <BrandContext.Provider value={storage}>
+    <BrandContext.Provider value={{ ...storage, clearLocalCache }}>
       {children}
     </BrandContext.Provider>
   );

@@ -123,6 +123,10 @@ const EVENT_CARD_SELECT = 'id, name, slug, is_public, parent_brand_id, updated_a
 const dataCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 1000; // 1 second - fast to pick up changes quickly
 
+// Register cache with cacheManager for external clearing
+import { registerPortalCache } from '@/lib/cacheManager';
+registerPortalCache(dataCache);
+
 export const usePortalData = (slug: string | undefined): UsePortalDataReturn => {
   const [organization, setOrganization] = useState<PortalOrganization | null>(null);
   const [brands, setBrands] = useState<PortalBrand[]>([]);
