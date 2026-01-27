@@ -32,7 +32,7 @@ import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit, OrbitLegend, MobileStickyTabs } from '@/components/portal';
+import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, HierarchicalProductGrid, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit, OrbitLegend, MobileStickyTabs } from '@/components/portal';
 import { toast } from 'sonner';
 
 // Lazy load admin components
@@ -555,25 +555,19 @@ const OrganizationPortal = () => {
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                   <Package className="h-5 w-5 text-muted-foreground" />
                   Product Guidelines
-                  {productsPagination.showPagination && (
-                    <Badge variant="secondary" className="ml-2">
-                      {productsPagination.startIndex + 1}-{productsPagination.endIndex} of {productsPagination.totalItems}
-                    </Badge>
-                  )}
+                  <Badge variant="secondary" className="ml-2">
+                    {filteredProducts.length}
+                  </Badge>
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {productsPagination.paginatedItems.map((product, index) => (
-                    <PortalProductCard key={product.id} product={product} index={index} orgColors={orgColors} />
-                  ))}
-                </div>
-                {productsPagination.showPagination && activeTab === 'all' && (
-                  <div className="mt-4 text-center">
+                <HierarchicalProductGrid products={filteredProducts} orgColors={orgColors} />
+                {filteredProducts.length > 6 && activeTab === 'all' && (
+                  <div className="mt-6 text-center">
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => setActiveTab('products')}
                     >
-                      View all {filteredProducts.length} products
+                      View all products
                     </Button>
                   </div>
                 )}
@@ -643,23 +637,7 @@ const OrganizationPortal = () => {
             {filteredProducts.length === 0 ? (
               <EmptyState searchQuery={searchQuery} type="products" />
             ) : (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {productsPagination.paginatedItems.map((product, index) => (
-                    <PortalProductCard key={product.id} product={product} index={index} orgColors={orgColors} />
-                  ))}
-                </div>
-                {productsPagination.showPagination && (
-                  <PortalPagination
-                    currentPage={productsPagination.currentPage}
-                    totalPages={productsPagination.totalPages}
-                    onPageChange={productsPagination.goToPage}
-                    totalItems={productsPagination.totalItems}
-                    startIndex={productsPagination.startIndex}
-                    endIndex={productsPagination.endIndex}
-                  />
-                )}
-              </>
+              <HierarchicalProductGrid products={filteredProducts} orgColors={orgColors} />
             )}
           </TabsContent>
 
