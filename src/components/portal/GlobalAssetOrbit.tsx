@@ -209,18 +209,10 @@ export const GlobalAssetOrbit = ({
     };
   }, [brands, products, events, rotationOffset, activeFilter]);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('[GlobalAssetOrbit] Data counts:', {
-      brands: brands.length,
-      products: products.length,
-      events: events.length,
-      activeFilter,
-      orbitInner: orbitData.inner.length,
-      orbitMiddle: orbitData.middle.length,
-      orbitOuter: orbitData.outer.length,
-    });
-  }, [brands.length, products.length, events.length, activeFilter, orbitData.inner.length, orbitData.middle.length, orbitData.outer.length]);
+  // Debug logging (only in development, removed for production)
+  // useEffect(() => {
+  //   console.log('[GlobalAssetOrbit] Data counts:', { ... });
+  // }, []);
 
   const entityCounts = useMemo(() => ({
     brands: brands.length,
