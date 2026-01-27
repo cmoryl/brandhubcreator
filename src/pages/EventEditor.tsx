@@ -232,18 +232,7 @@ const EventEditor = () => {
   const canEdit = user && (isAdmin || canEditOrg || authLoading);
   const isGuideAdmin = Boolean(isAdmin || canEditOrg);
   
-  // Debug logging for permission issues
-  console.log('[EventEditor] Permission check:', { 
-    hasUser: !!user, 
-    isAdmin, 
-    orgRole, 
-    canEditOrg, 
-    authLoading, 
-    canEdit,
-    isGuideAdmin,
-    hasContextEvent: !!contextEvent,
-    hasPublicEvent: !!publicEvent
-  });
+  // Permission check (debug logging removed for production)
   
   const sectionOrder = useMemo(() => event?.sectionOrder || DEFAULT_EVENT_SECTION_ORDER, [event?.sectionOrder]);
   const hiddenSections = useMemo(() => event?.hiddenSections || [], [event?.hiddenSections]);
@@ -364,8 +353,6 @@ const EventEditor = () => {
         // Remove non-guide fields that shouldn't be in guide_data
         const { id, type, slug, organizationId, parentBrandId, isFavorite, isPublic, sectionOrder, hiddenSections, createdAt, updatedAt, ...cleanGuideData } = guideData as EventGuide & Record<string, unknown>;
         
-        console.log('[EventEditor] Syncing event update to database:', { eventId: event.id, heroName: hero?.name });
-        
         const { error } = await supabase
           .from('events')
           .update({
@@ -381,8 +368,6 @@ const EventEditor = () => {
           toast.error('Failed to save changes');
           // Revert optimistic update on error
           setPublicEvent(publicEvent);
-        } else {
-          console.log('[EventEditor] Event updated successfully');
         }
       } catch (err) {
         console.error('[EventEditor] Failed to update event:', err);
@@ -402,10 +387,7 @@ const EventEditor = () => {
     
     // Helper to conditionally create change handler
     const editHandler = <T,>(handler: (value: T) => void) => {
-      if (!canEdit) {
-        console.log('[EventEditor] editHandler: canEdit is false, returning undefined for', sectionId);
-        return undefined;
-      }
+      if (!canEdit) return undefined;
       return handler;
     };
     

@@ -152,28 +152,16 @@ export const HeroSection = ({
   }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'coverImage' | 'logoUrl' | 'coverVideo') => {
-    console.log('[HeroSection] handleFileUpload called:', { field, hasOnHeroChange: !!onHeroChange });
-    
     if (!onHeroChange) {
-      console.warn('[HeroSection] No onHeroChange handler provided - editing is disabled');
       return;
     }
     const file = e.target.files?.[0];
     if (!file) {
-      console.warn('[HeroSection] No file selected');
       return;
     }
 
-    console.log('[HeroSection] File selected:', { name: file.name, type: file.type, size: file.size, field });
-
     // For video files, use the compression dialog
     if (field === 'coverVideo') {
-      console.log('[HeroSection] Video file selected:', {
-        name: file.name,
-        type: file.type,
-        size: file.size
-      });
-      
       // Accept any video file regardless of extension
       const isVideo = file.type.startsWith('video/') || 
                       file.name.toLowerCase().endsWith('.mov') ||
@@ -181,16 +169,13 @@ export const HeroSection = ({
                       file.name.toLowerCase().endsWith('.webm');
       
       if (!isVideo) {
-        const errorMsg = `File "${file.name}" is not a video file. Please select .mov, .mp4, or .webm files.\n\nFile type detected: ${file.type || 'unknown'}`;
-        console.error('[HeroSection] Invalid video file:', { name: file.name, type: file.type });
+        const errorMsg = `File "${file.name}" is not a video file. Please select .mov, .mp4, or .webm files.`;
         alert(errorMsg);
         if (videoInputRef.current) {
           videoInputRef.current.value = '';
         }
         return;
       }
-      
-      console.log('[HeroSection] Video file validated, opening compression dialog');
 
       setPendingVideoFile(file);
       setVideoUploadDialogOpen(true);
@@ -201,11 +186,9 @@ export const HeroSection = ({
       return;
     }
 
-    console.log('[HeroSection] Reading image file as Data URL...');
     const reader = new FileReader();
     reader.onload = (event) => {
       const url = event.target?.result as string;
-      console.log('[HeroSection] Image loaded, calling onHeroChange with', field, 'length:', url?.length);
       onHeroChange({ ...hero, [field]: url });
     };
     reader.onerror = (error) => {
@@ -236,13 +219,8 @@ export const HeroSection = ({
   };
 
   const toggleKenBurns = () => {
-    if (!onHeroChange) {
-      console.warn('[HeroSection] toggleKenBurns: No onHeroChange handler');
-      return;
-    }
-    const newValue = !hero.kenBurnsEffect;
-    console.log('[HeroSection] toggleKenBurns:', { from: hero.kenBurnsEffect, to: newValue });
-    onHeroChange({ ...hero, kenBurnsEffect: newValue });
+    if (!onHeroChange) return;
+    onHeroChange({ ...hero, kenBurnsEffect: !hero.kenBurnsEffect });
   };
 
   const formatNumber = (num: number) => {
