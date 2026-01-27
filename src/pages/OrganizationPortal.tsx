@@ -151,14 +151,15 @@ const OrganizationPortal = () => {
     }
   };
 
-  // Loading state
-  if (stableLoading) {
+  // Loading state - show loading screen while fetching or before data arrives
+  // CRITICAL: Don't show "not found" until we've actually finished fetching
+  if (stableLoading || (!organization && dataLoading) || (!organization && !hasFetchedOnce)) {
     const displayName = organization?.name || (slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : undefined);
     return <PublicLoadingScreen type="portal" name={displayName} />;
   }
 
-  // Error state
-  if (error || !organization) {
+  // Error state - only show after fetch completed with no results
+  if ((error || !organization) && hasFetchedOnce && !dataLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -175,6 +176,12 @@ const OrganizationPortal = () => {
         </div>
       </div>
     );
+  }
+
+  // Final guard - if somehow we still have no organization, show loading
+  if (!organization) {
+    const displayName = slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : undefined;
+    return <PublicLoadingScreen type="portal" name={displayName} />;
   }
 
   const portalSettings = organization.portalSettings || DEFAULT_PORTAL_SETTINGS;
