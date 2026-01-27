@@ -555,13 +555,24 @@ const BrandEditor = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-foreground mb-2">Brand not found</h1>
-          <p className="text-muted-foreground mb-4">The brand you&apos;s looking for doesn&apos;t exist.</p>
+          <p className="text-muted-foreground mb-4">The brand you're looking for doesn't exist.</p>
           <Button onClick={() => navigate('/')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Brands
           </Button>
         </div>
       </div>
+    );
+  }
+
+  // Final guard - if somehow we still have no brand, show loading
+  if (!brand) {
+    return (
+      <PublicLoadingScreen 
+        type="brand" 
+        name={brandSlug}
+        organizationName={organization?.name}
+      />
     );
   }
 
