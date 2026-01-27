@@ -32,7 +32,7 @@ import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit, OrbitLegend } from '@/components/portal';
+import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit, OrbitLegend, MobileStickyTabs } from '@/components/portal';
 import { toast } from 'sonner';
 
 // Lazy load admin components
@@ -187,8 +187,21 @@ const OrganizationPortal = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden max-w-full">
-      {/* Hero Section */}
-      <div className="relative overflow-x-hidden overflow-y-visible">
+      {/* Mobile Sticky Tabs - fixed at top on mobile */}
+      <MobileStickyTabs
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        counts={{
+          all: filteredBrands.length + filteredProducts.length + filteredEvents.length,
+          brands: filteredBrands.length,
+          products: filteredProducts.length,
+          events: filteredEvents.length,
+        }}
+        accentColor={organization.accentColor || orgColors.primary}
+      />
+
+      {/* Hero Section - add top padding on mobile to account for sticky tabs */}
+      <div className="relative overflow-x-hidden overflow-y-visible pt-16 sm:pt-0">
         <HeroBackground kenBurnsEffect={heroKenBurns} />
 
         {/* Header */}
@@ -451,8 +464,9 @@ const OrganizationPortal = () => {
       {/* Content Grid */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 safe-area-inset-bottom">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="w-full">
-          <div className="flex items-center justify-between mb-6 sm:mb-8 gap-4">
-            <div className="flex-1 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+          {/* Desktop tabs - hidden on mobile where we use sticky tabs */}
+          <div className="hidden sm:flex items-center justify-between mb-6 sm:mb-8 gap-4">
+            <div className="flex-1 overflow-x-auto scrollbar-hide">
               <TabsList className="bg-muted w-max sm:w-auto">
                 <TabsTrigger value="all" className="gap-1.5 sm:gap-2 px-3 sm:px-4">
                   All
@@ -461,21 +475,21 @@ const OrganizationPortal = () => {
                   </Badge>
                 </TabsTrigger>
                 <TabsTrigger value="brands" className="gap-1.5 sm:gap-2 px-3 sm:px-4">
-                  <Building2 className="h-4 w-4 hidden sm:block" />
+                  <Building2 className="h-4 w-4" />
                   Brands
                   <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
                     {filteredBrands.length}
                   </Badge>
                 </TabsTrigger>
                 <TabsTrigger value="products" className="gap-1.5 sm:gap-2 px-3 sm:px-4">
-                  <Package className="h-4 w-4 hidden sm:block" />
+                  <Package className="h-4 w-4" />
                   Products
                   <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
                     {filteredProducts.length}
                   </Badge>
                 </TabsTrigger>
                 <TabsTrigger value="events" className="gap-1.5 sm:gap-2 px-3 sm:px-4">
-                  <Calendar className="h-4 w-4 hidden sm:block" />
+                  <Calendar className="h-4 w-4" />
                   Events
                   <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
                     {filteredEvents.length}
