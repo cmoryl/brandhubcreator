@@ -36,6 +36,8 @@ export interface BrandLogo {
   name: string;
   url: string;
   variant: 'primary' | 'secondary' | 'icon' | 'wordmark' | 'reversed' | 'monochrome';
+  /** Optional header image URL for logo cards */
+  headerImage?: string;
 }
 
 // HERO - Identity Shield

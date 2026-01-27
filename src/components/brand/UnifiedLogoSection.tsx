@@ -31,6 +31,8 @@ export interface UnifiedLogo {
   url: string;
   variant: string;
   description?: string;
+  /** Optional header image URL displayed at top of logo card */
+  headerImage?: string;
 }
 
 // Variant configurations for different entity types
@@ -283,6 +285,20 @@ export const UnifiedLogoSection = ({
         className="group relative overflow-hidden hover:border-primary/50 transition-colors animate-scale-in"
         style={{ animationDelay: `${index * 50}ms` }}
       >
+        {/* Header image - spans full width at top */}
+        {logo.headerImage && (
+          <div className="relative w-full h-32 overflow-hidden">
+            <img
+              src={logo.headerImage}
+              alt={`${logo.name} header`}
+              className="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+          </div>
+        )}
+        
         {/* Expand button overlay */}
         <button
           onClick={() => setExpandedLogo(logo)}
