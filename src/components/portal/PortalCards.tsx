@@ -10,13 +10,13 @@
  */
 
 import React, { memo } from 'react';
-import { ArrowRight, Globe, Calendar } from 'lucide-react';
+import { ArrowRight, Globe, Calendar, Layers, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { OptimizedImage } from '@/components/ui/optimized-image';
-import { PortalBrand, PortalProduct, PortalEvent } from '@/hooks/usePortalData';
+import { PortalBrand, PortalProduct, PortalEvent, PortalLinkedGuide } from '@/hooks/usePortalData';
 import { cn } from '@/lib/utils';
 
 interface CardColors {
@@ -104,21 +104,33 @@ export const PortalBrandCard = memo(React.forwardRef<HTMLDivElement, BrandCardPr
     const hero = brand.hero || { name: brand.name, tagline: '' };
     const colors = brand.colors;
     const fallbackGradient = `linear-gradient(135deg, ${orgColors.primary}, ${orgColors.secondary})`;
+    
+    // Check if this is a master brand (has linked products/events)
+    const linkedCount = (brand.linkedGuides || []).length;
+    const isMasterBrand = linkedCount > 0;
 
     return (
       <Card 
         ref={ref}
         className={cn(
-          "group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg",
-          isFocused && "ring-2 ring-primary ring-offset-2"
+          "group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg relative",
+          isFocused && "ring-2 ring-primary ring-offset-2",
+          isMasterBrand && "ring-2 ring-primary/30"
         )}
         style={{ animationDelay: `${index * 0.05}s` }}
         onClick={() => navigate(`/brand/${brand.slug || brand.id}`)}
         role="gridcell"
         tabIndex={-1}
-        aria-label={`${hero.name} brand guidelines`}
+        aria-label={`${hero.name} brand guidelines${isMasterBrand ? ` - includes ${linkedCount} linked guides` : ''}`}
       >
-        <CardContent className="p-0">
+        {/* Master brand indicator ring */}
+        {isMasterBrand && (
+          <div className="absolute inset-0 rounded-lg pointer-events-none z-10">
+            <div className="absolute -inset-[2px] rounded-lg bg-gradient-to-br from-primary/40 via-accent/20 to-primary/40 opacity-60" />
+          </div>
+        )}
+        
+        <CardContent className="p-0 relative">
           <div className="relative h-36 sm:h-44 overflow-hidden">
             {hero.coverImage ? (
               <OptimizedImage 
@@ -137,6 +149,14 @@ export const PortalBrandCard = memo(React.forwardRef<HTMLDivElement, BrandCardPr
               <Globe className="h-3 w-3" />
               Public
             </Badge>
+            
+            {/* Master brand badge - left side */}
+            {isMasterBrand && (
+              <Badge className="absolute top-2 left-2 sm:top-3 sm:left-3 gap-1 bg-primary/90 text-primary-foreground text-xs shadow-lg">
+                <Layers className="h-3 w-3" />
+                {linkedCount} Guide{linkedCount !== 1 ? 's' : ''}
+              </Badge>
+            )}
           </div>
           <div className="p-4 sm:p-5">
             <h3 className="font-semibold text-base sm:text-lg text-foreground mb-1 group-hover:text-accent transition-colors line-clamp-1">
@@ -148,10 +168,17 @@ export const PortalBrandCard = memo(React.forwardRef<HTMLDivElement, BrandCardPr
               </p>
             )}
             <ColorDots colors={colors} />
-            <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-primary hover:bg-transparent text-sm">
-              View Guidelines
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Button>
+            <div className="flex items-center justify-between">
+              <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-primary hover:bg-transparent text-sm">
+                View Guidelines
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+              {isMasterBrand && (
+                <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                  Brand Hub
+                </span>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -167,21 +194,33 @@ export const PortalProductCard = memo(React.forwardRef<HTMLDivElement, ProductCa
     const hero = product.hero || { name: product.name, tagline: '' };
     const colors = product.colors;
     const fallbackGradient = `linear-gradient(135deg, ${orgColors.primary}, ${orgColors.secondary})`;
+    
+    // Check if this is a master product (has linked sub-products)
+    const linkedProductCount = (product.linkedGuides || []).filter(g => g.type === 'product').length;
+    const isMasterProduct = linkedProductCount > 0;
 
     return (
       <Card 
         ref={ref}
         className={cn(
-          "group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg",
-          isFocused && "ring-2 ring-primary ring-offset-2"
+          "group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg relative",
+          isFocused && "ring-2 ring-primary ring-offset-2",
+          isMasterProduct && "ring-2 ring-accent/30"
         )}
         style={{ animationDelay: `${index * 0.05}s` }}
         onClick={() => navigate(`/product/${product.slug || product.id}`)}
         role="gridcell"
         tabIndex={-1}
-        aria-label={`${hero.name} product guidelines`}
+        aria-label={`${hero.name} product guidelines${isMasterProduct ? ` - includes ${linkedProductCount} sub-products` : ''}`}
       >
-        <CardContent className="p-0">
+        {/* Master product indicator ring */}
+        {isMasterProduct && (
+          <div className="absolute inset-0 rounded-lg pointer-events-none z-10">
+            <div className="absolute -inset-[2px] rounded-lg bg-gradient-to-br from-accent/40 via-primary/20 to-accent/40 opacity-60" />
+          </div>
+        )}
+        
+        <CardContent className="p-0 relative">
           <div className="relative h-36 sm:h-44 overflow-hidden">
             {hero.coverImage ? (
               <OptimizedImage 
@@ -196,25 +235,47 @@ export const PortalProductCard = memo(React.forwardRef<HTMLDivElement, ProductCa
             ) : (
               <ColorStripes colors={colors} fallbackGradient={fallbackGradient} />
             )}
+            
+            {/* Right-side badges */}
             <Badge className="absolute top-2 right-2 sm:top-3 sm:right-3 gap-1 bg-green-500/90 text-white text-xs">
               <Globe className="h-3 w-3" />
               Public
             </Badge>
+            
+            {/* Master product badge - left side */}
+            {isMasterProduct && (
+              <Badge className="absolute top-2 left-2 sm:top-3 sm:left-3 gap-1 bg-accent/90 text-accent-foreground text-xs shadow-lg">
+                <Layers className="h-3 w-3" />
+                {linkedProductCount} Sub-Product{linkedProductCount !== 1 ? 's' : ''}
+              </Badge>
+            )}
           </div>
           <div className="p-4 sm:p-5">
-            <h3 className="font-semibold text-base sm:text-lg text-foreground mb-1 group-hover:text-accent transition-colors line-clamp-1">
-              {hero.name}
-            </h3>
+            <div className="flex items-start gap-2">
+              <h3 className="font-semibold text-base sm:text-lg text-foreground mb-1 group-hover:text-accent transition-colors line-clamp-1 flex-1">
+                {hero.name}
+              </h3>
+              {isMasterProduct && (
+                <Package className="h-4 w-4 text-accent shrink-0 mt-1" />
+              )}
+            </div>
             {hero.tagline && (
               <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mb-3 sm:mb-4">
                 {hero.tagline}
               </p>
             )}
             <ColorDots colors={colors} />
-            <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-primary hover:bg-transparent text-sm">
-              View Guidelines
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Button>
+            <div className="flex items-center justify-between">
+              <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-primary hover:bg-transparent text-sm">
+                View Guidelines
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+              {isMasterProduct && (
+                <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                  Product Suite
+                </span>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -231,21 +292,33 @@ export const PortalEventCard = memo(React.forwardRef<HTMLDivElement, EventCardPr
     const eventDetails = event.eventDetails || { eventName: '', eventDates: '', location: '' };
     const colors = event.colors;
     const fallbackGradient = `linear-gradient(135deg, ${orgColors.primary}, ${orgColors.secondary})`;
+    
+    // Check if this is a master event (has regional sub-events)
+    const linkedEventCount = (event.linkedGuides || []).length;
+    const isMasterEvent = linkedEventCount > 0;
 
     return (
       <Card 
         ref={ref}
         className={cn(
-          "group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg",
-          isFocused && "ring-2 ring-primary ring-offset-2"
+          "group cursor-pointer hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg relative",
+          isFocused && "ring-2 ring-primary ring-offset-2",
+          isMasterEvent && "ring-2 ring-secondary/40"
         )}
         style={{ animationDelay: `${index * 0.05}s` }}
         onClick={() => navigate(`/event/${event.slug || event.id}`)}
         role="gridcell"
         tabIndex={-1}
-        aria-label={`${hero.name || eventDetails.eventName} event brand kit`}
+        aria-label={`${hero.name || eventDetails.eventName} event brand kit${isMasterEvent ? ` - includes ${linkedEventCount} regional events` : ''}`}
       >
-        <CardContent className="p-0">
+        {/* Master event indicator ring */}
+        {isMasterEvent && (
+          <div className="absolute inset-0 rounded-lg pointer-events-none z-10">
+            <div className="absolute -inset-[2px] rounded-lg bg-gradient-to-br from-secondary/40 via-primary/20 to-secondary/40 opacity-60" />
+          </div>
+        )}
+        
+        <CardContent className="p-0 relative">
           <div className="relative h-36 sm:h-44 overflow-hidden">
             {hero.coverImage ? (
               <OptimizedImage 
@@ -264,10 +337,19 @@ export const PortalEventCard = memo(React.forwardRef<HTMLDivElement, EventCardPr
               <Globe className="h-3 w-3" />
               Public
             </Badge>
-            <Badge className="absolute top-2 left-2 sm:top-3 sm:left-3 gap-1 bg-primary/90 text-primary-foreground text-xs">
-              <Calendar className="h-3 w-3" />
-              Event
-            </Badge>
+            
+            {/* Event type badge - left side */}
+            {isMasterEvent ? (
+              <Badge className="absolute top-2 left-2 sm:top-3 sm:left-3 gap-1 bg-secondary/90 text-secondary-foreground text-xs shadow-lg">
+                <Layers className="h-3 w-3" />
+                {linkedEventCount} Region{linkedEventCount !== 1 ? 's' : ''}
+              </Badge>
+            ) : (
+              <Badge className="absolute top-2 left-2 sm:top-3 sm:left-3 gap-1 bg-primary/90 text-primary-foreground text-xs">
+                <Calendar className="h-3 w-3" />
+                Event
+              </Badge>
+            )}
           </div>
           <div className="p-4 sm:p-5">
             <h3 className="font-semibold text-base sm:text-lg text-foreground mb-1 group-hover:text-accent transition-colors line-clamp-1">
@@ -284,10 +366,17 @@ export const PortalEventCard = memo(React.forwardRef<HTMLDivElement, EventCardPr
               </p>
             )}
             <ColorDots colors={colors} />
-            <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-primary hover:bg-transparent text-sm">
-              View Guidelines
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Button>
+            <div className="flex items-center justify-between">
+              <Button variant="ghost" size="sm" className="gap-2 p-0 h-auto text-accent hover:text-primary hover:bg-transparent text-sm">
+                View Guidelines
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+              {isMasterEvent && (
+                <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                  Global Event
+                </span>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
