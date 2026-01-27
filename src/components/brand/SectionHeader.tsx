@@ -34,53 +34,15 @@ export const SectionHeader = forwardRef<HTMLDivElement, SectionHeaderProps>(
       <div 
         ref={ref} 
         className={cn(
-          "relative pb-4 mb-2",
+          "relative pb-4 mb-4",
           fullWidth && "border-b border-border"
         )}
       >
-        <div className="flex items-start justify-between gap-3 sm:gap-4">
-          <div className="flex-1 min-w-0">
-            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
-              {title}
-            </h2>
-            {editingSubtitle && canEdit ? (
-              <div className="mt-2 space-y-2">
-                <RichTextEditor
-                  value={customSubtitle ?? ''}
-                  onChange={onSubtitleChange}
-                  placeholder={defaultSubtitle}
-                  minHeight="50px"
-                />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setEditingSubtitle(false)}
-                  className="gap-1.5"
-                >
-                  <Check className="h-3 w-3" />
-                  Done Editing
-                </Button>
-              </div>
-            ) : (
-              <p 
-                className={cn(
-                  "text-sm text-muted-foreground mt-1 max-w-3xl",
-                  canEdit && "cursor-pointer hover:text-foreground/80 transition-colors group"
-                )}
-                onClick={() => canEdit && setEditingSubtitle(true)}
-                title={canEdit ? "Click to edit subtitle" : undefined}
-              >
-                {customSubtitle ? (
-                  <RichTextDisplay html={customSubtitle} />
-                ) : (
-                  displaySubtitle
-                )}
-                {canEdit && (
-                  <Pencil className="inline-block h-3 w-3 ml-2 opacity-0 group-hover:opacity-50 transition-opacity" />
-                )}
-              </p>
-            )}
-          </div>
+        {/* Title row with edit button */}
+        <div className="flex items-center justify-between gap-3 sm:gap-4 mb-1">
+          <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
+            {title}
+          </h2>
           {/* Only show edit button if editing is allowed */}
           {canEdit && (
             <Button
@@ -92,6 +54,47 @@ export const SectionHeader = forwardRef<HTMLDivElement, SectionHeaderProps>(
               {isEditing ? <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
               <span className="hidden sm:inline">{isEditing ? 'Done' : 'Edit'}</span>
             </Button>
+          )}
+        </div>
+        
+        {/* Subtitle - full width on its own row */}
+        <div className="w-full">
+          {editingSubtitle && canEdit ? (
+            <div className="space-y-2">
+              <RichTextEditor
+                value={customSubtitle ?? ''}
+                onChange={onSubtitleChange}
+                placeholder={defaultSubtitle}
+                minHeight="50px"
+              />
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setEditingSubtitle(false)}
+                className="gap-1.5"
+              >
+                <Check className="h-3 w-3" />
+                Done Editing
+              </Button>
+            </div>
+          ) : (
+            <p 
+              className={cn(
+                "text-sm text-muted-foreground leading-relaxed",
+                canEdit && "cursor-pointer hover:text-foreground/80 transition-colors group"
+              )}
+              onClick={() => canEdit && setEditingSubtitle(true)}
+              title={canEdit ? "Click to edit subtitle" : undefined}
+            >
+              {customSubtitle ? (
+                <RichTextDisplay html={customSubtitle} />
+              ) : (
+                displaySubtitle
+              )}
+              {canEdit && (
+                <Pencil className="inline-block h-3 w-3 ml-2 opacity-0 group-hover:opacity-50 transition-opacity" />
+              )}
+            </p>
           )}
         </div>
       </div>
