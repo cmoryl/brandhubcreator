@@ -51,12 +51,23 @@ export const HierarchicalBrandGrid = ({ brands, orgColors }: HierarchicalBrandGr
     const subBrandsByParent = new Map<string, PortalBrand[]>();
     
     // First pass: identify all sub-brands (linked brands within linkedGuides)
+    // Handle both formats:
+    // - Newer format: { id, name, slug, type }
+    // - Legacy format: { guideId, guideType, id } where id is the link entry id
     brands.forEach(brand => {
-      const linkedBrands = (brand.linkedGuides || []).filter(g => g.type === 'brand');
-      linkedBrands.forEach(linked => {
-        subBrandIds.add(linked.id);
+      const linkedGuides = brand.linkedGuides || [];
+      const linkedBrands = linkedGuides.filter((g: any) => 
+        g.type === 'brand' || g.guideType === 'brand'
+      );
+      
+      linkedBrands.forEach((linked: any) => {
+        // Get the actual brand ID from either format
+        const linkedBrandId = linked.guideId || linked.id;
+        if (!linkedBrandId) return;
+        
+        subBrandIds.add(linkedBrandId);
         const existing = subBrandsByParent.get(brand.id) || [];
-        const subBrand = brands.find(b => b.id === linked.id);
+        const subBrand = brands.find(b => b.id === linkedBrandId);
         if (subBrand) {
           existing.push(subBrand);
           subBrandsByParent.set(brand.id, existing);

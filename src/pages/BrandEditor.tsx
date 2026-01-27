@@ -282,9 +282,19 @@ const BrandEditor = () => {
           
           const guideData = masterBrand.guide_data as any;
           const linkedGuides = guideData?.linkedGuides || [];
-          const isLinked = linkedGuides.some((lg: any) => 
-            (lg.type === 'brand' && (lg.id === brand.id || lg.slug === brand.slug))
-          );
+          
+          // Handle both formats:
+          // - Newer format: { id, name, slug, type }
+          // - Legacy format: { guideId, guideType, id } where id is the link entry id
+          const isLinked = linkedGuides.some((lg: any) => {
+            // Check if it's a brand type link
+            const isBrandType = lg.type === 'brand' || lg.guideType === 'brand';
+            if (!isBrandType) return false;
+            
+            // Check if it references our current brand
+            const linkedId = lg.guideId || lg.id; // guideId for legacy, id for newer
+            return linkedId === brand.id || lg.slug === brand.slug;
+          });
           
           if (isLinked) {
             setParentBrand({
