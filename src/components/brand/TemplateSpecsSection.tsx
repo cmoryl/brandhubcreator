@@ -296,6 +296,16 @@ export const TemplateSpecsSection = ({
   );
 
   const selectedSpec = templateSpecs.find(s => s.id === selectedSpecId);
+  
+  // Defensive: ensure items is always an array to prevent crashes on malformed data
+  const selectedSpecItems = selectedSpec?.items ?? [];
+
+  // Auto-select first spec on load or when current selection becomes invalid
+  useEffect(() => {
+    if (templateSpecs.length > 0 && (!selectedSpecId || !templateSpecs.find(s => s.id === selectedSpecId))) {
+      setSelectedSpecId(templateSpecs[0].id);
+    }
+  }, [templateSpecs, selectedSpecId]);
 
   // Add new template spec
   const handleAddSpec = () => {
@@ -335,7 +345,7 @@ export const TemplateSpecsSection = ({
   const handleAddItem = () => {
     if (!selectedSpec || !onTemplateSpecsChange) return;
 
-    const maxNumber = Math.max(0, ...selectedSpec.items.map(i => i.number));
+    const maxNumber = Math.max(0, ...selectedSpecItems.map(i => i.number));
     const newItem: TemplateSpecItem = {
       id: crypto.randomUUID(),
       number: maxNumber + 1,
@@ -345,7 +355,7 @@ export const TemplateSpecsSection = ({
 
     const updatedSpec = {
       ...selectedSpec,
-      items: [...selectedSpec.items, newItem],
+      items: [...selectedSpecItems, newItem],
     };
     onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
     setEditingItemId(newItem.id);
@@ -357,7 +367,7 @@ export const TemplateSpecsSection = ({
 
     const updatedSpec = {
       ...selectedSpec,
-      items: selectedSpec.items.map(i => i.id === itemId ? { ...i, ...updates } : i),
+      items: selectedSpecItems.map(i => i.id === itemId ? { ...i, ...updates } : i),
     };
     onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
   };
@@ -366,7 +376,7 @@ export const TemplateSpecsSection = ({
   const handleDeleteItem = (itemId: string) => {
     if (!selectedSpec || !onTemplateSpecsChange) return;
 
-    const filteredItems = selectedSpec.items.filter(i => i.id !== itemId);
+    const filteredItems = selectedSpecItems.filter(i => i.id !== itemId);
     // Renumber items
     const renumberedItems = filteredItems.map((item, idx) => ({
       ...item,
@@ -386,10 +396,10 @@ export const TemplateSpecsSection = ({
     const { active, over } = event;
     if (!selectedSpec || !over || active.id === over.id || !onTemplateSpecsChange) return;
 
-    const oldIndex = selectedSpec.items.findIndex(i => i.id === active.id);
-    const newIndex = selectedSpec.items.findIndex(i => i.id === over.id);
+    const oldIndex = selectedSpecItems.findIndex(i => i.id === active.id);
+    const newIndex = selectedSpecItems.findIndex(i => i.id === over.id);
 
-    const reorderedItems = arrayMove(selectedSpec.items, oldIndex, newIndex).map((item, idx) => ({
+    const reorderedItems = arrayMove(selectedSpecItems, oldIndex, newIndex).map((item, idx) => ({
       ...item,
       number: idx + 1,
     }));
@@ -423,7 +433,7 @@ export const TemplateSpecsSection = ({
 
     const updatedSpec = {
       ...selectedSpec,
-      items: selectedSpec.items.map(item => 
+      items: selectedSpecItems.map(item => 
         item.id === itemId ? { ...item, position } : item
       ),
     };
@@ -555,11 +565,11 @@ export const TemplateSpecsSection = ({
                 onDragEnd={handleDragEnd}
               >
                 <SortableContext
-                  items={selectedSpec.items.map(i => i.id)}
+                  items={selectedSpecItems.map(i => i.id)}
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-2">
-                    {selectedSpec.items.map(item => (
+                    {selectedSpecItems.map(item => (
                       <SortableSpecItem
                         key={item.id}
                         item={item}
@@ -575,7 +585,7 @@ export const TemplateSpecsSection = ({
                 </SortableContext>
               </DndContext>
 
-              {selectedSpec.items.length === 0 && (
+              {selectedSpecItems.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   <p>{canEdit ? 'No items yet. Click "Add Item" to get started.' : 'No items defined.'}</p>
                 </div>
@@ -653,9 +663,9 @@ export const TemplateSpecsSection = ({
                         </div>
                       )}
                       {/* Overlay callout badges - draggable when in drag mode */}
-                      {selectedSpec.items.map((item, idx) => {
+                      {selectedSpecItems.map((item, idx) => {
                         // Default positions spread vertically on the left side
-                        const defaultY = 10 + (idx * (80 / Math.max(selectedSpec.items.length, 1)));
+                        const defaultY = 10 + (idx * (80 / Math.max(selectedSpecItems.length, 1)));
                         const itemWithDefaultPos = {
                           ...item,
                           position: item.position || { x: 5 + (idx % 3) * 5, y: defaultY }
@@ -710,7 +720,7 @@ export const TemplateSpecsSection = ({
                   Quick Reference
                 </h4>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  {selectedSpec.items.slice(0, 8).map(item => (
+                  {selectedSpecItems.slice(0, 8).map(item => (
                     <div key={item.id} className="flex items-center gap-2">
                       <span
                         className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
