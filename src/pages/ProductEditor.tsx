@@ -121,6 +121,8 @@ const ProductEditor = () => {
   const [publicProductLoading, setPublicProductLoading] = useState(false);
   // Track if fetch has been initiated to handle the "skip if context has data" case
   const fetchInitiatedRef = React.useRef(false);
+  // Parent product for hierarchical breadcrumbs
+  const [parentProduct, setParentProduct] = useState<{ id: string; name: string; slug: string } | null>(null);
 
   // Redirect unapproved users to pending approval page (admins are always allowed)
   React.useEffect(() => {
@@ -277,7 +279,52 @@ const ProductEditor = () => {
 
   // Use context product if available, otherwise use fetched public product
   const currentProduct = contextProduct || publicProduct;
-  
+
+  // Fetch parent product for sub-products (check if any master product has this product in linkedGuides)
+  React.useEffect(() => {
+    const fetchParentProduct = async () => {
+      if (!currentProduct?.id) return;
+      
+      try {
+        // Query all products to find any that reference this product in linkedGuides
+        // We need to check both public and non-public parents as a sub-product might be public
+        // while its parent is not (yet)
+        const { data: masterProducts, error } = await supabase
+          .from('products')
+          .select('id, name, slug, guide_data, is_public');
+        
+        if (error) throw error;
+        
+        // Check each master product's linkedGuides for our current product
+        for (const masterProduct of masterProducts || []) {
+          // Skip if this is the same product
+          if (masterProduct.id === currentProduct.id) continue;
+          
+          const guideData = masterProduct.guide_data as any;
+          const linkedGuides = guideData?.linkedGuides || [];
+          const isLinked = linkedGuides.some((lg: any) => 
+            lg.id === currentProduct.id || lg.slug === currentProduct.slug
+          );
+          
+          if (isLinked) {
+            setParentProduct({
+              id: masterProduct.id,
+              name: masterProduct.name,
+              slug: masterProduct.slug || masterProduct.id,
+            });
+            return;
+          }
+        }
+        
+        // No parent found
+        setParentProduct(null);
+      } catch (err) {
+        console.error('Error fetching parent product:', err);
+      }
+    };
+    
+    fetchParentProduct();
+  }, [currentProduct?.id, currentProduct?.slug]);
   // Forward-compat: older products may have persisted sectionOrder without newly-added sections (e.g., socialassets)
   const sectionOrder = useMemo(
     () => normalizeSectionOrder(currentProduct?.sectionOrder),
@@ -677,6 +724,7 @@ const ProductEditor = () => {
               <AppBreadcrumbs
                 items={[
                   { label: organization?.name || 'Products', icon: organization ? Building2 : Package, href: organization ? `/org/${organization.slug}` : '/' },
+                  ...(parentProduct ? [{ label: parentProduct.name, icon: Package, href: `/product/${parentProduct.slug}` }] : []),
                 ]}
                 currentPage={currentProduct.hero.name}
                 currentIcon={Package}
