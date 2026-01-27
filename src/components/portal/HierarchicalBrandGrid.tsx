@@ -1,35 +1,35 @@
 /**
- * Hierarchical Product Grid
- * Displays products with master products first, followed by their sub-products in collapsible sections
+ * Hierarchical Brand Grid
+ * Displays brands with master brands first, followed by their sub-brands in collapsible sections
  */
 
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Globe, Layers, ChevronRight, ChevronDown } from 'lucide-react';
+import { ArrowRight, Globe, Layers, ChevronRight, ChevronDown, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { OptimizedImage } from '@/components/ui/optimized-image';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { PortalProduct } from '@/hooks/usePortalData';
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
+import { PortalBrand } from '@/hooks/usePortalData';
 import { cn } from '@/lib/utils';
 
-interface HierarchicalProductGridProps {
-  products: PortalProduct[];
+interface HierarchicalBrandGridProps {
+  brands: PortalBrand[];
   orgColors: {
     primary: string;
     secondary: string;
   };
 }
 
-interface ProductHierarchy {
-  masterProducts: PortalProduct[];
-  subProductIds: Set<string>;
-  subProductsByParent: Map<string, PortalProduct[]>;
-  standaloneProducts: PortalProduct[];
+interface BrandHierarchy {
+  masterBrands: PortalBrand[];
+  subBrandIds: Set<string>;
+  subBrandsByParent: Map<string, PortalBrand[]>;
+  standaloneBrands: PortalBrand[];
 }
 
-export const HierarchicalProductGrid = ({ products, orgColors }: HierarchicalProductGridProps) => {
+export const HierarchicalBrandGrid = ({ brands, orgColors }: HierarchicalBrandGridProps) => {
   const navigate = useNavigate();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
@@ -44,64 +44,65 @@ export const HierarchicalProductGrid = ({ products, orgColors }: HierarchicalPro
       return next;
     });
   };
-  // Build product hierarchy
-  const hierarchy = useMemo((): ProductHierarchy => {
-    const subProductIds = new Set<string>();
-    const subProductsByParent = new Map<string, PortalProduct[]>();
+
+  // Build brand hierarchy
+  const hierarchy = useMemo((): BrandHierarchy => {
+    const subBrandIds = new Set<string>();
+    const subBrandsByParent = new Map<string, PortalBrand[]>();
     
-    // First pass: identify all sub-products
-    products.forEach(product => {
-      const linkedProducts = (product.linkedGuides || []).filter(g => g.type === 'product');
-      linkedProducts.forEach(linked => {
-        subProductIds.add(linked.id);
-        const existing = subProductsByParent.get(product.id) || [];
-        const subProduct = products.find(p => p.id === linked.id);
-        if (subProduct) {
-          existing.push(subProduct);
-          subProductsByParent.set(product.id, existing);
+    // First pass: identify all sub-brands (linked brands within linkedGuides)
+    brands.forEach(brand => {
+      const linkedBrands = (brand.linkedGuides || []).filter(g => g.type === 'brand');
+      linkedBrands.forEach(linked => {
+        subBrandIds.add(linked.id);
+        const existing = subBrandsByParent.get(brand.id) || [];
+        const subBrand = brands.find(b => b.id === linked.id);
+        if (subBrand) {
+          existing.push(subBrand);
+          subBrandsByParent.set(brand.id, existing);
         }
       });
     });
 
-    // Categorize products
-    const masterProducts: PortalProduct[] = [];
-    const standaloneProducts: PortalProduct[] = [];
+    // Categorize brands
+    const masterBrands: PortalBrand[] = [];
+    const standaloneBrands: PortalBrand[] = [];
 
-    products.forEach(product => {
-      const isSubProduct = subProductIds.has(product.id);
-      const hasSubs = subProductsByParent.has(product.id);
+    brands.forEach(brand => {
+      const isSubBrand = subBrandIds.has(brand.id);
+      const hasSubs = subBrandsByParent.has(brand.id);
 
-      if (isSubProduct) {
+      if (isSubBrand) {
         // Skip - will be shown under parent
         return;
       } else if (hasSubs) {
-        masterProducts.push(product);
+        masterBrands.push(brand);
       } else {
-        standaloneProducts.push(product);
+        standaloneBrands.push(brand);
       }
     });
 
     return {
-      masterProducts,
-      subProductIds,
-      subProductsByParent,
-      standaloneProducts,
+      masterBrands,
+      subBrandIds,
+      subBrandsByParent,
+      standaloneBrands,
     };
-  }, [products]);
+  }, [brands]);
 
   const fallbackGradient = `linear-gradient(135deg, ${orgColors.primary}, ${orgColors.secondary})`;
 
-  // Sub-product mini card
-  const SubProductCard = ({ product, index }: { product: PortalProduct; index: number }) => {
-    const hero = product.hero || { name: product.name, tagline: '' };
-    const colors = product.colors;
+  // Sub-brand mini card
+  const SubBrandCard = ({ brand }: { brand: PortalBrand }) => {
+    const hero = brand.hero || { name: brand.name, tagline: '' };
+    const colors = brand.colors;
 
     return (
       <Card 
         className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden border border-border/50 bg-card/80 backdrop-blur-sm"
         onClick={(e) => {
           e.stopPropagation();
-          navigate(`/product/${product.slug || product.id}`);
+          navigate(`/brand/${brand.slug || brand.id}`);
         }}
       >
         <CardContent className="p-0">
@@ -143,22 +144,22 @@ export const HierarchicalProductGrid = ({ products, orgColors }: HierarchicalPro
     );
   };
 
-  // Master product with sub-products
-  const MasterProductSection = ({ product }: { product: PortalProduct }) => {
-    const hero = product.hero || { name: product.name, tagline: '' };
-    const colors = product.colors;
-    const subProducts = hierarchy.subProductsByParent.get(product.id) || [];
-    const isExpanded = expandedSections.has(product.id);
+  // Master brand with sub-brands
+  const MasterBrandSection = ({ brand }: { brand: PortalBrand }) => {
+    const hero = brand.hero || { name: brand.name, tagline: '' };
+    const colors = brand.colors;
+    const subBrands = hierarchy.subBrandsByParent.get(brand.id) || [];
+    const isExpanded = expandedSections.has(brand.id);
 
     return (
       <div className="space-y-3">
-        {/* Master product card - full width with gradient accent */}
+        {/* Master brand card - full width with gradient accent */}
         <Card 
-          className="group hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg relative ring-2 ring-accent/30"
+          className="group hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg relative ring-2 ring-primary/30"
         >
           {/* Accent gradient overlay */}
           <div className="absolute inset-0 rounded-lg pointer-events-none z-10">
-            <div className="absolute -inset-[2px] rounded-lg bg-gradient-to-br from-accent/40 via-primary/20 to-accent/40 opacity-60" />
+            <div className="absolute -inset-[2px] rounded-lg bg-gradient-to-br from-primary/40 via-accent/20 to-primary/40 opacity-60" />
           </div>
           
           <CardContent className="p-0 relative">
@@ -166,7 +167,7 @@ export const HierarchicalProductGrid = ({ products, orgColors }: HierarchicalPro
               {/* Image section - clickable to navigate */}
               <div 
                 className="relative h-48 md:h-auto md:w-2/5 overflow-hidden cursor-pointer"
-                onClick={() => navigate(`/product/${product.slug || product.id}`)}
+                onClick={() => navigate(`/brand/${brand.slug || brand.id}`)}
               >
                 {hero.coverImage ? (
                   <OptimizedImage 
@@ -202,13 +203,13 @@ export const HierarchicalProductGrid = ({ products, orgColors }: HierarchicalPro
               {/* Content section */}
               <div className="flex-1 p-5 md:p-6 flex flex-col justify-center">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[10px] uppercase tracking-wider text-accent font-semibold">
-                    Product Suite
+                  <span className="text-[10px] uppercase tracking-wider text-primary font-semibold">
+                    Brand Hub
                   </span>
                 </div>
                 <h3 
-                  className="font-bold text-xl md:text-2xl text-foreground mb-2 group-hover:text-accent transition-colors cursor-pointer"
-                  onClick={() => navigate(`/product/${product.slug || product.id}`)}
+                  className="font-bold text-xl md:text-2xl text-foreground mb-2 group-hover:text-primary transition-colors cursor-pointer"
+                  onClick={() => navigate(`/brand/${brand.slug || brand.id}`)}
                 >
                   {hero.name}
                 </h3>
@@ -240,25 +241,25 @@ export const HierarchicalProductGrid = ({ products, orgColors }: HierarchicalPro
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="gap-2 p-0 h-auto text-accent hover:text-primary hover:bg-transparent"
-                    onClick={() => navigate(`/product/${product.slug || product.id}`)}
+                    className="gap-2 p-0 h-auto text-primary hover:text-accent hover:bg-transparent"
+                    onClick={() => navigate(`/brand/${brand.slug || brand.id}`)}
                   >
-                    View Master Guidelines
+                    View Brand Guidelines
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                   
-                  {subProducts.length > 0 && (
+                  {subBrands.length > 0 && (
                     <Button
                       variant="outline"
                       size="sm"
                       className="gap-2 text-xs"
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleSection(product.id);
+                        toggleSection(brand.id);
                       }}
                     >
-                      <Layers className="h-3.5 w-3.5" />
-                      {subProducts.length} Sub-Product{subProducts.length !== 1 ? 's' : ''}
+                      <FileText className="h-3.5 w-3.5" />
+                      {subBrands.length} Sub-Brand{subBrands.length !== 1 ? 's' : ''}
                       {isExpanded ? (
                         <ChevronDown className="h-3.5 w-3.5 transition-transform" />
                       ) : (
@@ -272,18 +273,18 @@ export const HierarchicalProductGrid = ({ products, orgColors }: HierarchicalPro
           </CardContent>
         </Card>
         
-        {/* Collapsible Sub-products grid */}
-        {subProducts.length > 0 && (
-          <Collapsible open={isExpanded} onOpenChange={() => toggleSection(product.id)}>
+        {/* Collapsible Sub-brands grid */}
+        {subBrands.length > 0 && (
+          <Collapsible open={isExpanded} onOpenChange={() => toggleSection(brand.id)}>
             <CollapsibleContent className="animate-accordion-down">
-              <div className="pl-4 md:pl-8 border-l-2 border-accent/30 pt-2">
+              <div className="pl-4 md:pl-8 border-l-2 border-primary/30 pt-2">
                 <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider font-medium flex items-center gap-2">
-                  <Layers className="h-3 w-3" />
-                  Sub-Products in {hero.name}
+                  <FileText className="h-3 w-3" />
+                  Sub-Brands in {hero.name}
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {subProducts.map((subProduct, index) => (
-                    <SubProductCard key={subProduct.id} product={subProduct} index={index} />
+                  {subBrands.map((subBrand) => (
+                    <SubBrandCard key={subBrand.id} brand={subBrand} />
                   ))}
                 </div>
               </div>
@@ -294,15 +295,15 @@ export const HierarchicalProductGrid = ({ products, orgColors }: HierarchicalPro
     );
   };
 
-  // Standalone product card (same as before but slightly smaller feel)
-  const StandaloneProductCard = ({ product, index }: { product: PortalProduct; index: number }) => {
-    const hero = product.hero || { name: product.name, tagline: '' };
-    const colors = product.colors;
+  // Standalone brand card
+  const StandaloneBrandCard = ({ brand }: { brand: PortalBrand }) => {
+    const hero = brand.hero || { name: brand.name, tagline: '' };
+    const colors = brand.colors;
 
     return (
       <Card 
         className="group cursor-pointer hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-md"
-        onClick={() => navigate(`/product/${product.slug || product.id}`)}
+        onClick={() => navigate(`/brand/${brand.slug || brand.id}`)}
       >
         <CardContent className="p-0">
           <div className="relative h-32 sm:h-36 overflow-hidden">
@@ -334,7 +335,7 @@ export const HierarchicalProductGrid = ({ products, orgColors }: HierarchicalPro
             </Badge>
           </div>
           <div className="p-4">
-            <h3 className="font-semibold text-sm text-foreground mb-1 group-hover:text-accent transition-colors line-clamp-1">
+            <h3 className="font-semibold text-sm text-foreground mb-1 group-hover:text-primary transition-colors line-clamp-1">
               {hero.name}
             </h3>
             {hero.tagline && (
@@ -342,7 +343,7 @@ export const HierarchicalProductGrid = ({ products, orgColors }: HierarchicalPro
                 {hero.tagline}
               </p>
             )}
-            <Button variant="ghost" size="sm" className="gap-1.5 p-0 h-auto text-accent hover:text-primary hover:bg-transparent text-xs">
+            <Button variant="ghost" size="sm" className="gap-1.5 p-0 h-auto text-primary hover:text-accent hover:bg-transparent text-xs">
               View
               <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
             </Button>
@@ -352,28 +353,39 @@ export const HierarchicalProductGrid = ({ products, orgColors }: HierarchicalPro
     );
   };
 
+  // If no hierarchy, just show all brands as standalone
+  if (hierarchy.masterBrands.length === 0) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {brands.map((brand) => (
+          <StandaloneBrandCard key={brand.id} brand={brand} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
-      {/* Master products with their sub-products */}
-      {hierarchy.masterProducts.length > 0 && (
+      {/* Master brands with their sub-brands */}
+      {hierarchy.masterBrands.length > 0 && (
         <div className="space-y-8">
-          {hierarchy.masterProducts.map((product) => (
-            <MasterProductSection key={product.id} product={product} />
+          {hierarchy.masterBrands.map((brand) => (
+            <MasterBrandSection key={brand.id} brand={brand} />
           ))}
         </div>
       )}
 
-      {/* Standalone products */}
-      {hierarchy.standaloneProducts.length > 0 && (
+      {/* Standalone brands */}
+      {hierarchy.standaloneBrands.length > 0 && (
         <div>
-          {hierarchy.masterProducts.length > 0 && (
+          {hierarchy.masterBrands.length > 0 && (
             <h3 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider">
-              Other Products
+              Other Brands
             </h3>
           )}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {hierarchy.standaloneProducts.map((product, index) => (
-              <StandaloneProductCard key={product.id} product={product} index={index} />
+            {hierarchy.standaloneBrands.map((brand) => (
+              <StandaloneBrandCard key={brand.id} brand={brand} />
             ))}
           </div>
         </div>
