@@ -421,7 +421,7 @@ const ProductEditor = () => {
     const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
     
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={editHandler((hero) => handleUpdateProduct({ hero }))} onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined} guideData={currentProduct as unknown as Record<string, unknown>} />;
+      case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={editHandler((hero) => handleUpdateProduct({ hero }))} onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined} guideData={currentProduct as unknown as Record<string, unknown>} entityType="product" entityId={currentProduct.id} />;
       case 'tagline': return <TaglineSection tagline={currentProduct.tagline} onTaglineChange={editHandler((tagline) => handleUpdateProduct({ tagline }))} />;
       case 'identity': return <IdentitySection identity={currentProduct.identity} onIdentityChange={editHandler((identity) => handleUpdateProduct({ identity }))} />;
       case 'values': return <ValuesSection values={currentProduct.values} onValuesChange={editHandler((values) => handleUpdateProduct({ values }))} organizationId={currentProduct.organizationId} brandId={currentProduct.id} brandName={currentProduct.hero.name} canEdit={canEdit} />;
