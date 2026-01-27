@@ -137,7 +137,7 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
   };
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-6 overflow-x-hidden">
       <SectionHeader
         title="Our Services"
         defaultSubtitle="What we offer to help your business grow"
@@ -148,7 +148,9 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
       />
 
       {/* Services Grid - horizontal scroll on mobile, grid on larger screens */}
-      <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 overflow-x-auto pb-4 sm:pb-0 sm:overflow-visible -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory scrollbar-hide">
+      {/* Wrapper prevents negative margins from causing page-wide horizontal scroll */}
+      <div className="overflow-x-hidden">
+        <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 overflow-x-auto pb-4 sm:pb-0 sm:overflow-visible -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory scrollbar-hide">
         {services.map((service) => {
           const IconComponent = getIconComponent(service.icon);
           return (
@@ -228,6 +230,7 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
             </CardContent>
           </Card>
         )}
+        </div>
       </div>
 
       {/* Empty State */}

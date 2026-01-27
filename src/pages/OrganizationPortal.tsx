@@ -186,9 +186,9 @@ const OrganizationPortal = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden max-w-full">
       {/* Hero Section */}
-      <div className="relative overflow-visible">
+      <div className="relative overflow-x-hidden overflow-y-visible">
         <HeroBackground kenBurnsEffect={heroKenBurns} />
 
         {/* Header */}
