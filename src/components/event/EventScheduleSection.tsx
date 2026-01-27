@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
-import { Plus, Trash2, Check, X, Clock, MapPin, User, ChevronDown, ChevronRight, GripVertical, Edit2, Download, FileSpreadsheet, FileJson, Calendar, FileText, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Check, X, Clock, MapPin, User, ChevronDown, ChevronRight, GripVertical, Edit2, Download, FileSpreadsheet, FileJson, Calendar, FileText, Loader2, Upload, AlertCircle } from 'lucide-react';
 import { EventScheduleItem, EventSpeaker } from '@/types/event';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,8 +10,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { exportSchedule, ExportFormat } from '@/lib/scheduleExport';
 import { exportScheduleToPdf } from '@/lib/scheduleExportPdf';
+import { importScheduleFromFile, generateSampleCSV, ImportResult } from '@/lib/scheduleImport';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
@@ -207,6 +210,10 @@ export const EventScheduleSection = ({
   const [editingItem, setEditingItem] = useState<EventScheduleItem | null>(null);
   const [expandedDays, setExpandedDays] = useState<string[]>(['Day 1']);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [newItem, setNewItem] = useState<Partial<EventScheduleItem>>({
     time: '',
     title: '',
@@ -249,6 +256,52 @@ export const EventScheduleSection = ({
     } finally {
       setIsExportingPdf(false);
     }
+  };
+
+  // Import handler
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      toast.error('Please select a CSV file');
+      return;
+    }
+    
+    setIsImporting(true);
+    try {
+      const result = await importScheduleFromFile(file);
+      setImportResult(result);
+      setIsImportDialogOpen(true);
+    } catch (error) {
+      console.error('Import failed:', error);
+      toast.error('Failed to import schedule');
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleConfirmImport = () => {
+    if (!importResult?.items.length) return;
+    onUpdate([...schedule, ...importResult.items]);
+    toast.success(`Imported ${importResult.items.length} session(s)`);
+    setIsImportDialogOpen(false);
+    setImportResult(null);
+  };
+
+  const handleDownloadTemplate = () => {
+    const csv = generateSampleCSV();
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'schedule-template.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success('Template downloaded');
   };
 
   const sensors = useSensors(
@@ -500,6 +553,50 @@ export const EventScheduleSection = ({
             </DropdownMenu>
           )}
           
+          {/* Import button */}
+          {isEditable && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2" disabled={isImporting}>
+                    {isImporting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4" />
+                    )}
+                    <span className="hidden sm:inline">Import</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>Import Schedule</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => fileInputRef.current?.click()} 
+                    className="gap-2 cursor-pointer"
+                  >
+                    <FileSpreadsheet className="h-4 w-4" />
+                    Import from CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={handleDownloadTemplate} 
+                    className="gap-2 cursor-pointer"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download Template
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
+          
           {/* Add session button */}
           {isEditable && !isAddingNew && !editingItem && (
             <Button onClick={() => setIsAddingNew(true)}>
@@ -509,6 +606,83 @@ export const EventScheduleSection = ({
           )}
         </div>
       </div>
+
+      {/* Import Preview Dialog */}
+      <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Import Schedule</DialogTitle>
+            <DialogDescription>
+              Review the sessions to be imported from your CSV file.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {importResult && (
+            <div className="space-y-4">
+              {importResult.errors.length > 0 && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <ul className="list-disc list-inside space-y-1">
+                      {importResult.errors.map((error, i) => (
+                        <li key={i}>{error}</li>
+                      ))}
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {importResult.warnings.length > 0 && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <ul className="list-disc list-inside space-y-1">
+                      {importResult.warnings.map((warning, i) => (
+                        <li key={i}>{warning}</li>
+                      ))}
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {importResult.success && importResult.items.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Found <strong>{importResult.items.length}</strong> session(s) to import:
+                  </p>
+                  <div className="max-h-64 overflow-y-auto space-y-2 border rounded-md p-3">
+                    {importResult.items.map((item, i) => (
+                      <div key={i} className="flex items-start gap-3 text-sm py-2 border-b last:border-0">
+                        <span className="font-mono text-xs text-muted-foreground shrink-0 w-24">
+                          {item.time}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">{item.title}</p>
+                          {item.speaker && (
+                            <p className="text-xs text-muted-foreground">{item.speaker}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsImportDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleConfirmImport}
+              disabled={!importResult?.success || !importResult?.items.length}
+            >
+              Import {importResult?.items.length || 0} Session(s)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Add new item form */}
       {isAddingNew && renderForm(
