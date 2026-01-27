@@ -163,10 +163,10 @@ export const OrganizationAnalytics = () => {
         { name: 'Events', value: events.length, color: PIE_COLORS[2] },
       ].filter(item => item.value > 0));
 
-      // Fetch audit logs for activity data
+      // Fetch audit logs for activity data using safe view (excludes PII like email/IP)
       const { data: auditLogs } = await supabase
-        .from('audit_logs')
-        .select('*')
+        .from('audit_logs_safe' as 'audit_logs')
+        .select('id, action_type, entity_type, entity_name, created_at')
         .gte('created_at', startDate.toISOString())
         .order('created_at', { ascending: false })
         .limit(100);
@@ -201,7 +201,7 @@ export const OrganizationAnalytics = () => {
         entityType: log.entity_type,
         entityName: log.entity_name || 'Unknown',
         createdAt: log.created_at,
-        userEmail: log.user_email || undefined,
+        // userEmail intentionally excluded for privacy - only visible in admin dashboard
       }));
       setRecentActivity(formattedActivity);
 

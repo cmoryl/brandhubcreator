@@ -326,10 +326,11 @@ export default function AdminDashboard() {
         dateFilter = null;
     }
 
-    // Fetch real audit logs from the database
+    // Fetch real audit logs from the database (admin-only access via RLS)
+    // Only admins can access base audit_logs table which includes user_email
     let auditQuery = supabase
       .from('audit_logs')
-      .select('*')
+      .select('id, user_id, user_email, brand_id, entity_type, action_type, entity_name, details, created_at')
       .order('created_at', { ascending: false })
       .limit(50);
     
