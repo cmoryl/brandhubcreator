@@ -82,9 +82,8 @@ type ViewMode = 'sections' | 'full';
 // Legacy/short slugs that may exist in old links, emails, or bookmarks.
 // Keep this small and explicit to avoid unexpected matches.
 const BRAND_SLUG_ALIASES: Record<string, string> = {
-  lifesci: 'life-sciences-imported-mkvr79n3',
-  'life-sciences': 'life-sciences-imported-mkvr79n3',
-  'life-sciences-brand': 'life-sciences-imported-mkvr79n3',
+  lifesci: 'life-sciences',
+  'life-sciences-brand': 'life-sciences',
 };
 
 const BrandEditor = () => {
