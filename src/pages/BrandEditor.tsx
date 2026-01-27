@@ -103,6 +103,8 @@ const BrandEditor = () => {
   // Start as true to prevent flash of "not found" before fetch begins
   const [publicBrandLoading, setPublicBrandLoading] = useState(true);
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
+  // Parent brand for hierarchical breadcrumbs
+  const [parentBrand, setParentBrand] = useState<{ id: string; name: string; slug: string } | null>(null);
 
   // Redirect unapproved users to pending approval page (admins are always allowed)
   useEffect(() => {
@@ -260,6 +262,49 @@ const BrandEditor = () => {
   // Use context brand if available, otherwise use fetched public brand
   const brand = contextBrand || publicBrand;
 
+  // Fetch parent brand for sub-brands (check if any master brand has this brand in linkedGuides)
+  useEffect(() => {
+    const fetchParentBrand = async () => {
+      if (!brand?.id) return;
+      
+      try {
+        // Query all brands to find any that reference this brand in linkedGuides
+        const { data: masterBrands, error } = await supabase
+          .from('brands')
+          .select('id, name, slug, guide_data');
+        
+        if (error) throw error;
+        
+        // Check each master brand's linkedGuides for our current brand
+        for (const masterBrand of masterBrands || []) {
+          // Skip if this is the same brand
+          if (masterBrand.id === brand.id) continue;
+          
+          const guideData = masterBrand.guide_data as any;
+          const linkedGuides = guideData?.linkedGuides || [];
+          const isLinked = linkedGuides.some((lg: any) => 
+            (lg.type === 'brand' && (lg.id === brand.id || lg.slug === brand.slug))
+          );
+          
+          if (isLinked) {
+            setParentBrand({
+              id: masterBrand.id,
+              name: masterBrand.name,
+              slug: masterBrand.slug || masterBrand.id,
+            });
+            return;
+          }
+        }
+        
+        // No parent found
+        setParentBrand(null);
+      } catch (err) {
+        console.error('Error fetching parent brand:', err);
+      }
+    };
+    
+    fetchParentBrand();
+  }, [brand?.id, brand?.slug]);
   // If we are rendering a brand that came from the public fetch fallback (not in BrandContext),
   // edits need to persist via a direct update from this page.
   const syncPublicBrandToDb = useCallback(async (merged: BrandGuide) => {
@@ -843,6 +888,7 @@ const BrandEditor = () => {
               <AppBreadcrumbs
                 items={[
                   { label: organization?.name || 'Brands', icon: organization ? Building2 : FileText, href: organization ? `/org/${organization.slug}` : '/' },
+                  ...(parentBrand ? [{ label: parentBrand.name, icon: FileText, href: `/brand/${parentBrand.slug}` }] : []),
                 ]}
                 currentPage={brand.hero.name}
                 currentIcon={FileText}
