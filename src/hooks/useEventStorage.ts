@@ -5,8 +5,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Json } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
+import { CACHE_KEYS } from '@/lib/cacheManager';
 
 const SYNC_DEBOUNCE_MS = 500;
+const CACHE_KEY = CACHE_KEYS.EVENTS;
 
 interface DbEvent {
   id: string;
@@ -145,6 +147,45 @@ export const useEventStorage = () => {
   const pendingUpdatesRef = useRef<Map<string, Partial<EventGuide>>>(new Map());
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
+  // LocalStorage cache functions for offline resilience
+  const saveCache = useCallback((nextEvents: EventGuide[]) => {
+    try {
+      const payload = {
+        savedAt: Date.now(),
+        userId: user?.id ?? null,
+        events: nextEvents,
+      };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+    } catch {
+      // Ignore quota errors
+    }
+  }, [user?.id]);
+
+  const loadCache = useCallback((): EventGuide[] | null => {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as {
+        savedAt?: number;
+        userId?: string | null;
+        events?: EventGuide[];
+      };
+      // Only load cache for the current user
+      if ((parsed.userId ?? null) !== (user?.id ?? null)) return null;
+      
+      // Rehydrate Date objects
+      const rehydrateDates = <T extends { createdAt?: unknown; updatedAt?: unknown }>(item: T): T => ({
+        ...item,
+        createdAt: item.createdAt ? new Date(item.createdAt as string) : new Date(),
+        updatedAt: item.updatedAt ? new Date(item.updatedAt as string) : new Date(),
+      });
+      
+      return Array.isArray(parsed.events) ? parsed.events.map(rehydrateDates) : [];
+    } catch {
+      return null;
+    }
+  }, [user?.id]);
+  
   useEffect(() => {
     eventsRef.current = events;
   }, [events]);
@@ -187,17 +228,28 @@ export const useEventStorage = () => {
       
       const eventGuides = (data || []).map((row) => dbToEventGuide(row as unknown as DbEvent));
       setEvents(eventGuides);
+      saveCache(eventGuides); // Persist to localStorage for offline resilience
       setLastSyncedAt(new Date());
       setSyncStatus('idle');
       setLastSyncError(null);
     } catch (err) {
       console.error('Failed to fetch events:', err);
-      setSyncStatus('error');
-      setLastSyncError(err instanceof Error ? err.message : 'Unknown error');
+      
+      // Fallback to cached data on fetch failure
+      const cached = loadCache();
+      if (cached && cached.length > 0) {
+        console.log('[EVENTS] Using cached data due to fetch failure');
+        setEvents(cached);
+        setSyncStatus('offline');
+        setLastSyncError('Using cached data. Changes will sync when connection recovers.');
+      } else {
+        setSyncStatus('error');
+        setLastSyncError(err instanceof Error ? err.message : 'Unknown error');
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, organization?.id]);
+  }, [user?.id, organization?.id, saveCache, loadCache]);
   
   useEffect(() => {
     if (!authLoading && !orgLoading) {

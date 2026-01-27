@@ -35,6 +35,7 @@ import { ArrowLeft, Building2, Upload, Loader2, Palette, Globe, Eye, EyeOff, Tra
 // Lazy load analytics and icon library components for performance
 const OrganizationAnalytics = lazy(() => import('@/components/organization/OrganizationAnalytics'));
 import { IconLibraryManager } from '@/components/brand/iconography';
+import { CacheSettingsCard } from '@/components/organization/CacheSettingsCard';
 import { z } from 'zod';
 
 import { MemberRole } from '@/lib/organization/types';
@@ -646,6 +647,10 @@ const OrganizationSettings = () => {
         }>
           <OrganizationAnalytics />
         </Suspense>
+
+        {/* Cache & Data Settings */}
+        <CacheSettingsCard />
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

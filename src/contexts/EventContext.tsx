@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from 'react';
 import { EventGuide } from '@/types/event';
 import { useEventStorage } from '@/hooks/useEventStorage';
+import { CACHE_KEYS } from '@/lib/cacheManager';
 
 interface EventContextType {
   events: EventGuide[];
@@ -18,6 +19,8 @@ interface EventContextType {
   saveNow: () => Promise<void>;
   hasPendingChanges: () => boolean;
   refetch: () => Promise<void>;
+  /** Clear local cache (for cache management) */
+  clearLocalCache: () => void;
 }
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
@@ -25,8 +28,17 @@ const EventContext = createContext<EventContextType | undefined>(undefined);
 export const EventProvider = ({ children }: { children: ReactNode }) => {
   const storage = useEventStorage();
 
+  // Add clearLocalCache function
+  const clearLocalCache = () => {
+    try {
+      localStorage.removeItem(CACHE_KEYS.EVENTS);
+    } catch {
+      // Ignore errors
+    }
+  };
+
   return (
-    <EventContext.Provider value={storage}>
+    <EventContext.Provider value={{ ...storage, clearLocalCache }}>
       {children}
     </EventContext.Provider>
   );
