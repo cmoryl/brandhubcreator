@@ -134,6 +134,11 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
 
   const computedSizes = useMemo(() => resolveSizes(sizes), [sizes]);
 
+  // Reset load state when src changes (ensures new image is loaded fresh)
+  useEffect(() => {
+    setLoadState(priority ? 'loading' : 'idle');
+  }, [src, priority]);
+
   // Intersection Observer for lazy loading with larger margin for smoother experience
   useEffect(() => {
     if (priority || isInView) return;
@@ -331,6 +336,12 @@ export const BackgroundImage = forwardRef<HTMLDivElement, BackgroundImageProps>(
 
     return () => observer.disconnect();
   }, [priority]);
+
+  // Reset loaded state when src changes (ensures new image is loaded fresh)
+  useEffect(() => {
+    setIsLoaded(false);
+    setHasError(false);
+  }, [src]);
 
   // Preload image when in view
   useEffect(() => {
