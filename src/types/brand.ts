@@ -352,7 +352,8 @@ export interface BrandService {
   name: string;
   description: string;
   icon: string; // Lucide icon name
-  imageUrl?: string; // Optional custom image
+  imageUrl?: string; // Optional custom image (small icon)
+  headerImage?: string; // Optional header image spanning full card width
 }
 
 // SOCIAL ASSET TEMPLATE - Downloadable design files for social platforms
