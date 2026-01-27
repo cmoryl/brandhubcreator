@@ -65,10 +65,11 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
     description: '',
     icon: 'Briefcase',
     imageUrl: '',
+    headerImage: '',
   });
 
   const openAddDialog = () => {
-    setFormData({ name: '', description: '', icon: 'Briefcase', imageUrl: '' });
+    setFormData({ name: '', description: '', icon: 'Briefcase', imageUrl: '', headerImage: '' });
     setEditingService(null);
     setIsDialogOpen(true);
   };
@@ -79,6 +80,7 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
       description: service.description,
       icon: service.icon,
       imageUrl: service.imageUrl || '',
+      headerImage: service.headerImage || '',
     });
     setEditingService(service);
     setIsDialogOpen(true);
@@ -123,6 +125,17 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
     }
   };
 
+  const handleHeaderImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, headerImage: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <section className="space-y-6">
       <SectionHeader
@@ -141,8 +154,22 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
           return (
             <Card 
               key={service.id} 
-              className="group relative bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300"
+              className="group relative bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 overflow-hidden"
             >
+              {/* Header Image */}
+              {service.headerImage && (
+                <div className="relative w-full h-28 overflow-hidden">
+                  <img 
+                    src={service.headerImage} 
+                    alt={service.name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent" />
+                </div>
+              )}
+              
               {isEditing && (
                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                   <Button 
@@ -163,17 +190,17 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
                   </Button>
                 </div>
               )}
-              <CardContent className="p-6">
+              <CardContent className={service.headerImage ? "p-4 pt-0 -mt-6 relative z-10" : "p-6"}>
                 {/* Icon or Image */}
                 {service.imageUrl ? (
-                  <div className="w-12 h-12 rounded-lg overflow-hidden mb-4">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden mb-4 border border-border/50 shadow-sm">
                     <img 
                       src={service.imageUrl} 
                       alt={service.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                ) : (
+                ) : !service.headerImage && (
                   <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                     <IconComponent className="h-6 w-6 text-primary" />
                   </div>
@@ -257,7 +284,32 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Custom Image (optional)</Label>
+              <Label>Header Image (spans full card width)</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleHeaderImageUpload}
+                  className="flex-1"
+                />
+                {formData.headerImage && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => setFormData(prev => ({ ...prev, headerImage: '' }))}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              {formData.headerImage && (
+                <div className="w-full h-20 rounded-lg overflow-hidden border mt-2">
+                  <img src={formData.headerImage} alt="Header Preview" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Custom Icon Image (optional, small)</Label>
               <div className="flex gap-2">
                 <Input
                   type="file"
