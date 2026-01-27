@@ -93,6 +93,21 @@ export const useCompressedBackup = () => {
     return data;
   };
 
+  const fetchBrandIntelligence = async (entityId: string, entityType: 'brand' | 'product' | 'event') => {
+    const { data, error } = await supabase
+      .from('brand_intelligence')
+      .select('*')
+      .eq('entity_id', entityId)
+      .eq('entity_type', entityType)
+      .maybeSingle();
+
+    if (error) {
+      console.warn(`[Backup] Could not fetch intelligence for ${entityType}/${entityId}:`, error.message);
+      return null;
+    }
+    return data;
+  };
+
   const processBatch = async <T,>(
     items: T[],
     processor: (item: T) => Promise<void>,
@@ -134,6 +149,7 @@ export const useCompressedBackup = () => {
     const allItems: BackupItem[] = [];
     const errors: string[] = [];
     const zip = new JSZip();
+    let intelligenceCount = 0;
 
     try {
       updateProgress({
@@ -207,6 +223,15 @@ export const useCompressedBackup = () => {
           const folder = item.type === 'brand' ? 'brands' : item.type === 'product' ? 'products' : 'events';
           zip.file(`${folder}/${item.id}.json`, jsonData);
 
+          // Fetch and include brand intelligence data
+          const intelligenceData = await fetchBrandIntelligence(item.id, item.type);
+          if (intelligenceData) {
+            const intelligenceJson = JSON.stringify(intelligenceData, null, 2);
+            zip.file(`intelligence/${item.type}s/${item.id}.json`, intelligenceJson);
+            uncompressedBytes += intelligenceJson.length;
+            intelligenceCount++;
+          }
+
           item.status = 'completed';
           if (item.type === 'brand') result.itemsBackedUp.brands++;
           else if (item.type === 'product') result.itemsBackedUp.products++;
@@ -243,7 +268,7 @@ export const useCompressedBackup = () => {
 
       // Add manifest to ZIP
       const manifestData = {
-        version: '3.0',
+        version: '3.1',
         type: 'compressed-backup',
         format: 'zip',
         createdAt: new Date().toISOString(),
@@ -257,9 +282,13 @@ export const useCompressedBackup = () => {
           brands: result.itemsBackedUp.brands,
           products: result.itemsBackedUp.products,
           events: result.itemsBackedUp.events,
+          intelligence: intelligenceCount,
           total: result.itemsBackedUp.brands + result.itemsBackedUp.products + result.itemsBackedUp.events,
         },
         uncompressedSizeBytes: uncompressedBytes,
+        features: {
+          includesBrandIntelligence: true,
+        },
       };
 
       zip.file('manifest.json', JSON.stringify(manifestData, null, 2));
@@ -342,12 +371,13 @@ export const useCompressedBackup = () => {
 
       const totalCount = result.itemsBackedUp.brands + result.itemsBackedUp.products + result.itemsBackedUp.events;
       const savedPercent = result.compressionRatio;
+      const intelligenceNote = intelligenceCount > 0 ? ` + ${intelligenceCount} intelligence records` : '';
       
       if (errors.length > 0) {
-        toast.warning(`Backup completed with ${errors.length} error(s). ${totalCount} items compressed.`);
+        toast.warning(`Backup completed with ${errors.length} error(s). ${totalCount} items${intelligenceNote} compressed.`);
       } else {
         toast.success(
-          `Backup complete! ${totalCount} items compressed (${formatBytes(compressedSize)}, ${savedPercent}% smaller)`
+          `Backup complete! ${totalCount} items${intelligenceNote} (${formatBytes(compressedSize)}, ${savedPercent}% smaller)`
         );
       }
 
