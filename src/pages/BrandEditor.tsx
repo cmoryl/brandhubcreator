@@ -526,8 +526,11 @@ const BrandEditor = () => {
   }, [viewMode]);
 
   // Optimized loading: prevents flash for fast loads, smooth transition for slow ones
+  // Key insight: show loading until we KNOW we have data or KNOW data doesn't exist
+  const hasFetchedPublic = hasFetchedPublicRef.current === effectiveBrandSlug;
   const needsPublicData = !contextBrand && !publicBrand;
-  const rawLoading = needsPublicData && publicBrandLoading;
+  // Show loading if: we need public data AND (still loading OR haven't even started fetching yet)
+  const rawLoading = needsPublicData && (publicBrandLoading || !hasFetchedPublic);
   const stableLoading = useStableLoading(rawLoading, {
     showDelay: 100,      // Wait 100ms before showing loading
     minDisplayTime: 300, // Show for at least 300ms once visible
@@ -546,7 +549,8 @@ const BrandEditor = () => {
     );
   }
 
-  if (!brand) {
+  // Not found state - only show AFTER we've completed fetch and have no data
+  if (!brand && hasFetchedPublic && !publicBrandLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">

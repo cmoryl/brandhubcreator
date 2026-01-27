@@ -328,8 +328,11 @@ const ProductEditor = () => {
   };
 
   // Optimized loading: prevents flash for fast loads
+  // Key insight: show loading until we KNOW we have data or KNOW data doesn't exist
+  const hasFetchedPublic = hasFetchedPublicRef.current === effectiveProductSlug;
   const needsPublicData = !contextProduct && !publicProduct;
-  const rawLoading = needsPublicData && publicProductLoading;
+  // Show loading if: we need public data AND (still loading OR haven't even started fetching yet)
+  const rawLoading = needsPublicData && (publicProductLoading || !hasFetchedPublic);
   const stableLoading = useStableLoading(rawLoading, {
     showDelay: 100,
     minDisplayTime: 300,
@@ -405,7 +408,8 @@ const ProductEditor = () => {
     );
   }
 
-  if (!currentProduct) {
+  // Not found state - only show AFTER we've completed fetch and have no data
+  if (!currentProduct && hasFetchedPublic && !publicProductLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -413,6 +417,17 @@ const ProductEditor = () => {
           <Button onClick={() => navigate('/')}>Go back home</Button>
         </div>
       </div>
+    );
+  }
+
+  // Final guard - if somehow we still have no product, show loading
+  if (!currentProduct) {
+    return (
+      <PublicLoadingScreen 
+        type="product" 
+        name={productSlug}
+        organizationName={organization?.name}
+      />
     );
   }
 
