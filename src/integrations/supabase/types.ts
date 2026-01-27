@@ -623,7 +623,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      audit_logs_safe: {
+        Row: {
+          action_type: string | null
+          brand_id: string | null
+          created_at: string | null
+          details: Json | null
+          entity_name: string | null
+          entity_type: string | null
+          id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type?: string | null
+          brand_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          entity_name?: string | null
+          entity_type?: string | null
+          id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string | null
+          brand_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          entity_name?: string | null
+          entity_type?: string | null
+          id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cleanup_expired_invites: { Args: never; Returns: number }
