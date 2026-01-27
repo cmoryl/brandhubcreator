@@ -44,7 +44,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   revenue: { label: 'Revenue Growth', icon: TrendingUp, category: 'Identity' },
   awards: { label: 'Awards & Recognition', icon: Award, category: 'Identity' },
   brief: { label: 'Brand Brief', icon: FileText, category: 'Identity' },
-  logos: { label: 'Mark Repository', icon: Image, category: 'Visual' },
+  logos: { label: 'Logos', icon: Image, category: 'Visual' },
   brandicon: { label: 'Symbol Standards', icon: Bookmark, category: 'Visual' },
   colors: { label: 'Prismatic Lab', icon: Palette, category: 'Visual' },
   gradients: { label: 'Gradients', icon: Blend, category: 'Visual' },

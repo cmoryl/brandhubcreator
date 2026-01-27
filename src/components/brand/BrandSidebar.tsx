@@ -20,7 +20,7 @@ const sections: { id: SectionId; label: string; icon: React.ElementType; categor
   { id: 'values', label: 'Philosophical Pillars', icon: Heart, category: 'Identity' },
   { id: 'services', label: 'Our Services', icon: Briefcase, category: 'Identity' },
   { id: 'revenue', label: 'Revenue Growth', icon: TrendingUp, category: 'Identity' },
-  { id: 'logos', label: 'Mark Repository', icon: Image, category: 'Visual' },
+  { id: 'logos', label: 'Logos', icon: Image, category: 'Visual' },
   { id: 'brandicon', label: 'Symbol Standards', icon: Bookmark, category: 'Visual' },
   { id: 'colors', label: 'Prismatic Lab', icon: Palette, category: 'Visual' },
   { id: 'gradients', label: 'Gradients', icon: Blend, category: 'Visual' },

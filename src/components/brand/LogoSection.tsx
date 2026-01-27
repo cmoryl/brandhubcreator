@@ -15,6 +15,7 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
     name: logo.name,
     url: logo.url,
     variant: logo.variant,
+    headerImage: logo.headerImage,
   }));
 
   // Convert back when updating
@@ -24,6 +25,7 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
       name: logo.name,
       url: logo.url,
       variant: logo.variant as BrandLogo['variant'],
+      headerImage: logo.headerImage,
     }));
     onLogosChange(brandLogos);
   } : undefined;
