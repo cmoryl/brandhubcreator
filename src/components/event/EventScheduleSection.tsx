@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Trash2, Check, X, Clock, MapPin, User, ChevronDown, ChevronRight, GripVertical, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Check, X, Clock, MapPin, User, ChevronDown, ChevronRight, GripVertical, Edit2, Download, FileSpreadsheet, FileJson, Calendar } from 'lucide-react';
 import { EventScheduleItem, EventSpeaker } from '@/types/event';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
+import { exportSchedule, ExportFormat } from '@/lib/scheduleExport';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
   DndContext,
@@ -34,6 +37,12 @@ interface EventScheduleSectionProps {
   speakers?: EventSpeaker[];
   isEditable?: boolean;
   subtitle?: string;
+  /** Event name for export filename */
+  eventName?: string;
+  /** Event dates for ICS export */
+  eventDates?: string;
+  /** Event location for ICS export */
+  eventLocation?: string;
 }
 
 // Session type styling
@@ -189,6 +198,9 @@ export const EventScheduleSection = ({
   speakers = [],
   isEditable = true,
   subtitle,
+  eventName = 'Event',
+  eventDates,
+  eventLocation,
 }: EventScheduleSectionProps) => {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingItem, setEditingItem] = useState<EventScheduleItem | null>(null);
@@ -201,6 +213,22 @@ export const EventScheduleSection = ({
     location: '',
     track: 'session',
   });
+
+  // Export handler
+  const handleExport = (format: ExportFormat) => {
+    try {
+      exportSchedule(schedule, format, {
+        eventName,
+        eventDates,
+        eventLocation,
+        speakers,
+      });
+      toast.success(`Schedule exported as ${format.toUpperCase()}`);
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export schedule');
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -400,7 +428,7 @@ export const EventScheduleSection = ({
 
   return (
     <section id="eventschedule" className="scroll-mt-24">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-2xl font-bold">Event Schedule</h2>
           {subtitle ? (
@@ -409,12 +437,43 @@ export const EventScheduleSection = ({
             <p className="text-muted-foreground mt-1">Agenda timeline with sessions, speakers, and locations</p>
           )}
         </div>
-        {isEditable && !isAddingNew && !editingItem && (
-          <Button onClick={() => setIsAddingNew(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Session
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {/* Export dropdown */}
+          {schedule.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">Export</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Export Schedule</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleExport('csv')} className="gap-2 cursor-pointer">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('json')} className="gap-2 cursor-pointer">
+                  <FileJson className="h-4 w-4" />
+                  Export as JSON
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('ics')} className="gap-2 cursor-pointer">
+                  <Calendar className="h-4 w-4" />
+                  Export as iCal (.ics)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          
+          {/* Add session button */}
+          {isEditable && !isAddingNew && !editingItem && (
+            <Button onClick={() => setIsAddingNew(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Session
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Add new item form */}
