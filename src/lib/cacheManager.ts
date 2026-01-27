@@ -11,6 +11,57 @@ export const CACHE_KEYS = {
   EVENTS: 'brandhub_events_cache_v1',
 } as const;
 
+// Cache expiration: 7 days in milliseconds
+const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Check if a cache entry is expired (older than 7 days)
+ */
+const isCacheExpired = (savedAt: number): boolean => {
+  return Date.now() - savedAt > CACHE_MAX_AGE_MS;
+};
+
+/**
+ * Check and clear expired caches automatically
+ * Returns info about what was cleared
+ */
+export const checkAndClearExpiredCaches = (): { brands: boolean; events: boolean } => {
+  let brandsCleared = false;
+  let eventsCleared = false;
+
+  // Check brands cache
+  try {
+    const brandsRaw = localStorage.getItem(CACHE_KEYS.BRANDS);
+    if (brandsRaw) {
+      const parsed = JSON.parse(brandsRaw);
+      if (parsed.savedAt && isCacheExpired(parsed.savedAt)) {
+        localStorage.removeItem(CACHE_KEYS.BRANDS);
+        brandsCleared = true;
+        console.log('[CACHE] Cleared expired brands cache (older than 7 days)');
+      }
+    }
+  } catch {
+    // Ignore parsing errors
+  }
+
+  // Check events cache
+  try {
+    const eventsRaw = localStorage.getItem(CACHE_KEYS.EVENTS);
+    if (eventsRaw) {
+      const parsed = JSON.parse(eventsRaw);
+      if (parsed.savedAt && isCacheExpired(parsed.savedAt)) {
+        localStorage.removeItem(CACHE_KEYS.EVENTS);
+        eventsCleared = true;
+        console.log('[CACHE] Cleared expired events cache (older than 7 days)');
+      }
+    }
+  } catch {
+    // Ignore parsing errors
+  }
+
+  return { brands: brandsCleared, events: eventsCleared };
+};
+
 // Portal data cache (imported from usePortalData)
 let portalDataCache: Map<string, { data: unknown; timestamp: number }> | null = null;
 
