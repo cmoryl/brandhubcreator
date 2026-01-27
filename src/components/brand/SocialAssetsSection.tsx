@@ -17,9 +17,9 @@ import { cn } from '@/lib/utils';
 
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];
-  onSocialAssetsChange: (assets: BrandSocialAssetSpec[]) => void;
+  onSocialAssetsChange?: (assets: BrandSocialAssetSpec[]) => void;
   displayBanners: BrandDisplayBannerSpec[];
-  onDisplayBannersChange: (banners: BrandDisplayBannerSpec[]) => void;
+  onDisplayBannersChange?: (banners: BrandDisplayBannerSpec[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   layout?: LayoutPreset;
@@ -810,22 +810,23 @@ export const SocialAssetsSection = ({
   const hasSocialInitialized = useRef(false);
   const hasBannerInitialized = useRef(false);
 
-  // Auto-populate presets
+  // Auto-populate presets (only when editable)
   useEffect(() => {
-    if (!hasSocialInitialized.current && socialAssets.length === 0) {
+    if (!hasSocialInitialized.current && socialAssets.length === 0 && onSocialAssetsChange) {
       hasSocialInitialized.current = true;
       onSocialAssetsChange(platformPresets.map(p => ({ ...p, id: safeUUID(), templates: [] })));
     }
   }, [socialAssets.length, onSocialAssetsChange]);
 
   useEffect(() => {
-    if (!hasBannerInitialized.current && displayBanners.length === 0) {
+    if (!hasBannerInitialized.current && displayBanners.length === 0 && onDisplayBannersChange) {
       hasBannerInitialized.current = true;
       onDisplayBannersChange(bannerPresets.map(b => ({ ...b, id: safeUUID() })));
     }
   }, [displayBanners.length, onDisplayBannersChange]);
 
   const updateSocialAsset = (id: string, updates: Partial<BrandSocialAssetSpec>) => {
+    if (!onSocialAssetsChange) return;
     onSocialAssetsChange(socialAssets.map(a => a.id === id ? { ...a, ...updates } : a));
     if (selectedPlatform?.id === id) {
       setSelectedPlatform({ ...selectedPlatform, ...updates });
@@ -833,11 +834,13 @@ export const SocialAssetsSection = ({
   };
 
   const deleteSocialAsset = (id: string) => {
+    if (!onSocialAssetsChange) return;
     onSocialAssetsChange(socialAssets.filter(a => a.id !== id));
     if (selectedPlatform?.id === id) setSelectedPlatform(null);
   };
 
   const updateDisplayBanner = (id: string, updates: Partial<BrandDisplayBannerSpec>) => {
+    if (!onDisplayBannersChange) return;
     onDisplayBannersChange(displayBanners.map(b => b.id === id ? { ...b, ...updates } : b));
     if (selectedBanner?.id === id) {
       setSelectedBanner({ ...selectedBanner, ...updates });
@@ -845,11 +848,13 @@ export const SocialAssetsSection = ({
   };
 
   const deleteDisplayBanner = (id: string) => {
+    if (!onDisplayBannersChange) return;
     onDisplayBannersChange(displayBanners.filter(b => b.id !== id));
     if (selectedBanner?.id === id) setSelectedBanner(null);
   };
 
   const addSocialAsset = (preset?: BrandSocialAssetSpec) => {
+    if (!onSocialAssetsChange) return;
     const newAsset: BrandSocialAssetSpec = preset
       ? { ...preset, id: safeUUID(), templates: [] }
       : { id: safeUUID(), platform: 'LinkedIn', postSize: '1200 x 627 px', altSize: '', textLegibility: '', directive: '', templates: [], previewImageUrl: platformDefaultImages['LinkedIn'] };
@@ -858,6 +863,7 @@ export const SocialAssetsSection = ({
   };
 
   const addDisplayBanner = (preset?: BrandDisplayBannerSpec) => {
+    if (!onDisplayBannersChange) return;
     const newBanner: BrandDisplayBannerSpec = preset
       ? { ...preset, id: safeUUID() }
       : { id: safeUUID(), name: 'Custom Banner', dimensions: '300 x 250 px', maxMessaging: '', textLegibility: '', safeZonePolicy: '', aspectRatio: 1.2, category: 'desktop' };
