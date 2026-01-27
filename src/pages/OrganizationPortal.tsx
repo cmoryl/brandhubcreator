@@ -32,7 +32,7 @@ import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, HierarchicalProductGrid, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit, OrbitLegend, MobileStickyTabs } from '@/components/portal';
+import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, HierarchicalProductGrid, HierarchicalBrandGrid, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit, OrbitLegend, MobileStickyTabs } from '@/components/portal';
 import { toast } from 'sonner';
 
 // Lazy load admin components
@@ -525,25 +525,19 @@ const OrganizationPortal = () => {
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                   <Building2 className="h-5 w-5 text-muted-foreground" />
                   Brand Guidelines
-                  {brandsPagination.showPagination && (
-                    <Badge variant="secondary" className="ml-2">
-                      {brandsPagination.startIndex + 1}-{brandsPagination.endIndex} of {brandsPagination.totalItems}
-                    </Badge>
-                  )}
+                  <Badge variant="secondary" className="ml-2">
+                    {filteredBrands.length}
+                  </Badge>
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {brandsPagination.paginatedItems.map((brand, index) => (
-                    <PortalBrandCard key={brand.id} brand={brand} index={index} orgColors={orgColors} />
-                  ))}
-                </div>
-                {brandsPagination.showPagination && activeTab === 'all' && (
-                  <div className="mt-4 text-center">
+                <HierarchicalBrandGrid brands={filteredBrands} orgColors={orgColors} />
+                {filteredBrands.length > 6 && activeTab === 'all' && (
+                  <div className="mt-6 text-center">
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => setActiveTab('brands')}
                     >
-                      View all {filteredBrands.length} brands
+                      View all brands
                     </Button>
                   </div>
                 )}
@@ -613,23 +607,7 @@ const OrganizationPortal = () => {
             {filteredBrands.length === 0 ? (
               <EmptyState searchQuery={searchQuery} type="brands" />
             ) : (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {brandsPagination.paginatedItems.map((brand, index) => (
-                    <PortalBrandCard key={brand.id} brand={brand} index={index} orgColors={orgColors} />
-                  ))}
-                </div>
-                {brandsPagination.showPagination && (
-                  <PortalPagination
-                    currentPage={brandsPagination.currentPage}
-                    totalPages={brandsPagination.totalPages}
-                    onPageChange={brandsPagination.goToPage}
-                    totalItems={brandsPagination.totalItems}
-                    startIndex={brandsPagination.startIndex}
-                    endIndex={brandsPagination.endIndex}
-                  />
-                )}
-              </>
+              <HierarchicalBrandGrid brands={filteredBrands} orgColors={orgColors} />
             )}
           </TabsContent>
 
