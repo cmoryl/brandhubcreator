@@ -863,7 +863,7 @@ const EventEditor = () => {
           </header>
 
           {/* Content */}
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
             <div className={`${getContentWidthClass()} mx-auto animate-fade-in-up ${getSectionSpacingClass()}`}>
               {/* Breadcrumbs - show full hierarchy for sub-events */}
               <AppBreadcrumbs

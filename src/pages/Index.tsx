@@ -239,7 +239,7 @@ const Index = () => {
           </header>
 
           {/* Content */}
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
             <div className="max-w-5xl mx-auto animate-fade-in-up">
               {viewMode === 'sections' ? (
                 <div className="animate-zoom-in">{renderSection()}</div>

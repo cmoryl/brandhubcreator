@@ -201,7 +201,7 @@ const OrganizationPortal = () => {
       />
 
       {/* Hero Section - add top padding on mobile to account for sticky tabs */}
-      <div className="relative overflow-x-hidden overflow-y-visible pt-16 sm:pt-0">
+      <div className="relative overflow-x-hidden pt-16 sm:pt-0">
         <HeroBackground kenBurnsEffect={heroKenBurns} />
 
         {/* Header */}
