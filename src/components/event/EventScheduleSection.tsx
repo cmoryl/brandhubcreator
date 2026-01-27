@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Plus, Trash2, Check, X, Clock, MapPin, User, ChevronDown, ChevronRight, GripVertical, Edit2, Download, FileSpreadsheet, FileJson, Calendar } from 'lucide-react';
+import { useState, useMemo, useRef } from 'react';
+import { Plus, Trash2, Check, X, Clock, MapPin, User, ChevronDown, ChevronRight, GripVertical, Edit2, Download, FileSpreadsheet, FileJson, Calendar, FileText, Loader2 } from 'lucide-react';
 import { EventScheduleItem, EventSpeaker } from '@/types/event';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { exportSchedule, ExportFormat } from '@/lib/scheduleExport';
+import { exportScheduleToPdf } from '@/lib/scheduleExportPdf';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
@@ -205,6 +206,7 @@ export const EventScheduleSection = ({
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingItem, setEditingItem] = useState<EventScheduleItem | null>(null);
   const [expandedDays, setExpandedDays] = useState<string[]>(['Day 1']);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [newItem, setNewItem] = useState<Partial<EventScheduleItem>>({
     time: '',
     title: '',
@@ -227,6 +229,25 @@ export const EventScheduleSection = ({
     } catch (error) {
       console.error('Export failed:', error);
       toast.error('Failed to export schedule');
+    }
+  };
+
+  // PDF Export handler
+  const handlePdfExport = async () => {
+    setIsExportingPdf(true);
+    try {
+      await exportScheduleToPdf(schedule, {
+        eventName,
+        eventDates,
+        eventLocation,
+        speakers,
+      });
+      toast.success('Schedule exported as PDF');
+    } catch (error) {
+      console.error('PDF export failed:', error);
+      toast.error('Failed to export schedule as PDF');
+    } finally {
+      setIsExportingPdf(false);
     }
   };
 
@@ -461,6 +482,19 @@ export const EventScheduleSection = ({
                 <DropdownMenuItem onClick={() => handleExport('ics')} className="gap-2 cursor-pointer">
                   <Calendar className="h-4 w-4" />
                   Export as iCal (.ics)
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handlePdfExport} 
+                  className="gap-2 cursor-pointer"
+                  disabled={isExportingPdf}
+                >
+                  {isExportingPdf ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4" />
+                  )}
+                  Export as PDF
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
