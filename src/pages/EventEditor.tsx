@@ -602,13 +602,15 @@ const EventEditor = () => {
     }
   }, [event, canEdit, updateEvent, getSectionLayout, handleSectionLayoutChange]);
 
-  // Optimized loading: prevents flash for fast loads
+  // Use existing hasFetchedPublicRef from earlier in component
   // IMPORTANT: Never block a public event page on context loading.
   // If the user deep-links to a public sub-event, the org/event context may still be initializing
   // (or never initialize if no org is selected), which would otherwise cause an infinite loading screen.
+  const hasFetchedPublic = hasFetchedPublicRef.current === eventSlug;
   const contextLoading = Boolean(user && isLoading);
   const needsPublicData = !contextEvent && !publicEvent;
-  const rawLoading = !event && (contextLoading || (needsPublicData && publicEventLoading));
+  // Show loading if: we need public data AND (still loading OR haven't even started fetching yet)
+  const rawLoading = !event && (contextLoading || (needsPublicData && (publicEventLoading || !hasFetchedPublic)));
   const stableLoading = useStableLoading(rawLoading, {
     showDelay: 100,
     minDisplayTime: 300,
@@ -625,7 +627,8 @@ const EventEditor = () => {
     );
   }
 
-  if (!event) {
+  // Not found state - only show AFTER we've completed fetch and have no data
+  if (!event && hasFetchedPublic && !publicEventLoading && !contextLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -637,6 +640,17 @@ const EventEditor = () => {
           </Button>
         </div>
       </div>
+    );
+  }
+
+  // Final guard - if somehow we still have no event, show loading
+  if (!event) {
+    return (
+      <PublicLoadingScreen 
+        type="event" 
+        name={eventSlug}
+        organizationName={organization?.name}
+      />
     );
   }
 
