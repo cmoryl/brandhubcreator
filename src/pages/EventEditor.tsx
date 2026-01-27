@@ -89,6 +89,7 @@ const EventEditor = () => {
   const [publicEvent, setPublicEvent] = useState<EventGuide | null>(null);
   const [publicEventLoading, setPublicEventLoading] = useState(false);
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
+  const [parentEvent, setParentEvent] = useState<{ id: string; name: string; slug: string } | null>(null);
 
   // Redirect unapproved users
   useEffect(() => {
@@ -225,6 +226,50 @@ const EventEditor = () => {
   }, [eventSlug, contextEvent, isLoading]);
   
   const event = contextEvent || publicEvent;
+
+  // Fetch parent event for sub-events (check if any master event has this event in linkedGuides)
+  useEffect(() => {
+    const fetchParentEvent = async () => {
+      if (!event?.id) return;
+      
+      try {
+        // Find any event that has this event in its linkedGuides
+        const { data, error } = await supabase
+          .from('events')
+          .select('id, name, slug, guide_data')
+          .not('guide_data->linkedGuides', 'eq', '[]')
+          .limit(50);
+        
+        if (error || !data) return;
+        
+        // Check each event's linkedGuides for a reference to this event
+        for (const masterEvent of data) {
+          const guideData = masterEvent.guide_data as Record<string, unknown>;
+          const linkedGuides = Array.isArray(guideData?.linkedGuides) ? guideData.linkedGuides : [];
+          
+          const isLinked = linkedGuides.some((linked: any) => 
+            linked.id === event.id || linked.slug === event.slug
+          );
+          
+          if (isLinked) {
+            setParentEvent({
+              id: masterEvent.id,
+              name: masterEvent.name,
+              slug: masterEvent.slug || masterEvent.id,
+            });
+            return;
+          }
+        }
+        
+        // No parent found
+        setParentEvent(null);
+      } catch (err) {
+        console.error('Error fetching parent event:', err);
+      }
+    };
+    
+    fetchParentEvent();
+  }, [event?.id, event?.slug]);
   
   // Check if user can edit: global admin OR org member with appropriate role
   // During auth loading, we preserve potential edit access for logged-in users to avoid UI flicker
@@ -820,10 +865,11 @@ const EventEditor = () => {
           {/* Content */}
           <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
             <div className={`${getContentWidthClass()} mx-auto animate-fade-in-up ${getSectionSpacingClass()}`}>
-              {/* Breadcrumbs */}
+              {/* Breadcrumbs - show full hierarchy for sub-events */}
               <AppBreadcrumbs
                 items={[
                   { label: organization?.name || 'Events', icon: organization ? Building2 : Calendar, href: organization ? `/org/${organization.slug}` : '/' },
+                  ...(parentEvent ? [{ label: parentEvent.name, icon: Calendar, href: `/event/${parentEvent.slug}` }] : []),
                 ]}
                 currentPage={event.hero.name}
                 currentIcon={Calendar}
