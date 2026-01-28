@@ -742,6 +742,7 @@ export type Database = {
       }
     }
     Functions: {
+      admin_delete_user: { Args: { target_user_id: string }; Returns: boolean }
       cleanup_expired_invites: { Args: never; Returns: number }
       cleanup_old_audit_logs: { Args: never; Returns: number }
       generate_slug: { Args: { name: string }; Returns: string }
