@@ -43,9 +43,13 @@ export const usePageTracking = (options: TrackingOptions = {}) => {
   const { user } = useAuth();
   const pageStartTime = useRef<number>(Date.now());
   const lastPath = useRef<string>('');
+  const lastTrackTime = useRef<number>(0);
   const sessionId = useRef<string>('');
   const isTracking = useRef<boolean>(false);
   const optionsRef = useRef(options);
+  
+  // Throttle: minimum 1 second between page view tracks
+  const TRACK_THROTTLE_MS = 1000;
   
   // Keep options ref updated
   optionsRef.current = options;
@@ -88,9 +92,13 @@ export const usePageTracking = (options: TrackingOptions = {}) => {
     if (!user?.id || isTracking.current) return;
     
     const path = location.pathname;
+    const now = Date.now();
     
     // Don't track the same path twice in a row
     if (path === lastPath.current) return;
+    
+    // Throttle: prevent rapid-fire tracking (React StrictMode, re-renders)
+    if (now - lastTrackTime.current < TRACK_THROTTLE_MS) return;
     
     // Skip entity routes - they use trackEntityView for more specific tracking
     const isEntityRoute = /^\/(product|brand|event)\//.test(path);
@@ -100,6 +108,7 @@ export const usePageTracking = (options: TrackingOptions = {}) => {
     }
     
     isTracking.current = true;
+    lastTrackTime.current = now;
     
     try {
       const currentSessionId = await getOrCreateSession();
