@@ -43,7 +43,7 @@ const AwardCard = React.forwardRef<HTMLDivElement, AwardCardProps>(
             {/* Logo/Image Section */}
             {hasImage ? (
               <div className={cn(
-                "relative flex items-center justify-center rounded-md overflow-hidden bg-muted/30",
+                "relative flex items-center justify-center rounded-md overflow-hidden bg-white",
                 compact ? "h-12 mb-2" : "h-16 mb-3"
               )}>
                 <img
