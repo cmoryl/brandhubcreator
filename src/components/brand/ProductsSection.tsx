@@ -57,6 +57,10 @@ interface LinkedGuide {
   id: string;
   guideId?: string;
   guideType?: 'brand' | 'product' | 'event';
+  // Legacy format fields
+  name?: string;
+  slug?: string;
+  type?: 'brand' | 'product' | 'event';
 }
 
 interface ProductsSectionProps {
@@ -146,7 +150,8 @@ export const ProductsSection = ({
       }));
 
       // Get manually linked guides from linkedGuides prop
-      const manuallyLinkedIds = linkedGuides.map(lg => lg.guideId);
+      // Handle both formats: legacy {id, name, type} and new {id, guideId, guideType}
+      const manuallyLinkedIds = linkedGuides.map(lg => lg.guideId || lg.id);
       
       // Fetch manually linked brands
       const manuallyLinkedBrands = (allBrands || [])
@@ -313,7 +318,7 @@ export const ProductsSection = ({
 
       // Always remove from manual links
       if (onLinkedGuidesChange) {
-        const filtered = linkedGuides.filter(lg => lg.guideId !== guide.id);
+        const filtered = linkedGuides.filter(lg => (lg.guideId || lg.id) !== guide.id);
         onLinkedGuidesChange(filtered);
       }
 
@@ -369,7 +374,7 @@ export const ProductsSection = ({
         // Create new linkedGuides array with proper order
         const newLinkedGuides: LinkedGuide[] = reordered.map(guide => {
           // Check if this guide is already in linkedGuides
-          const existing = linkedGuides.find(lg => lg.guideId === guide.id);
+          const existing = linkedGuides.find(lg => (lg.guideId || lg.id) === guide.id);
           if (existing) {
             return existing;
           }
