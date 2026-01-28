@@ -352,12 +352,17 @@ export const HierarchicalProductGrid = memo(forwardRef<HTMLDivElement, Hierarchi
     const subProductsByParent = new Map<string, PortalProduct[]>();
     
     // First pass: identify all sub-products
+    // Handle both 'type' and 'guideType' formats for backward compatibility
     products.forEach(product => {
-      const linkedProducts = (product.linkedGuides || []).filter(g => g.type === 'product');
+      const linkedProducts = (product.linkedGuides || []).filter(g => 
+        g.type === 'product' || g.guideType === 'product'
+      );
       linkedProducts.forEach(linked => {
-        subProductIds.add(linked.id);
+        const linkedId = linked.id || linked.guideId;
+        if (!linkedId) return;
+        subProductIds.add(linkedId);
         const existing = subProductsByParent.get(product.id) || [];
-        const subProduct = products.find(p => p.id === linked.id);
+        const subProduct = products.find(p => p.id === linkedId);
         if (subProduct) {
           existing.push(subProduct);
           subProductsByParent.set(product.id, existing);
@@ -398,20 +403,26 @@ export const HierarchicalProductGrid = memo(forwardRef<HTMLDivElement, Hierarchi
 
   return (
     <div ref={ref} className="space-y-8">
-      {/* Master products with their sub-products */}
+      {/* Product Suites section - shown above standalone products */}
       {hierarchy.masterProducts.length > 0 && (
-        <div className="space-y-8">
-          {hierarchy.masterProducts.map((product) => (
-            <MasterProductSection 
-              key={product.id} 
-              product={product}
-              subProducts={hierarchy.subProductsByParent.get(product.id) || []}
-              fallbackGradient={fallbackGradient}
-              isExpanded={expandedSections.has(product.id)}
-              onToggle={createToggleHandler(product.id)}
-              onNavigate={handleNavigate}
-            />
-          ))}
+        <div className="space-y-6">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+            <Layers className="h-4 w-4" />
+            Product Suites
+          </h3>
+          <div className="space-y-8">
+            {hierarchy.masterProducts.map((product) => (
+              <MasterProductSection 
+                key={product.id} 
+                product={product}
+                subProducts={hierarchy.subProductsByParent.get(product.id) || []}
+                fallbackGradient={fallbackGradient}
+                isExpanded={expandedSections.has(product.id)}
+                onToggle={createToggleHandler(product.id)}
+                onNavigate={handleNavigate}
+              />
+            ))}
+          </div>
         </div>
       )}
 
