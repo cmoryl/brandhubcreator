@@ -141,6 +141,40 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
   const fetchIdRef = useRef(0);
   const isMountedRef = useRef(true);
   const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const lastContentApplyAtRef = useRef<number>(0);
+  const lastContentSignatureRef = useRef<string>('');
+
+  const buildContentSignature = useCallback((content: { brands: PortalBrand[]; products: PortalProduct[]; events: PortalEvent[] }) => {
+    // Lightweight signature: stable ordering by id + updatedAt + coverImage.
+    // Prevents state updates (and image remount cascades) when data is identical.
+    const sigFor = (items: Array<{ id: string; updatedAt?: string; hero?: { coverImage?: string } }>) =>
+      items
+        .map((i) => `${i.id}:${i.updatedAt ?? ''}:${i.hero?.coverImage ?? ''}`)
+        .sort()
+        .join('|');
+
+    return [
+      `b:${content.brands.length}:${sigFor(content.brands as any)}`,
+      `p:${content.products.length}:${sigFor(content.products as any)}`,
+      `e:${content.events.length}:${sigFor(content.events as any)}`,
+    ].join('::');
+  }, []);
+
+  const applyContentIfChanged = useCallback((content: { brands: PortalBrand[]; products: PortalProduct[]; events: PortalEvent[] }) => {
+    const now = Date.now();
+    // Cooldown to avoid rapid state churn (e.g., focus/visibility bouncing inside an iframe)
+    if (now - lastContentApplyAtRef.current < 2000) return;
+
+    const signature = buildContentSignature(content);
+    if (signature === lastContentSignatureRef.current) return;
+
+    lastContentSignatureRef.current = signature;
+    lastContentApplyAtRef.current = now;
+
+    setBrands(content.brands);
+    setProducts(content.products);
+    setEvents(content.events);
+  }, [buildContentSignature]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -276,9 +310,9 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
 
       if (fetchIdRef.current !== fetchId) return;
 
-      setBrands(content.brands);
-      setProducts(content.products);
-      setEvents(content.events);
+      if (isMountedRef.current) {
+        applyContentIfChanged(content);
+      }
       setError(null);
     } catch (err) {
       if (fetchIdRef.current !== fetchId) return;
@@ -313,11 +347,7 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
         if (isMountedRef.current) {
           try {
             const content = await fetchContent(orgId, false); // Bypass cache
-            if (isMountedRef.current) {
-              setBrands(content.brands);
-              setProducts(content.products);
-              setEvents(content.events);
-            }
+            if (isMountedRef.current) applyContentIfChanged(content);
           } catch (err) {
             console.error('[usePortalData] Realtime refetch error:', err);
           }
@@ -384,11 +414,7 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
           try {
             // Bypass cache on focus refetch to get fresh data
             const content = await fetchContent(organization.id, false);
-            if (isMountedRef.current) {
-              setBrands(content.brands);
-              setProducts(content.products);
-              setEvents(content.events);
-            }
+            if (isMountedRef.current) applyContentIfChanged(content);
           } catch (err) {
             console.error('[usePortalData] Refetch error:', err);
           } finally {
