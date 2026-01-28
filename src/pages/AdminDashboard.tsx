@@ -42,6 +42,7 @@ import { BrandAnalyticsHub } from '@/components/admin/BrandAnalyticsHub';
 import { BulkRepairTool } from '@/components/admin/BulkRepairTool';
 import { HiddenSectionsScanner } from '@/components/admin/HiddenSectionsScanner';
 import { MembersManager } from '@/components/admin/MembersManager';
+import { UserAnalyticsTab } from '@/components/admin/UserAnalyticsTab';
 import { CompressedBackupManager } from '@/components/admin/CompressedBackupManager';
 
 interface DashboardStats {
@@ -623,7 +624,11 @@ export default function AdminDashboard() {
             </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-2 shrink-0">
               <BarChart3 className="h-4 w-4" />
-              Analytics
+              Brand Analytics
+            </TabsTrigger>
+            <TabsTrigger value="user-analytics" className="gap-2 shrink-0">
+              <Eye className="h-4 w-4" />
+              User Analytics
             </TabsTrigger>
             <TabsTrigger value="ai-analysis" className="gap-2 shrink-0">
               <Brain className="h-4 w-4" />
@@ -1065,9 +1070,14 @@ export default function AdminDashboard() {
             <BrandReportGenerator />
           </TabsContent>
 
-          {/* Analytics Tab */}
+          {/* Brand Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
             <BrandAnalyticsHub />
+          </TabsContent>
+
+          {/* User Analytics Tab */}
+          <TabsContent value="user-analytics" className="space-y-6">
+            <UserAnalyticsTab />
           </TabsContent>
 
           {/* AI Analysis Tab */}

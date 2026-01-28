@@ -501,6 +501,51 @@ export type Database = {
         }
         Relationships: []
       }
+      page_views: {
+        Row: {
+          created_at: string
+          device_type: string | null
+          duration_seconds: number | null
+          entity_id: string | null
+          entity_name: string | null
+          entity_type: string
+          id: string
+          page_path: string
+          referrer: string | null
+          session_id: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_type?: string | null
+          duration_seconds?: number | null
+          entity_id?: string | null
+          entity_name?: string | null
+          entity_type: string
+          id?: string
+          page_path: string
+          referrer?: string | null
+          session_id: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_type?: string | null
+          duration_seconds?: number | null
+          entity_id?: string | null
+          entity_name?: string | null
+          entity_type?: string
+          id?: string
+          page_path?: string
+          referrer?: string | null
+          session_id?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           created_at: string
@@ -621,6 +666,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sessions: {
+        Row: {
+          browser: string | null
+          device_type: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          id: string
+          is_active: boolean | null
+          page_count: number | null
+          session_id: string
+          started_at: string
+          user_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          device_type?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          page_count?: number | null
+          session_id: string
+          started_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          device_type?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          page_count?: number | null
+          session_id?: string
+          started_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       audit_logs_safe: {
@@ -661,6 +745,19 @@ export type Database = {
       cleanup_expired_invites: { Args: never; Returns: number }
       cleanup_old_audit_logs: { Args: never; Returns: number }
       generate_slug: { Args: { name: string }; Returns: string }
+      get_admin_user_stats: {
+        Args: { p_days?: number }
+        Returns: {
+          active_users: number
+          avg_session_duration: number
+          most_viewed_entity_name: string
+          most_viewed_entity_type: string
+          new_users: number
+          total_page_views: number
+          total_sessions: number
+          total_users: number
+        }[]
+      }
       get_auth_email: { Args: never; Returns: string }
       get_organization_members_safe: {
         Args: { p_org_id: string }
@@ -673,6 +770,14 @@ export type Database = {
           organization_id: string
           role: string
           user_id: string
+        }[]
+      }
+      get_page_view_trends: {
+        Args: { p_days?: number }
+        Returns: {
+          unique_users: number
+          view_count: number
+          view_date: string
         }[]
       }
       get_portal_org_safe: {
@@ -749,6 +854,29 @@ export type Database = {
           name: string
           slug: string
           updated_at: string
+        }[]
+      }
+      get_top_viewed_content: {
+        Args: { p_days?: number; p_limit?: number }
+        Returns: {
+          avg_duration: number
+          entity_id: string
+          entity_name: string
+          entity_type: string
+          unique_viewers: number
+          view_count: number
+        }[]
+      }
+      get_user_activity_breakdown: {
+        Args: { p_days?: number }
+        Returns: {
+          last_active: string
+          most_viewed_type: string
+          page_views: number
+          sessions: number
+          total_time_seconds: number
+          user_email: string
+          user_id: string
         }[]
       }
       has_role: {

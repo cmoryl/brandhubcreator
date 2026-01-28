@@ -15,6 +15,7 @@ import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useSEO } from '@/hooks/useSEO';
+import { trackEntityView } from '@/hooks/usePageTracking';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { ShareButton } from '@/components/brand/ShareButton';
@@ -261,6 +262,12 @@ const BrandEditor = () => {
   // Use context brand if available, otherwise use fetched public brand
   const brand = contextBrand || publicBrand;
 
+  // Track brand view for analytics
+  useEffect(() => {
+    if (brand?.id && user?.id) {
+      trackEntityView(user.id, 'brand', brand.id, brand.hero?.name || 'Unknown Brand');
+    }
+  }, [brand?.id, user?.id]);
   // Fetch parent brand for sub-brands (check if any master brand has this brand in linkedGuides)
   useEffect(() => {
     const fetchParentBrand = async () => {
