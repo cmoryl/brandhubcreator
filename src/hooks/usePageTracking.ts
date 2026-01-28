@@ -92,6 +92,13 @@ export const usePageTracking = (options: TrackingOptions = {}) => {
     // Don't track the same path twice in a row
     if (path === lastPath.current) return;
     
+    // Skip entity routes - they use trackEntityView for more specific tracking
+    const isEntityRoute = /^\/(product|brand|event)\//.test(path);
+    if (isEntityRoute) {
+      lastPath.current = path; // Still update lastPath to prevent re-entry
+      return;
+    }
+    
     isTracking.current = true;
     
     try {
@@ -161,7 +168,10 @@ export const usePageTracking = (options: TrackingOptions = {}) => {
 
 /**
  * Track a specific entity view (brand, product, event)
+ * Uses deduplication to prevent double-tracking with usePageTracking
  */
+const ENTITY_TRACK_KEY = 'bh_last_entity_track';
+
 export const trackEntityView = async (
   userId: string | undefined,
   entityType: string,
@@ -169,6 +179,13 @@ export const trackEntityView = async (
   entityName: string
 ) => {
   if (!userId) return;
+  
+  // Deduplicate: check if we just tracked this entity
+  const trackKey = `${entityType}:${entityId}:${window.location.pathname}`;
+  const lastTrack = sessionStorage.getItem(ENTITY_TRACK_KEY);
+  if (lastTrack === trackKey) return;
+  
+  sessionStorage.setItem(ENTITY_TRACK_KEY, trackKey);
   
   const sessionId = sessionStorage.getItem(SESSION_KEY) || generateSessionId();
   
