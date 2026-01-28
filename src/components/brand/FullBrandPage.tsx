@@ -92,7 +92,6 @@ const SectionWrapper = memo(({
   setRef 
 }: SectionWrapperProps) => {
   const animation = sectionAnimations[sectionId] || 'fade-up';
-  const isHeroSection = sectionId === 'hero';
   
   return (
     <div 
@@ -110,22 +109,17 @@ const SectionWrapper = memo(({
         duration={700}
         threshold={0.15}
       >
-        {/* Hero section gets no max-width constraint, other sections are constrained */}
         <div 
           ref={setRef} 
           data-section={sectionId} 
-          className={`scroll-mt-24 rounded-xl transition-all duration-300 ${
-            isHeroSection ? '' : 'max-w-7xl mx-auto px-3 sm:px-6 lg:px-8'
-          }`}
+          className="scroll-mt-24 rounded-xl transition-all duration-300"
         >
           {children}
         </div>
       </ScrollAnimate>
       {!isLast && (
         <ScrollAnimate animation="fade-up" delay={100} duration={400}>
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-            <Separator className="my-8 sm:my-12" />
-          </div>
+          <Separator className="my-8 sm:my-12" />
         </ScrollAnimate>
       )}
     </div>
