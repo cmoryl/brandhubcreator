@@ -396,10 +396,10 @@ export default function DemoBrandPreview() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-semibold mb-4">Create Your Own Brand Guide</h2>
           <p className="text-muted-foreground mb-8">
-            Build professional brand guidelines like this one in minutes. Free to start.
+            Build professional brand guidelines like this one. Contact us to get started with a personalized demo.
           </p>
-          <Button size="lg" onClick={() => navigate('/auth')} className="gap-2">
-            Get Started Free
+          <Button size="lg" onClick={() => window.location.href = 'mailto:support@brandhub.com?subject=BrandHub Demo Request'} className="gap-2">
+            Request a Demo
             <ArrowLeft className="h-5 w-5 rotate-180" />
           </Button>
         </div>

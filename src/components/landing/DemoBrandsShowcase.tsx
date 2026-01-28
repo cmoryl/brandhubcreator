@@ -139,11 +139,11 @@ const DemoBrandsShowcase = React.forwardRef<HTMLElement, { onLoginClick: () => v
             Ready to build your brand?
           </h3>
           <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
-            Create professional brand guidelines in minutes. Free to start, powerful features for teams.
+            Create professional brand guidelines in minutes. Contact us to get started with a personalized demo.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Button size="lg" className="gap-2" onClick={onLoginClick}>
-              Get Started Free
+            <Button size="lg" className="gap-2" onClick={() => window.location.href = 'mailto:support@brandhub.com?subject=BrandHub Demo Request'}>
+              Request a Demo
               <ArrowRight className="h-5 w-5" />
             </Button>
             <Button size="lg" variant="outline" className="gap-2" onClick={onLoginClick}>

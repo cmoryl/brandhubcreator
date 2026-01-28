@@ -10,9 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { ConnectivityDiagnostics } from '@/components/ConnectivityDiagnostics';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
@@ -382,13 +381,7 @@ const AuthPage = () => {
                 </Button>
               </form>
             ) : (
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-5 sm:mb-6 h-11 sm:h-10">
-                <TabsTrigger value="login" className="text-sm sm:text-base h-9 sm:h-auto touch-manipulation">Login</TabsTrigger>
-                <TabsTrigger value="signup" className="text-sm sm:text-base h-9 sm:h-auto touch-manipulation">Sign Up</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="login">
+            <div className="w-full">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="login-email" className="text-sm font-medium">Email</Label>
@@ -469,7 +462,6 @@ const AuthPage = () => {
                           setAuthNetworkIssue(message);
                           setShowSessionRecovery(true);
                         }
-                        // Use generic message for security
                         console.error('[AUTH] Google sign-in failed:', message);
                         toast({
                           title: 'Sign-In Failed',
@@ -493,109 +485,21 @@ const AuthPage = () => {
                     Continue with Google
                   </Button>
                 </form>
-              </TabsContent>
-              
-              <TabsContent value="signup">
-                <form onSubmit={handleSignup} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email" className="text-sm font-medium">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        inputMode="email"
-                        autoComplete="email"
-                        placeholder="you@example.com"
-                        className="pl-10 h-11 sm:h-10 text-base sm:text-sm touch-manipulation"
-                        value={signupEmail}
-                        onChange={(e) => setSignupEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password" className="text-sm font-medium">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        autoComplete="new-password"
-                        placeholder="••••••••"
-                        className="pl-10 h-11 sm:h-10 text-base sm:text-sm touch-manipulation"
-                        value={signupPassword}
-                        onChange={(e) => setSignupPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-confirm" className="text-sm font-medium">Confirm Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                      <Input
-                        id="signup-confirm"
-                        type="password"
-                        autoComplete="new-password"
-                        placeholder="••••••••"
-                        className="pl-10 h-11 sm:h-10 text-base sm:text-sm touch-manipulation"
-                        value={signupConfirmPassword}
-                        onChange={(e) => setSignupConfirmPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <Button type="submit" className="w-full h-11 sm:h-10 text-base sm:text-sm touch-manipulation" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating account...
-                      </>
-                    ) : (
-                      'Create Account'
-                    )}
-                  </Button>
-                  
-                  <div className="relative my-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <Separator className="w-full" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-                    </div>
-                  </div>
-                  
+                
+                {/* Request Access CTA */}
+                <div className="mt-6 pt-4 border-t border-border text-center">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Need access? Contact your administrator.
+                  </p>
                   <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-11 sm:h-10 text-base sm:text-sm touch-manipulation"
-                    onClick={async () => {
-                      setIsGoogleLoading(true);
-                      const { error } = await signInWithGoogle();
-                      if (error) {
-                        // Use generic message for security
-                        console.error('[AUTH] Google sign-up failed:', error.message);
-                        toast({
-                          title: 'Sign-Up Failed',
-                          description: 'Unable to sign up with Google. Please try again.',
-                          variant: 'destructive',
-                        });
-                        setIsGoogleLoading(false);
-                      }
-                    }}
-                    disabled={isGoogleLoading}
+                    variant="link"
+                    className="text-primary"
+                    onClick={() => window.location.href = 'mailto:support@brandhub.com?subject=Access Request'}
                   >
-                    {isGoogleLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Chrome className="mr-2 h-4 w-4" />
-                    )}
-                    Continue with Google
+                    Request Access
                   </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
+                </div>
+            </div>
             )}
           </CardContent>
         </Card>

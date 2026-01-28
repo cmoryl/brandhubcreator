@@ -317,11 +317,11 @@ export function FeaturesShowcase() {
         <div className={`text-center ${isVisible ? 'animate-fade-in' : 'opacity-0'}`} style={{ animationDelay: '800ms' }}>
           <Button 
             size="lg" 
-            onClick={() => navigate('/auth')}
+            onClick={() => window.location.href = 'mailto:support@brandhub.com?subject=BrandHub Demo Request'}
             className="gap-2 group"
           >
             <Play className="h-5 w-5 group-hover:scale-110 transition-transform" />
-            Start Building Your Brand Guide
+            Request a Demo
             <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>

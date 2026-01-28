@@ -130,9 +130,9 @@ export default function DemoGuideViewer() {
           </div>
           <div className="flex items-center gap-1.5 sm:gap-3">
             <ThemeToggle />
-            <Button size="sm" onClick={() => navigate('/auth')} className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-4 text-xs sm:text-sm">
-              <span className="hidden sm:inline">Create Your Own</span>
-              <span className="sm:hidden">Sign Up</span>
+            <Button size="sm" onClick={() => window.location.href = 'mailto:support@brandhub.com?subject=BrandHub Demo Request'} className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-4 text-xs sm:text-sm">
+              <span className="hidden sm:inline">Get Started</span>
+              <span className="sm:hidden">Contact</span>
               <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 hidden sm:block" />
             </Button>
           </div>
@@ -212,8 +212,8 @@ export default function DemoGuideViewer() {
             }
           </p>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center">
-            <Button size="lg" onClick={() => navigate('/auth')} className="gap-2 h-11 sm:h-12">
-              Get Started Free
+            <Button size="lg" onClick={() => window.location.href = 'mailto:support@brandhub.com?subject=BrandHub Demo Request'} className="gap-2 h-11 sm:h-12">
+              Request a Demo
             </Button>
             <Button size="lg" variant="outline" onClick={() => navigate('/')} className="h-11 sm:h-12">
               Explore More Demos
