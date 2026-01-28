@@ -35,6 +35,7 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const DemoBrandPreview = lazy(() => import("./pages/DemoBrandPreview"));
 const DemoGuideViewer = lazy(() => import("./pages/DemoGuideViewer"));
 const EventEditor = lazy(() => import("./pages/EventEditor"));
+const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -191,6 +192,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<BrandEditorSkeleton />}>
                           <DemoGuideViewer />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="help"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <HelpCenter />
                         </Suspense>
                       }
                     />
