@@ -790,6 +790,13 @@ const BrandsIndex = () => {
         </section>
       )}
 
+      {/* Interactive How It Works Section - Above Demo Brands */}
+      {!user && settings.pageSections?.about !== false && (
+        <Suspense fallback={<div className="py-24 text-center text-muted-foreground">Loading...</div>}>
+          <InteractiveProcessSection />
+        </Suspense>
+      )}
+
       {/* Demo Brands Showcase - Always shown on landing page */}
       <Suspense fallback={<div className="py-20 flex justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>
         <DemoBrandsShowcase onLoginClick={() => navigate('/auth')} />
@@ -950,12 +957,6 @@ const BrandsIndex = () => {
         </section>
       )}
 
-      {/* Interactive How It Works Section */}
-      {!user && settings.pageSections?.about !== false && (
-        <Suspense fallback={<div className="py-24 text-center text-muted-foreground">Loading...</div>}>
-          <InteractiveProcessSection />
-        </Suspense>
-      )}
 
       {/* Contact CTA Section - Compact on mobile */}
       {!user && settings.pageSections?.signupCta !== false && (
