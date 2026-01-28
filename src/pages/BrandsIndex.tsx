@@ -1050,9 +1050,9 @@ const BrandsIndex = () => {
         </section>
       )}
 
-      {/* Sign Up CTA Section - Compact on mobile */}
+      {/* Contact CTA Section - Compact on mobile */}
       {!user && settings.pageSections?.signupCta !== false && (
-        <section id="signup" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <section id="contact" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
           {/* Animated background */}
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/10 to-primary/5" />
           <div className="absolute inset-0 hidden sm:block">
@@ -1063,19 +1063,19 @@ const BrandsIndex = () => {
           <div className="relative max-w-3xl mx-auto text-center">
             <Badge variant="secondary" className="mb-3 sm:mb-4 gap-1">
               <Zap className="h-3 w-3" />
-              Get Started Free
+              Enterprise Ready
             </Badge>
             <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 sm:mb-6">
               Ready to transform your
               <span className="block text-accent">brand management?</span>
             </h2>
             <p className="text-sm sm:text-lg text-muted-foreground mb-6 sm:mb-10 max-w-xl mx-auto">
-              Join teams creating professional brand guidelines with AI-powered analytics.
+              Contact our team to learn how BrandHub can streamline your brand guidelines with AI-powered analytics and team collaboration.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-              <Button size="lg" onClick={() => navigate('/auth')} className="gap-2 group text-sm sm:text-base h-11 sm:h-12 px-6 sm:px-8">
+              <Button size="lg" onClick={() => window.location.href = 'mailto:support@brandhub.com?subject=BrandHub Inquiry'} className="gap-2 group text-sm sm:text-base h-11 sm:h-12 px-6 sm:px-8">
                 <Plus className="h-4 w-4 sm:h-5 sm:w-5 group-hover:rotate-90 transition-transform" />
-                Create Free Account
+                Contact Us
               </Button>
               <Button size="lg" variant="outline" onClick={() => navigate('/auth')} className="gap-2 text-sm sm:text-base h-11 sm:h-12 px-6 sm:px-8">
                 <Lock className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -1085,15 +1085,15 @@ const BrandsIndex = () => {
             <p className="text-xs sm:text-sm text-muted-foreground mt-6 sm:mt-8 flex items-center justify-center gap-3 sm:gap-4 flex-wrap">
               <span className="flex items-center gap-1.5">
                 <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
-                No credit card
+                Personalized Demo
               </span>
               <span className="flex items-center gap-1.5">
                 <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
-                Free tier
+                Custom Onboarding
               </span>
               <span className="flex items-center gap-1.5">
                 <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
-                Cancel anytime
+                Dedicated Support
               </span>
             </p>
           </div>
