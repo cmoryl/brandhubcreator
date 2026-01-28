@@ -3,7 +3,7 @@
  * Displays products with master products first, followed by their sub-products in collapsible sections
  */
 
-import React, { useMemo, useState, useCallback, memo } from 'react';
+import React, { useMemo, useState, useCallback, memo, forwardRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Globe, Layers, ChevronRight, ChevronDown } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -324,7 +324,7 @@ interface HierarchicalProductGridProps {
   };
 }
 
-export const HierarchicalProductGrid = ({ products, orgColors }: HierarchicalProductGridProps) => {
+export const HierarchicalProductGrid = memo(forwardRef<HTMLDivElement, HierarchicalProductGridProps>(({ products, orgColors }, ref) => {
   const navigate = useNavigate();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
@@ -397,7 +397,7 @@ export const HierarchicalProductGrid = ({ products, orgColors }: HierarchicalPro
   );
 
   return (
-    <div className="space-y-8">
+    <div ref={ref} className="space-y-8">
       {/* Master products with their sub-products */}
       {hierarchy.masterProducts.length > 0 && (
         <div className="space-y-8">
@@ -437,4 +437,6 @@ export const HierarchicalProductGrid = ({ products, orgColors }: HierarchicalPro
       )}
     </div>
   );
-};
+}));
+
+HierarchicalProductGrid.displayName = 'HierarchicalProductGrid';
