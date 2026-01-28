@@ -4,7 +4,7 @@
  * Refactored to use modular hooks and components
  */
 
-import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
+import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -187,17 +187,25 @@ const OrganizationPortal = () => {
   const portalSettings = organization.portalSettings || DEFAULT_PORTAL_SETTINGS;
   const heroFullWidth = portalSettings.heroFullWidth ?? false;
   const heroKenBurns = portalSettings.heroKenBurns ?? false;
-  const orgColors = {
-    primary: organization.primaryColor || '#6366f1',
-    secondary: organization.secondaryColor || '#8b5cf6',
-  };
+  // Memoize to avoid prop-churn re-renders (which can look like flicker in heavy card grids)
+  const orgColors = useMemo(
+    () => ({
+      primary: organization.primaryColor || '#6366f1',
+      secondary: organization.secondaryColor || '#8b5cf6',
+    }),
+    [organization.primaryColor, organization.secondaryColor]
+  );
+
+  const handleTabChange = useCallback((next: typeof activeTab) => {
+    setActiveTab((prev) => (prev === next ? prev : next));
+  }, []);
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden max-w-full">
       {/* Mobile Sticky Tabs - fixed at top on mobile */}
       <MobileStickyTabs
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         counts={{
           all: filteredBrands.length + filteredProducts.length + filteredEvents.length,
           brands: filteredBrands.length,
@@ -370,10 +378,7 @@ const OrganizationPortal = () => {
                 className="w-full h-full"
                 filter={activeTab}
                 showLegend={false}
-                onFilterChange={(filter) => {
-                  console.log('[Portal] Orbit filter change:', { filter });
-                  setActiveTab(filter);
-                }}
+                onFilterChange={handleTabChange}
                 brands={brands.map(b => ({
                   id: b.id,
                   name: b.hero?.name || b.name,
@@ -455,10 +460,7 @@ const OrganizationPortal = () => {
               <div className="hidden md:block mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
                 <OrbitLegend
                   value={activeTab}
-                  onValueChange={(newValue) => {
-                    console.log('[Portal] Legend filter change:', { from: activeTab, to: newValue });
-                    setActiveTab(newValue);
-                  }}
+                  onValueChange={handleTabChange}
                   counts={{ brands: brands.length, products: products.length, events: events.length }}
                 />
               </div>
@@ -470,7 +472,7 @@ const OrganizationPortal = () => {
 
       {/* Content Grid */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 safe-area-inset-bottom">
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="w-full">
+        <Tabs value={activeTab} onValueChange={(v) => handleTabChange(v as typeof activeTab)} className="w-full">
           {/* Desktop tabs - hidden on mobile where we use sticky tabs */}
           <div className="hidden sm:flex items-center justify-between mb-6 sm:mb-8 gap-4">
             <div className="flex-1 overflow-x-auto scrollbar-hide">
