@@ -36,6 +36,7 @@ const ROUTE_MAPPINGS: Record<string, BreadcrumbConfig> = {
   '/auth': { label: 'Sign In', icon: Users },
   '/admin': { label: 'Admin Dashboard', icon: Shield },
   '/knowledge': { label: 'Knowledge Base', icon: HelpCircle },
+  '/help': { label: 'Help Center', icon: HelpCircle },
   '/contact': { label: 'Contact Us', icon: Users },
   '/onboarding': { label: 'Onboarding', icon: Settings },
   '/pending-approval': { label: 'Pending Approval', icon: Users },

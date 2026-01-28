@@ -17,6 +17,7 @@ import {
   Layers,
   Globe,
   FileUp,
+  HelpCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -325,6 +326,13 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
       description: 'Restore from JSON file',
       icon: <FileUp className="h-4 w-4" />,
       onClick: () => setShowBackupDialog(true),
+    },
+    {
+      id: 'help',
+      label: 'Help Center',
+      description: 'Guides & tutorials',
+      icon: <HelpCircle className="h-4 w-4" />,
+      onClick: () => navigate('/help'),
     },
   ];
 
