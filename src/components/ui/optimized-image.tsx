@@ -114,6 +114,8 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
   const [loadState, setLoadState] = useState<'idle' | 'loading' | 'loaded' | 'error'>(
     priority ? 'loading' : 'idle'
   );
+  // Persist fallback usage after an error to avoid an error→fallback→success→retry-original loop.
+  const [useFallback, setUseFallback] = useState(false);
   const [isInView, setIsInView] = useState(priority);
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -140,6 +142,7 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
     if (prevSrcRef.current !== src) {
       prevSrcRef.current = src;
       setLoadState(priority ? 'loading' : 'idle');
+      setUseFallback(false);
     }
   }, [src, priority]);
 
@@ -198,11 +201,20 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
   };
 
   const handleError = () => {
+    // If the primary image fails, swap to fallback and keep it.
+    if (!useFallback) {
+      setUseFallback(true);
+      setLoadState('loading');
+      onLoadError?.();
+      return;
+    }
+
+    // If even the fallback fails, surface an error state (keeps shimmer off via loaded/error styling).
     setLoadState('error');
     onLoadError?.();
   };
 
-  const currentSrc = hasError ? fallbackSrc : src;
+  const currentSrc = useFallback ? fallbackSrc : src;
 
   const objectFitClass = {
     cover: 'object-cover',
@@ -254,7 +266,7 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
         <img
           ref={imgRef}
           src={currentSrc}
-          srcSet={hasError ? undefined : computedSrcset}
+          srcSet={useFallback ? undefined : computedSrcset}
           sizes={computedSizes}
           alt={alt}
           loading={priority ? 'eager' : 'lazy'}
