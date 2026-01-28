@@ -760,6 +760,34 @@ export type Database = {
         }[]
       }
       get_auth_email: { Args: never; Returns: string }
+      get_external_top_content: {
+        Args: { p_days?: number; p_limit?: number }
+        Returns: {
+          avg_duration: number
+          entity_id: string
+          entity_name: string
+          entity_type: string
+          unique_viewers: number
+          view_count: number
+        }[]
+      }
+      get_external_viewer_stats: {
+        Args: { p_days?: number }
+        Returns: {
+          anonymous_views: number
+          avg_duration: number
+          total_views: number
+          unique_viewers: number
+        }[]
+      }
+      get_external_viewer_trends: {
+        Args: { p_days?: number }
+        Returns: {
+          unique_users: number
+          view_count: number
+          view_date: string
+        }[]
+      }
       get_organization_members_safe: {
         Args: { p_org_id: string }
         Returns: {

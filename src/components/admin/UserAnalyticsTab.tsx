@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { 
   Users, Eye, Clock, TrendingUp, Activity, BarChart3,
   Download, RefreshCw, Filter, Calendar, ArrowUpRight,
-  Smartphone, Monitor, Tablet, Globe
+  Smartphone, Monitor, Tablet, Globe, UserX
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -85,7 +85,9 @@ const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--secondar
 export function UserAnalyticsTab() {
   const [dateRange, setDateRange] = useState('30');
   const [isLoading, setIsLoading] = useState(true);
+  const [externalOnly, setExternalOnly] = useState(false); // Toggle for external viewers only
   const [stats, setStats] = useState<UserStats | null>(null);
+  const [externalStats, setExternalStats] = useState<{ totalViews: number; uniqueViewers: number; anonymousViews: number; avgDuration: number } | null>(null);
   const [viewTrends, setViewTrends] = useState<ViewTrend[]>([]);
   const [topContent, setTopContent] = useState<TopContent[]>([]);
   const [userActivity, setUserActivity] = useState<UserActivity[]>([]);
@@ -96,7 +98,7 @@ export function UserAnalyticsTab() {
     const days = parseInt(dateRange);
 
     try {
-      // Fetch user stats using RPC function
+      // Fetch user stats using RPC function (always get full stats for comparison)
       const { data: statsData, error: statsError } = await supabase
         .rpc('get_admin_user_stats', { p_days: days });
 
@@ -116,9 +118,24 @@ export function UserAnalyticsTab() {
         });
       }
 
-      // Fetch view trends
+      // Fetch external viewer stats
+      const { data: extStatsData } = await supabase
+        .rpc('get_external_viewer_stats', { p_days: days });
+      
+      if (extStatsData && extStatsData.length > 0) {
+        const es = extStatsData[0];
+        setExternalStats({
+          totalViews: Number(es.total_views) || 0,
+          uniqueViewers: Number(es.unique_viewers) || 0,
+          anonymousViews: Number(es.anonymous_views) || 0,
+          avgDuration: Number(es.avg_duration) || 0,
+        });
+      }
+
+      // Fetch view trends - use external-only RPC if toggle is on
+      const trendsRpc = externalOnly ? 'get_external_viewer_trends' : 'get_page_view_trends';
       const { data: trendsData, error: trendsError } = await supabase
-        .rpc('get_page_view_trends', { p_days: days });
+        .rpc(trendsRpc, { p_days: days });
 
       if (!trendsError && trendsData) {
         setViewTrends(trendsData.map((t: { view_date: string; view_count: number; unique_users: number }) => ({
@@ -128,9 +145,10 @@ export function UserAnalyticsTab() {
         })));
       }
 
-      // Fetch top content
+      // Fetch top content - use external-only RPC if toggle is on
+      const contentRpc = externalOnly ? 'get_external_top_content' : 'get_top_viewed_content';
       const { data: contentData, error: contentError } = await supabase
-        .rpc('get_top_viewed_content', { p_days: days, p_limit: 10 });
+        .rpc(contentRpc, { p_days: days, p_limit: 10 });
 
       if (!contentError && contentData) {
         setTopContent(contentData.map((c: { entity_type: string; entity_id: string; entity_name: string; view_count: number; unique_viewers: number; avg_duration: number }) => ({
@@ -165,7 +183,7 @@ export function UserAnalyticsTab() {
     } finally {
       setIsLoading(false);
     }
-  }, [dateRange]);
+  }, [dateRange, externalOnly]);
 
   useEffect(() => {
     fetchAnalytics();
@@ -228,7 +246,7 @@ export function UserAnalyticsTab() {
   return (
     <div className="space-y-6">
       {/* Header Controls */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Select value={dateRange} onValueChange={setDateRange}>
             <SelectTrigger className="w-[180px]">
@@ -242,6 +260,18 @@ export function UserAnalyticsTab() {
               <SelectItem value="90">Last 90 days</SelectItem>
             </SelectContent>
           </Select>
+          
+          {/* External Viewers Toggle */}
+          <Button 
+            variant={externalOnly ? "default" : "outline"} 
+            size="sm" 
+            onClick={() => setExternalOnly(!externalOnly)}
+            className="gap-2"
+          >
+            <UserX className="h-4 w-4" />
+            {externalOnly ? 'External Only' : 'All Views'}
+          </Button>
+          
           <Button variant="outline" size="sm" onClick={fetchAnalytics}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
@@ -252,6 +282,37 @@ export function UserAnalyticsTab() {
           Export CSV
         </Button>
       </div>
+
+      {/* External Viewer Stats Banner - show when external filter is on */}
+      {externalOnly && externalStats && (
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 mb-3">
+              <UserX className="h-5 w-5 text-primary" />
+              <span className="font-medium text-primary">External Viewer Statistics</span>
+              <span className="text-xs text-muted-foreground">(Non-team members & anonymous)</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Total External Views</p>
+                <p className="text-2xl font-bold">{externalStats.totalViews}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Unique External Viewers</p>
+                <p className="text-2xl font-bold text-primary">{externalStats.uniqueViewers}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Anonymous Views</p>
+                <p className="text-2xl font-bold text-amber-500">{externalStats.anonymousViews}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Avg Duration</p>
+                <p className="text-2xl font-bold">{formatDuration(externalStats.avgDuration)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats Overview Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
