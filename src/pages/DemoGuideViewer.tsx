@@ -150,33 +150,37 @@ export default function DemoGuideViewer() {
         />
       </div>
 
-      {/* Page Content - Use different component for events */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-0 pb-6 sm:pb-8">
+      {/* Page Content - Full width container for hero, constrained for other sections */}
+      <div className="pb-6 sm:pb-8">
         {isEvent ? (
-          <FullEventPage
-            event={fullGuide as EventGuide}
-            eventId={demoGuide.id}
-            sectionOrder={(demoGuide.sectionOrder || []) as EventSectionId[]}
-            hiddenSections={[]}
-            isAdmin={false}
-            heroFullWidth={true}
-            canEdit={false}
-            scrollToSection={scrollToEventSection}
-            onSectionVisible={handleEventSectionVisible}
-          />
+          <div className="pt-4 sm:pt-0">
+            <FullEventPage
+              event={fullGuide as EventGuide}
+              eventId={demoGuide.id}
+              sectionOrder={(demoGuide.sectionOrder || []) as EventSectionId[]}
+              hiddenSections={[]}
+              isAdmin={false}
+              heroFullWidth={true}
+              canEdit={false}
+              scrollToSection={scrollToEventSection}
+              onSectionVisible={handleEventSectionVisible}
+            />
+          </div>
         ) : (
-          <FullBrandPage
-            brand={fullGuide as BrandGuide | ProductGuide}
-            brandId={demoGuide.id}
-            onBrandUpdate={() => {}} // No-op for demo
-            sectionOrder={sectionOrder}
-            scrollToSection={scrollToSection}
-            onSectionVisible={handleSectionVisible}
-            hiddenSections={[]}
-            isAdmin={false}
-            heroFullWidth={true}
-            canEdit={false}
-          />
+          <div className="pt-4 sm:pt-0">
+            <FullBrandPage
+              brand={fullGuide as BrandGuide | ProductGuide}
+              brandId={demoGuide.id}
+              onBrandUpdate={() => {}} // No-op for demo
+              sectionOrder={sectionOrder}
+              scrollToSection={scrollToSection}
+              onSectionVisible={handleSectionVisible}
+              hiddenSections={[]}
+              isAdmin={false}
+              heroFullWidth={true}
+              canEdit={false}
+            />
+          </div>
         )}
       </div>
 
