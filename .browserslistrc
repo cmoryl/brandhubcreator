@@ -1,0 +1,9 @@
+# Supported browsers for production builds
+# Covers ~95% of global users
+
+defaults
+not IE 11
+not op_mini all
+> 0.5%
+last 2 versions
+Firefox ESR
