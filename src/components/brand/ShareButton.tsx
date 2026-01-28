@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 interface ShareButtonProps {
   guideId: string;
   guideName: string;
+  guideSlug?: string;
   type: 'brand' | 'product' | 'event';
   isPublic?: boolean;
   onPublicChange?: (isPublic: boolean) => void;
@@ -25,7 +26,8 @@ interface ShareButtonProps {
 
 export const ShareButton = ({ 
   guideId, 
-  guideName, 
+  guideName,
+  guideSlug,
   type, 
   isPublic = false, 
   onPublicChange,
@@ -37,7 +39,9 @@ export const ShareButton = ({
 
   const getShareUrl = () => {
     const baseUrl = window.location.origin;
-    return `${baseUrl}/${type}/${guideId}`;
+    // Use slug if available, otherwise fall back to ID
+    const identifier = guideSlug || guideId;
+    return `${baseUrl}/${type}/${identifier}`;
   };
 
   const getPortalUrl = () => {

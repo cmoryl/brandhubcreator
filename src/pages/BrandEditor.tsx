@@ -803,7 +803,8 @@ const BrandEditor = () => {
                 </Tooltip>
                 <ShareButton 
                   guideId={brand.id} 
-                  guideName={brand.hero.name} 
+                  guideName={brand.hero.name}
+                  guideSlug={brand.slug || undefined}
                   type="brand" 
                   isPublic={brand.isPublic}
                   onPublicChange={(isPublic) => updateBrand({ isPublic })}

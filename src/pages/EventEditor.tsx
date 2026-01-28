@@ -790,7 +790,8 @@ const EventEditor = () => {
                 </Tooltip>
                 <ShareButton 
                   guideId={event.id} 
-                  guideName={event.hero.name} 
+                  guideName={event.hero.name}
+                  guideSlug={event.slug || undefined}
                   type="event" 
                   isPublic={event.isPublic || false}
                   onPublicChange={(isPublic) => updateEvent({ isPublic })}
