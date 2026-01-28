@@ -22,10 +22,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { UserCheck, UserX, Clock, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { UserCheck, UserX, Clock, RefreshCw, CheckCircle, XCircle, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdminOrganizations } from '@/hooks/useAdminOrganizations';
 
 interface PendingUser {
   id: string;
@@ -39,9 +48,11 @@ interface PendingUser {
 
 export function UserApprovalManager() {
   const { user } = useAuth();
+  const { organizations, isLoading: orgsLoading } = useAdminOrganizations();
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [approvedUsers, setApprovedUsers] = useState<PendingUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedOrgId, setSelectedOrgId] = useState<string>('');
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     action: 'approve' | 'reject';
@@ -90,6 +101,7 @@ export function UserApprovalManager() {
 
   const handleApprove = async (userId: string) => {
     try {
+      // First, approve the user
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -101,7 +113,29 @@ export function UserApprovalManager() {
 
       if (error) throw error;
 
-      toast.success('User approved successfully');
+      // If an organization is selected, add user as a member
+      if (selectedOrgId) {
+        const { error: memberError } = await supabase
+          .from('organization_members')
+          .insert({
+            organization_id: selectedOrgId,
+            user_id: userId,
+            role: 'member',
+            invite_accepted_at: new Date().toISOString(),
+          });
+
+        if (memberError) {
+          console.error('Error adding user to organization:', memberError);
+          toast.warning('User approved but failed to add to organization');
+        } else {
+          const orgName = organizations.find(o => o.id === selectedOrgId)?.name;
+          toast.success(`User approved and added to ${orgName}`);
+        }
+      } else {
+        toast.success('User approved successfully');
+      }
+
+      setSelectedOrgId('');
       fetchUsers();
     } catch (error) {
       console.error('Error approving user:', error);
@@ -319,9 +353,14 @@ export function UserApprovalManager() {
       {/* Confirmation Dialog */}
       <AlertDialog
         open={confirmDialog?.open}
-        onOpenChange={(open) => !open && setConfirmDialog(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setConfirmDialog(null);
+            setSelectedOrgId('');
+          }
+        }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {confirmDialog?.action === 'approve' ? 'Approve User' : 'Reject User'}
@@ -340,6 +379,36 @@ export function UserApprovalManager() {
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          {/* Organization Assignment - Only show for approve action */}
+          {confirmDialog?.action === 'approve' && (
+            <div className="space-y-3 py-4">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="org-select" className="text-sm font-medium">
+                  Assign to Organization (Optional)
+                </Label>
+              </div>
+              <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
+                <SelectTrigger id="org-select" className="w-full">
+                  <SelectValue placeholder="Select an organization..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No organization</SelectItem>
+                  {organizations.map((org) => (
+                    <SelectItem key={org.id} value={org.id}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedOrgId && (
+                <p className="text-xs text-muted-foreground">
+                  User will be added as a <strong>member</strong> of this organization.
+                </p>
+              )}
+            </div>
+          )}
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
