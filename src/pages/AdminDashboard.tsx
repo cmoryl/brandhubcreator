@@ -44,6 +44,7 @@ import { HiddenSectionsScanner } from '@/components/admin/HiddenSectionsScanner'
 import { MembersManager } from '@/components/admin/MembersManager';
 import { UserAnalyticsTab } from '@/components/admin/UserAnalyticsTab';
 import { CompressedBackupManager } from '@/components/admin/CompressedBackupManager';
+import { AdminSidebar } from '@/components/admin/AdminSidebar';
 
 interface DashboardStats {
   totalUsers: number;
@@ -554,10 +555,10 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="border-b bg-card sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b bg-card sticky top-0 z-50 shrink-0">
+        <div className="px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
@@ -581,99 +582,19 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          {/* Main Navigation - Horizontally scrollable with clean single-row design */}
-          <div className="border-b border-border overflow-x-auto">
-            <div className="min-w-max">
-              <TabsList className="inline-flex h-12 items-center justify-start gap-1 bg-transparent p-1">
-                {/* Core Admin */}
-                <TabsTrigger value="overview" className="gap-2 data-[state=active]:bg-accent/20">
-                  <BarChart3 className="h-4 w-4" />
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger value="approvals" className="gap-2 relative data-[state=active]:bg-accent/20">
-                  <UserCheck className="h-4 w-4" />
-                  Approvals
-                  {(stats?.pendingApprovals ?? 0) > 0 && (
-                    <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">
-                      {stats?.pendingApprovals}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-                
-                {/* Separator */}
-                <div className="mx-1 h-6 w-px bg-border" />
-                
-                {/* User & Org Management */}
-                <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-accent/20">
-                  <Users className="h-4 w-4" />
-                  Users
-                </TabsTrigger>
-                <TabsTrigger value="organizations" className="gap-2 data-[state=active]:bg-accent/20">
-                  <Building2 className="h-4 w-4" />
-                  Orgs
-                </TabsTrigger>
-                <TabsTrigger value="members" className="gap-2 data-[state=active]:bg-accent/20">
-                  <UserPlus className="h-4 w-4" />
-                  Members
-                </TabsTrigger>
-                
-                {/* Separator */}
-                <div className="mx-1 h-6 w-px bg-border" />
-                
-                {/* Content & Data */}
-                <TabsTrigger value="content" className="gap-2 data-[state=active]:bg-accent/20">
-                  <Palette className="h-4 w-4" />
-                  Content
-                </TabsTrigger>
-                <TabsTrigger value="inspector" className="gap-2 data-[state=active]:bg-accent/20">
-                  <Database className="h-4 w-4" />
-                  Inspector
-                </TabsTrigger>
-                
-                {/* Separator */}
-                <div className="mx-1 h-6 w-px bg-border" />
-                
-                {/* Analytics & AI */}
-                <TabsTrigger value="analytics" className="gap-2 data-[state=active]:bg-accent/20">
-                  <TrendingUp className="h-4 w-4" />
-                  Analytics
-                </TabsTrigger>
-                <TabsTrigger value="user-analytics" className="gap-2 data-[state=active]:bg-accent/20">
-                  <Eye className="h-4 w-4" />
-                  User Stats
-                </TabsTrigger>
-                <TabsTrigger value="ai-analysis" className="gap-2 data-[state=active]:bg-accent/20">
-                  <Brain className="h-4 w-4" />
-                  AI
-                </TabsTrigger>
-                
-                {/* Separator */}
-                <div className="mx-1 h-6 w-px bg-border" />
-                
-                {/* Tools */}
-                <TabsTrigger value="reports" className="gap-2 data-[state=active]:bg-accent/20">
-                  <FileText className="h-4 w-4" />
-                  Reports
-                </TabsTrigger>
-                <TabsTrigger value="activity" className="gap-2 data-[state=active]:bg-accent/20">
-                  <Activity className="h-4 w-4" />
-                  Activity
-                </TabsTrigger>
-                <TabsTrigger value="repair" className="gap-2 data-[state=active]:bg-accent/20">
-                  <Wrench className="h-4 w-4" />
-                  Repair
-                </TabsTrigger>
-                <TabsTrigger value="backups" className="gap-2 data-[state=active]:bg-accent/20">
-                  <HardDrive className="h-4 w-4" />
-                  Backups
-                </TabsTrigger>
-              </TabsList>
-            </div>
-          </div>
+      {/* Main Layout with Sidebar */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Vertical Sidebar Navigation */}
+        <AdminSidebar 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+          pendingApprovals={stats?.pendingApprovals}
+        />
 
-          {/* Overview Tab */}
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-auto">
+          <div className="p-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsContent value="overview" className="space-y-6">
             {/* Key Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -1209,7 +1130,9 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
         </Tabs>
-      </main>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
