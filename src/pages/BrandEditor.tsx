@@ -905,7 +905,13 @@ const BrandEditor = () => {
               <AppBreadcrumbs
                 items={[
                   { label: organization?.name || 'Brands', icon: organization ? Building2 : FileText, href: organization ? `/org/${organization.slug}` : '/' },
-                  ...(parentBrand ? [{ label: parentBrand.name, icon: FileText, href: `/brand/${parentBrand.slug}` }] : []),
+                  // Only show parent brand breadcrumb if:
+                  // 1. There is a parent brand, AND
+                  // 2. It's not the same entity name as the org (avoid "TransPerfect > TransPerfect > Games")
+                  //    When org and master brand share a name, showing both is redundant
+                  ...(parentBrand && (!organization || parentBrand.name.toLowerCase() !== organization.name.toLowerCase()) 
+                    ? [{ label: parentBrand.name, icon: FileText, href: `/brand/${parentBrand.slug}` }] 
+                    : []),
                 ]}
                 currentPage={brand.hero.name}
                 currentIcon={FileText}
