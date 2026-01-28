@@ -1,10 +1,8 @@
-import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, ExternalLink
-} from 'lucide-react';
+import { useState, useRef, useMemo } from 'react';
+import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical } from 'lucide-react';
 import { BrandBrochure } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { SectionHeader } from './SectionHeader';
@@ -13,6 +11,25 @@ import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { LayoutSelector, useLayoutClasses, LayoutPreset } from './LayoutSelector';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface DigitalCollateralSectionProps {
   collateral: BrandBrochure[];
@@ -39,9 +56,217 @@ const CATEGORY_OPTIONS = [
   { value: 'Other', label: 'Other', icon: '📁' },
 ];
 
-const getCategoryIcon = (category: string) => {
-  return CATEGORY_OPTIONS.find(c => c.value === category)?.icon || '📁';
+// Sortable Item Component
+interface SortableItemProps {
+  item: BrandBrochure;
+  isEditing: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+  onPreview: () => void;
+  onThumbnailUpload: () => void;
+  onDownload: () => void;
+  onUpdate: (updates: Partial<BrandBrochure>) => void;
+  onRemoveThumbnail: () => void;
+  onDoneEditing: () => void;
+  isImage: (url: string) => boolean;
+  isDragging?: boolean;
+}
+
+const SortableCollateralItem = ({
+  item,
+  isEditing,
+  onEdit,
+  onDelete,
+  onPreview,
+  onThumbnailUpload,
+  onDownload,
+  onUpdate,
+  onRemoveThumbnail,
+  onDoneEditing,
+  isImage,
+  isDragging,
+}: SortableItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isSortableDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "group relative bg-card rounded-xl overflow-hidden shadow-sm border border-border hover:border-primary/50 transition-all",
+        isSortableDragging && "ring-2 ring-primary shadow-lg z-50"
+      )}
+    >
+      {/* Drag Handle */}
+      <button
+        {...attributes}
+        {...listeners}
+        className="absolute top-2 left-2 z-10 p-1.5 rounded-md bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hover:bg-secondary"
+        title="Drag to reorder"
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      </button>
+
+      {/* Preview Area */}
+      <div 
+        className="aspect-[3/4] bg-muted relative flex items-center justify-center overflow-hidden cursor-pointer"
+        onClick={onPreview}
+      >
+        {item.thumbnailUrl ? (
+          <OptimizedImage 
+            src={item.thumbnailUrl} 
+            alt={item.title} 
+            className="w-full h-full" 
+            objectFit="cover" 
+          />
+        ) : isImage(item.previewUrl) ? (
+          <OptimizedImage 
+            src={item.previewUrl} 
+            alt={item.title} 
+            className="w-full h-full" 
+            objectFit="cover" 
+          />
+        ) : (
+          <div className="flex flex-col items-center gap-3 p-4">
+            <div className="p-4 rounded-xl bg-primary/10">
+              <FileText className="h-12 w-12 text-primary" />
+            </div>
+            <span className="text-xs text-muted-foreground text-center">
+              Click to preview
+            </span>
+          </div>
+        )}
+        
+        {/* Hover Actions */}
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); onPreview(); }}
+            className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+            title="Preview"
+          >
+            <Eye className="h-5 w-5" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onThumbnailUpload(); }}
+            className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+            title="Add thumbnail"
+          >
+            <Image className="h-5 w-5" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDownload(); }}
+            className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+            title="Download"
+          >
+            <Download className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Delete Button */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+
+        {/* Thumbnail indicator */}
+        {item.thumbnailUrl && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onRemoveThumbnail(); }}
+            className="absolute bottom-2 right-2 px-2 py-1 text-xs rounded bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            Remove thumbnail
+          </button>
+        )}
+      </div>
+
+      {/* Content Info */}
+      <div className="p-4">
+        {isEditing ? (
+          <div className="space-y-3">
+            <Input
+              value={item.title}
+              onChange={(e) => onUpdate({ title: e.target.value })}
+              placeholder="Title"
+              className="h-8"
+            />
+            <Select
+              value={item.category}
+              onValueChange={(category) => onUpdate({ category })}
+            >
+              <SelectTrigger className="h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORY_OPTIONS.map(cat => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    <span className="flex items-center gap-2">
+                      <span>{cat.icon}</span>
+                      <span>{cat.label}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button size="sm" variant="secondary" onClick={onDoneEditing} className="w-full">
+              Done
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-medium text-foreground truncate">{item.title}</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">{item.category}</p>
+            </div>
+            <button
+              onClick={onEdit}
+              className="p-1.5 rounded-md hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+            >
+              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
+
+// Drag Overlay Item (shown while dragging)
+const DragOverlayItem = ({ item, isImage }: { item: BrandBrochure; isImage: (url: string) => boolean }) => (
+  <div className="bg-card rounded-xl overflow-hidden shadow-2xl border-2 border-primary w-64 opacity-90">
+    <div className="aspect-[3/4] bg-muted relative flex items-center justify-center overflow-hidden">
+      {item.thumbnailUrl ? (
+        <OptimizedImage src={item.thumbnailUrl} alt={item.title} className="w-full h-full" objectFit="cover" />
+      ) : isImage(item.previewUrl) ? (
+        <OptimizedImage src={item.previewUrl} alt={item.title} className="w-full h-full" objectFit="cover" />
+      ) : (
+        <div className="flex flex-col items-center gap-3 p-4">
+          <div className="p-4 rounded-xl bg-primary/10">
+            <FileText className="h-12 w-12 text-primary" />
+          </div>
+        </div>
+      )}
+    </div>
+    <div className="p-4">
+      <h3 className="font-medium text-foreground truncate">{item.title}</h3>
+      <p className="text-xs text-muted-foreground mt-0.5">{item.category}</p>
+    </div>
+  </div>
+);
 
 export const DigitalCollateralSection = ({
   collateral: collateralProp,
@@ -55,12 +280,25 @@ export const DigitalCollateralSection = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [previewItem, setPreviewItem] = useState<BrandBrochure | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const [uploadingThumbnailFor, setUploadingThumbnailFor] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   
   const { gridClass } = useLayoutClasses(layout);
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -149,18 +387,56 @@ export const DigitalCollateralSection = ({
   };
 
   // Group by category
-  const groupedCollateral = collateral.reduce((acc, item) => {
-    if (!acc[item.category]) acc[item.category] = [];
-    acc[item.category].push(item);
-    return acc;
-  }, {} as Record<string, BrandBrochure[]>);
+  const groupedCollateral = useMemo(() => {
+    return collateral.reduce((acc, item) => {
+      if (!acc[item.category]) acc[item.category] = [];
+      acc[item.category].push(item);
+      return acc;
+    }, {} as Record<string, BrandBrochure[]>);
+  }, [collateral]);
 
   // Sort categories by the order in CATEGORY_OPTIONS
-  const sortedCategories = Object.keys(groupedCollateral).sort((a, b) => {
-    const indexA = CATEGORY_OPTIONS.findIndex(c => c.value === a);
-    const indexB = CATEGORY_OPTIONS.findIndex(c => c.value === b);
-    return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
-  });
+  const sortedCategories = useMemo(() => {
+    return Object.keys(groupedCollateral).sort((a, b) => {
+      const indexA = CATEGORY_OPTIONS.findIndex(c => c.value === a);
+      const indexB = CATEGORY_OPTIONS.findIndex(c => c.value === b);
+      return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+    });
+  }, [groupedCollateral]);
+
+  // Handle drag start
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  // Handle drag end - reorder within category
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (!over || active.id === over.id) return;
+
+    const activeItem = collateral.find(item => item.id === active.id);
+    const overItem = collateral.find(item => item.id === over.id);
+
+    if (!activeItem || !overItem) return;
+
+    // Only allow reordering within the same category
+    if (activeItem.category !== overItem.category) {
+      toast.error('Items can only be reordered within the same category');
+      return;
+    }
+
+    // Find indices in the full collateral array
+    const oldIndex = collateral.findIndex(item => item.id === active.id);
+    const newIndex = collateral.findIndex(item => item.id === over.id);
+
+    const newCollateral = arrayMove(collateral, oldIndex, newIndex);
+    onCollateralChange(newCollateral);
+    toast.success('Item reordered');
+  };
+
+  const activeItem = activeId ? collateral.find(item => item.id === activeId) : null;
 
   return (
     <section className="space-y-6">
@@ -222,158 +498,64 @@ export const DigitalCollateralSection = ({
       </div>
 
       {sortedCategories.length > 0 ? (
-        <div className="space-y-8">
-          {sortedCategories.map(category => {
-            const categoryItems = groupedCollateral[category];
-            const categoryInfo = CATEGORY_OPTIONS.find(c => c.value === category);
-            
-            return (
-              <div key={category} className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{categoryInfo?.icon || '📁'}</span>
-                  <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
-                    {category}
-                  </h3>
-                  <Badge variant="secondary" className="text-xs">
-                    {categoryItems.length}
-                  </Badge>
-                </div>
-                
-                <div className={gridClass}>
-                  {categoryItems.map((item, index) => (
-                    <div
-                      key={item.id}
-                      className="group relative bg-card rounded-xl overflow-hidden shadow-sm border border-border hover:border-primary/50 transition-all animate-scale-in"
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
-                      {/* Preview Area */}
-                      <div 
-                        className="aspect-[3/4] bg-muted relative flex items-center justify-center overflow-hidden cursor-pointer"
-                        onClick={() => setPreviewItem(item)}
-                      >
-                        {item.thumbnailUrl ? (
-                          <OptimizedImage 
-                            src={item.thumbnailUrl} 
-                            alt={item.title} 
-                            className="w-full h-full" 
-                            objectFit="cover" 
-                          />
-                        ) : isImage(item.previewUrl) ? (
-                          <OptimizedImage 
-                            src={item.previewUrl} 
-                            alt={item.title} 
-                            className="w-full h-full" 
-                            objectFit="cover" 
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center gap-3 p-4">
-                            <div className="p-4 rounded-xl bg-primary/10">
-                              <FileText className="h-12 w-12 text-primary" />
-                            </div>
-                            <span className="text-xs text-muted-foreground text-center">
-                              Click to preview
-                            </span>
-                          </div>
-                        )}
-                        
-                        {/* Hover Actions */}
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setPreviewItem(item); }}
-                            className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
-                            title="Preview"
-                          >
-                            <Eye className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); triggerThumbnailUpload(item.id); }}
-                            className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
-                            title="Add thumbnail"
-                          >
-                            <Image className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); downloadItem(item); }}
-                            className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
-                            title="Download"
-                          >
-                            <Download className="h-5 w-5" />
-                          </button>
-                        </div>
-
-                        {/* Delete Button */}
-                        <button
-                          onClick={(e) => { e.stopPropagation(); deleteItem(item.id); }}
-                          className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-
-                        {/* Thumbnail indicator */}
-                        {item.thumbnailUrl && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); removeThumbnail(item.id); }}
-                            className="absolute bottom-2 right-2 px-2 py-1 text-xs rounded bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            Remove thumbnail
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Content Info */}
-                      <div className="p-4">
-                        {editingId === item.id ? (
-                          <div className="space-y-3">
-                            <Input
-                              value={item.title}
-                              onChange={(e) => updateItem(item.id, { title: e.target.value })}
-                              placeholder="Title"
-                              className="h-8"
-                            />
-                            <Select
-                              value={item.category}
-                              onValueChange={(category) => updateItem(item.id, { category })}
-                            >
-                              <SelectTrigger className="h-8">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {CATEGORY_OPTIONS.map(cat => (
-                                  <SelectItem key={cat.value} value={cat.value}>
-                                    <span className="flex items-center gap-2">
-                                      <span>{cat.icon}</span>
-                                      <span>{cat.label}</span>
-                                    </span>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Button size="sm" variant="secondary" onClick={() => setEditingId(null)} className="w-full">
-                              Done
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex-1">
-                              <h3 className="font-medium text-foreground truncate">{item.title}</h3>
-                              <p className="text-xs text-muted-foreground mt-0.5">{item.category}</p>
-                            </div>
-                            <button
-                              onClick={() => setEditingId(item.id)}
-                              className="p-1.5 rounded-md hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100 shrink-0"
-                            >
-                              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="space-y-8">
+            {sortedCategories.map(category => {
+              const categoryItems = groupedCollateral[category];
+              const categoryInfo = CATEGORY_OPTIONS.find(c => c.value === category);
+              const itemIds = categoryItems.map(item => item.id);
+              
+              return (
+                <div key={category} className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{categoryInfo?.icon || '📁'}</span>
+                    <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                      {category}
+                    </h3>
+                    <Badge variant="secondary" className="text-xs">
+                      {categoryItems.length}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground ml-2">
+                      (drag to reorder)
+                    </span>
+                  </div>
+                  
+                  <SortableContext items={itemIds} strategy={rectSortingStrategy}>
+                    <div className={gridClass}>
+                      {categoryItems.map((item) => (
+                        <SortableCollateralItem
+                          key={item.id}
+                          item={item}
+                          isEditing={editingId === item.id}
+                          onEdit={() => setEditingId(item.id)}
+                          onDelete={() => deleteItem(item.id)}
+                          onPreview={() => setPreviewItem(item)}
+                          onThumbnailUpload={() => triggerThumbnailUpload(item.id)}
+                          onDownload={() => downloadItem(item)}
+                          onUpdate={(updates) => updateItem(item.id, updates)}
+                          onRemoveThumbnail={() => removeThumbnail(item.id)}
+                          onDoneEditing={() => setEditingId(null)}
+                          isImage={isImage}
+                        />
+                      ))}
                     </div>
-                  ))}
+                  </SortableContext>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+          
+          <DragOverlay>
+            {activeItem ? (
+              <DragOverlayItem item={activeItem} isImage={isImage} />
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       ) : (
         <button
           onClick={() => fileInputRef.current?.click()}
