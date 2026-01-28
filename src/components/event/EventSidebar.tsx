@@ -94,8 +94,8 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   signatures: { label: 'Signatures', icon: Shield, category: 'Communication' },
   qr: { label: 'QR Codes', icon: Shield, category: 'Communication' },
   videos: { label: 'Videos', icon: Shield, category: 'Resources' },
-  casestudies: { label: 'Case Studies', icon: FileText, category: 'Collateral' },
-  brochures: { label: 'Brochures', icon: BookOpen, category: 'Collateral' },
+  casestudies: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' }, // Deprecated - merged into brochures
+  brochures: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
   templates: { label: 'Templates', icon: Layers, category: 'Collateral' },
   templatespecs: { label: 'Template Specs', icon: Ruler, category: 'Collateral' },
   products: { label: 'Products', icon: Shield, category: 'Collateral' },

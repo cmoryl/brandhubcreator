@@ -10,9 +10,8 @@ import { SocialSection } from '@/components/brand/SocialSection';
 import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
-import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
+import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
-import { BrochuresSection } from '@/components/brand/BrochuresSection';
 import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { EventDetailsSection } from './EventDetailsSection';
 import { EventLogosSection } from './EventLogosSection';
@@ -309,10 +308,11 @@ export const FullEventPage = ({
           />
         );
       case 'casestudies':
+      case 'brochures':
         return (
-          <CaseStudiesSection
-            caseStudies={event.caseStudies || []}
-            onCaseStudiesChange={editHandler((caseStudies) => updateEvent({ caseStudies }))}
+          <DigitalCollateralSection
+            collateral={event.brochures || []}
+            onCollateralChange={editHandler((brochures) => updateEvent({ brochures }))}
           />
         );
       case 'templates':
@@ -320,13 +320,6 @@ export const FullEventPage = ({
           <TemplatesSection
             templates={event.templates || []}
             onTemplatesChange={editHandler((templates) => updateEvent({ templates }))}
-          />
-        );
-      case 'brochures':
-        return (
-          <BrochuresSection
-            brochures={event.brochures || []}
-            onBrochuresChange={editHandler((brochures) => updateEvent({ brochures }))}
           />
         );
       case 'templatespecs':

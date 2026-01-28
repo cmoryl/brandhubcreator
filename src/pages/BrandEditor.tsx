@@ -43,8 +43,7 @@ import { QRSection } from '@/components/brand/QRSection';
 import { VideosSection } from '@/components/brand/VideosSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
-import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
-import { BrochuresSection } from '@/components/brand/BrochuresSection';
+import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { ProductsSection } from '@/components/brand/ProductsSection';
@@ -673,8 +672,8 @@ const BrandEditor = () => {
       case 'videos': return <VideosSection videos={brand.videos} onVideosChange={editHandler((videos) => updateBrand({ videos }))} />;
       case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={editHandler((assets) => updateBrand({ assets }))} />;
       case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={editHandler((misuse) => updateBrand({ misuse }))} />;
-      case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies} onCaseStudiesChange={editHandler((caseStudies) => updateBrand({ caseStudies }))} />;
-      case 'brochures': return <BrochuresSection brochures={brand.brochures} onBrochuresChange={editHandler((brochures) => updateBrand({ brochures }))} />;
+      case 'casestudies': 
+      case 'brochures': return <DigitalCollateralSection collateral={brand.brochures} onCollateralChange={editHandler((brochures) => updateBrand({ brochures }))} />;
       case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={editHandler((templates) => updateBrand({ templates }))} />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={brand.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateBrand({ templateSpecs }))} brandColors={brand.colors || []} />;
       case 'products': return <ProductsSection brandId={brand.id} />;
