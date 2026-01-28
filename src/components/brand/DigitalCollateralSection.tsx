@@ -120,9 +120,9 @@ const SortableCollateralItem = ({
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </button>
 
-      {/* Preview Area */}
+      {/* Preview Area - Compact */}
       <div 
-        className="aspect-[3/4] bg-muted relative flex items-center justify-center overflow-hidden cursor-pointer"
+        className="aspect-[4/3] bg-muted relative flex items-center justify-center overflow-hidden cursor-pointer"
         onClick={onPreview}
       >
         {item.thumbnailUrl ? (
@@ -140,12 +140,12 @@ const SortableCollateralItem = ({
             objectFit="cover" 
           />
         ) : (
-          <div className="flex flex-col items-center gap-3 p-4">
-            <div className="p-4 rounded-xl bg-primary/10">
-              <FileText className="h-12 w-12 text-primary" />
+          <div className="flex flex-col items-center gap-2 p-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <FileText className="h-8 w-8 text-primary" />
             </div>
             <span className="text-xs text-muted-foreground text-center">
-              Click to preview
+              Preview
             </span>
           </div>
         )}
@@ -194,10 +194,10 @@ const SortableCollateralItem = ({
         )}
       </div>
 
-      {/* Content Info */}
-      <div className="p-4">
+      {/* Content Info - Compact */}
+      <div className="p-3">
         {isEditing ? (
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Input
               value={item.title}
               onChange={(e) => onUpdate({ title: e.target.value })}
@@ -245,25 +245,25 @@ const SortableCollateralItem = ({
   );
 };
 
-// Drag Overlay Item (shown while dragging)
+// Drag Overlay Item (shown while dragging) - Compact
 const DragOverlayItem = ({ item, isImage }: { item: BrandBrochure; isImage: (url: string) => boolean }) => (
-  <div className="bg-card rounded-xl overflow-hidden shadow-2xl border-2 border-primary w-64 opacity-90">
-    <div className="aspect-[3/4] bg-muted relative flex items-center justify-center overflow-hidden">
+  <div className="bg-card rounded-lg overflow-hidden shadow-2xl border-2 border-primary w-48 opacity-90">
+    <div className="aspect-[4/3] bg-muted relative flex items-center justify-center overflow-hidden">
       {item.thumbnailUrl ? (
         <OptimizedImage src={item.thumbnailUrl} alt={item.title} className="w-full h-full" objectFit="cover" />
       ) : isImage(item.previewUrl) ? (
         <OptimizedImage src={item.previewUrl} alt={item.title} className="w-full h-full" objectFit="cover" />
       ) : (
-        <div className="flex flex-col items-center gap-3 p-4">
-          <div className="p-4 rounded-xl bg-primary/10">
-            <FileText className="h-12 w-12 text-primary" />
+        <div className="flex flex-col items-center gap-2 p-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <FileText className="h-8 w-8 text-primary" />
           </div>
         </div>
       )}
     </div>
-    <div className="p-4">
-      <h3 className="font-medium text-foreground truncate">{item.title}</h3>
-      <p className="text-xs text-muted-foreground mt-0.5">{item.category}</p>
+    <div className="p-3">
+      <h3 className="font-medium text-sm text-foreground truncate">{item.title}</h3>
+      <p className="text-xs text-muted-foreground">{item.category}</p>
     </div>
   </div>
 );

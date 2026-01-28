@@ -638,7 +638,7 @@ export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
   'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
-  'casestudies', 'brochures', 'templates', 'templatespecs', 'products', 'events'
+  'brochures', 'templates', 'templatespecs', 'products', 'events'
 ];
 
 // Main Brand Guide interface (extends base)
