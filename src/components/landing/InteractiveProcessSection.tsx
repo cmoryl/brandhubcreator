@@ -76,8 +76,8 @@ const ProcessStep = ({ step, title, subtitle, description, features, icon, color
       </p>
       
       <div className={cn(
-        "space-y-2 overflow-hidden",
-        isActive ? "max-h-[200px] opacity-100" : "max-h-0 opacity-0"
+        "space-y-1.5 overflow-hidden",
+        isActive ? "max-h-[300px] opacity-100" : "max-h-0 opacity-0"
       )}
       style={{ transition: 'max-height 0.5s ease, opacity 0.5s ease' }}
       >
@@ -93,14 +93,14 @@ const ProcessStep = ({ step, title, subtitle, description, features, icon, color
               transitionProperty: 'opacity, transform',
               transitionDuration: '0.3s',
               transitionTimingFunction: 'ease-out',
-              transitionDelay: isActive ? `${i * 80}ms` : '0ms',
+              transitionDelay: isActive ? `${i * 60}ms` : '0ms',
             }}
           >
             <CheckCircle className={cn(
-              "h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 mt-0.5",
+              "h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 mt-0.5",
               feature.highlight ? "text-accent" : "text-green-500"
             )} />
-            <span>{feature.text}</span>
+            <span className="leading-tight">{feature.text}</span>
           </div>
         ))}
       </div>
@@ -156,18 +156,19 @@ interface InteractiveProcessSectionProps {
 export const InteractiveProcessSection = ({ className }: InteractiveProcessSectionProps) => {
   const [activeStep, setActiveStep] = useState(1);
   const [isInView, setIsInView] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const processRef = useRef<HTMLDivElement>(null);
 
-  // Auto-cycle through steps
+  // Auto-cycle through steps (pauses on hover)
   useEffect(() => {
-    if (!isInView) return;
+    if (!isInView || isPaused) return;
     
     const interval = setInterval(() => {
       setActiveStep(prev => prev >= 3 ? 1 : prev + 1);
     }, 6000);
     
     return () => clearInterval(interval);
-  }, [isInView]);
+  }, [isInView, isPaused]);
 
   // Intersection observer for the process section
   useEffect(() => {
@@ -260,7 +261,11 @@ export const InteractiveProcessSection = ({ className }: InteractiveProcessSecti
         </div>
         
         {/* Process Steps */}
-        <div className="grid md:grid-cols-[1fr,auto,1fr,auto,1fr] gap-4 sm:gap-6 md:gap-0 items-stretch mb-10 sm:mb-14">
+        <div 
+          className="grid md:grid-cols-[1fr,auto,1fr,auto,1fr] gap-4 sm:gap-6 md:gap-0 items-stretch mb-10 sm:mb-14"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
           <ProcessStep
             {...steps[0]}
             isActive={activeStep === 1}
