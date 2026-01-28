@@ -1,201 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { ArrowLeft, Building2, Users, Globe, Brain, Layers, TrendingUp, Sparkles, Shield, Zap, Palette, Package, Calendar, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Heart, Palette, Lightbulb, Users, Sparkles, PenTool, Target, Rocket, Zap, Quote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
-import { cn } from '@/lib/utils';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
-
-// Interactive step component with animations
-interface ProcessStepProps {
-  step: number;
-  title: string;
-  description: string;
-  features: string[];
-  icon: React.ReactNode;
-  color: string;
-  isActive: boolean;
-  onClick: () => void;
-}
-
-const ProcessStep = ({ step, title, description, features, icon, color, isActive, onClick }: ProcessStepProps) => {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "relative text-left p-6 rounded-2xl border-2 transition-all duration-500 w-full group",
-        isActive 
-          ? `border-${color} bg-${color}/5 shadow-lg shadow-${color}/10 scale-[1.02]` 
-          : "border-border/50 hover:border-border bg-card/50 hover:bg-card"
-      )}
-      style={{
-        borderColor: isActive ? `hsl(var(--${color === 'accent' ? 'accent' : color === 'primary' ? 'primary' : 'accent'}))` : undefined,
-        backgroundColor: isActive ? `hsl(var(--${color === 'accent' ? 'accent' : color === 'primary' ? 'primary' : 'accent'}) / 0.05)` : undefined,
-      }}
-    >
-      {/* Step number with pulse animation when active */}
-      <div className={cn(
-        "absolute -top-4 -left-4 h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-500",
-        isActive ? "scale-110" : "scale-100"
-      )}
-      style={{
-        backgroundColor: isActive ? `hsl(var(--${color === 'accent' ? 'accent' : color === 'primary' ? 'primary' : 'accent'}))` : 'hsl(var(--muted))',
-        color: isActive ? 'white' : 'hsl(var(--muted-foreground))',
-      }}
-      >
-        {isActive && (
-          <div 
-            className="absolute inset-0 rounded-full animate-ping opacity-30"
-            style={{ backgroundColor: `hsl(var(--${color === 'accent' ? 'accent' : color === 'primary' ? 'primary' : 'accent'}))` }}
-          />
-        )}
-        {step}
-      </div>
-      
-      {/* Icon */}
-      <div className={cn(
-        "p-3 rounded-xl w-fit mb-4 transition-all duration-500",
-        isActive ? "scale-110" : "scale-100 group-hover:scale-105"
-      )}
-      style={{
-        backgroundColor: `hsl(var(--${color === 'accent' ? 'accent' : color === 'primary' ? 'primary' : 'accent'}) / 0.1)`,
-      }}
-      >
-        {icon}
-      </div>
-      
-      <h3 className={cn(
-        "font-semibold text-lg mb-2 transition-colors duration-300",
-        isActive ? "text-foreground" : "text-foreground/80"
-      )}>
-        {title}
-      </h3>
-      
-      <p className={cn(
-        "text-sm mb-4 transition-all duration-500",
-        isActive ? "text-muted-foreground" : "text-muted-foreground/70"
-      )}>
-        {description}
-      </p>
-      
-      {/* Features with staggered animation */}
-      <div className={cn(
-        "space-y-2 transition-all duration-500 overflow-hidden",
-        isActive ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
-      )}>
-        {features.map((feature, i) => (
-          <div 
-            key={i} 
-            className="flex items-center gap-2 text-sm text-muted-foreground"
-            style={{ 
-              transitionDelay: isActive ? `${i * 100}ms` : '0ms',
-              opacity: isActive ? 1 : 0,
-              transform: isActive ? 'translateX(0)' : 'translateX(-10px)',
-              transition: 'all 0.3s ease-out'
-            }}
-          >
-            <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
-            {feature}
-          </div>
-        ))}
-      </div>
-    </button>
-  );
-};
-
-// Animated connection line between steps
-const ConnectionLine = ({ isActive }: { isActive: boolean }) => (
-  <div className="hidden md:flex items-center justify-center w-16">
-    <div className="relative h-1 w-full overflow-hidden rounded-full bg-border/30">
-      <div 
-        className={cn(
-          "absolute inset-y-0 left-0 bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-700",
-          isActive ? "w-full" : "w-0"
-        )}
-      />
-    </div>
-  </div>
-);
 
 export default function AboutPage() {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const { settings } = useAppSettings();
-  const [activeStep, setActiveStep] = useState(1);
-  const [isInView, setIsInView] = useState(false);
-  const processRef = useRef<HTMLDivElement>(null);
-
-  // Auto-cycle through steps
-  useEffect(() => {
-    if (!isInView) return;
-    
-    const interval = setInterval(() => {
-      setActiveStep(prev => prev >= 3 ? 1 : prev + 1);
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, [isInView]);
-
-  // Intersection observer for the process section
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsInView(entry.isIntersecting),
-      { threshold: 0.3 }
-    );
-    
-    if (processRef.current) {
-      observer.observe(processRef.current);
-    }
-    
-    return () => observer.disconnect();
-  }, []);
-
-  const steps = [
-    {
-      step: 1,
-      title: "Build Your Brand Foundation",
-      description: "Start with your core identity—colors, typography, logos, and values. Add sections as you grow.",
-      icon: <Palette className="h-6 w-6 text-primary" />,
-      color: "primary",
-      features: [
-        "25+ customizable sections",
-        "Color palettes with Pantone codes",
-        "Typography with web fonts",
-        "Logo variants & usage guidelines"
-      ]
-    },
-    {
-      step: 2,
-      title: "Expand Your Ecosystem",
-      description: "Grow into products and events. Each inherits from your master brand while staying unique.",
-      icon: <Layers className="h-6 w-6 text-accent" />,
-      color: "accent",
-      features: [
-        "Product line brand guides",
-        "Event kits with sub-branding",
-        "Inherited color & typography",
-        "Custom variations per product"
-      ]
-    },
-    {
-      step: 3,
-      title: "Let AI Learn & Guide",
-      description: "Your Brand Brain analyzes every update, providing insights and recommendations.",
-      icon: <Brain className="h-6 w-6 text-green-500" />,
-      color: "accent",
-      features: [
-        "Real-time health scores",
-        "Market intelligence reports",
-        "Competitor analysis",
-        "Growth recommendations"
-      ]
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -223,8 +40,8 @@ export default function AboutPage() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative py-16 sm:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      {/* Hero Section - Our Story */}
+      <section className="relative py-16 sm:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/10 to-primary/5" />
         <div className="absolute inset-0 hidden sm:block">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" />
@@ -232,143 +49,202 @@ export default function AboutPage() {
         </div>
         
         <div className="relative max-w-4xl mx-auto text-center">
-          <Badge variant="secondary" className="mb-4 gap-1">
-            <Building2 className="h-3 w-3" />
-            About BrandHub
+          <Badge variant="secondary" className="mb-4 gap-1.5">
+            <Heart className="h-3 w-3 fill-current" />
+            Our Story
           </Badge>
           <h1 className="text-3xl sm:text-5xl font-bold text-foreground mb-6">
-            The Modern Platform for
-            <span className="block text-accent">Living Brand Guidelines</span>
+            Built by Designers.
+            <span className="block text-accent">Powered by Creativity.</span>
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-            BrandHub transforms static brand guidelines into dynamic, intelligent brand ecosystems 
-            that grow and evolve with your organization.
+            We're not just developers building another tool. We're designers, marketers, and brand enthusiasts 
+            who understand the daily struggle of maintaining brand consistency across growing organizations.
           </p>
         </div>
       </section>
 
-      {/* Interactive How It Works Section */}
-      <section ref={processRef} className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-muted/20 border-y border-border/30">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <Badge variant="outline" className="mb-4 gap-1">
-              <Sparkles className="h-3 w-3" />
-              How It Works
-            </Badge>
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
-              A Living, Breathing Brand Guide
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Click any step to explore, or watch as your brand journey unfolds automatically.
-            </p>
-          </div>
-          
-          {/* Process Steps */}
-          <div className="grid md:grid-cols-[1fr,auto,1fr,auto,1fr] gap-6 md:gap-0 items-start">
-            <ProcessStep
-              {...steps[0]}
-              isActive={activeStep === 1}
-              onClick={() => setActiveStep(1)}
-            />
-            <ConnectionLine isActive={activeStep >= 2} />
-            <ProcessStep
-              {...steps[1]}
-              isActive={activeStep === 2}
-              onClick={() => setActiveStep(2)}
-            />
-            <ConnectionLine isActive={activeStep >= 3} />
-            <ProcessStep
-              {...steps[2]}
-              isActive={activeStep === 3}
-              onClick={() => setActiveStep(3)}
-            />
-          </div>
-          
-          {/* Progress indicator */}
-          <div className="flex justify-center gap-2 mt-8">
-            {[1, 2, 3].map((step) => (
-              <button
-                key={step}
-                onClick={() => setActiveStep(step)}
-                className={cn(
-                  "h-2 rounded-full transition-all duration-500",
-                  activeStep === step 
-                    ? "w-8 bg-accent" 
-                    : "w-2 bg-border hover:bg-muted-foreground/30"
-                )}
-                aria-label={`Go to step ${step}`}
-              />
-            ))}
+      {/* The Origin Story */}
+      <section className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8 sm:gap-12 items-center">
+            <div>
+              <Badge variant="outline" className="mb-4 gap-1">
+                <Lightbulb className="h-3 w-3" />
+                The Spark
+              </Badge>
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
+                Born from Real Frustration
+              </h2>
+              <p className="text-muted-foreground mb-4">
+                We've spent years in the trenches—creating brand guidelines in static PDFs that become 
+                outdated the moment they're published. Chasing down the "latest version" across shared drives. 
+                Watching beautiful brand systems fall apart as teams scale.
+              </p>
+              <p className="text-muted-foreground">
+                BrandHub was born from a simple question: <em className="text-foreground font-medium">What if brand 
+                guidelines could be as dynamic and alive as the brands they represent?</em>
+              </p>
+            </div>
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl blur-2xl" />
+              <Card className="relative p-6 sm:p-8 border-border/50 bg-card/80 backdrop-blur-sm">
+                <Quote className="h-8 w-8 text-accent/50 mb-4" />
+                <p className="text-lg italic text-foreground mb-4">
+                  "We built the tool we wished existed—one that grows with your brand, 
+                  learns your voice, and never lets your guidelines gather dust."
+                </p>
+                <p className="text-sm text-muted-foreground">— The BrandHub Team</p>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8">
+      {/* Our Values */}
+      <section className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 bg-muted/20 border-y border-border/30">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">Why Choose BrandHub?</h2>
+          <div className="text-center mb-10 sm:mb-14">
+            <Badge variant="outline" className="mb-4 gap-1">
+              <Heart className="h-3 w-3" />
+              What Drives Us
+            </Badge>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
+              Our Love of Design & Creativity
+            </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              We're not just a brand guide creator—we're your brand's intelligent partner.
+              Every feature we build comes from a deep appreciation for the craft of branding 
+              and the creative minds who bring brands to life.
             </p>
           </div>
           
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="p-6 border-border/50 hover:border-accent/30 transition-all hover:shadow-lg group">
-              <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                <Brain className="h-6 w-6 text-accent" />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="p-6 border-border/50 hover:border-primary/30 transition-all hover:shadow-lg group">
+              <div className="p-3 bg-primary/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                <PenTool className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Brand Brain</h3>
+              <h3 className="font-semibold text-lg text-foreground mb-2">Design-First Thinking</h3>
               <p className="text-sm text-muted-foreground">
-                AI learns your brand voice and provides intelligent recommendations.
+                We obsess over every pixel, every interaction. Because brand guidelines deserve 
+                to be as beautiful as the brands they define.
               </p>
             </Card>
             
-            <Card className="p-6 border-border/50 hover:border-primary/30 transition-all hover:shadow-lg group">
-              <div className="p-3 bg-primary/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                <Globe className="h-6 w-6 text-primary" />
+            <Card className="p-6 border-border/50 hover:border-accent/30 transition-all hover:shadow-lg group">
+              <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                <Users className="h-6 w-6 text-accent" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Public Portals</h3>
+              <h3 className="font-semibold text-lg text-foreground mb-2">Built for Creatives</h3>
               <p className="text-sm text-muted-foreground">
-                Share brand guidelines with stakeholders—no login required.
+                We speak designer. We understand the workflow. Every feature is designed to 
+                enhance creativity, not constrain it.
               </p>
             </Card>
             
             <Card className="p-6 border-border/50 hover:border-green-500/30 transition-all hover:shadow-lg group">
               <div className="p-3 bg-green-500/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                <Shield className="h-5 w-5 text-green-500" />
+                <Target className="h-6 w-6 text-green-500" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Enterprise Security</h3>
+              <h3 className="font-semibold text-lg text-foreground mb-2">Consistency Matters</h3>
               <p className="text-sm text-muted-foreground">
-                Role-based access, audit logging, and compliance-ready.
-              </p>
-            </Card>
-            
-            <Card className="p-6 border-border/50 hover:border-orange-500/30 transition-all hover:shadow-lg group">
-              <div className="p-3 bg-orange-500/10 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                <Users className="h-5 w-5 text-orange-500" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">Team Collaboration</h3>
-              <p className="text-sm text-muted-foreground">
-                Real-time editing with version control and activity logs.
+                Brand consistency shouldn't be a daily battle. We automate the tedious so you 
+                can focus on what matters—creative work.
               </p>
             </Card>
           </div>
         </div>
       </section>
 
-      {/* Single CTA Section */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-primary/5 via-accent/10 to-primary/5">
+      {/* AI as Assistant */}
+      <section className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8 sm:gap-12 items-center">
+            <div className="order-2 md:order-1">
+              <div className="grid grid-cols-2 gap-4">
+                <Card className="p-5 border-border/50 bg-gradient-to-br from-accent/5 to-transparent">
+                  <Sparkles className="h-6 w-6 text-accent mb-3" />
+                  <p className="text-sm font-medium text-foreground">Brand Health</p>
+                  <p className="text-xs text-muted-foreground mt-1">Real-time scoring</p>
+                </Card>
+                <Card className="p-5 border-border/50 bg-gradient-to-br from-primary/5 to-transparent">
+                  <Lightbulb className="h-6 w-6 text-primary mb-3" />
+                  <p className="text-sm font-medium text-foreground">Smart Insights</p>
+                  <p className="text-xs text-muted-foreground mt-1">Market intelligence</p>
+                </Card>
+                <Card className="p-5 border-border/50 bg-gradient-to-br from-green-500/5 to-transparent">
+                  <Target className="h-6 w-6 text-green-500 mb-3" />
+                  <p className="text-sm font-medium text-foreground">Growth Tips</p>
+                  <p className="text-xs text-muted-foreground mt-1">Recommendations</p>
+                </Card>
+                <Card className="p-5 border-border/50 bg-gradient-to-br from-orange-500/5 to-transparent">
+                  <Rocket className="h-6 w-6 text-orange-500 mb-3" />
+                  <p className="text-sm font-medium text-foreground">Competitor Intel</p>
+                  <p className="text-xs text-muted-foreground mt-1">Stay ahead</p>
+                </Card>
+              </div>
+            </div>
+            <div className="order-1 md:order-2">
+              <Badge variant="outline" className="mb-4 gap-1">
+                <Sparkles className="h-3 w-3" />
+                AI as Your Assistant
+              </Badge>
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
+                Intelligence That Serves You
+              </h2>
+              <p className="text-muted-foreground mb-4">
+                We believe AI should enhance human creativity, not replace it. Our Brand Brain is 
+                your tireless assistant—analyzing, learning, and suggesting—while you remain 
+                firmly in the creative driver's seat.
+              </p>
+              <p className="text-muted-foreground mb-4">
+                Every recommendation comes with context. Every insight is actionable. 
+                The AI learns your brand's unique voice and provides personalized guidance 
+                that gets smarter with every update.
+              </p>
+              <p className="text-sm text-accent font-medium">
+                You create. AI supports. Together, brands thrive.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="py-10 sm:py-16 px-4 sm:px-6 lg:px-8 bg-muted/20 border-y border-border/30">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center">
+            <div>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">500+</div>
+              <p className="text-sm text-muted-foreground">Brand Guides Created</p>
+            </div>
+            <div>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">50+</div>
+              <p className="text-sm text-muted-foreground">Organizations</p>
+            </div>
+            <div>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">25+</div>
+              <p className="text-sm text-muted-foreground">Sections Available</p>
+            </div>
+            <div>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">∞</div>
+              <p className="text-sm text-muted-foreground">Creative Possibilities</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Single CTA */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
-            Ready to elevate your brand?
+            Ready to bring your brand to life?
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Contact our team to learn how BrandHub can transform your brand management.
+            Join the designers, marketers, and brand teams who've made the switch to living brand guidelines.
           </p>
           <Button 
             size="lg" 
-            onClick={() => window.location.href = 'mailto:support@brandhub.com?subject=BrandHub Inquiry'}
+            onClick={() => window.location.href = 'mailto:support@brandhub.com?subject=BrandHub Demo Request'}
             className="gap-2 px-8"
           >
             <Zap className="h-5 w-5" />

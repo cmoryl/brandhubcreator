@@ -52,6 +52,7 @@ const InviteMembersDialog = lazy(() => import('@/components/organization/InviteM
 const AppSettingsEditor = lazy(() => import('@/components/admin/AppSettingsEditor').then(m => ({ default: m.AppSettingsEditor })));
 const OrganizationSwitcher = lazy(() => import('@/components/OrganizationSwitcher').then(m => ({ default: m.OrganizationSwitcher })));
 const FeaturesShowcase = lazy(() => import('@/components/landing/FeaturesShowcase').then(m => ({ default: m.FeaturesShowcase })));
+const InteractiveProcessSection = lazy(() => import('@/components/landing/InteractiveProcessSection').then(m => ({ default: m.InteractiveProcessSection })));
 const LearnMoreCard = lazy(() => import('@/components/landing/LearnMoreForm').then(m => ({ default: m.LearnMoreCard })));
 const BrandBackupManager = lazy(() => import('@/components/brand/BrandBackupManager').then(m => ({ default: m.BrandBackupManager })));
 
@@ -949,111 +950,11 @@ const BrandsIndex = () => {
         </section>
       )}
 
-      {/* How It Works Section - Living Brand Guide */}
+      {/* Interactive How It Works Section */}
       {!user && settings.pageSections?.about !== false && (
-        <section id="how-it-works" className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 bg-muted/30 border-t border-border/30">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-8 sm:mb-12">
-              <div className="p-3 bg-accent/10 rounded-xl w-fit mx-auto mb-4">
-                <Brain className="h-6 w-6 text-accent" />
-              </div>
-              <h2 className="text-xl sm:text-3xl font-bold text-foreground mb-2 sm:mb-4">How BrandHub Works</h2>
-              <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-                Create a living, breathing brand guide powered by an intelligent Brand Brain that learns and grows with your organization.
-              </p>
-            </div>
-            
-            {/* Steps Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-10 sm:mb-14">
-              {/* Step 1 */}
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                    1
-                  </div>
-                  <h3 className="font-semibold text-foreground">Build Your Brand</h3>
-                </div>
-                <p className="text-sm text-muted-foreground pl-13">
-                  Start with your core brand identity—colors, typography, logos, and values. 
-                  Add sections as you grow: patterns, gradients, imagery, templates, and more.
-                </p>
-                <div className="hidden md:block absolute top-5 right-0 w-1/3 h-px bg-gradient-to-r from-primary/30 to-transparent" />
-              </div>
-              
-              {/* Step 2 */}
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center text-accent font-bold">
-                    2
-                  </div>
-                  <h3 className="font-semibold text-foreground">Expand Your Ecosystem</h3>
-                </div>
-                <p className="text-sm text-muted-foreground pl-13">
-                  As your brand grows, add product lines and event kits. 
-                  Each inherits from your master brand while maintaining unique variations.
-                </p>
-                <div className="hidden md:block absolute top-5 right-0 w-1/3 h-px bg-gradient-to-r from-accent/30 to-transparent" />
-              </div>
-              
-              {/* Step 3 */}
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-600 dark:text-green-400 font-bold">
-                    3
-                  </div>
-                  <h3 className="font-semibold text-foreground">Let AI Learn & Guide</h3>
-                </div>
-                <p className="text-sm text-muted-foreground pl-13">
-                  Your Brand Brain analyzes every update, providing health scores, 
-                  market insights, and growth recommendations to keep your brand thriving.
-                </p>
-              </div>
-            </div>
-            
-            {/* Living Brand Feature Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="p-5 border-border/50 hover:border-primary/30 transition-all hover:shadow-lg group">
-                <div className="p-2 bg-primary/10 rounded-lg w-fit mb-3 group-hover:scale-110 transition-transform">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                </div>
-                <h4 className="font-medium text-foreground mb-1.5 text-sm">Brand Brain</h4>
-                <p className="text-xs text-muted-foreground">
-                  AI learns your brand voice, analyzes consistency, and provides intelligent recommendations.
-                </p>
-              </Card>
-              
-              <Card className="p-5 border-border/50 hover:border-accent/30 transition-all hover:shadow-lg group">
-                <div className="p-2 bg-accent/10 rounded-lg w-fit mb-3 group-hover:scale-110 transition-transform">
-                  <TrendingUp className="h-5 w-5 text-accent" />
-                </div>
-                <h4 className="font-medium text-foreground mb-1.5 text-sm">Health Scores</h4>
-                <p className="text-xs text-muted-foreground">
-                  Real-time brand health metrics track completeness, consistency, and growth potential.
-                </p>
-              </Card>
-              
-              <Card className="p-5 border-border/50 hover:border-green-500/30 transition-all hover:shadow-lg group">
-                <div className="p-2 bg-green-500/10 rounded-lg w-fit mb-3 group-hover:scale-110 transition-transform">
-                  <Layers className="h-5 w-5 text-green-500" />
-                </div>
-                <h4 className="font-medium text-foreground mb-1.5 text-sm">Product & Event Kits</h4>
-                <p className="text-xs text-muted-foreground">
-                  Extend your brand into products and events with inherited styles and custom variations.
-                </p>
-              </Card>
-              
-              <Card className="p-5 border-border/50 hover:border-orange-500/30 transition-all hover:shadow-lg group">
-                <div className="p-2 bg-orange-500/10 rounded-lg w-fit mb-3 group-hover:scale-110 transition-transform">
-                  <BarChart3 className="h-5 w-5 text-orange-500" />
-                </div>
-                <h4 className="font-medium text-foreground mb-1.5 text-sm">Market Intelligence</h4>
-                <p className="text-xs text-muted-foreground">
-                  AI-powered competitor analysis, trend forecasting, and positioning insights.
-                </p>
-              </Card>
-            </div>
-          </div>
-        </section>
+        <Suspense fallback={<div className="py-24 text-center text-muted-foreground">Loading...</div>}>
+          <InteractiveProcessSection />
+        </Suspense>
       )}
 
       {/* Learn More Section - Compact on mobile */}
