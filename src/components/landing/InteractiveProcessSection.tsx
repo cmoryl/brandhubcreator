@@ -32,13 +32,13 @@ const ProcessStep = ({ step, title, subtitle, description, features, icon, color
       <div className={cn(
         "absolute -top-3 -left-3 sm:-top-4 sm:-left-4 h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all duration-500",
         isActive 
-          ? `${accentColor} text-white scale-110` 
+          ? "bg-white text-accent scale-110 shadow-lg" 
           : "bg-muted text-muted-foreground"
       )}>
         {isActive && (
-          <div className={cn("absolute inset-0 rounded-full animate-ping opacity-30", accentColor)} />
+          <div className="absolute inset-0 rounded-full animate-ping opacity-30 bg-accent" />
         )}
-        {step}
+        <span className={cn(isActive && "relative z-10")}>{step}</span>
       </div>
       
       {/* Icon */}
