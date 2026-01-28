@@ -629,7 +629,8 @@ const ProductEditor = () => {
                 </Tooltip>
                 <ShareButton 
                   guideId={currentProduct.id} 
-                  guideName={currentProduct.hero.name} 
+                  guideName={currentProduct.hero.name}
+                  guideSlug={currentProduct.slug || undefined}
                   type="product"
                   isPublic={currentProduct.isPublic}
                   onPublicChange={(isPublic) => handleUpdateProduct({ isPublic })}
