@@ -486,18 +486,31 @@ const AuthPage = () => {
                   </Button>
                 </form>
                 
-                {/* Request Access CTA */}
-                <div className="mt-6 pt-4 border-t border-border text-center">
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Need access? Contact your administrator.
-                  </p>
-                  <Button
-                    variant="link"
-                    className="text-primary"
-                    onClick={() => window.location.href = 'mailto:support@brandhub.com?subject=Access Request'}
-                  >
-                    Request Access
-                  </Button>
+                {/* Request Access & Back Options */}
+                <div className="mt-6 pt-4 border-t border-border space-y-3">
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Need access? Get in touch with us.
+                    </p>
+                    <Button
+                      variant="link"
+                      className="text-primary"
+                      onClick={() => navigate('/contact')}
+                    >
+                      Request Access
+                    </Button>
+                  </div>
+                  <div className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground hover:text-foreground"
+                      onClick={() => navigate('/')}
+                    >
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      Back to Home
+                    </Button>
+                  </div>
                 </div>
             </div>
             )}
