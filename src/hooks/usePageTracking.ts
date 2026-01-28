@@ -44,6 +44,11 @@ export const usePageTracking = (options: TrackingOptions = {}) => {
   const pageStartTime = useRef<number>(Date.now());
   const lastPath = useRef<string>('');
   const sessionId = useRef<string>('');
+  const isTracking = useRef<boolean>(false);
+  const optionsRef = useRef(options);
+  
+  // Keep options ref updated
+  optionsRef.current = options;
 
   // Initialize or get session
   const getOrCreateSession = useCallback(async () => {
@@ -78,26 +83,29 @@ export const usePageTracking = (options: TrackingOptions = {}) => {
     return storedSessionId;
   }, [user?.id]);
 
-  // Track page view
+  // Track page view - stable callback using refs
   const trackPageView = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id || isTracking.current) return;
     
-    const currentSessionId = await getOrCreateSession();
     const path = location.pathname;
     
     // Don't track the same path twice in a row
     if (path === lastPath.current) return;
     
-    // Calculate duration of previous page
-    const duration = Math.floor((Date.now() - pageStartTime.current) / 1000);
+    isTracking.current = true;
     
     try {
+      const currentSessionId = await getOrCreateSession();
+      
+      // Calculate duration of previous page
+      const duration = Math.floor((Date.now() - pageStartTime.current) / 1000);
+      
       await supabase.from('page_views').insert({
         user_id: user.id,
         session_id: currentSessionId,
-        entity_type: options.entityType || 'page',
-        entity_id: options.entityId || null,
-        entity_name: options.entityName || null,
+        entity_type: optionsRef.current.entityType || 'page',
+        entity_id: optionsRef.current.entityId || null,
+        entity_name: optionsRef.current.entityName || null,
         page_path: path,
         referrer: document.referrer || null,
         user_agent: navigator.userAgent,
@@ -108,22 +116,24 @@ export const usePageTracking = (options: TrackingOptions = {}) => {
       // Update session page count
       await supabase
         .from('user_sessions')
-        .update({ page_count: 1 }) // Will be incremented properly via trigger if needed
+        .update({ page_count: 1 })
         .eq('session_id', currentSessionId)
         .single();
       
+      lastPath.current = path;
+      pageStartTime.current = Date.now();
     } catch (error) {
       console.error('[PageTracking] Failed to track page view:', error);
+    } finally {
+      isTracking.current = false;
     }
-    
-    lastPath.current = path;
-    pageStartTime.current = Date.now();
-  }, [user?.id, location.pathname, options, getOrCreateSession]);
+  }, [user?.id, location.pathname, getOrCreateSession]);
 
-  // Track on route change
+  // Track on route change - only depends on pathname
   useEffect(() => {
     trackPageView();
-  }, [location.pathname, trackPageView]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   // Track session end on unmount
   useEffect(() => {
