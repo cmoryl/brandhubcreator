@@ -6,7 +6,7 @@
 
 import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users } from 'lucide-react';
+import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -352,6 +352,11 @@ const OrganizationPortal = () => {
                       </DropdownMenuItem>
                     )}
                     
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate('/help')} className="gap-2 cursor-pointer">
+                      <HelpCircle className="h-4 w-4" />
+                      Help Center
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       onClick={() => signOut()} 
