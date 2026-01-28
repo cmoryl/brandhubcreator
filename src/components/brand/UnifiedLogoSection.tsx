@@ -548,7 +548,10 @@ export const UnifiedLogoSection = ({
 
       {showGroupedByVariant && gridLayout === 'grouped' ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-          {variants.map((variant) => (
+          {variants
+            // Filter out empty variants for non-editors (public viewers)
+            .filter(variant => canEdit || (groupedLogos[variant.value]?.length || 0) > 0)
+            .map((variant) => (
             <div key={variant.value} className="space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b border-border/50">
                 <Badge className={cn("text-xs", variant.color)}>
