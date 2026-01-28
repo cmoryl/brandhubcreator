@@ -583,70 +583,95 @@ export default function AdminDashboard() {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          {/* Tabs: horizontally scrollable on small screens, wraps on larger to prevent misalignment */}
-          <TabsList className="w-full justify-start gap-1 overflow-x-auto flex flex-nowrap md:flex-wrap md:overflow-visible">
-            <TabsTrigger value="overview" className="gap-2 shrink-0">
-              <BarChart3 className="h-4 w-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="approvals" className="gap-2 relative shrink-0">
-              <UserCheck className="h-4 w-4" />
-              Approvals
-              {(stats?.pendingApprovals ?? 0) > 0 && (
-                <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {stats?.pendingApprovals}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="users" className="gap-2 shrink-0">
-              <Users className="h-4 w-4" />
-              Users
-            </TabsTrigger>
-            <TabsTrigger value="organizations" className="gap-2 shrink-0">
-              <Building2 className="h-4 w-4" />
-              Organizations
-            </TabsTrigger>
-            <TabsTrigger value="members" className="gap-2 shrink-0">
-              <Users className="h-4 w-4" />
-              Members
-            </TabsTrigger>
-            <TabsTrigger value="content" className="gap-2 shrink-0">
-              <Palette className="h-4 w-4" />
-              Content
-            </TabsTrigger>
-            <TabsTrigger value="inspector" className="gap-2 shrink-0">
-              <Database className="h-4 w-4" />
-              Inspector
-            </TabsTrigger>
-            <TabsTrigger value="reports" className="gap-2 shrink-0">
-              <FileText className="h-4 w-4" />
-              Reports
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-2 shrink-0">
-              <BarChart3 className="h-4 w-4" />
-              Brand Analytics
-            </TabsTrigger>
-            <TabsTrigger value="user-analytics" className="gap-2 shrink-0">
-              <Eye className="h-4 w-4" />
-              User Analytics
-            </TabsTrigger>
-            <TabsTrigger value="ai-analysis" className="gap-2 shrink-0">
-              <Brain className="h-4 w-4" />
-              AI Analysis
-            </TabsTrigger>
-            <TabsTrigger value="activity" className="gap-2 shrink-0">
-              <Activity className="h-4 w-4" />
-              Activity
-            </TabsTrigger>
-            <TabsTrigger value="repair" className="gap-2 shrink-0">
-              <Wrench className="h-4 w-4" />
-              Repair
-            </TabsTrigger>
-            <TabsTrigger value="backups" className="gap-2 shrink-0">
-              <HardDrive className="h-4 w-4" />
-              Backups
-            </TabsTrigger>
-          </TabsList>
+          {/* Main Navigation - Horizontally scrollable with clean single-row design */}
+          <div className="border-b border-border overflow-x-auto">
+            <div className="min-w-max">
+              <TabsList className="inline-flex h-12 items-center justify-start gap-1 bg-transparent p-1">
+                {/* Core Admin */}
+                <TabsTrigger value="overview" className="gap-2 data-[state=active]:bg-accent/20">
+                  <BarChart3 className="h-4 w-4" />
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger value="approvals" className="gap-2 relative data-[state=active]:bg-accent/20">
+                  <UserCheck className="h-4 w-4" />
+                  Approvals
+                  {(stats?.pendingApprovals ?? 0) > 0 && (
+                    <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">
+                      {stats?.pendingApprovals}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                
+                {/* Separator */}
+                <div className="mx-1 h-6 w-px bg-border" />
+                
+                {/* User & Org Management */}
+                <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-accent/20">
+                  <Users className="h-4 w-4" />
+                  Users
+                </TabsTrigger>
+                <TabsTrigger value="organizations" className="gap-2 data-[state=active]:bg-accent/20">
+                  <Building2 className="h-4 w-4" />
+                  Orgs
+                </TabsTrigger>
+                <TabsTrigger value="members" className="gap-2 data-[state=active]:bg-accent/20">
+                  <UserPlus className="h-4 w-4" />
+                  Members
+                </TabsTrigger>
+                
+                {/* Separator */}
+                <div className="mx-1 h-6 w-px bg-border" />
+                
+                {/* Content & Data */}
+                <TabsTrigger value="content" className="gap-2 data-[state=active]:bg-accent/20">
+                  <Palette className="h-4 w-4" />
+                  Content
+                </TabsTrigger>
+                <TabsTrigger value="inspector" className="gap-2 data-[state=active]:bg-accent/20">
+                  <Database className="h-4 w-4" />
+                  Inspector
+                </TabsTrigger>
+                
+                {/* Separator */}
+                <div className="mx-1 h-6 w-px bg-border" />
+                
+                {/* Analytics & AI */}
+                <TabsTrigger value="analytics" className="gap-2 data-[state=active]:bg-accent/20">
+                  <TrendingUp className="h-4 w-4" />
+                  Analytics
+                </TabsTrigger>
+                <TabsTrigger value="user-analytics" className="gap-2 data-[state=active]:bg-accent/20">
+                  <Eye className="h-4 w-4" />
+                  User Stats
+                </TabsTrigger>
+                <TabsTrigger value="ai-analysis" className="gap-2 data-[state=active]:bg-accent/20">
+                  <Brain className="h-4 w-4" />
+                  AI
+                </TabsTrigger>
+                
+                {/* Separator */}
+                <div className="mx-1 h-6 w-px bg-border" />
+                
+                {/* Tools */}
+                <TabsTrigger value="reports" className="gap-2 data-[state=active]:bg-accent/20">
+                  <FileText className="h-4 w-4" />
+                  Reports
+                </TabsTrigger>
+                <TabsTrigger value="activity" className="gap-2 data-[state=active]:bg-accent/20">
+                  <Activity className="h-4 w-4" />
+                  Activity
+                </TabsTrigger>
+                <TabsTrigger value="repair" className="gap-2 data-[state=active]:bg-accent/20">
+                  <Wrench className="h-4 w-4" />
+                  Repair
+                </TabsTrigger>
+                <TabsTrigger value="backups" className="gap-2 data-[state=active]:bg-accent/20">
+                  <HardDrive className="h-4 w-4" />
+                  Backups
+                </TabsTrigger>
+              </TabsList>
+            </div>
+          </div>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
