@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, forwardRef } from 'react';
 import { 
   Download, 
   Upload, 
@@ -16,6 +16,7 @@ import {
   Sparkles,
   RefreshCw,
   Plus,
+  HardDrive,
 } from 'lucide-react';
 import {
   Dialog,
@@ -36,6 +37,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { useBrandBackup, BrandBackupData, FullBackupData } from '@/hooks/useBrandBackup';
+import { useCompressedBackup } from '@/hooks/useCompressedBackup';
 import { BrandGuide, ProductGuide } from '@/types/brand';
 import { useBrands } from '@/contexts/BrandContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -49,13 +51,13 @@ interface BrandBackupDialogProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-export const BrandBackupDialog = ({
+export const BrandBackupDialog = forwardRef<HTMLDivElement, BrandBackupDialogProps>(({
   guide,
   showFullBackup = false,
   trigger,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
-}: BrandBackupDialogProps) => {
+}, ref) => {
   const { brands, products, refetch } = useBrands();
   const { organization } = useOrganization();
   const {
@@ -66,6 +68,9 @@ export const BrandBackupDialog = ({
     importFullBackup,
     mergeGuide,
   } = useBrandBackup();
+  
+  // Use compressed backup for full organization backups
+  const { progress: compressedProgress, createCompressedBackup, cancelBackup, resetProgress } = useCompressedBackup();
 
   const [internalOpen, setInternalOpen] = useState(false);
   
@@ -85,15 +90,31 @@ export const BrandBackupDialog = ({
   const [importMode, setImportMode] = useState<'create' | 'update'>('create');
   const [selectedExistingGuide, setSelectedExistingGuide] = useState<string>('');
   const [overwriteExisting, setOverwriteExisting] = useState(false);
+  
+  // Full backup mode: 'local' (JSON download) or 'cloud' (compressed to storage)
+  const [fullBackupMode, setFullBackupMode] = useState<'local' | 'cloud'>('cloud');
 
-  const handleExport = useCallback(() => {
+  const handleExport = useCallback(async () => {
     if (guide) {
       downloadGuide(guide);
-    } else if (showFullBackup) {
-      downloadFullBackup(brands, products, organization?.name);
+      setOpen(false);
+    } else if (showFullBackup && organization?.id) {
+      if (fullBackupMode === 'cloud') {
+        // Use compressed backup to cloud storage
+        await createCompressedBackup({
+          organizationId: organization.id,
+          includeBrands: true,
+          includeProducts: true,
+          includeEvents: true,
+        });
+        // Don't close dialog - let user see progress
+      } else {
+        // Local JSON download
+        downloadFullBackup(brands, products, organization?.name);
+        setOpen(false);
+      }
     }
-    setOpen(false);
-  }, [guide, showFullBackup, brands, products, organization?.name, downloadGuide, downloadFullBackup]);
+  }, [guide, showFullBackup, organization, fullBackupMode, brands, products, downloadGuide, downloadFullBackup, createCompressedBackup, setOpen]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -377,36 +398,142 @@ export const BrandBackupDialog = ({
           </TabsList>
 
           <TabsContent value="export" className="space-y-4 mt-4">
-            <div className="p-6 rounded-xl bg-gradient-to-br from-primary/5 to-accent/5 border-2 border-dashed border-primary/20">
-              <div className="text-center space-y-3">
-                <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Download className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h4 className="font-semibold">
-                    {guide ? `Export "${guide.hero.name}"` : 'Export All Guides'}
-                  </h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {guide 
-                      ? 'Download this guide as a JSON file to your computer'
-                      : `Download ${brands.length} brands and ${products.length} products`
-                    }
+            {/* Show progress for cloud backup */}
+            {showFullBackup && compressedProgress.phase !== 'idle' && compressedProgress.phase !== 'complete' ? (
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-muted/50 border">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      <span className="font-medium text-sm">
+                        {compressedProgress.phase === 'fetching' && 'Fetching data...'}
+                        {compressedProgress.phase === 'compressing' && 'Compressing...'}
+                        {compressedProgress.phase === 'uploading' && 'Uploading to cloud...'}
+                        {compressedProgress.phase === 'error' && 'Backup failed'}
+                      </span>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={cancelBackup}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Progress 
+                    value={compressedProgress.totalItems > 0 
+                      ? (compressedProgress.processedItems / compressedProgress.totalItems) * 100 
+                      : 0
+                    } 
+                    className="h-2"
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {compressedProgress.currentItem || `${compressedProgress.processedItems} of ${compressedProgress.totalItems} items`}
                   </p>
                 </div>
-                <Button onClick={handleExport} className="gap-2">
-                  <Download className="h-4 w-4" />
-                  Download Backup File
-                </Button>
               </div>
-            </div>
+            ) : compressedProgress.phase === 'complete' ? (
+              <div className="p-6 rounded-xl bg-gradient-to-br from-green-500/10 to-green-500/5 border-2 border-green-500/20">
+                <div className="text-center space-y-3">
+                  <div className="mx-auto w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
+                    <Check className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-green-700 dark:text-green-400">Backup Complete!</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Your data has been securely saved to cloud storage.
+                    </p>
+                  </div>
+                  <div className="flex gap-2 justify-center">
+                    <Button variant="outline" size="sm" onClick={() => { resetProgress(); setOpen(false); }}>
+                      Close
+                    </Button>
+                    <Button size="sm" onClick={() => resetProgress()} className="gap-2">
+                      <RefreshCw className="h-4 w-4" />
+                      Create Another
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="p-6 rounded-xl bg-gradient-to-br from-primary/5 to-accent/5 border-2 border-dashed border-primary/20">
+                  <div className="text-center space-y-3">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      {showFullBackup && fullBackupMode === 'cloud' ? (
+                        <HardDrive className="h-6 w-6 text-primary" />
+                      ) : (
+                        <Download className="h-6 w-6 text-primary" />
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold">
+                        {guide ? `Export "${guide.hero.name}"` : 'Backup All Guides'}
+                      </h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {guide 
+                          ? 'Download this guide as a JSON file to your computer'
+                          : showFullBackup && fullBackupMode === 'cloud'
+                            ? `Backup ${brands.length} brands and ${products.length} products to cloud storage`
+                            : `Download ${brands.length} brands and ${products.length} products`
+                        }
+                      </p>
+                    </div>
+                    
+                    {/* Backup mode toggle for full backups */}
+                    {showFullBackup && !guide && (
+                      <div className="flex items-center justify-center gap-3 py-2">
+                        <Button 
+                          variant={fullBackupMode === 'cloud' ? 'default' : 'outline'} 
+                          size="sm"
+                          onClick={() => setFullBackupMode('cloud')}
+                          className="gap-2"
+                        >
+                          <HardDrive className="h-4 w-4" />
+                          Cloud Storage
+                        </Button>
+                        <Button 
+                          variant={fullBackupMode === 'local' ? 'default' : 'outline'} 
+                          size="sm"
+                          onClick={() => setFullBackupMode('local')}
+                          className="gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          Local Download
+                        </Button>
+                      </div>
+                    )}
+                    
+                    <Button onClick={handleExport} className="gap-2" disabled={isProcessing}>
+                      {showFullBackup && fullBackupMode === 'cloud' ? (
+                        <>
+                          <HardDrive className="h-4 w-4" />
+                          Backup to Cloud
+                        </>
+                      ) : (
+                        <>
+                          <Download className="h-4 w-4" />
+                          Download Backup File
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
 
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 text-sm">
-              <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-              <p className="text-muted-foreground">
-                <span className="font-medium text-foreground">Tip:</span> Keep regular backups of your brand guides. 
-                You can import them anytime to restore or share with team members.
-              </p>
-            </div>
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 text-sm">
+                  <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <p className="text-muted-foreground">
+                    {showFullBackup && fullBackupMode === 'cloud' ? (
+                      <>
+                        <span className="font-medium text-foreground">Cloud Backup:</span> Your data is compressed 
+                        and stored securely. Accessible from your backup history.
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-medium text-foreground">Tip:</span> Keep regular backups of your brand guides. 
+                        You can import them anytime to restore or share with team members.
+                      </>
+                    )}
+                  </p>
+                </div>
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="import" className="space-y-4 mt-4">
@@ -612,4 +739,6 @@ export const BrandBackupDialog = ({
       </DialogContent>
     </Dialog>
   );
-};
+});
+
+BrandBackupDialog.displayName = 'BrandBackupDialog';
