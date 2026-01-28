@@ -178,28 +178,28 @@ const faqs = [
     ]
   },
   {
-    category: "Pricing & Plans",
+    category: "Getting Started & Plans",
     icon: CreditCard,
     questions: [
       {
-        q: "Is BrandHub free to use?",
-        a: "BrandHub offers a free tier with essential features. You can create and share brand guides at no cost. Premium features and advanced capabilities are available on paid plans."
+        q: "How do I get started with BrandHub?",
+        a: "Contact our team to get started! We'll walk you through the platform, understand your brand management needs, and set up your organization with the right configuration for your team."
       },
       {
-        q: "What's included in the free plan?",
-        a: "The free plan includes the ability to create brand guides, add colors, typography, logos, and share publicly. You get access to all core sections and basic export options."
+        q: "How does pricing work?",
+        a: "We offer flexible plans tailored to your organization's needs. Contact us for a personalized quote based on your team size, feature requirements, and usage needs."
       },
       {
-        q: "How do I upgrade my account?",
-        a: "Navigate to your account settings and select the plan that fits your needs. Upgrades are instant and you'll immediately get access to premium features."
+        q: "What's included when I sign up?",
+        a: "All plans include brand guide creation, color palettes, typography management, logo usage guidelines, team collaboration, and public sharing. Contact us to learn about additional features like event kits and advanced integrations."
       },
       {
-        q: "Can I cancel my subscription anytime?",
-        a: "Yes, you can cancel your subscription at any time. You'll continue to have access to premium features until the end of your billing period."
+        q: "Do you offer custom solutions for enterprises?",
+        a: "Yes! We work with organizations of all sizes to create custom solutions. Reach out to discuss white-labeling, custom domains, advanced integrations, and dedicated support options."
       },
       {
-        q: "Do you offer discounts for students or nonprofits?",
-        a: "Yes! We offer special pricing for students, educators, and nonprofit organizations. Contact our support team with verification to get your discount applied."
+        q: "How can I request a demo?",
+        a: "We'd love to show you around! Contact our team to schedule a personalized demo where we'll walk through how BrandHub can streamline your brand management workflow."
       }
     ]
   },
@@ -217,7 +217,7 @@ const faqs = [
       },
       {
         q: "How many team members can I add?",
-        a: "The number of team members depends on your plan. Free plans support individual use, while paid plans offer unlimited team members."
+        a: "Team member limits are based on your organization's plan. Contact us to discuss your team size requirements and we'll configure the right solution for you."
       },
       {
         q: "Can different team members work on the same brand guide?",
@@ -243,7 +243,7 @@ const faqs = [
       },
       {
         q: "Is there an API available?",
-        a: "API access is available on enterprise plans. Contact our sales team to learn more about programmatic access to your brand data."
+        a: "API access is available for organizations that need programmatic access to brand data. Contact our team to learn more about integration options."
       },
       {
         q: "Can I import brand assets from other tools?",
