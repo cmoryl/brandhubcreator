@@ -64,6 +64,34 @@ const OrganizationPortal = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'brands' | 'products' | 'events'>('all');
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
 
+  // Dev-only tracer to catch the exact toggle that causes layout flashing
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    console.debug('[PortalDebug] render flags', {
+      slug,
+      dataLoading,
+      hasFetchedOnce,
+      hasInitialData,
+      hasContent,
+      showSkeletons,
+      counts: { brands: brands.length, products: products.length, events: events.length },
+      activeTab,
+      searchQuery: searchQuery ? '(non-empty)' : '(empty)',
+    });
+  }, [
+    slug,
+    dataLoading,
+    hasFetchedOnce,
+    hasInitialData,
+    hasContent,
+    showSkeletons,
+    brands.length,
+    products.length,
+    events.length,
+    activeTab,
+    searchQuery,
+  ]);
+
   // Use the filtering hook
   const { filteredBrands, filteredProducts, filteredEvents, totalResults } = useFilteredPortalData(
     brands,
