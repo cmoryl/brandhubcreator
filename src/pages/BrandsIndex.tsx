@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, lazy, Suspense, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink, BarChart3, Users, FolderCheck, TrendingUp, FileSearch, ShieldCheck, CheckCircle, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink, BarChart3, Users, FolderCheck, TrendingUp, FileSearch, ShieldCheck, CheckCircle, ChevronDown, Brain, Sparkles } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { AnimatedHeroCanvas } from '@/components/AnimatedHeroCanvas';
@@ -949,28 +949,108 @@ const BrandsIndex = () => {
         </section>
       )}
 
-      {/* About Section - Compact on mobile */}
+      {/* How It Works Section - Living Brand Guide */}
       {!user && settings.pageSections?.about !== false && (
-        <section id="about" className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 bg-muted/30 border-t border-border/30">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">About BrandHub</h2>
-            <p className="text-sm sm:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
-              BrandHub is the modern platform for creating, managing, and sharing professional brand guidelines. 
-              Whether you're a startup or enterprise, we provide the tools for brand consistency.
-            </p>
-            <div className="grid grid-cols-3 gap-4 sm:gap-8 mt-8 sm:mt-12">
-              <div className="text-center">
-                <div className="text-2xl sm:text-4xl font-bold text-primary mb-1 sm:mb-2">500+</div>
-                <p className="text-xs sm:text-base text-muted-foreground">Brand Guides</p>
+        <section id="how-it-works" className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 bg-muted/30 border-t border-border/30">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-8 sm:mb-12">
+              <div className="p-3 bg-accent/10 rounded-xl w-fit mx-auto mb-4">
+                <Brain className="h-6 w-6 text-accent" />
               </div>
-              <div className="text-center">
-                <div className="text-2xl sm:text-4xl font-bold text-primary mb-1 sm:mb-2">50+</div>
-                <p className="text-xs sm:text-base text-muted-foreground">Organizations</p>
+              <h2 className="text-xl sm:text-3xl font-bold text-foreground mb-2 sm:mb-4">How BrandHub Works</h2>
+              <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+                Create a living, breathing brand guide powered by an intelligent Brand Brain that learns and grows with your organization.
+              </p>
+            </div>
+            
+            {/* Steps Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-10 sm:mb-14">
+              {/* Step 1 */}
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                    1
+                  </div>
+                  <h3 className="font-semibold text-foreground">Build Your Brand</h3>
+                </div>
+                <p className="text-sm text-muted-foreground pl-13">
+                  Start with your core brand identity—colors, typography, logos, and values. 
+                  Add sections as you grow: patterns, gradients, imagery, templates, and more.
+                </p>
+                <div className="hidden md:block absolute top-5 right-0 w-1/3 h-px bg-gradient-to-r from-primary/30 to-transparent" />
               </div>
-              <div className="text-center">
-                <div className="text-2xl sm:text-4xl font-bold text-primary mb-1 sm:mb-2">25+</div>
-                <p className="text-xs sm:text-base text-muted-foreground">Sections</p>
+              
+              {/* Step 2 */}
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center text-accent font-bold">
+                    2
+                  </div>
+                  <h3 className="font-semibold text-foreground">Expand Your Ecosystem</h3>
+                </div>
+                <p className="text-sm text-muted-foreground pl-13">
+                  As your brand grows, add product lines and event kits. 
+                  Each inherits from your master brand while maintaining unique variations.
+                </p>
+                <div className="hidden md:block absolute top-5 right-0 w-1/3 h-px bg-gradient-to-r from-accent/30 to-transparent" />
               </div>
+              
+              {/* Step 3 */}
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-600 dark:text-green-400 font-bold">
+                    3
+                  </div>
+                  <h3 className="font-semibold text-foreground">Let AI Learn & Guide</h3>
+                </div>
+                <p className="text-sm text-muted-foreground pl-13">
+                  Your Brand Brain analyzes every update, providing health scores, 
+                  market insights, and growth recommendations to keep your brand thriving.
+                </p>
+              </div>
+            </div>
+            
+            {/* Living Brand Feature Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="p-5 border-border/50 hover:border-primary/30 transition-all hover:shadow-lg group">
+                <div className="p-2 bg-primary/10 rounded-lg w-fit mb-3 group-hover:scale-110 transition-transform">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <h4 className="font-medium text-foreground mb-1.5 text-sm">Brand Brain</h4>
+                <p className="text-xs text-muted-foreground">
+                  AI learns your brand voice, analyzes consistency, and provides intelligent recommendations.
+                </p>
+              </Card>
+              
+              <Card className="p-5 border-border/50 hover:border-accent/30 transition-all hover:shadow-lg group">
+                <div className="p-2 bg-accent/10 rounded-lg w-fit mb-3 group-hover:scale-110 transition-transform">
+                  <TrendingUp className="h-5 w-5 text-accent" />
+                </div>
+                <h4 className="font-medium text-foreground mb-1.5 text-sm">Health Scores</h4>
+                <p className="text-xs text-muted-foreground">
+                  Real-time brand health metrics track completeness, consistency, and growth potential.
+                </p>
+              </Card>
+              
+              <Card className="p-5 border-border/50 hover:border-green-500/30 transition-all hover:shadow-lg group">
+                <div className="p-2 bg-green-500/10 rounded-lg w-fit mb-3 group-hover:scale-110 transition-transform">
+                  <Layers className="h-5 w-5 text-green-500" />
+                </div>
+                <h4 className="font-medium text-foreground mb-1.5 text-sm">Product & Event Kits</h4>
+                <p className="text-xs text-muted-foreground">
+                  Extend your brand into products and events with inherited styles and custom variations.
+                </p>
+              </Card>
+              
+              <Card className="p-5 border-border/50 hover:border-orange-500/30 transition-all hover:shadow-lg group">
+                <div className="p-2 bg-orange-500/10 rounded-lg w-fit mb-3 group-hover:scale-110 transition-transform">
+                  <BarChart3 className="h-5 w-5 text-orange-500" />
+                </div>
+                <h4 className="font-medium text-foreground mb-1.5 text-sm">Market Intelligence</h4>
+                <p className="text-xs text-muted-foreground">
+                  AI-powered competitor analysis, trend forecasting, and positioning insights.
+                </p>
+              </Card>
             </div>
           </div>
         </section>
@@ -1114,9 +1194,9 @@ const BrandsIndex = () => {
             </div>
             
             <nav className="flex flex-wrap items-center justify-center gap-6 text-sm">
-              <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors">
+              <button onClick={() => navigate('/about')} className="text-muted-foreground hover:text-foreground transition-colors">
                 About
-              </a>
+              </button>
               <button onClick={() => navigate('/knowledge')} className="text-muted-foreground hover:text-foreground transition-colors">
                 FAQ & Help
               </button>

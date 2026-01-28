@@ -37,6 +37,7 @@ const DemoGuideViewer = lazy(() => import("./pages/DemoGuideViewer"));
 const EventEditor = lazy(() => import("./pages/EventEditor"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -152,6 +153,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <ContactUs />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="about"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <AboutPage />
                         </Suspense>
                       }
                     />
