@@ -60,11 +60,11 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'bi2', name: 'App Icon', url: '/images/demos/logo-nexus-tech.png', settings: 'For mobile applications', isVariation: true },
   ],
   colors: [
-    { id: 'c1', name: 'Nexus Blue', hex: '#0066FF', rgb: 'rgb(0, 102, 255)', usage: 'Primary brand color, CTAs, key elements', role: 'primary' },
-    { id: 'c2', name: 'Deep Navy', hex: '#0A1628', rgb: 'rgb(10, 22, 40)', usage: 'Headlines, body text, dark backgrounds', role: 'secondary' },
-    { id: 'c3', name: 'Electric Cyan', hex: '#00D4FF', rgb: 'rgb(0, 212, 255)', usage: 'Accents, highlights, interactive elements', role: 'accent' },
-    { id: 'c4', name: 'Cloud White', hex: '#F8FAFC', rgb: 'rgb(248, 250, 252)', usage: 'Backgrounds, cards, light surfaces', role: 'neutral' },
-    { id: 'c5', name: 'Slate Gray', hex: '#64748B', rgb: 'rgb(100, 116, 139)', usage: 'Secondary text, borders, subtle elements', role: 'neutral' },
+    { id: 'c1', name: 'Nexus Blue', hex: '#0066FF', rgb: 'rgb(0, 102, 255)', usage: 'Primary brand color, CTAs, key elements', role: 'primary', pantone: 'PMS 2728 C' },
+    { id: 'c2', name: 'Deep Navy', hex: '#0A1628', rgb: 'rgb(10, 22, 40)', usage: 'Headlines, body text, dark backgrounds', role: 'secondary', pantone: 'PMS 296 C' },
+    { id: 'c3', name: 'Electric Cyan', hex: '#00D4FF', rgb: 'rgb(0, 212, 255)', usage: 'Accents, highlights, interactive elements', role: 'accent', pantone: 'PMS 306 C' },
+    { id: 'c4', name: 'Cloud White', hex: '#F8FAFC', rgb: 'rgb(248, 250, 252)', usage: 'Backgrounds, cards, light surfaces', role: 'neutral', pantone: 'PMS 663 C' },
+    { id: 'c5', name: 'Slate Gray', hex: '#64748B', rgb: 'rgb(100, 116, 139)', usage: 'Secondary text, borders, subtle elements', role: 'neutral', pantone: 'PMS 430 C' },
   ],
   colorCombinations: [
     { id: 'cc1', name: 'Primary Duo', colors: ['#0066FF', '#00D4FF'], status: 'approved', notes: 'Main gradient combination' },
@@ -117,11 +117,113 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
       id: 'sig1', 
       name: 'Alex Chen', 
       role: 'CEO & Founder', 
-      html: '', 
+      html: `<table cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; max-width: 550px;">
+  <tr>
+    <td style="padding-bottom: 12px; border-bottom: 2px solid #00D4FF;">
+      <p style="margin: 0; font-size: 18px; font-weight: bold; color: #0A1628;">[NAME]</p>
+      <p style="margin: 4px 0 0 0; font-size: 14px; color: #0066FF; font-weight: 500;">[ROLE]</p>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding: 15px 0;">
+      <table cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="padding-right: 20px; vertical-align: top;">
+            <img src="[LOGO_URL]" alt="[COMPANY]" width="100" height="100" style="display: block;">
+          </td>
+          <td style="vertical-align: top;">
+            <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #0A1628;">[COMPANY]</p>
+            <p style="margin: 0 0 4px 0; font-size: 12px; color: #666;">[ADDRESS]</p>
+            <p style="margin: 8px 0 2px 0; font-size: 12px; color: #666;"><span style="color: #0066FF; font-weight: bold;">P:</span> [PHONE]</p>
+            <p style="margin: 2px 0; font-size: 12px; color: #666;"><span style="color: #0066FF; font-weight: bold;">E:</span> [EMAIL]</p>
+            <p style="margin: 2px 0; font-size: 12px; color: #666;"><span style="color: #0066FF; font-weight: bold;">W:</span> [WEBSITE]</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding-top: 10px; border-top: 1px solid #eee;">
+      <p style="margin: 0; font-size: 9px; color: #999; line-height: 1.4;">[CONFIDENTIALITY]</p>
+    </td>
+  </tr>
+</table>`, 
       company: 'Nexus Tech',
       email: 'alex@nexustech.com',
       phone: '+1 (555) 123-4567',
       website: 'nexustech.com',
+      address: '500 Innovation Drive, San Francisco, CA 94105',
+      logoUrl: '/images/demos/logo-nexus-tech.png',
+      variant: 'full',
+      confidentialityNotice: 'CONFIDENTIALITY NOTICE: This email contains confidential information intended only for the recipient specified. If you received this in error, please delete it immediately.',
+    },
+    { 
+      id: 'sig2', 
+      name: 'Alex Chen', 
+      role: 'CEO & Founder', 
+      html: `<div style="font-family: Arial, sans-serif; font-size: 12px; color: #333;">
+  <p style="margin: 0; font-weight: bold;">[NAME]</p>
+  <p style="margin: 2px 0; color: #666;">[ROLE] | [COMPANY]</p>
+  <p style="margin: 8px 0 0 0; color: #999;">[EMAIL] | [PHONE]</p>
+</div>`, 
+      company: 'Nexus Tech',
+      email: 'alex@nexustech.com',
+      phone: '+1 (555) 123-4567',
+      website: 'nexustech.com',
+      variant: 'minimal',
+    },
+    { 
+      id: 'sig3', 
+      name: 'Jordan Park', 
+      role: 'VP of Engineering', 
+      html: `<table cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; max-width: 550px;">
+  <tr>
+    <td style="padding-bottom: 12px; border-bottom: 2px solid #00D4FF;">
+      <p style="margin: 0; font-size: 18px; font-weight: bold; color: #0A1628;">[NAME]</p>
+      <p style="margin: 4px 0 0 0; font-size: 14px; color: #0066FF; font-weight: 500;">[ROLE]</p>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding: 15px 0;">
+      <table cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="padding-right: 20px; vertical-align: top;">
+            <img src="[LOGO_URL]" alt="[COMPANY]" width="100" height="100" style="display: block;">
+          </td>
+          <td style="vertical-align: top;">
+            <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #0A1628;">[COMPANY]</p>
+            <p style="margin: 0 0 4px 0; font-size: 12px; color: #666;">[ADDRESS]</p>
+            <p style="margin: 8px 0 2px 0; font-size: 12px; color: #666;"><span style="color: #0066FF; font-weight: bold;">P:</span> [PHONE]</p>
+            <p style="margin: 2px 0; font-size: 12px; color: #666;"><span style="color: #0066FF; font-weight: bold;">E:</span> [EMAIL]</p>
+            <p style="margin: 2px 0; font-size: 12px; color: #666;"><span style="color: #0066FF; font-weight: bold;">W:</span> [WEBSITE]</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`, 
+      company: 'Nexus Tech',
+      email: 'jordan@nexustech.com',
+      phone: '+1 (555) 987-6543',
+      website: 'nexustech.com',
+      address: '500 Innovation Drive, San Francisco, CA 94105',
+      logoUrl: '/images/demos/logo-nexus-tech.png',
+      variant: 'full',
+    },
+    { 
+      id: 'sig4', 
+      name: 'Jordan Park', 
+      role: 'VP of Engineering', 
+      html: `<div style="font-family: Arial, sans-serif; font-size: 12px; color: #333;">
+  <p style="margin: 0; font-weight: bold;">[NAME]</p>
+  <p style="margin: 2px 0; color: #666;">[ROLE] | [COMPANY]</p>
+  <p style="margin: 8px 0 0 0; color: #999;">[EMAIL] | [PHONE]</p>
+</div>`, 
+      company: 'Nexus Tech',
+      email: 'jordan@nexustech.com',
+      phone: '+1 (555) 987-6543',
+      website: 'nexustech.com',
+      variant: 'minimal',
     },
   ],
   qr: {
@@ -234,11 +336,11 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'bi1', name: 'Bloom Symbol', url: '/images/demos/logo-bloom-wellness.png', settings: 'Main brand mark', isPrimary: true },
   ],
   colors: [
-    { id: 'c1', name: 'Sage Green', hex: '#7CB342', rgb: 'rgb(124, 179, 66)', usage: 'Primary brand color, natural elements', role: 'primary' },
-    { id: 'c2', name: 'Warm Earth', hex: '#8D6E63', rgb: 'rgb(141, 110, 99)', usage: 'Grounding elements, organic feel', role: 'secondary' },
-    { id: 'c3', name: 'Soft Lavender', hex: '#B39DDB', rgb: 'rgb(179, 157, 219)', usage: 'Calm accents, wellness themes', role: 'accent' },
-    { id: 'c4', name: 'Cream', hex: '#FFF8E7', rgb: 'rgb(255, 248, 231)', usage: 'Backgrounds, soft surfaces', role: 'neutral' },
-    { id: 'c5', name: 'Deep Forest', hex: '#2E7D32', rgb: 'rgb(46, 125, 50)', usage: 'Strong accents, emphasis', role: 'secondary' },
+    { id: 'c1', name: 'Sage Green', hex: '#7CB342', rgb: 'rgb(124, 179, 66)', usage: 'Primary brand color, natural elements', role: 'primary', pantone: 'PMS 576 C' },
+    { id: 'c2', name: 'Warm Earth', hex: '#8D6E63', rgb: 'rgb(141, 110, 99)', usage: 'Grounding elements, organic feel', role: 'secondary', pantone: 'PMS 4715 C' },
+    { id: 'c3', name: 'Soft Lavender', hex: '#B39DDB', rgb: 'rgb(179, 157, 219)', usage: 'Calm accents, wellness themes', role: 'accent', pantone: 'PMS 2705 C' },
+    { id: 'c4', name: 'Cream', hex: '#FFF8E7', rgb: 'rgb(255, 248, 231)', usage: 'Backgrounds, soft surfaces', role: 'neutral', pantone: 'PMS 7499 C' },
+    { id: 'c5', name: 'Deep Forest', hex: '#2E7D32', rgb: 'rgb(46, 125, 50)', usage: 'Strong accents, emphasis', role: 'secondary', pantone: 'PMS 357 C' },
   ],
   colorCombinations: [
     { id: 'cc1', name: 'Nature Duo', colors: ['#7CB342', '#2E7D32'], status: 'approved', notes: 'Primary nature palette' },
@@ -276,7 +378,66 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   websites: [
     { id: 'w1', label: 'Main Website', url: 'https://bloomwellness.com' },
   ],
-  signatures: [],
+  signatures: [
+    { 
+      id: 'sig1', 
+      name: 'Maya Rivera', 
+      role: 'Founder & Wellness Director', 
+      html: `<table cellpadding="0" cellspacing="0" style="font-family: Georgia, serif; max-width: 550px;">
+  <tr>
+    <td style="padding-bottom: 12px; border-bottom: 2px solid #7CB342;">
+      <p style="margin: 0; font-size: 18px; font-weight: bold; color: #2E7D32;">[NAME]</p>
+      <p style="margin: 4px 0 0 0; font-size: 14px; color: #7CB342; font-weight: 500;">[ROLE]</p>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding: 15px 0;">
+      <table cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="padding-right: 20px; vertical-align: top;">
+            <img src="[LOGO_URL]" alt="[COMPANY]" width="100" height="100" style="display: block;">
+          </td>
+          <td style="vertical-align: top;">
+            <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #2E7D32;">[COMPANY]</p>
+            <p style="margin: 0 0 4px 0; font-size: 12px; color: #666;">[ADDRESS]</p>
+            <p style="margin: 8px 0 2px 0; font-size: 12px; color: #666;"><span style="color: #7CB342; font-weight: bold;">P:</span> [PHONE]</p>
+            <p style="margin: 2px 0; font-size: 12px; color: #666;"><span style="color: #7CB342; font-weight: bold;">E:</span> [EMAIL]</p>
+            <p style="margin: 2px 0; font-size: 12px; color: #666;"><span style="color: #7CB342; font-weight: bold;">W:</span> [WEBSITE]</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding-top: 10px; border-top: 1px solid #eee;">
+      <p style="margin: 0; font-size: 9px; color: #999; line-height: 1.4; font-style: italic;">Nurturing your journey to holistic well-being 🌿</p>
+    </td>
+  </tr>
+</table>`, 
+      company: 'Bloom Wellness',
+      email: 'maya@bloomwellness.com',
+      phone: '+1 (555) 234-5678',
+      website: 'bloomwellness.com',
+      address: '123 Serenity Lane, Boulder, CO 80302',
+      logoUrl: '/images/demos/logo-bloom-wellness.png',
+      variant: 'full',
+    },
+    { 
+      id: 'sig2', 
+      name: 'Maya Rivera', 
+      role: 'Founder & Wellness Director', 
+      html: `<div style="font-family: Georgia, serif; font-size: 12px; color: #333;">
+  <p style="margin: 0; font-weight: bold;">[NAME]</p>
+  <p style="margin: 2px 0; color: #666;">[ROLE] | [COMPANY]</p>
+  <p style="margin: 8px 0 0 0; color: #999;">[EMAIL] | [PHONE]</p>
+</div>`, 
+      company: 'Bloom Wellness',
+      email: 'maya@bloomwellness.com',
+      phone: '+1 (555) 234-5678',
+      website: 'bloomwellness.com',
+      variant: 'minimal',
+    },
+  ],
   qr: {
     defaultUrl: 'https://bloomwellness.com',
     fgColor: '#7CB342',
@@ -347,9 +508,9 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
     { id: 'bi1', name: 'Cloud Symbol', url: '/images/demos/logo-nexus-cloud.png', settings: 'Product icon', isPrimary: true },
   ],
   colors: [
-    { id: 'c1', name: 'Cloud Blue', hex: '#3B82F6', rgb: 'rgb(59, 130, 246)', usage: 'Primary product color', role: 'primary' },
-    { id: 'c2', name: 'Deep Space', hex: '#1E293B', rgb: 'rgb(30, 41, 59)', usage: 'Dark UI elements', role: 'secondary' },
-    { id: 'c3', name: 'Electric Teal', hex: '#14B8A6', rgb: 'rgb(20, 184, 166)', usage: 'Success states, highlights', role: 'accent' },
+    { id: 'c1', name: 'Cloud Blue', hex: '#3B82F6', rgb: 'rgb(59, 130, 246)', usage: 'Primary product color', role: 'primary', pantone: 'PMS 2727 C' },
+    { id: 'c2', name: 'Deep Space', hex: '#1E293B', rgb: 'rgb(30, 41, 59)', usage: 'Dark UI elements', role: 'secondary', pantone: 'PMS 289 C' },
+    { id: 'c3', name: 'Electric Teal', hex: '#14B8A6', rgb: 'rgb(20, 184, 166)', usage: 'Success states, highlights', role: 'accent', pantone: 'PMS 3262 C' },
   ],
   colorCombinations: [],
   gradients: [
@@ -377,7 +538,46 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
     { id: 'w1', label: 'Cloud Dashboard', url: 'https://cloud.nexustech.com' },
     { id: 'w2', label: 'Documentation', url: 'https://docs.nexustech.com/cloud' },
   ],
-  signatures: [],
+  signatures: [
+    { 
+      id: 'sig1', 
+      name: 'DevOps Team', 
+      role: 'Cloud Support', 
+      html: `<table cellpadding="0" cellspacing="0" style="font-family: 'SF Mono', Consolas, monospace; max-width: 550px;">
+  <tr>
+    <td style="padding-bottom: 12px; border-bottom: 2px solid #14B8A6;">
+      <p style="margin: 0; font-size: 16px; font-weight: bold; color: #1E293B;">[NAME]</p>
+      <p style="margin: 4px 0 0 0; font-size: 13px; color: #3B82F6; font-weight: 500;">[ROLE]</p>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding: 12px 0;">
+      <p style="margin: 0; font-size: 12px; color: #64748B;">Nexus Cloud Platform</p>
+      <p style="margin: 4px 0; font-size: 12px; color: #64748B;"><span style="color: #3B82F6;">E:</span> [EMAIL]</p>
+      <p style="margin: 0; font-size: 12px; color: #64748B;"><span style="color: #3B82F6;">W:</span> cloud.nexustech.com</p>
+    </td>
+  </tr>
+</table>`, 
+      company: 'Nexus Cloud',
+      email: 'support@cloud.nexustech.com',
+      phone: '+1 (555) 800-CLOUD',
+      website: 'cloud.nexustech.com',
+      variant: 'full',
+    },
+    { 
+      id: 'sig2', 
+      name: 'DevOps Team', 
+      role: 'Cloud Support', 
+      html: `<div style="font-family: 'SF Mono', Consolas, monospace; font-size: 11px; color: #333;">
+  <p style="margin: 0; font-weight: bold;">[NAME] | [ROLE]</p>
+  <p style="margin: 4px 0 0 0; color: #64748B;">[EMAIL] • cloud.nexustech.com</p>
+</div>`, 
+      company: 'Nexus Cloud',
+      email: 'support@cloud.nexustech.com',
+      website: 'cloud.nexustech.com',
+      variant: 'minimal',
+    },
+  ],
   qr: {
     defaultUrl: 'https://cloud.nexustech.com',
     fgColor: '#3B82F6',
@@ -448,9 +648,9 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
     { id: 'bi1', name: 'Oils Symbol', url: '/images/demos/logo-bloom-oils.png', settings: 'Product icon', isPrimary: true },
   ],
   colors: [
-    { id: 'c1', name: 'Lavender', hex: '#9575CD', rgb: 'rgb(149, 117, 205)', usage: 'Primary product color', role: 'primary' },
-    { id: 'c2', name: 'Eucalyptus', hex: '#4DB6AC', rgb: 'rgb(77, 182, 172)', usage: 'Freshness, vitality', role: 'secondary' },
-    { id: 'c3', name: 'Honey Gold', hex: '#FFB74D', rgb: 'rgb(255, 183, 77)', usage: 'Warmth, energy', role: 'accent' },
+    { id: 'c1', name: 'Lavender', hex: '#9575CD', rgb: 'rgb(149, 117, 205)', usage: 'Primary product color', role: 'primary', pantone: 'PMS 2715 C' },
+    { id: 'c2', name: 'Eucalyptus', hex: '#4DB6AC', rgb: 'rgb(77, 182, 172)', usage: 'Freshness, vitality', role: 'secondary', pantone: 'PMS 3255 C' },
+    { id: 'c3', name: 'Honey Gold', hex: '#FFB74D', rgb: 'rgb(255, 183, 77)', usage: 'Warmth, energy', role: 'accent', pantone: 'PMS 1365 C' },
   ],
   colorCombinations: [],
   gradients: [
@@ -476,7 +676,46 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
   websites: [
     { id: 'w1', label: 'Shop Oils', url: 'https://bloomwellness.com/oils' },
   ],
-  signatures: [],
+  signatures: [
+    { 
+      id: 'sig1', 
+      name: 'Wellness Team', 
+      role: 'Product Specialist', 
+      html: `<table cellpadding="0" cellspacing="0" style="font-family: Georgia, serif; max-width: 450px;">
+  <tr>
+    <td style="padding-bottom: 10px; border-bottom: 2px solid #9575CD;">
+      <p style="margin: 0; font-size: 16px; font-weight: bold; color: #4DB6AC;">[NAME]</p>
+      <p style="margin: 4px 0 0 0; font-size: 13px; color: #9575CD;">[ROLE]</p>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding: 10px 0;">
+      <p style="margin: 0; font-size: 12px; color: #666;">Bloom Essential Oils</p>
+      <p style="margin: 4px 0; font-size: 12px; color: #666;">[EMAIL]</p>
+      <p style="margin: 0; font-size: 11px; font-style: italic; color: #9575CD;">Nature's essence, bottled 💧</p>
+    </td>
+  </tr>
+</table>`, 
+      company: 'Bloom Essential Oils',
+      email: 'oils@bloomwellness.com',
+      phone: '+1 (555) 234-OILS',
+      website: 'bloomwellness.com/oils',
+      variant: 'full',
+    },
+    { 
+      id: 'sig2', 
+      name: 'Wellness Team', 
+      role: 'Product Specialist', 
+      html: `<div style="font-family: Georgia, serif; font-size: 11px; color: #666;">
+  <p style="margin: 0; font-weight: bold; color: #4DB6AC;">[NAME]</p>
+  <p style="margin: 2px 0; color: #9575CD;">[ROLE] • Bloom Essential Oils</p>
+</div>`, 
+      company: 'Bloom Essential Oils',
+      email: 'oils@bloomwellness.com',
+      website: 'bloomwellness.com/oils',
+      variant: 'minimal',
+    },
+  ],
   qr: {
     defaultUrl: 'https://bloomwellness.com/oils',
     fgColor: '#9575CD',
@@ -610,9 +849,9 @@ export const DEMO_EVENT_SUMMIT: Omit<EventGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'ev2', title: 'Last Year Highlights', url: 'https://youtube.com/watch?v=example2', type: 'recap', platform: 'youtube', description: '2025 Summit recap', year: 2025 },
   ],
   colors: [
-    { id: 'ec1', name: 'Summit Blue', hex: '#0066FF', rgb: 'rgb(0, 102, 255)', usage: 'Primary event color', role: 'primary' },
-    { id: 'ec2', name: 'Innovation Purple', hex: '#8B5CF6', rgb: 'rgb(139, 92, 246)', usage: 'Accent color for highlights', role: 'accent' },
-    { id: 'ec3', name: 'Stage Gold', hex: '#F59E0B', rgb: 'rgb(245, 158, 11)', usage: 'VIP and premium elements', role: 'secondary' },
+    { id: 'ec1', name: 'Summit Blue', hex: '#0066FF', rgb: 'rgb(0, 102, 255)', usage: 'Primary event color', role: 'primary', pantone: 'PMS 2728 C' },
+    { id: 'ec2', name: 'Innovation Purple', hex: '#8B5CF6', rgb: 'rgb(139, 92, 246)', usage: 'Accent color for highlights', role: 'accent', pantone: 'PMS 2665 C' },
+    { id: 'ec3', name: 'Stage Gold', hex: '#F59E0B', rgb: 'rgb(245, 158, 11)', usage: 'VIP and premium elements', role: 'secondary', pantone: 'PMS 1235 C' },
   ],
   colorCombinations: [],
   logos: [
@@ -639,7 +878,59 @@ export const DEMO_EVENT_SUMMIT: Omit<EventGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'ew1', label: 'Event Website', url: 'https://innovationsummit.nexustech.com' },
     { id: 'ew2', label: 'Registration Portal', url: 'https://register.innovationsummit.com' },
   ],
-  signatures: [],
+  signatures: [
+    { 
+      id: 'sig1', 
+      name: 'Events Team', 
+      role: 'Summit Coordinator', 
+      html: `<table cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; max-width: 550px;">
+  <tr>
+    <td style="padding-bottom: 12px; border-bottom: 2px solid #8B5CF6;">
+      <p style="margin: 0; font-size: 18px; font-weight: bold; color: #0066FF;">[NAME]</p>
+      <p style="margin: 4px 0 0 0; font-size: 14px; color: #8B5CF6; font-weight: 500;">[ROLE]</p>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding: 15px 0;">
+      <table cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="vertical-align: top;">
+            <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #0066FF;">Global Innovation Summit 2026</p>
+            <p style="margin: 0 0 4px 0; font-size: 12px; color: #666;">September 15-17, 2026 • San Francisco, CA</p>
+            <p style="margin: 8px 0 2px 0; font-size: 12px; color: #666;"><span style="color: #0066FF; font-weight: bold;">E:</span> [EMAIL]</p>
+            <p style="margin: 2px 0; font-size: 12px; color: #666;"><span style="color: #0066FF; font-weight: bold;">W:</span> innovationsummit.nexustech.com</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding-top: 10px; border-top: 1px solid #eee;">
+      <p style="margin: 0; font-size: 10px; color: #8B5CF6; font-weight: 500;">#GIS2026 • Where Innovation Meets Opportunity</p>
+    </td>
+  </tr>
+</table>`, 
+      company: 'Global Innovation Summit',
+      email: 'events@innovationsummit.nexustech.com',
+      phone: '+1 (555) 800-SUMMIT',
+      website: 'innovationsummit.nexustech.com',
+      variant: 'full',
+    },
+    { 
+      id: 'sig2', 
+      name: 'Events Team', 
+      role: 'Summit Coordinator', 
+      html: `<div style="font-family: Arial, sans-serif; font-size: 11px; color: #333;">
+  <p style="margin: 0; font-weight: bold; color: #0066FF;">[NAME] | [ROLE]</p>
+  <p style="margin: 2px 0; color: #666;">Global Innovation Summit 2026</p>
+  <p style="margin: 4px 0 0 0; color: #8B5CF6;">[EMAIL] • #GIS2026</p>
+</div>`, 
+      company: 'Global Innovation Summit',
+      email: 'events@innovationsummit.nexustech.com',
+      website: 'innovationsummit.nexustech.com',
+      variant: 'minimal',
+    },
+  ],
   qr: {
     defaultUrl: 'https://innovationsummit.nexustech.com',
     fgColor: '#0066FF',
