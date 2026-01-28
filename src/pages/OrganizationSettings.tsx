@@ -365,7 +365,7 @@ const OrganizationSettings = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border/50 bg-background/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -382,8 +382,10 @@ const OrganizationSettings = () => {
       </header>
 
       {/* Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        {/* General Settings */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Two-column grid for cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* General Settings */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -476,7 +478,7 @@ const OrganizationSettings = () => {
           </CardContent>
         </Card>
 
-        {/* Branding */}
+          {/* Branding */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -561,7 +563,7 @@ const OrganizationSettings = () => {
           </CardContent>
         </Card>
 
-        {/* Portal Settings */}
+          {/* Portal Settings */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -600,7 +602,53 @@ const OrganizationSettings = () => {
           </CardContent>
         </Card>
 
-        {/* Icon Library Hierarchy */}
+          {/* Advanced - moved into the two-column grid */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Advanced
+              </CardTitle>
+              <CardDescription>Custom domain and white-label options</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="customDomain">Custom Domain</Label>
+                <Input
+                  id="customDomain"
+                  value={customDomain}
+                  onChange={(e) => setCustomDomain(e.target.value)}
+                  placeholder="brands.yourdomain.com"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Contact support to configure your custom domain
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-2">
+                    {hidePlatformBranding ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    Hide Platform Branding
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Remove "Powered by BrandHub" from your public pages
+                  </p>
+                </div>
+                <Switch
+                  checked={hidePlatformBranding}
+                  onCheckedChange={setHidePlatformBranding}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Full-width sections below */}
+        <div className="space-y-6">
+          {/* Icon Library Hierarchy */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -787,49 +835,7 @@ const OrganizationSettings = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Advanced */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5" />
-              Advanced
-            </CardTitle>
-            <CardDescription>Custom domain and white-label options</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="customDomain">Custom Domain</Label>
-              <Input
-                id="customDomain"
-                value={customDomain}
-                onChange={(e) => setCustomDomain(e.target.value)}
-                placeholder="brands.yourdomain.com"
-              />
-              <p className="text-xs text-muted-foreground">
-                Contact support to configure your custom domain
-              </p>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="flex items-center gap-2">
-                  {hidePlatformBranding ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  Hide Platform Branding
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Remove "Powered by BrandHub" from your public pages
-                </p>
-              </div>
-              <Switch
-                checked={hidePlatformBranding}
-                onCheckedChange={setHidePlatformBranding}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        </div>
 
         {/* Danger Zone - Only visible to owners */}
         {userRole === 'owner' && (
