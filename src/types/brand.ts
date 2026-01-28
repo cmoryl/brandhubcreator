@@ -441,8 +441,8 @@ export const DEFAULT_PAGE_SETTINGS: BrandPageSettings = {
   animationSpeed: 'medium',
   showHeader: true,
   headerStyle: 'default',
-  contentWidth: 'default',
-  sectionSpacing: 'default',
+  contentWidth: 'wide', // Default to wide content for more space
+  sectionSpacing: 'spacious', // Default to spacious for more breathing room
   heroFullWidth: true, // Default to full width hero
   defaultTheme: 'system',
   customPrimaryColor: '',
