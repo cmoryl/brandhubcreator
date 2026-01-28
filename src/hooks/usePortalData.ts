@@ -27,8 +27,11 @@ export interface PortalOrganization {
 }
 
 export interface PortalLinkedGuide {
-  id: string;
-  type: 'brand' | 'product' | 'event';
+  id?: string;
+  type?: 'brand' | 'product' | 'event';
+  // Legacy format fields
+  guideId?: string;
+  guideType?: 'brand' | 'product' | 'event';
 }
 
 export interface PortalBrand {
