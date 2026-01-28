@@ -38,7 +38,6 @@ const sections: { id: SectionId; label: string; icon: React.ElementType; categor
   { id: 'videos', label: 'Video Resources', icon: Video, category: 'Resources' },
   { id: 'assets', label: 'Operational Vault', icon: FolderArchive, category: 'Resources' },
   { id: 'misuse', label: 'Anti-Patterns', icon: Ban, category: 'Resources' },
-  { id: 'casestudies', label: 'Proof Shards', icon: FileText, category: 'Collateral' },
   { id: 'brochures', label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
   { id: 'templates', label: 'Master Scaffolds', icon: FileType, category: 'Collateral' },
   { id: 'products', label: 'Products', icon: Package, category: 'Collateral' },

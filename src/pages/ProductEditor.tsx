@@ -44,8 +44,7 @@ import { SignaturesSection } from '@/components/brand/SignaturesSection';
 import { QRSection } from '@/components/brand/QRSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
-import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
-import { BrochuresSection } from '@/components/brand/BrochuresSection';
+import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { ProductsSection } from '@/components/brand/ProductsSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
@@ -515,8 +514,8 @@ const ProductEditor = () => {
       case 'videos': return <VideosSection videos={currentProduct.videos} onVideosChange={editHandler((videos) => handleUpdateProduct({ videos }))} />;
       case 'assets': return <AssetsSection assets={currentProduct.assets} onAssetsChange={editHandler((assets) => handleUpdateProduct({ assets }))} />;
       case 'misuse': return <MisuseSection misuse={currentProduct.misuse} onMisuseChange={editHandler((misuse) => handleUpdateProduct({ misuse }))} />;
-      case 'casestudies': return <CaseStudiesSection caseStudies={currentProduct.caseStudies} onCaseStudiesChange={editHandler((caseStudies) => handleUpdateProduct({ caseStudies }))} />;
-      case 'brochures': return <BrochuresSection brochures={currentProduct.brochures} onBrochuresChange={editHandler((brochures) => handleUpdateProduct({ brochures }))} />;
+      case 'casestudies':
+      case 'brochures': return <DigitalCollateralSection collateral={currentProduct.brochures} onCollateralChange={editHandler((brochures) => handleUpdateProduct({ brochures }))} />;
       case 'templates': return <TemplatesSection templates={currentProduct.templates} onTemplatesChange={editHandler((templates) => handleUpdateProduct({ templates }))} />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={currentProduct.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => handleUpdateProduct({ templateSpecs }))} brandColors={currentProduct.colors || []} />;
       case 'products': return <ProductsSection productId={currentProduct.id} linkedGuides={currentProduct.linkedGuides || []} onLinkedGuidesChange={editHandler((linkedGuides) => handleUpdateProduct({ linkedGuides }))} />;

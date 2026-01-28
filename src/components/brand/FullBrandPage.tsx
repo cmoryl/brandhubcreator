@@ -25,8 +25,7 @@ import { QRSection } from './QRSection';
 import { VideosSection } from './VideosSection';
 import { AssetsSection } from './AssetsSection';
 import { MisuseSection } from './MisuseSection';
-import { CaseStudiesSection } from './CaseStudiesSection';
-import { BrochuresSection } from './BrochuresSection';
+import { DigitalCollateralSection } from './DigitalCollateralSection';
 import { TemplatesSection } from './TemplatesSection';
 import { TemplateSpecsSection } from './TemplateSpecsSection';
 import { ProductsSection } from './ProductsSection';
@@ -272,8 +271,8 @@ export const FullBrandPage = ({
       case 'videos': return <VideosSection videos={brand.videos} onVideosChange={editHandler((videos) => onBrandUpdate({ videos }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={editHandler((assets) => onBrandUpdate({ assets }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={editHandler((misuse) => onBrandUpdate({ misuse }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
-      case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies || []} onCaseStudiesChange={editHandler((caseStudies) => onBrandUpdate({ caseStudies }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />;
-      case 'brochures': return <BrochuresSection brochures={brand.brochures || []} onBrochuresChange={editHandler((brochures) => onBrandUpdate({ brochures }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />;
+      case 'casestudies':
+      case 'brochures': return <DigitalCollateralSection collateral={brand.brochures || []} onCollateralChange={editHandler((brochures) => onBrandUpdate({ brochures }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />;
       case 'templates': return <TemplatesSection templates={brand.templates || []} onTemplatesChange={editHandler((templates) => onBrandUpdate({ templates }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={brand.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => onBrandUpdate({ templateSpecs }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandColors={brand.colors || []} />;
       case 'products': 

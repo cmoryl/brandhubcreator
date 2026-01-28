@@ -42,9 +42,8 @@ import { SocialSection } from '@/components/brand/SocialSection';
 import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
-import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
+import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
-import { BrochuresSection } from '@/components/brand/BrochuresSection';
 import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { ShareButton } from '@/components/brand/ShareButton';
 import { EventExportPdfButton } from '@/components/event/EventExportPdfButton';
@@ -543,11 +542,10 @@ const EventEditor = () => {
       case 'misuse': 
         return <MisuseSection misuse={event.misuse} onMisuseChange={editHandler((misuse) => updateEvent({ misuse }))} />;
       case 'casestudies': 
-        return <CaseStudiesSection caseStudies={event.caseStudies} onCaseStudiesChange={editHandler((caseStudies) => updateEvent({ caseStudies }))} />;
+      case 'brochures': 
+        return <DigitalCollateralSection collateral={event.brochures} onCollateralChange={editHandler((brochures) => updateEvent({ brochures }))} />;
       case 'templates': 
         return <TemplatesSection templates={event.templates} onTemplatesChange={editHandler((templates) => updateEvent({ templates }))} />;
-      case 'brochures': 
-        return <BrochuresSection brochures={event.brochures} onBrochuresChange={editHandler((brochures) => updateEvent({ brochures }))} />;
       case 'templatespecs':
         return <TemplateSpecsSection templateSpecs={event.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateEvent({ templateSpecs }))} />;
       case 'subevents': {
