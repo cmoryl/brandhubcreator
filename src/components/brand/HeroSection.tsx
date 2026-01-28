@@ -531,7 +531,7 @@ export const HeroSection = ({
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onOpenIntelligence(); }}
-                  className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 shadow-lg hover:bg-white/20 transition-colors text-white text-sm font-medium"
+                  className="pointer-events-auto flex items-center gap-1.5 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 shadow-lg hover:bg-white/20 transition-colors text-white text-sm font-medium cursor-pointer"
                 >
                   <Brain className="h-4 w-4" />
                   <span className="hidden sm:inline">Intelligence</span>
@@ -540,9 +540,9 @@ export const HeroSection = ({
             </div>
           )}
 
-          {/* Main Content Area - z-20 to be above overlays */}
-          <div className="absolute inset-0 flex items-end z-20">
-            <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 pb-4 sm:pb-8 lg:pb-12">
+          {/* Main Content Area - z-20 to be above overlays, pointer-events-none so stats panel is clickable */}
+          <div className="absolute inset-0 flex items-end z-20 pointer-events-none">
+            <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 pb-4 sm:pb-8 lg:pb-12 pointer-events-auto">
               <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-start lg:items-end justify-between">
                 {/* Left: Logo & Brand Info */}
                 <div className="flex gap-4 sm:gap-6 items-end flex-1">
