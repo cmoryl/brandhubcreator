@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock, Download } from 'lucide-react';
@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { normalizeProductGuide } from '@/lib/guideNormalization';
+import { trackEntityView } from '@/hooks/usePageTracking';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { ShareButton } from '@/components/brand/ShareButton';
@@ -279,6 +280,12 @@ const ProductEditor = () => {
   // Use context product if available, otherwise use fetched public product
   const currentProduct = contextProduct || publicProduct;
 
+  // Track product view for analytics
+  useEffect(() => {
+    if (currentProduct?.id && user?.id) {
+      trackEntityView(user.id, 'product', currentProduct.id, currentProduct.hero?.name || 'Unknown Product');
+    }
+  }, [currentProduct?.id, user?.id]);
   // Fetch parent product for sub-products (check if any master product has this product in linkedGuides)
   React.useEffect(() => {
     const fetchParentProduct = async () => {

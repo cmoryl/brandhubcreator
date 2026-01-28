@@ -18,6 +18,7 @@ import { Json } from '@/integrations/supabase/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useSEO } from '@/hooks/useSEO';
+import { trackEntityView } from '@/hooks/usePageTracking';
 import { EventSidebar } from '@/components/event/EventSidebar';
 import { EventDetailsSection } from '@/components/event/EventDetailsSection';
 import { EventLogosSection } from '@/components/event/EventLogosSection';
@@ -226,6 +227,12 @@ const EventEditor = () => {
   
   const event = contextEvent || publicEvent;
 
+  // Track event view for analytics
+  useEffect(() => {
+    if (event?.id && user?.id) {
+      trackEntityView(user.id, 'event', event.id, event.hero?.name || 'Unknown Event');
+    }
+  }, [event?.id, user?.id]);
   // Fetch parent event for sub-events (check if any master event has this event in linkedGuides)
   useEffect(() => {
     const fetchParentEvent = async () => {

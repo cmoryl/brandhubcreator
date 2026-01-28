@@ -13,6 +13,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { GlobalErrorLogger } from "@/components/GlobalErrorLogger";
 import { ConnectionBanner } from "@/components/ConnectionBanner";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { PageTracker } from "@/components/PageTracker";
 import { PageSkeleton, BrandEditorSkeleton, AuthPageSkeleton } from "@/components/PageSkeleton";
 import { checkAndClearExpiredCaches } from "@/lib/cacheManager";
 
@@ -51,6 +52,7 @@ const queryClient = new QueryClient({
 const RootLayout = () => (
   <ErrorBoundary>
     <ConnectionBanner />
+    <PageTracker />
     <main>
       <Outlet />
     </main>
