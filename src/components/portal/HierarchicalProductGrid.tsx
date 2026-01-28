@@ -178,10 +178,10 @@ const MasterProductSection = memo(({
         </div>
         
         <CardContent className="p-0 relative">
-          <div className="flex flex-col md:flex-row">
+          <div className="flex flex-col md:flex-row md:min-h-[220px]">
             {/* Image section - clickable to navigate */}
             <div 
-              className="relative h-48 md:h-auto md:w-2/5 overflow-hidden cursor-pointer"
+              className="relative h-48 md:h-auto md:w-2/5 md:min-h-[220px] overflow-hidden cursor-pointer"
               onClick={() => onNavigate(product.slug || product.id)}
             >
               {hero.coverImage ? (
