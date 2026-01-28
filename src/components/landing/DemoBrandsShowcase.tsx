@@ -92,66 +92,6 @@ const DemoBrandsShowcase = React.forwardRef<HTMLElement, { onLoginClick: () => v
           </TabsContent>
         </Tabs>
 
-        {/* What's Included Section */}
-        <div className="mt-16 bg-card/50 rounded-2xl border border-border p-8">
-          <h3 className="text-xl font-semibold text-foreground mb-6 text-center">
-            Every Demo Guide Includes
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {[
-              'Color Palette',
-              'Typography',
-              'Logo Variants',
-              'Brand Values',
-              'Visual Direction',
-              'Social Profiles',
-              'Gradients',
-              'Statistics',
-              'Services',
-              'QR Codes',
-              'Signatures',
-              'Templates',
-            ].map((item, index) => (
-              <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle className="h-4 w-4 text-accent flex-shrink-0" />
-                <span>{item}</span>
-              </div>
-            ))}
-          </div>
-          
-          {/* Event-specific features callout */}
-          <div className="mt-6 pt-6 border-t border-border/50">
-            <h4 className="text-sm font-medium text-foreground mb-3 text-center">Event Brand Kits Also Include</h4>
-            <div className="flex flex-wrap justify-center gap-3">
-              {['Schedule & Agenda', 'Venue Signage', 'Digital Banners', 'Sponsor Tiers', 'Event History'].map((item, index) => (
-                <Badge key={index} variant="outline" className="gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {item}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="mt-12 text-center bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 rounded-2xl p-8 border border-border">
-          <h3 className="text-2xl font-semibold text-foreground mb-3">
-            Ready to build your brand?
-          </h3>
-          <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
-            Create professional brand guidelines in minutes. Contact us to get started with a personalized demo.
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Button size="lg" className="gap-2" onClick={() => window.location.href = 'mailto:support@brandhub.com?subject=BrandHub Demo Request'}>
-              Request a Demo
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-            <Button size="lg" variant="outline" className="gap-2" onClick={onLoginClick}>
-              <Sparkles className="h-5 w-5" />
-              See All Features
-            </Button>
-          </div>
-        </div>
       </div>
     </section>
   );
