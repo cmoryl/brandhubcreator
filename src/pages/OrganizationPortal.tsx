@@ -64,6 +64,19 @@ const OrganizationPortal = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'brands' | 'products' | 'events'>('all');
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
 
+  // Keep these hooks ABOVE any conditional returns to avoid hook order crashes.
+  const orgColors = useMemo(
+    () => ({
+      primary: organization?.primaryColor || '#6366f1',
+      secondary: organization?.secondaryColor || '#8b5cf6',
+    }),
+    [organization?.primaryColor, organization?.secondaryColor]
+  );
+
+  const handleTabChange = useCallback((next: typeof activeTab) => {
+    setActiveTab((prev) => (prev === next ? prev : next));
+  }, []);
+
   // Dev-only tracer to catch the exact toggle that causes layout flashing
   useEffect(() => {
     if (!import.meta.env.DEV) return;
@@ -215,18 +228,6 @@ const OrganizationPortal = () => {
   const portalSettings = organization.portalSettings || DEFAULT_PORTAL_SETTINGS;
   const heroFullWidth = portalSettings.heroFullWidth ?? false;
   const heroKenBurns = portalSettings.heroKenBurns ?? false;
-  // Memoize to avoid prop-churn re-renders (which can look like flicker in heavy card grids)
-  const orgColors = useMemo(
-    () => ({
-      primary: organization.primaryColor || '#6366f1',
-      secondary: organization.secondaryColor || '#8b5cf6',
-    }),
-    [organization.primaryColor, organization.secondaryColor]
-  );
-
-  const handleTabChange = useCallback((next: typeof activeTab) => {
-    setActiveTab((prev) => (prev === next ? prev : next));
-  }, []);
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden max-w-full">
