@@ -1,8 +1,26 @@
 // Pre-populated demo brand, product, and event guides with sample imagery, colors, typography, and logos
 // These showcase the full capabilities of BrandHub
 
-import type { BrandGuide, ProductGuide, SectionId } from '@/types/brand';
+import type { BrandGuide, ProductGuide, SectionId, BrandPageSettings } from '@/types/brand';
 import type { EventGuide, EventSectionId } from '@/types/event';
+
+// Default demo page settings with full-width hero and spacious layout
+const DEMO_PAGE_SETTINGS: BrandPageSettings = {
+  backgroundType: 'inherit',
+  backgroundImage: '',
+  backgroundColor: '',
+  accentColor: '',
+  animationTintColor: '',
+  animationSpeed: 'medium',
+  showHeader: true,
+  headerStyle: 'default',
+  contentWidth: 'wide',
+  sectionSpacing: 'spacious',
+  heroFullWidth: true,
+  defaultTheme: 'system',
+  customPrimaryColor: '',
+  customSecondaryColor: '',
+};
 
 // Demo Brand 1: Nexus Tech - Modern Tech Company
 export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
@@ -17,6 +35,7 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     'casestudies', 'brochures', 'templates'
   ] as SectionId[],
   hiddenSections: [],
+  pageSettings: DEMO_PAGE_SETTINGS,
   hero: {
     name: 'Nexus Tech',
     tagline: 'Building tomorrow\'s digital infrastructure today',
@@ -295,6 +314,7 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     'typography', 'imagery', 'social', 'website', 'qr'
   ] as SectionId[],
   hiddenSections: [],
+  pageSettings: DEMO_PAGE_SETTINGS,
   hero: {
     name: 'Bloom Wellness',
     tagline: 'Nurturing your journey to holistic well-being',
@@ -479,6 +499,7 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
     'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'logos', 'colors', 'gradients', 'patterns', 'typography', 'imagery'
   ] as SectionId[],
   hiddenSections: [],
+  pageSettings: DEMO_PAGE_SETTINGS,
   hero: {
     name: 'Nexus Cloud',
     tagline: 'Enterprise cloud infrastructure that scales with you',
@@ -620,6 +641,7 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
     'hero', 'tagline', 'identity', 'values', 'services', 'logos', 'colors', 'gradients', 'patterns', 'typography', 'imagery'
   ] as SectionId[],
   hiddenSections: [],
+  pageSettings: DEMO_PAGE_SETTINGS,
   hero: {
     name: 'Bloom Essential Oils',
     tagline: 'Pure botanical essences for everyday wellness',
@@ -753,6 +775,7 @@ export const DEMO_EVENT_SUMMIT: Omit<EventGuide, 'createdAt' | 'updatedAt'> = {
     'eventsignage', 'eventbanners', 'eventdigital', 'eventvideos', 'eventwebsites', 'eventhistory'
   ] as EventSectionId[],
   hiddenSections: [],
+  pageSettings: DEMO_PAGE_SETTINGS,
   hero: {
     name: 'Global Innovation Summit 2026',
     tagline: 'Where visionaries converge to shape the future of technology',
