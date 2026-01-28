@@ -143,6 +143,7 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
   const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const lastContentApplyAtRef = useRef<number>(0);
   const lastContentSignatureRef = useRef<string>('');
+  const lastFocusRefetchAtRef = useRef<number>(0);
 
   const buildContentSignature = useCallback((content: { brands: PortalBrand[]; products: PortalProduct[]; events: PortalEvent[] }) => {
     // Lightweight signature: stable ordering by id + updatedAt + coverImage.
@@ -160,7 +161,10 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
     ].join('::');
   }, []);
 
-  const applyContentIfChanged = useCallback((content: { brands: PortalBrand[]; products: PortalProduct[]; events: PortalEvent[] }) => {
+  const applyContentIfChanged = useCallback((
+    content: { brands: PortalBrand[]; products: PortalProduct[]; events: PortalEvent[] },
+    source: 'initial' | 'realtime' | 'focus' | 'manual' = 'initial'
+  ) => {
     const now = Date.now();
     // Cooldown to avoid rapid state churn (e.g., focus/visibility bouncing inside an iframe)
     if (now - lastContentApplyAtRef.current < 2000) return;
@@ -170,6 +174,17 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
 
     lastContentSignatureRef.current = signature;
     lastContentApplyAtRef.current = now;
+
+    if (import.meta.env.DEV) {
+      console.debug('[usePortalData] applyContent', {
+        source,
+        counts: {
+          brands: content.brands.length,
+          products: content.products.length,
+          events: content.events.length,
+        },
+      });
+    }
 
     setBrands(content.brands);
     setProducts(content.products);
@@ -311,7 +326,7 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
       if (fetchIdRef.current !== fetchId) return;
 
       if (isMountedRef.current) {
-        applyContentIfChanged(content);
+        applyContentIfChanged(content, 'initial');
       }
       setError(null);
     } catch (err) {
@@ -347,7 +362,7 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
         if (isMountedRef.current) {
           try {
             const content = await fetchContent(orgId, false); // Bypass cache
-            if (isMountedRef.current) applyContentIfChanged(content);
+            if (isMountedRef.current) applyContentIfChanged(content, 'realtime');
           } catch (err) {
             console.error('[usePortalData] Realtime refetch error:', err);
           }
@@ -407,6 +422,10 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
     const debouncedRefetch = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
       if (isRefetching) return;
+
+      // Throttle focus/visibility refetches to avoid constant churn in iframe/desktop focus scenarios
+      const now = Date.now();
+      if (now - lastFocusRefetchAtRef.current < 15000) return; // 15s throttle
       
       debounceTimer = setTimeout(async () => {
         if (organization && isMountedRef.current) {
@@ -414,7 +433,10 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
           try {
             // Bypass cache on focus refetch to get fresh data
             const content = await fetchContent(organization.id, false);
-            if (isMountedRef.current) applyContentIfChanged(content);
+            if (isMountedRef.current) {
+              lastFocusRefetchAtRef.current = Date.now();
+              applyContentIfChanged(content, 'focus');
+            }
           } catch (err) {
             console.error('[usePortalData] Refetch error:', err);
           } finally {
