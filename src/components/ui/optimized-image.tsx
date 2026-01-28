@@ -117,6 +117,7 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
   const [isInView, setIsInView] = useState(priority);
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const prevSrcRef = useRef<string>(src);
 
   const isLoaded = loadState === 'loaded';
   const hasError = loadState === 'error';
@@ -134,9 +135,12 @@ export const OptimizedImage = forwardRef<HTMLDivElement, OptimizedImageProps>(({
 
   const computedSizes = useMemo(() => resolveSizes(sizes), [sizes]);
 
-  // Reset load state when src changes (ensures new image is loaded fresh)
+  // Reset load state only when src actually changes to a different URL
   useEffect(() => {
-    setLoadState(priority ? 'loading' : 'idle');
+    if (prevSrcRef.current !== src) {
+      prevSrcRef.current = src;
+      setLoadState(priority ? 'loading' : 'idle');
+    }
   }, [src, priority]);
 
   // Intersection Observer for lazy loading with larger margin for smoother experience
@@ -312,6 +316,7 @@ export const BackgroundImage = forwardRef<HTMLDivElement, BackgroundImageProps>(
   const [isInView, setIsInView] = useState(priority);
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const prevSrcRef = useRef<string>(src);
 
   // Determine if we should show video
   const showVideo = videoSrc && preferVideo && !videoError;
@@ -337,10 +342,13 @@ export const BackgroundImage = forwardRef<HTMLDivElement, BackgroundImageProps>(
     return () => observer.disconnect();
   }, [priority]);
 
-  // Reset loaded state when src changes (ensures new image is loaded fresh)
+  // Reset loaded state only when src actually changes to a different URL
   useEffect(() => {
-    setIsLoaded(false);
-    setHasError(false);
+    if (prevSrcRef.current !== src) {
+      prevSrcRef.current = src;
+      setIsLoaded(false);
+      setHasError(false);
+    }
   }, [src]);
 
   // Preload image when in view
