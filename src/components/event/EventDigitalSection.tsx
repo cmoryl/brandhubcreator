@@ -180,50 +180,55 @@ export const EventDigitalSection = ({
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
           {materials.map((material) => {
             const Icon = getTypeIcon(material.type);
             return (
-              <Card key={material.id} className="group hover:border-primary/50 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium truncate">{material.name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {MATERIAL_TYPES.find(t => t.value === material.type)?.label}
-                      </p>
-                      {material.fileType && (
-                        <Badge variant="outline" className="mt-2">
-                          {material.fileType}
-                        </Badge>
-                      )}
-                      {material.description && (
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                          {material.description}
-                        </p>
-                      )}
-                    </div>
+              <Card key={material.id} className="group hover:border-primary/50 transition-colors overflow-hidden">
+                <CardContent className="p-0">
+                  {/* Document-sized preview area */}
+                  <div className="aspect-[3/4] bg-muted/30 flex items-center justify-center relative">
+                    {material.previewUrl ? (
+                      <img 
+                        src={material.previewUrl} 
+                        alt={material.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 text-muted-foreground/60">
+                        <Icon className="h-8 w-8" />
+                        {material.fileType && (
+                          <span className="text-[10px] font-medium uppercase tracking-wider">
+                            {material.fileType}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     {isEditable && (
                       <Button
                         variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        size="icon"
+                        className="absolute top-1 right-1 h-6 w-6 text-destructive hover:text-destructive bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => handleDelete(material.id)}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     )}
                   </div>
-                  {material.templateUrl && (
-                    <Button variant="outline" size="sm" className="w-full mt-4" asChild>
-                      <a href={material.templateUrl} target="_blank" rel="noopener noreferrer">
-                        Download Template
-                      </a>
-                    </Button>
-                  )}
+                  {/* Compact info area */}
+                  <div className="p-2 space-y-1">
+                    <h4 className="font-medium text-xs truncate">{material.name}</h4>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {MATERIAL_TYPES.find(t => t.value === material.type)?.label}
+                    </p>
+                    {material.templateUrl && (
+                      <Button variant="outline" size="sm" className="w-full h-6 text-[10px] mt-1" asChild>
+                        <a href={material.templateUrl} target="_blank" rel="noopener noreferrer">
+                          Download
+                        </a>
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             );
