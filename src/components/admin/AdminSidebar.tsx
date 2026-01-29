@@ -1,11 +1,14 @@
 import { 
   BarChart3, UserCheck, Users, Building2, UserPlus, Palette, 
   Database, TrendingUp, Eye, Brain, FileText, Activity, 
-  Wrench, HardDrive, Shield
+  Wrench, HardDrive, Shield, Menu, X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
+import { useState } from 'react';
 
 interface NavItem {
   id: string;
@@ -29,7 +32,12 @@ const navGroups = [
   { id: 'tools', label: 'Tools' },
 ];
 
-export function AdminSidebar({ activeTab, onTabChange, pendingApprovals = 0 }: AdminSidebarProps) {
+function SidebarContent({ 
+  activeTab, 
+  onTabChange, 
+  pendingApprovals = 0,
+  onItemClick 
+}: AdminSidebarProps & { onItemClick?: () => void }) {
   const navItems: NavItem[] = [
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="h-4 w-4" />, group: 'core' },
     { id: 'approvals', label: 'Approvals', icon: <UserCheck className="h-4 w-4" />, badge: pendingApprovals, group: 'core' },
@@ -47,8 +55,13 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApprovals = 0 }: A
     { id: 'backups', label: 'Backups', icon: <HardDrive className="h-4 w-4" />, group: 'tools' },
   ];
 
+  const handleItemClick = (id: string) => {
+    onTabChange(id);
+    onItemClick?.();
+  };
+
   return (
-    <aside className="w-56 border-r bg-card/50 flex flex-col h-[calc(100vh-73px)] shrink-0">
+    <>
       {/* Logo/Header */}
       <div className="p-4 border-b">
         <div className="flex items-center gap-2">
@@ -77,7 +90,7 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApprovals = 0 }: A
                   {groupItems.map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => onTabChange(item.id)}
+                      onClick={() => handleItemClick(item.id)}
                       className={cn(
                         "w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors text-left",
                         activeTab === item.id 
@@ -100,6 +113,44 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApprovals = 0 }: A
           })}
         </nav>
       </ScrollArea>
+    </>
+  );
+}
+
+// Mobile navigation trigger button
+export function AdminMobileNav({ activeTab, onTabChange, pendingApprovals = 0 }: AdminSidebarProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="outline" size="icon" className="md:hidden">
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Open admin menu</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-72 p-0 flex flex-col">
+        <SheetTitle className="sr-only">Admin Navigation</SheetTitle>
+        <SidebarContent 
+          activeTab={activeTab} 
+          onTabChange={onTabChange} 
+          pendingApprovals={pendingApprovals}
+          onItemClick={() => setOpen(false)}
+        />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// Desktop sidebar
+export function AdminSidebar({ activeTab, onTabChange, pendingApprovals = 0 }: AdminSidebarProps) {
+  return (
+    <aside className="hidden md:flex w-56 border-r bg-card/50 flex-col h-[calc(100vh-73px)] shrink-0">
+      <SidebarContent 
+        activeTab={activeTab} 
+        onTabChange={onTabChange} 
+        pendingApprovals={pendingApprovals}
+      />
     </aside>
   );
 }

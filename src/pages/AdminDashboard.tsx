@@ -44,7 +44,7 @@ import { HiddenSectionsScanner } from '@/components/admin/HiddenSectionsScanner'
 import { MembersManager } from '@/components/admin/MembersManager';
 import { UserAnalyticsTab } from '@/components/admin/UserAnalyticsTab';
 import { CompressedBackupManager } from '@/components/admin/CompressedBackupManager';
-import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import { AdminSidebar, AdminMobileNav } from '@/components/admin/AdminSidebar';
 
 interface DashboardStats {
   totalUsers: number;
@@ -558,24 +558,36 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-50 shrink-0">
-        <div className="px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
+        <div className="px-3 py-3 md:px-4 md:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 md:gap-3 min-w-0">
+              {/* Mobile menu trigger */}
+              <AdminMobileNav 
+                activeTab={activeTab} 
+                onTabChange={setActiveTab} 
+                pendingApprovals={stats?.pendingApprovals}
+              />
+              <div className="hidden md:block p-2 bg-primary/10 rounded-lg shrink-0">
                 <Shield className="h-6 w-6 text-primary" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold">Admin Dashboard</h1>
-                <p className="text-sm text-muted-foreground">Platform management & analytics</p>
+              <div className="min-w-0">
+                <h1 className="text-lg md:text-xl font-bold truncate">Admin Dashboard</h1>
+                <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Platform management & analytics</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={fetchDashboardData} className="gap-2">
+            <div className="flex items-center gap-2 md:gap-3 shrink-0">
+              <Button variant="outline" size="sm" onClick={fetchDashboardData} className="gap-2 hidden sm:flex">
                 <RefreshCw className="h-4 w-4" />
-                Refresh
+                <span className="hidden md:inline">Refresh</span>
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+              <Button variant="outline" size="icon" onClick={fetchDashboardData} className="sm:hidden">
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="hidden sm:flex">
                 Back to App
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="sm:hidden">
+                <ArrowUpRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -584,7 +596,7 @@ export default function AdminDashboard() {
 
       {/* Main Layout with Sidebar */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Vertical Sidebar Navigation */}
+        {/* Vertical Sidebar Navigation (desktop only) */}
         <AdminSidebar 
           activeTab={activeTab} 
           onTabChange={setActiveTab} 
@@ -593,11 +605,11 @@ export default function AdminDashboard() {
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-auto">
-          <div className="p-6">
+          <div className="p-4 md:p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsContent value="overview" className="space-y-6">
             {/* Key Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
               <Card>
                 <CardHeader className="pb-2">
                   <CardDescription>Total Users</CardDescription>
