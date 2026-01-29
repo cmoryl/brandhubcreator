@@ -8,12 +8,7 @@ import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
 import { toast } from 'sonner';
 import { useDropZone } from '@/components/ui/drop-zone';
 import { supabase } from '@/integrations/supabase/client';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { PatternPreviewModal } from './PatternPreviewModal';
 import {
   Select,
   SelectContent,
@@ -383,46 +378,11 @@ export const PatternsSection = ({
       )}
 
       {/* Pattern Preview Modal */}
-      <Dialog open={!!previewPattern} onOpenChange={() => setPreviewPattern(null)}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>{previewPattern?.name}</span>
-              <div className="flex items-center gap-2">
-                <Select value={downloadResolution} onValueChange={setDownloadResolution}>
-                  <SelectTrigger className="w-[140px] h-8">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {RESOLUTION_OPTIONS.map(opt => (
-                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button 
-                  size="sm" 
-                  onClick={() => previewPattern && downloadPattern(previewPattern)}
-                  className="gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  Download
-                </Button>
-              </div>
-            </DialogTitle>
-          </DialogHeader>
-          <div 
-            className="w-full aspect-square rounded-lg border border-border"
-            style={{ 
-              backgroundImage: previewPattern ? `url(${previewPattern.url})` : undefined, 
-              backgroundSize: '64px 64px', 
-              backgroundRepeat: 'repeat' 
-            }}
-          />
-          <p className="text-sm text-muted-foreground text-center">
-            Tileable pattern preview • Select resolution and download for high-quality export
-          </p>
-        </DialogContent>
-      </Dialog>
+      <PatternPreviewModal
+        pattern={previewPattern}
+        open={!!previewPattern}
+        onOpenChange={(open) => !open && setPreviewPattern(null)}
+      />
     </section>
   );
 };
