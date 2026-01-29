@@ -17,6 +17,7 @@ import {
   BrandIconography,
   BrandSocialIcon,
   BrandImagery,
+  VisualAsset,
   BrandSocialProfile,
   BrandWebsiteLink,
   BrandSignature,
@@ -274,6 +275,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'eventpatterns',       // Event-specific patterns
   'typography',
   'imagery',
+  'visualassets',
   'social',
   'socialassets',
   'eventschedule',
@@ -334,6 +336,7 @@ export interface EventGuide {
   iconography: BrandIconography[];
   socialIcons: BrandSocialIcon[];
   imagery: BrandImagery[];
+  visualAssets?: VisualAsset[];
   
   // Communication (reused from brand)
   social: BrandSocialProfile[];
