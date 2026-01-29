@@ -16,11 +16,23 @@ export interface OrganizationPortalSettings {
   heroFullWidth?: boolean;
   /** Whether the portal hero background shows Ken Burns (slow pan/zoom) animation */
   heroKenBurns?: boolean;
+  /** Custom tagline text for the portal hero */
+  heroTagline?: string;
+  /** Tagline animation effect on load */
+  taglineAnimation?: 'typewriter' | 'fade-slide' | 'blur-reveal' | 'split-chars' | 'wave-glow';
+  /** Tagline hover interaction effect */
+  taglineHoverEffect?: 'none' | 'glow-pulse' | 'letter-dance' | 'color-shift' | 'underline-grow';
+  /** Tagline environmental effect */
+  taglineEnvironment?: 'none' | 'shimmer' | 'particle-dust' | 'aurora' | 'glitch';
 }
 
 export const DEFAULT_PORTAL_SETTINGS: OrganizationPortalSettings = {
   heroFullWidth: false,
   heroKenBurns: false,
+  heroTagline: 'Explore our public brand guidelines and resources.',
+  taglineAnimation: 'fade-slide',
+  taglineHoverEffect: 'none',
+  taglineEnvironment: 'none',
 };
 
 export const DEFAULT_FEATURES: OrganizationFeatures = {
