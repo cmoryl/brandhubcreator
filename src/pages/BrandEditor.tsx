@@ -657,8 +657,8 @@ const BrandEditor = () => {
       case 'logos': return <LogoSection logos={brand.logos} onLogosChange={editHandler((logos) => updateBrand({ logos }))} />;
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={editHandler((brandIcons) => updateBrand({ brandIcons }))} />;
       case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={editHandler((colors) => updateBrand({ colors }))} colorCombinations={brand.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateBrand({ colorCombinations }))} brandName={brand.hero.name} />;
-      case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={editHandler((gradients) => updateBrand({ gradients }))} />;
-      case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={editHandler((patterns) => updateBrand({ patterns }))} />;
+      case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={editHandler((gradients) => updateBrand({ gradients }))} brandName={brand.hero.name} brandColors={brand.colors} />;
+      case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={editHandler((patterns) => updateBrand({ patterns }))} brandName={brand.hero.name} brandColors={brand.colors} brandTagline={brand.tagline?.primary} brandArchetype={brand.identity?.archetype} />;
       case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={editHandler((typography) => updateBrand({ typography }))} />;
       case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={editHandler((textStyles) => updateBrand({ textStyles }))} />;
       case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={editHandler((iconography) => updateBrand({ iconography }))} brandColors={brand.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organization?.id} />;
