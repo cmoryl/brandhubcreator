@@ -36,6 +36,7 @@ import { ArrowLeft, Building2, Upload, Loader2, Palette, Globe, Eye, EyeOff, Tra
 const OrganizationAnalytics = lazy(() => import('@/components/organization/OrganizationAnalytics'));
 import { IconLibraryManager } from '@/components/brand/iconography';
 import { CacheSettingsCard } from '@/components/organization/CacheSettingsCard';
+import { BatchAssetGenerationCard } from '@/components/organization/BatchAssetGenerationCard';
 import { z } from 'zod';
 
 import { MemberRole } from '@/lib/organization/types';
@@ -698,6 +699,9 @@ const OrganizationSettings = () => {
 
         {/* Cache & Data Settings */}
         <CacheSettingsCard />
+
+        {/* AI Asset Generation */}
+        <BatchAssetGenerationCard />
 
         <Card>
           <CardHeader>
