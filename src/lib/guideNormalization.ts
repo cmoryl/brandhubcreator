@@ -23,6 +23,7 @@ import {
   StatisticItem,
   BrandWebinar,
   BrandAward,
+  ImageAsset,
 } from '@/types/brand';
 import { 
   EventGuide, 
@@ -150,6 +151,7 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     emailBanners: safeArray(g.emailBanners),
     videos: safeArray(g.videos),
     assets: safeArray(g.assets),
+    imageAssets: safeArray<ImageAsset>(g.imageAssets),
     misuse: safeArray(g.misuse),
     caseStudies: safeArray(g.caseStudies),
     brochures: normalizeBrochures(g.brochures),
