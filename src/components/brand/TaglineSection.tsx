@@ -12,7 +12,8 @@ import {
 } from '@/components/ui/popover';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { GoogleFontPicker, DEFAULT_FONT_SETTINGS, FontSettings } from '@/components/ui/google-font-picker';
-
+import { AnimatedTagline, TaglineAnimation, TaglineHoverEffect, TaglineEnvironment } from '@/components/ui/animated-tagline';
+import { TaglineAnimationSettings } from './TaglineAnimationSettings';
 type TaglineBackgroundStyle = 'floating' | 'gradient' | 'solid' | 'glass';
 
 interface TaglineSectionProps {
@@ -149,6 +150,17 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
         />
         {isEditing && onTaglineChange && (
           <div className="flex items-center gap-2">
+            {/* Animation Settings Button */}
+            <TaglineAnimationSettings
+              animation={tagline.taglineAnimation || 'fade-slide'}
+              hoverEffect={tagline.taglineHoverEffect || 'none'}
+              environment={tagline.taglineEnvironment || 'none'}
+              onAnimationChange={(animation) => onTaglineChange({ ...tagline, taglineAnimation: animation })}
+              onHoverEffectChange={(effect) => onTaglineChange({ ...tagline, taglineHoverEffect: effect })}
+              onEnvironmentChange={(env) => onTaglineChange({ ...tagline, taglineEnvironment: env })}
+              previewText={tagline.primary || 'Your tagline here'}
+            />
+            
             {/* Font Settings Button */}
             <Popover>
               <PopoverTrigger asChild>
@@ -335,7 +347,11 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                 {settings.backgroundStyle !== 'floating' && (
                   <Quote className={`h-10 w-10 ${settings.backgroundStyle === 'glass' ? 'text-primary/40' : 'text-white/40'} mb-4 rotate-180`} />
                 )}
-                <p 
+                <AnimatedTagline
+                  text={tagline.primary || 'Add your primary tagline'}
+                  animation={tagline.taglineAnimation || 'fade-slide'}
+                  hoverEffect={tagline.taglineHoverEffect || 'none'}
+                  environment={tagline.taglineEnvironment || 'none'}
                   className={`${bgStyles.textColor} ${settings.backgroundStyle !== 'floating' ? 'drop-shadow-lg' : ''}`}
                   style={{
                     fontFamily: `"${fontSettings.fontFamily}", serif`,
@@ -347,9 +363,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                     textAlign: fontSettings.textAlign,
                     fontStyle: fontSettings.fontStyle,
                   }}
-                >
-                  {tagline.primary || 'Add your primary tagline'}
-                </p>
+                />
                 {settings.backgroundStyle !== 'floating' && (
                   <Quote className={`h-10 w-10 ${settings.backgroundStyle === 'glass' ? 'text-primary/40' : 'text-white/40'} mt-4`} />
                 )}
