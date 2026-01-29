@@ -80,7 +80,7 @@ function adjustColor(hex: string, percent: number): string {
   return `#${Math.round(r).toString(16).padStart(2, '0')}${Math.round(g).toString(16).padStart(2, '0')}${Math.round(b).toString(16).padStart(2, '0')}`;
 }
 
-async function generatePatternImages(brandName: string, colors: BrandColor[], archetype?: string): Promise<GeneratedPattern[]> {
+async function generatePatternImages(brandName: string, colors: BrandColor[], archetype?: string, maxPatterns: number = 2): Promise<GeneratedPattern[]> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) {
     console.error("LOVABLE_API_KEY not configured, skipping pattern generation");
@@ -90,28 +90,24 @@ async function generatePatternImages(brandName: string, colors: BrandColor[], ar
   const patterns: GeneratedPattern[] = [];
   const colorDescription = colors.slice(0, 3).map(c => c.name || c.hex).join(', ');
   
+  // Reduced to 2 patterns per call to avoid memory issues
   const patternPrompts = [
     {
       name: "Tessellated Grid",
-      prompt: `Create a seamless tileable geometric pattern featuring tessellated hexagons and triangles. Use colors: ${colorDescription}. Style: modern, minimal, corporate. The pattern should be suitable for ${brandName} brand. Clean lines, high contrast, professional. Ultra high resolution.`
+      prompt: `Create a seamless tileable geometric pattern featuring tessellated hexagons and triangles. Use colors: ${colorDescription}. Style: modern, minimal, corporate. The pattern should be suitable for ${brandName} brand. Clean lines, high contrast, professional.`
     },
     {
       name: "Wave Form",
-      prompt: `Create a seamless tileable pattern of flowing wave lines and curves. Use colors: ${colorDescription}. Style: elegant, dynamic, contemporary. Design for ${brandName} brand identity. Smooth gradients between shapes. Ultra high resolution.`
-    },
-    {
-      name: "Circuit Matrix",
-      prompt: `Create a seamless tileable geometric pattern resembling circuit boards or data networks. Use colors: ${colorDescription}. Style: tech-forward, innovative, ${archetype || 'professional'}. For ${brandName} brand. Nodes and connecting lines. Ultra high resolution.`
-    },
-    {
-      name: "Dimensional Blocks",
-      prompt: `Create a seamless tileable isometric 3D cube pattern with depth and shadows. Use colors: ${colorDescription}. Style: bold, architectural, modern. Designed for ${brandName}. Precise geometry, clean edges. Ultra high resolution.`
+      prompt: `Create a seamless tileable pattern of flowing wave lines and curves. Use colors: ${colorDescription}. Style: elegant, dynamic, contemporary. Design for ${brandName} brand identity. Smooth gradients between shapes.`
     }
   ];
   
-  for (let i = 0; i < patternPrompts.length; i++) {
+  // Only generate up to maxPatterns
+  const promptsToUse = patternPrompts.slice(0, maxPatterns);
+  
+  for (let i = 0; i < promptsToUse.length; i++) {
     try {
-      console.log(`Generating pattern ${i + 1}/4 for ${brandName}...`);
+      console.log(`Generating pattern ${i + 1}/${promptsToUse.length} for ${brandName}...`);
       
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
@@ -121,7 +117,7 @@ async function generatePatternImages(brandName: string, colors: BrandColor[], ar
         },
         body: JSON.stringify({
           model: "google/gemini-2.5-flash-image",
-          messages: [{ role: "user", content: patternPrompts[i].prompt }],
+          messages: [{ role: "user", content: promptsToUse[i].prompt }],
           modalities: ["image", "text"]
         }),
       });
@@ -137,12 +133,12 @@ async function generatePatternImages(brandName: string, colors: BrandColor[], ar
       if (imageUrl) {
         patterns.push({
           id: crypto.randomUUID(),
-          name: patternPrompts[i].name,
+          name: promptsToUse[i].name,
           url: imageUrl
         });
       }
       
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
     } catch (error) {
       console.error(`Error generating pattern ${i + 1}:`, error);
     }
@@ -179,7 +175,7 @@ serve(async (req) => {
       );
     }
 
-    const { organizationId, generatePatterns = true, generateGradients = true } = await req.json();
+    const { organizationId, generatePatterns = true, generateGradients = true, brandId, maxBrands = 3 } = await req.json();
 
     const results = {
       brands: { processed: 0, gradientsAdded: 0, patternsAdded: 0 },
@@ -188,12 +184,91 @@ serve(async (req) => {
       errors: [] as string[]
     };
 
-    // Process brands
+    // If a specific brand is provided, only process that one
+    if (brandId) {
+      const { data: brand, error: brandError } = await supabase
+        .from("brands")
+        .select("id, name, guide_data")
+        .eq("id", brandId)
+        .eq("user_id", user.id)
+        .single();
+
+      if (brandError || !brand) {
+        return new Response(
+          JSON.stringify({ error: "Brand not found", success: false }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const guideData = brand.guide_data as Record<string, unknown> || {};
+      const colors: BrandColor[] = (guideData.colors as BrandColor[]) || [];
+      
+      if (colors.length === 0) {
+        return new Response(
+          JSON.stringify({ success: true, message: "No colors defined for this brand", results }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const existingGradients = (guideData.gradients as GeneratedGradient[]) || [];
+      const existingPatterns = (guideData.patterns as GeneratedPattern[]) || [];
+      const updates: Record<string, unknown> = {};
+
+      if (generateGradients && existingGradients.length < 4) {
+        const newGradients = generateGradientsFromColors(colors);
+        updates.gradients = [...existingGradients, ...newGradients];
+        results.brands.gradientsAdded += newGradients.length;
+      }
+
+      if (generatePatterns && existingPatterns.length < 4) {
+        const hero = guideData.hero as { name?: string } | undefined;
+        const identity = guideData.identity as { archetype?: string } | undefined;
+        const brandName = hero?.name || brand.name;
+        const archetype = identity?.archetype;
+        const patternsNeeded = Math.min(2, 4 - existingPatterns.length);
+        const newPatterns = await generatePatternImages(brandName, colors, archetype, patternsNeeded);
+        updates.patterns = [...existingPatterns, ...newPatterns];
+        results.brands.patternsAdded += newPatterns.length;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        const { error: updateError } = await supabase
+          .from("brands")
+          .update({ guide_data: { ...guideData, ...updates } })
+          .eq("id", brand.id);
+
+        if (updateError) {
+          results.errors.push(`Failed to update brand ${brand.name}: ${updateError.message}`);
+        } else {
+          results.brands.processed++;
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, results }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Process brands - limit to maxBrands to avoid memory issues
     let brandsQuery = supabase.from("brands").select("id, name, guide_data").eq("user_id", user.id);
     if (organizationId) {
       brandsQuery = brandsQuery.eq("organization_id", organizationId);
     }
-    const { data: brands, error: brandsError } = await brandsQuery;
+    const { data: allBrands, error: brandsError } = await brandsQuery;
+    
+    // Filter to brands that need updates and limit
+    const brandsNeedingUpdates = (allBrands || []).filter(brand => {
+      const guideData = brand.guide_data as Record<string, unknown> || {};
+      const colors = (guideData.colors as BrandColor[]) || [];
+      if (colors.length === 0) return false;
+      const existingGradients = (guideData.gradients as GeneratedGradient[]) || [];
+      const existingPatterns = (guideData.patterns as GeneratedPattern[]) || [];
+      return (generateGradients && existingGradients.length < 4) || 
+             (generatePatterns && existingPatterns.length < 4);
+    });
+    
+    const brands = brandsNeedingUpdates.slice(0, maxBrands);
     
     if (brandsError) {
       results.errors.push(`Failed to fetch brands: ${brandsError.message}`);
