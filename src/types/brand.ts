@@ -75,6 +75,12 @@ export interface BrandTagline {
   secondary?: string;
   variations?: string[];
   fontSettings?: TaglineFontSettings;
+  /** Tagline animation effect on load */
+  taglineAnimation?: 'typewriter' | 'fade-slide' | 'blur-reveal' | 'split-chars' | 'wave-glow';
+  /** Tagline hover interaction effect */
+  taglineHoverEffect?: 'none' | 'glow-pulse' | 'letter-dance' | 'color-shift' | 'underline-grow';
+  /** Tagline environmental effect */
+  taglineEnvironment?: 'none' | 'shimmer' | 'particle-dust' | 'aurora' | 'glitch';
 }
 
 // IDENTITY - Narrative Architecture

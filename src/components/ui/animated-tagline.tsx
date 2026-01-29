@@ -33,6 +33,8 @@ export interface AnimatedTaglineProps {
   hoverEffect?: TaglineHoverEffect;
   environment?: TaglineEnvironment;
   className?: string;
+  /** Custom inline styles */
+  style?: React.CSSProperties;
   delay?: number;
   duration?: number;
   /** Trigger animation on mount */
@@ -267,6 +269,7 @@ export const AnimatedTagline = ({
   hoverEffect = 'none',
   environment = 'none',
   className,
+  style,
   delay = 0,
   duration = 800,
   animateOnMount = true,
@@ -323,7 +326,7 @@ export const AnimatedTagline = ({
   };
 
   return (
-    <div ref={ref} className={cn("relative inline-block", className)}>
+    <div ref={ref} className={cn("relative inline-block", className)} style={style}>
       <EnvironmentOverlay effect={environment} color={effectColor} />
       <HoverEffectWrapper effect={hoverEffect}>
         {renderAnimatedText()}
