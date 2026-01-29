@@ -596,6 +596,8 @@ export interface BaseGuide {
   socialIcons: BrandSocialIcon[];
   // Imagery (Visual Direction)
   imagery: BrandImagery[];
+  // Visual Assets (Image Gallery)
+  visualAssets?: VisualAsset[];
   // Social (Social Registry)
   social: BrandSocialProfile[];
   // Website (Website Links)
@@ -649,7 +651,7 @@ export interface BaseGuide {
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
-  'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
+  'imagery', 'visualassets', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
   'brochures', 'templates', 'templatespecs', 'products', 'events'
 ];
 
@@ -662,6 +664,22 @@ export interface BrandGuide extends BaseGuide {
 export interface ProductGuide extends BaseGuide {
   type: 'product';
   parentBrandId?: string; // Optional link to parent brand
+}
+
+// VISUALASSETS - Visual Asset Gallery
+export interface VisualAsset {
+  id: string;
+  name: string;
+  url: string;
+  thumbnailUrl?: string;
+  fileType: 'png' | 'jpg' | 'jpeg' | 'gif' | 'webp' | 'svg';
+  width?: number;
+  height?: number;
+  fileSize?: string;
+  description?: string;
+  tags?: string[];
+  downloadable?: boolean; // Whether users can download this asset
+  createdAt?: string;
 }
 
 // Section IDs for navigation
@@ -685,6 +703,7 @@ export type SectionId =
   | 'iconography'
   | 'socialicons'
   | 'imagery'
+  | 'visualassets'
   | 'social'
   | 'socialassets'
   | 'website'
