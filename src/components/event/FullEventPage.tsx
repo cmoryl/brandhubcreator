@@ -27,6 +27,7 @@ import { EventWebsiteSection } from './EventWebsiteSection';
 import { SubEventsSection, LinkedEventGuide } from './SubEventsSection';
 import { SubEventsManager } from './SubEventsManager';
 import { SharedAssetsSection, SharedAsset } from './SharedAssetsSection';
+import { EventPatternsSection } from './EventPatternsSection';
 import { Separator } from '@/components/ui/separator';
 
 export interface FullEventPageProps {
@@ -389,6 +390,17 @@ export const FullEventPage = ({
           />
         );
       }
+      case 'eventpatterns':
+        return (
+          <EventPatternsSection
+            patterns={event.patterns || []}
+            onPatternsChange={canEdit ? (patterns) => updateEvent({ patterns }) : undefined}
+            isEditable={canEdit}
+            eventName={event.hero?.name}
+            eventColors={event.colors}
+            eventTagline={event.tagline?.primary}
+          />
+        );
       default:
         return null;
     }
