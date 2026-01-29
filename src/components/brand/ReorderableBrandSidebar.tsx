@@ -1,7 +1,7 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, Globe,
-  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase, LayoutGrid, TrendingUp, BarChart3, Presentation, Calendar, Award
+  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase, LayoutGrid, TrendingUp, BarChart3, Presentation, Calendar, Award, ImageIcon
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -61,6 +61,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   qr: { label: 'Access Ports', icon: QrCode, category: 'Communication' },
   videos: { label: 'Video Resources', icon: Video, category: 'Resources' },
   assets: { label: 'Operational Vault', icon: FolderArchive, category: 'Resources' },
+  imageassets: { label: 'Image Assets', icon: ImageIcon, category: 'Resources' },
   misuse: { label: 'Anti-Patterns', icon: Ban, category: 'Resources' },
   casestudies: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' }, // Deprecated - use brochures
   brochures: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
