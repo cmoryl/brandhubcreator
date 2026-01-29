@@ -143,9 +143,36 @@ export const useEventStorage = () => {
   const [lastSyncError, setLastSyncError] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState<boolean>(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
   
+  // Core state refs
   const eventsRef = useRef<EventGuide[]>([]);
   const pendingUpdatesRef = useRef<Map<string, Partial<EventGuide>>>(new Map());
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Refs for reliable flush access (needed for beforeunload where state may be stale)
+  const userRef = useRef(user);
+  const orgRef = useRef(organization);
+  const accessTokenRef = useRef<string | null>(null);
+  const eventSyncTimeouts = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  
+  // Keep refs in sync with state
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+  
+  useEffect(() => {
+    orgRef.current = organization;
+  }, [organization]);
+  
+  // Track access token for flush operations
+  useEffect(() => {
+    if (user) {
+      supabase.auth.getSession().then(({ data }) => {
+        accessTokenRef.current = data.session?.access_token ?? null;
+      });
+    } else {
+      accessTokenRef.current = null;
+    }
+  }, [user]);
   
   // LocalStorage cache functions for offline resilience
   const saveCache = useCallback((nextEvents: EventGuide[]) => {
@@ -280,7 +307,11 @@ export const useEventStorage = () => {
       if (error) throw error;
       
       const newEvent = dbToEventGuide(data as DbEvent);
-      setEvents(prev => [newEvent, ...prev]);
+      setEvents(prev => {
+        const updated = [newEvent, ...prev];
+        saveCache(updated);
+        return updated;
+      });
       toast.success(`Event "${name}" created`);
       return newEvent;
     } catch (err) {
@@ -288,22 +319,37 @@ export const useEventStorage = () => {
       toast.error('Failed to create event');
       return null;
     }
-  }, [user?.id, organization?.id]);
+  }, [user?.id, organization?.id, saveCache]);
   
   const updateEvent = useCallback((id: string, updates: Partial<EventGuide>) => {
     // Optimistic update
-    setEvents(prev => prev.map(e => 
-      e.id === id ? { ...e, ...updates, updatedAt: new Date() } : e
-    ));
+    setEvents(prev => {
+      const updated = prev.map(e => 
+        e.id === id ? { ...e, ...updates, updatedAt: new Date() } : e
+      );
+      saveCache(updated);
+      return updated;
+    });
     
     // Queue update
     const existing = pendingUpdatesRef.current.get(id) || {};
     pendingUpdatesRef.current.set(id, { ...existing, ...updates });
     
-    // Debounced sync
+    // Clear any existing timeout for this specific event
+    const existingTimeout = eventSyncTimeouts.current.get(id);
+    if (existingTimeout) clearTimeout(existingTimeout);
+    
+    // Debounced sync for this specific event
+    const timeout = setTimeout(() => {
+      syncPendingUpdates();
+      eventSyncTimeouts.current.delete(id);
+    }, SYNC_DEBOUNCE_MS);
+    eventSyncTimeouts.current.set(id, timeout);
+    
+    // Also update the main timeout ref for backward compatibility
     if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
     syncTimeoutRef.current = setTimeout(() => syncPendingUpdates(), SYNC_DEBOUNCE_MS);
-  }, []);
+  }, [saveCache]);
   
   const syncPendingUpdates = useCallback(async () => {
     if (!user?.id || pendingUpdatesRef.current.size === 0) return;
@@ -327,29 +373,97 @@ export const useEventStorage = () => {
         
         if (error) throw error;
       } catch (err) {
-        console.error('Failed to sync event update:', err);
+        console.error('[EVENTS SYNC] Failed to sync event update:', err);
         setSyncStatus('error');
         setLastSyncError(err instanceof Error ? err.message : 'Unknown error');
         return;
       }
     }
     
+    // Update cache with current state after successful sync
+    saveCache(eventsRef.current);
     setLastSyncedAt(new Date());
     setSyncStatus('idle');
     setLastSyncError(null);
-  }, [user?.id, organization?.id]);
+  }, [user?.id, organization?.id, saveCache]);
+  
+  // Flush pending updates using fetch with keepalive (works during page unload)
+  const flushPendingUpdates = useCallback(() => {
+    // Clear all individual timeouts
+    eventSyncTimeouts.current.forEach((timeout) => clearTimeout(timeout));
+    eventSyncTimeouts.current.clear();
+    
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current);
+      syncTimeoutRef.current = null;
+    }
+    
+    // Check if we have pending updates and necessary auth
+    if (pendingUpdatesRef.current.size === 0) return;
+    if (!userRef.current?.id || !accessTokenRef.current) {
+      console.warn('[EVENTS FLUSH] Cannot flush: missing user or access token');
+      return;
+    }
+    
+    console.log('[EVENTS FLUSH] Flushing', pendingUpdatesRef.current.size, 'pending updates');
+    
+    const updates = Array.from(pendingUpdatesRef.current.entries());
+    pendingUpdatesRef.current.clear();
+    
+    for (const [id, changes] of updates) {
+      const currentEvent = eventsRef.current.find(e => e.id === id);
+      if (!currentEvent) continue;
+      
+      const merged = { ...currentEvent, ...changes };
+      const dbPayload = eventGuideToDb(merged, userRef.current.id, orgRef.current?.id);
+      
+      // Use fetch with keepalive for reliable persistence during page unload
+      fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/events?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${accessTokenRef.current}`,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify(dbPayload),
+        keepalive: true,
+      }).catch(err => {
+        console.error('[EVENTS FLUSH] Failed to flush event update:', err);
+      });
+    }
+  }, []);
+  
+  // Handle beforeunload and cleanup on unmount
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      flushPendingUpdates();
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Flush on unmount as well
+      flushPendingUpdates();
+    };
+  }, [flushPendingUpdates]);
   
   const deleteEvent = useCallback(async (id: string): Promise<void> => {
     try {
       const { error } = await supabase.from('events').delete().eq('id', id);
       if (error) throw error;
-      setEvents(prev => prev.filter(e => e.id !== id));
+      setEvents(prev => {
+        const updated = prev.filter(e => e.id !== id);
+        saveCache(updated);
+        return updated;
+      });
       toast.success('Event deleted');
     } catch (err) {
       console.error('Failed to delete event:', err);
       toast.error('Failed to delete event');
     }
-  }, []);
+  }, [saveCache]);
   
   const getEvent = useCallback((id: string) => events.find(e => e.id === id), [events]);
   
@@ -377,6 +491,8 @@ export const useEventStorage = () => {
   
   const saveNow = useCallback(async () => {
     if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    eventSyncTimeouts.current.forEach((timeout) => clearTimeout(timeout));
+    eventSyncTimeouts.current.clear();
     await syncPendingUpdates();
   }, [syncPendingUpdates]);
   

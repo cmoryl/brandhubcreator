@@ -383,6 +383,9 @@ const EventEditor = () => {
     // For public events not in context, update directly via Supabase
     // This handles the case where user is editing an event loaded via public fetch
     if (publicEvent) {
+      // Store previous state for potential revert
+      const previousState = { ...publicEvent };
+      
       // Optimistic update to local state immediately (so UI updates)
       setPublicEvent(prev => prev ? { ...prev, ...updates, updatedAt: new Date() } : null);
       
@@ -390,6 +393,8 @@ const EventEditor = () => {
       if (!user) {
         console.warn('[EventEditor] User not authenticated, local state updated but not synced to database');
         toast.error('Please sign in to save changes');
+        // Revert optimistic update since we can't persist
+        setPublicEvent(previousState);
         return;
       }
       
@@ -404,6 +409,8 @@ const EventEditor = () => {
         // Remove non-guide fields that shouldn't be in guide_data
         const { id, type, slug, organizationId, parentBrandId, isFavorite, isPublic, sectionOrder, hiddenSections, createdAt, updatedAt, ...cleanGuideData } = guideData as EventGuide & Record<string, unknown>;
         
+        console.log('[EventEditor] Syncing public event update to database for event:', event.id);
+        
         const { error } = await supabase
           .from('events')
           .update({
@@ -416,15 +423,18 @@ const EventEditor = () => {
         
         if (error) {
           console.error('[EventEditor] Failed to update event:', error);
-          toast.error('Failed to save changes');
+          toast.error('Failed to save changes. Please try again.');
           // Revert optimistic update on error
-          setPublicEvent(publicEvent);
+          setPublicEvent(previousState);
+          return;
         }
+        
+        console.log('[EventEditor] Successfully synced public event update');
       } catch (err) {
         console.error('[EventEditor] Failed to update event:', err);
-        toast.error('Failed to save changes');
+        toast.error('Failed to save changes. Please check your connection.');
         // Revert optimistic update on error
-        setPublicEvent(publicEvent);
+        setPublicEvent(previousState);
       }
     } else {
       console.warn('[EventEditor] updateEvent called but no publicEvent available');
