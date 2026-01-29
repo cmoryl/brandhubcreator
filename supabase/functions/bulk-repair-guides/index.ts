@@ -17,11 +17,20 @@ const DEFAULT_IDENTITY = { missionStatement: '', archetype: '', toneOfVoice: [] 
 const DEFAULT_QR = { defaultUrl: '', fgColor: '#000000', bgColor: '#ffffff' };
 const DEFAULT_ATMOSPHERE = { style: 'gradient', animate: true, opacity: 0.5, blur: 0 };
 const DEFAULT_PAGE_SETTINGS = {
+  backgroundType: 'inherit',
+  backgroundImage: '',
+  backgroundColor: '',
+  accentColor: '',
+  animationTintColor: '',
+  animationSpeed: 'medium',
   showHeader: true,
-  showFooter: true,
-  showSectionTitles: true,
-  sidebarPosition: 'left',
-  heroStyle: 'banner',
+  headerStyle: 'transparent',
+  contentWidth: 'full',
+  sectionSpacing: 'spacious',
+  heroFullWidth: true,
+  defaultTheme: 'system',
+  customPrimaryColor: '',
+  customSecondaryColor: '',
 };
 
 const corsHeaders = {
