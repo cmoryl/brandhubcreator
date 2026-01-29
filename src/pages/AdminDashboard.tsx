@@ -609,65 +609,65 @@ export default function AdminDashboard() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsContent value="overview" className="space-y-6">
             {/* Key Metrics */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>Total Users</CardDescription>
-                  <CardTitle className="text-3xl flex items-center gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
+              <Card className="p-0">
+                <CardHeader className="p-3 md:p-6 pb-1 md:pb-2">
+                  <CardDescription className="text-[10px] md:text-sm">Total Users</CardDescription>
+                  <CardTitle className="text-xl md:text-3xl flex items-center gap-1 md:gap-2">
                     {stats?.totalUsers || 0}
-                    <TrendingUp className="h-5 w-5 text-green-500" />
+                    <TrendingUp className="h-3 w-3 md:h-5 md:w-5 text-green-500" />
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">
+                <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
+                  <p className="text-[10px] md:text-xs text-muted-foreground">
                     +{stats?.newUsersThisWeek || 0} this week
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>Organizations</CardDescription>
-                  <CardTitle className="text-3xl">{stats?.totalOrganizations || 0}</CardTitle>
+              <Card className="p-0">
+                <CardHeader className="p-3 md:p-6 pb-1 md:pb-2">
+                  <CardDescription className="text-[10px] md:text-sm">Organizations</CardDescription>
+                  <CardTitle className="text-xl md:text-3xl">{stats?.totalOrganizations || 0}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">
+                <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
+                  <p className="text-[10px] md:text-xs text-muted-foreground">
                     Active workspaces
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>Brand Guides</CardDescription>
-                  <CardTitle className="text-3xl">{stats?.totalBrands || 0}</CardTitle>
+              <Card className="p-0">
+                <CardHeader className="p-3 md:p-6 pb-1 md:pb-2">
+                  <CardDescription className="text-[10px] md:text-sm">Brand Guides</CardDescription>
+                  <CardTitle className="text-xl md:text-3xl">{stats?.totalBrands || 0}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">
+                <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
+                  <p className="text-[10px] md:text-xs text-muted-foreground">
                     {stats?.publicBrands || 0} public
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>Products</CardDescription>
-                  <CardTitle className="text-3xl">{stats?.totalProducts || 0}</CardTitle>
+              <Card className="p-0">
+                <CardHeader className="p-3 md:p-6 pb-1 md:pb-2">
+                  <CardDescription className="text-[10px] md:text-sm">Products</CardDescription>
+                  <CardTitle className="text-xl md:text-3xl">{stats?.totalProducts || 0}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">
-                    Product guides created
+                <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
+                  <p className="text-[10px] md:text-xs text-muted-foreground truncate">
+                    Product guides
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>Events</CardDescription>
-                  <CardTitle className="text-3xl">{stats?.totalEvents || 0}</CardTitle>
+              <Card className="p-0">
+                <CardHeader className="p-3 md:p-6 pb-1 md:pb-2">
+                  <CardDescription className="text-[10px] md:text-sm">Events</CardDescription>
+                  <CardTitle className="text-xl md:text-3xl">{stats?.totalEvents || 0}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">
+                <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
+                  <p className="text-[10px] md:text-xs text-muted-foreground">
                     {stats?.publicEvents || 0} public
                   </p>
                 </CardContent>
@@ -675,37 +675,37 @@ export default function AdminDashboard() {
             </div>
 
             {/* Growth & Engagement */}
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-2 gap-4 md:gap-6">
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
+                <CardHeader className="p-3 md:p-6">
+                  <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+                    <TrendingUp className="h-4 w-4 md:h-5 md:w-5" />
                     Growth Metrics
                   </CardTitle>
-                  <CardDescription>Platform growth indicators</CardDescription>
+                  <CardDescription className="text-xs md:text-sm">Platform growth indicators</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="p-3 md:p-6 pt-0 space-y-2 md:space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">User Growth (7d)</span>
-                    <Badge variant="secondary" className="bg-green-500/10 text-green-600">
+                    <span className="text-xs md:text-sm">User Growth (7d)</span>
+                    <Badge variant="secondary" className="bg-green-500/10 text-green-600 text-[10px] md:text-xs">
                       +{stats?.newUsersThisWeek || 0} users
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Avg Brands per User</span>
-                    <span className="font-medium">
+                    <span className="text-xs md:text-sm">Avg Brands per User</span>
+                    <span className="font-medium text-xs md:text-sm">
                       {stats?.totalUsers ? (stats.totalBrands / stats.totalUsers).toFixed(1) : 0}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Public Content Rate</span>
-                    <span className="font-medium">
+                    <span className="text-xs md:text-sm">Public Content Rate</span>
+                    <span className="font-medium text-xs md:text-sm">
                       {stats?.totalBrands ? Math.round((stats.publicBrands / stats.totalBrands) * 100) : 0}%
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Org Adoption Rate</span>
-                    <span className="font-medium">
+                    <span className="text-xs md:text-sm">Org Adoption Rate</span>
+                    <span className="font-medium text-xs md:text-sm">
                       {stats?.totalUsers ? Math.round((stats.totalOrganizations / stats.totalUsers) * 100) : 0}%
                     </span>
                   </div>
@@ -713,22 +713,22 @@ export default function AdminDashboard() {
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-5 w-5" />
+                <CardHeader className="p-3 md:p-6">
+                  <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+                    <Activity className="h-4 w-4 md:h-5 md:w-5" />
                     Recent Activity
                   </CardTitle>
-                  <CardDescription>Latest platform events</CardDescription>
+                  <CardDescription className="text-xs md:text-sm">Latest platform events</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[200px]">
-                    <div className="space-y-3">
+                <CardContent className="p-3 md:p-6 pt-0">
+                  <ScrollArea className="h-[160px] md:h-[200px]">
+                    <div className="space-y-2 md:space-y-3">
                       {activityLogs.slice(0, 8).map((log) => (
-                        <div key={log.id} className="flex items-start gap-3 text-sm">
+                        <div key={log.id} className="flex items-start gap-2 md:gap-3 text-xs md:text-sm">
                           {getActivityIcon(log.type)}
                           <div className="flex-1 min-w-0">
                             <p className="truncate">{log.description}</p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-[10px] md:text-xs text-muted-foreground">
                               {format(new Date(log.timestamp), 'MMM d, h:mm a')}
                             </p>
                           </div>
@@ -742,41 +742,41 @@ export default function AdminDashboard() {
 
             {/* System Health */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Database className="h-5 w-5" />
+              <CardHeader className="p-3 md:p-6">
+                <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+                  <Database className="h-4 w-4 md:h-5 md:w-5" />
                   System Health
                 </CardTitle>
-                <CardDescription>Platform status and resources</CardDescription>
+                <CardDescription className="text-xs md:text-sm">Platform status and resources</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-lg">
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                    <div>
-                      <p className="text-sm font-medium">Database</p>
-                      <p className="text-xs text-muted-foreground">Healthy</p>
+              <CardContent className="p-3 md:p-6 pt-0">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+                  <div className="flex items-center gap-2 md:gap-3 p-2 md:p-3 bg-green-500/10 rounded-lg">
+                    <CheckCircle className="h-4 w-4 md:h-5 md:w-5 text-green-500 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs md:text-sm font-medium truncate">Database</p>
+                      <p className="text-[10px] md:text-xs text-muted-foreground">Healthy</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-lg">
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                    <div>
-                      <p className="text-sm font-medium">Auth</p>
-                      <p className="text-xs text-muted-foreground">Operational</p>
+                  <div className="flex items-center gap-2 md:gap-3 p-2 md:p-3 bg-green-500/10 rounded-lg">
+                    <CheckCircle className="h-4 w-4 md:h-5 md:w-5 text-green-500 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs md:text-sm font-medium truncate">Auth</p>
+                      <p className="text-[10px] md:text-xs text-muted-foreground">Operational</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-lg">
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                    <div>
-                      <p className="text-sm font-medium">Storage</p>
-                      <p className="text-xs text-muted-foreground">Available</p>
+                  <div className="flex items-center gap-2 md:gap-3 p-2 md:p-3 bg-green-500/10 rounded-lg">
+                    <CheckCircle className="h-4 w-4 md:h-5 md:w-5 text-green-500 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs md:text-sm font-medium truncate">Storage</p>
+                      <p className="text-[10px] md:text-xs text-muted-foreground">Available</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-lg">
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                    <div>
-                      <p className="text-sm font-medium">Edge Functions</p>
-                      <p className="text-xs text-muted-foreground">Running</p>
+                  <div className="flex items-center gap-2 md:gap-3 p-2 md:p-3 bg-green-500/10 rounded-lg">
+                    <CheckCircle className="h-4 w-4 md:h-5 md:w-5 text-green-500 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs md:text-sm font-medium truncate">Edge Functions</p>
+                      <p className="text-[10px] md:text-xs text-muted-foreground">Running</p>
                     </div>
                   </div>
                 </div>
