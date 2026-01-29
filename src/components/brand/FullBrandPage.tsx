@@ -24,6 +24,7 @@ import { SignaturesSection } from './SignaturesSection';
 import { QRSection } from './QRSection';
 import { VideosSection } from './VideosSection';
 import { AssetsSection } from './AssetsSection';
+import { ImageAssetsSection } from './ImageAssetsSection';
 import { MisuseSection } from './MisuseSection';
 import { DigitalCollateralSection } from './DigitalCollateralSection';
 import { TemplatesSection } from './TemplatesSection';
@@ -62,6 +63,7 @@ const sectionAnimations: Record<string, AnimationType> = {
   qr: 'zoom-in',
   videos: 'blur-in',
   assets: 'fade-up',
+  imageassets: 'fade-up',
   misuse: 'fade-left',
   casestudies: 'fade-right',
   brochures: 'fade-up',
@@ -270,6 +272,7 @@ export const FullBrandPage = ({
       case 'qr': return <QRSection qr={brand.qr} onQRChange={editHandler((qr) => onBrandUpdate({ qr }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'videos': return <VideosSection videos={brand.videos} onVideosChange={editHandler((videos) => onBrandUpdate({ videos }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={editHandler((assets) => onBrandUpdate({ assets }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'imageassets': return <ImageAssetsSection imageAssets={brand.imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => onBrandUpdate({ imageAssets }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} canEdit={canEdit} />;
       case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={editHandler((misuse) => onBrandUpdate({ misuse }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'casestudies':
       case 'brochures': return <DigitalCollateralSection collateral={brand.brochures || []} onCollateralChange={editHandler((brochures) => onBrandUpdate({ brochures }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />;

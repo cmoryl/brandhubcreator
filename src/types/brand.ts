@@ -230,6 +230,16 @@ export interface BrandAsset {
   size: string;
 }
 
+// IMAGE ASSETS - Downloadable Image Library
+export interface ImageAsset {
+  id: string;
+  name: string;
+  url: string;
+  size: string;
+  type: string;
+  uploadedAt: string;
+}
+
 // REVENUE - Revenue Data for Charts
 export interface RevenueDataPoint {
   year: number;
@@ -610,6 +620,8 @@ export interface BaseGuide {
   videos: BrandVideo[];
   // Assets (Operational Vault)
   assets: BrandAsset[];
+  // Image Assets (Downloadable Image Library)
+  imageAssets?: ImageAsset[];
   // Misuse (Anti-Patterns)
   misuse: BrandMisuse[];
   // Atmosphere (Atmosphere Engine)
@@ -649,7 +661,7 @@ export interface BaseGuide {
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
-  'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
+  'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'imageassets', 'misuse',
   'brochures', 'templates', 'templatespecs', 'products', 'events'
 ];
 
@@ -692,6 +704,7 @@ export type SectionId =
   | 'qr'
   | 'videos'
   | 'assets'
+  | 'imageassets'
   | 'misuse'
   | 'casestudies'
   | 'brochures'
