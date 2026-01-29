@@ -111,7 +111,7 @@ export const useLayoutClasses = (layout: LayoutPreset) => {
     'grid-4': 'aspect-square',
     'list': 'flex-row h-24',
     'large-cards': 'aspect-[16/10]',
-    'compact': 'aspect-square',
+    'compact': 'aspect-[3/4]', // Document-sized portrait aspect ratio
   };
 
   return {

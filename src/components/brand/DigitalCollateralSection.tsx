@@ -273,7 +273,7 @@ export const DigitalCollateralSection = ({
   onCollateralChange,
   customSubtitle,
   onSubtitleChange,
-  layout = 'grid-3',
+  layout = 'compact',
   onLayoutChange
 }: DigitalCollateralSectionProps) => {
   const collateral = Array.isArray(collateralProp) ? collateralProp : [];
@@ -456,7 +456,7 @@ export const DigitalCollateralSection = ({
             <LayoutSelector
               value={layout}
               onChange={onLayoutChange}
-              availableLayouts={['grid-2', 'grid-3', 'grid-4', 'list']}
+              availableLayouts={['compact', 'grid-3', 'grid-4', 'list']}
               size="sm"
             />
           )}
