@@ -506,7 +506,7 @@ const EventEditor = () => {
       case 'colors': 
         return <ColorPaletteSection colors={event.colors} onColorsChange={editHandler((colors) => updateEvent({ colors }))} colorCombinations={event.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateEvent({ colorCombinations }))} brandName={event.hero.name} />;
       case 'gradients': 
-        return <GradientsSection gradients={event.gradients} onGradientsChange={editHandler((gradients) => updateEvent({ gradients }))} />;
+        return <GradientsSection gradients={event.gradients} onGradientsChange={editHandler((gradients) => updateEvent({ gradients }))} brandName={event.hero.name} brandColors={event.colors} />;
       case 'typography': 
         return <TypographySection typography={event.typography} onTypographyChange={editHandler((typography) => updateEvent({ typography }))} />;
       case 'imagery': 

@@ -1,12 +1,13 @@
 import { useState, useCallback } from 'react';
-import { X, Pencil, Upload, Download, Package, Maximize2 } from 'lucide-react';
-import { BrandPattern, LayoutPreset } from '@/types/brand';
+import { X, Pencil, Upload, Download, Package, Maximize2, Sparkles, Loader2 } from 'lucide-react';
+import { BrandPattern, BrandColor, LayoutPreset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SectionHeader } from './SectionHeader';
 import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
 import { toast } from 'sonner';
 import { useDropZone } from '@/components/ui/drop-zone';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -28,6 +29,11 @@ interface PatternsSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   layout?: LayoutPreset;
   onLayoutChange?: (layout: LayoutPreset) => void;
+  // Brand context for AI generation
+  brandName?: string;
+  brandColors?: BrandColor[];
+  brandTagline?: string;
+  brandArchetype?: string;
 }
 
 const RESOLUTION_OPTIONS = [
@@ -37,12 +43,68 @@ const RESOLUTION_OPTIONS = [
   { label: '4096 × 4096 (4K)', value: '4096', size: 4096 },
 ];
 
-export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, onSubtitleChange, layout = 'grid-3', onLayoutChange }: PatternsSectionProps) => {
+export const PatternsSection = ({ 
+  patterns, 
+  onPatternsChange, 
+  customSubtitle, 
+  onSubtitleChange, 
+  layout = 'grid-3', 
+  onLayoutChange,
+  brandName,
+  brandColors,
+  brandTagline,
+  brandArchetype
+}: PatternsSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [previewPattern, setPreviewPattern] = useState<BrandPattern | null>(null);
   const [downloadResolution, setDownloadResolution] = useState('1024');
+  const [isGenerating, setIsGenerating] = useState(false);
   const { gridClass } = useLayoutClasses(layout);
+
+  const generateAIPatterns = async () => {
+    if (!brandColors || brandColors.length === 0) {
+      toast.error('Add brand colors first to generate patterns');
+      return;
+    }
+
+    setIsGenerating(true);
+    toast.info('Generating 4 brand-specific geometric primitives...');
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-brand-assets', {
+        body: {
+          type: 'patterns',
+          brandContext: {
+            name: brandName || 'Brand',
+            colors: brandColors.map(c => ({ hex: c.hex, name: c.name, role: c.role })),
+            tagline: brandTagline,
+            archetype: brandArchetype
+          },
+          count: 4
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.patterns && data.patterns.length > 0) {
+        const newPatterns: BrandPattern[] = data.patterns.map((p: { name: string; url: string }) => ({
+          id: crypto.randomUUID(),
+          name: p.name,
+          url: p.url
+        }));
+        onPatternsChange([...patterns, ...newPatterns]);
+        toast.success(`Generated ${newPatterns.length} brand-specific patterns!`);
+      } else {
+        toast.error('No patterns were generated');
+      }
+    } catch (error) {
+      console.error('Pattern generation error:', error);
+      toast.error('Failed to generate patterns. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleFileDrop = useCallback((file: File) => {
     const reader = new FileReader();
@@ -200,6 +262,20 @@ export const PatternsSection = ({ patterns, onPatternsChange, customSubtitle, on
               Download All
             </Button>
           )}
+          <Button 
+            onClick={generateAIPatterns} 
+            size="sm" 
+            variant="secondary"
+            className="gap-2"
+            disabled={isGenerating}
+          >
+            {isGenerating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+            {isGenerating ? 'Generating...' : 'AI Generate'}
+          </Button>
           <Button onClick={openFilePicker} size="sm" className="gap-2">
             <Upload className="h-4 w-4" />
             Upload

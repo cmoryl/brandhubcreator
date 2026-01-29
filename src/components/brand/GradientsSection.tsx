@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Plus, X, Pencil, Copy, Check } from 'lucide-react';
-import { BrandGradient, LayoutPreset } from '@/types/brand';
+import { Plus, X, Pencil, Copy, Check, Sparkles, Loader2 } from 'lucide-react';
+import { BrandGradient, BrandColor, LayoutPreset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { SectionHeader } from './SectionHeader';
 import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface GradientsSectionProps {
   gradients: BrandGradient[];
@@ -14,12 +16,25 @@ interface GradientsSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   layout?: LayoutPreset;
   onLayoutChange?: (layout: LayoutPreset) => void;
+  // Brand context for AI generation
+  brandName?: string;
+  brandColors?: BrandColor[];
 }
 
-export const GradientsSection = ({ gradients, onGradientsChange, customSubtitle, onSubtitleChange, layout = 'grid-3', onLayoutChange }: GradientsSectionProps) => {
+export const GradientsSection = ({ 
+  gradients, 
+  onGradientsChange, 
+  customSubtitle, 
+  onSubtitleChange, 
+  layout = 'grid-3', 
+  onLayoutChange,
+  brandName,
+  brandColors 
+}: GradientsSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const { gridClass, cardClass, isListView } = useLayoutClasses(layout);
 
   const addGradient = () => {
@@ -30,6 +45,48 @@ export const GradientsSection = ({ gradients, onGradientsChange, customSubtitle,
     };
     onGradientsChange([...gradients, newGradient]);
     setEditingId(newGradient.id);
+  };
+
+  const generateAIGradients = async () => {
+    if (!brandColors || brandColors.length === 0) {
+      toast.error('Add brand colors first to generate gradients');
+      return;
+    }
+
+    setIsGenerating(true);
+    toast.info('Generating 4 brand-themed gradients...');
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-brand-assets', {
+        body: {
+          type: 'gradients',
+          brandContext: {
+            name: brandName || 'Brand',
+            colors: brandColors.map(c => ({ hex: c.hex, name: c.name, role: c.role }))
+          },
+          count: 4
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.gradients && data.gradients.length > 0) {
+        const newGradients: BrandGradient[] = data.gradients.map((g: { name: string; css: string }) => ({
+          id: crypto.randomUUID(),
+          name: g.name,
+          css: g.css
+        }));
+        onGradientsChange([...gradients, ...newGradients]);
+        toast.success(`Generated ${newGradients.length} brand gradients!`);
+      } else {
+        toast.error('No gradients were generated');
+      }
+    } catch (error) {
+      console.error('Gradient generation error:', error);
+      toast.error('Failed to generate gradients. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const updateGradient = (id: string, updates: Partial<BrandGradient>) => {
@@ -70,11 +127,27 @@ export const GradientsSection = ({ gradients, onGradientsChange, customSubtitle,
             />
           )}
           {onGradientsChange && (
-            <Button onClick={addGradient} size="sm" className="gap-2">
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Add Gradient</span>
-              <span className="sm:hidden">Add</span>
-            </Button>
+            <>
+              <Button 
+                onClick={generateAIGradients} 
+                size="sm" 
+                variant="secondary"
+                className="gap-2"
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+                <span className="hidden sm:inline">{isGenerating ? 'Generating...' : 'AI Generate'}</span>
+              </Button>
+              <Button onClick={addGradient} size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Add Gradient</span>
+                <span className="sm:hidden">Add</span>
+              </Button>
+            </>
           )}
         </div>
       </div>
