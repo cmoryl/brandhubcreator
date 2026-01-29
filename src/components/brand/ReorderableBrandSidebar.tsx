@@ -54,7 +54,6 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   iconography: { label: 'Iconography', icon: Layers, category: 'Assets' },
   socialicons: { label: 'Platform Markers', icon: Share2, category: 'Assets' },
   imagery: { label: 'Visual Direction', icon: Camera, category: 'Assets' },
-  visualassets: { label: 'Visual Assets', icon: Image, category: 'Assets' },
   social: { label: 'Social Registry', icon: Users, category: 'Communication' },
   socialassets: { label: 'Social Assets & Guidelines', icon: LayoutGrid, category: 'Communication' },
   website: { label: 'Website', icon: Globe, category: 'Communication' },

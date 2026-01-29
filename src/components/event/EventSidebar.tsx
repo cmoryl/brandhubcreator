@@ -53,7 +53,6 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   gradients: { label: 'Gradients', icon: Blend, category: 'Visual' },
   typography: { label: 'Typography', icon: Type, category: 'Visual' },
   imagery: { label: 'Visual Direction', icon: Camera, category: 'Visual' },
-  visualassets: { label: 'Visual Assets', icon: Image, category: 'Visual' },
   
   // Social & Communication
   social: { label: 'Social Registry', icon: Users, category: 'Communication' },

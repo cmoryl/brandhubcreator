@@ -17,7 +17,6 @@ import { TextStylesSection } from './TextStylesSection';
 import { IconographySection } from './IconographySection';
 import { SocialIconsSection } from './SocialIconsSection';
 import { ImagerySection } from './ImagerySection';
-import { VisualAssetsSection } from './VisualAssetsSection';
 import { SocialSection } from './SocialSection';
 import { SocialAssetsSection } from './SocialAssetsSection';
 import { WebsiteSection } from './WebsiteSection';
@@ -56,7 +55,6 @@ const sectionAnimations: Record<string, AnimationType> = {
   iconography: 'zoom-in',
   socialicons: 'fade-up',
   imagery: 'blur-in',
-  visualassets: 'fade-up',
   social: 'fade-left',
   socialassets: 'fade-up',
   website: 'fade-right',
@@ -265,7 +263,6 @@ export const FullBrandPage = ({
       case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={editHandler((iconography) => onBrandUpdate({ iconography }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} defaultIconColor={brand.defaultIconColor} onDefaultIconColorChange={editHandler((defaultIconColor) => onBrandUpdate({ defaultIconColor }))} brandColors={brand.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} />;
       case 'socialicons': return <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={editHandler((socialIcons) => onBrandUpdate({ socialIcons }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={editHandler((imagery) => onBrandUpdate({ imagery }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
-      case 'visualassets': return <VisualAssetsSection visualAssets={brand.visualAssets || []} onVisualAssetsChange={editHandler((visualAssets) => onBrandUpdate({ visualAssets }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'social': return <SocialSection social={brand.social} onSocialChange={editHandler((social) => onBrandUpdate({ social }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'socialassets': return <SocialAssetsSection socialAssets={brand.socialAssets || []} onSocialAssetsChange={editHandler((socialAssets) => onBrandUpdate({ socialAssets }))} displayBanners={brand.displayBanners || []} onDisplayBannersChange={editHandler((displayBanners) => onBrandUpdate({ displayBanners }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />;
       case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={editHandler((websites) => onBrandUpdate({ websites }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;

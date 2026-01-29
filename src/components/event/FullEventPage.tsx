@@ -6,7 +6,6 @@ import { ColorPaletteSection } from '@/components/brand/ColorPaletteSection';
 import { GradientsSection } from '@/components/brand/GradientsSection';
 import { TypographySection } from '@/components/brand/TypographySection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
-import { VisualAssetsSection } from '@/components/brand/VisualAssetsSection';
 import { SocialSection } from '@/components/brand/SocialSection';
 import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
@@ -277,13 +276,6 @@ export const FullEventPage = ({
           <ImagerySection
             imagery={event.imagery || []}
             onImageryChange={editHandler((imagery) => updateEvent({ imagery }))}
-          />
-        );
-      case 'visualassets':
-        return (
-          <VisualAssetsSection
-            visualAssets={event.visualAssets || []}
-            onVisualAssetsChange={canEdit ? (visualAssets) => updateEvent({ visualAssets }) : undefined}
           />
         );
       case 'social':
