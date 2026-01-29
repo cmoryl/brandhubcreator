@@ -31,59 +31,103 @@ export const BatchAssetGenerationCard = () => {
     }
 
     setIsGenerating(true);
-    setProgress(10);
+    setProgress(5);
     setResults(null);
     
     toast.info('Starting batch asset generation...', {
-      description: 'This may take a few minutes for AI pattern generation.'
+      description: 'Processing brands in batches to avoid timeouts.'
     });
 
+    const aggregatedResults: GenerationResults = {
+      brands: { processed: 0, gradientsAdded: 0, patternsAdded: 0 },
+      products: { processed: 0, gradientsAdded: 0, patternsAdded: 0 },
+      events: { processed: 0, gradientsAdded: 0, patternsAdded: 0 },
+      errors: []
+    };
+
     try {
-      setProgress(30);
-      
-      const { data, error } = await supabase.functions.invoke('batch-generate-assets', {
-        body: {
-          organizationId: organization?.id,
-          generatePatterns,
-          generateGradients
+      // Process in multiple batches to avoid memory limits
+      const maxIterations = 10; // Safety limit
+      let iteration = 0;
+      let hasMore = true;
+
+      while (hasMore && iteration < maxIterations) {
+        iteration++;
+        setProgress(10 + (iteration * 8));
+        
+        const { data, error } = await supabase.functions.invoke('batch-generate-assets', {
+          body: {
+            organizationId: organization?.id,
+            generatePatterns,
+            generateGradients,
+            maxBrands: 2 // Process 2 brands at a time
+          }
+        });
+
+        if (error) {
+          console.error('Batch error:', error);
+          aggregatedResults.errors.push(error.message);
+          break;
         }
-      });
+
+        if (data?.success && data.results) {
+          // Aggregate results
+          aggregatedResults.brands.processed += data.results.brands.processed;
+          aggregatedResults.brands.gradientsAdded += data.results.brands.gradientsAdded;
+          aggregatedResults.brands.patternsAdded += data.results.brands.patternsAdded;
+          aggregatedResults.products.processed += data.results.products.processed;
+          aggregatedResults.products.gradientsAdded += data.results.products.gradientsAdded;
+          aggregatedResults.products.patternsAdded += data.results.products.patternsAdded;
+          aggregatedResults.events.processed += data.results.events.processed;
+          aggregatedResults.events.gradientsAdded += data.results.events.gradientsAdded;
+          aggregatedResults.errors.push(...(data.results.errors || []));
+
+          // If no brands were processed, we're done
+          if (data.results.brands.processed === 0 && 
+              data.results.products.processed === 0 && 
+              data.results.events.processed === 0) {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
+
+        // Small delay between batches
+        if (hasMore) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
 
       setProgress(100);
+      setResults(aggregatedResults);
+      
+      const totalProcessed = 
+        aggregatedResults.brands.processed + 
+        aggregatedResults.products.processed + 
+        aggregatedResults.events.processed;
+      
+      const totalGradients = 
+        aggregatedResults.brands.gradientsAdded + 
+        aggregatedResults.products.gradientsAdded + 
+        aggregatedResults.events.gradientsAdded;
+      
+      const totalPatterns = 
+        aggregatedResults.brands.patternsAdded + 
+        aggregatedResults.products.patternsAdded + 
+        aggregatedResults.events.patternsAdded;
 
-      if (error) throw error;
+      if (totalProcessed > 0) {
+        toast.success('Batch generation complete!', {
+          description: `Updated ${totalProcessed} entities. Added ${totalGradients} gradients and ${totalPatterns} patterns.`
+        });
+      } else {
+        toast.info('No entities needed updates', {
+          description: 'All brands/products already have 4+ gradients and patterns.'
+        });
+      }
 
-      if (data?.success) {
-        setResults(data.results);
-        
-        const totalProcessed = 
-          data.results.brands.processed + 
-          data.results.products.processed + 
-          data.results.events.processed;
-        
-        const totalGradients = 
-          data.results.brands.gradientsAdded + 
-          data.results.products.gradientsAdded + 
-          data.results.events.gradientsAdded;
-        
-        const totalPatterns = 
-          data.results.brands.patternsAdded + 
-          data.results.products.patternsAdded + 
-          data.results.events.patternsAdded;
-
-        if (totalProcessed > 0) {
-          toast.success('Batch generation complete!', {
-            description: `Updated ${totalProcessed} entities. Added ${totalGradients} gradients and ${totalPatterns} patterns.`
-          });
-        } else {
-          toast.info('No entities needed updates', {
-            description: 'All brands/products already have 4+ gradients and patterns.'
-          });
-        }
-
-        if (data.results.errors.length > 0) {
-          console.warn('Generation errors:', data.results.errors);
-        }
+      if (aggregatedResults.errors.length > 0) {
+        console.warn('Generation errors:', aggregatedResults.errors);
       }
     } catch (error) {
       console.error('Batch generation error:', error);
