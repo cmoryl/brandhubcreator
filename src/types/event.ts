@@ -252,7 +252,8 @@ export type EventSectionId =
   | 'eventlocation'     // Venue & location info
   | 'eventwebsites'     // Event website links
   | 'subevents'         // Sub-events / regional events
-  | 'sharedassets';     // Shared asset library for inheritance
+  | 'sharedassets'      // Shared asset library for inheritance
+  | 'eventpatterns';    // Event-specific patterns
 
 // Default Event Section Order
 export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
@@ -270,6 +271,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'eventvideos',
   'colors',
   'gradients',
+  'eventpatterns',       // Event-specific patterns
   'typography',
   'imagery',
   'social',
