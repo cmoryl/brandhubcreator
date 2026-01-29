@@ -50,6 +50,12 @@ export interface BrandHero {
   /** Whether to apply Ken Burns (slow pan/zoom) effect to hero image */
   kenBurnsEffect?: boolean;
   logoUrl: string;
+  /** Tagline animation effect on load */
+  taglineAnimation?: 'typewriter' | 'fade-slide' | 'blur-reveal' | 'split-chars' | 'wave-glow';
+  /** Tagline hover interaction effect */
+  taglineHoverEffect?: 'none' | 'glow-pulse' | 'letter-dance' | 'color-shift' | 'underline-grow';
+  /** Tagline environmental effect */
+  taglineEnvironment?: 'none' | 'shimmer' | 'particle-dust' | 'aurora' | 'glitch';
 }
 
 // TAGLINE - Corporate Tagline

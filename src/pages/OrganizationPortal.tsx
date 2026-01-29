@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { HeroBackground } from '@/components/HeroBackground';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
+import { AnimatedTagline } from '@/components/ui/animated-tagline';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useEvents } from '@/contexts/EventContext';
@@ -471,9 +472,16 @@ const OrganizationPortal = () => {
                   {organization.name}
                 </span>
               </h1>
-              <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-md animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                Explore our public brand guidelines and resources.
-              </p>
+              <div className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-md animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+                <AnimatedTagline
+                  text={portalSettings.heroTagline || DEFAULT_PORTAL_SETTINGS.heroTagline || 'Explore our public brand guidelines and resources.'}
+                  animation={portalSettings.taglineAnimation || 'fade-slide'}
+                  hoverEffect={portalSettings.taglineHoverEffect || 'none'}
+                  environment={portalSettings.taglineEnvironment || 'none'}
+                  delay={400}
+                  animateOnMount
+                />
+              </div>
 
               {/* Search Bar */}
               <div className="max-w-sm animate-fade-in-up" style={{ animationDelay: '0.35s' }}>

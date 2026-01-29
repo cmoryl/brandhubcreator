@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Upload, Image, Pencil, Check, TrendingUp, Eye, Users, Share2, Heart, BarChart3, Sparkles, Brain, Video, ImageIcon, Move, Loader2 } from 'lucide-react';
+import { Upload, Image, Pencil, Check, TrendingUp, Eye, Users, Share2, Heart, BarChart3, Sparkles, Brain, Video, ImageIcon, Move, Loader2, Type, MousePointer, Wind } from 'lucide-react';
 import { BrandHero } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,10 +8,22 @@ import { Badge } from '@/components/ui/badge';
 import { BackgroundImage } from '@/components/ui/optimized-image';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { VideoUploadDialog } from '@/components/ui/video-upload-dialog';
 import { getAcceptedVideoFormats } from '@/lib/videoCompression';
 import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { 
+  AnimatedTagline, 
+  TAGLINE_ANIMATION_OPTIONS, 
+  TAGLINE_HOVER_OPTIONS, 
+  TAGLINE_ENVIRONMENT_OPTIONS,
+  TaglineAnimation,
+  TaglineHoverEffect,
+  TaglineEnvironment,
+} from '@/components/ui/animated-tagline';
 import { cn } from '@/lib/utils';
 
 interface HeroStats {
@@ -441,6 +453,136 @@ export const HeroSection = ({
                   {hero.kenBurnsEffect === true && <Check className="h-3 w-3" />}
                 </button>
               )}
+
+              {/* Tagline Animation Settings */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={(e) => e.stopPropagation()}
+                    className={cn(
+                      "pointer-events-auto flex items-center gap-2 px-4 py-2 rounded-full border transition-all",
+                      (hero.taglineAnimation && hero.taglineAnimation !== 'fade-slide') || hero.taglineHoverEffect !== 'none' || hero.taglineEnvironment !== 'none'
+                        ? "bg-white/25 border-white/40 text-white"
+                        : "bg-white/10 border-white/20 text-white/80 hover:bg-white/15 hover:text-white"
+                    )}
+                    title="Configure tagline animation effects"
+                  >
+                    <Type className="h-4 w-4" />
+                    <span className="text-sm font-medium">Tagline Animation</span>
+                    {((hero.taglineAnimation && hero.taglineAnimation !== 'fade-slide') || 
+                      (hero.taglineHoverEffect && hero.taglineHoverEffect !== 'none') || 
+                      (hero.taglineEnvironment && hero.taglineEnvironment !== 'none')) && (
+                      <Check className="h-3 w-3" />
+                    )}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-72 p-4 pointer-events-auto" 
+                  side="bottom"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <h4 className="font-medium text-sm flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        Tagline Animation
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        Customize how your tagline appears
+                      </p>
+                    </div>
+
+                    {/* Animation preview */}
+                    <div className="p-3 rounded-lg bg-muted/50 border border-border min-h-[50px] flex items-center justify-center">
+                      <AnimatedTagline
+                        text={hero.tagline?.slice(0, 30) || 'Your tagline'}
+                        animation={hero.taglineAnimation || 'fade-slide'}
+                        hoverEffect={hero.taglineHoverEffect || 'none'}
+                        environment={hero.taglineEnvironment || 'none'}
+                        className="text-sm font-medium"
+                        animateOnMount
+                        key={`${hero.taglineAnimation}-${hero.taglineHoverEffect}-${hero.taglineEnvironment}-preview`}
+                      />
+                    </div>
+
+                    {/* Load Animation */}
+                    <div className="space-y-2">
+                      <Label className="text-xs flex items-center gap-1.5">
+                        <Sparkles className="h-3 w-3" />
+                        On Load
+                      </Label>
+                      <Select
+                        value={hero.taglineAnimation || 'fade-slide'}
+                        onValueChange={(value: TaglineAnimation) => 
+                          onHeroChange?.({ ...hero, taglineAnimation: value })
+                        }
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TAGLINE_ANIMATION_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value} className="text-xs">
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Hover Effect */}
+                    <div className="space-y-2">
+                      <Label className="text-xs flex items-center gap-1.5">
+                        <MousePointer className="h-3 w-3" />
+                        On Hover
+                      </Label>
+                      <Select
+                        value={hero.taglineHoverEffect || 'none'}
+                        onValueChange={(value: TaglineHoverEffect) => 
+                          onHeroChange?.({ ...hero, taglineHoverEffect: value })
+                        }
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TAGLINE_HOVER_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value} className="text-xs">
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Environment Effect */}
+                    <div className="space-y-2">
+                      <Label className="text-xs flex items-center gap-1.5">
+                        <Wind className="h-3 w-3" />
+                        Environment
+                      </Label>
+                      <Select
+                        value={hero.taglineEnvironment || 'none'}
+                        onValueChange={(value: TaglineEnvironment) => 
+                          onHeroChange?.({ ...hero, taglineEnvironment: value })
+                        }
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TAGLINE_ENVIRONMENT_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value} className="text-xs">
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
               
               {/* Upload prompt */}
               <div 
@@ -599,9 +741,15 @@ export const HeroSection = ({
                         <h1 className={`text-xl sm:text-3xl lg:text-5xl xl:text-6xl font-serif font-bold text-white drop-shadow-lg tracking-tight transition-all duration-700 leading-tight ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                           {hero.name || 'Brand Name'}
                         </h1>
-                        <p className={`text-sm sm:text-lg lg:text-2xl text-white/90 drop-shadow-md max-w-3xl transition-all duration-700 delay-100 line-clamp-2 sm:line-clamp-none ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                          {hero.tagline || 'Your brand tagline goes here'}
-                        </p>
+                        <AnimatedTagline
+                          text={hero.tagline || 'Your brand tagline goes here'}
+                          animation={hero.taglineAnimation || 'fade-slide'}
+                          hoverEffect={hero.taglineHoverEffect || 'none'}
+                          environment={hero.taglineEnvironment || 'none'}
+                          className="text-sm sm:text-lg lg:text-2xl text-white/90 drop-shadow-md max-w-3xl line-clamp-2 sm:line-clamp-none"
+                          delay={300}
+                          animateOnMount={isVisible}
+                        />
                       </>
                     )}
                   </div>
