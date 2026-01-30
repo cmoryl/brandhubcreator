@@ -4,7 +4,7 @@
  * Features: smooth animations, keyboard nav, touch-friendly, clear visual hierarchy
  */
 
-import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect, MouseEvent as ReactMouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Layers, Globe, Mic, Video, FileText, MessageSquare, Tv, Share2, Database, PenTool, Zap, ChevronRight, ExternalLink } from 'lucide-react';
@@ -148,6 +148,8 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
   const [selectedProduct, setSelectedProduct] = useState<ValidatedGuide | null>(null);
   const [hoveredProduct, setHoveredProduct] = useState<ValidatedGuide | null>(null);
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
+  const [orbitTilt, setOrbitTilt] = useState({ x: 0, y: 0 });
+  const orbitRef = useRef<HTMLDivElement>(null);
 
   const getProductInfo = useCallback((slug: string) => {
     return PRODUCT_INFO[slug] || {
@@ -227,6 +229,21 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
       setSelectedProduct(product);
     }
   }, [selectedProduct, navigate]);
+
+  // Handle orbit hover for 3D tilt effect
+  const handleOrbitMouseMove = useCallback((e: ReactMouseEvent<HTMLDivElement>) => {
+    if (!orbitRef.current) return;
+    const rect = orbitRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const x = (e.clientX - centerX) / (rect.width / 2);
+    const y = (e.clientY - centerY) / (rect.height / 2);
+    setOrbitTilt({ x: y * -8, y: x * 8 }); // Subtle tilt max 8deg
+  }, []);
+
+  const handleOrbitMouseLeave = useCallback(() => {
+    setOrbitTilt({ x: 0, y: 0 });
+  }, []);
 
   return (
     <section className={cn("relative py-10 md:py-16 overflow-hidden", className)} ref={containerRef} tabIndex={0}>
@@ -372,8 +389,17 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
         </div>
 
         {/* Right: Orbit Visualization - Larger area */}
-        <div className="lg:col-span-9 order-1 lg:order-2">
-          <div className="relative aspect-square max-w-2xl mx-auto">
+        <div className="lg:col-span-9 order-1 lg:order-2" style={{ perspective: '1000px' }}>
+          <div 
+            ref={orbitRef}
+            className="relative aspect-square max-w-2xl mx-auto transition-transform duration-200 ease-out"
+            style={{
+              transform: `rotateX(${orbitTilt.x}deg) rotateY(${orbitTilt.y}deg)`,
+              transformStyle: 'preserve-3d',
+            }}
+            onMouseMove={handleOrbitMouseMove}
+            onMouseLeave={handleOrbitMouseLeave}
+          >
             {/* Orbit rings */}
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
               <defs>
