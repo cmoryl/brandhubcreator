@@ -692,6 +692,53 @@ export type Database = {
           },
         ]
       }
+      universe_backups: {
+        Row: {
+          backup_data: Json
+          backup_name: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_default: boolean
+          organization_id: string | null
+          universe_name: string
+          universe_type: string
+          updated_at: string
+        }
+        Insert: {
+          backup_data?: Json
+          backup_name: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_default?: boolean
+          organization_id?: string | null
+          universe_name: string
+          universe_type: string
+          updated_at?: string
+        }
+        Update: {
+          backup_data?: Json
+          backup_name?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_default?: boolean
+          organization_id?: string | null
+          universe_name?: string
+          universe_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "universe_backups_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
