@@ -39,7 +39,7 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   hero: {
     name: 'Nexus Tech',
     tagline: 'Building tomorrow\'s digital infrastructure today',
-    coverImage: '/images/demos/hero-nexus-tech.jpg',
+    coverImage: '/images/demos/card-nexus-tech.jpg',
     logoUrl: '/images/demos/logo-nexus-tech.png',
   },
   tagline: {
@@ -318,7 +318,7 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   hero: {
     name: 'Bloom Wellness',
     tagline: 'Nurturing your journey to holistic well-being',
-    coverImage: '/images/demos/hero-bloom-wellness.jpg',
+    coverImage: '/images/demos/card-bloom-wellness.jpg',
     logoUrl: '/images/demos/logo-bloom-wellness.png',
   },
   tagline: {
