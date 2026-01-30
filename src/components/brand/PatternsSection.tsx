@@ -296,12 +296,16 @@ export const PatternsSection = ({
             className="group relative bg-card rounded-xl overflow-hidden shadow-sm border border-border animate-scale-in"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-            {/* Pattern preview */}
+            {/* Pattern preview - single tile */}
             <div
-              className="h-32 relative cursor-pointer"
-              style={{ backgroundImage: `url(${pattern.url})`, backgroundSize: '64px 64px', backgroundRepeat: 'repeat' }}
+              className="h-32 relative cursor-pointer flex items-center justify-center bg-muted/30"
               onClick={() => setPreviewPattern(pattern)}
             >
+              <img 
+                src={pattern.url} 
+                alt={pattern.name}
+                className="w-24 h-24 object-contain rounded-lg shadow-sm"
+              />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                 <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
               </div>
