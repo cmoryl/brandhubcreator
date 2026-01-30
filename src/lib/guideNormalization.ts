@@ -49,6 +49,56 @@ export const safeString = (value: unknown, fallback: string = ''): string =>
   typeof value === 'string' ? value : fallback;
 
 // ============================================================
+// Linked guides normalization (critical for suite hierarchies)
+// ============================================================
+
+/**
+ * Normalizes legacy/restored linkedGuides formats to a consistent shape.
+ *
+ * Supported inputs:
+ * - { id, type, name, slug }
+ * - legacy: { guideId, guideType } (optionally with name/slug)
+ * - legacy snake_case: { guide_id, guide_type }
+ * - string ids (treated as id)
+ */
+export type NormalizedLinkedGuide = {
+  id: string;
+  type?: string;
+  name?: string;
+  slug?: string;
+};
+
+export const normalizeLinkedGuides = (linkedGuides: unknown): NormalizedLinkedGuide[] => {
+  const arr = safeArray<any>(linkedGuides);
+
+  return arr
+    .map((g: any): NormalizedLinkedGuide | null => {
+      if (!g) return null;
+      if (typeof g === 'string') {
+        const id = g.trim();
+        return id ? { id } : null;
+      }
+
+      if (typeof g !== 'object' || Array.isArray(g)) return null;
+
+      const id = safeString(g.id ?? g.guideId ?? g.guide_id).trim();
+      if (!id) return null;
+
+      const type = safeString(g.type ?? g.guideType ?? g.guide_type, undefined as any);
+      const name = safeString(g.name, undefined as any);
+      const slug = safeString(g.slug, undefined as any);
+
+      return {
+        id,
+        ...(type ? { type } : {}),
+        ...(name ? { name } : {}),
+        ...(slug ? { slug } : {}),
+      };
+    })
+    .filter((x): x is NormalizedLinkedGuide => Boolean(x));
+};
+
+// ============================================================
 // Legacy field normalization
 // ============================================================
 
@@ -161,7 +211,8 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     // Optional arrays with typed defaults
     socialAssets: safeArray<BrandSocialAssetSpec>(g.socialAssets),
     displayBanners: safeArray<BrandDisplayBannerSpec>(g.displayBanners),
-    linkedGuides: safeArray(g.linkedGuides),
+    // Critical: suite hierarchy must survive restores/backups even if legacy keys return
+    linkedGuides: normalizeLinkedGuides(g.linkedGuides),
     templateSpecs: safeArray<TemplateSpec>(g.templateSpecs),
     revenueData: safeArray<RevenueDataPoint>(g.revenueData),
     statistics: safeArray<StatisticItem>(g.statistics),
