@@ -608,14 +608,12 @@ export const GlobalAssetOrbit = ({
             }
           }}
           className={cn(
-            "w-full h-full rounded-full flex items-center justify-center transition-all duration-300 pointer-events-auto",
-            activeFilter !== 'all' && "cursor-pointer hover:scale-110"
+            "w-full h-full rounded-full flex items-center justify-center transition-all duration-300 pointer-events-auto cursor-pointer",
+            "hover:scale-110 hover:brightness-110"
           )}
           style={{ 
             background: `linear-gradient(145deg, ${primaryColor}60, ${primaryColor}30)`,
-            boxShadow: activeFilter !== 'all' 
-              ? `0 0 30px ${primaryColor}60, 0 0 50px ${primaryColor}30` 
-              : `0 0 30px ${primaryColor}40`,
+            boxShadow: `0 0 30px ${primaryColor}40`,
             border: `2px solid ${primaryColor}80`,
           }}
           title={activeFilter !== 'all' ? 'Click to show all' : organizationName}
@@ -625,19 +623,19 @@ export const GlobalAssetOrbit = ({
             <img 
               src={transperfectLogoIcon} 
               alt={organizationName} 
-              className="w-16 h-16 object-contain" 
+              className="w-12 h-12 object-contain transition-transform duration-300 hover:scale-105" 
               style={{ 
                 opacity: 1,
                 filter: `drop-shadow(0 0 12px ${primaryColor}80) drop-shadow(0 0 24px ${primaryColor}40)`
               }} 
             />
           ) : organizationLogo ? (
-            <img src={organizationLogo} alt={organizationName} className="w-14 h-14 object-contain" style={{ filter: `brightness(0) invert(1) drop-shadow(0 0 16px ${primaryColor}80)`, opacity: 0.95 }} />
+            <img src={organizationLogo} alt={organizationName} className="w-11 h-11 object-contain transition-transform duration-300" style={{ filter: `brightness(0) invert(1) drop-shadow(0 0 16px ${primaryColor}80)`, opacity: 0.95 }} />
           ) : (
             <img 
               src={transperfectLogoIcon} 
               alt={organizationName} 
-              className="w-16 h-16 object-contain" 
+              className="w-12 h-12 object-contain transition-transform duration-300 hover:scale-105" 
               style={{ 
                 opacity: 1,
                 filter: `drop-shadow(0 0 12px ${primaryColor}80) drop-shadow(0 0 24px ${primaryColor}40)`
