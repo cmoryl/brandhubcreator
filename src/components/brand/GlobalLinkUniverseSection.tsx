@@ -596,7 +596,7 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                 <button
                   key={product.id}
                   className={cn(
-                    "absolute flex items-center justify-center transition-all duration-300 z-10",
+                    "absolute flex items-center justify-center transition-all duration-300 z-10 select-none",
                     "hover:z-30 focus:z-30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background",
                     isActive && "z-30 scale-125",
                     isConnected && !isActive && "scale-110",
@@ -606,10 +606,18 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                     left: `${x}%`,
                     top: `${y}%`,
                     transform: `translate(-50%, -50%)`,
+                    WebkitUserSelect: 'none',
+                    userSelect: 'none',
                   }}
                   onMouseEnter={() => setHoveredProduct(product)}
                   onMouseLeave={() => !selectedProduct && setHoveredProduct(null)}
-                  onClick={() => handleProductClick(product)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleProductClick(product);
+                  }}
+                  onMouseDown={(e) => e.preventDefault()}
+                  draggable={false}
                   aria-label={product.name}
                 >
                   {/* Pulse ring */}
