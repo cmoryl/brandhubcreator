@@ -106,6 +106,7 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   awards: { label: 'Awards & Recognition', icon: Award, category: 'Resources' },
   events: { label: 'Events', icon: Calendar, category: 'Collateral' },
   eventpatterns: { label: 'Event Patterns', icon: Grid, category: 'Visual' },
+  universe: { label: 'Product Universe', icon: Globe, category: 'Collateral' },
 };
 
 export const EventSidebar = ({ 

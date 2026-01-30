@@ -70,6 +70,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   webinars: { label: 'Webinar Series', icon: Presentation, category: 'Resources' },
   products: { label: 'Products', icon: Package, category: 'Collateral' },
   events: { label: 'Events', icon: Calendar, category: 'Collateral' },
+  universe: { label: 'Product Universe', icon: Globe, category: 'Collateral' },
 };
 
 export const ReorderableBrandSidebar = ({ 
