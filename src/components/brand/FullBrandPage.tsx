@@ -33,6 +33,7 @@ import { ProductsSection } from './ProductsSection';
 import { EventsSection } from './EventsSection';
 import { WebinarSeriesSection } from './WebinarSeriesSection';
 import AwardsSection from './AwardsSection';
+import { GlobalLinkUniverseSection } from './GlobalLinkUniverseSection';
 import { Separator } from '@/components/ui/separator';
 import { ScrollAnimate, AnimationType } from '@/components/ui/scroll-animate';
 
@@ -70,7 +71,8 @@ const sectionAnimations: Record<string, AnimationType> = {
   templates: 'zoom-in',
   templatespecs: 'fade-up',
   products: 'fade-up',
-  events: 'fade-up'
+  events: 'fade-up',
+  universe: 'zoom-in'
 };
 
 // Memoized section wrapper with scroll animations
@@ -288,6 +290,14 @@ export const FullBrandPage = ({
         return brand.type === 'brand' 
           ? <EventsSection brandId={brandId} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />
           : null;
+      case 'universe':
+        // Only show for product suites (products with linkedGuides)
+        // Check if this is a product with linked guides (like GlobalLink)
+        if (brand.type === 'product' && brand.linkedGuides && brand.linkedGuides.length > 0) {
+          const primaryColor = brand.colors?.[0]?.hex || '#6366f1';
+          return <GlobalLinkUniverseSection linkedGuides={brand.linkedGuides} primaryColor={primaryColor} />;
+        }
+        return null;
       default: return null;
     }
   }, [brand, brandId, onBrandUpdate, sectionSubtitles, sectionLayouts, handleSubtitleChange, handleLayoutChange, heroFullWidth, onOpenIntelligence, canEdit]);
