@@ -597,11 +597,12 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                 <button
                   key={product.id}
                   className={cn(
-                    "absolute flex items-center justify-center transition-all duration-300 z-10 select-none",
-                    "hover:z-30 focus:z-30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background",
+                    "absolute transition-all duration-300 z-10 select-none",
+                    "w-12 h-12 md:w-14 md:h-14",
+                    "hover:z-30 focus:z-30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background rounded-full",
                     isActive && "z-30 scale-125",
                     isConnected && !isActive && "scale-110",
-                    !isActive && !isConnected && "hover:scale-115"
+                    !isActive && !isConnected && "hover:scale-110"
                   )}
                   style={{
                     left: `${x}%`,
@@ -651,32 +652,34 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                     />
                   )}
                   
-                  {/* Node - pointer-events-none to prevent hover flicker */}
+                  {/* Node container - centered absolutely, pointer-events-none */}
                   <div 
-                    className={cn(
-                      "w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300 pointer-events-none"
-                    )}
-                    style={{
-                      background: isActive 
-                        ? `linear-gradient(135deg, ${catColor.primary}, ${catColor.primary}bb)`
-                        : isConnected
-                        ? `linear-gradient(135deg, ${catColor.primary}70, ${catColor.primary}40)`
-                        : `linear-gradient(135deg, ${catColor.bg}, ${catColor.primary}15)`,
-                      boxShadow: isActive 
-                        ? `0 0 30px ${catColor.primary}50, 0 4px 15px ${catColor.primary}30`
-                        : isConnected
-                        ? `0 0 20px ${catColor.primary}30`
-                        : `0 2px 10px ${catColor.primary}10`,
-                      border: `2px solid ${isActive ? catColor.primary : isConnected ? catColor.primary + '80' : catColor.primary + '30'}`,
-                    }}
+                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
                   >
-                    <Icon 
-                      className={cn(
-                        "w-5 h-5 md:w-6 md:h-6 transition-all pointer-events-none",
-                        isActive ? "text-white" : "text-foreground/70"
-                      )} 
-                      style={{ color: isActive ? 'white' : catColor.text }}
-                    />
+                    <div 
+                      className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300"
+                      style={{
+                        background: isActive 
+                          ? `linear-gradient(135deg, ${catColor.primary}, ${catColor.primary}bb)`
+                          : isConnected
+                          ? `linear-gradient(135deg, ${catColor.primary}70, ${catColor.primary}40)`
+                          : `linear-gradient(135deg, ${catColor.bg}, ${catColor.primary}15)`,
+                        boxShadow: isActive 
+                          ? `0 0 30px ${catColor.primary}50, 0 4px 15px ${catColor.primary}30`
+                          : isConnected
+                          ? `0 0 20px ${catColor.primary}30`
+                          : `0 2px 10px ${catColor.primary}10`,
+                        border: `2px solid ${isActive ? catColor.primary : isConnected ? catColor.primary + '80' : catColor.primary + '30'}`,
+                      }}
+                    >
+                      <Icon 
+                        className={cn(
+                          "w-5 h-5 md:w-6 md:h-6 transition-all",
+                          isActive ? "text-white" : "text-foreground/70"
+                        )} 
+                        style={{ color: isActive ? 'white' : catColor.text }}
+                      />
+                    </div>
                   </div>
                   
                   {/* Label */}
