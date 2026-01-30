@@ -628,11 +628,17 @@ export const useBrandStorage = () => {
     }
 
     const guideData = createDefaultGuideData(name, 'product');
+    
+    // Generate a unique slug with timestamp suffix to avoid conflicts
+    const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const uniqueSlug = `${baseSlug}-${Date.now().toString(36)}`;
+    
     const dbData = {
       user_id: user.id,
       organization_id: organization?.id ?? null,
       parent_brand_id: parentBrandId ?? null,
       name,
+      slug: uniqueSlug,
       is_favorite: false,
       section_order: DEFAULT_SECTION_ORDER as string[],
       hidden_sections: [] as string[],
@@ -647,7 +653,12 @@ export const useBrandStorage = () => {
 
     if (error) {
       console.error('Error creating product:', error);
-      toast.error('Failed to create product. Please try again.');
+      // Provide more specific error message for duplicate slugs
+      if (error.code === '23505') {
+        toast.error('A product with this name already exists. Please try a different name.');
+      } else {
+        toast.error('Failed to create product. Please try again.');
+      }
       return null;
     }
 
