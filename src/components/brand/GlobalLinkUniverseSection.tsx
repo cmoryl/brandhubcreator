@@ -296,10 +296,10 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
       </div>
 
       {/* Main content grid - 2 column layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 px-4 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 px-4 max-w-7xl mx-auto">
         
         {/* Left: Product Categories */}
-        <div className="lg:col-span-3 order-2 lg:order-1">
+        <div className="md:col-span-3 order-2 md:order-1">
           <div className="sticky top-24 space-y-3">
             {Object.entries(productsByCategory).map(([category, products]) => {
               const catColor = getCategoryColor(category);
@@ -412,7 +412,7 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
         </div>
 
         {/* Right: Orbit Visualization - Larger area */}
-        <div className="lg:col-span-9 order-1 lg:order-2" style={{ perspective: '1000px' }}>
+        <div className="md:col-span-9 order-1 md:order-2" style={{ perspective: '1000px' }}>
           <div 
             ref={orbitRef}
             className="relative aspect-square max-w-2xl mx-auto transition-transform duration-200 ease-out"
