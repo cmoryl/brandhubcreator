@@ -285,20 +285,24 @@ export const InteractiveProcessSection = ({ className }: InteractiveProcessSecti
           />
         </div>
         
-        {/* Progress indicator */}
-        <div className="flex justify-center gap-2 mb-12 sm:mb-16">
+        {/* Progress indicator - touch targets min 24px for WCAG 2.2 AA */}
+        <div className="flex justify-center gap-4 mb-12 sm:mb-16">
           {[1, 2, 3].map((step) => (
             <button
               key={step}
               onClick={() => setActiveStep(step)}
-              className={cn(
-                "h-2 rounded-full transition-all duration-500",
-                activeStep === step 
-                  ? "w-10 bg-accent" 
-                  : "w-2 bg-border hover:bg-muted-foreground/30"
-              )}
+              className="relative flex items-center justify-center min-w-[24px] min-h-[24px] p-2"
               aria-label={`Go to step ${step}`}
-            />
+            >
+              <span
+                className={cn(
+                  "h-2 rounded-full transition-all duration-500",
+                  activeStep === step 
+                    ? "w-10 bg-accent" 
+                    : "w-2 bg-border group-hover:bg-muted-foreground/30"
+                )}
+              />
+            </button>
           ))}
         </div>
 
