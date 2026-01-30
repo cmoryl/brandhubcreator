@@ -441,36 +441,74 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                 
                 return (
                   <g key={connProduct.id}>
-                    {/* Glow */}
+                    {/* Subtle gradient path */}
+                    <defs>
+                      <linearGradient id={`lineGrad-${connProduct.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor={connColor.primary} stopOpacity="0.08" />
+                        <stop offset="50%" stopColor={connColor.primary} stopOpacity="0.2" />
+                        <stop offset="100%" stopColor={connColor.primary} stopOpacity="0.08" />
+                      </linearGradient>
+                      {/* Glow filter for orb */}
+                      <filter id={`orbGlow-${connProduct.id}`} x="-100%" y="-100%" width="300%" height="300%">
+                        <feGaussianBlur stdDeviation="1.5" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                      </filter>
+                    </defs>
+                    
+                    {/* Thin streamlined path */}
                     <path
                       d={pathD}
                       fill="none"
-                      stroke={connColor.primary}
-                      strokeWidth="3"
-                      strokeOpacity="0.15"
+                      stroke={`url(#lineGrad-${connProduct.id})`}
+                      strokeWidth="0.6"
                       strokeLinecap="round"
-                      className="animate-pulse"
                     />
-                    {/* Line */}
-                    <path
-                      d={pathD}
-                      fill="none"
-                      stroke={connColor.primary}
-                      strokeWidth="1.5"
-                      strokeOpacity="0.6"
-                      strokeLinecap="round"
-                      style={{
-                        animation: 'dash 2s linear infinite',
-                        strokeDasharray: '4 2',
-                      }}
-                    />
-                    {/* Moving particle */}
-                    <circle r="2" fill={connColor.primary}>
+                    
+                    {/* Glowing orb particle */}
+                    <circle 
+                      r="1.8" 
+                      fill={connColor.primary}
+                      opacity="0.9"
+                      filter={`url(#orbGlow-${connProduct.id})`}
+                    >
                       <animateMotion
-                        dur="1.5s"
+                        dur={`${2 + i * 0.3}s`}
                         repeatCount="indefinite"
-                        begin={`${i * 0.2}s`}
+                        begin={`${i * 0.4}s`}
                         path={pathD}
+                        calcMode="spline"
+                        keySplines="0.4 0 0.2 1"
+                        keyTimes="0;1"
+                      />
+                      {/* Pulsing glow animation */}
+                      <animate
+                        attributeName="opacity"
+                        values="0.5;0.95;0.5"
+                        dur="1.2s"
+                        repeatCount="indefinite"
+                      />
+                      <animate
+                        attributeName="r"
+                        values="1.4;2;1.4"
+                        dur="1.2s"
+                        repeatCount="indefinite"
+                      />
+                    </circle>
+                    
+                    {/* Secondary trailing orb for depth */}
+                    <circle 
+                      r="0.8" 
+                      fill={connColor.primary}
+                      opacity="0.4"
+                    >
+                      <animateMotion
+                        dur={`${2 + i * 0.3}s`}
+                        repeatCount="indefinite"
+                        begin={`${i * 0.4 + 0.3}s`}
+                        path={pathD}
+                        calcMode="spline"
+                        keySplines="0.4 0 0.2 1"
+                        keyTimes="0;1"
                       />
                     </circle>
                   </g>
