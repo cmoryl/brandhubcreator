@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { RichTextDisplay } from '@/components/ui/rich-text-editor';
 
 interface EventDetailsSectionProps {
   eventDetails: EventDetails;
@@ -168,7 +169,7 @@ export const EventDetailsSection = ({
               Event Information
             </h2>
             {subtitle && (
-              <p className="text-muted-foreground mt-1 text-sm" dangerouslySetInnerHTML={{ __html: subtitle }} />
+              <RichTextDisplay html={subtitle} className="text-muted-foreground mt-1 text-sm" />
             )}
           </div>
         </div>

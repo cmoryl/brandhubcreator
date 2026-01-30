@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { EventVideo } from '@/types/event';
 import { cn } from '@/lib/utils';
+import { RichTextDisplay } from '@/components/ui/rich-text-editor';
 
 interface EventVideosSectionProps {
   videos: EventVideo[];
@@ -134,7 +135,7 @@ export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtit
             Event Videos
           </h2>
           {subtitle ? (
-            <p className="text-muted-foreground mt-1" dangerouslySetInnerHTML={{ __html: subtitle }} />
+            <RichTextDisplay html={subtitle} className="text-muted-foreground mt-1" />
           ) : (
             <p className="text-muted-foreground mt-1">Promo videos, stage recordings, recaps, and slideshows</p>
           )}

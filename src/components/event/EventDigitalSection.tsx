@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { RichTextDisplay } from '@/components/ui/rich-text-editor';
 
 interface EventDigitalSectionProps {
   materials: EventDigitalMaterial[];
@@ -75,7 +76,7 @@ export const EventDigitalSection = ({
         <div>
           <h2 className="text-2xl font-bold">Digital Materials</h2>
           {subtitle ? (
-            <p className="text-muted-foreground mt-1" dangerouslySetInnerHTML={{ __html: subtitle }} />
+            <RichTextDisplay html={subtitle} className="text-muted-foreground mt-1" />
           ) : (
             <p className="text-muted-foreground mt-1">Email templates, presentations, badges, and other digital assets</p>
           )}
