@@ -47,6 +47,7 @@ import { UserAnalyticsTab } from '@/components/admin/UserAnalyticsTab';
 import { CompressedBackupManager } from '@/components/admin/CompressedBackupManager';
 import { UniverseBackupManager } from '@/components/admin/UniverseBackupManager';
 import { ProductSuiteBackupManager } from '@/components/admin/ProductSuiteBackupManager';
+import { AdminImageLibrary } from '@/components/admin/AdminImageLibrary';
 import { AdminSidebar, AdminMobileNav } from '@/components/admin/AdminSidebar';
 
 interface DashboardStats {
@@ -1138,6 +1139,11 @@ export default function AdminDashboard() {
           <TabsContent value="repair" className="space-y-6">
             <HiddenSectionsScanner />
             <BulkRepairTool />
+          </TabsContent>
+
+          {/* Image Library Tab */}
+          <TabsContent value="image-library" className="space-y-6">
+            <AdminImageLibrary />
           </TabsContent>
 
           {/* Backups Tab */}
