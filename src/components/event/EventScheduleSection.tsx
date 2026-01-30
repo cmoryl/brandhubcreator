@@ -17,6 +17,7 @@ import { exportScheduleToPdf } from '@/lib/scheduleExportPdf';
 import { importScheduleFromFile, generateSampleCSV, generateSampleExcel, isSupportedImportFile, ImportResult } from '@/lib/scheduleImport';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { RichTextDisplay } from '@/components/ui/rich-text-editor';
 import {
   DndContext,
   closestCenter,
@@ -519,7 +520,7 @@ export const EventScheduleSection = ({
         <div>
           <h2 className="text-2xl font-bold">Event Schedule</h2>
           {subtitle ? (
-            <p className="text-muted-foreground mt-1" dangerouslySetInnerHTML={{ __html: subtitle }} />
+            <RichTextDisplay html={subtitle} className="text-muted-foreground mt-1" />
           ) : (
             <p className="text-muted-foreground mt-1">Agenda timeline with sessions, speakers, and locations</p>
           )}

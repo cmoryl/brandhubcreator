@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
+import { RichTextDisplay } from '@/components/ui/rich-text-editor';
 
 interface EventBannersSectionProps {
   banners: EventBanner[];
@@ -136,7 +137,7 @@ export const EventBannersSection = ({
         <div>
           <h2 className="text-2xl font-bold">Digital Banners</h2>
           {subtitle ? (
-            <p className="text-muted-foreground mt-1" dangerouslySetInnerHTML={{ __html: subtitle }} />
+            <RichTextDisplay html={subtitle} className="text-muted-foreground mt-1" />
           ) : (
             <p className="text-muted-foreground mt-1">Email headers, social covers, and promotional graphics</p>
           )}

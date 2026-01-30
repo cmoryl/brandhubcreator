@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { LayoutSelector, LayoutPreset, useLayoutClasses } from '@/components/brand/LayoutSelector';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
+import { RichTextDisplay } from '@/components/ui/rich-text-editor';
 
 interface EventSignageSectionProps {
   signage: EventSignage[];
@@ -111,7 +112,7 @@ export const EventSignageSection = ({
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold">Event Signage</h2>
           {subtitle ? (
-            <p className="text-muted-foreground mt-1" dangerouslySetInnerHTML={{ __html: subtitle }} />
+            <RichTextDisplay html={subtitle} className="text-muted-foreground mt-1" />
           ) : (
             <p className="text-muted-foreground mt-1">Physical signage specifications for booth, banners, and venue graphics</p>
           )}

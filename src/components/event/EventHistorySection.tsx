@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import { RichTextDisplay } from '@/components/ui/rich-text-editor';
 
 interface EventHistorySectionProps {
   history: EventHistoryEntry[];
@@ -128,7 +129,7 @@ export const EventHistorySection = ({
             Event History
           </h2>
           {subtitle ? (
-            <p className="text-muted-foreground mt-1" dangerouslySetInnerHTML={{ __html: subtitle }} />
+            <RichTextDisplay html={subtitle} className="text-muted-foreground mt-1" />
           ) : (
             <p className="text-muted-foreground mt-1">Past events archive with imagery, files, and key information</p>
           )}

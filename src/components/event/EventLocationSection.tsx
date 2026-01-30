@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { EventLocation, EventVenueMap, LocationResearchReport } from '@/types/event';
 import { cn } from '@/lib/utils';
 import { AILocationResearch } from './AILocationResearch';
+import { RichTextDisplay } from '@/components/ui/rich-text-editor';
 
 interface EventLocationSectionProps {
   location: EventLocation;
@@ -113,7 +114,7 @@ export const EventLocationSection = ({
             Venue & Location
           </h2>
           {subtitle ? (
-            <p className="text-muted-foreground mt-1" dangerouslySetInnerHTML={{ __html: subtitle }} />
+            <RichTextDisplay html={subtitle} className="text-muted-foreground mt-1" />
           ) : (
             <p className="text-muted-foreground mt-1">Event venue details, maps, and travel information</p>
           )}

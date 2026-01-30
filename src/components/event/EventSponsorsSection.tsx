@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { RichTextDisplay } from '@/components/ui/rich-text-editor';
 
 interface EventSponsorsSectionProps {
   sponsors: EventSponsor[];
@@ -106,7 +107,7 @@ export const EventSponsorsSection = ({
         <div>
           <h2 className="text-2xl font-bold">Sponsors & Partners</h2>
           {subtitle ? (
-            <p className="text-muted-foreground mt-1" dangerouslySetInnerHTML={{ __html: subtitle }} />
+            <RichTextDisplay html={subtitle} className="text-muted-foreground mt-1" />
           ) : (
             <p className="text-muted-foreground mt-1">Sponsor logos and placement guidelines by tier</p>
           )}
