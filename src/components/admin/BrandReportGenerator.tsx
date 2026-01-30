@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Download, Loader2, Calendar, Filter, BarChart3 } from 'lucide-react';
+import { FileText, Download, Loader2, Calendar, Filter, BarChart3, AlertTriangle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -23,7 +23,13 @@ interface BrandReportData {
   fonts_count: number;
   has_logo: boolean;
   has_tagline: boolean;
+  has_mission: boolean;
+  has_values: boolean;
+  has_patterns: boolean;
   completeness_score: number;
+  days_since_update: number;
+  is_stale: boolean;
+  missing_critical: string[];
 }
 
 interface ReportSummary {
@@ -34,6 +40,11 @@ interface ReportSummary {
   topOrganizations: { name: string; brandCount: number }[];
   recentlyCreated: number;
   recentlyUpdated: number;
+  staleBrands: number;
+  needsAttention: number;
+  missingLogos: number;
+  missingColors: number;
+  missingTypography: number;
 }
 
 export function BrandReportGenerator() {
@@ -81,12 +92,18 @@ export function BrandReportGenerator() {
       if (error) throw error;
 
       // Process brand data
+      const now = new Date();
+      const thirtyDaysAgo = subDays(now, 30);
+      
       const processedBrands: BrandReportData[] = (brands || []).map(brand => {
         const guideData = brand.guide_data as Record<string, unknown> || {};
         const hero = guideData.hero as Record<string, unknown> || {};
         const colors = (guideData.colors as unknown[]) || [];
         const typography = (guideData.typography as unknown[]) || [];
         const logo = guideData.logo as Record<string, unknown> || {};
+        const identity = guideData.identity as Record<string, unknown> || {};
+        const values = (guideData.values as unknown[]) || [];
+        const patterns = (guideData.patterns as unknown[]) || [];
 
         // Calculate completeness score
         let score = 0;
@@ -95,9 +112,21 @@ export function BrandReportGenerator() {
         if (logo.primaryUrl) score += 20;
         if (colors.length > 0) score += 15;
         if (typography.length > 0) score += 15;
-        if (guideData.identity) score += 10;
-        if (guideData.values) score += 10;
-        if (guideData.patterns) score += 5;
+        if (identity.missionStatement) score += 10;
+        if (values.length > 0) score += 10;
+        if (patterns.length > 0) score += 5;
+
+        // Calculate staleness
+        const updatedAt = new Date(brand.updated_at);
+        const daysSinceUpdate = Math.floor((now.getTime() - updatedAt.getTime()) / (1000 * 60 * 60 * 24));
+        const isStale = updatedAt < thirtyDaysAgo;
+
+        // Track missing critical sections
+        const missingCritical: string[] = [];
+        if (!logo.primaryUrl) missingCritical.push('Logo');
+        if (colors.length === 0) missingCritical.push('Colors');
+        if (typography.length === 0) missingCritical.push('Typography');
+        if (!identity.missionStatement) missingCritical.push('Mission');
 
         return {
           id: brand.id,
@@ -111,7 +140,13 @@ export function BrandReportGenerator() {
           fonts_count: typography.length,
           has_logo: !!logo.primaryUrl,
           has_tagline: !!hero.tagline,
+          has_mission: !!identity.missionStatement,
+          has_values: values.length > 0,
+          has_patterns: patterns.length > 0,
           completeness_score: score,
+          days_since_update: daysSinceUpdate,
+          is_stale: isStale,
+          missing_critical: missingCritical,
         };
       });
 
@@ -142,6 +177,13 @@ export function BrandReportGenerator() {
         .slice(0, 5)
         .map(([id, count]) => ({ name: orgMap.get(id) || 'Unknown', brandCount: count }));
 
+      // Calculate health metrics
+      const staleBrands = processedBrands.filter(b => b.is_stale).length;
+      const needsAttention = processedBrands.filter(b => b.completeness_score < 50 || b.missing_critical.length >= 2).length;
+      const missingLogos = processedBrands.filter(b => !b.has_logo).length;
+      const missingColors = processedBrands.filter(b => b.colors_count === 0).length;
+      const missingTypography = processedBrands.filter(b => b.fonts_count === 0).length;
+
       setSummary({
         totalBrands: processedBrands.length,
         publicBrands: processedBrands.filter(b => b.is_public).length,
@@ -152,6 +194,11 @@ export function BrandReportGenerator() {
         topOrganizations: topOrgs,
         recentlyCreated,
         recentlyUpdated,
+        staleBrands,
+        needsAttention,
+        missingLogos,
+        missingColors,
+        missingTypography,
       });
 
       setReportData(processedBrands);
@@ -273,6 +320,49 @@ export function BrandReportGenerator() {
           </div>
         )}
 
+        {/* Health Alerts */}
+        {summary && (summary.needsAttention > 0 || summary.staleBrands > 0) && (
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              <h4 className="text-sm font-medium text-amber-800 dark:text-amber-200">Health Alerts</h4>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+              {summary.needsAttention > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-700 dark:text-amber-300 font-medium">{summary.needsAttention}</span>
+                  <span className="text-muted-foreground">need attention</span>
+                </div>
+              )}
+              {summary.staleBrands > 0 && (
+                <div className="flex items-center gap-2">
+                  <Clock className="h-3.5 w-3.5 text-amber-600" />
+                  <span className="text-amber-700 dark:text-amber-300 font-medium">{summary.staleBrands}</span>
+                  <span className="text-muted-foreground">stale (30+ days)</span>
+                </div>
+              )}
+              {summary.missingLogos > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-700 dark:text-amber-300 font-medium">{summary.missingLogos}</span>
+                  <span className="text-muted-foreground">missing logos</span>
+                </div>
+              )}
+              {summary.missingColors > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-700 dark:text-amber-300 font-medium">{summary.missingColors}</span>
+                  <span className="text-muted-foreground">missing colors</span>
+                </div>
+              )}
+              {summary.missingTypography > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-700 dark:text-amber-300 font-medium">{summary.missingTypography}</span>
+                  <span className="text-muted-foreground">missing typography</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Recent Activity */}
         {summary && (
           <div className="flex gap-4 flex-wrap">
@@ -307,13 +397,28 @@ export function BrandReportGenerator() {
               <div className="p-4 space-y-2">
                 {reportData.slice(0, 50).map((brand) => (
                   <div key={brand.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                    <div>
-                      <p className="font-medium">{brand.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Created {format(new Date(brand.created_at), 'MMM d, yyyy')}
-                      </p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium truncate">{brand.name}</p>
+                        {brand.is_stale && (
+                          <Badge variant="outline" className="border-amber-500/50 text-amber-600 text-xs">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {brand.days_since_update}d
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-xs text-muted-foreground">
+                          Updated {format(new Date(brand.updated_at), 'MMM d, yyyy')}
+                        </p>
+                        {brand.missing_critical.length > 0 && (
+                          <span className="text-xs text-amber-600">
+                            Missing: {brand.missing_critical.join(', ')}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <Badge variant={brand.is_public ? 'default' : 'secondary'}>
                         {brand.is_public ? 'Public' : 'Private'}
                       </Badge>
