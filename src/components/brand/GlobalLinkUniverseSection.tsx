@@ -161,6 +161,8 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
   const [hoveredProduct, setHoveredProduct] = useState<ValidatedGuide | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
+  const productRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   // Get product info with fallback
   const getProductInfo = useCallback((slug: string) => {
@@ -361,6 +363,9 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
             return (
               <div
                 key={product.id}
+                ref={(el) => {
+                  if (el) productRefs.current.set(product.id, el);
+                }}
                 className="absolute pointer-events-auto"
                 style={{
                   left: `${x}%`,
@@ -369,13 +374,22 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                   animation: `spin 45s linear infinite reverse`,
                   animationPlayState: animationStyle,
                 }}
-                onMouseEnter={() => {
+                onMouseEnter={(e) => {
                   setHoveredProduct(product);
                   setHoveredIndex(i);
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const containerRect = containerRef.current?.getBoundingClientRect();
+                  if (containerRect) {
+                    setTooltipPosition({
+                      x: rect.left + rect.width / 2 - containerRect.left,
+                      y: rect.top - containerRect.top - 8,
+                    });
+                  }
                 }}
                 onMouseLeave={() => {
                   setHoveredProduct(null);
                   setHoveredIndex(null);
+                  setTooltipPosition(null);
                 }}
                 onClick={() => navigate(`/product/${product.slug}`)}
               >
@@ -403,20 +417,6 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                       isActive ? "text-white" : "text-foreground/70"
                     )} 
                   />
-                </div>
-                
-                {/* Product name label - appears above on hover */}
-                <div 
-                  className={cn(
-                    "absolute left-1/2 -translate-x-1/2 bottom-full mb-2 whitespace-nowrap text-[10px] md:text-xs font-medium transition-all duration-300 px-2 py-1 rounded-md bg-card/95 backdrop-blur-sm shadow-lg border border-border/50",
-                    isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1 pointer-events-none"
-                  )}
-                  style={{ 
-                    color: categoryColor,
-                    boxShadow: `0 4px 12px ${categoryColor}20`
-                  }}
-                >
-                  {product.name.replace('GlobalLink ', '')}
                 </div>
               </div>
             );
@@ -447,6 +447,9 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
             return (
               <div
                 key={product.id}
+                ref={(el) => {
+                  if (el) productRefs.current.set(product.id, el);
+                }}
                 className="absolute pointer-events-auto"
                 style={{
                   left: `${x}%`,
@@ -455,13 +458,22 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                   animation: `spin 60s linear infinite`,
                   animationPlayState: animationStyle,
                 }}
-                onMouseEnter={() => {
+                onMouseEnter={(e) => {
                   setHoveredProduct(product);
                   setHoveredIndex(globalIdx);
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const containerRect = containerRef.current?.getBoundingClientRect();
+                  if (containerRect) {
+                    setTooltipPosition({
+                      x: rect.left + rect.width / 2 - containerRect.left,
+                      y: rect.top - containerRect.top - 8,
+                    });
+                  }
                 }}
                 onMouseLeave={() => {
                   setHoveredProduct(null);
                   setHoveredIndex(null);
+                  setTooltipPosition(null);
                 }}
                 onClick={() => navigate(`/product/${product.slug}`)}
               >
@@ -490,24 +502,32 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                     )} 
                   />
                 </div>
-                
-                {/* Product name label - appears above on hover */}
-                <div 
-                  className={cn(
-                    "absolute left-1/2 -translate-x-1/2 bottom-full mb-2 whitespace-nowrap text-[10px] md:text-xs font-medium transition-all duration-300 px-2 py-1 rounded-md bg-card/95 backdrop-blur-sm shadow-lg border border-border/50",
-                    isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1 pointer-events-none"
-                  )}
-                  style={{ 
-                    color: categoryColor,
-                    boxShadow: `0 4px 12px ${categoryColor}20`
-                  }}
-                >
-                  {product.name.replace('GlobalLink ', '')}
-                </div>
               </div>
             );
           })}
         </div>
+
+        {/* Floating product name tooltip - positioned at container level */}
+        {hoveredProduct && tooltipPosition && (
+          <div 
+            className="absolute z-50 pointer-events-none animate-fade-in"
+            style={{
+              left: tooltipPosition.x,
+              top: tooltipPosition.y,
+              transform: 'translate(-50%, -100%)',
+            }}
+          >
+            <div 
+              className="whitespace-nowrap text-xs md:text-sm font-semibold px-3 py-1.5 rounded-lg bg-card/95 backdrop-blur-sm shadow-lg border border-border/50"
+              style={{ 
+                color: CATEGORY_COLORS[getProductInfo(hoveredProduct.slug).category],
+                boxShadow: `0 4px 16px ${CATEGORY_COLORS[getProductInfo(hoveredProduct.slug).category]}30`
+              }}
+            >
+              {hoveredProduct.name.replace('GlobalLink ', '')}
+            </div>
+          </div>
+        )}
 
         {/* Hover info card */}
         {hoveredProduct && (
