@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -53,9 +54,19 @@ import {
   RefreshCw,
   Download,
   Tag,
+  X,
+  CheckCircle2,
+  AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+
+interface UploadProgress {
+  fileName: string;
+  status: 'pending' | 'uploading' | 'success' | 'error';
+  progress: number;
+  error?: string;
+}
 
 type ViewMode = 'grid' | 'list';
 
@@ -84,7 +95,11 @@ export function AdminImageLibrary() {
   const [bulkCategoryDialogOpen, setBulkCategoryDialogOpen] = useState(false);
   const [bulkCategory, setBulkCategory] = useState<ImageCategory>('General');
   const [previewImage, setPreviewImage] = useState<OrganizationImage | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadQueue, setUploadQueue] = useState<UploadProgress[]>([]);
+  const [showUploadProgress, setShowUploadProgress] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
 
   // Fetch organizations on mount
   useEffect(() => {
@@ -124,21 +139,114 @@ export function AdminImageLibrary() {
     return acc;
   }, {} as Record<ImageCategory, number>);
 
-  // Handle bulk file upload
-  const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
+  // Process files for upload (shared between input and drag-drop)
+  const processFilesForUpload = useCallback(async (files: File[]) => {
+    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+    if (imageFiles.length === 0) return;
 
-    for (const file of files) {
-      if (file.type.startsWith('image/')) {
-        await uploadImage(file, 'General', undefined, selectedOrgId || undefined);
+    // Initialize upload queue
+    const initialQueue: UploadProgress[] = imageFiles.map(file => ({
+      fileName: file.name,
+      status: 'pending',
+      progress: 0,
+    }));
+    setUploadQueue(initialQueue);
+    setShowUploadProgress(true);
+
+    // Process uploads sequentially with progress tracking
+    for (let i = 0; i < imageFiles.length; i++) {
+      const file = imageFiles[i];
+      
+      // Update status to uploading
+      setUploadQueue(prev => prev.map((item, idx) => 
+        idx === i ? { ...item, status: 'uploading', progress: 50 } : item
+      ));
+
+      try {
+        const result = await uploadImage(file, 'General', undefined, selectedOrgId || undefined);
+        
+        // Update status to success or error
+        setUploadQueue(prev => prev.map((item, idx) => 
+          idx === i 
+            ? { ...item, status: result ? 'success' : 'error', progress: 100, error: result ? undefined : 'Upload failed' } 
+            : item
+        ));
+      } catch (err) {
+        setUploadQueue(prev => prev.map((item, idx) => 
+          idx === i 
+            ? { ...item, status: 'error', progress: 100, error: 'Upload failed' } 
+            : item
+        ));
       }
     }
+  }, [selectedOrgId, uploadImage]);
+
+  // Handle bulk file upload from input
+  const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    await processFilesForUpload(files);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
+
+  // Drag and drop handlers
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!selectedOrgId || isUploading) return;
+    setIsDragging(true);
+  }, [selectedOrgId, isUploading]);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set dragging to false if we're leaving the drop zone entirely
+    const rect = dropZoneRef.current?.getBoundingClientRect();
+    if (rect) {
+      const { clientX, clientY } = e;
+      if (
+        clientX < rect.left ||
+        clientX > rect.right ||
+        clientY < rect.top ||
+        clientY > rect.bottom
+      ) {
+        setIsDragging(false);
+      }
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (!selectedOrgId || isUploading) return;
+
+    const files = Array.from(e.dataTransfer.files);
+    await processFilesForUpload(files);
+  }, [selectedOrgId, isUploading, processFilesForUpload]);
+
+  // Clear completed uploads after delay
+  const clearCompletedUploads = useCallback(() => {
+    const allDone = uploadQueue.every(u => u.status === 'success' || u.status === 'error');
+    if (allDone && uploadQueue.length > 0) {
+      setTimeout(() => {
+        setShowUploadProgress(false);
+        setUploadQueue([]);
+      }, 3000);
+    }
+  }, [uploadQueue]);
+
+  useEffect(() => {
+    clearCompletedUploads();
+  }, [uploadQueue, clearCompletedUploads]);
 
   // Toggle image selection
   const toggleImageSelection = (id: string) => {
@@ -220,7 +328,27 @@ export function AdminImageLibrary() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent 
+          ref={dropZoneRef}
+          className={cn(
+            "space-y-4 relative transition-all",
+            isDragging && "ring-2 ring-primary ring-offset-2 rounded-lg"
+          )}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          {/* Drag overlay */}
+          {isDragging && (
+            <div className="absolute inset-0 bg-primary/10 backdrop-blur-sm rounded-lg flex items-center justify-center z-50 pointer-events-none">
+              <div className="bg-background/95 shadow-xl border-2 border-primary border-dashed rounded-xl px-8 py-6 flex flex-col items-center gap-3">
+                <Upload className="h-10 w-10 text-primary animate-bounce" />
+                <p className="text-lg font-semibold text-primary">Drop images to upload</p>
+                <p className="text-sm text-muted-foreground">PNG, JPG, WEBP, GIF, SVG supported</p>
+              </div>
+            </div>
+          )}
           {/* Toolbar */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
@@ -287,6 +415,58 @@ export function AdminImageLibrary() {
             />
           </div>
 
+          {/* Upload Progress Panel */}
+          {showUploadProgress && uploadQueue.length > 0 && (
+            <div className="border rounded-lg p-4 bg-muted/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Uploading {uploadQueue.length} image{uploadQueue.length > 1 ? 's' : ''}
+                </h4>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => {
+                    setShowUploadProgress(false);
+                    setUploadQueue([]);
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                {uploadQueue.map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        {item.status === 'uploading' && (
+                          <Loader2 className="h-4 w-4 animate-spin text-primary flex-shrink-0" />
+                        )}
+                        {item.status === 'success' && (
+                          <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        )}
+                        {item.status === 'error' && (
+                          <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+                        )}
+                        {item.status === 'pending' && (
+                          <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30 flex-shrink-0" />
+                        )}
+                        <span className="text-sm truncate">{item.fileName}</span>
+                      </div>
+                      {item.status === 'uploading' && (
+                        <Progress value={item.progress} className="h-1 mt-1" />
+                      )}
+                      {item.error && (
+                        <p className="text-xs text-destructive mt-0.5">{item.error}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Bulk Actions */}
           {selectedImages.size > 0 && (
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
@@ -329,20 +509,19 @@ export function AdminImageLibrary() {
                 <p className="text-muted-foreground">Select an organization to view images</p>
               </div>
             ) : filteredImages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <ImageIcon className="h-12 w-12 text-muted-foreground/40 mb-3" />
-                <p className="text-muted-foreground">
+              <div 
+                className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="h-12 w-12 text-muted-foreground/40 mb-3" />
+                <p className="text-muted-foreground font-medium">
                   {searchTerm || filterCategory !== 'All'
                     ? 'No images match your filters'
-                    : 'No images in library yet'}
+                    : 'Drop images here or click to upload'}
                 </p>
-                <Button
-                  variant="link"
-                  className="mt-2"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Upload your first images
-                </Button>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Supports PNG, JPG, WEBP, GIF, SVG
+                </p>
               </div>
             ) : viewMode === 'grid' ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
