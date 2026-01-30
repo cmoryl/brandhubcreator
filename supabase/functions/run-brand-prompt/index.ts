@@ -68,11 +68,14 @@ Deno.serve(async (req) => {
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       const validIds = brandIds.filter((id: string) => uuidRegex.test(id));
       if (validIds.length > 0) {
-        brandsQuery = brandsQuery.in('id', validIds);
+        brandsQuery = brandsQuery.in('id', validIds.slice(0, 20)); // Limit to 20 brands
       }
     }
 
-    const { data: brands, error: brandsError } = await brandsQuery.limit(50);
+    // Select only essential fields to reduce memory
+    const { data: brands, error: brandsError } = await brandsQuery
+      .select('id, name, guide_data, is_public')
+      .limit(20);
 
     if (brandsError) {
       console.error('Error fetching brands:', brandsError);
