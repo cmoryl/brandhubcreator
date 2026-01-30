@@ -725,7 +725,7 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
           <div className="mt-8 max-w-2xl mx-auto">
             {activeProduct && activeInfo ? (
               <div 
-                className="rounded-xl border bg-card/90 backdrop-blur-md overflow-hidden animate-fade-in"
+                className="rounded-xl border bg-card overflow-hidden animate-fade-in"
                 style={{
                   borderColor: activeColor?.primary + '30',
                   boxShadow: `0 10px 40px ${activeColor?.primary}10`,
