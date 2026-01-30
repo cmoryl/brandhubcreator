@@ -112,11 +112,11 @@ export const CreateProductSuiteDialog = ({
           { id: crypto.randomUUID(), hex: '#00A3E0', name: 'Light Blue' },
           { id: crypto.randomUUID(), hex: '#1A1A2E', name: 'Dark Navy' },
         ],
-        linkedGuides: [] as { id: string; type: 'product' }[],
+        linkedGuides: [] as { id: string; type: 'product'; name: string; slug: string }[],
       };
 
       // Step 3: Create sub-products and collect their IDs
-      const linkedGuides: { id: string; type: 'product' }[] = [];
+      const linkedGuides: { id: string; type: 'product'; name: string; slug: string }[] = [];
       
       for (const subProduct of subProducts) {
         try {
@@ -144,6 +144,8 @@ export const CreateProductSuiteDialog = ({
             linkedGuides.push({
               id: createdSubProduct.id,
               type: 'product',
+              name: subProduct.name,
+              slug: createdSubProduct.slug || subProduct.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
             });
           }
         } catch (subError) {
