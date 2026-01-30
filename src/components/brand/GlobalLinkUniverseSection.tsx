@@ -439,76 +439,81 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                 const ctrlY = midY + (50 - midY) * 0.4;
                 const pathD = `M ${from.x} ${from.y} Q ${ctrlX} ${ctrlY} ${to.x} ${to.y}`;
                 
+                const baseDur = 2.5 + i * 0.3;
+                const baseDelay = i * 0.4;
+                
                 return (
                   <g key={connProduct.id}>
-                    {/* Subtle gradient path */}
+                    {/* Defs for gradients and filters */}
                     <defs>
                       <linearGradient id={`lineGrad-${connProduct.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor={connColor.primary} stopOpacity="0.08" />
-                        <stop offset="50%" stopColor={connColor.primary} stopOpacity="0.2" />
-                        <stop offset="100%" stopColor={connColor.primary} stopOpacity="0.08" />
+                        <stop offset="0%" stopColor={connColor.primary} stopOpacity="0.06" />
+                        <stop offset="50%" stopColor={connColor.primary} stopOpacity="0.15" />
+                        <stop offset="100%" stopColor={connColor.primary} stopOpacity="0.06" />
                       </linearGradient>
-                      {/* Glow filter for orb */}
-                      <filter id={`orbGlow-${connProduct.id}`} x="-100%" y="-100%" width="300%" height="300%">
-                        <feGaussianBlur stdDeviation="1.5" result="blur" />
+                      {/* Soft glow filter */}
+                      <filter id={`orbGlow-${connProduct.id}`} x="-200%" y="-200%" width="500%" height="500%">
+                        <feGaussianBlur stdDeviation="2" result="blur" />
                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                       </filter>
                     </defs>
                     
-                    {/* Thin streamlined path */}
+                    {/* Thin base path */}
                     <path
                       d={pathD}
                       fill="none"
                       stroke={`url(#lineGrad-${connProduct.id})`}
-                      strokeWidth="0.6"
+                      strokeWidth="0.5"
                       strokeLinecap="round"
                     />
                     
-                    {/* Glowing orb particle */}
+                    {/* Trail particles - 5 fading orbs */}
+                    {[0, 1, 2, 3, 4].map((trailIdx) => (
+                      <circle 
+                        key={trailIdx}
+                        r={1.2 - trailIdx * 0.18} 
+                        fill={connColor.primary}
+                        opacity={0.5 - trailIdx * 0.1}
+                      >
+                        <animateMotion
+                          dur={`${baseDur}s`}
+                          repeatCount="indefinite"
+                          begin={`${baseDelay + trailIdx * 0.08}s`}
+                          path={pathD}
+                          calcMode="spline"
+                          keySplines="0.4 0 0.2 1"
+                          keyTimes="0;1"
+                        />
+                      </circle>
+                    ))}
+                    
+                    {/* Main glowing orb */}
                     <circle 
-                      r="1.8" 
+                      r="1.6" 
                       fill={connColor.primary}
-                      opacity="0.9"
                       filter={`url(#orbGlow-${connProduct.id})`}
                     >
                       <animateMotion
-                        dur={`${2 + i * 0.3}s`}
+                        dur={`${baseDur}s`}
                         repeatCount="indefinite"
-                        begin={`${i * 0.4}s`}
+                        begin={`${baseDelay}s`}
                         path={pathD}
                         calcMode="spline"
                         keySplines="0.4 0 0.2 1"
                         keyTimes="0;1"
                       />
-                      {/* Pulsing glow animation */}
+                      {/* Breathing pulse */}
                       <animate
                         attributeName="opacity"
-                        values="0.5;0.95;0.5"
-                        dur="1.2s"
+                        values="0.6;1;0.6"
+                        dur="1s"
                         repeatCount="indefinite"
                       />
                       <animate
                         attributeName="r"
-                        values="1.4;2;1.4"
-                        dur="1.2s"
+                        values="1.4;1.8;1.4"
+                        dur="1s"
                         repeatCount="indefinite"
-                      />
-                    </circle>
-                    
-                    {/* Secondary trailing orb for depth */}
-                    <circle 
-                      r="0.8" 
-                      fill={connColor.primary}
-                      opacity="0.4"
-                    >
-                      <animateMotion
-                        dur={`${2 + i * 0.3}s`}
-                        repeatCount="indefinite"
-                        begin={`${i * 0.4 + 0.3}s`}
-                        path={pathD}
-                        calcMode="spline"
-                        keySplines="0.4 0 0.2 1"
-                        keyTimes="0;1"
                       />
                     </circle>
                   </g>
