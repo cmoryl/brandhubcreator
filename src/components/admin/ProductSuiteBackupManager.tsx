@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,12 +62,21 @@ interface SuiteMaster {
   guide_data: Record<string, unknown>;
 }
 
+interface AdminOrgOption {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 export const ProductSuiteBackupManager: React.FC = () => {
+  const { isAdmin } = useAuth();
   const { organization } = useOrganization();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [backups, setBackups] = useState<ProductSuiteBackup[]>([]);
   const [suiteMasters, setSuiteMasters] = useState<SuiteMaster[]>([]);
+  const [adminOrgs, setAdminOrgs] = useState<AdminOrgOption[]>([]);
+  const [selectedOrgId, setSelectedOrgId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [restoring, setRestoring] = useState<string | null>(null);
@@ -81,14 +91,49 @@ export const ProductSuiteBackupManager: React.FC = () => {
   const [showUploadConfirm, setShowUploadConfirm] = useState(false);
   const [targetSuiteForUpload, setTargetSuiteForUpload] = useState<string>('');
 
+  const effectiveOrgId = organization?.id || selectedOrgId;
+
   // Fetch suite masters and backups
   useEffect(() => {
-    if (!organization?.id) return;
+    // If context org exists, prefer it.
+    // If not, allow admins to select an org (loaded below).
+    if (!organization?.id && !selectedOrgId) return;
     fetchData();
-  }, [organization?.id]);
+  }, [organization?.id, selectedOrgId]);
+
+  // Load organizations for global admins when no org is in context
+  useEffect(() => {
+    if (!isAdmin) return;
+    if (organization?.id) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('organizations')
+          .select('id, name, slug')
+          .order('name');
+
+        if (error) throw error;
+        const orgs = (data as AdminOrgOption[]) || [];
+        if (cancelled) return;
+        setAdminOrgs(orgs);
+        if (orgs.length > 0 && !selectedOrgId) {
+          setSelectedOrgId(orgs[0].id);
+        }
+      } catch (err) {
+        console.error('Error fetching organizations:', err);
+        toast.error('Failed to load organizations');
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin, organization?.id, selectedOrgId]);
 
   const fetchData = async () => {
-    if (!organization?.id) return;
+    if (!effectiveOrgId) return;
     
     setLoading(true);
     try {
@@ -96,7 +141,7 @@ export const ProductSuiteBackupManager: React.FC = () => {
       const { data: suites, error: suitesError } = await supabase
         .from('products')
         .select('id, name, slug, guide_data')
-        .eq('organization_id', organization.id)
+        .eq('organization_id', effectiveOrgId)
         .eq('is_suite_master', true)
         .order('name');
 
@@ -111,7 +156,7 @@ export const ProductSuiteBackupManager: React.FC = () => {
       const { data: backupData, error: backupsError } = await supabase
         .from('universe_backups')
         .select('*')
-        .eq('organization_id', organization.id)
+        .eq('organization_id', effectiveOrgId)
         .eq('backup_type', 'product_suite')
         .order('created_at', { ascending: false });
 
@@ -127,7 +172,11 @@ export const ProductSuiteBackupManager: React.FC = () => {
 
   // Create a new backup from current suite data
   const createBackup = async () => {
-    if (!organization?.id || !newBackupName.trim() || !selectedSuiteId) {
+    if (!effectiveOrgId || !newBackupName.trim() || !selectedSuiteId) {
+      if (!effectiveOrgId) {
+        toast.error('Please select an organization');
+        return;
+      }
       toast.error('Please select a suite and enter a backup name');
       return;
     }
@@ -169,7 +218,7 @@ export const ProductSuiteBackupManager: React.FC = () => {
           backup_data: backupPayload,
           backup_type: 'product_suite',
           product_id: selectedSuiteId,
-          organization_id: organization.id,
+          organization_id: effectiveOrgId,
           is_default: false,
         } as any);
 
@@ -386,6 +435,29 @@ export const ProductSuiteBackupManager: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {!organization?.id && isAdmin && (
+            <div className="space-y-2">
+              <Label>Organization</Label>
+              <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={adminOrgs.length ? 'Select an organization...' : 'No organizations found'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {adminOrgs.map((org) => (
+                    <SelectItem key={org.id} value={org.id}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!effectiveOrgId && (
+                <p className="text-sm text-muted-foreground">
+                  Select an organization to load its product suites.
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Select Product Suite</Label>
@@ -414,7 +486,10 @@ export const ProductSuiteBackupManager: React.FC = () => {
           </div>
 
           <div className="flex gap-3">
-            <Button onClick={createBackup} disabled={saving || !newBackupName.trim() || !selectedSuiteId}>
+            <Button
+              onClick={createBackup}
+              disabled={saving || !newBackupName.trim() || !selectedSuiteId || !effectiveOrgId}
+            >
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : (
