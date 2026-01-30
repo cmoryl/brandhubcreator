@@ -45,6 +45,7 @@ import { HiddenSectionsScanner } from '@/components/admin/HiddenSectionsScanner'
 import { MembersManager } from '@/components/admin/MembersManager';
 import { UserAnalyticsTab } from '@/components/admin/UserAnalyticsTab';
 import { CompressedBackupManager } from '@/components/admin/CompressedBackupManager';
+import { UniverseBackupManager } from '@/components/admin/UniverseBackupManager';
 import { AdminSidebar, AdminMobileNav } from '@/components/admin/AdminSidebar';
 
 interface DashboardStats {
@@ -1158,6 +1159,11 @@ export default function AdminDashboard() {
                 </Card>
               )}
             </div>
+          </TabsContent>
+
+          {/* Universe Backups Tab */}
+          <TabsContent value="universe-backups" className="space-y-6">
+            <UniverseBackupManager />
           </TabsContent>
         </Tabs>
           </div>
