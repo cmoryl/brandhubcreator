@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 
 interface ByTheNumbersSectionProps {
   statistics: StatisticItem[];
-  onStatisticsChange: (statistics: StatisticItem[]) => void;
+  onStatisticsChange?: (statistics: StatisticItem[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   brandName?: string;
@@ -128,7 +128,11 @@ export const ByTheNumbersSection = ({
     return () => clearTimeout(timer);
   }, [statistics]);
 
+  // Derive canEdit from handler presence
+  const canEdit = Boolean(onStatisticsChange);
+
   const addStatistic = () => {
+    if (!onStatisticsChange) return;
     const newStat: StatisticItem = {
       id: `stat-${Date.now()}`,
       value: '100',
@@ -144,6 +148,7 @@ export const ByTheNumbersSection = ({
   };
 
   const updateStatistic = (id: string, updates: Partial<StatisticItem>) => {
+    if (!onStatisticsChange) return;
     onStatisticsChange(
       statistics.map(stat => stat.id === id ? { ...stat, ...updates } : stat)
     );
@@ -935,23 +940,25 @@ export const ByTheNumbersSection = ({
         <>
           {renderLayout()}
 
-          <div className="flex justify-center gap-3 pt-4">
-            <Button 
-              onClick={addStatistic} 
-              variant="outline" 
-              className="gap-2 transition-all duration-300 hover:border-2"
-              style={{ '--hover-color': themeColors.primary } as React.CSSProperties}
-            >
-              <Plus className="h-4 w-4" />
-              Add Statistic
-            </Button>
-            {statistics.length > 0 && (
-              <Button onClick={populateDefaults} variant="ghost" className="gap-2">
-                <Sparkles className="h-4 w-4" />
-                Reset to Defaults
+          {canEdit && (
+            <div className="flex justify-center gap-3 pt-4">
+              <Button 
+                onClick={addStatistic} 
+                variant="outline" 
+                className="gap-2 transition-all duration-300 hover:border-2"
+                style={{ '--hover-color': themeColors.primary } as React.CSSProperties}
+              >
+                <Plus className="h-4 w-4" />
+                Add Statistic
               </Button>
-            )}
-          </div>
+              {statistics.length > 0 && (
+                <Button onClick={populateDefaults} variant="ghost" className="gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  Reset to Defaults
+                </Button>
+              )}
+            </div>
+          )}
         </>
       )}
 
