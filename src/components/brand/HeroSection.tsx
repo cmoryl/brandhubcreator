@@ -483,18 +483,6 @@ export const HeroSection = ({
                       }
                     }}
                     defaultCategory="Backgrounds"
-                    trigger={
-                      <button
-                        type="button"
-                        // Use capture-phase to avoid the hero overlay click handler,
-                        // without overriding Radix DialogTrigger's onClick.
-                        onPointerDownCapture={(e) => e.stopPropagation()}
-                        className="text-white flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20 hover:bg-white/20 transition-colors"
-                      >
-                        <FolderOpen className="h-5 w-5" />
-                        <span className="font-medium">From Library</span>
-                      </button>
-                    }
                   />
                 )}
               </div>
