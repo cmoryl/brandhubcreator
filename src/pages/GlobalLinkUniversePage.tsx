@@ -26,16 +26,18 @@ const GlobalLinkUniversePage: React.FC = () => {
   useEffect(() => {
     const fetchGlobalLinkData = async () => {
       try {
-        // Fetch GlobalLink product data
+        // Use public RPC function for anonymous access
         const { data, error: fetchError } = await supabase
-          .from('products')
-          .select('guide_data')
-          .eq('slug', 'globallink')
-          .single();
+          .rpc('get_public_product_data', { p_slug: 'globallink' });
 
         if (fetchError) throw fetchError;
 
-        const guideData = data?.guide_data as Record<string, unknown> | null;
+        const product = Array.isArray(data) ? data[0] : data;
+        if (!product) {
+          throw new Error('Product not found');
+        }
+
+        const guideData = product.guide_data as Record<string, unknown> | null;
         const guides = (guideData?.linkedGuides as LinkedGuide[]) || [];
         setLinkedGuides(guides);
       } catch (err) {
