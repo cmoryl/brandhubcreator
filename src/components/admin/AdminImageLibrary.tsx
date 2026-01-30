@@ -66,6 +66,7 @@ interface UploadProgress {
   status: 'pending' | 'uploading' | 'success' | 'error';
   progress: number;
   error?: string;
+  thumbnailUrl?: string;
 }
 
 type ViewMode = 'grid' | 'list';
@@ -144,11 +145,12 @@ export function AdminImageLibrary() {
     const imageFiles = files.filter(f => f.type.startsWith('image/'));
     if (imageFiles.length === 0) return;
 
-    // Initialize upload queue
+    // Initialize upload queue with thumbnails
     const initialQueue: UploadProgress[] = imageFiles.map(file => ({
       fileName: file.name,
       status: 'pending',
       progress: 0,
+      thumbnailUrl: URL.createObjectURL(file),
     }));
     setUploadQueue(initialQueue);
     setShowUploadProgress(true);
@@ -233,11 +235,17 @@ export function AdminImageLibrary() {
     await processFilesForUpload(files);
   }, [selectedOrgId, isUploading, processFilesForUpload]);
 
-  // Clear completed uploads after delay
+  // Clear completed uploads after delay and revoke object URLs
   const clearCompletedUploads = useCallback(() => {
     const allDone = uploadQueue.every(u => u.status === 'success' || u.status === 'error');
     if (allDone && uploadQueue.length > 0) {
       setTimeout(() => {
+        // Revoke object URLs to prevent memory leaks
+        uploadQueue.forEach(item => {
+          if (item.thumbnailUrl) {
+            URL.revokeObjectURL(item.thumbnailUrl);
+          }
+        });
         setShowUploadProgress(false);
         setUploadQueue([]);
       }, 3000);
@@ -435,30 +443,56 @@ export function AdminImageLibrary() {
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="space-y-2 max-h-[200px] overflow-y-auto">
+              <div className="space-y-2 max-h-[240px] overflow-y-auto">
                 {uploadQueue.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                  <div key={idx} className="flex items-center gap-3 p-2 rounded-lg bg-background/50">
+                    {/* Thumbnail */}
+                    {item.thumbnailUrl ? (
+                      <div className="relative h-10 w-10 rounded overflow-hidden flex-shrink-0 border">
+                        <img
+                          src={item.thumbnailUrl}
+                          alt={item.fileName}
+                          className="h-full w-full object-cover"
+                        />
+                        {/* Status overlay */}
                         {item.status === 'uploading' && (
-                          <Loader2 className="h-4 w-4 animate-spin text-primary flex-shrink-0" />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                            <Loader2 className="h-4 w-4 animate-spin text-white" />
+                          </div>
                         )}
                         {item.status === 'success' && (
-                          <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          <div className="absolute inset-0 bg-green-500/40 flex items-center justify-center">
+                            <CheckCircle2 className="h-4 w-4 text-white" />
+                          </div>
                         )}
                         {item.status === 'error' && (
-                          <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+                          <div className="absolute inset-0 bg-destructive/40 flex items-center justify-center">
+                            <AlertCircle className="h-4 w-4 text-white" />
+                          </div>
                         )}
+                      </div>
+                    ) : (
+                      <div className="h-10 w-10 rounded bg-muted flex items-center justify-center flex-shrink-0">
+                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    )}
+                    
+                    {/* File info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium truncate">{item.fileName}</span>
                         {item.status === 'pending' && (
-                          <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30 flex-shrink-0" />
+                          <span className="text-xs text-muted-foreground">Waiting...</span>
                         )}
-                        <span className="text-sm truncate">{item.fileName}</span>
                       </div>
                       {item.status === 'uploading' && (
-                        <Progress value={item.progress} className="h-1 mt-1" />
+                        <Progress value={item.progress} className="h-1 mt-1.5" />
+                      )}
+                      {item.status === 'success' && (
+                        <span className="text-xs text-green-600">Uploaded successfully</span>
                       )}
                       {item.error && (
-                        <p className="text-xs text-destructive mt-0.5">{item.error}</p>
+                        <span className="text-xs text-destructive">{item.error}</span>
                       )}
                     </div>
                   </div>
