@@ -51,12 +51,13 @@ const getIconComponent = (iconName: string) => {
 
 interface ServicesSectionProps {
   services: BrandService[];
-  onServicesChange: (services: BrandService[]) => void;
+  onServicesChange?: (services: BrandService[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
 }
 
 export const ServicesSection = ({ services, onServicesChange, customSubtitle, onSubtitleChange }: ServicesSectionProps) => {
+  const canEdit = Boolean(onServicesChange);
   const [isEditing, setIsEditing] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<BrandService | null>(null);
@@ -87,7 +88,7 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
   };
 
   const handleSave = () => {
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim() || !onServicesChange) return;
 
     if (editingService) {
       // Update existing
@@ -111,6 +112,7 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
   };
 
   const handleDelete = (id: string) => {
+    if (!onServicesChange) return;
     onServicesChange(services.filter(s => s.id !== id));
   };
 
@@ -142,7 +144,7 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
         title="Our Services"
         defaultSubtitle="What we offer to help your business grow"
         customSubtitle={customSubtitle}
-        onSubtitleChange={onSubtitleChange}
+        onSubtitleChange={canEdit ? onSubtitleChange : undefined}
         isEditing={isEditing}
         onEditToggle={() => setIsEditing(!isEditing)}
       />
@@ -172,7 +174,7 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
                 </div>
               )}
               
-              {isEditing && (
+              {canEdit && isEditing && (
                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                   <Button 
                     variant="secondary" 
@@ -217,7 +219,7 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
         })}
 
         {/* Add Service Card */}
-        {isEditing && (
+        {canEdit && isEditing && (
           <Card 
             className="border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors flex-shrink-0 w-[280px] sm:w-auto snap-start"
             onClick={openAddDialog}

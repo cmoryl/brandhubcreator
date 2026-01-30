@@ -28,7 +28,7 @@ import { LayoutSelector, useLayoutClasses, LayoutPreset } from './LayoutSelector
 
 interface TemplatesSectionProps {
   templates: BrandTemplate[];
-  onTemplatesChange: (templates: BrandTemplate[]) => void;
+  onTemplatesChange?: (templates: BrandTemplate[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   layout?: LayoutPreset;
@@ -108,6 +108,7 @@ const getDriveEmbedUrl = (url: string): string => {
 };
 
 export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, customSubtitle, onSubtitleChange, layout = 'grid-2', onLayoutChange }: TemplatesSectionProps) => {
+  const canEdit = Boolean(onTemplatesChange);
   // Defensive: ensure templates is always an array
   const templates = Array.isArray(templatesProp) ? templatesProp : [];
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -132,7 +133,7 @@ export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, 
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !onTemplatesChange) return;
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -171,7 +172,7 @@ export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, 
   };
 
   const handleAddExternalLink = () => {
-    if (!linkForm.name.trim() || !linkForm.externalUrl.trim()) return;
+    if (!linkForm.name.trim() || !linkForm.externalUrl.trim() || !onTemplatesChange) return;
 
     const isFolder = linkForm.fileType.includes('folder');
     
@@ -191,10 +192,12 @@ export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, 
   };
 
   const updateTemplate = (id: string, updates: Partial<BrandTemplate>) => {
+    if (!onTemplatesChange) return;
     onTemplatesChange(templates.map(t => t.id === id ? { ...t, ...updates } : t));
   };
 
   const deleteTemplate = (id: string) => {
+    if (!onTemplatesChange) return;
     onTemplatesChange(templates.filter(t => t.id !== id));
     setFileData(prev => {
       const { [id]: _, ...rest } = prev;
@@ -252,17 +255,17 @@ export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, 
     <section className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
-          <SectionHeader
-            title="Master Scaffolds"
-            defaultSubtitle="Presentation decks, document templates, design files, and external resources"
-            customSubtitle={customSubtitle}
-            onSubtitleChange={onSubtitleChange}
-            isEditing={isHeaderEditing}
-            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          {onLayoutChange && (
+            <SectionHeader
+              title="Master Scaffolds"
+              defaultSubtitle="Presentation decks, document templates, design files, and external resources"
+              customSubtitle={customSubtitle}
+              onSubtitleChange={canEdit ? onSubtitleChange : undefined}
+              isEditing={isHeaderEditing}
+              onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            {canEdit && onLayoutChange && (
             <LayoutSelector
               value={layout}
               onChange={onLayoutChange}
@@ -270,13 +273,14 @@ export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, 
               size="sm"
             />
           )}
-          <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Link className="h-4 w-4" />
-                Add Link
-              </Button>
-            </DialogTrigger>
+            {canEdit && (
+              <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Link className="h-4 w-4" />
+                    Add Link
+                  </Button>
+                </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Add External Resource</DialogTitle>
@@ -355,14 +359,17 @@ export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, 
                   Add Resource
                 </Button>
               </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0">
-            <Upload className="h-4 w-4" />
-            Upload File
-          </Button>
+              </DialogContent>
+            </Dialog>
+            )}
+            {canEdit && (
+              <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0">
+                <Upload className="h-4 w-4" />
+                Upload File
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
 
       <input
         ref={fileInputRef}

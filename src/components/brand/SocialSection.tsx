@@ -9,7 +9,7 @@ import { safeUUID } from '@/lib/safeUUID';
 
 interface SocialSectionProps {
   social: BrandSocialProfile[];
-  onSocialChange: (social: BrandSocialProfile[]) => void;
+  onSocialChange?: (social: BrandSocialProfile[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
 }
@@ -28,10 +28,12 @@ const platformOptions = [
 ];
 
 export const SocialSection = ({ social, onSocialChange, customSubtitle, onSubtitleChange }: SocialSectionProps) => {
+  const canEdit = Boolean(onSocialChange);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const addProfile = () => {
+    if (!onSocialChange) return;
     const newProfile: BrandSocialProfile = {
       id: safeUUID(),
       platform: 'LinkedIn',
@@ -44,10 +46,12 @@ export const SocialSection = ({ social, onSocialChange, customSubtitle, onSubtit
   };
 
   const updateProfile = (id: string, updates: Partial<BrandSocialProfile>) => {
+    if (!onSocialChange) return;
     onSocialChange(social.map(s => s.id === id ? { ...s, ...updates } : s));
   };
 
   const deleteProfile = (id: string) => {
+    if (!onSocialChange) return;
     onSocialChange(social.filter(s => s.id !== id));
     if (editingId === id) setEditingId(null);
   };
@@ -65,12 +69,12 @@ export const SocialSection = ({ social, onSocialChange, customSubtitle, onSubtit
             title="Social Registry"
             defaultSubtitle="Official social handles and URLs"
             customSubtitle={customSubtitle}
-            onSubtitleChange={onSubtitleChange}
+            onSubtitleChange={canEdit ? onSubtitleChange : undefined}
             isEditing={isHeaderEditing}
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        {onSocialChange && (
+        {canEdit && (
           <Button onClick={addProfile} size="sm" className="gap-2 shrink-0 w-full sm:w-auto">
             <Plus className="h-4 w-4" />
             Add Profile
@@ -85,7 +89,7 @@ export const SocialSection = ({ social, onSocialChange, customSubtitle, onSubtit
             className="group relative bg-card rounded-xl p-4 shadow-sm border border-border animate-scale-in"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-            {editingId === profile.id ? (
+            {canEdit && editingId === profile.id ? (
               <div className="space-y-3">
                 <Select
                   value={profile.platform}
@@ -147,26 +151,28 @@ export const SocialSection = ({ social, onSocialChange, customSubtitle, onSubtit
                     Visit <ExternalLink className="h-3 w-3" />
                   </a>
                 </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => setEditingId(profile.id)}
-                    className="p-1.5 rounded-md hover:bg-secondary transition-colors"
-                  >
-                    <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                  </button>
-                  <button
-                    onClick={() => deleteProfile(profile.id)}
-                    className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+                {canEdit && (
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => setEditingId(profile.id)}
+                      className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+                    >
+                      <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                    </button>
+                    <button
+                      onClick={() => deleteProfile(profile.id)}
+                      className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
         ))}
 
-        {social.length === 0 && (
+        {social.length === 0 && canEdit && (
           <button
             onClick={addProfile}
             className="h-32 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors"
