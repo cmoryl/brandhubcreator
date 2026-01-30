@@ -18,6 +18,7 @@ import {
   Globe,
   FileUp,
   HelpCircle,
+  FolderKanban,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,6 +46,7 @@ import { useEvents } from '@/contexts/EventContext';
 import { toast } from 'sonner';
 import { ImportFromUrlDialog } from './ImportFromUrlDialog';
 import { BrandBackupDialog } from '@/components/brand/BrandBackupDialog';
+import { CreateProductSuiteDialog } from './CreateProductSuiteDialog';
 
 interface PortalAdminActionsProps {
   className?: string;
@@ -71,6 +73,7 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
   // Dialog states
   const [showBrandDialog, setShowBrandDialog] = useState(false);
   const [showProductDialog, setShowProductDialog] = useState(false);
+  const [showProductSuiteDialog, setShowProductSuiteDialog] = useState(false);
   const [showSubProductDialog, setShowSubProductDialog] = useState(false);
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [showExtendEventDialog, setShowExtendEventDialog] = useState(false);
@@ -288,6 +291,14 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
       description: 'New product guide',
       icon: <Package className="h-4 w-4" />,
       onClick: () => setShowProductDialog(true),
+    },
+    {
+      id: 'product-suite',
+      label: 'Product Suite',
+      description: 'Master + sub-products',
+      icon: <FolderKanban className="h-4 w-4" />,
+      onClick: () => setShowProductSuiteDialog(true),
+      variant: 'primary',
     },
     {
       id: 'sub-product',
@@ -702,6 +713,12 @@ export const PortalAdminActions = ({ className, organizationSlug }: PortalAdminA
         showFullBackup={true}
         open={showBackupDialog}
         onOpenChange={setShowBackupDialog}
+      />
+
+      {/* Create Product Suite Dialog */}
+      <CreateProductSuiteDialog
+        open={showProductSuiteDialog}
+        onOpenChange={setShowProductSuiteDialog}
       />
     </>
   );
