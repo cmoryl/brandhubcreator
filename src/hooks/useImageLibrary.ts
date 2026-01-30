@@ -46,14 +46,88 @@ export const useImageLibrary = () => {
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      // Fetch from organization_images table (new library)
+      const { data: dbImages, error: dbError } = await supabase
         .from('organization_images')
         .select('*')
         .eq('organization_id', targetOrgId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setImages((data as unknown as OrganizationImage[]) || []);
+      if (dbError) throw dbError;
+
+      // Also scan organization-assets bucket for legacy/existing uploads
+      const { data: storageFiles, error: storageError } = await supabase.storage
+        .from('organization-assets')
+        .list(targetOrgId, { limit: 200, sortBy: { column: 'created_at', order: 'desc' } });
+
+      // Convert storage files to OrganizationImage format (that aren't already in DB)
+      const existingPaths = new Set((dbImages || []).map((img: any) => img.file_path));
+      const legacyImages: OrganizationImage[] = [];
+
+      if (!storageError && storageFiles) {
+        // Recursively get files from subdirectories
+        for (const item of storageFiles) {
+          if (item.id === null) {
+            // It's a folder - list its contents
+            const { data: folderFiles } = await supabase.storage
+              .from('organization-assets')
+              .list(`${targetOrgId}/${item.name}`, { limit: 100 });
+            
+            if (folderFiles) {
+              for (const file of folderFiles) {
+                if (file.id && file.name.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
+                  const filePath = `${targetOrgId}/${item.name}/${file.name}`;
+                  if (!existingPaths.has(filePath)) {
+                    const { data: urlData } = supabase.storage
+                      .from('organization-assets')
+                      .getPublicUrl(filePath);
+                    
+                    legacyImages.push({
+                      id: `legacy-${file.id}`,
+                      organization_id: targetOrgId,
+                      name: file.name.replace(/\.[^.]+$/, ''),
+                      file_path: filePath,
+                      public_url: urlData.publicUrl,
+                      category: inferCategory(item.name),
+                      file_size_bytes: file.metadata?.size || null,
+                      mime_type: file.metadata?.mimetype || null,
+                      uploaded_by: null,
+                      created_at: file.created_at || new Date().toISOString(),
+                      updated_at: file.updated_at || new Date().toISOString(),
+                    });
+                  }
+                }
+              }
+            }
+          } else if (item.name.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
+            // It's a file at root level
+            const filePath = `${targetOrgId}/${item.name}`;
+            if (!existingPaths.has(filePath)) {
+              const { data: urlData } = supabase.storage
+                .from('organization-assets')
+                .getPublicUrl(filePath);
+              
+              legacyImages.push({
+                id: `legacy-${item.id}`,
+                organization_id: targetOrgId,
+                name: item.name.replace(/\.[^.]+$/, ''),
+                file_path: filePath,
+                public_url: urlData.publicUrl,
+                category: 'General' as ImageCategory,
+                file_size_bytes: item.metadata?.size || null,
+                mime_type: item.metadata?.mimetype || null,
+                uploaded_by: null,
+                created_at: item.created_at || new Date().toISOString(),
+                updated_at: item.updated_at || new Date().toISOString(),
+              });
+            }
+          }
+        }
+      }
+
+      // Combine DB images with legacy storage images
+      const allImages = [...(dbImages as unknown as OrganizationImage[] || []), ...legacyImages];
+      setImages(allImages);
     } catch (err) {
       console.error('Error fetching images:', err);
       toast.error('Failed to load image library');
@@ -61,6 +135,16 @@ export const useImageLibrary = () => {
       setIsLoading(false);
     }
   }, [organization?.id]);
+
+  // Helper to infer category from folder name
+  const inferCategory = (folderName: string): ImageCategory => {
+    const lower = folderName.toLowerCase();
+    if (lower.includes('logo')) return 'Logos';
+    if (lower.includes('background') || lower.includes('hero')) return 'Backgrounds';
+    if (lower.includes('product')) return 'Product Images';
+    if (lower.includes('icon')) return 'Icons';
+    return 'General';
+  };
 
   const uploadImage = useCallback(async (
     file: File,
