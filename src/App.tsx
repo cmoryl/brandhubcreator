@@ -36,6 +36,7 @@ const DemoBrandPreview = lazy(() => import("./pages/DemoBrandPreview"));
 const DemoGuideViewer = lazy(() => import("./pages/DemoGuideViewer"));
 const EventEditor = lazy(() => import("./pages/EventEditor"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
+const GlobalLinkUniversePage = lazy(() => import("./pages/GlobalLinkUniversePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 
@@ -177,6 +178,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<BrandEditorSkeleton />}>
                           <ProductEditor />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="product/globallink/universe"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <GlobalLinkUniversePage />
                         </Suspense>
                       }
                     />

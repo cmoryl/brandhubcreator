@@ -7,7 +7,7 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect, MouseEvent as ReactMouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { ArrowRight, Layers, Globe, Mic, Video, FileText, MessageSquare, Tv, Share2, Database, PenTool, Zap, ChevronRight, ExternalLink } from 'lucide-react';
+import { ArrowRight, Layers, Globe, Mic, Video, FileText, MessageSquare, Tv, Share2, Database, PenTool, Zap, ChevronRight, ExternalLink, Link2 } from 'lucide-react';
 import globalLinkIcon from '@/assets/globallink-g-icon.png';
 
 interface LinkedGuide {
@@ -28,6 +28,7 @@ interface GlobalLinkUniverseSectionProps {
   linkedGuides: LinkedGuide[];
   primaryColor?: string;
   className?: string;
+  showShareButton?: boolean;
 }
 
 // Product metadata
@@ -142,6 +143,7 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
   linkedGuides,
   primaryColor = '#6366f1',
   className,
+  showShareButton = true,
 }) => {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -267,6 +269,26 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
           <h2 className="text-2xl md:text-4xl font-bold text-foreground">
             Product Universe
           </h2>
+          
+          {/* Share button */}
+          {showShareButton && (
+            <button
+              onClick={() => {
+                const url = `${window.location.origin}/product/globallink/universe`;
+                navigator.clipboard.writeText(url);
+                // Show toast or visual feedback
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 right-4 bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-lg animate-fade-in z-50';
+                toast.textContent = 'Link copied to clipboard!';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2000);
+              }}
+              className="ml-2 p-2 rounded-full bg-muted/50 hover:bg-muted transition-colors group"
+              title="Copy shareable link"
+            >
+              <Link2 className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </button>
+          )}
         </div>
         <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto">
           {validGuides.length} interconnected products powering global content
