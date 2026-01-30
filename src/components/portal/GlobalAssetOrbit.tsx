@@ -608,8 +608,8 @@ export const GlobalAssetOrbit = ({
             }
           }}
           className={cn(
-            "w-full h-full rounded-full flex items-center justify-center transition-all duration-300 pointer-events-auto cursor-pointer",
-            "hover:scale-110 hover:brightness-110"
+            "group w-full h-full rounded-full flex items-center justify-center transition-all duration-300 pointer-events-auto cursor-pointer relative",
+            "hover:scale-110"
           )}
           style={{ 
             background: `linear-gradient(145deg, ${primaryColor}60, ${primaryColor}30)`,
@@ -618,6 +618,26 @@ export const GlobalAssetOrbit = ({
           }}
           title={activeFilter !== 'all' ? 'Click to show all' : organizationName}
         >
+          {/* Glowing ring animation on hover */}
+          <div 
+            className="absolute inset-[-4px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style={{
+              background: `conic-gradient(from 0deg, transparent, ${primaryColor}, transparent)`,
+              animation: 'spin 2s linear infinite',
+            }}
+          />
+          <div 
+            className="absolute inset-[-2px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style={{
+              boxShadow: `0 0 20px ${primaryColor}, 0 0 40px ${primaryColor}80, 0 0 60px ${primaryColor}40`,
+            }}
+          />
+          <div 
+            className="absolute inset-0 rounded-full"
+            style={{ 
+              background: `linear-gradient(145deg, ${primaryColor}60, ${primaryColor}30)`,
+            }}
+          />
           {/* Use TransPerfect T icon for TransPerfect org, otherwise use org logo or fallback */}
           {organizationName?.toLowerCase() === 'transperfect' ? (
             <img 
