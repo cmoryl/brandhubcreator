@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layers, Plus, X, Package, Trash2, GripVertical } from 'lucide-react';
+import { Layers, Plus, Package, Trash2, GripVertical, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,6 +15,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -48,6 +58,8 @@ export const CreateProductSuiteDialog = ({
   const [newSubProductName, setNewSubProductName] = useState('');
   const [newSubProductTagline, setNewSubProductTagline] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [existingProduct, setExistingProduct] = useState<{ id: string; name: string } | null>(null);
 
   const resetForm = () => {
     setSuiteName('');
@@ -56,6 +68,8 @@ export const CreateProductSuiteDialog = ({
     setNewSubProductName('');
     setNewSubProductTagline('');
     setIsCreating(false);
+    setShowConfirmDialog(false);
+    setExistingProduct(null);
   };
 
   const handleAddSubProduct = () => {
@@ -77,7 +91,43 @@ export const CreateProductSuiteDialog = ({
     setSubProducts(prev => prev.filter(p => p.id !== id));
   };
 
+  // Check for existing product with similar name before creating
+  const checkForExistingProduct = async (): Promise<boolean> => {
+    const slug = suiteName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    
+    const { data: existing } = await supabase
+      .from('products')
+      .select('id, name, slug')
+      .or(`slug.eq.${slug},name.ilike.${suiteName.trim()}`)
+      .limit(1);
+    
+    if (existing && existing.length > 0) {
+      setExistingProduct({ id: existing[0].id, name: existing[0].name });
+      setShowConfirmDialog(true);
+      return true; // Found existing product
+    }
+    
+    return false; // No conflict
+  };
+
+  const handleInitiateCreate = async () => {
+    if (!suiteName.trim()) {
+      toast.error('Please enter a suite name');
+      return;
+    }
+
+    // Check for existing products first
+    const hasConflict = await checkForExistingProduct();
+    if (!hasConflict) {
+      // No conflict, proceed directly
+      await handleCreateSuite();
+    }
+    // If conflict, the confirmation dialog will be shown
+  };
+
   const handleCreateSuite = async () => {
+    setShowConfirmDialog(false);
+    
     if (!suiteName.trim()) {
       toast.error('Please enter a suite name');
       return;
@@ -337,13 +387,43 @@ export const CreateProductSuiteDialog = ({
             Cancel
           </Button>
           <Button
-            onClick={handleCreateSuite}
+            onClick={handleInitiateCreate}
             disabled={!suiteName.trim() || isCreating}
           >
             {isCreating ? 'Creating...' : `Create Suite${subProducts.length > 0 ? ` (${subProducts.length + 1} products)` : ''}`}
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Confirmation Dialog for Duplicate Protection */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Similar Product Exists
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                A product named <strong>"{existingProduct?.name}"</strong> already exists in your organization.
+              </p>
+              <p>
+                Creating a new suite with the name "{suiteName}" will create a separate product. 
+                This will <strong>not</strong> overwrite the existing product.
+              </p>
+              <p className="text-amber-600 dark:text-amber-400 font-medium">
+                Are you sure you want to proceed?
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCreateSuite}>
+              Create Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 };
