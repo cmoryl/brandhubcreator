@@ -204,13 +204,14 @@ export const CreateProductSuiteDialog = ({
         }
       }
 
-      // Step 4: Update master product with linked sub-products
+      // Step 4: Update master product with linked sub-products and mark as suite master
       initialGuideData.linkedGuides = linkedGuides;
       
       const { error: updateError } = await supabase
         .from('products')
         .update({
           guide_data: initialGuideData,
+          is_suite_master: true, // Mark as protected suite master
         })
         .eq('id', masterProduct.id);
 

@@ -554,6 +554,7 @@ export type Database = {
           id: string
           is_favorite: boolean | null
           is_public: boolean
+          is_suite_master: boolean
           name: string
           organization_id: string | null
           parent_brand_id: string | null
@@ -569,6 +570,7 @@ export type Database = {
           id?: string
           is_favorite?: boolean | null
           is_public?: boolean
+          is_suite_master?: boolean
           name: string
           organization_id?: string | null
           parent_brand_id?: string | null
@@ -584,6 +586,7 @@ export type Database = {
           id?: string
           is_favorite?: boolean | null
           is_public?: boolean
+          is_suite_master?: boolean
           name?: string
           organization_id?: string | null
           parent_brand_id?: string | null
