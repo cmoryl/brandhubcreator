@@ -149,6 +149,7 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
   const [hoveredProduct, setHoveredProduct] = useState<ValidatedGuide | null>(null);
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
   const [orbitTilt, setOrbitTilt] = useState({ x: 0, y: 0 });
+  const [rippleId, setRippleId] = useState<string | null>(null);
   const orbitRef = useRef<HTMLDivElement>(null);
 
   const getProductInfo = useCallback((slug: string) => {
@@ -614,12 +615,30 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    // Trigger ripple
+                    setRippleId(product.id);
+                    setTimeout(() => setRippleId(null), 600);
                     handleProductClick(product);
                   }}
                   onMouseDown={(e) => e.preventDefault()}
                   draggable={false}
                   aria-label={product.name}
                 >
+                  {/* Ripple effect on click */}
+                  {rippleId === product.id && (
+                    <div 
+                      className="absolute inset-0 rounded-full pointer-events-none overflow-hidden"
+                    >
+                      <div 
+                        className="absolute inset-[-50%] rounded-full pointer-events-none"
+                        style={{ 
+                          background: `radial-gradient(circle, ${catColor.primary}60 0%, transparent 70%)`,
+                          animation: 'ripple-expand 0.6s ease-out forwards',
+                        }} 
+                      />
+                    </div>
+                  )}
+                  
                   {/* Pulse ring */}
                   {(isActive || isConnected) && (
                     <div 
