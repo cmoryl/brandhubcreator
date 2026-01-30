@@ -1,7 +1,7 @@
 import { 
   BarChart3, UserCheck, Users, Building2, UserPlus, Palette, 
   Database, TrendingUp, Eye, Brain, FileText, Activity, 
-  Wrench, HardDrive, Shield, Menu, X, Orbit
+  Wrench, HardDrive, Shield, Menu, X, Orbit, Package
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +54,7 @@ function SidebarContent({
     { id: 'repair', label: 'Repair Tools', icon: <Wrench className="h-4 w-4" />, group: 'tools' },
     { id: 'backups', label: 'Backups', icon: <HardDrive className="h-4 w-4" />, group: 'tools' },
     { id: 'universe-backups', label: 'Universe Backups', icon: <Orbit className="h-4 w-4" />, group: 'tools' },
+    { id: 'suite-backups', label: 'Suite Backups', icon: <Package className="h-4 w-4" />, group: 'tools' },
   ];
 
   const handleItemClick = (id: string) => {

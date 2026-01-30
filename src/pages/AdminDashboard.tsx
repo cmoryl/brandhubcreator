@@ -46,6 +46,7 @@ import { MembersManager } from '@/components/admin/MembersManager';
 import { UserAnalyticsTab } from '@/components/admin/UserAnalyticsTab';
 import { CompressedBackupManager } from '@/components/admin/CompressedBackupManager';
 import { UniverseBackupManager } from '@/components/admin/UniverseBackupManager';
+import { ProductSuiteBackupManager } from '@/components/admin/ProductSuiteBackupManager';
 import { AdminSidebar, AdminMobileNav } from '@/components/admin/AdminSidebar';
 
 interface DashboardStats {
@@ -1164,6 +1165,11 @@ export default function AdminDashboard() {
           {/* Universe Backups Tab */}
           <TabsContent value="universe-backups" className="space-y-6">
             <UniverseBackupManager />
+          </TabsContent>
+
+          {/* Product Suite Backups Tab */}
+          <TabsContent value="suite-backups" className="space-y-6">
+            <ProductSuiteBackupManager />
           </TabsContent>
         </Tabs>
           </div>

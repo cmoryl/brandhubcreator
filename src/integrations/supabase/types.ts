@@ -696,11 +696,13 @@ export type Database = {
         Row: {
           backup_data: Json
           backup_name: string
+          backup_type: string
           created_at: string
           created_by: string | null
           id: string
           is_default: boolean
           organization_id: string | null
+          product_id: string | null
           universe_name: string
           universe_type: string
           updated_at: string
@@ -708,11 +710,13 @@ export type Database = {
         Insert: {
           backup_data?: Json
           backup_name: string
+          backup_type?: string
           created_at?: string
           created_by?: string | null
           id?: string
           is_default?: boolean
           organization_id?: string | null
+          product_id?: string | null
           universe_name: string
           universe_type: string
           updated_at?: string
@@ -720,11 +724,13 @@ export type Database = {
         Update: {
           backup_data?: Json
           backup_name?: string
+          backup_type?: string
           created_at?: string
           created_by?: string | null
           id?: string
           is_default?: boolean
           organization_id?: string | null
+          product_id?: string | null
           universe_name?: string
           universe_type?: string
           updated_at?: string
@@ -735,6 +741,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "universe_backups_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
