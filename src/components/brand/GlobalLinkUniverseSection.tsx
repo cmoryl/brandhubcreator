@@ -405,13 +405,16 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                   />
                 </div>
                 
-                {/* Product name label - only visible on hover */}
+                {/* Product name label - appears above on hover */}
                 <div 
                   className={cn(
-                    "absolute left-1/2 -translate-x-1/2 mt-1 whitespace-nowrap text-[10px] md:text-xs font-medium transition-all duration-300",
-                    isActive ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 pointer-events-none"
+                    "absolute left-1/2 -translate-x-1/2 bottom-full mb-2 whitespace-nowrap text-[10px] md:text-xs font-medium transition-all duration-300 px-2 py-1 rounded-md bg-card/95 backdrop-blur-sm shadow-lg border border-border/50",
+                    isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1 pointer-events-none"
                   )}
-                  style={{ color: categoryColor }}
+                  style={{ 
+                    color: categoryColor,
+                    boxShadow: `0 4px 12px ${categoryColor}20`
+                  }}
                 >
                   {product.name.replace('GlobalLink ', '')}
                 </div>
@@ -488,13 +491,16 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                   />
                 </div>
                 
-                {/* Product name label - only visible on hover */}
+                {/* Product name label - appears above on hover */}
                 <div 
                   className={cn(
-                    "absolute left-1/2 -translate-x-1/2 mt-1 whitespace-nowrap text-[10px] md:text-xs font-medium transition-all duration-300",
-                    isActive ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 pointer-events-none"
+                    "absolute left-1/2 -translate-x-1/2 bottom-full mb-2 whitespace-nowrap text-[10px] md:text-xs font-medium transition-all duration-300 px-2 py-1 rounded-md bg-card/95 backdrop-blur-sm shadow-lg border border-border/50",
+                    isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1 pointer-events-none"
                   )}
-                  style={{ color: categoryColor }}
+                  style={{ 
+                    color: categoryColor,
+                    boxShadow: `0 4px 12px ${categoryColor}20`
+                  }}
                 >
                   {product.name.replace('GlobalLink ', '')}
                 </div>
