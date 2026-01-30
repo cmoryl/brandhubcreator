@@ -11,6 +11,7 @@ import React, { forwardRef, useState, useRef, useCallback, useEffect, useMemo } 
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import transperfectLogoIcon from '@/assets/transperfect-logo-icon.png';
 
 interface LinkedEntity {
   id: string;
@@ -622,9 +623,7 @@ export const GlobalAssetOrbit = ({
           {organizationLogo ? (
             <img src={organizationLogo} alt={organizationName} className="w-10 h-10 object-contain" style={{ filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
           ) : (
-            <span className="text-3xl font-bold" style={{ color: primaryColor, textShadow: `0 0 20px ${primaryColor}60`, filter: 'brightness(1.3)' }}>
-              {centerLetter}
-            </span>
+            <img src={transperfectLogoIcon} alt={organizationName} className="w-12 h-12 object-contain" style={{ opacity: 0.95 }} />
           )}
         </button>
       </div>
