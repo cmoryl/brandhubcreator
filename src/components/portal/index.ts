@@ -9,6 +9,7 @@ export { HierarchicalBrandGrid } from './HierarchicalBrandGrid';
 export { PortalGridSkeleton } from './PortalGridSkeleton';
 export { PortalPagination } from './PortalPagination';
 export { PortalAdminActions } from './PortalAdminActions';
+export { CreateProductSuiteDialog } from './CreateProductSuiteDialog';
 export { GlobalAssetOrbit } from './GlobalAssetOrbit';
 export { OrbitLegend } from './OrbitLegend';
 export { MobileStickyTabs } from './MobileStickyTabs';
