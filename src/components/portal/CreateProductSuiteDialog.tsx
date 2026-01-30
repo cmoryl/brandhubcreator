@@ -87,101 +87,108 @@ export const CreateProductSuiteDialog = ({
     
     try {
       // Step 1: Create the master product (suite)
-      const masterProduct = await addProduct(suiteName.trim());
-      if (!masterProduct) {
+      let masterProduct;
+      try {
+        masterProduct = await addProduct(suiteName.trim());
+      } catch (addError) {
+        console.error('Error in addProduct:', addError);
         throw new Error('Failed to create master product');
       }
+      
+      if (!masterProduct) {
+        throw new Error('Failed to create master product - no product returned');
+      }
+
+      console.log('Master product created:', masterProduct.id);
 
       // Step 2: Update the master product with tagline and initial setup
-      const { error: updateError } = await supabase
-        .from('products')
-        .update({
-          guide_data: {
-            hero: {
-              name: suiteName.trim(),
-              tagline: suiteTagline.trim() || `The Complete ${suiteName.trim()} Suite`,
-            },
-            colors: [
-              { id: crypto.randomUUID(), hex: '#0066CC', name: 'Primary Blue' },
-              { id: crypto.randomUUID(), hex: '#00A3E0', name: 'Light Blue' },
-              { id: crypto.randomUUID(), hex: '#1A1A2E', name: 'Dark Navy' },
-            ],
-            linkedGuides: [],
-          },
-        })
-        .eq('id', masterProduct.id);
-
-      if (updateError) {
-        console.error('Error updating master product:', updateError);
-      }
+      const initialGuideData = {
+        hero: {
+          name: suiteName.trim(),
+          tagline: suiteTagline.trim() || `The Complete ${suiteName.trim()} Suite`,
+        },
+        colors: [
+          { id: crypto.randomUUID(), hex: '#0066CC', name: 'Primary Blue' },
+          { id: crypto.randomUUID(), hex: '#00A3E0', name: 'Light Blue' },
+          { id: crypto.randomUUID(), hex: '#1A1A2E', name: 'Dark Navy' },
+        ],
+        linkedGuides: [] as { id: string; type: 'product' }[],
+      };
 
       // Step 3: Create sub-products and collect their IDs
       const linkedGuides: { id: string; type: 'product' }[] = [];
       
       for (const subProduct of subProducts) {
-        const createdSubProduct = await addProduct(subProduct.name);
-        if (createdSubProduct) {
-          // Update sub-product with tagline
-          await supabase
-            .from('products')
-            .update({
-              guide_data: {
-                hero: {
-                  name: subProduct.name,
-                  tagline: subProduct.tagline || '',
+        try {
+          const createdSubProduct = await addProduct(subProduct.name);
+          if (createdSubProduct) {
+            console.log('Sub-product created:', createdSubProduct.id);
+            
+            // Update sub-product with tagline
+            const { error: subUpdateError } = await supabase
+              .from('products')
+              .update({
+                guide_data: {
+                  hero: {
+                    name: subProduct.name,
+                    tagline: subProduct.tagline || '',
+                  },
                 },
-              },
-            })
-            .eq('id', createdSubProduct.id);
+              })
+              .eq('id', createdSubProduct.id);
 
-          linkedGuides.push({
-            id: createdSubProduct.id,
-            type: 'product',
-          });
+            if (subUpdateError) {
+              console.warn('Error updating sub-product tagline:', subUpdateError);
+            }
+
+            linkedGuides.push({
+              id: createdSubProduct.id,
+              type: 'product',
+            });
+          }
+        } catch (subError) {
+          console.error('Error creating sub-product:', subProduct.name, subError);
+          // Continue with other sub-products
         }
       }
 
       // Step 4: Update master product with linked sub-products
-      if (linkedGuides.length > 0) {
-        const { error: linkError } = await supabase
-          .from('products')
-          .update({
-            guide_data: {
-              hero: {
-                name: suiteName.trim(),
-                tagline: suiteTagline.trim() || `The Complete ${suiteName.trim()} Suite`,
-              },
-              colors: [
-                { id: crypto.randomUUID(), hex: '#0066CC', name: 'Primary Blue' },
-                { id: crypto.randomUUID(), hex: '#00A3E0', name: 'Light Blue' },
-                { id: crypto.randomUUID(), hex: '#1A1A2E', name: 'Dark Navy' },
-              ],
-              linkedGuides,
-            },
-          })
-          .eq('id', masterProduct.id);
+      initialGuideData.linkedGuides = linkedGuides;
+      
+      const { error: updateError } = await supabase
+        .from('products')
+        .update({
+          guide_data: initialGuideData,
+        })
+        .eq('id', masterProduct.id);
 
-        if (linkError) {
-          console.error('Error linking sub-products:', linkError);
-        }
+      if (updateError) {
+        console.error('Error updating master product with links:', updateError);
       }
 
-      // Refresh products list
-      await refetch?.();
-
-      toast.success(
-        `Product suite "${suiteName}" created with ${linkedGuides.length} sub-products!`
-      );
+      // Close dialog and show success before navigation
+      const productSlug = masterProduct.slug || masterProduct.id;
+      const subProductCount = linkedGuides.length;
       
       onOpenChange(false);
       resetForm();
+
+      toast.success(
+        `Product suite "${suiteName}" created with ${subProductCount} sub-products!`
+      );
       
-      // Navigate to the master product
-      navigate(`/product/${masterProduct.slug || masterProduct.id}`);
+      // Small delay to allow state to settle before navigation
+      setTimeout(() => {
+        // Refresh products list in background
+        refetch?.().catch(console.error);
+        
+        // Navigate to the master product
+        navigate(`/product/${productSlug}`);
+      }, 100);
+      
     } catch (err) {
       console.error('Error creating product suite:', err);
-      toast.error('Failed to create product suite');
-    } finally {
+      toast.error(err instanceof Error ? err.message : 'Failed to create product suite');
       setIsCreating(false);
     }
   };
