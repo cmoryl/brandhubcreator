@@ -9,6 +9,35 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { ExternalLink, ArrowRight, Layers, Globe, Mic, Video, FileText, MessageSquare, Tv, Music, Share2, Database, PenTool, Zap } from 'lucide-react';
 
+// Particle component for visual effects
+const OrbitParticle: React.FC<{
+  delay: number;
+  duration: number;
+  size: number;
+  color: string;
+  orbitRadius: number;
+  startAngle: number;
+}> = ({ delay, duration, size, color, orbitRadius, startAngle }) => {
+  return (
+    <div
+      className="absolute rounded-full pointer-events-none"
+      style={{
+        width: size,
+        height: size,
+        background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
+        left: '50%',
+        top: '50%',
+        transformOrigin: 'center',
+        animation: `orbitParticle ${duration}s linear infinite`,
+        animationDelay: `${delay}s`,
+        opacity: 0.6,
+        '--orbit-radius': `${orbitRadius}%`,
+        '--start-angle': `${startAngle}deg`,
+      } as React.CSSProperties}
+    />
+  );
+};
+
 interface LinkedGuide {
   id: string;
   name?: string;
@@ -169,6 +198,20 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
 
   const animationStyle = isPaused ? 'paused' : 'running';
 
+  // Generate particles for visual effects
+  const particles = useMemo(() => {
+    const particleCount = 24;
+    return Array.from({ length: particleCount }, (_, i) => ({
+      id: i,
+      delay: (i * 0.5) % 8,
+      duration: 15 + (i % 5) * 3,
+      size: 3 + (i % 3) * 2,
+      color: Object.values(CATEGORY_COLORS)[i % Object.values(CATEGORY_COLORS).length],
+      orbitRadius: 20 + (i % 3) * 15,
+      startAngle: (i * 360 / particleCount),
+    }));
+  }, []);
+
   return (
     <section className={cn("relative py-16 overflow-hidden", className)}>
       {/* Background gradient */}
@@ -215,6 +258,21 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
             boxShadow: `0 0 30px ${primaryColor}10`,
           }}
         />
+
+        {/* Particle effects */}
+        <div className="absolute inset-0 pointer-events-none">
+          {particles.map((particle) => (
+            <OrbitParticle
+              key={particle.id}
+              delay={particle.delay}
+              duration={particle.duration}
+              size={particle.size}
+              color={particle.color}
+              orbitRadius={particle.orbitRadius}
+              startAngle={particle.startAngle}
+            />
+          ))}
+        </div>
 
         {/* Connection lines to hovered product */}
         {hoveredProduct && connections.length > 0 && (
@@ -347,13 +405,13 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                   />
                 </div>
                 
-                {/* Product name label */}
+                {/* Product name label - only visible on hover */}
                 <div 
                   className={cn(
-                    "absolute left-1/2 -translate-x-1/2 mt-1 whitespace-nowrap text-[10px] md:text-xs font-medium transition-opacity duration-200",
-                    isActive ? "opacity-100" : "opacity-60"
+                    "absolute left-1/2 -translate-x-1/2 mt-1 whitespace-nowrap text-[10px] md:text-xs font-medium transition-all duration-300",
+                    isActive ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 pointer-events-none"
                   )}
-                  style={{ color: isActive ? categoryColor : undefined }}
+                  style={{ color: categoryColor }}
                 >
                   {product.name.replace('GlobalLink ', '')}
                 </div>
@@ -430,13 +488,13 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                   />
                 </div>
                 
-                {/* Product name label */}
+                {/* Product name label - only visible on hover */}
                 <div 
                   className={cn(
-                    "absolute left-1/2 -translate-x-1/2 mt-1 whitespace-nowrap text-[10px] md:text-xs font-medium transition-opacity duration-200",
-                    isActive ? "opacity-100" : "opacity-60"
+                    "absolute left-1/2 -translate-x-1/2 mt-1 whitespace-nowrap text-[10px] md:text-xs font-medium transition-all duration-300",
+                    isActive ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 pointer-events-none"
                   )}
-                  style={{ color: isActive ? categoryColor : undefined }}
+                  style={{ color: categoryColor }}
                 >
                   {product.name.replace('GlobalLink ', '')}
                 </div>
