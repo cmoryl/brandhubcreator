@@ -24,7 +24,7 @@
     --muted: 40 10% 92%;
     --muted-foreground: 220 10% 45%;
 
-    --accent: 12 76% 61%;
+    --accent: 198 84% 46%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -32,7 +32,7 @@
 
     --border: 40 15% 88%;
     --input: 40 15% 88%;
-    --ring: 12 76% 61%;
+    --ring: 198 84% 46%;
 
     --radius: 0.75rem;
 
@@ -42,8 +42,8 @@
     --text-primary: 220 20% 10%;
     --text-secondary: 220 10% 40%;
     --text-tertiary: 220 8% 55%;
-    --accent-coral: 12 76% 61%;
-    --accent-coral-light: 12 76% 95%;
+    --accent-blue: 198 84% 46%;
+    --accent-blue-light: 198 84% 95%;
     --accent-teal: 175 60% 40%;
     --accent-teal-light: 175 50% 95%;
 
@@ -76,7 +76,7 @@
     --muted: 220 12% 20%;
     --muted-foreground: 220 10% 60%;
 
-    --accent: 12 76% 61%;
+    --accent: 198 84% 46%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 50%;
@@ -84,7 +84,7 @@
 
     --border: 220 15% 20%;
     --input: 220 15% 20%;
-    --ring: 12 76% 61%;
+    --ring: 198 84% 46%;
 
     --surface-elevated: 220 18% 14%;
     --surface-sunken: 220 20% 6%;
