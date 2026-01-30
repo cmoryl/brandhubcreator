@@ -255,11 +255,11 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
         </p>
       </div>
 
-      {/* Main content grid */}
+      {/* Main content grid - 2 column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 px-4 max-w-7xl mx-auto">
         
         {/* Left: Product Categories */}
-        <div className="lg:col-span-4 xl:col-span-3 order-2 lg:order-1">
+        <div className="lg:col-span-3 order-2 lg:order-1">
           <div className="sticky top-24 space-y-3">
             {Object.entries(productsByCategory).map(([category, products]) => {
               const catColor = getCategoryColor(category);
@@ -371,9 +371,9 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
           </div>
         </div>
 
-        {/* Center: Orbit Visualization */}
-        <div className="lg:col-span-5 xl:col-span-6 order-1 lg:order-2">
-          <div className="relative aspect-square max-w-lg mx-auto">
+        {/* Right: Orbit Visualization - Larger area */}
+        <div className="lg:col-span-9 order-1 lg:order-2">
+          <div className="relative aspect-square max-w-2xl mx-auto">
             {/* Orbit rings */}
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
               <defs>
@@ -642,11 +642,9 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
               );
             })}
           </div>
-        </div>
 
-        {/* Right: Detail Panel */}
-        <div className="lg:col-span-3 order-3">
-          <div className="sticky top-24">
+          {/* Detail Panel - Now below the orbit */}
+          <div className="mt-8 max-w-2xl mx-auto">
             {activeProduct && activeInfo ? (
               <div 
                 className="rounded-xl border bg-card/90 backdrop-blur-md overflow-hidden animate-fade-in"
@@ -655,94 +653,98 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                   boxShadow: `0 10px 40px ${activeColor?.primary}10`,
                 }}
               >
-                {/* Header with gradient */}
-                <div 
-                  className="px-5 py-4 relative overflow-hidden"
-                  style={{ background: `linear-gradient(135deg, ${activeColor?.bg}, transparent)` }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-12 h-12 rounded-xl flex items-center justify-center"
-                      style={{ background: activeColor?.primary }}
-                    >
-                      <activeInfo.icon className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg text-foreground">
-                        {activeProduct.name}
-                      </h3>
-                      <span 
-                        className="text-xs font-medium"
-                        style={{ color: activeColor?.text }}
+                <div className="flex flex-col md:flex-row">
+                  {/* Left side - Header with gradient */}
+                  <div 
+                    className="px-5 py-4 relative overflow-hidden md:w-1/3 flex flex-col justify-center"
+                    style={{ background: `linear-gradient(135deg, ${activeColor?.bg}, transparent)` }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                        style={{ background: activeColor?.primary }}
                       >
-                        {activeInfo.category}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="px-5 py-4 space-y-4">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {activeInfo.description}
-                  </p>
-                  
-                  {/* Connections */}
-                  {connectedProducts.length > 0 && (
-                    <div>
-                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                        Integrations
-                      </h4>
-                      <div className="flex flex-wrap gap-1.5">
-                        {connectedProducts.map(conn => {
-                          const connInfo = getProductInfo(conn.slug);
-                          const connColor = getCategoryColor(connInfo.category);
-                          return (
-                            <button
-                              key={conn.id}
-                              className="text-xs px-2.5 py-1 rounded-full font-medium transition-all hover:scale-105"
-                              style={{ 
-                                background: connColor.bg,
-                                color: connColor.text,
-                              }}
-                              onClick={() => setSelectedProduct(conn)}
-                            >
-                              {conn.name.replace('GlobalLink ', '')}
-                            </button>
-                          );
-                        })}
+                        <activeInfo.icon className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-lg text-foreground truncate">
+                          {activeProduct.name}
+                        </h3>
+                        <span 
+                          className="text-xs font-medium"
+                          style={{ color: activeColor?.text }}
+                        >
+                          {activeInfo.category}
+                        </span>
                       </div>
                     </div>
-                  )}
-                  
-                  {/* CTA */}
-                  <button
-                    onClick={() => navigate(`/product/${activeProduct.slug}`)}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                    style={{
-                      background: `linear-gradient(135deg, ${activeColor?.primary}, ${activeColor?.primary}cc)`,
-                      boxShadow: `0 4px 20px ${activeColor?.primary}40`,
-                    }}
-                  >
-                    View Product Guide
-                    <ExternalLink className="w-4 h-4" />
-                  </button>
+                  </div>
+
+                  {/* Right side - Content */}
+                  <div className="px-5 py-4 flex-1 flex flex-col md:flex-row gap-4 items-start md:items-center">
+                    <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+                      {activeInfo.description}
+                    </p>
+                    
+                    {/* Connections */}
+                    {connectedProducts.length > 0 && (
+                      <div className="shrink-0">
+                        <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+                          Integrations
+                        </h4>
+                        <div className="flex flex-wrap gap-1">
+                          {connectedProducts.map(conn => {
+                            const connInfo = getProductInfo(conn.slug);
+                            const connColor = getCategoryColor(connInfo.category);
+                            return (
+                              <button
+                                key={conn.id}
+                                className="text-[10px] px-2 py-0.5 rounded-full font-medium transition-all hover:scale-105"
+                                style={{ 
+                                  background: connColor.bg,
+                                  color: connColor.text,
+                                }}
+                                onClick={() => setSelectedProduct(conn)}
+                              >
+                                {conn.name.replace('GlobalLink ', '')}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* CTA */}
+                    <button
+                      onClick={() => navigate(`/product/${activeProduct.slug}`)}
+                      className="shrink-0 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                      style={{
+                        background: `linear-gradient(135deg, ${activeColor?.primary}, ${activeColor?.primary}cc)`,
+                        boxShadow: `0 4px 20px ${activeColor?.primary}40`,
+                      }}
+                    >
+                      View Guide
+                      <ExternalLink className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-border/40 bg-muted/10 p-8 text-center">
+              <div className="rounded-xl border border-dashed border-border/40 bg-muted/10 px-6 py-4 text-center flex items-center justify-center gap-4">
                 <div 
-                  className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
+                  className="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
                   style={{ background: `${primaryColor}10` }}
                 >
-                  <Globe className="w-8 h-8 text-muted-foreground/40" />
+                  <Globe className="w-6 h-6 text-muted-foreground/40" />
                 </div>
-                <p className="text-sm text-muted-foreground mb-1">
-                  Select a product
-                </p>
-                <p className="text-xs text-muted-foreground/60">
-                  Click or hover to explore connections
-                </p>
+                <div className="text-left">
+                  <p className="text-sm text-muted-foreground font-medium">
+                    Select a product
+                  </p>
+                  <p className="text-xs text-muted-foreground/60">
+                    Click or hover to explore connections
+                  </p>
+                </div>
               </div>
             )}
           </div>
