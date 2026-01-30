@@ -678,30 +678,34 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                   <div 
                     className="absolute inset-0 flex items-center justify-center pointer-events-none"
                   >
-                    <div 
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300"
-                      style={{
-                        background: isActive 
-                          ? `linear-gradient(135deg, ${catColor.primary}, ${catColor.primary}bb)`
-                          : isConnected
-                          ? `linear-gradient(135deg, ${catColor.primary}70, ${catColor.primary}40)`
-                          : `linear-gradient(135deg, ${catColor.bg}, ${catColor.primary}15)`,
-                        boxShadow: isActive 
-                          ? `0 0 30px ${catColor.primary}50, 0 4px 15px ${catColor.primary}30`
-                          : isConnected
-                          ? `0 0 20px ${catColor.primary}30`
-                          : `0 2px 10px ${catColor.primary}10`,
-                        border: `2px solid ${isActive ? catColor.primary : isConnected ? catColor.primary + '80' : catColor.primary + '30'}`,
-                      }}
-                    >
-                      <Icon 
-                        className={cn(
-                          "w-5 h-5 md:w-6 md:h-6 transition-all",
-                          isActive ? "text-white" : "text-foreground/70"
-                        )} 
-                        style={{ color: isActive ? 'white' : catColor.text }}
-                      />
-                    </div>
+                     {/*
+                       Fill the entire button hit-area so hover stays seamless.
+                       (Previously the visual circle was smaller than the clickable area, which could feel like a hover "drop" near edges.)
+                     */}
+                     <div
+                       className="absolute inset-1 rounded-full flex items-center justify-center transition-all duration-300"
+                       style={{
+                         background: isActive
+                           ? `linear-gradient(135deg, ${catColor.primary}, ${catColor.primary}bb)`
+                           : isConnected
+                             ? `linear-gradient(135deg, ${catColor.primary}70, ${catColor.primary}40)`
+                             : `linear-gradient(135deg, ${catColor.bg}, ${catColor.primary}15)`,
+                         boxShadow: isActive
+                           ? `0 0 30px ${catColor.primary}50, 0 4px 15px ${catColor.primary}30`
+                           : isConnected
+                             ? `0 0 20px ${catColor.primary}30`
+                             : `0 2px 10px ${catColor.primary}10`,
+                         border: `2px solid ${isActive ? catColor.primary : isConnected ? catColor.primary + '80' : catColor.primary + '30'}`,
+                       }}
+                     >
+                       <Icon
+                         className={cn(
+                           "w-5 h-5 md:w-6 md:h-6 transition-all",
+                           isActive ? "text-white" : "text-foreground/70"
+                         )}
+                         style={{ color: isActive ? 'white' : catColor.text }}
+                       />
+                     </div>
                   </div>
                   
                   {/* Label */}
