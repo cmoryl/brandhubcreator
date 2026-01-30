@@ -620,7 +620,18 @@ export const GlobalAssetOrbit = ({
           }}
           title={activeFilter !== 'all' ? 'Click to show all' : organizationName}
         >
-          {organizationLogo ? (
+          {/* Use TransPerfect T icon for TransPerfect org, otherwise use org logo or fallback */}
+          {organizationName?.toLowerCase() === 'transperfect' ? (
+            <img 
+              src={transperfectLogoIcon} 
+              alt={organizationName} 
+              className="w-16 h-16 object-contain" 
+              style={{ 
+                opacity: 1,
+                filter: `drop-shadow(0 0 12px ${primaryColor}80) drop-shadow(0 0 24px ${primaryColor}40)`
+              }} 
+            />
+          ) : organizationLogo ? (
             <img src={organizationLogo} alt={organizationName} className="w-14 h-14 object-contain" style={{ filter: `brightness(0) invert(1) drop-shadow(0 0 16px ${primaryColor}80)`, opacity: 0.95 }} />
           ) : (
             <img 
