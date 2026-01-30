@@ -34,6 +34,7 @@ import {
 import { toast } from 'sonner';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { BrandReportGenerator } from '@/components/admin/BrandReportGenerator';
+import { ProductReportGenerator } from '@/components/admin/ProductReportGenerator';
 import { AIMarketAnalysis } from '@/components/admin/AIMarketAnalysis';
 import { DataInspector } from '@/components/admin/DataInspector';
 import { DemoGuidesManager } from '@/components/admin/DemoGuidesManager';
@@ -1025,7 +1026,24 @@ export default function AdminDashboard() {
 
           {/* Reports Tab */}
           <TabsContent value="reports" className="space-y-6">
-            <BrandReportGenerator />
+            <Tabs defaultValue="brands" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="brands" className="gap-2">
+                  <Palette className="h-4 w-4" />
+                  Brand Reports
+                </TabsTrigger>
+                <TabsTrigger value="products" className="gap-2">
+                  <Package className="h-4 w-4" />
+                  Product Reports
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="brands">
+                <BrandReportGenerator />
+              </TabsContent>
+              <TabsContent value="products">
+                <ProductReportGenerator />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           {/* Brand Analytics Tab */}
