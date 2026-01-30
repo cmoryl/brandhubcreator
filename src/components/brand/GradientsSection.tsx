@@ -159,12 +159,16 @@ export const GradientsSection = ({
             className="group relative bg-card rounded-xl overflow-hidden shadow-sm border border-border animate-scale-in"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-          {/* Gradient preview */}
+          {/* Gradient preview - single tile centered */}
           <div
-            className={`${isListView ? 'w-24 h-full' : 'h-32'} relative cursor-pointer`}
-            style={{ background: gradient.css }}
+            className={`${isListView ? 'w-24 h-full' : 'h-32'} relative cursor-pointer flex items-center justify-center bg-muted/30`}
             onClick={() => copyCSS(gradient.css, gradient.id)}
           >
+            {/* Single gradient tile */}
+            <div 
+              className="w-20 h-20 rounded-lg shadow-md"
+              style={{ background: gradient.css }}
+            />
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
                 {copiedId === gradient.id ? (
                   <div className="flex items-center gap-1 text-white text-sm font-medium">
