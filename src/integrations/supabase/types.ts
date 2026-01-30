@@ -388,6 +388,56 @@ export type Database = {
           },
         ]
       }
+      organization_images: {
+        Row: {
+          category: string
+          created_at: string
+          file_path: string
+          file_size_bytes: number | null
+          id: string
+          mime_type: string | null
+          name: string
+          organization_id: string
+          public_url: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          file_path: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          name: string
+          organization_id: string
+          public_url: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          file_path?: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          name?: string
+          organization_id?: string
+          public_url?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_images_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           created_at: string
