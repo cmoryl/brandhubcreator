@@ -32,6 +32,7 @@ import {
   ImageCategory,
   IMAGE_CATEGORIES,
 } from '@/hooks/useImageLibrary';
+import { useProjectImages } from '@/hooks/useProjectImages';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import {
   Image as ImageIcon,
@@ -76,6 +77,8 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
   const [selectedImage, setSelectedImage] = useState<OrganizationImage | null>(null);
   const [uploadCategory, setUploadCategory] = useState<ImageCategory>(defaultCategory);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const projectImages = useProjectImages(searchTerm);
 
   useEffect(() => {
     if (open && organization?.id) {
@@ -154,8 +157,9 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
         </DialogHeader>
 
         <Tabs defaultValue="browse" className="flex-1 flex flex-col min-h-0">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="browse">Browse Library</TabsTrigger>
+          <TabsList className={cn('grid w-full', allowUpload ? 'grid-cols-3' : 'grid-cols-2')}>
+            <TabsTrigger value="browse">Org Library</TabsTrigger>
+            <TabsTrigger value="project">Project Assets</TabsTrigger>
             {allowUpload && <TabsTrigger value="upload">Upload New</TabsTrigger>}
           </TabsList>
 
@@ -278,6 +282,66 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
                 </Button>
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="project" className="flex-1 flex flex-col min-h-0 mt-4">
+            {/* Filters */}
+            <div className="flex gap-3 mb-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search project images..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Badge variant="secondary" className="h-10 px-3 flex items-center">
+                {projectImages.length} assets
+              </Badge>
+            </div>
+
+            <ScrollArea className="flex-1 -mx-2 px-2">
+              {projectImages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <ImageIcon className="h-12 w-12 text-muted-foreground/40 mb-3" />
+                  <p className="text-muted-foreground">
+                    {searchTerm ? 'No project images match your search' : 'No project images found'}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                  {projectImages.map((img) => (
+                    <button
+                      key={img.path}
+                      onClick={() => {
+                        onSelect(img.url);
+                        setOpen(false);
+                        setSelectedImage(null);
+                      }}
+                      className={cn(
+                        'relative group aspect-square rounded-lg overflow-hidden border-2 transition-all',
+                        'border-border hover:border-primary/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                      )}
+                      title={img.name}
+                    >
+                      <img
+                        src={img.url}
+                        alt={img.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <p className="text-xs text-white truncate">{img.name}</p>
+                        <Badge variant="secondary" className="text-[10px] mt-1">
+                          Project
+                        </Badge>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
           </TabsContent>
 
           {allowUpload && (

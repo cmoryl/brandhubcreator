@@ -35,10 +35,20 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
 
 export const useImageLibrary = () => {
   const { organization } = useOrganization();
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const [images, setImages] = useState<OrganizationImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Helper to infer category from folder name (hoisted so it can be used inside callbacks safely)
+  function inferCategory(folderName: string): ImageCategory {
+    const lower = (folderName || '').toLowerCase();
+    if (lower.includes('logo')) return 'Logos';
+    if (lower.includes('background') || lower.includes('hero')) return 'Backgrounds';
+    if (lower.includes('product')) return 'Product Images';
+    if (lower.includes('icon')) return 'Icons';
+    return 'General';
+  }
 
   const fetchImages = useCallback(async (orgId?: string) => {
     const targetOrgId = orgId || organization?.id;
@@ -136,15 +146,6 @@ export const useImageLibrary = () => {
     }
   }, [organization?.id]);
 
-  // Helper to infer category from folder name
-  const inferCategory = (folderName: string): ImageCategory => {
-    const lower = folderName.toLowerCase();
-    if (lower.includes('logo')) return 'Logos';
-    if (lower.includes('background') || lower.includes('hero')) return 'Backgrounds';
-    if (lower.includes('product')) return 'Product Images';
-    if (lower.includes('icon')) return 'Icons';
-    return 'General';
-  };
 
   const uploadImage = useCallback(async (
     file: File,
