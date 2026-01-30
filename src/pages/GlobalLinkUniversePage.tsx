@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { GlobalLinkUniverseSection } from '@/components/brand/GlobalLinkUniverseSection';
+import { normalizeLinkedGuides } from '@/lib/guideNormalization';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
@@ -37,9 +38,10 @@ const GlobalLinkUniversePage: React.FC = () => {
           throw new Error('Product not found');
         }
 
-        const guideData = product.guide_data as Record<string, unknown> | null;
-        const guides = (guideData?.linkedGuides as LinkedGuide[]) || [];
-        setLinkedGuides(guides);
+         const guideData = product.guide_data as Record<string, unknown> | null;
+         // Defensive: restore/backup paths can return legacy linkedGuides keys
+         const guides = normalizeLinkedGuides(guideData?.linkedGuides) as LinkedGuide[];
+         setLinkedGuides(guides);
       } catch (err) {
         console.error('Error fetching GlobalLink data:', err);
         setError('Unable to load GlobalLink Universe data');
