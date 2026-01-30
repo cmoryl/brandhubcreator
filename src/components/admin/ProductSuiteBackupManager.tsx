@@ -69,7 +69,7 @@ interface AdminOrgOption {
 }
 
 export const ProductSuiteBackupManager: React.FC = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const { organization } = useOrganization();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -212,13 +212,16 @@ export const ProductSuiteBackupManager: React.FC = () => {
       const { error } = await supabase
         .from('universe_backups')
         .insert({
-          universe_type: 'product_suite',
+          // `universe_type` is constrained in DB to: globallink | transperfect | custom
+          // We use `backup_type='product_suite'` to differentiate suite backups.
+          universe_type: 'custom',
           universe_name: suite.name,
           backup_name: newBackupName.trim(),
           backup_data: backupPayload,
           backup_type: 'product_suite',
           product_id: selectedSuiteId,
           organization_id: effectiveOrgId,
+          created_by: user?.id ?? null,
           is_default: false,
         } as any);
 
