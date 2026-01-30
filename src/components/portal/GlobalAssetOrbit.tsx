@@ -643,21 +643,21 @@ export const GlobalAssetOrbit = ({
             <img 
               src={transperfectLogoIcon} 
               alt={organizationName} 
-              className="w-12 h-12 object-contain transition-transform duration-300 hover:scale-105" 
+              className="w-12 h-12 object-contain transition-transform duration-300 hover:scale-105 relative z-10" 
               style={{ 
-                opacity: 1,
+                opacity: 0.6,
                 filter: `drop-shadow(0 0 12px ${primaryColor}80) drop-shadow(0 0 24px ${primaryColor}40)`
               }} 
             />
           ) : organizationLogo ? (
-            <img src={organizationLogo} alt={organizationName} className="w-11 h-11 object-contain transition-transform duration-300" style={{ filter: `brightness(0) invert(1) drop-shadow(0 0 16px ${primaryColor}80)`, opacity: 0.95 }} />
+            <img src={organizationLogo} alt={organizationName} className="w-11 h-11 object-contain transition-transform duration-300 relative z-10" style={{ filter: `brightness(0) invert(1) drop-shadow(0 0 16px ${primaryColor}80)`, opacity: 0.6 }} />
           ) : (
             <img 
               src={transperfectLogoIcon} 
               alt={organizationName} 
-              className="w-12 h-12 object-contain transition-transform duration-300 hover:scale-105" 
+              className="w-12 h-12 object-contain transition-transform duration-300 hover:scale-105 relative z-10" 
               style={{ 
-                opacity: 1,
+                opacity: 0.6,
                 filter: `drop-shadow(0 0 12px ${primaryColor}80) drop-shadow(0 0 24px ${primaryColor}40)`
               }} 
             />
