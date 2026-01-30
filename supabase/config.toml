@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.brand-intelligence]
 verify_jwt = false
+
+[functions.run-brand-prompt]
+verify_jwt = false

@@ -5,9 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, subDays, subMonths } from 'date-fns';
+import { CustomPromptRunner } from './CustomPromptRunner';
 
 interface BrandReportData {
   id: string;
@@ -328,6 +330,16 @@ export function BrandReportGenerator() {
               </div>
             </ScrollArea>
           </div>
+        )}
+
+        {/* Custom AI Prompt Section */}
+        {reportData && reportData.length > 0 && (
+          <>
+            <Separator className="my-6" />
+            <CustomPromptRunner 
+              brands={reportData.map(b => ({ id: b.id, name: b.name }))} 
+            />
+          </>
         )}
       </CardContent>
     </Card>
