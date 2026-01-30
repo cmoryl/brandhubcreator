@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Upload, Image, Pencil, Check, TrendingUp, Eye, Users, Share2, Heart, BarChart3, Sparkles, Brain, Video, ImageIcon, Move, Loader2 } from 'lucide-react';
+import { Upload, Image, Pencil, Check, TrendingUp, Eye, Users, Share2, Heart, BarChart3, Sparkles, Brain, Video, ImageIcon, Move, Loader2, FolderOpen } from 'lucide-react';
 import { BrandHero } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,6 +9,7 @@ import { BackgroundImage } from '@/components/ui/optimized-image';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { VideoUploadDialog } from '@/components/ui/video-upload-dialog';
+import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { getAcceptedVideoFormats } from '@/lib/videoCompression';
 import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
@@ -443,32 +444,56 @@ export const HeroSection = ({
               )}
 
               
-              {/* Upload prompt */}
-              <div 
-                className={cn(
-                  "text-white flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20 pointer-events-auto",
-                  isUploading ? "opacity-70 cursor-wait" : "cursor-pointer hover:bg-white/20"
-                )}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (isUploading) return;
-                  if (hero.useVideo) {
-                    videoInputRef.current?.click();
-                  } else {
-                    coverInputRef.current?.click();
-                  }
-                }}
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span className="font-medium">Uploading...</span>
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-5 w-5" />
-                    <span className="font-medium">Upload {hero.useVideo ? 'Video' : 'Image'}</span>
-                  </>
+              {/* Upload prompt + Library picker row */}
+              <div className="flex items-center gap-3 pointer-events-auto">
+                <div 
+                  className={cn(
+                    "text-white flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20",
+                    isUploading ? "opacity-70 cursor-wait" : "cursor-pointer hover:bg-white/20"
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (isUploading) return;
+                    if (hero.useVideo) {
+                      videoInputRef.current?.click();
+                    } else {
+                      coverInputRef.current?.click();
+                    }
+                  }}
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span className="font-medium">Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-5 w-5" />
+                      <span className="font-medium">Upload {hero.useVideo ? 'Video' : 'Image'}</span>
+                    </>
+                  )}
+                </div>
+
+                {/* Image Library Picker - only for images */}
+                {hero.useVideo !== true && (
+                  <ImageLibraryPicker
+                    onSelect={(url) => {
+                      if (onHeroChange) {
+                        onHeroChange({ ...hero, coverImage: url });
+                      }
+                    }}
+                    defaultCategory="Backgrounds"
+                    trigger={
+                      <button
+                        type="button"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-white flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20 hover:bg-white/20 transition-colors"
+                      >
+                        <FolderOpen className="h-5 w-5" />
+                        <span className="font-medium">From Library</span>
+                      </button>
+                    }
+                  />
                 )}
               </div>
 
