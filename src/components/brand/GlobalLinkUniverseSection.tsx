@@ -615,7 +615,7 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                   {/* Pulse ring */}
                   {(isActive || isConnected) && (
                     <div 
-                      className="absolute inset-[-6px] rounded-full animate-ping"
+                      className="absolute inset-[-6px] rounded-full animate-ping pointer-events-none"
                       style={{ 
                         background: catColor.primary,
                         opacity: 0.2,
@@ -624,10 +624,10 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                     />
                   )}
                   
-                  {/* Node */}
+                  {/* Node - pointer-events-none to prevent hover flicker */}
                   <div 
                     className={cn(
-                      "w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300"
+                      "w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300 pointer-events-none"
                     )}
                     style={{
                       background: isActive 
@@ -645,7 +645,7 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
                   >
                     <Icon 
                       className={cn(
-                        "w-5 h-5 md:w-6 md:h-6 transition-all",
+                        "w-5 h-5 md:w-6 md:h-6 transition-all pointer-events-none",
                         isActive ? "text-white" : "text-foreground/70"
                       )} 
                       style={{ color: isActive ? 'white' : catColor.text }}
