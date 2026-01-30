@@ -465,7 +465,7 @@ export const UniverseBackupManager: React.FC = () => {
       </div>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Backup</AlertDialogTitle>
@@ -476,7 +476,12 @@ export const UniverseBackupManager: React.FC = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteConfirm && deleteBackup(deleteConfirm)}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (deleteConfirm) {
+                  await deleteBackup(deleteConfirm);
+                }
+              }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
@@ -486,7 +491,7 @@ export const UniverseBackupManager: React.FC = () => {
       </AlertDialog>
 
       {/* Restore Confirmation */}
-      <AlertDialog open={!!restoreConfirm} onOpenChange={() => setRestoreConfirm(null)}>
+      <AlertDialog open={!!restoreConfirm} onOpenChange={(open) => !open && setRestoreConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Restore Backup</AlertDialogTitle>
@@ -498,7 +503,12 @@ export const UniverseBackupManager: React.FC = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => restoreConfirm && restoreBackup(restoreConfirm)}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (restoreConfirm) {
+                  await restoreBackup(restoreConfirm);
+                }
+              }}
             >
               Restore
             </AlertDialogAction>
