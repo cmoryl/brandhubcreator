@@ -12,7 +12,7 @@ import { SectionHeader } from './SectionHeader';
 
 interface VideosSectionProps {
   videos: BrandVideo[];
-  onVideosChange: (videos: BrandVideo[]) => void;
+  onVideosChange?: (videos: BrandVideo[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
 }
@@ -57,6 +57,7 @@ const getThumbnail = (url: string, type: VideoType): string | null => {
 };
 
 export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtitleChange }: VideosSectionProps) => {
+  const canEdit = Boolean(onVideosChange);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [newVideo, setNewVideo] = useState<Partial<BrandVideo>>({
@@ -67,7 +68,7 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
   });
 
   const handleAddVideo = () => {
-    if (!newVideo.title || !newVideo.url) return;
+    if (!newVideo.title || !newVideo.url || !onVideosChange) return;
 
     const detectedType = detectVideoType(newVideo.url);
     const video: BrandVideo = {
@@ -85,6 +86,7 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
   };
 
   const handleDeleteVideo = (id: string) => {
+    if (!onVideosChange) return;
     onVideosChange(videos.filter(v => v.id !== id));
   };
 
@@ -108,19 +110,20 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
               title="Videos"
               defaultSubtitle="Brand video resources and tutorials"
               customSubtitle={customSubtitle}
-              onSubtitleChange={onSubtitleChange}
+              onSubtitleChange={canEdit ? onSubtitleChange : undefined}
               isEditing={isHeaderEditing}
               onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
             />
           </div>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Video
-            </Button>
-          </DialogTrigger>
+        {canEdit && (
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Video
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add Video</DialogTitle>
@@ -163,6 +166,7 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
             </div>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       {videos.length === 0 ? (
@@ -235,14 +239,16 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
                       >
                         <ExternalLink className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => handleDeleteVideo(video.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canEdit && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteVideo(video.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>

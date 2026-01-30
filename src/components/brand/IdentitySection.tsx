@@ -5,12 +5,13 @@ import { SectionHeader } from './SectionHeader';
 
 interface IdentitySectionProps {
   identity: BrandIdentity;
-  onIdentityChange: (identity: BrandIdentity) => void;
+  onIdentityChange?: (identity: BrandIdentity) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
 }
 
 export const IdentitySection = ({ identity, onIdentityChange, customSubtitle, onSubtitleChange }: IdentitySectionProps) => {
+  const canEdit = Boolean(onIdentityChange);
   const [isEditing, setIsEditing] = useState(false);
 
   return (
@@ -19,7 +20,7 @@ export const IdentitySection = ({ identity, onIdentityChange, customSubtitle, on
         title="Narrative Architecture"
         defaultSubtitle="Define your brand's soul and mission"
         customSubtitle={customSubtitle}
-        onSubtitleChange={onSubtitleChange}
+        onSubtitleChange={canEdit ? onSubtitleChange : undefined}
         isEditing={isEditing}
         onEditToggle={() => setIsEditing(!isEditing)}
       />
@@ -28,10 +29,10 @@ export const IdentitySection = ({ identity, onIdentityChange, customSubtitle, on
         {/* Mission Statement */}
         <div className="bg-card rounded-xl p-4 sm:p-6 border border-border">
           <h3 className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2 sm:mb-3">Mission Statement</h3>
-          {isEditing ? (
+          {canEdit && isEditing ? (
             <Textarea
               value={identity.missionStatement}
-              onChange={(e) => onIdentityChange({ ...identity, missionStatement: e.target.value })}
+              onChange={(e) => onIdentityChange?.({ ...identity, missionStatement: e.target.value })}
               placeholder="What is your brand's purpose? Why does it exist?"
               className="min-h-[100px] resize-none"
             />

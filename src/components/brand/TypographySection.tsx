@@ -8,7 +8,7 @@ import { SectionHeader } from './SectionHeader';
 
 interface TypographySectionProps {
   typography: BrandTypography[];
-  onTypographyChange: (typography: BrandTypography[]) => void;
+  onTypographyChange?: (typography: BrandTypography[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
 }
@@ -31,10 +31,12 @@ const weightOptions = ['100', '200', '300', '400', '500', '600', '700', '800', '
 const DEFAULT_PREVIEW_TEXT = 'The quick brown fox jumps over the lazy dog';
 
 export const TypographySection = ({ typography, onTypographyChange, customSubtitle, onSubtitleChange }: TypographySectionProps) => {
+  const canEdit = Boolean(onTypographyChange);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const addTypography = () => {
+    if (!onTypographyChange) return;
     const newType: BrandTypography = {
       id: crypto.randomUUID(),
       name: 'Heading',
@@ -47,10 +49,12 @@ export const TypographySection = ({ typography, onTypographyChange, customSubtit
   };
 
   const updateTypography = (id: string, updates: Partial<BrandTypography>) => {
+    if (!onTypographyChange) return;
     onTypographyChange(typography.map(t => t.id === id ? { ...t, ...updates } : t));
   };
 
   const deleteTypography = (id: string) => {
+    if (!onTypographyChange) return;
     onTypographyChange(typography.filter(t => t.id !== id));
     if (editingId === id) setEditingId(null);
   };
@@ -63,12 +67,12 @@ export const TypographySection = ({ typography, onTypographyChange, customSubtit
             title="Typography"
             defaultSubtitle="Define your brand's type system"
             customSubtitle={customSubtitle}
-            onSubtitleChange={onSubtitleChange}
+            onSubtitleChange={canEdit ? onSubtitleChange : undefined}
             isEditing={isHeaderEditing}
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        {onTypographyChange && (
+        {canEdit && (
           <Button onClick={addTypography} size="sm" className="gap-2 shrink-0 w-full sm:w-auto">
             <Plus className="h-4 w-4" />
             Add Style
@@ -83,7 +87,7 @@ export const TypographySection = ({ typography, onTypographyChange, customSubtit
             className="group relative bg-card rounded-xl p-6 shadow-sm border border-border animate-slide-up"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-            {editingId === type.id ? (
+            {canEdit && editingId === type.id ? (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Input
@@ -162,26 +166,28 @@ export const TypographySection = ({ typography, onTypographyChange, customSubtit
                     <span>{type.usage || 'General'}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => setEditingId(type.id)}
-                    className="p-2 rounded-md hover:bg-secondary transition-colors"
-                  >
-                    <Pencil className="h-4 w-4 text-muted-foreground" />
-                  </button>
-                  <button
-                    onClick={() => deleteTypography(type.id)}
-                    className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
+                {canEdit && (
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => setEditingId(type.id)}
+                      className="p-2 rounded-md hover:bg-secondary transition-colors"
+                    >
+                      <Pencil className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                    <button
+                      onClick={() => deleteTypography(type.id)}
+                      className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
         ))}
 
-        {typography.length === 0 && (
+        {typography.length === 0 && canEdit && (
           <button
             onClick={addTypography}
             className="w-full h-32 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors"

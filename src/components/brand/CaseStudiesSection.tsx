@@ -10,7 +10,7 @@ import { LayoutSelector, useLayoutClasses, LayoutPreset } from './LayoutSelector
 
 interface CaseStudiesSectionProps {
   caseStudies: BrandCaseStudy[];
-  onCaseStudiesChange: (caseStudies: BrandCaseStudy[]) => void;
+  onCaseStudiesChange?: (caseStudies: BrandCaseStudy[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   layout?: LayoutPreset;
@@ -18,6 +18,7 @@ interface CaseStudiesSectionProps {
 }
 
 export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudiesChange, customSubtitle, onSubtitleChange, layout = 'grid-3', onLayoutChange }: CaseStudiesSectionProps) => {
+  const canEdit = Boolean(onCaseStudiesChange);
   // Defensive: ensure caseStudies is always an array
   const caseStudies = Array.isArray(caseStudiesProp) ? caseStudiesProp : [];
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -28,6 +29,7 @@ export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudies
   const { gridClass } = useLayoutClasses(layout);
 
   const addCaseStudy = () => {
+    if (!onCaseStudiesChange) return;
     const newCase: BrandCaseStudy = {
       id: crypto.randomUUID(),
       title: 'New Case Study',
@@ -61,10 +63,12 @@ export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudies
   };
 
   const updateCaseStudy = (id: string, updates: Partial<BrandCaseStudy>) => {
+    if (!onCaseStudiesChange) return;
     onCaseStudiesChange(caseStudies.map(c => c.id === id ? { ...c, ...updates } : c));
   };
 
   const deleteCaseStudy = (id: string) => {
+    if (!onCaseStudiesChange) return;
     onCaseStudiesChange(caseStudies.filter(c => c.id !== id));
     if (editingId === id) setEditingId(null);
   };
@@ -77,13 +81,13 @@ export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudies
             title="Proof Shards"
             defaultSubtitle="Repository of historical success models"
             customSubtitle={customSubtitle}
-            onSubtitleChange={onSubtitleChange}
+            onSubtitleChange={canEdit ? onSubtitleChange : undefined}
             isEditing={isHeaderEditing}
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
         <div className="flex items-center gap-2">
-          {onLayoutChange && (
+          {canEdit && onLayoutChange && (
             <LayoutSelector
               value={layout}
               onChange={onLayoutChange}
@@ -91,7 +95,7 @@ export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudies
               size="sm"
             />
           )}
-          {onCaseStudiesChange && (
+          {canEdit && (
             <Button onClick={addCaseStudy} size="sm" className="gap-2 shrink-0">
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Add Case Study</span>
@@ -118,17 +122,17 @@ export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudies
           >
             {/* Preview Image with Drag & Drop */}
             <div
-              className="aspect-video bg-muted relative cursor-pointer transition-colors"
-              onClick={() => triggerUpload(study.id)}
-              onDragOver={(e) => {
+              className={`aspect-video bg-muted relative ${canEdit ? 'cursor-pointer' : ''} transition-colors`}
+              onClick={() => canEdit && triggerUpload(study.id)}
+              onDragOver={canEdit ? (e) => {
                 e.preventDefault();
                 e.currentTarget.classList.add('ring-2', 'ring-primary');
-              }}
-              onDragLeave={(e) => {
+              } : undefined}
+              onDragLeave={canEdit ? (e) => {
                 e.preventDefault();
                 e.currentTarget.classList.remove('ring-2', 'ring-primary');
-              }}
-              onDrop={(e) => {
+              } : undefined}
+              onDrop={canEdit ? (e) => {
                 e.preventDefault();
                 e.currentTarget.classList.remove('ring-2', 'ring-primary');
                 const file = e.dataTransfer.files?.[0];
@@ -140,26 +144,32 @@ export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudies
                   };
                   reader.readAsDataURL(file);
                 }
-              }}
+              } : undefined}
               style={study.previewUrl ? { backgroundImage: `url(${study.previewUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
             >
-              {!study.previewUrl && (
+              {!study.previewUrl && canEdit && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground hover:text-accent transition-colors gap-1">
                   <Upload className="h-8 w-8" />
                   <span className="text-xs">Drop image or click</span>
                 </div>
               )}
-              <button
-                onClick={(e) => { e.stopPropagation(); deleteCaseStudy(study.id); }}
-                className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+              {!study.previewUrl && !canEdit && (
+                <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                  <span className="text-sm">No preview</span>
+                </div>
+              )}
+              {canEdit && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); deleteCaseStudy(study.id); }}
+                  className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
 
-            {/* Content */}
             <div className="p-4">
-              {editingId === study.id ? (
+              {canEdit && editingId === study.id ? (
                 <div className="space-y-3">
                   <Input
                     value={study.title}
@@ -180,12 +190,14 @@ export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudies
                 <div className="space-y-2">
                   <div className="flex items-start justify-between">
                     <h3 className="font-semibold text-foreground">{study.title}</h3>
-                    <button
-                      onClick={() => setEditingId(study.id)}
-                      className="p-1.5 rounded-md hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100"
-                    >
-                      <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
+                    {canEdit && (
+                      <button
+                        onClick={() => setEditingId(study.id)}
+                        className="p-1.5 rounded-md hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                      </button>
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-3">{study.description}</p>
                 </div>
@@ -194,7 +206,7 @@ export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudies
           </div>
         ))}
 
-        {caseStudies.length === 0 && (
+        {caseStudies.length === 0 && canEdit && (
           <button
             onClick={addCaseStudy}
             className="aspect-video border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors"

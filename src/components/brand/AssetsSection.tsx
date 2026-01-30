@@ -7,7 +7,7 @@ import { useDropZone } from '@/components/ui/drop-zone';
 
 interface AssetsSectionProps {
   assets: BrandAsset[];
-  onAssetsChange: (assets: BrandAsset[]) => void;
+  onAssetsChange?: (assets: BrandAsset[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
 }
@@ -29,9 +29,11 @@ const getFileIcon = (type?: string) => {
 };
 
 export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtitleChange }: AssetsSectionProps) => {
+  const canEdit = Boolean(onAssetsChange);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const handleFileDrop = useCallback((file: File) => {
+    if (!onAssetsChange) return;
     const reader = new FileReader();
     reader.onload = (event) => {
       const url = event.target?.result as string;
@@ -54,6 +56,7 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
   });
 
   const deleteAsset = (id: string) => {
+    if (!onAssetsChange) return;
     onAssetsChange(assets.filter(a => a.id !== id));
   };
 
@@ -81,15 +84,17 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
             title="Operational Vault"
             defaultSubtitle="Direct storage for heavy assets - ZIP, RAW, High-Res"
             customSubtitle={customSubtitle}
-            onSubtitleChange={onSubtitleChange}
+            onSubtitleChange={canEdit ? onSubtitleChange : undefined}
             isEditing={isHeaderEditing}
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button onClick={openFilePicker} size="sm" className="gap-2 shrink-0">
-          <Upload className="h-4 w-4" />
-          Upload Assets
-        </Button>
+        {canEdit && (
+          <Button onClick={openFilePicker} size="sm" className="gap-2 shrink-0">
+            <Upload className="h-4 w-4" />
+            Upload Assets
+          </Button>
+        )}
       </div>
 
       <input
@@ -137,12 +142,14 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
                         <Download className="h-4 w-4" />
                         Download
                       </Button>
-                      <button
-                        onClick={() => deleteAsset(asset.id)}
-                        className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
+                      {canEdit && (
+                        <button
+                          onClick={() => deleteAsset(asset.id)}
+                          className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -150,7 +157,7 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
             </div>
           ))}
         </div>
-      ) : (
+      ) : canEdit ? (
         <button
           onClick={openFilePicker}
           onDragOver={dragHandlers.onDragOver}
@@ -168,6 +175,13 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
             <p className="text-sm">ZIP, RAW, PDF, and other heavy files</p>
           </div>
         </button>
+      ) : (
+        <div className="w-full h-48 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-3 border-border text-muted-foreground">
+          <File className="h-10 w-10" />
+          <div className="text-center">
+            <p className="font-medium">No assets uploaded</p>
+          </div>
+        </div>
       )}
     </section>
   );

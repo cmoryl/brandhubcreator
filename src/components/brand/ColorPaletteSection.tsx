@@ -18,7 +18,7 @@ import {
 
 interface ColorPaletteSectionProps {
   colors: BrandColor[];
-  onColorsChange: (colors: BrandColor[]) => void;
+  onColorsChange?: (colors: BrandColor[]) => void;
   colorCombinations?: ColorCombination[];
   onColorCombinationsChange?: (combinations: ColorCombination[]) => void;
   customSubtitle?: string;
@@ -35,12 +35,14 @@ export const ColorPaletteSection = ({
   onSubtitleChange,
   brandName = 'Brand'
 }: ColorPaletteSectionProps) => {
+  const canEdit = Boolean(onColorsChange);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedValue, setCopiedValue] = useState<string | null>(null);
   const [editingCombinationId, setEditingCombinationId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
   const addColor = () => {
+    if (!onColorsChange) return;
     const newColor: BrandColor = {
       id: crypto.randomUUID(),
       name: 'New Color',
@@ -52,10 +54,12 @@ export const ColorPaletteSection = ({
   };
 
   const updateColor = (id: string, updates: Partial<BrandColor>) => {
+    if (!onColorsChange) return;
     onColorsChange(colors.map(c => c.id === id ? { ...c, ...updates } : c));
   };
 
   const deleteColor = (id: string) => {
+    if (!onColorsChange) return;
     onColorsChange(colors.filter(c => c.id !== id));
     if (editingId === id) setEditingId(null);
   };
@@ -134,13 +138,13 @@ export const ColorPaletteSection = ({
               title="Color Palette"
               defaultSubtitle="Define your brand's color system with all color formats"
               customSubtitle={customSubtitle}
-              onSubtitleChange={onSubtitleChange}
+              onSubtitleChange={canEdit ? onSubtitleChange : undefined}
               isEditing={isHeaderEditing}
               onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
             />
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {colors.length > 0 && onColorsChange && (
+            {colors.length > 0 && canEdit && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
@@ -169,10 +173,12 @@ export const ColorPaletteSection = ({
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            <Button onClick={addColor} size="sm" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Color
-            </Button>
+            {canEdit && (
+              <Button onClick={addColor} size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Color
+              </Button>
+            )}
           </div>
         </div>
 
@@ -205,17 +211,19 @@ export const ColorPaletteSection = ({
                     </div>
 
                     {/* Delete button */}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); deleteColor(color.id); }}
-                      className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
+                    {canEdit && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteColor(color.id); }}
+                        className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </div>
 
                   {/* Color info */}
                   <div className="flex-1 p-4 space-y-3">
-                    {editingId === color.id ? (
+                  {canEdit && editingId === color.id ? (
                       <div className="space-y-3">
                         <Input
                           value={color.name}
@@ -257,12 +265,14 @@ export const ColorPaletteSection = ({
                       <>
                         <div className="flex items-start justify-between">
                           <h3 className="font-semibold text-lg text-foreground">{color.name}</h3>
-                          <button
-                            onClick={() => setEditingId(color.id)}
-                            className="p-1.5 rounded-md hover:bg-secondary transition-colors"
-                          >
-                            <Pencil className="h-4 w-4 text-muted-foreground" />
-                          </button>
+                          {canEdit && (
+                            <button
+                              onClick={() => setEditingId(color.id)}
+                              className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+                            >
+                              <Pencil className="h-4 w-4 text-muted-foreground" />
+                            </button>
+                          )}
                         </div>
 
                         {/* Color codes grid */}
@@ -311,7 +321,7 @@ export const ColorPaletteSection = ({
             );
           })}
 
-          {colors.length === 0 && (
+          {colors.length === 0 && canEdit && (
             <button
               onClick={addColor}
               className="h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors col-span-full"
