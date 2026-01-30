@@ -8,6 +8,7 @@ import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Layers, Globe, Mic, Video, FileText, MessageSquare, Tv, Share2, Database, PenTool, Zap } from 'lucide-react';
+import globalLinkIcon from '@/assets/globallink-g-icon.png';
 
 interface LinkedGuide {
   id: string;
@@ -616,23 +617,27 @@ export const GlobalLinkUniverseSection: React.FC<GlobalLinkUniverseSectionProps>
           )}
 
           {/* Center hub */}
-          <div className="absolute inset-[42%] z-20">
+          <div className="absolute inset-[40%] z-20">
             <div 
-              className="w-full h-full rounded-full flex items-center justify-center transition-all duration-500 cursor-pointer group"
+              className="w-full h-full rounded-full flex items-center justify-center transition-all duration-500 cursor-pointer group overflow-hidden"
               style={{ 
                 background: hoveredProduct
-                  ? `linear-gradient(145deg, ${hoveredColor}50, ${hoveredColor}25)`
-                  : `linear-gradient(145deg, ${primaryColor}40, ${primaryColor}20)`,
+                  ? `linear-gradient(145deg, ${hoveredColor}60, ${hoveredColor}30)`
+                  : `linear-gradient(145deg, ${primaryColor}50, ${primaryColor}25)`,
                 boxShadow: hoveredProduct
-                  ? `0 0 40px ${hoveredColor}40, inset 0 0 20px ${hoveredColor}20`
-                  : `0 0 25px ${primaryColor}30`,
-                border: `2px solid ${hoveredProduct ? hoveredColor : primaryColor}60`,
+                  ? `0 0 50px ${hoveredColor}50, inset 0 0 25px ${hoveredColor}25`
+                  : `0 0 35px ${primaryColor}40, inset 0 0 15px ${primaryColor}15`,
+                border: `3px solid ${hoveredProduct ? hoveredColor : primaryColor}70`,
               }}
               onClick={handleProductLeave}
             >
-              <div className="text-center transition-transform duration-300 group-hover:scale-110">
-                <Globe className="w-6 h-6 md:w-8 md:h-8 mx-auto text-white/80" />
-                <span className="text-[9px] md:text-xs font-bold text-white/80 block mt-0.5">GlobalLink</span>
+              <div className="transition-transform duration-300 group-hover:scale-110 flex items-center justify-center w-full h-full p-3">
+                <img 
+                  src={globalLinkIcon} 
+                  alt="GlobalLink" 
+                  className="w-full h-full object-contain drop-shadow-lg"
+                  style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.3))' }}
+                />
               </div>
             </div>
           </div>
