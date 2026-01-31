@@ -28,6 +28,15 @@ vi.mock('@/components/ui/optimized-image', () => ({
   ),
 }));
 
+// Mock useStorageUpload hook to avoid OrganizationProvider dependency
+vi.mock('@/hooks/useStorageUpload', () => ({
+  useStorageUpload: () => ({
+    uploadFile: vi.fn().mockResolvedValue('https://example.com/uploaded-file.jpg'),
+    isUploading: false,
+    error: null,
+  }),
+}));
+
 // Helper to wrap components with TooltipProvider
 const renderWithProviders = (ui: React.ReactElement) => {
   return render(<TooltipProvider>{ui}</TooltipProvider>);
