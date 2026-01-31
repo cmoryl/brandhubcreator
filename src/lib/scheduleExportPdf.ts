@@ -6,6 +6,19 @@
 import html2pdf from 'html2pdf.js';
 import { EventScheduleItem, EventSpeaker } from '@/types/event';
 
+/**
+ * Escape HTML special characters to prevent XSS attacks
+ */
+const escapeHtml = (unsafe: string): string => {
+  if (!unsafe) return '';
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
 interface PdfExportOptions {
   eventName: string;
   eventDates?: string;
@@ -100,14 +113,21 @@ const generatePdfHtml = (schedule: EventScheduleItem[], options: PdfExportOption
       const typeLabel = SESSION_TYPE_LABELS[item.track || 'session'] || 'Session';
       const speakerName = getSpeakerName(item.speaker, speakers);
       
+      // Escape all user-controlled fields to prevent XSS
+      const safeTitle = escapeHtml(item.title);
+      const safeDescription = escapeHtml(item.description || '');
+      const safeSpeakerName = escapeHtml(speakerName);
+      const safeLocation = escapeHtml(item.location || '');
+      const safeTime = escapeHtml(cleanTime(item.time));
+      
       return `
         <div style="display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
           <div style="min-width: 80px; font-size: 13px; font-weight: 500; color: #374151;">
-            ${cleanTime(item.time)}
+            ${safeTime}
           </div>
           <div style="flex: 1;">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-              <span style="font-weight: 600; color: #111827;">${item.title}</span>
+              <span style="font-weight: 600; color: #111827;">${safeTitle}</span>
               <span style="
                 display: inline-block;
                 padding: 2px 8px;
@@ -118,16 +138,16 @@ const generatePdfHtml = (schedule: EventScheduleItem[], options: PdfExportOption
                 color: ${typeColors.text};
               ">${typeLabel}</span>
             </div>
-            ${item.description ? `<p style="font-size: 12px; color: #6b7280; margin: 4px 0;">${item.description}</p>` : ''}
+            ${item.description ? `<p style="font-size: 12px; color: #6b7280; margin: 4px 0;">${safeDescription}</p>` : ''}
             <div style="display: flex; gap: 16px; margin-top: 6px;">
               ${speakerName ? `
                 <span style="font-size: 12px; color: #4b5563;">
-                  <strong>Speaker:</strong> ${speakerName}
+                  <strong>Speaker:</strong> ${safeSpeakerName}
                 </span>
               ` : ''}
               ${item.location ? `
                 <span style="font-size: 12px; color: #4b5563;">
-                  <strong>Location:</strong> ${item.location}
+                  <strong>Location:</strong> ${safeLocation}
                 </span>
               ` : ''}
             </div>
@@ -156,17 +176,17 @@ const generatePdfHtml = (schedule: EventScheduleItem[], options: PdfExportOption
     <div style="font-family: system-ui, -apple-system, sans-serif; padding: 20px; max-width: 800px;">
       <!-- Header -->
       <div style="text-align: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 2px solid #e5e7eb;">
-        <h1 style="font-size: 28px; font-weight: 700; color: #111827; margin: 0 0 8px 0;">
-          ${eventName}
+      <h1 style="font-size: 28px; font-weight: 700; color: #111827; margin: 0 0 8px 0;">
+          ${escapeHtml(eventName)}
         </h1>
         <p style="font-size: 14px; color: #6b7280; margin: 0;">
           Event Schedule
         </p>
         ${eventDates || eventLocation ? `
           <div style="margin-top: 12px; font-size: 13px; color: #4b5563;">
-            ${eventDates ? `<span>${eventDates}</span>` : ''}
+            ${eventDates ? `<span>${escapeHtml(eventDates)}</span>` : ''}
             ${eventDates && eventLocation ? ' • ' : ''}
-            ${eventLocation ? `<span>${eventLocation}</span>` : ''}
+            ${eventLocation ? `<span>${escapeHtml(eventLocation)}</span>` : ''}
           </div>
         ` : ''}
       </div>
