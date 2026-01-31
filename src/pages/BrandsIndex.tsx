@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, lazy, Suspense, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink, BarChart3, Users, FolderCheck, TrendingUp, FileSearch, ShieldCheck, CheckCircle, ChevronDown, Brain, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Palette, Type, Image, Upload, ArrowRight, Layers, Lock, LogOut, Shield, Package, Clock, Star, Heart, HelpCircle, BookOpen, Zap, Share2, FileText, Building2, UserPlus, Settings, Globe, ExternalLink, BarChart3, Users, FolderCheck, TrendingUp, FileSearch, ShieldCheck, CheckCircle, ChevronDown, Brain, Sparkles, Eye, Play } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { AnimatedHeroCanvas } from '@/components/AnimatedHeroCanvas';
@@ -53,6 +53,7 @@ const AppSettingsEditor = lazy(() => import('@/components/admin/AppSettingsEdito
 const OrganizationSwitcher = lazy(() => import('@/components/OrganizationSwitcher').then(m => ({ default: m.OrganizationSwitcher })));
 const FeaturesShowcase = lazy(() => import('@/components/landing/FeaturesShowcase').then(m => ({ default: m.FeaturesShowcase })));
 const InteractiveProcessSection = lazy(() => import('@/components/landing/InteractiveProcessSection').then(m => ({ default: m.InteractiveProcessSection })));
+const PlatformTour = lazy(() => import('@/components/landing/PlatformTour').then(m => ({ default: m.PlatformTour })));
 const LearnMoreCard = lazy(() => import('@/components/landing/LearnMoreForm').then(m => ({ default: m.LearnMoreCard })));
 const BrandBackupManager = lazy(() => import('@/components/brand/BrandBackupManager').then(m => ({ default: m.BrandBackupManager })));
 
@@ -550,14 +551,25 @@ const BrandsIndex = () => {
                   </Button>
                 </>
               ) : (
-                <Button 
-                  size="lg" 
-                  className="gap-2 w-full sm:w-auto touch-manipulation h-12 sm:h-11"
-                  onClick={() => navigate('/auth')}
-                >
-                  <Lock className="h-5 w-5" />
-                  Login to Create
-                </Button>
+                <>
+                  <Button 
+                    size="lg" 
+                    className="gap-2 w-full sm:w-auto touch-manipulation h-12 sm:h-11"
+                    onClick={() => navigate('/auth')}
+                  >
+                    <Lock className="h-5 w-5" />
+                    Login to Create
+                  </Button>
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    className="gap-2 w-full sm:w-auto touch-manipulation h-12 sm:h-11"
+                    onClick={() => navigate('/demo/brand/brandhub')}
+                  >
+                    <Eye className="h-5 w-5" />
+                    See BrandHub Demo
+                  </Button>
+                </>
               )}
             </div>
 
@@ -794,6 +806,13 @@ const BrandsIndex = () => {
       {!user && settings.pageSections?.about !== false && (
         <Suspense fallback={<div className="py-24 text-center text-muted-foreground">Loading...</div>}>
           <InteractiveProcessSection />
+        </Suspense>
+      )}
+
+      {/* Platform Tour - Shows the BrandHub demo and user vs viewer comparison */}
+      {!user && (
+        <Suspense fallback={<div className="py-24 text-center text-muted-foreground">Loading platform tour...</div>}>
+          <PlatformTour />
         </Suspense>
       )}
 

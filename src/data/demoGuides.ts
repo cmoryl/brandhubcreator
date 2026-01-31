@@ -3,6 +3,7 @@
 
 import type { BrandGuide, ProductGuide, SectionId, BrandPageSettings } from '@/types/brand';
 import type { EventGuide, EventSectionId } from '@/types/event';
+import { DEMO_BRAND_BRANDHUB } from './demoBrandHub';
 
 // Default demo page settings with full-width hero and spacious layout
 const DEMO_PAGE_SETTINGS: BrandPageSettings = {
@@ -974,13 +975,14 @@ export const DEMO_EVENT_SUMMIT: Omit<EventGuide, 'createdAt' | 'updatedAt'> = {
   services: [],
 };
 
-// All demo guides collection
-export const DEMO_BRANDS = [DEMO_BRAND_NEXUS, DEMO_BRAND_BLOOM];
+// All demo guides collection - BrandHub is featured first
+export const DEMO_BRANDS = [DEMO_BRAND_BRANDHUB, DEMO_BRAND_NEXUS, DEMO_BRAND_BLOOM];
 export const DEMO_PRODUCTS = [DEMO_PRODUCT_CLOUD, DEMO_PRODUCT_OILS];
 export const DEMO_EVENTS = [DEMO_EVENT_SUMMIT];
 
 // Gradient classes for display cards
 export const DEMO_GRADIENTS: Record<string, string> = {
+  'demo-brandhub': 'from-cyan-500 via-blue-500 to-teal-400',
   'demo-nexus-tech': 'from-blue-500 via-cyan-500 to-blue-600',
   'demo-bloom-wellness': 'from-green-400 via-emerald-500 to-teal-500',
   'demo-nexus-cloud': 'from-blue-400 via-teal-500 to-cyan-500',
@@ -990,6 +992,7 @@ export const DEMO_GRADIENTS: Record<string, string> = {
 
 // Industry labels for display
 export const DEMO_INDUSTRIES: Record<string, string> = {
+  'demo-brandhub': 'Brand Platform',
   'demo-nexus-tech': 'Technology',
   'demo-bloom-wellness': 'Wellness',
   'demo-nexus-cloud': 'Cloud Platform',
