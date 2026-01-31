@@ -66,16 +66,19 @@ export const IconStylizer = ({
     preserveHoles: true,
   });
 
-  // Stylizer hook
+  // Stylizer hook with Shadow Canvas
   const {
     isProcessing,
     progress,
     currentStage,
+    pipelineStage,
     result,
     error,
     processImage,
     reapplyStyle,
+    triggerSimplification,
     reset,
+    cleanup,
   } = useStylizer(brandColors);
 
   // Handle file drop
@@ -444,6 +447,50 @@ export const IconStylizer = ({
                   </Tooltip>
                 </div>
 
+                {/* Shadow Canvas Validation */}
+                {result.shadowValidation && (
+                  <div className={cn(
+                    'p-2 rounded-lg text-xs',
+                    result.shadowValidation.isValid 
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
+                      : 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200'
+                  )}>
+                    <div className="flex items-center gap-2">
+                      {result.shadowValidation.isValid ? (
+                        <Check className="h-3 w-3" />
+                      ) : (
+                        <AlertTriangle className="h-3 w-3" />
+                      )}
+                      <span className="font-medium">
+                        {result.shadowValidation.isValid 
+                          ? result.shadowValidation.autoFixed 
+                            ? `Auto-fixed in ${result.shadowValidation.simplificationPasses} pass(es)`
+                            : 'Passed validation'
+                          : 'Needs attention'}
+                      </span>
+                    </div>
+                    {result.shadowValidation.issues.length > 0 && (
+                      <ul className="mt-1 pl-5 list-disc space-y-0.5 opacity-80">
+                        {result.shadowValidation.issues.slice(0, 3).map((issue, i) => (
+                          <li key={i}>{issue}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {!result.shadowValidation.isValid && result.shadowValidation.simplificationPasses < 3 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-2 h-6 text-xs w-full"
+                        onClick={triggerSimplification}
+                        disabled={isProcessing}
+                      >
+                        <RefreshCw className={cn("h-3 w-3 mr-1", isProcessing && "animate-spin")} />
+                        Run Simplification Pass
+                      </Button>
+                    )}
+                  </div>
+                )}
+
                 {/* Status Badge */}
                 <div className="flex items-center justify-center">
                   <Badge
@@ -464,6 +511,9 @@ export const IconStylizer = ({
                 {/* Processing Time */}
                 <p className="text-[10px] text-center text-muted-foreground">
                   Processed in {(result.processingTime / 1000).toFixed(1)}s
+                  {result.shadowValidation.simplificationPasses > 0 && 
+                    ` • ${result.shadowValidation.simplificationPasses} simplification pass(es)`
+                  }
                 </p>
               </div>
 
