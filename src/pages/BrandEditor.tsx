@@ -380,9 +380,14 @@ const BrandEditor = () => {
     void syncPublicBrandToDb(merged);
   }, [brand, contextBrand, syncPublicBrandToDb, updateBrandContext]);
   
-  // Check if user can edit: global admin OR org member with appropriate role
+  // Check if user can edit: global admin OR org member with appropriate role for THIS brand's org
   // During auth loading, we preserve potential edit access for logged-in users to avoid UI flicker
-  const canEditOrg = orgRole && ['owner', 'admin', 'member'].includes(orgRole);
+  const isBrandOrgMember = orgRole && 
+    ['owner', 'admin', 'member'].includes(orgRole) && 
+    organization?.id && 
+    brand?.organizationId && 
+    organization.id === brand.organizationId;
+  const canEditOrg = Boolean(isBrandOrgMember);
   const canEdit = user && (isAdmin || canEditOrg || authLoading);
 
   // In the editor experience, anyone who can edit should be able to see (and manage) all sections.
