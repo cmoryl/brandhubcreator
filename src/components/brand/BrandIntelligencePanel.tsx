@@ -15,7 +15,8 @@ import {
   ChevronDown,
   ChevronUp,
   BookOpen,
-  Zap
+  Zap,
+  Activity
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,8 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { InsightFeedbackControls } from './intelligence/InsightFeedbackControls';
 import { LearningStatusBadge } from './intelligence/LearningStatusBadge';
+import { ConfidenceIndicator } from './intelligence/ConfidenceIndicator';
+import { InsightActionTracker } from './intelligence/InsightActionTracker';
 
 interface KnowledgeEntry {
   id: string;
@@ -38,6 +41,7 @@ interface KnowledgeEntry {
   source: 'manual' | 'ai';
   category?: string;
   created_at: string;
+  confidence?: number;
 }
 
 interface InsightFeedback {
@@ -53,6 +57,8 @@ interface LearningContext {
   approved_insights?: string[];
   rejected_insights?: string[];
   user_corrections?: Array<{ original: string; corrected: string }>;
+  high_engagement_insights?: string[];
+  confidence_calibration?: number;
 }
 
 interface BrandIntelligence {
@@ -81,9 +87,12 @@ interface BrandIntelligence {
     priority: 'high' | 'medium' | 'low';
     recommendation: string;
     rationale: string;
+    confidence?: number;
   }[];
   analysis_count: number;
   last_analyzed_at: string | null;
+  insight_actions?: any[];
+  confidence_history?: any[];
 }
 
 interface BrandIntelligencePanelProps {
@@ -338,6 +347,13 @@ export const BrandIntelligencePanel = ({
               <span>Last: {new Date(intelligence.last_analyzed_at).toLocaleDateString()}</span>
             </div>
           )}
+          {intelligence?.learning_context?.confidence_calibration !== undefined && 
+           intelligence.learning_context.confidence_calibration > 0 && (
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Activity className="h-4 w-4" />
+              <span>AI Accuracy: {Math.round(intelligence.learning_context.confidence_calibration * 100)}%</span>
+            </div>
+          )}
         </div>
         
         {/* Learning Status */}
@@ -485,7 +501,12 @@ export const BrandIntelligencePanel = ({
                 <div key={i} className="p-4 rounded-xl bg-background/50 border border-border">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <p className="text-sm font-medium">{rec.recommendation}</p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-sm font-medium">{rec.recommendation}</p>
+                        {rec.confidence !== undefined && (
+                          <ConfidenceIndicator confidence={rec.confidence} size="sm" />
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground mt-1">{rec.rationale}</p>
                     </div>
                     <Badge className={priorityColors[rec.priority]}>
@@ -590,10 +611,25 @@ export const BrandIntelligencePanel = ({
                                   AI
                                 </Badge>
                               )}
+                              {entry.confidence !== undefined && (
+                                <ConfidenceIndicator confidence={entry.confidence} size="sm" showLabel />
+                              )}
                               <span className="text-xs text-muted-foreground">
                                 {new Date(entry.created_at).toLocaleDateString()}
                               </span>
                             </div>
+                            
+                            {/* Action tracking for AI insights */}
+                            {entry.source === 'ai' && (
+                              <div className="mt-2">
+                                <InsightActionTracker
+                                  insightId={entry.id}
+                                  insightContent={entry.content}
+                                  entityType={entityType}
+                                  entityId={entityId}
+                                />
+                              </div>
+                            )}
                             
                             {/* Feedback controls for AI insights */}
                             {entry.source === 'ai' && (

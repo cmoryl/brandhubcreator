@@ -110,13 +110,16 @@ export type Database = {
           brand_summary: string | null
           brand_voice_profile: Json | null
           competitive_advantages: Json | null
+          confidence_history: Json | null
           created_at: string
           created_by: string | null
+          decay_config: Json | null
           entity_id: string
           entity_type: string
           feedback_score: number | null
           growth_recommendations: Json | null
           id: string
+          insight_actions: Json | null
           insight_feedback: Json | null
           knowledge_entries: Json
           last_analyzed_at: string | null
@@ -124,6 +127,7 @@ export type Database = {
           market_position: string | null
           organization_id: string | null
           parent_entity_id: string | null
+          semantic_hashes: Json | null
           target_audience: Json | null
           updated_at: string
         }
@@ -133,13 +137,16 @@ export type Database = {
           brand_summary?: string | null
           brand_voice_profile?: Json | null
           competitive_advantages?: Json | null
+          confidence_history?: Json | null
           created_at?: string
           created_by?: string | null
+          decay_config?: Json | null
           entity_id: string
           entity_type: string
           feedback_score?: number | null
           growth_recommendations?: Json | null
           id?: string
+          insight_actions?: Json | null
           insight_feedback?: Json | null
           knowledge_entries?: Json
           last_analyzed_at?: string | null
@@ -147,6 +154,7 @@ export type Database = {
           market_position?: string | null
           organization_id?: string | null
           parent_entity_id?: string | null
+          semantic_hashes?: Json | null
           target_audience?: Json | null
           updated_at?: string
         }
@@ -156,13 +164,16 @@ export type Database = {
           brand_summary?: string | null
           brand_voice_profile?: Json | null
           competitive_advantages?: Json | null
+          confidence_history?: Json | null
           created_at?: string
           created_by?: string | null
+          decay_config?: Json | null
           entity_id?: string
           entity_type?: string
           feedback_score?: number | null
           growth_recommendations?: Json | null
           id?: string
+          insight_actions?: Json | null
           insight_feedback?: Json | null
           knowledge_entries?: Json
           last_analyzed_at?: string | null
@@ -170,6 +181,7 @@ export type Database = {
           market_position?: string | null
           organization_id?: string | null
           parent_entity_id?: string | null
+          semantic_hashes?: Json | null
           target_audience?: Json | null
           updated_at?: string
         }
