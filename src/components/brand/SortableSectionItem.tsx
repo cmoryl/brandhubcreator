@@ -79,12 +79,13 @@ export const SortableSectionItem = ({
             onToggleVisibility();
           }}
           className={cn(
-            "p-1 rounded-md transition-colors",
+            "p-1.5 rounded-md transition-colors shrink-0",
             isHidden 
-              ? "text-muted-foreground hover:text-foreground hover:bg-secondary" 
-              : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-secondary opacity-0 group-hover:opacity-100"
+              ? "text-amber-500 hover:text-amber-400 hover:bg-amber-500/10" 
+              : "text-muted-foreground/40 hover:text-muted-foreground hover:bg-secondary"
           )}
           aria-label={isHidden ? "Show section" : "Hide section"}
+          title={isHidden ? "Section hidden from viewers - click to show" : "Click to hide from viewers"}
         >
           {isHidden ? (
             <EyeOff className="h-3.5 w-3.5" />
