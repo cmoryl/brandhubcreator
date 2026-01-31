@@ -2,6 +2,8 @@
  * IconLibraryManager - Organization settings component for managing icon libraries
  * Supports 3-level hierarchy: Core → Product Line → Brand
  * Features drag-and-drop reordering within each level
+ * 
+ * Now uses the unified IconStudio for icon creation/generation
  */
 
 import { useState } from 'react';
@@ -11,8 +13,7 @@ import {
   Building2,
   Package,
   Layers,
-  Wand2,
-  Smartphone,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,9 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
-import { IconCreatorDialog } from './IconCreatorDialog';
-import { IconSetGeneratorDialog } from './IconSetGeneratorDialog';
-import { AppIconGenerator } from './AppIconGenerator';
+import { IconStudio, IconStudioTab } from './IconStudio';
 import { SortableLevelSection } from './SortableLevelSection';
 import { BrandIconography } from '@/types/brand';
 
@@ -47,9 +46,8 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
 
   const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set(['core', 'product_line', 'brand']));
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [showIconCreator, setShowIconCreator] = useState(false);
-  const [showIconSetGenerator, setShowIconSetGenerator] = useState(false);
-  const [showAppIconGenerator, setShowAppIconGenerator] = useState(false);
+  const [showIconStudio, setShowIconStudio] = useState(false);
+  const [iconStudioInitialTab, setIconStudioInitialTab] = useState<IconStudioTab>('library');
   const [editingLibrary, setEditingLibrary] = useState<IconLibrary | null>(null);
   const [activeLibraryForIcons, setActiveLibraryForIcons] = useState<IconLibrary | null>(null);
 
@@ -123,7 +121,13 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
 
   const handleAddIcons = (library: IconLibrary) => {
     setActiveLibraryForIcons(library);
-    setShowIconCreator(true);
+    setIconStudioInitialTab('creator');
+    setShowIconStudio(true);
+  };
+
+  const openIconStudio = (tab: IconStudioTab = 'library') => {
+    setIconStudioInitialTab(tab);
+    setShowIconStudio(true);
   };
 
   const handleSaveIcons = async (newIcons: BrandIconography[]) => {
@@ -211,13 +215,9 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Button onClick={() => setShowAppIconGenerator(true)} variant="outline" className="gap-2">
-            <Smartphone className="h-4 w-4" />
-            App Icons
-          </Button>
-          <Button onClick={() => setShowIconSetGenerator(true)} variant="outline" className="gap-2">
-            <Wand2 className="h-4 w-4" />
-            AI Icon Set
+          <Button onClick={() => openIconStudio('library')} variant="outline" className="gap-2">
+            <Sparkles className="h-4 w-4" />
+            Icon Studio
           </Button>
           <Button onClick={() => openCreateDialog()} className="gap-2">
             <Plus className="h-4 w-4" />
@@ -413,20 +413,15 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
         </DialogContent>
       </Dialog>
 
-      {/* Icon Creator Dialog */}
-      <IconCreatorDialog
-        open={showIconCreator}
-        onOpenChange={setShowIconCreator}
-        onSave={handleSaveIcons}
+      {/* Unified Icon Studio */}
+      <IconStudio
+        open={showIconStudio}
+        onOpenChange={setShowIconStudio}
+        organizationId={organizationId}
+        organizationName={organizationName}
         brandColors={brandColors}
-      />
-
-      {/* AI Icon Set Generator Dialog */}
-      <IconSetGeneratorDialog
-        open={showIconSetGenerator}
-        onOpenChange={setShowIconSetGenerator}
-        libraries={libraries}
-        onSave={(newIcons, libraryId) => {
+        initialTab={iconStudioInitialTab}
+        onIconsCreated={(newIcons, libraryId) => {
           // If a specific library was selected, add to it
           if (libraryId) {
             const targetLibrary = libraries.find(l => l.id === libraryId);
@@ -459,16 +454,8 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
               icons: newIcons,
             });
           }
+          setActiveLibraryForIcons(null);
         }}
-        entityType="brand"
-        entityName={organizationName}
-      />
-
-      {/* App Icon Generator Dialog */}
-      <AppIconGenerator
-        open={showAppIconGenerator}
-        onOpenChange={setShowAppIconGenerator}
-        brandColors={brandColors}
       />
     </div>
   );
