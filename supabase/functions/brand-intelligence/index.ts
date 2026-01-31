@@ -241,9 +241,15 @@ serve(async (req) => {
     console.log("[brand-intelligence] User authenticated:", user.id, "Action:", action);
     
     const tableName = entityType === 'brand' ? 'brands' : entityType === 'product' ? 'products' : 'events';
+    
+    // Build select query - brands don't have parent_brand_id
+    const selectColumns = entityType === 'brand' 
+      ? 'id, user_id, organization_id'
+      : 'id, user_id, organization_id, parent_brand_id';
+    
     const { data: entityAccessData, error: entityError } = await userSupabase
       .from(tableName)
-      .select('id, user_id, organization_id, parent_brand_id')
+      .select(selectColumns)
       .eq('id', entityId)
       .maybeSingle();
     
