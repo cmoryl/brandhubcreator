@@ -13,6 +13,7 @@ import {
   Pencil,
   Trash2,
   ChevronDown,
+  Expand,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,7 @@ import { IconLibrary } from '@/hooks/useIconLibraries';
 import { BrandIconography } from '@/types/brand';
 import { cn } from '@/lib/utils';
 import { IconStudioTab } from '../IconStudio';
+import { IconPreviewDialog } from '../IconPreviewDialog';
 import DOMPurify from 'dompurify';
 
 interface IconStudioLibraryProps {
@@ -56,6 +58,7 @@ export const IconStudioLibrary = ({
   const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set(['core', 'product_line', 'brand']));
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingLibrary, setEditingLibrary] = useState<IconLibrary | null>(null);
+  const [previewIcon, setPreviewIcon] = useState<BrandIconography | null>(null);
 
   // Form state
   const [formName, setFormName] = useState('');
@@ -221,9 +224,15 @@ export const IconStudioLibrary = ({
                   {lib.icons.length > 0 && (
                     <div className="flex gap-1 mt-2">
                       {lib.icons.slice(0, 6).map((iconItem) => (
-                        <div key={iconItem.id} className="p-1.5 rounded bg-background border">
+                        <button
+                          key={iconItem.id}
+                          onClick={() => setPreviewIcon(iconItem)}
+                          className="p-1.5 rounded bg-background border hover:border-primary hover:bg-accent transition-colors group relative"
+                          title={`Click to expand ${iconItem.name}`}
+                        >
                           {renderIcon(iconItem, 16)}
-                        </div>
+                          <Expand className="h-2 w-2 absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-70 transition-opacity" />
+                        </button>
                       ))}
                       {lib.icons.length > 6 && (
                         <div className="p-1.5 rounded bg-background border text-xs text-muted-foreground flex items-center">
@@ -450,6 +459,13 @@ export const IconStudioLibrary = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Icon Preview Dialog */}
+      <IconPreviewDialog
+        icon={previewIcon}
+        open={!!previewIcon}
+        onOpenChange={(open) => !open && setPreviewIcon(null)}
+      />
     </div>
   );
 };
