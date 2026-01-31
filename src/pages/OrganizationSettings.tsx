@@ -664,6 +664,7 @@ const OrganizationSettings = () => {
             {organization?.id && (
               <IconLibraryManager 
                 organizationId={organization.id}
+                organizationName={organization.name}
                 brandColors={[
                   { hex: primaryColor, name: 'Primary' },
                   { hex: secondaryColor, name: 'Secondary' },

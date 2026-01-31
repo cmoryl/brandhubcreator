@@ -11,6 +11,7 @@ import {
   Building2,
   Package,
   Layers,
+  Wand2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,15 +21,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
 import { IconCreatorDialog } from './IconCreatorDialog';
+import { IconSetGeneratorDialog } from './IconSetGeneratorDialog';
 import { SortableLevelSection } from './SortableLevelSection';
 import { BrandIconography } from '@/types/brand';
 
 interface IconLibraryManagerProps {
   organizationId: string;
+  organizationName?: string;
   brandColors?: Array<{ hex: string; name: string }>;
 }
 
-export const IconLibraryManager = ({ organizationId, brandColors = [] }: IconLibraryManagerProps) => {
+export const IconLibraryManager = ({ organizationId, organizationName = '', brandColors = [] }: IconLibraryManagerProps) => {
   const {
     libraries,
     coreLibraries,
@@ -43,6 +46,7 @@ export const IconLibraryManager = ({ organizationId, brandColors = [] }: IconLib
   const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set(['core', 'product_line', 'brand']));
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showIconCreator, setShowIconCreator] = useState(false);
+  const [showIconSetGenerator, setShowIconSetGenerator] = useState(false);
   const [editingLibrary, setEditingLibrary] = useState<IconLibrary | null>(null);
   const [activeLibraryForIcons, setActiveLibraryForIcons] = useState<IconLibrary | null>(null);
 
@@ -196,17 +200,23 @@ export const IconLibraryManager = ({ organizationId, brandColors = [] }: IconLib
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-xl font-semibold">Icon Library Hierarchy</h2>
           <p className="text-sm text-muted-foreground">
             Manage organization-wide icon libraries with 3-level inheritance. Drag to reorder.
           </p>
         </div>
-        <Button onClick={() => openCreateDialog()} className="gap-2">
-          <Plus className="h-4 w-4" />
-          New Library
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setShowIconSetGenerator(true)} variant="outline" className="gap-2">
+            <Wand2 className="h-4 w-4" />
+            AI Icon Set
+          </Button>
+          <Button onClick={() => openCreateDialog()} className="gap-2">
+            <Plus className="h-4 w-4" />
+            New Library
+          </Button>
+        </div>
       </div>
 
       {/* Hierarchy Visualization */}
@@ -402,6 +412,37 @@ export const IconLibraryManager = ({ organizationId, brandColors = [] }: IconLib
         onOpenChange={setShowIconCreator}
         onSave={handleSaveIcons}
         brandColors={brandColors}
+      />
+
+      {/* AI Icon Set Generator Dialog */}
+      <IconSetGeneratorDialog
+        open={showIconSetGenerator}
+        onOpenChange={setShowIconSetGenerator}
+        onSave={(newIcons) => {
+          // If there's an active library, add to it; otherwise user needs to create one first
+          if (activeLibraryForIcons) {
+            handleSaveIcons(newIcons);
+          } else if (coreLibraries.length > 0) {
+            // Add to the first core library by default
+            updateLibrary.mutate({
+              id: coreLibraries[0].id,
+              updates: {
+                icons: [...coreLibraries[0].icons, ...newIcons],
+              },
+            });
+          } else {
+            // Create a new Core library with the generated icons
+            createLibrary.mutate({
+              organization_id: organizationId,
+              name: 'Generated Icons',
+              level: 'core',
+              description: 'AI-generated icon set',
+              icons: newIcons,
+            });
+          }
+        }}
+        entityType="brand"
+        entityName={organizationName}
       />
     </div>
   );
