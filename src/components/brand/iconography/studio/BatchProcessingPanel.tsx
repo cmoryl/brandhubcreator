@@ -65,17 +65,28 @@ export const BatchProcessingPanel: React.FC<BatchProcessingPanelProps> = ({
       return;
     }
 
+    // Show initial toast
+    const toastId = toast.loading(`Starting batch processing of ${icons.length} icons...`);
+
     try {
       const batchResult = await processBatch(icons, options);
       
+      // Dismiss loading toast and show result
+      toast.dismiss(toastId);
+      
       if (batchResult.errors.length > 0) {
-        toast.warning(`Processed with ${batchResult.errors.length} errors`);
+        toast.warning(`Processed with ${batchResult.errors.length} errors`, {
+          description: `${batchResult.processedCount} icons processed successfully`,
+        });
       } else {
-        toast.success(`Successfully processed ${batchResult.processedCount} icons`);
+        toast.success(`Successfully processed ${batchResult.processedCount} icons`, {
+          description: `Generated ${batchResult.summary.opticalSizesGenerated} optical, ${batchResult.summary.statesGenerated} states, ${batchResult.summary.animationsGenerated} kinetic`,
+        });
       }
       
       onComplete?.(batchResult);
     } catch (error) {
+      toast.dismiss(toastId);
       toast.error('Batch processing failed');
     }
   };

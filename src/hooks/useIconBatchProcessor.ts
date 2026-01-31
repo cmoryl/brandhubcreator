@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import { toast } from 'sonner';
 import { useResponsiveIcon, ResponsiveIconSet } from './useResponsiveIcon';
 import { useIconStateSystem, IconStateSet } from './useIconStateSystem';
 import { useKineticBranding, BrandPersonality, EntranceAnimation, InteractionAnimation, KineticIconData } from './useKineticBranding';
@@ -94,6 +95,15 @@ export function useIconBatchProcessor() {
 
     for (let i = 0; i < icons.length; i++) {
       const icon = icons[i];
+      const progressPercent = Math.round(((i + 1) / total) * 100);
+      
+      // Show progress toast every 25% or on first/last icon
+      if (i === 0 || i === total - 1 || progressPercent % 25 === 0) {
+        toast.info(`Processing: ${icon.name}`, {
+          description: `${i + 1} of ${total} icons (${progressPercent}%)`,
+          duration: 1500,
+        });
+      }
       
       try {
         const processed: ProcessedIcon = { original: icon };
