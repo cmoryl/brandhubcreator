@@ -5,6 +5,7 @@
  * - Library: Manage organization icon libraries with hierarchy
  * - AI Generator: Generate complete icon sets with AI
  * - Stylizer: Convert PNG images to brand-aligned SVG icons
+ * - Advanced: Responsive, stateful, and animated icon variants
  * - App Icons: Create platform-specific app icons (Android, iOS, PWA)
  * - Creator: Design individual custom icons
  */
@@ -26,6 +27,7 @@ import {
   Palette,
   Sparkles,
   ImageIcon,
+  Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BrandIconography } from '@/types/brand';
@@ -37,8 +39,9 @@ import { IconStudioAIGenerator } from './studio/IconStudioAIGenerator';
 import { IconStudioAppIcons } from './studio/IconStudioAppIcons';
 import { IconStudioCreator } from './studio/IconStudioCreator';
 import { IconStylizer } from './studio/IconStylizer';
+import { IconAdvancedFeatures } from './studio/IconAdvancedFeatures';
 
-export type IconStudioTab = 'library' | 'ai-generator' | 'stylizer' | 'app-icons' | 'creator';
+export type IconStudioTab = 'library' | 'ai-generator' | 'stylizer' | 'advanced' | 'app-icons' | 'creator';
 
 interface IconStudioProps {
   open: boolean;
@@ -70,6 +73,12 @@ const TAB_CONFIG = [
     description: 'PNG to SVG conversion',
   },
   {
+    id: 'advanced' as const,
+    label: 'Advanced',
+    icon: Zap,
+    description: 'Responsive, states & animation',
+  },
+  {
     id: 'app-icons' as const,
     label: 'App Icons',
     icon: Smartphone,
@@ -93,6 +102,7 @@ export const IconStudio = ({
   onIconsCreated,
 }: IconStudioProps) => {
   const [activeTab, setActiveTab] = useState<IconStudioTab>(initialTab);
+  const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
   
   // Shared icon library state
   const {
@@ -160,7 +170,7 @@ export const IconStudio = ({
         >
           {/* Tab Navigation */}
           <div className="px-6 pt-4 pb-2 border-b bg-muted/30">
-            <TabsList className="grid grid-cols-5 w-full max-w-3xl">
+            <TabsList className="grid grid-cols-6 w-full max-w-4xl">
               {TAB_CONFIG.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -217,7 +227,25 @@ export const IconStudio = ({
                 <div className="p-6">
                   <IconStylizer
                     brandColors={brandColors.map(c => c.hex)}
-                    onIconCreated={(icon) => handleSaveIcons([icon])}
+                    onIconCreated={(icon) => {
+                      handleSaveIcons([icon]);
+                      setSelectedIcon(icon);
+                    }}
+                  />
+                </div>
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="advanced" className="h-full m-0 data-[state=inactive]:hidden">
+              <ScrollArea className="h-full">
+                <div className="p-6">
+                  <IconAdvancedFeatures
+                    selectedIcon={selectedIcon}
+                    brandColors={brandColors.map(c => c.hex)}
+                    onIconUpdate={(icon) => {
+                      setSelectedIcon(icon);
+                      // Could also update in library
+                    }}
                   />
                 </div>
               </ScrollArea>
