@@ -825,8 +825,8 @@ const BrandEditor = () => {
                         <span className="sr-only">Brand Intelligence</span>
                       </Button>
                     </SheetTrigger>
-                    <SheetContent side="right" className="w-full sm:w-[540px] sm:max-w-xl p-0 overflow-y-auto">
-                      <div className="p-6">
+                    <SheetContent side="right" className="w-full sm:w-[540px] sm:max-w-xl p-0 flex flex-col h-full overflow-hidden">
+                      <div className="p-6 flex-1 min-h-0 overflow-y-auto">
                         <BrandIntelligencePanel
                           entityType="brand"
                           entityId={brand.id}
