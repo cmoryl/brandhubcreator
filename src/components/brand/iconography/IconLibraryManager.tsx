@@ -12,6 +12,7 @@ import {
   Package,
   Layers,
   Wand2,
+  Smartphone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
 import { IconCreatorDialog } from './IconCreatorDialog';
 import { IconSetGeneratorDialog } from './IconSetGeneratorDialog';
+import { AppIconGenerator } from './AppIconGenerator';
 import { SortableLevelSection } from './SortableLevelSection';
 import { BrandIconography } from '@/types/brand';
 
@@ -47,6 +49,7 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showIconCreator, setShowIconCreator] = useState(false);
   const [showIconSetGenerator, setShowIconSetGenerator] = useState(false);
+  const [showAppIconGenerator, setShowAppIconGenerator] = useState(false);
   const [editingLibrary, setEditingLibrary] = useState<IconLibrary | null>(null);
   const [activeLibraryForIcons, setActiveLibraryForIcons] = useState<IconLibrary | null>(null);
 
@@ -207,7 +210,11 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
             Manage organization-wide icon libraries with 3-level inheritance. Drag to reorder.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button onClick={() => setShowAppIconGenerator(true)} variant="outline" className="gap-2">
+            <Smartphone className="h-4 w-4" />
+            App Icons
+          </Button>
           <Button onClick={() => setShowIconSetGenerator(true)} variant="outline" className="gap-2">
             <Wand2 className="h-4 w-4" />
             AI Icon Set
@@ -455,6 +462,13 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
         }}
         entityType="brand"
         entityName={organizationName}
+      />
+
+      {/* App Icon Generator Dialog */}
+      <AppIconGenerator
+        open={showAppIconGenerator}
+        onOpenChange={setShowAppIconGenerator}
+        brandColors={brandColors}
       />
     </div>
   );
