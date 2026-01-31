@@ -21,6 +21,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   Library,
   Wand2,
   Smartphone,
@@ -42,6 +47,7 @@ import { IconStudioCreator } from './studio/IconStudioCreator';
 import { IconStylizer } from './studio/IconStylizer';
 import { IconAdvancedFeatures } from './studio/IconAdvancedFeatures';
 import { IconBrandHierarchy } from './studio/IconBrandHierarchy';
+import { iconKitHelpSections } from '@/components/help/IconKitTooltip';
 
 export type IconStudioTab = 'library' | 'ai-generator' | 'stylizer' | 'advanced' | 'hierarchy' | 'app-icons' | 'creator';
 
@@ -61,42 +67,49 @@ const TAB_CONFIG = [
     label: 'Library',
     icon: Library,
     description: 'Manage icon libraries',
+    helpId: 'library-tab' as const,
   },
   {
     id: 'ai-generator' as const,
     label: 'AI Generator',
     icon: Wand2,
     description: 'Generate icon sets with AI',
+    helpId: 'ai-generator' as const,
   },
   {
     id: 'stylizer' as const,
     label: 'Stylizer',
     icon: ImageIcon,
     description: 'PNG to SVG conversion',
+    helpId: 'stylizer' as const,
   },
   {
     id: 'advanced' as const,
     label: 'Advanced',
     icon: Zap,
     description: 'Responsive, states & animation',
+    helpId: 'optical-sizing' as const,
   },
   {
     id: 'hierarchy' as const,
     label: 'Hierarchy',
     icon: GitBranch,
     description: 'Brand inheritance & overrides',
+    helpId: 'brand-dna' as const,
   },
   {
     id: 'app-icons' as const,
     label: 'App Icons',
     icon: Smartphone,
     description: 'Android, iOS & PWA icons',
+    helpId: 'app-icons' as const,
   },
   {
     id: 'creator' as const,
     label: 'Creator',
     icon: Palette,
     description: 'Design custom icons',
+    helpId: 'icon-creator' as const,
   },
 ];
 
@@ -181,15 +194,23 @@ export const IconStudio = ({
             <TabsList className="grid grid-cols-7 w-full max-w-5xl">
               {TAB_CONFIG.map((tab) => {
                 const Icon = tab.icon;
+                const helpSection = iconKitHelpSections[tab.helpId];
                 return (
-                  <TabsTrigger
-                    key={tab.id}
-                    value={tab.id}
-                    className="gap-2 data-[state=active]:bg-background text-xs"
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="hidden lg:inline">{tab.label}</span>
-                  </TabsTrigger>
+                  <Tooltip key={tab.id} delayDuration={400}>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger
+                        value={tab.id}
+                        className="gap-2 data-[state=active]:bg-background text-xs"
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="hidden lg:inline">{tab.label}</span>
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <p className="font-medium text-sm">{helpSection.title}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{helpSection.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 );
               })}
             </TabsList>

@@ -38,6 +38,7 @@ import DOMPurify from 'dompurify';
 import { cn } from '@/lib/utils';
 import { useStylizer, StylizerOptions, StylizerResult } from '@/hooks/useStylizer';
 import { BrandIconography } from '@/types/brand';
+import { IconKitTooltip } from '@/components/help/IconKitTooltip';
 
 interface IconStylizerProps {
   brandColors: string[];
@@ -254,6 +255,7 @@ export const IconStylizer = ({
                 <span className="flex items-center gap-1">
                   <Gauge className="h-3 w-3" />
                   Complexity
+                  <IconKitTooltip sectionId="complexity-slider" inline size="sm" />
                 </span>
                 <span className="text-muted-foreground">
                   {options.simplifyThreshold < 0.3 ? 'Detailed' : options.simplifyThreshold < 0.7 ? 'Balanced' : 'Simplified'}

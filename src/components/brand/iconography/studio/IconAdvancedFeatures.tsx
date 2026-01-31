@@ -43,6 +43,7 @@ import { useResponsiveIcon, IconSizeVariant, ResponsiveIconSet } from '@/hooks/u
 import { useIconStateSystem, IconState, IconStateSet } from '@/hooks/useIconStateSystem';
 import { useKineticBranding, BrandPersonality, EntranceAnimation, InteractionAnimation } from '@/hooks/useKineticBranding';
 import { BrandIconography } from '@/types/brand';
+import { IconKitTooltip } from '@/components/help/IconKitTooltip';
 
 interface IconAdvancedFeaturesProps {
   selectedIcon: BrandIconography | null;
@@ -178,14 +179,17 @@ export const IconAdvancedFeatures: React.FC<IconAdvancedFeaturesProps> = ({
           <TabsTrigger value="responsive" className="gap-2">
             <Monitor className="h-4 w-4" />
             <span className="hidden sm:inline">Optical Size</span>
+            <IconKitTooltip sectionId="optical-sizing" size="sm" />
           </TabsTrigger>
           <TabsTrigger value="states" className="gap-2">
             <Palette className="h-4 w-4" />
             <span className="hidden sm:inline">States</span>
+            <IconKitTooltip sectionId="semantic-states" size="sm" />
           </TabsTrigger>
           <TabsTrigger value="kinetic" className="gap-2">
             <Sparkles className="h-4 w-4" />
             <span className="hidden sm:inline">Animation</span>
+            <IconKitTooltip sectionId="kinetic-branding" size="sm" />
           </TabsTrigger>
         </TabsList>
 
@@ -196,6 +200,7 @@ export const IconAdvancedFeatures: React.FC<IconAdvancedFeaturesProps> = ({
               <CardTitle className="text-sm flex items-center gap-2">
                 <Maximize2 className="h-4 w-4" />
                 Responsive Variants
+                <IconKitTooltip sectionId="optical-sizing" inline />
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -267,6 +272,7 @@ export const IconAdvancedFeatures: React.FC<IconAdvancedFeaturesProps> = ({
               <CardTitle className="text-sm flex items-center gap-2">
                 <Eye className="h-4 w-4" />
                 Interactive State Variants
+                <IconKitTooltip sectionId="semantic-states" inline />
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -332,12 +338,16 @@ export const IconAdvancedFeatures: React.FC<IconAdvancedFeaturesProps> = ({
               <CardTitle className="text-sm flex items-center gap-2">
                 <Play className="h-4 w-4" />
                 Micro-Animations
+                <IconKitTooltip sectionId="kinetic-branding" inline />
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Personality Selector */}
               <div className="space-y-2">
-                <Label className="text-xs">Brand Personality</Label>
+                <Label className="text-xs flex items-center gap-1">
+                  Brand Personality
+                  <IconKitTooltip sectionId="brand-personality" inline size="sm" />
+                </Label>
                 <Select value={personality} onValueChange={(v) => setPersonality(v as BrandPersonality)}>
                   <SelectTrigger className="h-8">
                     <SelectValue />
