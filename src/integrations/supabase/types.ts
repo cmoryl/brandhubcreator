@@ -114,12 +114,16 @@ export type Database = {
           created_by: string | null
           entity_id: string
           entity_type: string
+          feedback_score: number | null
           growth_recommendations: Json | null
           id: string
+          insight_feedback: Json | null
           knowledge_entries: Json
           last_analyzed_at: string | null
+          learning_context: Json | null
           market_position: string | null
           organization_id: string | null
+          parent_entity_id: string | null
           target_audience: Json | null
           updated_at: string
         }
@@ -133,12 +137,16 @@ export type Database = {
           created_by?: string | null
           entity_id: string
           entity_type: string
+          feedback_score?: number | null
           growth_recommendations?: Json | null
           id?: string
+          insight_feedback?: Json | null
           knowledge_entries?: Json
           last_analyzed_at?: string | null
+          learning_context?: Json | null
           market_position?: string | null
           organization_id?: string | null
+          parent_entity_id?: string | null
           target_audience?: Json | null
           updated_at?: string
         }
@@ -152,12 +160,16 @@ export type Database = {
           created_by?: string | null
           entity_id?: string
           entity_type?: string
+          feedback_score?: number | null
           growth_recommendations?: Json | null
           id?: string
+          insight_feedback?: Json | null
           knowledge_entries?: Json
           last_analyzed_at?: string | null
+          learning_context?: Json | null
           market_position?: string | null
           organization_id?: string | null
+          parent_entity_id?: string | null
           target_audience?: Json | null
           updated_at?: string
         }

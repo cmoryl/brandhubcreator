@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Brain, 
   Plus, 
@@ -28,6 +28,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { InsightFeedbackControls } from './intelligence/InsightFeedbackControls';
+import { LearningStatusBadge } from './intelligence/LearningStatusBadge';
 
 interface KnowledgeEntry {
   id: string;
@@ -38,11 +40,30 @@ interface KnowledgeEntry {
   created_at: string;
 }
 
+interface InsightFeedback {
+  id: string;
+  insight_id: string;
+  status: 'approved' | 'rejected' | 'corrected';
+  correction_text?: string;
+  user_id: string;
+  timestamp: string;
+}
+
+interface LearningContext {
+  approved_insights?: string[];
+  rejected_insights?: string[];
+  user_corrections?: Array<{ original: string; corrected: string }>;
+}
+
 interface BrandIntelligence {
   id: string;
   entity_type: string;
   entity_id: string;
   knowledge_entries: KnowledgeEntry[];
+  insight_feedback?: InsightFeedback[];
+  learning_context?: LearningContext;
+  feedback_score?: number;
+  parent_entity_id?: string;
   brand_summary: string | null;
   market_position: string | null;
   target_audience: {
@@ -70,6 +91,7 @@ interface BrandIntelligencePanelProps {
   entityId: string;
   entityName: string;
   organizationId?: string;
+  parentBrandName?: string;
 }
 
 const entryTypeIcons: Record<string, React.ReactNode> = {
@@ -91,7 +113,8 @@ export const BrandIntelligencePanel = ({
   entityType, 
   entityId, 
   entityName,
-  organizationId 
+  organizationId,
+  parentBrandName 
 }: BrandIntelligencePanelProps) => {
   const [intelligence, setIntelligence] = useState<BrandIntelligence | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -103,6 +126,53 @@ export const BrandIntelligencePanel = ({
     analysis: true,
     recommendations: false,
   });
+
+  const getFeedbackForInsight = useCallback((insightId: string): InsightFeedback | undefined => {
+    return intelligence?.insight_feedback?.find(f => f.insight_id === insightId);
+  }, [intelligence?.insight_feedback]);
+
+  const handleSubmitFeedback = useCallback(async (
+    insightId: string, 
+    status: 'approved' | 'rejected' | 'corrected', 
+    correctionText?: string
+  ) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('brand-intelligence', {
+        body: { 
+          action: 'submit_feedback', 
+          entityType, 
+          entityId, 
+          organizationId,
+          feedback: { insight_id: insightId, status, correction_text: correctionText }
+        }
+      });
+
+      if (error) throw error;
+
+      // Update local state
+      setIntelligence(prev => {
+        if (!prev) return null;
+        const existingFeedback = prev.insight_feedback || [];
+        const filteredFeedback = existingFeedback.filter(
+          f => f.insight_id !== insightId
+        );
+        return {
+          ...prev,
+          insight_feedback: [...filteredFeedback, data.feedback],
+        };
+      });
+
+      const messages = {
+        approved: 'Insight approved - AI will learn from this',
+        rejected: 'Insight rejected - AI will avoid similar patterns',
+        corrected: 'Correction saved - AI will learn your preference',
+      };
+      toast.success(messages[status]);
+    } catch (err) {
+      console.error('Failed to submit feedback:', err);
+      toast.error('Failed to save feedback');
+    }
+  }, [entityType, entityId, organizationId]);
 
   useEffect(() => {
     fetchIntelligence();
@@ -268,6 +338,15 @@ export const BrandIntelligencePanel = ({
               <span>Last: {new Date(intelligence.last_analyzed_at).toLocaleDateString()}</span>
             </div>
           )}
+        </div>
+        
+        {/* Learning Status */}
+        <div className="mt-3">
+          <LearningStatusBadge 
+            learningContext={intelligence?.learning_context}
+            parentEntityName={parentBrandName}
+            feedbackScore={intelligence?.feedback_score}
+          />
         </div>
       </CardHeader>
 
@@ -483,48 +562,66 @@ export const BrandIntelligencePanel = ({
             {/* Entries List */}
             <ScrollArea className="max-h-[400px]">
               <div className="space-y-2">
-                {intelligence?.knowledge_entries?.slice().reverse().map((entry) => (
-                  <div 
-                    key={entry.id} 
-                    className="group p-3 rounded-lg bg-background/50 border border-border hover:border-primary/30 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-start gap-2 flex-1">
-                        {entryTypeIcons[entry.type]}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm">{entry.content}</p>
-                          <div className="flex items-center gap-2 mt-1.5">
-                            <Badge variant="outline" className="text-xs">
-                              {entry.type}
-                            </Badge>
-                            {entry.category && (
-                              <Badge variant="secondary" className="text-xs">
-                                {entry.category}
+                {intelligence?.knowledge_entries?.slice().reverse().map((entry) => {
+                  const feedback = entry.source === 'ai' ? getFeedbackForInsight(entry.id) : undefined;
+                  
+                  return (
+                    <div 
+                      key={entry.id} 
+                      className="group p-3 rounded-lg bg-background/50 border border-border hover:border-primary/30 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2 flex-1">
+                          {entryTypeIcons[entry.type]}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm">{entry.content}</p>
+                            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                              <Badge variant="outline" className="text-xs">
+                                {entry.type}
                               </Badge>
-                            )}
+                              {entry.category && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {entry.category}
+                                </Badge>
+                              )}
+                              {entry.source === 'ai' && (
+                                <Badge className="text-xs bg-primary/10 text-primary border-primary/20">
+                                  <Sparkles className="h-3 w-3 mr-1" />
+                                  AI
+                                </Badge>
+                              )}
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(entry.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                            
+                            {/* Feedback controls for AI insights */}
                             {entry.source === 'ai' && (
-                              <Badge className="text-xs bg-primary/10 text-primary border-primary/20">
-                                <Sparkles className="h-3 w-3 mr-1" />
-                                AI
-                              </Badge>
+                              <div className="mt-2 pt-2 border-t border-border/50">
+                                <InsightFeedbackControls
+                                  insightId={entry.id}
+                                  currentFeedback={feedback ? {
+                                    status: feedback.status,
+                                    correction_text: feedback.correction_text,
+                                  } : undefined}
+                                  onSubmitFeedback={handleSubmitFeedback}
+                                />
+                              </div>
                             )}
-                            <span className="text-xs text-muted-foreground">
-                              {new Date(entry.created_at).toLocaleDateString()}
-                            </span>
                           </div>
                         </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                          onClick={() => deleteEntry(entry.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => deleteEntry(entry.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                      </Button>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 
                 {(!intelligence?.knowledge_entries || intelligence.knowledge_entries.length === 0) && (
                   <div className="text-center py-8 text-muted-foreground">
