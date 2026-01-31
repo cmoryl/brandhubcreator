@@ -2,6 +2,7 @@
  * SortableLibraryCard - Draggable icon library card for reordering
  */
 
+import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { 
@@ -13,6 +14,7 @@ import {
   Building2,
   Package,
   Layers,
+  Expand,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +22,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { IconLibrary } from '@/hooks/useIconLibraries';
+import { BrandIconography } from '@/types/brand';
+import { IconPreviewDialog } from './IconPreviewDialog';
 import { cn } from '@/lib/utils';
 
 const LEVEL_CONFIG = {
@@ -60,6 +64,8 @@ export const SortableLibraryCard = ({
   onToggleActive,
   onRemoveIcon,
 }: SortableLibraryCardProps) => {
+  const [previewIcon, setPreviewIcon] = useState<BrandIconography | null>(null);
+
   const {
     attributes,
     listeners,
@@ -136,26 +142,35 @@ export const SortableLibraryCard = ({
                   className="group relative aspect-square border rounded-md flex items-center justify-center bg-muted/30 hover:bg-muted transition-colors"
                   title={icon.name}
                 >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    {isFullSvg ? (
-                      <svg viewBox={viewBox} className="w-full h-full" fill="currentColor">
-                        <g dangerouslySetInnerHTML={{ __html: icon.svgPath }} />
-                      </svg>
-                    ) : (
-                      <svg 
-                        viewBox={viewBox} 
-                        className="w-full h-full"
-                        fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
-                        stroke={icon.fillMode === 'stroke' ? 'currentColor' : 'none'}
-                        strokeWidth={icon.fillMode === 'stroke' ? 2 : undefined}
-                      >
-                        <path d={icon.svgPath} />
-                      </svg>
-                    )}
-                  </div>
                   <button
-                    onClick={() => onRemoveIcon(library, icon.id)}
-                    className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                    onClick={() => setPreviewIcon(icon)}
+                    className="w-full h-full flex items-center justify-center"
+                  >
+                    <div className="w-5 h-5 flex items-center justify-center">
+                      {isFullSvg ? (
+                        <svg viewBox={viewBox} className="w-full h-full" fill="currentColor">
+                          <g dangerouslySetInnerHTML={{ __html: icon.svgPath }} />
+                        </svg>
+                      ) : (
+                        <svg 
+                          viewBox={viewBox} 
+                          className="w-full h-full"
+                          fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
+                          stroke={icon.fillMode === 'stroke' ? 'currentColor' : 'none'}
+                          strokeWidth={icon.fillMode === 'stroke' ? 2 : undefined}
+                        >
+                          <path d={icon.svgPath} />
+                        </svg>
+                      )}
+                    </div>
+                    <Expand className="h-2.5 w-2.5 absolute bottom-0.5 right-0.5 opacity-0 group-hover:opacity-60 transition-opacity text-muted-foreground" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemoveIcon(library, icon.id);
+                    }}
+                    className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10"
                   >
                     <X className="h-2.5 w-2.5" />
                   </button>
@@ -218,6 +233,13 @@ export const SortableLibraryCard = ({
           </AlertDialog>
         </div>
       </CardContent>
+
+      {/* Icon Preview Dialog */}
+      <IconPreviewDialog
+        icon={previewIcon}
+        open={!!previewIcon}
+        onOpenChange={(open) => !open && setPreviewIcon(null)}
+      />
     </Card>
   );
 };
