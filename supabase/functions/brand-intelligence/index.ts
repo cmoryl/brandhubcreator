@@ -13,6 +13,8 @@ interface KnowledgeEntry {
   source: 'manual' | 'ai';
   category?: string;
   created_at: string;
+  confidence?: number;
+  semantic_hash?: string;
 }
 
 interface InsightFeedback {
@@ -22,6 +24,28 @@ interface InsightFeedback {
   correction_text?: string;
   user_id: string;
   timestamp: string;
+}
+
+interface InsightAction {
+  id: string;
+  insight_id: string;
+  action_type: 'export' | 'share' | 'reference' | 'copy';
+  user_id: string;
+  timestamp: string;
+  context?: string;
+}
+
+interface ConfidenceRecord {
+  insight_id: string;
+  predicted_confidence: number;
+  actual_outcome?: 'validated' | 'invalidated' | 'pending';
+  validation_timestamp?: string;
+  accuracy_delta?: number;
+}
+
+interface DecayConfig {
+  halfLifeDays: number;
+  minWeight: number;
 }
 
 interface AnalysisResult {
@@ -42,8 +66,12 @@ interface AnalysisResult {
     priority: 'high' | 'medium' | 'low';
     recommendation: string;
     rationale: string;
+    confidence: number;
   }[];
-  new_insights: string[];
+  new_insights: {
+    content: string;
+    confidence: number;
+  }[];
 }
 
 interface LearningContext {
@@ -52,6 +80,113 @@ interface LearningContext {
   user_corrections: Array<{ original: string; corrected: string }>;
   cross_entity_insights: string[];
   analysis_improvements: string[];
+  high_engagement_insights: string[];
+  confidence_calibration: number;
+}
+
+// Calculate temporal decay weight for feedback
+function calculateDecayWeight(timestamp: string, config: DecayConfig): number {
+  const now = Date.now();
+  const feedbackTime = new Date(timestamp).getTime();
+  const ageInDays = (now - feedbackTime) / (1000 * 60 * 60 * 24);
+  const weight = Math.pow(0.5, ageInDays / config.halfLifeDays);
+  return Math.max(weight, config.minWeight);
+}
+
+// Generate a simple semantic hash for deduplication
+function generateSemanticHash(content: string): string {
+  const normalized = content
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .split(/\s+/)
+    .filter(w => w.length > 3)
+    .sort()
+    .slice(0, 10)
+    .join('_');
+  return normalized;
+}
+
+// Check if insight is semantically similar to existing ones
+function isDuplicate(newHash: string, existingHashes: string[], threshold = 0.7): boolean {
+  for (const existingHash of existingHashes) {
+    const newWords = new Set(newHash.split('_'));
+    const existingWords = new Set(existingHash.split('_'));
+    const intersection = new Set([...newWords].filter(x => existingWords.has(x)));
+    const union = new Set([...newWords, ...existingWords]);
+    const similarity = intersection.size / union.size;
+    if (similarity >= threshold) return true;
+  }
+  return false;
+}
+
+// Calculate weighted learning context with temporal decay
+function buildWeightedLearningContext(
+  feedback: InsightFeedback[],
+  actions: InsightAction[],
+  entries: KnowledgeEntry[],
+  decayConfig: DecayConfig
+): LearningContext {
+  const approvedInsights: Array<{ content: string; weight: number }> = [];
+  const rejectedInsights: Array<{ content: string; weight: number }> = [];
+  const corrections: Array<{ original: string; corrected: string; weight: number }> = [];
+  
+  // Process feedback with decay weighting
+  for (const fb of feedback) {
+    const weight = calculateDecayWeight(fb.timestamp, decayConfig);
+    const entry = entries.find(e => e.id === fb.insight_id);
+    if (!entry) continue;
+    
+    if (fb.status === 'approved') {
+      approvedInsights.push({ content: entry.content, weight });
+    } else if (fb.status === 'rejected') {
+      rejectedInsights.push({ content: entry.content, weight });
+    } else if (fb.status === 'corrected' && fb.correction_text) {
+      corrections.push({ original: entry.content, corrected: fb.correction_text, weight });
+    }
+  }
+  
+  // Track high-engagement insights from actions
+  const actionCounts = new Map<string, number>();
+  for (const action of actions) {
+    const weight = calculateDecayWeight(action.timestamp, decayConfig);
+    const current = actionCounts.get(action.insight_id) || 0;
+    actionCounts.set(action.insight_id, current + weight);
+  }
+  
+  const highEngagement = [...actionCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([id]) => entries.find(e => e.id === id)?.content)
+    .filter(Boolean) as string[];
+  
+  // Sort by weight and take top items
+  approvedInsights.sort((a, b) => b.weight - a.weight);
+  rejectedInsights.sort((a, b) => b.weight - a.weight);
+  corrections.sort((a, b) => b.weight - a.weight);
+  
+  return {
+    approved_insights: approvedInsights.slice(0, 10).map(i => i.content),
+    rejected_insights: rejectedInsights.slice(0, 10).map(i => i.content),
+    user_corrections: corrections.slice(0, 5).map(c => ({ original: c.original, corrected: c.corrected })),
+    cross_entity_insights: [],
+    analysis_improvements: [],
+    high_engagement_insights: highEngagement,
+    confidence_calibration: 0,
+  };
+}
+
+// Calculate confidence calibration from historical data
+function calculateConfidenceCalibration(history: ConfidenceRecord[]): number {
+  const validated = history.filter(h => h.actual_outcome && h.actual_outcome !== 'pending');
+  if (validated.length < 3) return 0;
+  
+  let totalError = 0;
+  for (const record of validated) {
+    const actualScore = record.actual_outcome === 'validated' ? 1 : 0;
+    totalError += Math.abs(record.predicted_confidence - actualScore);
+  }
+  
+  return 1 - (totalError / validated.length);
 }
 
 serve(async (req) => {
@@ -60,7 +195,6 @@ serve(async (req) => {
   }
 
   try {
-    // Authentication check - must have valid auth header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(
@@ -69,9 +203,8 @@ serve(async (req) => {
       );
     }
 
-    const { action, entityType, entityId, entry, organizationId, feedback } = await req.json();
+    const { action, entityType, entityId, entry, organizationId, feedback, insightAction } = await req.json();
     
-    // Validate entityId is a valid UUID to prevent enumeration
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (entityId && !uuidRegex.test(entityId)) {
       return new Response(
@@ -80,7 +213,6 @@ serve(async (req) => {
       );
     }
     
-    // Validate entityType whitelist
     if (entityType && !['brand', 'product', 'event'].includes(entityType)) {
       return new Response(
         JSON.stringify({ error: 'Invalid entityType' }),
@@ -93,12 +225,10 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
     
-    // Create client with user's auth token to respect RLS
     const userSupabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
     });
     
-    // Verify the user's authentication
     const { data: { user }, error: authError } = await userSupabase.auth.getUser();
     if (authError || !user) {
       return new Response(
@@ -107,7 +237,6 @@ serve(async (req) => {
       );
     }
     
-    // Verify user has access to the entity before proceeding
     const tableName = entityType === 'brand' ? 'brands' : entityType === 'product' ? 'products' : 'events';
     const { data: entityAccessData, error: entityError } = await userSupabase
       .from(tableName)
@@ -122,10 +251,8 @@ serve(async (req) => {
       );
     }
     
-    // Use service role client for intelligence operations (after access verified)
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get or create intelligence record
     let { data: intelligence, error: fetchError } = await supabase
       .from('brand_intelligence')
       .select('*')
@@ -138,7 +265,6 @@ serve(async (req) => {
       throw new Error("Failed to retrieve intelligence data");
     }
 
-    // Create if doesn't exist
     if (!intelligence) {
       const parentEntityId = (entityAccessData as any).parent_brand_id || null;
       const { data: newIntel, error: createError } = await supabase
@@ -150,7 +276,11 @@ serve(async (req) => {
           parent_entity_id: parentEntityId,
           knowledge_entries: [],
           insight_feedback: [],
+          insight_actions: [],
+          confidence_history: [],
+          semantic_hashes: [],
           learning_context: {},
+          decay_config: { halfLifeDays: 30, minWeight: 0.1 },
         })
         .select()
         .single();
@@ -162,7 +292,8 @@ serve(async (req) => {
       intelligence = newIntel;
     }
 
-    // Handle different actions
+    const decayConfig = (intelligence.decay_config || { halfLifeDays: 30, minWeight: 0.1 }) as DecayConfig;
+
     switch (action) {
       case 'get':
         return new Response(JSON.stringify({ intelligence }), {
@@ -179,13 +310,19 @@ serve(async (req) => {
           source: entry.source || 'manual',
           category: entry.category,
           created_at: new Date().toISOString(),
+          confidence: entry.confidence,
+          semantic_hash: generateSemanticHash(entry.content),
         };
 
         const updatedEntries = [...(intelligence.knowledge_entries || []), newEntry];
+        const updatedHashes = [...(intelligence.semantic_hashes || []), newEntry.semantic_hash];
         
         const { error: updateError } = await supabase
           .from('brand_intelligence')
-          .update({ knowledge_entries: updatedEntries })
+          .update({ 
+            knowledge_entries: updatedEntries,
+            semantic_hashes: updatedHashes,
+          })
           .eq('id', intelligence.id);
 
         if (updateError) {
@@ -200,12 +337,18 @@ serve(async (req) => {
       case 'delete_entry':
         if (!entry?.id) throw new Error("Entry ID is required for delete_entry action");
         
+        const entryToDelete = (intelligence.knowledge_entries || []).find((e: KnowledgeEntry) => e.id === entry.id);
         const filteredEntries = (intelligence.knowledge_entries || [])
           .filter((e: KnowledgeEntry) => e.id !== entry.id);
+        const filteredHashes = (intelligence.semantic_hashes || [])
+          .filter((h: string) => h !== entryToDelete?.semantic_hash);
         
         const { error: deleteError } = await supabase
           .from('brand_intelligence')
-          .update({ knowledge_entries: filteredEntries })
+          .update({ 
+            knowledge_entries: filteredEntries,
+            semantic_hashes: filteredHashes,
+          })
           .eq('id', intelligence.id);
 
         if (deleteError) {
@@ -230,33 +373,28 @@ serve(async (req) => {
         };
         
         const currentFeedback = (intelligence.insight_feedback || []) as InsightFeedback[];
-        // Remove existing feedback for same insight from same user
         const filteredFeedback = currentFeedback.filter(
           (f: InsightFeedback) => !(f.insight_id === feedback.insight_id && f.user_id === user.id)
         );
-        const updatedFeedback = [...filteredFeedback, newFeedback];
+        const updatedFeedbackList = [...filteredFeedback, newFeedback];
         
-        // Update learning context based on feedback
-        const learningCtx = (intelligence.learning_context || {}) as LearningContext;
-        const entries = (intelligence.knowledge_entries || []) as KnowledgeEntry[];
-        const insightContent = entries.find((e: KnowledgeEntry) => e.id === feedback.insight_id)?.content || '';
-        
-        if (feedback.status === 'approved') {
-          learningCtx.approved_insights = [...(learningCtx.approved_insights || []), insightContent].slice(-20);
-        } else if (feedback.status === 'rejected') {
-          learningCtx.rejected_insights = [...(learningCtx.rejected_insights || []), insightContent].slice(-20);
-        } else if (feedback.status === 'corrected' && feedback.correction_text) {
-          learningCtx.user_corrections = [
-            ...(learningCtx.user_corrections || []),
-            { original: insightContent, corrected: feedback.correction_text }
-          ].slice(-10);
+        // Update confidence history if validating a prediction
+        const confidenceHistory = (intelligence.confidence_history || []) as ConfidenceRecord[];
+        const insightEntry = (intelligence.knowledge_entries || []).find((e: KnowledgeEntry) => e.id === feedback.insight_id);
+        if (insightEntry?.confidence) {
+          const existingRecord = confidenceHistory.find(c => c.insight_id === feedback.insight_id);
+          if (existingRecord) {
+            existingRecord.actual_outcome = feedback.status === 'approved' ? 'validated' : 'invalidated';
+            existingRecord.validation_timestamp = new Date().toISOString();
+            existingRecord.accuracy_delta = Math.abs(existingRecord.predicted_confidence - (feedback.status === 'approved' ? 1 : 0));
+          }
         }
         
         const { error: feedbackError } = await supabase
           .from('brand_intelligence')
           .update({ 
-            insight_feedback: updatedFeedback,
-            learning_context: learningCtx 
+            insight_feedback: updatedFeedbackList,
+            confidence_history: confidenceHistory,
           })
           .eq('id', intelligence.id);
 
@@ -269,12 +407,40 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
 
+      case 'track_action':
+        if (!insightAction) throw new Error("Action data is required");
+        
+        const newAction: InsightAction = {
+          id: crypto.randomUUID(),
+          insight_id: insightAction.insight_id,
+          action_type: insightAction.action_type,
+          user_id: user.id,
+          timestamp: new Date().toISOString(),
+          context: insightAction.context,
+        };
+        
+        const currentActions = (intelligence.insight_actions || []) as InsightAction[];
+        const updatedActions = [...currentActions, newAction].slice(-100); // Keep last 100 actions
+        
+        const { error: actionError } = await supabase
+          .from('brand_intelligence')
+          .update({ insight_actions: updatedActions })
+          .eq('id', intelligence.id);
+
+        if (actionError) {
+          console.error("[brand-intelligence] Action tracking error:", actionError);
+          throw new Error("Failed to track action");
+        }
+
+        return new Response(JSON.stringify({ success: true, action: newAction }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+
       case 'analyze':
         if (!lovableApiKey) {
           throw new Error("LOVABLE_API_KEY is not configured");
         }
 
-        // Fetch the brand/product/event data
         const table = entityType === 'brand' ? 'brands' : entityType === 'product' ? 'products' : 'events';
         const { data: entityData, error: entError } = await supabase
           .from(table)
@@ -285,8 +451,23 @@ serve(async (req) => {
         if (entError) throw new Error(`Failed to fetch ${entityType} data`);
 
         const guideData = entityData.guide_data as any;
-        const knowledgeEntries = intelligence.knowledge_entries || [];
-        const learningContext = (intelligence.learning_context || {}) as LearningContext;
+        const knowledgeEntries = (intelligence.knowledge_entries || []) as KnowledgeEntry[];
+        const insightFeedback = (intelligence.insight_feedback || []) as InsightFeedback[];
+        const insightActions = (intelligence.insight_actions || []) as InsightAction[];
+        const confidenceHist = (intelligence.confidence_history || []) as ConfidenceRecord[];
+        const existingHashes = (intelligence.semantic_hashes || []) as string[];
+        
+        // Build weighted learning context with temporal decay
+        const learningContext = buildWeightedLearningContext(
+          insightFeedback,
+          insightActions,
+          knowledgeEntries,
+          decayConfig
+        );
+        
+        // Add confidence calibration
+        learningContext.confidence_calibration = calculateConfidenceCalibration(confidenceHist);
+        
         const previousAnalysis = intelligence.brand_summary ? {
           summary: intelligence.brand_summary,
           market_position: intelligence.market_position,
@@ -295,12 +476,11 @@ serve(async (req) => {
           voice_profile: intelligence.brand_voice_profile,
         } : null;
 
-        // Fetch cross-entity insights (parent brand or sibling products)
+        // Fetch cross-entity insights
         let crossEntityContext = '';
         const parentBrandId = (entityData as any).parent_brand_id || intelligence.parent_entity_id;
         
         if (parentBrandId && (entityType === 'product' || entityType === 'event')) {
-          // Get parent brand intelligence
           const { data: parentIntel } = await supabase
             .from('brand_intelligence')
             .select('brand_summary, market_position, brand_voice_profile, competitive_advantages, knowledge_entries')
@@ -323,28 +503,35 @@ PARENT BRAND CONTEXT:
 - Recent Insights: ${parentInsights.join('; ') || 'None'}
 
 IMPORTANT: Ensure this ${entityType}'s analysis aligns with and extends the parent brand's positioning.`;
+            
+            learningContext.cross_entity_insights = parentInsights;
           }
         }
 
-        // Build learning context section
+        // Build learning context section with temporal weighting info
         let learningSection = '';
-        if (Object.keys(learningContext).length > 0) {
-          const parts = [];
-          if (learningContext.approved_insights?.length) {
-            parts.push(`USER-APPROVED INSIGHTS (generate more like these):\n${learningContext.approved_insights.slice(-5).map(i => `  ✓ ${i}`).join('\n')}`);
-          }
-          if (learningContext.rejected_insights?.length) {
-            parts.push(`USER-REJECTED INSIGHTS (avoid similar patterns):\n${learningContext.rejected_insights.slice(-5).map(i => `  ✗ ${i}`).join('\n')}`);
-          }
-          if (learningContext.user_corrections?.length) {
-            parts.push(`USER CORRECTIONS (learn from these preferences):\n${learningContext.user_corrections.slice(-3).map(c => `  Original: "${c.original}"\n  Preferred: "${c.corrected}"`).join('\n')}`);
-          }
-          if (parts.length > 0) {
-            learningSection = `\nLEARNING FROM USER FEEDBACK:\n${parts.join('\n\n')}`;
-          }
+        const parts = [];
+        
+        if (learningContext.approved_insights.length) {
+          parts.push(`USER-APPROVED INSIGHTS (generate more like these, weighted by recency):\n${learningContext.approved_insights.map(i => `  ✓ ${i}`).join('\n')}`);
+        }
+        if (learningContext.rejected_insights.length) {
+          parts.push(`USER-REJECTED INSIGHTS (avoid similar patterns):\n${learningContext.rejected_insights.map(i => `  ✗ ${i}`).join('\n')}`);
+        }
+        if (learningContext.user_corrections.length) {
+          parts.push(`USER CORRECTIONS (learn from these preferences):\n${learningContext.user_corrections.map(c => `  Original: "${c.original}"\n  Preferred: "${c.corrected}"`).join('\n')}`);
+        }
+        if (learningContext.high_engagement_insights.length) {
+          parts.push(`HIGH-ENGAGEMENT INSIGHTS (users actively use these):\n${learningContext.high_engagement_insights.map(i => `  ★ ${i}`).join('\n')}`);
+        }
+        if (learningContext.confidence_calibration > 0) {
+          parts.push(`CONFIDENCE CALIBRATION: Your historical accuracy is ${Math.round(learningContext.confidence_calibration * 100)}%. Adjust confidence scores accordingly.`);
+        }
+        
+        if (parts.length > 0) {
+          learningSection = `\nLEARNING FROM USER FEEDBACK (temporally weighted - recent feedback matters more):\n${parts.join('\n\n')}`;
         }
 
-        // Build previous analysis context
         let previousAnalysisSection = '';
         if (previousAnalysis) {
           previousAnalysisSection = `
@@ -356,11 +543,15 @@ PREVIOUS ANALYSIS (for context and evolution):
 IMPORTANT: Build upon and refine the previous analysis. Note any evolution or changes based on new knowledge entries.`;
         }
 
-        // Build comprehensive context for AI (handle both brand/product and event data)
+        // Build semantic deduplication context
+        const deduplicationNote = existingHashes.length > 0 
+          ? `\nIMPORTANT: Avoid generating insights similar to existing ones. Generate fresh, unique perspectives.`
+          : '';
+
         const isEvent = entityType === 'event';
         const eventDetails = isEvent ? guideData?.eventDetails : null;
         
-        const analysisPrompt = `You are a ${isEvent ? 'event intelligence' : 'brand intelligence'} analyst with learning capabilities. Analyze the following ${entityType} data and generate comprehensive insights.
+        const analysisPrompt = `You are a ${isEvent ? 'event intelligence' : 'brand intelligence'} analyst with advanced learning capabilities. Analyze the following ${entityType} data and generate comprehensive insights.
 
 ${isEvent ? 'EVENT' : 'BRAND/PRODUCT'} NAME: ${entityData.name}
 
@@ -384,10 +575,11 @@ ${isEvent ? `EVENT DATA:
 - Services: ${JSON.stringify(guideData?.services || [])}`}
 
 KNOWLEDGE BASE (${knowledgeEntries.length} entries):
-${(knowledgeEntries as KnowledgeEntry[]).map((e: KnowledgeEntry) => `- [${e.type}] ${e.content}`).join('\n') || 'No entries yet'}
+${knowledgeEntries.map((e: KnowledgeEntry) => `- [${e.type}]${e.confidence ? ` (conf: ${Math.round(e.confidence * 100)}%)` : ''} ${e.content}`).join('\n') || 'No entries yet'}
 ${crossEntityContext}
 ${previousAnalysisSection}
 ${learningSection}
+${deduplicationNote}
 
 ANALYSIS COUNT: ${intelligence.analysis_count}
 LAST ANALYZED: ${intelligence.last_analyzed_at || 'Never'}
@@ -398,8 +590,10 @@ Generate a comprehensive analysis including:
 3. Target audience identification (primary, secondary, demographics)
 4. Competitive advantages (list 3-5)
 5. ${isEvent ? 'Event' : 'Brand'} voice profile (tone, personality traits, communication style)
-6. Growth recommendations (3-5 actionable items with priority and rationale)
-7. New insights based on knowledge entries and learnings (3-5 observations that align with user preferences)
+6. Growth recommendations (3-5 actionable items with priority, rationale, AND confidence score 0-1)
+7. New insights with confidence scores (3-5 unique observations that align with user preferences)
+
+CRITICAL: For each insight and recommendation, include a confidence score (0-1) indicating how certain you are about this assessment.
 
 Respond with valid JSON matching this structure:
 {
@@ -420,10 +614,16 @@ Respond with valid JSON matching this structure:
     {
       "priority": "high|medium|low",
       "recommendation": "string",
-      "rationale": "string"
+      "rationale": "string",
+      "confidence": 0.0-1.0
     }
   ],
-  "new_insights": ["string"]
+  "new_insights": [
+    {
+      "content": "string",
+      "confidence": 0.0-1.0
+    }
+  ]
 }`;
 
         const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -435,7 +635,7 @@ Respond with valid JSON matching this structure:
           body: JSON.stringify({
             model: "google/gemini-3-flash-preview",
             messages: [
-              { role: "system", content: "You are a brand intelligence analyst with learning capabilities. You improve based on user feedback and build upon previous analyses. Always respond with valid JSON." },
+              { role: "system", content: "You are a brand intelligence analyst with advanced learning capabilities. You improve based on user feedback, temporal patterns, and engagement signals. Always respond with valid JSON and include confidence scores." },
               { role: "user", content: analysisPrompt }
             ],
             temperature: 0.7,
@@ -463,10 +663,8 @@ Respond with valid JSON matching this structure:
         
         if (!content) throw new Error("No content in AI response");
 
-        // Parse the JSON response
         let analysis: AnalysisResult;
         try {
-          // Extract JSON from potential markdown code blocks
           const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
           const jsonStr = jsonMatch[1].trim();
           analysis = JSON.parse(jsonStr);
@@ -475,25 +673,49 @@ Respond with valid JSON matching this structure:
           throw new Error("Failed to parse AI analysis response");
         }
 
-        // Add AI-generated insights to knowledge entries
-        const aiInsights = analysis.new_insights.map((insight: string) => ({
-          id: crypto.randomUUID(),
-          type: 'insight' as const,
-          content: insight,
-          source: 'ai' as const,
-          category: 'ai-analysis',
-          created_at: new Date().toISOString(),
-        }));
+        // Filter out duplicate insights using semantic hashing
+        const newConfidenceRecords: ConfidenceRecord[] = [];
+        const aiInsights: KnowledgeEntry[] = [];
+        const newHashes: string[] = [];
+        
+        for (const insight of analysis.new_insights) {
+          const insightContent = typeof insight === 'string' ? insight : insight.content;
+          const confidence = typeof insight === 'string' ? 0.7 : insight.confidence;
+          const hash = generateSemanticHash(insightContent);
+          
+          if (!isDuplicate(hash, [...existingHashes, ...newHashes])) {
+            const insightId = crypto.randomUUID();
+            aiInsights.push({
+              id: insightId,
+              type: 'insight',
+              content: insightContent,
+              source: 'ai',
+              category: 'ai-analysis',
+              created_at: new Date().toISOString(),
+              confidence,
+              semantic_hash: hash,
+            });
+            newHashes.push(hash);
+            
+            // Track confidence for future calibration
+            newConfidenceRecords.push({
+              insight_id: insightId,
+              predicted_confidence: confidence,
+              actual_outcome: 'pending',
+            });
+          }
+        }
 
         const analysisRecord = {
           timestamp: new Date().toISOString(),
           summary: analysis.brand_summary.substring(0, 200),
-          insights_count: analysis.new_insights.length,
-          had_learning_context: Object.keys(learningContext).length > 0,
+          insights_count: aiInsights.length,
+          duplicates_filtered: analysis.new_insights.length - aiInsights.length,
+          had_learning_context: parts.length > 0,
           had_cross_entity_context: !!crossEntityContext,
+          confidence_calibration: learningContext.confidence_calibration,
         };
 
-        // Update intelligence with analysis results
         const { error: analysisError } = await supabase
           .from('brand_intelligence')
           .update({
@@ -503,7 +725,9 @@ Respond with valid JSON matching this structure:
             competitive_advantages: analysis.competitive_advantages,
             brand_voice_profile: analysis.brand_voice_profile,
             growth_recommendations: analysis.growth_recommendations,
-            knowledge_entries: [...(intelligence.knowledge_entries || []), ...aiInsights],
+            knowledge_entries: [...knowledgeEntries, ...aiInsights],
+            semantic_hashes: [...existingHashes, ...newHashes],
+            confidence_history: [...confidenceHist, ...newConfidenceRecords],
             analysis_history: [...(intelligence.analysis_history || []), analysisRecord],
             last_analyzed_at: new Date().toISOString(),
             analysis_count: (intelligence.analysis_count || 0) + 1,
@@ -520,8 +744,10 @@ Respond with valid JSON matching this structure:
           success: true, 
           analysis,
           insights_added: aiInsights.length,
-          used_learning_context: Object.keys(learningContext).length > 0,
+          duplicates_filtered: analysis.new_insights.length - aiInsights.length,
+          used_learning_context: parts.length > 0,
           used_cross_entity_context: !!crossEntityContext,
+          confidence_calibration: learningContext.confidence_calibration,
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -531,14 +757,14 @@ Respond with valid JSON matching this structure:
     }
   } catch (error) {
     console.error("[brand-intelligence] Error:", error);
-    // Return generic error to client, detailed error logged server-side
     const safeMessage = error instanceof Error && 
       ['Failed to retrieve intelligence data', 'Failed to create intelligence record', 
        'Failed to add entry', 'Failed to delete entry', 'Failed to save analysis results',
        'Entry is required for add_entry action', 'Entry ID is required for delete_entry action',
        'LOVABLE_API_KEY is not configured', 'Rate limit exceeded. Please try again later.',
        'AI credits exhausted. Please add funds.', 'Failed to parse AI analysis response',
-       'Feedback is required', 'Failed to save feedback'].includes(error.message)
+       'Feedback is required', 'Failed to save feedback', 'Action data is required',
+       'Failed to track action'].includes(error.message)
       ? error.message 
       : "Operation failed";
     return new Response(
