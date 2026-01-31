@@ -177,7 +177,7 @@ export const IconStudioAIGenerator = ({
   // Extract brand hex colors for audit
   const brandHexColors = useMemo(() => brandColors.map(c => c.hex), [brandColors]);
 
-  // Layer 2 & 3: Icon Optimizer with audit capabilities
+  // 4-Pillar Icon Optimizer with full quality scoring
   const iconOptimizer = useIconOptimizer({
     strokeWidth: iconStyle.strokeWidth,
     forceStroke: !iconStyle.fill,
@@ -185,6 +185,10 @@ export const IconStudioAIGenerator = ({
     cornerRadius: iconStyle.cornerRadius === 'rounded' ? 4 : 0,
     brandColors: brandHexColors,
     maxFileSizeBytes: 2048, // 2KB limit per spec
+    enableOpticalCorrection: true,
+    enableSubPixelSnapping: true,
+    maxComplexityScore: 50,
+    iconPrefix: 'brand-icon',
   });
 
   // Get current category info
@@ -195,17 +199,40 @@ export const IconStudioAIGenerator = ({
   const progress = sections.length > 0 ? (completedSections / sections.length) * 100 : 0;
   const generatedIconCount = generatedSections.reduce((sum, s) => sum + s.icons.length, 0);
 
-  // Audit statistics
+  // Enhanced audit statistics with quality scores
   const auditStats = useMemo(() => {
     const allIcons = generatedSections.flatMap(s => s.icons);
     const audited = allIcons.filter(i => i.audit);
     const valid = audited.filter(i => i.audit?.isValid);
     const withIssues = audited.filter(i => !i.audit?.isValid);
+    
+    // Quality score distribution
+    const productionReady = audited.filter(i => i.audit?.qualityScore?.status === 'production-ready');
+    const needsReview = audited.filter(i => i.audit?.qualityScore?.status === 'needs-review');
+    const needsCleanup = audited.filter(i => i.audit?.qualityScore?.status === 'needs-cleanup');
+    
+    // Average quality score
+    const avgScore = audited.length > 0
+      ? Math.round(audited.reduce((sum, i) => sum + (i.audit?.qualityScore?.overall || 0), 0) / audited.length)
+      : 0;
+
+    // Grade distribution
+    const grades = { A: 0, B: 0, C: 0, D: 0, F: 0 };
+    for (const icon of audited) {
+      const grade = icon.audit?.qualityScore?.grade;
+      if (grade) grades[grade]++;
+    }
+
     return {
       total: allIcons.length,
       audited: audited.length,
       valid: valid.length,
       withIssues: withIssues.length,
+      productionReady: productionReady.length,
+      needsReview: needsReview.length,
+      needsCleanup: needsCleanup.length,
+      avgScore,
+      grades,
     };
   }, [generatedSections]);
 
@@ -223,28 +250,24 @@ export const IconStudioAIGenerator = ({
   };
 
   /**
-   * Layer 2: Post-process icons from AI with "The Wash"
-   * - Sanitize SVG
-   * - Normalize viewBox to 24x24
-   * - Round decimals
-   * - Apply consistent stroke/fill
-   * - Run audit
+   * 4-Pillar Post-Processing Pipeline
+   * - Pillar 1: Optical weight balancing
+   * - Pillar 2: Accessibility checks
+   * - Pillar 3: Production sanitization
+   * - Pillar 4: Quality scoring
    */
   const postProcessIcons = useCallback((icons: BrandIconography[]): IconWithAudit[] => {
     return icons.map(icon => {
-      // Apply Layer 2 sanitization
-      const optimizedSvg = iconOptimizer.sanitizeSVG(icon.svgPath);
-      
-      // Run Layer 3 audit
-      const audit = iconOptimizer.auditIcon(optimizedSvg, brandHexColors);
+      // Full optimization with all 4 pillars
+      const { optimized, audit } = iconOptimizer.optimizeIcon(icon.svgPath, icon.name);
       
       return {
         ...icon,
-        svgPath: optimizedSvg,
+        svgPath: optimized,
         audit,
       };
     });
-  }, [iconOptimizer, brandHexColors]);
+  }, [iconOptimizer]);
 
   const generateSection = useCallback(async (sectionIndex: number): Promise<boolean> => {
     try {
@@ -600,52 +623,128 @@ export const IconStudioAIGenerator = ({
                   </div>
                 </div>
 
-                {/* Layer 3: Audit Summary Bar */}
+                {/* 4-Pillar Quality Dashboard */}
                 {auditStats.audited > 0 && (
-                  <div className="flex items-center justify-between bg-background/50 rounded-md px-3 py-2">
-                    <div className="flex items-center gap-3">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1.5 cursor-help">
-                            <ShieldCheck className="h-4 w-4 text-green-600" />
-                            <span className="text-xs font-medium text-green-600">{auditStats.valid}</span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>Icons passing all quality checks</TooltipContent>
-                      </Tooltip>
-                      {auditStats.withIssues > 0 && (
+                  <div className="bg-background/50 rounded-md p-3 space-y-2">
+                    {/* Quality Score Header */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        {/* Average Score Badge */}
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className="flex items-center gap-1.5 cursor-help">
-                              <AlertTriangle className="h-4 w-4 text-amber-500" />
-                              <span className="text-xs font-medium text-amber-500">{auditStats.withIssues}</span>
+                            <div className={cn(
+                              'flex items-center gap-2 px-2.5 py-1 rounded-full cursor-help',
+                              auditStats.avgScore >= 80 ? 'bg-green-100 dark:bg-green-900/30' :
+                              auditStats.avgScore >= 60 ? 'bg-amber-100 dark:bg-amber-900/30' :
+                              'bg-red-100 dark:bg-red-900/30'
+                            )}>
+                              <span className={cn(
+                                'text-sm font-bold',
+                                auditStats.avgScore >= 80 ? 'text-green-700 dark:text-green-400' :
+                                auditStats.avgScore >= 60 ? 'text-amber-700 dark:text-amber-400' :
+                                'text-red-700 dark:text-red-400'
+                              )}>
+                                {auditStats.avgScore}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground">avg score</span>
                             </div>
                           </TooltipTrigger>
-                          <TooltipContent>Icons with minor quality issues</TooltipContent>
+                          <TooltipContent>
+                            <div className="text-xs space-y-1">
+                              <p className="font-medium">Icon Quality Score (1-100)</p>
+                              <p>Geometric: 25 | Optical: 25 | Accessibility: 25 | Production: 25</p>
+                            </div>
+                          </TooltipContent>
                         </Tooltip>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={() => setShowAuditDetails(!showAuditDetails)}
-                      >
-                        <FileCheck className="h-3 w-3 mr-1" />
-                        {showAuditDetails ? 'Hide' : 'Show'} Audit
-                      </Button>
-                      {auditStats.withIssues > 0 && (
+
+                        {/* Grade Distribution */}
+                        <div className="flex items-center gap-1">
+                          {Object.entries(auditStats.grades).map(([grade, count]) => (
+                            count > 0 && (
+                              <Tooltip key={grade}>
+                                <TooltipTrigger asChild>
+                                  <span className={cn(
+                                    'w-5 h-5 rounded text-[10px] font-bold flex items-center justify-center cursor-help',
+                                    grade === 'A' ? 'bg-green-600 text-white' :
+                                    grade === 'B' ? 'bg-blue-600 text-white' :
+                                    grade === 'C' ? 'bg-amber-500 text-white' :
+                                    grade === 'D' ? 'bg-orange-500 text-white' :
+                                    'bg-red-500 text-white'
+                                  )}>
+                                    {grade}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>{count} icons with grade {grade}</TooltipContent>
+                              </Tooltip>
+                            )
+                          ))}
+                        </div>
+
+                        {/* Status Summary */}
+                        <div className="flex items-center gap-2 text-[10px]">
+                          <span className="text-green-600">
+                            <ShieldCheck className="h-3 w-3 inline mr-0.5" />
+                            {auditStats.productionReady} ready
+                          </span>
+                          {auditStats.needsReview > 0 && (
+                            <span className="text-amber-500">
+                              <AlertTriangle className="h-3 w-3 inline mr-0.5" />
+                              {auditStats.needsReview} review
+                            </span>
+                          )}
+                          {auditStats.needsCleanup > 0 && (
+                            <span className="text-red-500">
+                              <AlertCircle className="h-3 w-3 inline mr-0.5" />
+                              {auditStats.needsCleanup} cleanup
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           className="h-7 text-xs"
-                          onClick={simplifyIconsWithIssues}
+                          onClick={() => setShowAuditDetails(!showAuditDetails)}
                         >
-                          Auto-fix Issues
+                          <FileCheck className="h-3 w-3 mr-1" />
+                          {showAuditDetails ? 'Hide' : 'Show'} Details
                         </Button>
-                      )}
+                        {(auditStats.needsReview > 0 || auditStats.needsCleanup > 0) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={simplifyIconsWithIssues}
+                          >
+                            Auto-optimize
+                          </Button>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Expanded Pillar Breakdown */}
+                    {showAuditDetails && (
+                      <div className="grid grid-cols-4 gap-2 pt-2 border-t border-border/50">
+                        <div className="text-center p-2 rounded bg-muted/30">
+                          <div className="text-[10px] text-muted-foreground mb-1">Geometric</div>
+                          <div className="text-xs font-medium">Grid • Snap • ViewBox</div>
+                        </div>
+                        <div className="text-center p-2 rounded bg-muted/30">
+                          <div className="text-[10px] text-muted-foreground mb-1">Optical</div>
+                          <div className="text-xs font-medium">Weight • Center • Scale</div>
+                        </div>
+                        <div className="text-center p-2 rounded bg-muted/30">
+                          <div className="text-[10px] text-muted-foreground mb-1">Accessibility</div>
+                          <div className="text-xs font-medium">Contrast • Legibility</div>
+                        </div>
+                        <div className="text-center p-2 rounded bg-muted/30">
+                          <div className="text-[10px] text-muted-foreground mb-1">Production</div>
+                          <div className="text-xs font-medium">Size • Clean • IDs</div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -710,33 +809,79 @@ export const IconStudioAIGenerator = ({
                                         <Check className="h-2.5 w-2.5 text-primary-foreground" />
                                       </div>
                                     )}
-                                    {showAuditDetails && icon.audit && (
+                                    {showAuditDetails && icon.audit?.qualityScore && (
                                       <div className={cn(
-                                        'absolute -top-1 -left-1 w-4 h-4 rounded-full flex items-center justify-center',
-                                        icon.audit.isValid ? 'bg-green-600' : 'bg-amber-500'
+                                        'absolute -top-1.5 -left-1.5 w-5 h-5 rounded text-[9px] font-bold flex items-center justify-center',
+                                        icon.audit.qualityScore.grade === 'A' ? 'bg-green-600 text-white' :
+                                        icon.audit.qualityScore.grade === 'B' ? 'bg-blue-600 text-white' :
+                                        icon.audit.qualityScore.grade === 'C' ? 'bg-amber-500 text-white' :
+                                        icon.audit.qualityScore.grade === 'D' ? 'bg-orange-500 text-white' :
+                                        'bg-red-500 text-white'
                                       )}>
-                                        {icon.audit.isValid 
-                                          ? <ShieldCheck className="h-2.5 w-2.5 text-white" />
-                                          : <AlertTriangle className="h-2.5 w-2.5 text-white" />
-                                        }
+                                        {icon.audit.qualityScore.grade}
                                       </div>
                                     )}
                                   </button>
                                 </TooltipTrigger>
                                 <TooltipContent side="top" className="max-w-xs">
-                                  <div className="space-y-1">
-                                    <p className="font-medium text-xs">{icon.name}</p>
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between gap-4">
+                                      <p className="font-medium text-xs">{icon.name}</p>
+                                      {icon.audit?.qualityScore && (
+                                        <span className={cn(
+                                          'text-xs font-bold px-1.5 py-0.5 rounded',
+                                          icon.audit.qualityScore.grade === 'A' ? 'bg-green-600 text-white' :
+                                          icon.audit.qualityScore.grade === 'B' ? 'bg-blue-600 text-white' :
+                                          icon.audit.qualityScore.grade === 'C' ? 'bg-amber-500 text-white' :
+                                          icon.audit.qualityScore.grade === 'D' ? 'bg-orange-500 text-white' :
+                                          'bg-red-500 text-white'
+                                        )}>
+                                          {icon.audit.qualityScore.overall}/100
+                                        </span>
+                                      )}
+                                    </div>
                                     {showAuditDetails && icon.audit && (
-                                      <div className="text-[10px] space-y-0.5">
-                                        <p className="text-muted-foreground">Size: {icon.audit.fileSizeBytes} bytes</p>
+                                      <div className="text-[10px] space-y-1.5 border-t border-border/50 pt-1.5">
+                                        {/* Score Breakdown */}
+                                        {icon.audit.qualityScore && (
+                                          <div className="grid grid-cols-4 gap-1">
+                                            <div className="text-center">
+                                              <div className="text-muted-foreground">Geo</div>
+                                              <div className="font-medium">{icon.audit.qualityScore.breakdown.geometricPrecision}</div>
+                                            </div>
+                                            <div className="text-center">
+                                              <div className="text-muted-foreground">Opt</div>
+                                              <div className="font-medium">{icon.audit.qualityScore.breakdown.opticalBalance}</div>
+                                            </div>
+                                            <div className="text-center">
+                                              <div className="text-muted-foreground">A11y</div>
+                                              <div className="font-medium">{icon.audit.qualityScore.breakdown.accessibility}</div>
+                                            </div>
+                                            <div className="text-center">
+                                              <div className="text-muted-foreground">Prod</div>
+                                              <div className="font-medium">{icon.audit.qualityScore.breakdown.production}</div>
+                                            </div>
+                                          </div>
+                                        )}
+                                        {/* Metrics */}
+                                        <div className="text-muted-foreground">
+                                          {icon.audit.fileSizeBytes}B • {icon.audit.productionMetrics?.anchorPointCount || 0} pts
+                                          {icon.audit.opticalMetrics?.inkDensity !== undefined && 
+                                            ` • ${(icon.audit.opticalMetrics.inkDensity * 100).toFixed(0)}% density`
+                                          }
+                                        </div>
+                                        {/* Issues */}
                                         {icon.audit.issues.length > 0 ? (
                                           <ul className="text-amber-600 dark:text-amber-400">
-                                            {icon.audit.issues.map((issue, i) => (
+                                            {icon.audit.issues.slice(0, 3).map((issue, i) => (
                                               <li key={i}>• {issue}</li>
                                             ))}
+                                            {icon.audit.issues.length > 3 && (
+                                              <li>+{icon.audit.issues.length - 3} more...</li>
+                                            )}
                                           </ul>
                                         ) : (
-                                          <p className="text-green-600 dark:text-green-400">✓ Passes all checks</p>
+                                          <p className="text-green-600 dark:text-green-400">✓ Production ready</p>
                                         )}
                                       </div>
                                     )}
