@@ -231,11 +231,14 @@ serve(async (req) => {
     
     const { data: { user }, error: authError } = await userSupabase.auth.getUser();
     if (authError || !user) {
+      console.error("[brand-intelligence] Auth error:", authError);
       return new Response(
         JSON.stringify({ error: 'Invalid authentication token' }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    console.log("[brand-intelligence] User authenticated:", user.id, "Action:", action);
     
     const tableName = entityType === 'brand' ? 'brands' : entityType === 'product' ? 'products' : 'events';
     const { data: entityAccessData, error: entityError } = await userSupabase
@@ -243,6 +246,13 @@ serve(async (req) => {
       .select('id, user_id, organization_id, parent_brand_id')
       .eq('id', entityId)
       .maybeSingle();
+    
+    console.log("[brand-intelligence] Entity access check:", { 
+      tableName, 
+      entityId, 
+      found: !!entityAccessData, 
+      error: entityError?.message 
+    });
     
     if (entityError || !entityAccessData) {
       return new Response(
