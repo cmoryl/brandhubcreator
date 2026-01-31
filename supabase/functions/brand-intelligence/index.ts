@@ -458,13 +458,44 @@ serve(async (req) => {
         }
 
         const table = entityType === 'brand' ? 'brands' : entityType === 'product' ? 'products' : 'events';
-        const { data: entityData, error: entError } = await supabase
-          .from(table)
-          .select('name, guide_data, parent_brand_id')
-          .eq('id', entityId)
-          .single();
-
-        if (entError) throw new Error(`Failed to fetch ${entityType} data`);
+        
+        // Fetch entity data - brands don't have parent_brand_id column
+        let entityData: { name: string; guide_data: unknown; parent_brand_id?: string } | null = null;
+        
+        if (entityType === 'brand') {
+          const { data, error } = await supabase
+            .from('brands')
+            .select('name, guide_data')
+            .eq('id', entityId)
+            .single();
+          if (error) {
+            console.error(`[brand-intelligence] Failed to fetch brand:`, error);
+            throw new Error('Failed to fetch brand data');
+          }
+          entityData = { ...data, parent_brand_id: undefined };
+        } else if (entityType === 'product') {
+          const { data, error } = await supabase
+            .from('products')
+            .select('name, guide_data, parent_brand_id')
+            .eq('id', entityId)
+            .single();
+          if (error) {
+            console.error(`[brand-intelligence] Failed to fetch product:`, error);
+            throw new Error('Failed to fetch product data');
+          }
+          entityData = data;
+        } else {
+          const { data, error } = await supabase
+            .from('events')
+            .select('name, guide_data, parent_brand_id')
+            .eq('id', entityId)
+            .single();
+          if (error) {
+            console.error(`[brand-intelligence] Failed to fetch event:`, error);
+            throw new Error('Failed to fetch event data');
+          }
+          entityData = data;
+        }
 
         const guideData = entityData.guide_data as any;
         const knowledgeEntries = (intelligence.knowledge_entries || []) as KnowledgeEntry[];
