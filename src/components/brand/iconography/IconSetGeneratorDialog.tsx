@@ -36,6 +36,16 @@ import {
   Package,
   Building2,
   Calendar,
+  // Preview icons
+  Home,
+  Settings,
+  User,
+  Bell,
+  Search,
+  Heart,
+  Star,
+  Mail,
+  type LucideIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
@@ -455,6 +465,31 @@ export const IconSetGeneratorDialog = ({
                   onCheckedChange={(fill) => setIconStyle(s => ({ ...s, fill }))}
                   disabled={isGenerating}
                 />
+              </div>
+
+              {/* Style Preview */}
+              <div className="space-y-2 pt-2 border-t">
+                <Label className="text-xs text-muted-foreground">Style Preview</Label>
+                <div className="grid grid-cols-4 gap-2 p-3 rounded-lg bg-muted/50 border">
+                  {[Home, Settings, User, Bell, Search, Heart, Star, Mail].map((IconComponent, idx) => (
+                    <div 
+                      key={idx}
+                      className="flex items-center justify-center p-2 rounded bg-background"
+                    >
+                      <IconComponent
+                        size={20}
+                        strokeWidth={iconStyle.strokeWidth}
+                        fill={iconStyle.fill ? 'currentColor' : 'none'}
+                        strokeLinecap={iconStyle.cornerRadius === 'sharp' ? 'square' : 'round'}
+                        strokeLinejoin={iconStyle.cornerRadius === 'sharp' ? 'miter' : 'round'}
+                        className="text-foreground"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Preview of how your icons will look
+                </p>
               </div>
             </div>
 
