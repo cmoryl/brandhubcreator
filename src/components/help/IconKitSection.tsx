@@ -13,7 +13,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { iconKitFaqs, iconKitQuickStart } from "@/data/iconKitHelp";
+import { IconKitGuides } from "./IconKitGuides";
 
 interface IconKitSectionProps {
   searchQuery?: string;
@@ -21,6 +23,7 @@ interface IconKitSectionProps {
 
 export const IconKitSection = ({ searchQuery = "" }: IconKitSectionProps) => {
   const [showArchitecture, setShowArchitecture] = useState(false);
+  const [activeTab, setActiveTab] = useState<"guides" | "faq">("guides");
 
   // Filter FAQs based on search
   const filteredFaqs = iconKitFaqs.map(category => ({
@@ -90,7 +93,7 @@ export const IconKitSection = ({ searchQuery = "" }: IconKitSectionProps) => {
         <Card className="border-border/50 p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
             <Play className="h-5 w-5 text-accent" />
-            Quick Start Guide
+            Quick Start
           </h3>
           <div className="grid gap-3">
             {iconKitQuickStart.map((step) => (
@@ -111,34 +114,46 @@ export const IconKitSection = ({ searchQuery = "" }: IconKitSectionProps) => {
         </Card>
       )}
 
-      {/* FAQ Categories */}
-      <div className="space-y-6">
-        {filteredFaqs.map((category) => (
-          <div key={category.category} className="space-y-4">
-            <div className="flex items-center gap-2">
-              <category.icon className="h-5 w-5 text-violet-500" />
-              <h3 className="text-xl font-semibold text-foreground">{category.category}</h3>
+      {/* Tabs: Guides vs FAQ */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "guides" | "faq")}>
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="guides">Step-by-Step Guides</TabsTrigger>
+          <TabsTrigger value="faq">FAQ</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="guides" className="space-y-4">
+          <IconKitGuides searchQuery={searchQuery} />
+        </TabsContent>
+
+        <TabsContent value="faq" className="space-y-6">
+          {/* FAQ Categories */}
+          {filteredFaqs.map((category) => (
+            <div key={category.category} className="space-y-4">
+              <div className="flex items-center gap-2">
+                <category.icon className="h-5 w-5 text-violet-500" />
+                <h3 className="text-xl font-semibold text-foreground">{category.category}</h3>
+              </div>
+              
+              <Accordion type="single" collapsible className="space-y-2">
+                {category.questions.map((faq, index) => (
+                  <AccordionItem 
+                    key={index} 
+                    value={`${category.category}-${index}`}
+                    className="border border-border/50 rounded-lg px-4 bg-card/50"
+                  >
+                    <AccordionTrigger className="text-left hover:no-underline">
+                      <span className="font-medium text-foreground">{faq.q}</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground">
+                      {faq.a}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
             </div>
-            
-            <Accordion type="single" collapsible className="space-y-2">
-              {category.questions.map((faq, index) => (
-                <AccordionItem 
-                  key={index} 
-                  value={`${category.category}-${index}`}
-                  className="border border-border/50 rounded-lg px-4 bg-card/50"
-                >
-                  <AccordionTrigger className="text-left hover:no-underline">
-                    <span className="font-medium text-foreground">{faq.q}</span>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    {faq.a}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
-        ))}
-      </div>
+          ))}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
@@ -196,6 +211,7 @@ const IconArchitectureDiagram = () => {
             "useIconStateSystem",
             "useKineticBranding",
             "useIconHierarchy",
+            "useBatchProcessor",
           ].map((hook) => (
             <div 
               key={hook}
@@ -224,6 +240,7 @@ const IconArchitectureDiagram = () => {
             "Optical Sizing",
             "Semantic States",
             "Kinetic Animations",
+            "Batch Processing",
           ].map((feature) => (
             <div 
               key={feature}
@@ -243,7 +260,7 @@ const IconArchitectureDiagram = () => {
       {/* Outputs */}
       <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl p-4 border border-green-500/20">
         <h4 className="text-sm font-semibold text-foreground mb-3 text-center">📦 Outputs</h4>
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-4 flex-wrap">
           {[
             { name: "SVGs", icon: "🎨" },
             { name: "PNGs", icon: "🖼️" },
