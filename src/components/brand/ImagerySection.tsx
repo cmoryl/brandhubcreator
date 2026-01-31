@@ -1,14 +1,28 @@
 import { useState, useCallback } from 'react';
-import { X, Pencil, Upload, ThumbsUp, ThumbsDown, Grid2X2, Grid3X3, LayoutGrid, Rows3, ImageIcon } from 'lucide-react';
+import { Upload, ThumbsUp, ThumbsDown, Grid2X2, Grid3X3, LayoutGrid, Rows3, ImageIcon } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { BrandImagery } from '@/types/brand';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
-import { OptimizedImage } from '@/components/ui/optimized-image';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
+import { SortableImageryCard } from './imagery/SortableImageryCard';
 
 interface ImagerySectionProps {
   imagery: BrandImagery[];
@@ -27,6 +41,18 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
   const [viewMode, setViewMode] = useState<ViewMode>('grid-4');
 
   const canEdit = Boolean(onImageryChange);
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleFileDrop = useCallback((file: File) => {
     if (!onImageryChange) return;
@@ -79,6 +105,46 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
     if (editingId === id) setEditingId(null);
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !onImageryChange) return;
+
+    const oldIndex = imagery.findIndex((img) => img.id === active.id);
+    const newIndex = imagery.findIndex((img) => img.id === over.id);
+    
+    if (oldIndex !== -1 && newIndex !== -1) {
+      onImageryChange(arrayMove(imagery, oldIndex, newIndex));
+    }
+  };
+
+  const handleDoImagesDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !onImageryChange) return;
+
+    const oldIndex = doImages.findIndex((img) => img.id === active.id);
+    const newIndex = doImages.findIndex((img) => img.id === over.id);
+    
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const reorderedDoImages = arrayMove(doImages, oldIndex, newIndex);
+      // Reconstruct full imagery array with reordered do images + dont images
+      onImageryChange([...reorderedDoImages, ...dontImages]);
+    }
+  };
+
+  const handleDontImagesDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !onImageryChange) return;
+
+    const oldIndex = dontImages.findIndex((img) => img.id === active.id);
+    const newIndex = dontImages.findIndex((img) => img.id === over.id);
+    
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const reorderedDontImages = arrayMove(dontImages, oldIndex, newIndex);
+      // Reconstruct full imagery array with do images + reordered dont images
+      onImageryChange([...doImages, ...reorderedDontImages]);
+    }
+  };
+
   const doImages = imagery.filter(i => i.type === 'do');
   const dontImages = imagery.filter(i => i.type === 'dont');
 
@@ -90,66 +156,6 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
       default: return '';
     }
   };
-
-  const renderImageCard = (img: BrandImagery, index: number, borderColor: string, bgHoverColor: string) => (
-    <div
-      key={img.id}
-      className={`group relative bg-card rounded-xl overflow-hidden shadow-sm border-2 ${borderColor} animate-scale-in`}
-      style={{ animationDelay: `${index * 50}ms` }}
-    >
-      <div className={`${viewMode === 'split' ? 'aspect-video' : 'aspect-square'} relative`}>
-        <OptimizedImage src={img.url} alt={img.description} className="w-full h-full" objectFit="cover" />
-        {img.type === 'dont' && <div className="absolute inset-0 bg-destructive/10" />}
-        {canEdit && (
-          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={() => setEditingId(img.id)}
-              className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-secondary"
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </button>
-            <button
-              onClick={() => deleteImagery(img.id)}
-              className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        )}
-        {/* Type badge */}
-        <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium ${img.type === 'do' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
-          {img.type === 'do' ? 'Do' : "Don't"}
-        </div>
-      </div>
-      <div className="p-3">
-        {editingId === img.id && canEdit ? (
-          <div className="space-y-2">
-            <Input
-              value={img.description}
-              onChange={(e) => updateImagery(img.id, { description: e.target.value })}
-              placeholder="Description"
-              className="h-8"
-            />
-            <Select
-              value={img.type}
-              onValueChange={(type: 'do' | 'dont') => updateImagery(img.id, { type })}
-            >
-              <SelectTrigger className="h-8">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="do">Do</SelectItem>
-                <SelectItem value="dont">Don't</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button size="sm" variant="secondary" onClick={() => setEditingId(null)} className="w-full">Done</Button>
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground line-clamp-2">{img.description}</p>
-        )}
-      </div>
-    </div>
-  );
 
   return (
     <section className="space-y-4 sm:space-y-6">
@@ -205,36 +211,57 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
               <h3 className="text-lg font-semibold">Do</h3>
               <span className="text-sm text-muted-foreground">({doImages.length})</span>
             </div>
-            <div className="space-y-3">
-              {doImages.map((img, index) => renderImageCard(img, index, 'border-green-200', 'hover:bg-green-50'))}
-              {canEdit && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => triggerUpload('do')}
-                    onDragOver={(e) => { setPendingType('do'); dragHandlers.onDragOver(e); }}
-                    onDragLeave={dragHandlers.onDragLeave}
-                    onDrop={(e) => { setPendingType('do'); dragHandlers.onDrop(e); }}
-                    className={`flex-1 h-24 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors ${
-                      isDragging && pendingType === 'do'
-                        ? 'border-green-500 bg-green-50 text-green-600'
-                        : 'border-green-300 text-green-600 hover:bg-green-50'
-                    }`}
-                  >
-                    <Upload className="h-5 w-5" />
-                    <span className="text-sm font-medium">{isDragging && pendingType === 'do' ? 'Drop to add' : 'Upload'}</span>
-                  </button>
-                  <ImageLibraryPicker
-                    onSelect={(url) => handleLibrarySelect(url, 'do')}
-                    trigger={
-                      <button className="h-24 px-4 border-2 border-dashed border-green-300 rounded-xl flex items-center justify-center gap-2 text-green-600 hover:bg-green-50 transition-colors">
-                        <ImageIcon className="h-5 w-5" />
-                        <span className="text-sm font-medium">Library</span>
-                      </button>
-                    }
-                  />
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDoImagesDragEnd}
+            >
+              <SortableContext items={doImages.map(img => img.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-3">
+                  {doImages.map((img, index) => (
+                    <SortableImageryCard
+                      key={img.id}
+                      image={img}
+                      index={index}
+                      viewMode={viewMode}
+                      canEdit={canEdit}
+                      isEditing={editingId === img.id}
+                      onEdit={setEditingId}
+                      onUpdate={updateImagery}
+                      onDelete={deleteImagery}
+                      onEditDone={() => setEditingId(null)}
+                    />
+                  ))}
                 </div>
-              )}
-            </div>
+              </SortableContext>
+            </DndContext>
+            {canEdit && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => triggerUpload('do')}
+                  onDragOver={(e) => { setPendingType('do'); dragHandlers.onDragOver(e); }}
+                  onDragLeave={dragHandlers.onDragLeave}
+                  onDrop={(e) => { setPendingType('do'); dragHandlers.onDrop(e); }}
+                  className={`flex-1 h-24 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors ${
+                    isDragging && pendingType === 'do'
+                      ? 'border-green-500 bg-green-50 text-green-600'
+                      : 'border-green-300 text-green-600 hover:bg-green-50'
+                  }`}
+                >
+                  <Upload className="h-5 w-5" />
+                  <span className="text-sm font-medium">{isDragging && pendingType === 'do' ? 'Drop to add' : 'Upload'}</span>
+                </button>
+                <ImageLibraryPicker
+                  onSelect={(url) => handleLibrarySelect(url, 'do')}
+                  trigger={
+                    <button className="h-24 px-4 border-2 border-dashed border-green-300 rounded-xl flex items-center justify-center gap-2 text-green-600 hover:bg-green-50 transition-colors">
+                      <ImageIcon className="h-5 w-5" />
+                      <span className="text-sm font-medium">Library</span>
+                    </button>
+                  }
+                />
+              </div>
+            )}
           </div>
 
           {/* Don'ts */}
@@ -244,36 +271,57 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
               <h3 className="text-lg font-semibold">Don't</h3>
               <span className="text-sm text-muted-foreground">({dontImages.length})</span>
             </div>
-            <div className="space-y-3">
-              {dontImages.map((img, index) => renderImageCard(img, index, 'border-red-200', 'hover:bg-red-50'))}
-              {canEdit && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => triggerUpload('dont')}
-                    onDragOver={(e) => { setPendingType('dont'); dragHandlers.onDragOver(e); }}
-                    onDragLeave={dragHandlers.onDragLeave}
-                    onDrop={(e) => { setPendingType('dont'); dragHandlers.onDrop(e); }}
-                    className={`flex-1 h-24 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors ${
-                      isDragging && pendingType === 'dont'
-                        ? 'border-red-500 bg-red-50 text-red-600'
-                        : 'border-red-300 text-red-600 hover:bg-red-50'
-                    }`}
-                  >
-                    <Upload className="h-5 w-5" />
-                    <span className="text-sm font-medium">{isDragging && pendingType === 'dont' ? 'Drop to add' : 'Upload'}</span>
-                  </button>
-                  <ImageLibraryPicker
-                    onSelect={(url) => handleLibrarySelect(url, 'dont')}
-                    trigger={
-                      <button className="h-24 px-4 border-2 border-dashed border-red-300 rounded-xl flex items-center justify-center gap-2 text-red-600 hover:bg-red-50 transition-colors">
-                        <ImageIcon className="h-5 w-5" />
-                        <span className="text-sm font-medium">Library</span>
-                      </button>
-                    }
-                  />
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDontImagesDragEnd}
+            >
+              <SortableContext items={dontImages.map(img => img.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-3">
+                  {dontImages.map((img, index) => (
+                    <SortableImageryCard
+                      key={img.id}
+                      image={img}
+                      index={index}
+                      viewMode={viewMode}
+                      canEdit={canEdit}
+                      isEditing={editingId === img.id}
+                      onEdit={setEditingId}
+                      onUpdate={updateImagery}
+                      onDelete={deleteImagery}
+                      onEditDone={() => setEditingId(null)}
+                    />
+                  ))}
                 </div>
-              )}
-            </div>
+              </SortableContext>
+            </DndContext>
+            {canEdit && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => triggerUpload('dont')}
+                  onDragOver={(e) => { setPendingType('dont'); dragHandlers.onDragOver(e); }}
+                  onDragLeave={dragHandlers.onDragLeave}
+                  onDrop={(e) => { setPendingType('dont'); dragHandlers.onDrop(e); }}
+                  className={`flex-1 h-24 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors ${
+                    isDragging && pendingType === 'dont'
+                      ? 'border-red-500 bg-red-50 text-red-600'
+                      : 'border-red-300 text-red-600 hover:bg-red-50'
+                  }`}
+                >
+                  <Upload className="h-5 w-5" />
+                  <span className="text-sm font-medium">{isDragging && pendingType === 'dont' ? 'Drop to add' : 'Upload'}</span>
+                </button>
+                <ImageLibraryPicker
+                  onSelect={(url) => handleLibrarySelect(url, 'dont')}
+                  trigger={
+                    <button className="h-24 px-4 border-2 border-dashed border-red-300 rounded-xl flex items-center justify-center gap-2 text-red-600 hover:bg-red-50 transition-colors">
+                      <ImageIcon className="h-5 w-5" />
+                      <span className="text-sm font-medium">Library</span>
+                    </button>
+                  }
+                />
+              </div>
+            )}
           </div>
         </div>
       ) : (
@@ -310,16 +358,30 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
             </div>
           )}
           
-          <div className={`grid ${getGridClass()} gap-4`}>
-            {imagery.map((img, index) => 
-              renderImageCard(
-                img, 
-                index, 
-                img.type === 'do' ? 'border-green-200' : 'border-red-200',
-                img.type === 'do' ? 'hover:bg-green-50' : 'hover:bg-red-50'
-              )
-            )}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext items={imagery.map(img => img.id)} strategy={rectSortingStrategy}>
+              <div className={`grid ${getGridClass()} gap-4`}>
+                {imagery.map((img, index) => (
+                  <SortableImageryCard
+                    key={img.id}
+                    image={img}
+                    index={index}
+                    viewMode={viewMode}
+                    canEdit={canEdit}
+                    isEditing={editingId === img.id}
+                    onEdit={setEditingId}
+                    onUpdate={updateImagery}
+                    onDelete={deleteImagery}
+                    onEditDone={() => setEditingId(null)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
 
           {imagery.length === 0 && (
             <div className="text-center py-12 border-2 border-dashed border-border rounded-xl">
