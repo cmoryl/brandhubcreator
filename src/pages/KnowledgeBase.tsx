@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, BookOpen, HelpCircle, Lightbulb, Search, CreditCard, Plug, Users, Globe, Shield, Play, Video, X, Home } from "lucide-react";
+import { ArrowLeft, BookOpen, HelpCircle, Lightbulb, Search, CreditCard, Plug, Users, Globe, Shield, Play, Video, X, Home, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { IconKitSection } from "@/components/help/IconKitSection";
 
 // Import tutorial videos
 import tutorialGettingStarted from "@/assets/videos/tutorial-getting-started.mp4";
@@ -278,6 +279,7 @@ const faqs = [
 const KnowledgeBase = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedVideo, setSelectedVideo] = useState<typeof tutorials[0] | null>(null);
+  const [activeSection, setActiveSection] = useState<"general" | "iconkit">("general");
   const { settings } = useAppSettings();
   
   const filteredFaqs = faqs.map(category => ({
@@ -335,6 +337,28 @@ const KnowledgeBase = () => {
               className="pl-10"
             />
           </div>
+
+          {/* Section Tabs */}
+          <div className="flex justify-center gap-2 mt-6">
+            <Button
+              variant={activeSection === "general" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setActiveSection("general")}
+              className="gap-2"
+            >
+              <HelpCircle className="h-4 w-4" />
+              General FAQ
+            </Button>
+            <Button
+              variant={activeSection === "iconkit" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setActiveSection("iconkit")}
+              className="gap-2"
+            >
+              <Palette className="h-4 w-4" />
+              IconKIT
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -386,43 +410,49 @@ const KnowledgeBase = () => {
       {/* FAQ Content */}
       <section className="py-8 sm:py-12 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto space-y-8">
-          {filteredFaqs.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>No results found for "{searchQuery}"</p>
-              <Button 
-                variant="link" 
-                onClick={() => setSearchQuery("")}
-                className="mt-2"
-              >
-                Clear search
-              </Button>
-            </div>
+          {activeSection === "iconkit" ? (
+            <IconKitSection searchQuery={searchQuery} />
           ) : (
-            filteredFaqs.map((category) => (
-              <div key={category.category} className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <category.icon className="h-5 w-5 text-accent" />
-                  <h2 className="text-xl font-semibold text-foreground">{category.category}</h2>
+            <>
+              {filteredFaqs.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <p>No results found for "{searchQuery}"</p>
+                  <Button 
+                    variant="link" 
+                    onClick={() => setSearchQuery("")}
+                    className="mt-2"
+                  >
+                    Clear search
+                  </Button>
                 </div>
-                
-                <Accordion type="single" collapsible className="space-y-2">
-                  {category.questions.map((faq, index) => (
-                    <AccordionItem 
-                      key={index} 
-                      value={`${category.category}-${index}`}
-                      className="border border-border/50 rounded-lg px-4 bg-card/50"
-                    >
-                      <AccordionTrigger className="text-left hover:no-underline">
-                        <span className="font-medium text-foreground">{faq.q}</span>
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground">
-                        {faq.a}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </div>
-            ))
+              ) : (
+                filteredFaqs.map((category) => (
+                  <div key={category.category} className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <category.icon className="h-5 w-5 text-accent" />
+                      <h2 className="text-xl font-semibold text-foreground">{category.category}</h2>
+                    </div>
+                    
+                    <Accordion type="single" collapsible className="space-y-2">
+                      {category.questions.map((faq, index) => (
+                        <AccordionItem 
+                          key={index} 
+                          value={`${category.category}-${index}`}
+                          className="border border-border/50 rounded-lg px-4 bg-card/50"
+                        >
+                          <AccordionTrigger className="text-left hover:no-underline">
+                            <span className="font-medium text-foreground">{faq.q}</span>
+                          </AccordionTrigger>
+                          <AccordionContent className="text-muted-foreground">
+                            {faq.a}
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </div>
+                ))
+              )}
+            </>
           )}
         </div>
       </section>
