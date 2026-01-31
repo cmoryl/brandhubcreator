@@ -28,6 +28,7 @@ import {
   Sparkles,
   ImageIcon,
   Zap,
+  GitBranch,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BrandIconography } from '@/types/brand';
@@ -40,8 +41,9 @@ import { IconStudioAppIcons } from './studio/IconStudioAppIcons';
 import { IconStudioCreator } from './studio/IconStudioCreator';
 import { IconStylizer } from './studio/IconStylizer';
 import { IconAdvancedFeatures } from './studio/IconAdvancedFeatures';
+import { IconBrandHierarchy } from './studio/IconBrandHierarchy';
 
-export type IconStudioTab = 'library' | 'ai-generator' | 'stylizer' | 'advanced' | 'app-icons' | 'creator';
+export type IconStudioTab = 'library' | 'ai-generator' | 'stylizer' | 'advanced' | 'hierarchy' | 'app-icons' | 'creator';
 
 interface IconStudioProps {
   open: boolean;
@@ -77,6 +79,12 @@ const TAB_CONFIG = [
     label: 'Advanced',
     icon: Zap,
     description: 'Responsive, states & animation',
+  },
+  {
+    id: 'hierarchy' as const,
+    label: 'Hierarchy',
+    icon: GitBranch,
+    description: 'Brand inheritance & overrides',
   },
   {
     id: 'app-icons' as const,
@@ -170,17 +178,17 @@ export const IconStudio = ({
         >
           {/* Tab Navigation */}
           <div className="px-6 pt-4 pb-2 border-b bg-muted/30">
-            <TabsList className="grid grid-cols-6 w-full max-w-4xl">
+            <TabsList className="grid grid-cols-7 w-full max-w-5xl">
               {TAB_CONFIG.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <TabsTrigger
                     key={tab.id}
                     value={tab.id}
-                    className="gap-2 data-[state=active]:bg-background"
+                    className="gap-2 data-[state=active]:bg-background text-xs"
                   >
                     <Icon className="h-4 w-4" />
-                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span className="hidden lg:inline">{tab.label}</span>
                   </TabsTrigger>
                 );
               })}
@@ -244,7 +252,23 @@ export const IconStudio = ({
                     brandColors={brandColors.map(c => c.hex)}
                     onIconUpdate={(icon) => {
                       setSelectedIcon(icon);
-                      // Could also update in library
+                    }}
+                  />
+                </div>
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="hierarchy" className="h-full m-0 data-[state=inactive]:hidden">
+              <ScrollArea className="h-full">
+                <div className="p-6">
+                  <IconBrandHierarchy
+                    organizationId={organizationId}
+                    organizationName={organizationName}
+                    brands={[]} // Would be populated from actual brands/products
+                    brandColors={brandColors}
+                    icons={libraries.flatMap(l => l.icons)}
+                    onExportCSS={(css) => {
+                      navigator.clipboard.writeText(css);
                     }}
                   />
                 </div>
