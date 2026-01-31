@@ -44,19 +44,23 @@ import { useIconStateSystem, IconState, IconStateSet } from '@/hooks/useIconStat
 import { useKineticBranding, BrandPersonality, EntranceAnimation, InteractionAnimation } from '@/hooks/useKineticBranding';
 import { BrandIconography } from '@/types/brand';
 import { IconKitTooltip } from '@/components/help/IconKitTooltip';
-
+import { BatchProcessingPanel } from './BatchProcessingPanel';
 interface IconAdvancedFeaturesProps {
   selectedIcon: BrandIconography | null;
   brandColors: string[];
   onIconUpdate: (icon: BrandIconography) => void;
+  icons?: BrandIconography[];
+  libraryName?: string;
 }
 
-type FeatureTab = 'responsive' | 'states' | 'kinetic';
+type FeatureTab = 'responsive' | 'states' | 'kinetic' | 'batch';
 
 export const IconAdvancedFeatures: React.FC<IconAdvancedFeaturesProps> = ({
   selectedIcon,
   brandColors,
   onIconUpdate,
+  icons = [],
+  libraryName = 'Icon Library',
 }) => {
   const [activeTab, setActiveTab] = useState<FeatureTab>('responsive');
   const [previewSize, setPreviewSize] = useState<IconSizeVariant>('regular');
@@ -175,10 +179,10 @@ export const IconAdvancedFeatures: React.FC<IconAdvancedFeaturesProps> = ({
 
       {/* Feature Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as FeatureTab)}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="responsive" className="gap-2">
             <Monitor className="h-4 w-4" />
-            <span className="hidden sm:inline">Optical Size</span>
+            <span className="hidden sm:inline">Optical</span>
             <IconKitTooltip sectionId="optical-sizing" size="sm" />
           </TabsTrigger>
           <TabsTrigger value="states" className="gap-2">
@@ -188,8 +192,12 @@ export const IconAdvancedFeatures: React.FC<IconAdvancedFeaturesProps> = ({
           </TabsTrigger>
           <TabsTrigger value="kinetic" className="gap-2">
             <Sparkles className="h-4 w-4" />
-            <span className="hidden sm:inline">Animation</span>
+            <span className="hidden sm:inline">Kinetic</span>
             <IconKitTooltip sectionId="kinetic-branding" size="sm" />
+          </TabsTrigger>
+          <TabsTrigger value="batch" className="gap-2">
+            <Zap className="h-4 w-4" />
+            <span className="hidden sm:inline">Batch</span>
           </TabsTrigger>
         </TabsList>
 
@@ -453,6 +461,17 @@ export const IconAdvancedFeatures: React.FC<IconAdvancedFeaturesProps> = ({
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Batch Processing Tab */}
+        <TabsContent value="batch" className="space-y-4 mt-4">
+          <BatchProcessingPanel
+            icons={icons}
+            libraryName={libraryName}
+            onComplete={(result) => {
+              toast.success(`Batch processing complete: ${result.processedCount} icons processed`);
+            }}
+          />
         </TabsContent>
       </Tabs>
     </div>
