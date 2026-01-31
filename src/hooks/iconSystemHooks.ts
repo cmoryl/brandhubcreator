@@ -78,3 +78,14 @@ export type {
   ProductGlyphSet,
   HierarchicalIconConfig,
 } from './useIconHierarchy';
+
+// ============================================
+// BATCH PROCESSING (Library-wide Operations)
+// ============================================
+export { useIconBatchProcessor } from './useIconBatchProcessor';
+export type {
+  BatchProcessingOptions,
+  ProcessedIcon,
+  BatchProcessingResult,
+  BatchProcessingProgress,
+} from './useIconBatchProcessor';
