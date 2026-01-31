@@ -72,32 +72,48 @@ const ICON_TAXONOMY: Record<string, { name: string; description: string; section
 };
 
 /**
- * SVG Architect System Prompt for batch icon generation
+ * Layer 1: Semantic Prompting - SVG Architect System Prompt
+ * Enforces strict geometric precision for robust, consistent icon generation.
  */
-const SVG_ARCHITECT_PROMPT = `You are a Senior SVG Architect and Brand Systems Designer generating a cohesive icon library. You specialize in "Iconic Simplicity"—creating symbols legible at 16px yet detailed enough for marketing at 1024px.
+const SVG_ARCHITECT_PROMPT = `You are a Senior SVG Architect and Brand Systems Designer generating a cohesive 100-icon brand library. You specialize in "Iconic Simplicity"—creating symbols legible at 16px yet detailed enough for marketing at 1024px.
 
 ## Core Directives
 
-1. **Geometric Precision**: 24x24 pixel grid. Whole numbers for coordinates.
-2. **Structural Consistency**: Uniform visual weight across all icons.
-3. **Path Logic**: Single, clean paths. No overlapping or messy intersections.
+1. **Geometric Precision**: 24x24 pixel grid. Whole numbers for coordinates. No sub-pixel values.
+2. **Structural Consistency**: Uniform visual weight across all icons. A "Home" icon and a "Plus" icon must have the same optical volume.
+3. **Path Logic**: Single, clean paths. No overlapping or messy intersections. Paths must merge cleanly for CSS stroke control.
 4. **Cohesive Set**: All icons must feel like they belong to the same family.
+5. **Safe Zone**: Center all elements within a 20px content zone (2px padding on all sides).
 
 ## Technical Standards
 
-- ViewBox: \`0 0 24 24\`
-- Use \`<path>\` elements (not basic shapes) for CSS control
-- No raster data or base64
+- ViewBox: Always \`0 0 24 24\`
+- Use \`<path>\` elements (not basic shapes like circle, rect) for universal CSS stroke control
+- No raster data, no base64, no embedded images
 - Closed paths for fill compatibility
-- Optimized, clean SVG code
+- Optimized, clean SVG code - strip metadata, comments, editor tags
+- All coordinates must be whole numbers or at most 2 decimal places
+
+## The 6-Category Taxonomy
+
+Categorize icons into one of these buckets:
+1. **Foundation**: Navigation, UI states, basic logic (arrows, menus, toggles)
+2. **Communication**: Email, social, feedback, support (chat, notifications, mail)
+3. **SaaS/Data**: Analytics, security, settings, workflows (charts, locks, gears)
+4. **E-Commerce**: Payments, shipping, storefront, loyalty (carts, cards, packages)
+5. **Marketing Hero**: Growth, trophies, "trust" signals, abstract concepts (stars, badges, rockets)
+6. **Industry Specific**: Custom symbols based on context (medical, legal, AI, etc.)
 
 ## Output Format
 
 Return a JSON array of icon objects. Each must have:
 - \`name\`: Descriptive, unique name (e.g., "Dashboard Overview")
-- \`svg\`: Complete, valid SVG code
+- \`svg\`: Complete, valid SVG code with xmlns attribute
 
-IMPORTANT: Output ONLY the JSON array, no markdown code blocks, no explanation.`;
+CRITICAL: Output ONLY the JSON array. No markdown code blocks. No explanation. No extra text.
+
+Example output:
+[{"name": "Home Base", "svg": "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 24 24\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\"><path d=\\"M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10\\"/></svg>"}]`;
 
 interface IconResult {
   id: string;
@@ -188,23 +204,33 @@ serve(async (req) => {
     const linecap = cornerStyle === 'sharp' ? 'square' : 'round';
     const linejoin = cornerStyle === 'sharp' ? 'miter' : 'round';
 
-    // Build contextual prompt
+    // Build contextual prompt with Layer 1 semantic constraints
     const contextPrompt = `Generate ${currentSection.count} unique icons for the "${currentSection.name}" section.
-Section Description: ${currentSection.description}
-Brand/Entity: ${entityName}${industry ? ` (${industry} industry)` : ''}
-Category: ${taxonomyCategory.name} - ${taxonomyCategory.description}
 
-Style Requirements:
+## Context
+- Section: ${currentSection.name}
+- Description: ${currentSection.description}
+- Brand/Entity: ${entityName}${industry ? ` (${industry} industry)` : ''}
+- Category: ${taxonomyCategory.name} - ${taxonomyCategory.description}
+
+## Style Requirements (STRICT)
 - Preset: ${preset}
-- stroke-width: ${strokeWidth}
+- stroke-width: ${strokeWidth}px (EXACT - do not vary)
 - stroke-linecap: ${linecap}
 - stroke-linejoin: ${linejoin}
 - stroke: ${isFilled ? 'none' : 'currentColor'}
 - fill: ${isFilled ? 'currentColor' : 'none'}
+- Corner radius: ${cornerStyle === 'rounded' ? '4px rounded corners' : 'Sharp 90° corners only'}
 
-Make icons relevant to "${entityName}" while maintaining cohesion with the ${taxonomyCategory.name} category visual language.
+## Geometric Constraints
+- All icons must fit within a 20px content zone (2px padding on all sides)
+- Use only whole numbers for coordinates (no decimals)
+- Center all elements both horizontally and vertically
+- Maintain consistent stroke weight across all icons
 
-Return ONLY a JSON array like this (no markdown):
+Make icons specifically relevant to "${entityName}" while maintaining cohesion with the ${taxonomyCategory.name} category visual language.
+
+Return ONLY a JSON array like this (no markdown, no explanation):
 [{"name": "Icon Name", "svg": "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 24 24\\" ...>...</svg>"}]`;
 
     console.log(`[generate-icon-set] Generating ${currentSection.count} icons for ${category}/${currentSection.name}`);

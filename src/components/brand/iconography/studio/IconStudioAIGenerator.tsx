@@ -9,10 +9,13 @@
  * - Marketing Hero: Growth, trophies, trust signals, abstract
  * - Industry Specific: Custom symbols based on user's niche
  * 
- * Supports 10 style presets for professional icon design
+ * 3-Layer Robustness System:
+ * - Layer 1: Semantic Prompting (handled at edge function)
+ * - Layer 2: SVG Post-Processing ("The Wash")
+ * - Layer 3: Icon Audit before export
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,6 +26,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Wand2,
   Loader2,
@@ -38,6 +42,9 @@ import {
   Building2,
   Sparkles,
   Grid3X3,
+  ShieldCheck,
+  AlertTriangle,
+  FileCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
@@ -45,6 +52,7 @@ import { BrandIconography } from '@/types/brand';
 import { IconLibrary } from '@/hooks/useIconLibraries';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { useIconOptimizer, IconAuditResult } from '@/hooks/useIconOptimizer';
 
 // 6-Category Taxonomy for 100-icon library
 const ICON_CATEGORIES = [
@@ -120,9 +128,13 @@ interface IconStyle {
   cornerRadius: 'sharp' | 'rounded';
 }
 
+interface IconWithAudit extends BrandIconography {
+  audit?: IconAuditResult;
+}
+
 interface GeneratedSection {
   name: string;
-  icons: BrandIconography[];
+  icons: IconWithAudit[];
   status: 'pending' | 'generating' | 'complete' | 'error';
 }
 
@@ -147,6 +159,7 @@ export const IconStudioAIGenerator = ({
   const [industry, setIndustry] = useState('');
   const [selectedLibraryId, setSelectedLibraryId] = useState('');
   const [selectedPreset, setSelectedPreset] = useState('outlined');
+  const [showAuditDetails, setShowAuditDetails] = useState(false);
   
   const [iconStyle, setIconStyle] = useState<IconStyle>({
     strokeWidth: 2,
@@ -161,6 +174,19 @@ export const IconStudioAIGenerator = ({
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [selectedIcons, setSelectedIcons] = useState<Set<string>>(new Set());
 
+  // Extract brand hex colors for audit
+  const brandHexColors = useMemo(() => brandColors.map(c => c.hex), [brandColors]);
+
+  // Layer 2 & 3: Icon Optimizer with audit capabilities
+  const iconOptimizer = useIconOptimizer({
+    strokeWidth: iconStyle.strokeWidth,
+    forceStroke: !iconStyle.fill,
+    forceFill: iconStyle.fill,
+    cornerRadius: iconStyle.cornerRadius === 'rounded' ? 4 : 0,
+    brandColors: brandHexColors,
+    maxFileSizeBytes: 2048, // 2KB limit per spec
+  });
+
   // Get current category info
   const currentCategoryInfo = ICON_CATEGORIES.find(c => c.id === selectedCategory);
   const sections = CATEGORY_SECTIONS[selectedCategory] || [];
@@ -168,6 +194,20 @@ export const IconStudioAIGenerator = ({
   const completedSections = generatedSections.filter(s => s.status === 'complete').length;
   const progress = sections.length > 0 ? (completedSections / sections.length) * 100 : 0;
   const generatedIconCount = generatedSections.reduce((sum, s) => sum + s.icons.length, 0);
+
+  // Audit statistics
+  const auditStats = useMemo(() => {
+    const allIcons = generatedSections.flatMap(s => s.icons);
+    const audited = allIcons.filter(i => i.audit);
+    const valid = audited.filter(i => i.audit?.isValid);
+    const withIssues = audited.filter(i => !i.audit?.isValid);
+    return {
+      total: allIcons.length,
+      audited: audited.length,
+      valid: valid.length,
+      withIssues: withIssues.length,
+    };
+  }, [generatedSections]);
 
   // Apply preset
   const applyPreset = (presetId: string) => {
@@ -181,6 +221,30 @@ export const IconStudioAIGenerator = ({
       });
     }
   };
+
+  /**
+   * Layer 2: Post-process icons from AI with "The Wash"
+   * - Sanitize SVG
+   * - Normalize viewBox to 24x24
+   * - Round decimals
+   * - Apply consistent stroke/fill
+   * - Run audit
+   */
+  const postProcessIcons = useCallback((icons: BrandIconography[]): IconWithAudit[] => {
+    return icons.map(icon => {
+      // Apply Layer 2 sanitization
+      const optimizedSvg = iconOptimizer.sanitizeSVG(icon.svgPath);
+      
+      // Run Layer 3 audit
+      const audit = iconOptimizer.auditIcon(optimizedSvg, brandHexColors);
+      
+      return {
+        ...icon,
+        svgPath: optimizedSvg,
+        audit,
+      };
+    });
+  }, [iconOptimizer, brandHexColors]);
 
   const generateSection = useCallback(async (sectionIndex: number): Promise<boolean> => {
     try {
@@ -202,8 +266,11 @@ export const IconStudioAIGenerator = ({
       if (response.error) throw new Error(response.error.message);
 
       if (response.data?.icons) {
+        // Apply Layer 2 & 3 post-processing
+        const processedIcons = postProcessIcons(response.data.icons);
+        
         setGeneratedSections(prev => prev.map((s, i) => 
-          i === sectionIndex ? { ...s, icons: response.data.icons, status: 'complete' } : s
+          i === sectionIndex ? { ...s, icons: processedIcons, status: 'complete' } : s
         ));
         setExpandedSections(prev => new Set([...prev, sections[sectionIndex].name]));
         return true;
@@ -216,7 +283,7 @@ export const IconStudioAIGenerator = ({
       ));
       return false;
     }
-  }, [entityName, industry, selectedCategory, iconStyle, selectedPreset, sections]);
+  }, [entityName, industry, selectedCategory, iconStyle, selectedPreset, sections, postProcessIcons]);
 
   const generateCategory = async () => {
     if (!entityName.trim()) {
@@ -268,9 +335,30 @@ export const IconStudioAIGenerator = ({
       return;
     }
 
-    onSaveIcons(iconsToSave, selectedLibraryId || undefined);
+    // Strip audit data before saving (internal only)
+    const cleanIcons: BrandIconography[] = iconsToSave.map(({ audit, ...icon }) => icon);
+
+    onSaveIcons(cleanIcons, selectedLibraryId || undefined);
     toast.success(`Saved ${iconsToSave.length} icons`);
   };
+
+  /**
+   * Re-run optimization pass on icons with issues
+   */
+  const simplifyIconsWithIssues = useCallback(() => {
+    setGeneratedSections(prev => prev.map(section => ({
+      ...section,
+      icons: section.icons.map(icon => {
+        if (icon.audit && !icon.audit.isOptimalSize) {
+          const simplified = iconOptimizer.simplifySVG(icon.svgPath);
+          const newAudit = iconOptimizer.auditIcon(simplified, brandHexColors);
+          return { ...icon, svgPath: simplified, audit: newAudit };
+        }
+        return icon;
+      }),
+    })));
+    toast.success('Ran simplification pass on oversized icons');
+  }, [iconOptimizer, brandHexColors]);
 
   const renderIcon = (svgPath: string, size: number = 20) => {
     const sanitized = DOMPurify.sanitize(svgPath, {
@@ -493,22 +581,73 @@ export const IconStudioAIGenerator = ({
             </div>
           ) : (
             <>
-              <div className="p-3 border-b bg-muted/50 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">
-                    <Check className="h-3 w-3 mr-1" />
-                    {selectedIcons.size} selected
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">of {generatedIconCount}</span>
+              <div className="p-3 border-b bg-muted/50 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">
+                      <Check className="h-3 w-3 mr-1" />
+                      {selectedIcons.size} selected
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">of {generatedIconCount}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" onClick={selectAllIcons} disabled={generatedIconCount === 0}>
+                      Select All
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedIcons(new Set())} disabled={selectedIcons.size === 0}>
+                      Clear
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={selectAllIcons} disabled={generatedIconCount === 0}>
-                    Select All
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setSelectedIcons(new Set())} disabled={selectedIcons.size === 0}>
-                    Clear
-                  </Button>
-                </div>
+
+                {/* Layer 3: Audit Summary Bar */}
+                {auditStats.audited > 0 && (
+                  <div className="flex items-center justify-between bg-background/50 rounded-md px-3 py-2">
+                    <div className="flex items-center gap-3">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-1.5 cursor-help">
+                            <ShieldCheck className="h-4 w-4 text-green-600" />
+                            <span className="text-xs font-medium text-green-600">{auditStats.valid}</span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>Icons passing all quality checks</TooltipContent>
+                      </Tooltip>
+                      {auditStats.withIssues > 0 && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-1.5 cursor-help">
+                              <AlertTriangle className="h-4 w-4 text-amber-500" />
+                              <span className="text-xs font-medium text-amber-500">{auditStats.withIssues}</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>Icons with minor quality issues</TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => setShowAuditDetails(!showAuditDetails)}
+                      >
+                        <FileCheck className="h-3 w-3 mr-1" />
+                        {showAuditDetails ? 'Hide' : 'Show'} Audit
+                      </Button>
+                      {auditStats.withIssues > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={simplifyIconsWithIssues}
+                        >
+                          Auto-fix Issues
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <ScrollArea className="flex-1">
@@ -548,28 +687,62 @@ export const IconStudioAIGenerator = ({
                         <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 p-3 border-l-2 border-primary/20 ml-4 mt-1">
                           {section.icons.map((icon) => {
                             const isSelected = selectedIcons.has(icon.id);
+                            const hasIssues = icon.audit && !icon.audit.isValid;
                             return (
-                              <button
-                                key={icon.id}
-                                onClick={() => toggleIconSelection(icon.id)}
-                                className={cn(
-                                  'relative p-2 rounded-lg border flex flex-col items-center gap-1 transition-all group',
-                                  isSelected
-                                    ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
-                                    : 'border-border hover:border-primary/50 hover:bg-muted/50'
-                                )}
-                                title={icon.name}
-                              >
-                                {renderIcon(icon.svgPath, 24)}
-                                <span className="text-[9px] text-muted-foreground truncate max-w-full">
-                                  {icon.name.split(' ').slice(0, 2).join(' ')}
-                                </span>
-                                {isSelected && (
-                                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
-                                    <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                              <Tooltip key={icon.id}>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => toggleIconSelection(icon.id)}
+                                    className={cn(
+                                      'relative p-2 rounded-lg border flex flex-col items-center gap-1 transition-all group',
+                                      isSelected
+                                        ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
+                                        : 'border-border hover:border-primary/50 hover:bg-muted/50',
+                                      showAuditDetails && hasIssues && 'border-amber-400/50 bg-amber-50/30 dark:bg-amber-900/10'
+                                    )}
+                                  >
+                                    {renderIcon(icon.svgPath, 24)}
+                                    <span className="text-[9px] text-muted-foreground truncate max-w-full">
+                                      {icon.name.split(' ').slice(0, 2).join(' ')}
+                                    </span>
+                                    {isSelected && (
+                                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                                        <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                                      </div>
+                                    )}
+                                    {showAuditDetails && icon.audit && (
+                                      <div className={cn(
+                                        'absolute -top-1 -left-1 w-4 h-4 rounded-full flex items-center justify-center',
+                                        icon.audit.isValid ? 'bg-green-600' : 'bg-amber-500'
+                                      )}>
+                                        {icon.audit.isValid 
+                                          ? <ShieldCheck className="h-2.5 w-2.5 text-white" />
+                                          : <AlertTriangle className="h-2.5 w-2.5 text-white" />
+                                        }
+                                      </div>
+                                    )}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs">
+                                  <div className="space-y-1">
+                                    <p className="font-medium text-xs">{icon.name}</p>
+                                    {showAuditDetails && icon.audit && (
+                                      <div className="text-[10px] space-y-0.5">
+                                        <p className="text-muted-foreground">Size: {icon.audit.fileSizeBytes} bytes</p>
+                                        {icon.audit.issues.length > 0 ? (
+                                          <ul className="text-amber-600 dark:text-amber-400">
+                                            {icon.audit.issues.map((issue, i) => (
+                                              <li key={i}>• {issue}</li>
+                                            ))}
+                                          </ul>
+                                        ) : (
+                                          <p className="text-green-600 dark:text-green-400">✓ Passes all checks</p>
+                                        )}
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              </button>
+                                </TooltipContent>
+                              </Tooltip>
                             );
                           })}
                         </div>
