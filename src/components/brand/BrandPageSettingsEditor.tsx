@@ -23,6 +23,7 @@ import {
 import { toast } from 'sonner';
 import { HeroBackground } from '@/components/HeroBackground';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
+import { LayoutPreviewCards } from './settings/LayoutPreviewCards';
 
 interface BrandPageSettingsEditorProps {
   settings: BrandPageSettings;
@@ -390,63 +391,33 @@ export const BrandPageSettingsEditor = ({ settings, onSettingsChange }: BrandPag
             {formData.showHeader && (
               <div className="space-y-3">
                 <Label>Header Style</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {headerStyles.map((style) => (
-                    <button
-                      key={style.value}
-                      onClick={() => setFormData(prev => ({ ...prev, headerStyle: style.value as any }))}
-                      className={`p-3 rounded-lg border-2 transition-colors text-left ${
-                        formData.headerStyle === style.value
-                          ? 'border-accent bg-accent/10'
-                          : 'border-border hover:border-accent/50'
-                      }`}
-                    >
-                      <span className="text-sm font-medium block">{style.label}</span>
-                      <span className="text-xs text-muted-foreground">{style.description}</span>
-                    </button>
-                  ))}
-                </div>
+                <LayoutPreviewCards
+                  options={headerStyles}
+                  value={formData.headerStyle || 'default'}
+                  onChange={(value) => setFormData(prev => ({ ...prev, headerStyle: value as any }))}
+                  type="headerStyle"
+                />
               </div>
             )}
 
             <div className="space-y-3">
               <Label>Content Width</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {contentWidths.map((width) => (
-                  <button
-                    key={width.value}
-                    onClick={() => setFormData(prev => ({ ...prev, contentWidth: width.value as any }))}
-                    className={`p-3 rounded-lg border-2 transition-colors text-left ${
-                      formData.contentWidth === width.value
-                        ? 'border-accent bg-accent/10'
-                        : 'border-border hover:border-accent/50'
-                    }`}
-                  >
-                    <span className="text-sm font-medium block">{width.label}</span>
-                    <span className="text-xs text-muted-foreground">{width.description}</span>
-                  </button>
-                ))}
-              </div>
+              <LayoutPreviewCards
+                options={contentWidths}
+                value={formData.contentWidth || 'default'}
+                onChange={(value) => setFormData(prev => ({ ...prev, contentWidth: value as any }))}
+                type="contentWidth"
+              />
             </div>
 
             <div className="space-y-3">
               <Label>Section Spacing</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {sectionSpacings.map((spacing) => (
-                  <button
-                    key={spacing.value}
-                    onClick={() => setFormData(prev => ({ ...prev, sectionSpacing: spacing.value as any }))}
-                    className={`p-3 rounded-lg border-2 transition-colors text-left ${
-                      formData.sectionSpacing === spacing.value
-                        ? 'border-accent bg-accent/10'
-                        : 'border-border hover:border-accent/50'
-                    }`}
-                  >
-                    <span className="text-sm font-medium block">{spacing.label}</span>
-                    <span className="text-xs text-muted-foreground">{spacing.description}</span>
-                  </button>
-                ))}
-              </div>
+              <LayoutPreviewCards
+                options={sectionSpacings}
+                value={formData.sectionSpacing || 'default'}
+                onChange={(value) => setFormData(prev => ({ ...prev, sectionSpacing: value as any }))}
+                type="sectionSpacing"
+              />
             </div>
           </TabsContent>
 
