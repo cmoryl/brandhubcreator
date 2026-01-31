@@ -26,7 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ScrollArea } from '@/components/ui/scroll-area';
+ 
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { InsightFeedbackControls } from './intelligence/InsightFeedbackControls';
@@ -305,7 +305,7 @@ export const BrandIntelligencePanel = ({
   }
 
   return (
-    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5 flex flex-col h-full overflow-hidden">
       <CardHeader className="pb-4 shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -366,7 +366,7 @@ export const BrandIntelligencePanel = ({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6 pb-6">
+      <CardContent className="space-y-6 pb-6 flex-1 min-h-0 overflow-y-auto">
         {/* AI Analysis Summary */}
         {intelligence?.brand_summary && (
           <Collapsible 
@@ -580,8 +580,7 @@ export const BrandIntelligencePanel = ({
             </div>
 
             {/* Entries List */}
-            <ScrollArea className="max-h-[400px]">
-              <div className="space-y-2">
+            <div className="space-y-2">
                 {intelligence?.knowledge_entries?.slice().reverse().map((entry) => {
                   const feedback = entry.source === 'ai' ? getFeedbackForInsight(entry.id) : undefined;
                   
@@ -665,8 +664,7 @@ export const BrandIntelligencePanel = ({
                     <p className="text-xs mt-1">Add notes, insights, and learnings to build your brand's intelligence</p>
                   </div>
                 )}
-              </div>
-            </ScrollArea>
+            </div>
           </CollapsibleContent>
         </Collapsible>
         </CardContent>
