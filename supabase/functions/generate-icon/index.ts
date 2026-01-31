@@ -6,6 +6,66 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+/**
+ * SVG Architect System Prompt
+ * Generates high-quality, professional-grade vector icons following
+ * "Iconic Simplicity" principles - legible at 16px, detailed at 1024px
+ */
+const SVG_ARCHITECT_PROMPT = `You are a Senior SVG Architect and Brand Systems Designer. Your goal is to generate high-quality, professional-grade vector icons that function as part of a cohesive brand library. You specialize in "Iconic Simplicity"—creating symbols that are legible at 16px but detailed enough for marketing at 1024px.
+
+## Core Directives
+
+1. **Geometric Precision**: All icons must be constructed on a 24x24 pixel grid. Use whole numbers for coordinates whenever possible to prevent sub-pixel blurring.
+
+2. **Structural Consistency**: Maintain consistent visual weight. A "Home" icon and a "Plus" icon must have the same optical volume.
+
+3. **Path Logic**: Use single, clean paths. Avoid overlapping shapes or "messy" intersections that break when converted to strokes or duotones.
+
+4. **Style Agnostic**: Generate the "Master Vector" (the skeleton). The styling parameters will be applied via attributes.
+
+## Technical Constraints (SVG Standards)
+
+- **ViewBox**: Always \`0 0 24 24\`
+- **Path Construction**: Prefer \`<path>\` elements over basic shapes (circle, rect) to allow for universal CSS stroke control
+- **No Raster Data**: Never include \`<image>\` tags or base64 data
+- **Closed Paths**: Ensure all shapes are properly closed for "Solid" and "Duotone" preset compatibility
+- **Optimization**: Strip all metadata, comments, and editor-specific tags
+
+## The 6-Category Taxonomy
+
+Categorize icons into one of these buckets:
+
+1. **Foundation**: Navigation, UI states, basic logic (arrows, menus, toggles)
+2. **Communication**: Email, social, feedback, support (chat, notifications, mail)
+3. **SaaS/Data**: Analytics, security, settings, workflows (charts, locks, gears)
+4. **E-Commerce**: Payments, shipping, storefront, loyalty (carts, cards, packages)
+5. **Marketing Hero**: Growth, trophies, "trust" signals, abstract concepts (stars, badges, rockets)
+6. **Industry Specific**: Custom symbols based on context (medical, legal, AI, etc.)
+
+## Style Preset Awareness
+
+Adapt the path structure to support these 10 style outcomes:
+
+1. **Minimalist/Linear**: Focus on stroke paths and open terminals
+2. **Brutalist**: Paths strictly 0°, 45°, or 90° angles only
+3. **Hand-Drawn**: Subtle "human" imperfections in path coordinates
+4. **Glassmorphic**: Clear "Background" and "Foreground" path separation for layering
+5. **Duotone**: Separate primary stroke and secondary fill paths
+6. **Outlined**: Standard stroke-based with consistent weight
+7. **Filled/Solid**: Closed paths suitable for solid fills
+8. **Sharp**: Square terminals and miter joins
+9. **Soft/Rounded**: Round terminals and round joins
+10. **Thick Stroke**: Heavy stroke weight (3-4px)
+
+## Output Requirements
+
+Return ONLY valid SVG code with these attributes applied based on the style parameter:
+- Use \`stroke="currentColor"\` and \`fill="none"\` for stroke-based
+- Use \`fill="currentColor"\` and \`stroke="none"\` for filled icons
+- Apply stroke-width, stroke-linecap, stroke-linejoin as specified
+
+The SVG must be clean, optimized, and immediately usable.`;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -39,7 +99,7 @@ serve(async (req) => {
 
     console.log(`[generate-icon] Authenticated user: ${user.id}`);
 
-    const { prompt, style } = await req.json();
+    const { prompt, style, preset, category } = await req.json();
 
     if (!prompt) {
       return new Response(
@@ -53,24 +113,46 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Build the system prompt for icon generation
-    const systemPrompt = `You are an expert icon designer. Generate clean, minimal SVG icon code based on user descriptions.
+    // Determine stroke/fill settings based on style and preset
+    const strokeWidth = style?.strokeWidth || 2;
+    const cornerStyle = style?.cornerRadius || 'rounded';
+    const isFilled = style?.fill || preset === 'filled' || preset === 'sharp-filled' || preset === 'soft-filled';
+    const linecap = cornerStyle === 'sharp' ? 'square' : 'round';
+    const linejoin = cornerStyle === 'sharp' ? 'miter' : 'round';
 
-RULES:
-1. Output ONLY valid SVG code, nothing else
-2. Use viewBox="0 0 24 24" for consistency
-3. Keep icons simple and recognizable at small sizes
-4. Use stroke-based design with stroke-width="${style?.strokeWidth || 2}"
-5. Use stroke-linecap="${style?.cornerRadius === 'sharp' ? 'square' : 'round'}" and stroke-linejoin="${style?.cornerRadius === 'sharp' ? 'miter' : 'round'}"
-6. Use stroke="currentColor" and fill="${style?.fill ? 'currentColor' : 'none'}"
-7. Keep paths simple - avoid complex gradients or filters
-8. Ensure the icon is centered and uses the full 24x24 space appropriately
-9. Use semantic path data that's clean and optimized
+    // Build contextual user prompt
+    let userPrompt = `Create an icon for: ${prompt}`;
+    if (category) {
+      userPrompt += `\n\nThis icon belongs to the "${category}" category. Ensure it fits the visual language of ${
+        category === 'Foundation' ? 'navigation and UI elements' :
+        category === 'Communication' ? 'messaging and social interactions' :
+        category === 'SaaS/Data' ? 'analytics, settings, and data workflows' :
+        category === 'E-Commerce' ? 'shopping, payments, and commerce' :
+        category === 'Marketing Hero' ? 'growth, trust signals, and abstract concepts' :
+        'industry-specific professional symbols'
+      }.`;
+    }
+    if (preset) {
+      userPrompt += `\n\nApply the "${preset}" style preset - ${
+        preset === 'minimalist' ? 'ultra-clean thin strokes with open terminals' :
+        preset === 'brutalist' ? 'strict 0°, 45°, or 90° angles only' :
+        preset === 'hand-drawn' ? 'subtle human imperfections in paths' :
+        preset === 'glassmorphic' ? 'layered background/foreground separation' :
+        preset === 'duotone' ? 'primary stroke with secondary fill layer' :
+        'standard professional icon styling'
+      }.`;
+    }
 
-OUTPUT FORMAT:
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  [path elements here]
-</svg>`;
+    const styleDirective = `
+Apply these exact SVG attributes:
+- viewBox="0 0 24 24"
+- stroke-width="${strokeWidth}"
+- stroke-linecap="${linecap}"
+- stroke-linejoin="${linejoin}"
+- stroke="${isFilled ? 'none' : 'currentColor'}"
+- fill="${isFilled ? 'currentColor' : 'none'}"
+
+Output ONLY the complete SVG element, nothing else.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -81,8 +163,8 @@ OUTPUT FORMAT:
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Create an icon for: ${prompt}` },
+          { role: "system", content: SVG_ARCHITECT_PROMPT + styleDirective },
+          { role: "user", content: userPrompt },
         ],
       }),
     });
@@ -120,8 +202,23 @@ OUTPUT FORMAT:
 
     const svg = svgMatch[0];
 
+    // Generate kebab-case ID from prompt
+    const iconId = prompt
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .slice(0, 40);
+
     return new Response(
-      JSON.stringify({ svg }),
+      JSON.stringify({ 
+        svg,
+        metadata: {
+          icon_id: iconId,
+          category: category || 'Foundation',
+          preset: preset || 'outlined',
+          design_notes: `Generated with ${cornerStyle} corners, stroke-width ${strokeWidth}`
+        }
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

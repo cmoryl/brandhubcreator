@@ -6,45 +6,98 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Icon sections by entity type
-const ENTITY_SECTIONS: Record<string, { name: string; description: string; count: number }[]> = {
-  brand: [
-    { name: "Core Identity", description: "Logo marks, brand symbols, identity elements", count: 6 },
-    { name: "Navigation", description: "Menu, arrows, wayfinding icons", count: 6 },
-    { name: "Actions", description: "Edit, save, delete, share operations", count: 6 },
-    { name: "Communication", description: "Messages, notifications, contact icons", count: 6 },
-    { name: "Commerce", description: "Shopping, payments, transactions", count: 5 },
-    { name: "Users & Teams", description: "People, profiles, collaboration", count: 5 },
-    { name: "Data & Analytics", description: "Charts, metrics, reporting", count: 5 },
-    { name: "Settings & Security", description: "Configuration, privacy, locks", count: 5 },
-    { name: "Files & Media", description: "Documents, images, attachments", count: 4 },
-    { name: "Status & Feedback", description: "Alerts, success, error states", count: 2 },
-  ],
-  product: [
-    { name: "Product Features", description: "Core functionality and capabilities", count: 8 },
-    { name: "User Actions", description: "Primary interactions and operations", count: 7 },
-    { name: "Navigation", description: "Menu, tabs, breadcrumbs, arrows", count: 6 },
-    { name: "Data Display", description: "Tables, lists, grids, views", count: 5 },
-    { name: "Input & Forms", description: "Fields, selections, uploads", count: 5 },
-    { name: "Feedback & Status", description: "Loading, success, error, progress", count: 5 },
-    { name: "Settings", description: "Preferences, configuration, toggles", count: 5 },
-    { name: "Help & Support", description: "Documentation, tooltips, guides", count: 4 },
-    { name: "Social & Sharing", description: "Share, connect, collaborate", count: 3 },
-    { name: "Utilities", description: "Search, filter, sort, refresh", count: 2 },
-  ],
-  event: [
-    { name: "Event Identity", description: "Event logo, badges, marks", count: 6 },
-    { name: "Schedule & Time", description: "Calendar, clock, timeline icons", count: 7 },
-    { name: "Venue & Location", description: "Maps, directions, places", count: 6 },
-    { name: "Speakers & People", description: "Presenters, attendees, teams", count: 6 },
-    { name: "Sessions & Content", description: "Talks, workshops, panels", count: 6 },
-    { name: "Registration", description: "Tickets, badges, check-in", count: 5 },
-    { name: "Networking", description: "Connect, chat, meet", count: 5 },
-    { name: "Sponsors & Partners", description: "Exhibitors, partners, booths", count: 4 },
-    { name: "Amenities", description: "Food, parking, facilities", count: 3 },
-    { name: "Feedback", description: "Ratings, surveys, comments", count: 2 },
-  ],
+/**
+ * 100-Icon Taxonomy organized into 6 categories
+ * Each category has sections with specific icon counts
+ */
+const ICON_TAXONOMY: Record<string, { name: string; description: string; sections: { name: string; description: string; count: number }[] }> = {
+  Foundation: {
+    name: "Foundation",
+    description: "Navigation, UI states, basic logic",
+    sections: [
+      { name: "Navigation", description: "Arrows, menus, wayfinding, breadcrumbs", count: 8 },
+      { name: "UI States", description: "Toggle, checkbox, radio, expand/collapse", count: 6 },
+      { name: "Basic Logic", description: "Plus, minus, close, check, refresh", count: 6 },
+    ]
+  },
+  Communication: {
+    name: "Communication", 
+    description: "Email, social, feedback, support",
+    sections: [
+      { name: "Messaging", description: "Chat bubbles, comments, conversations", count: 6 },
+      { name: "Notifications", description: "Bells, alerts, badges, indicators", count: 5 },
+      { name: "Social", description: "Share, like, follow, connect", count: 5 },
+      { name: "Support", description: "Help, FAQ, contact, feedback", count: 4 },
+    ]
+  },
+  "SaaS/Data": {
+    name: "SaaS/Data",
+    description: "Analytics, security, settings, workflows",
+    sections: [
+      { name: "Analytics", description: "Charts, graphs, metrics, dashboards", count: 7 },
+      { name: "Security", description: "Locks, shields, keys, verification", count: 5 },
+      { name: "Settings", description: "Gears, sliders, toggles, configuration", count: 5 },
+      { name: "Workflows", description: "Process, automation, integrations", count: 5 },
+    ]
+  },
+  "E-Commerce": {
+    name: "E-Commerce",
+    description: "Payments, shipping, storefront, loyalty",
+    sections: [
+      { name: "Shopping", description: "Cart, bag, wishlist, browse", count: 5 },
+      { name: "Payments", description: "Cards, wallet, transactions, invoices", count: 5 },
+      { name: "Shipping", description: "Delivery, tracking, packages, returns", count: 5 },
+      { name: "Loyalty", description: "Rewards, points, membership, gifts", count: 3 },
+    ]
+  },
+  "Marketing Hero": {
+    name: "Marketing Hero",
+    description: "Growth, trophies, trust signals, abstract concepts",
+    sections: [
+      { name: "Growth", description: "Rockets, trends, scales, expansion", count: 5 },
+      { name: "Achievement", description: "Trophies, medals, badges, certificates", count: 4 },
+      { name: "Trust", description: "Handshakes, guarantees, verified, secure", count: 4 },
+      { name: "Abstract", description: "Innovation, ideas, concepts, vision", count: 4 },
+    ]
+  },
+  "Industry Specific": {
+    name: "Industry Specific",
+    description: "Custom symbols based on user's niche",
+    sections: [
+      { name: "Professional", description: "Industry-relevant professional symbols", count: 5 },
+      { name: "Technical", description: "Specialized technical icons", count: 5 },
+      { name: "Domain", description: "Domain-specific imagery", count: 4 },
+    ]
+  }
 };
+
+/**
+ * SVG Architect System Prompt for batch icon generation
+ */
+const SVG_ARCHITECT_PROMPT = `You are a Senior SVG Architect and Brand Systems Designer generating a cohesive icon library. You specialize in "Iconic Simplicity"—creating symbols legible at 16px yet detailed enough for marketing at 1024px.
+
+## Core Directives
+
+1. **Geometric Precision**: 24x24 pixel grid. Whole numbers for coordinates.
+2. **Structural Consistency**: Uniform visual weight across all icons.
+3. **Path Logic**: Single, clean paths. No overlapping or messy intersections.
+4. **Cohesive Set**: All icons must feel like they belong to the same family.
+
+## Technical Standards
+
+- ViewBox: \`0 0 24 24\`
+- Use \`<path>\` elements (not basic shapes) for CSS control
+- No raster data or base64
+- Closed paths for fill compatibility
+- Optimized, clean SVG code
+
+## Output Format
+
+Return a JSON array of icon objects. Each must have:
+- \`name\`: Descriptive, unique name (e.g., "Dashboard Overview")
+- \`svg\`: Complete, valid SVG code
+
+IMPORTANT: Output ONLY the JSON array, no markdown code blocks, no explanation.`;
 
 interface IconResult {
   id: string;
@@ -53,11 +106,6 @@ interface IconResult {
   category: string;
   viewBox: string;
   fillMode: 'stroke' | 'fill';
-}
-
-interface SectionResult {
-  section: string;
-  icons: IconResult[];
 }
 
 serve(async (req) => {
@@ -94,11 +142,12 @@ serve(async (req) => {
     console.log(`[generate-icon-set] Authenticated user: ${user.id}`);
 
     const { 
-      entityType = 'brand', 
-      entityName, 
+      entityName,
       industry,
+      category = 'Foundation', // Which taxonomy category
+      sectionIndex = 0, // Which section within category
       style = { strokeWidth: 2, cornerRadius: 'rounded', fill: false },
-      sectionIndex = 0, // Which section to generate (for chunked processing)
+      preset = 'outlined',
     } = await req.json();
 
     if (!entityName) {
@@ -113,15 +162,18 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const sections = ENTITY_SECTIONS[entityType] || ENTITY_SECTIONS.brand;
+    // Get the category and its sections
+    const taxonomyCategory = ICON_TAXONOMY[category] || ICON_TAXONOMY.Foundation;
+    const sections = taxonomyCategory.sections;
     
     // If sectionIndex is out of bounds, return complete
     if (sectionIndex >= sections.length) {
       return new Response(
         JSON.stringify({ 
           complete: true, 
+          category,
           totalSections: sections.length,
-          message: "All sections generated" 
+          message: `All ${category} sections generated` 
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -129,33 +181,33 @@ serve(async (req) => {
 
     const currentSection = sections[sectionIndex];
     
-    // Build comprehensive prompt for icon generation
-    const systemPrompt = `You are an expert icon designer creating a cohesive icon set for "${entityName}"${industry ? ` in the ${industry} industry` : ''}.
+    // Determine style attributes
+    const strokeWidth = style?.strokeWidth || 2;
+    const cornerStyle = style?.cornerRadius || 'rounded';
+    const isFilled = style?.fill || preset === 'filled';
+    const linecap = cornerStyle === 'sharp' ? 'square' : 'round';
+    const linejoin = cornerStyle === 'sharp' ? 'miter' : 'round';
 
-You are generating icons for the "${currentSection.name}" section: ${currentSection.description}
+    // Build contextual prompt
+    const contextPrompt = `Generate ${currentSection.count} unique icons for the "${currentSection.name}" section.
+Section Description: ${currentSection.description}
+Brand/Entity: ${entityName}${industry ? ` (${industry} industry)` : ''}
+Category: ${taxonomyCategory.name} - ${taxonomyCategory.description}
 
-CRITICAL RULES:
-1. Output ONLY a valid JSON array of icon objects, nothing else
-2. Generate exactly ${currentSection.count} unique icons
-3. Each icon must have: name (string), svg (complete SVG code)
-4. Use viewBox="0 0 24 24" for all icons
-5. Use stroke-based design with stroke-width="${style?.strokeWidth || 2}"
-6. Use stroke-linecap="${style?.cornerRadius === 'sharp' ? 'square' : 'round'}" and stroke-linejoin="${style?.cornerRadius === 'sharp' ? 'miter' : 'round'}"
-7. Use stroke="currentColor" and fill="${style?.fill ? 'currentColor' : 'none'}"
-8. Keep paths simple - avoid complex gradients or filters
-9. Icons should be recognizable at 24px and scale well
-10. Names should be descriptive and unique (e.g., "Dashboard Overview", "User Profile", "Settings Gear")
-11. Make icons relevant to "${entityName}" and its ${entityType === 'event' ? 'event' : entityType === 'product' ? 'product' : 'brand'} context
+Style Requirements:
+- Preset: ${preset}
+- stroke-width: ${strokeWidth}
+- stroke-linecap: ${linecap}
+- stroke-linejoin: ${linejoin}
+- stroke: ${isFilled ? 'none' : 'currentColor'}
+- fill: ${isFilled ? 'currentColor' : 'none'}
 
-OUTPUT FORMAT (JSON array only, no markdown):
-[
-  {
-    "name": "Icon Name",
-    "svg": "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 24 24\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"><path d=\\"...\\" /></svg>"
-  }
-]`;
+Make icons relevant to "${entityName}" while maintaining cohesion with the ${taxonomyCategory.name} category visual language.
 
-    console.log(`[generate-icon-set] Generating ${currentSection.count} icons for section: ${currentSection.name}`);
+Return ONLY a JSON array like this (no markdown):
+[{"name": "Icon Name", "svg": "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 24 24\\" ...>...</svg>"}]`;
+
+    console.log(`[generate-icon-set] Generating ${currentSection.count} icons for ${category}/${currentSection.name}`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -166,11 +218,8 @@ OUTPUT FORMAT (JSON array only, no markdown):
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: systemPrompt },
-          { 
-            role: "user", 
-            content: `Generate ${currentSection.count} icons for the "${currentSection.name}" section of ${entityName}'s ${entityType} icon set. Return only a JSON array.` 
-          },
+          { role: "system", content: SVG_ARCHITECT_PROMPT },
+          { role: "user", content: contextPrompt },
         ],
       }),
     });
@@ -221,7 +270,7 @@ OUTPUT FORMAT (JSON array only, no markdown):
       let i = 0;
       for (const match of svgMatches) {
         icons.push({
-          name: names[i] || `Icon ${i + 1}`,
+          name: names[i] || `${currentSection.name} ${i + 1}`,
           svg: match[0]
         });
         i++;
@@ -233,15 +282,16 @@ OUTPUT FORMAT (JSON array only, no markdown):
       id: crypto.randomUUID(),
       name: icon.name || `${currentSection.name} Icon ${idx + 1}`,
       svgPath: icon.svg,
-      category: currentSection.name,
+      category: `${category} / ${currentSection.name}`,
       viewBox: '0 0 24 24',
-      fillMode: style?.fill ? 'fill' : 'stroke',
+      fillMode: isFilled ? 'fill' : 'stroke',
     }));
 
-    console.log(`[generate-icon-set] Generated ${formattedIcons.length} icons for section: ${currentSection.name}`);
+    console.log(`[generate-icon-set] Generated ${formattedIcons.length} icons for ${category}/${currentSection.name}`);
 
     return new Response(
       JSON.stringify({ 
+        category,
         section: currentSection.name,
         sectionDescription: currentSection.description,
         icons: formattedIcons,
@@ -249,6 +299,11 @@ OUTPUT FORMAT (JSON array only, no markdown):
         totalSections: sections.length,
         nextIndex: sectionIndex + 1,
         complete: sectionIndex >= sections.length - 1,
+        taxonomy: {
+          categoryName: taxonomyCategory.name,
+          categoryDescription: taxonomyCategory.description,
+          totalCategories: Object.keys(ICON_TAXONOMY).length,
+        }
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
