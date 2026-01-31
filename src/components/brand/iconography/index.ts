@@ -1,17 +1,53 @@
-// Unified Icon Studio (primary export)
+/**
+ * Icon System Exports
+ * 
+ * The IconStudio is the unified entry point for ALL icon-related functionality:
+ * - Library: Manage organization icon libraries with hierarchy
+ * - AI Generator: Generate complete icon sets with AI
+ * - Stylizer: Convert PNG images to brand-aligned SVG icons
+ * - Advanced: Responsive, stateful, and animated icon variants
+ * - Hierarchy: Brand inheritance & color mapping
+ * - App Icons: Create platform-specific app icons (Android, iOS, PWA)
+ * - Creator: Design individual custom icons
+ */
+
+// ============================================
+// PRIMARY EXPORT: Unified Icon Studio
+// ============================================
 export { IconStudio } from './IconStudio';
 export type { IconStudioTab } from './IconStudio';
 
-// Core components
+// ============================================
+// SUPPORTING COMPONENTS (used within IconStudio and brand guides)
+// ============================================
 export { IconLibraryManager } from './IconLibraryManager';
 export { HierarchicalIconDisplay } from './HierarchicalIconDisplay';
 export { IconUsageGuidelines } from './IconUsageGuidelines';
 
-// Internal components (used by IconStudio and IconLibraryManager)
+// ============================================
+// INTERNAL COMPONENTS (used by IconStudio)
+// ============================================
 export { SortableLibraryCard } from './SortableLibraryCard';
 export { SortableLevelSection } from './SortableLevelSection';
 
-// Legacy standalone dialogs (deprecated - use IconStudio instead)
+// ============================================
+// STUDIO SUB-COMPONENTS
+// ============================================
+export {
+  IconStudioLibrary,
+  IconStudioAIGenerator,
+  IconStylizer,
+  StylizerPreview,
+  IconStudioAppIcons,
+  IconStudioCreator,
+  IconAdvancedFeatures,
+  IconBrandHierarchy,
+} from './studio';
+
+// ============================================
+// LEGACY STANDALONE DIALOGS
+// @deprecated Use IconStudio instead - these are kept for backward compatibility
+// ============================================
 export { IconCreatorDialog } from './IconCreatorDialog';
 export { IconSetGeneratorDialog } from './IconSetGeneratorDialog';
 export { AppIconGenerator } from './AppIconGenerator';
