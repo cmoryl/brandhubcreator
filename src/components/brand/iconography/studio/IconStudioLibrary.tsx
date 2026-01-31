@@ -122,18 +122,40 @@ export const IconStudioLibrary = ({
     resetForm();
   };
 
-  const renderIcon = (svgPath: string, size: number = 20) => {
-    const sanitized = DOMPurify.sanitize(svgPath, {
-      USE_PROFILES: { svg: true, svgFilters: true },
-      FORBID_TAGS: ['script', 'foreignObject'],
-    });
-    
+  const renderIcon = (icon: BrandIconography, size: number = 20) => {
+    const viewBox = icon.viewBox || '0 0 24 24';
+    const isFullSvg = icon.svgPath.includes('<');
+
+    if (isFullSvg) {
+      // Full SVG content - wrap in properly sized container
+      const sanitized = DOMPurify.sanitize(icon.svgPath, {
+        USE_PROFILES: { svg: true, svgFilters: true },
+        FORBID_TAGS: ['script', 'foreignObject'],
+      });
+      
+      return (
+        <div 
+          className="flex items-center justify-center"
+          style={{ width: size, height: size }}
+        >
+          <svg viewBox={viewBox} className="w-full h-full" fill="currentColor">
+            <g dangerouslySetInnerHTML={{ __html: sanitized }} />
+          </svg>
+        </div>
+      );
+    }
+
+    // Path data only - render as proper SVG
     return (
-      <div 
-        className="flex items-center justify-center"
+      <svg
+        viewBox={viewBox}
         style={{ width: size, height: size }}
-        dangerouslySetInnerHTML={{ __html: sanitized }}
-      />
+        fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
+        stroke={icon.fillMode === 'stroke' ? 'currentColor' : 'none'}
+        strokeWidth={icon.fillMode === 'stroke' ? 2 : undefined}
+      >
+        <path d={icon.svgPath} />
+      </svg>
     );
   };
 
@@ -198,9 +220,9 @@ export const IconStudioLibrary = ({
                   )}
                   {lib.icons.length > 0 && (
                     <div className="flex gap-1 mt-2">
-                      {lib.icons.slice(0, 6).map((icon) => (
-                        <div key={icon.id} className="p-1.5 rounded bg-background border">
-                          {renderIcon(icon.svgPath, 16)}
+                      {lib.icons.slice(0, 6).map((iconItem) => (
+                        <div key={iconItem.id} className="p-1.5 rounded bg-background border">
+                          {renderIcon(iconItem, 16)}
                         </div>
                       ))}
                       {lib.icons.length > 6 && (
