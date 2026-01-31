@@ -80,8 +80,8 @@ export const IconStudioCreator = ({
         name: iconName.replace(/([A-Z])/g, ' $1').trim(),
         svgPath: svgString,
         category: 'lucide',
-        tags: [iconName.toLowerCase()],
-        usage: 'ui-icon',
+        viewBox: '0 0 24 24',
+        fillMode: 'stroke' as const,
       };
     });
 
@@ -116,8 +116,8 @@ export const IconStudioCreator = ({
       name: customName.trim(),
       svgPath: sanitized,
       category: customCategory,
-      tags: [customCategory, 'custom'],
-      usage: 'custom-icon',
+      viewBox: '0 0 24 24',
+      fillMode: 'fill' as const,
     };
 
     onSaveIcons([icon], selectedLibraryId || undefined);
