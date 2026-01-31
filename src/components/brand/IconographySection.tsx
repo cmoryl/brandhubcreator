@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp, Sparkles, Wand2 } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SectionHeader } from './SectionHeader';
-import { IconCreatorDialog, IconUsageGuidelines, HierarchicalIconDisplay } from './iconography';
+import { IconCreatorDialog, IconUsageGuidelines, HierarchicalIconDisplay, IconSetGeneratorDialog } from './iconography';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 import JSZip from 'jszip';
@@ -43,6 +43,9 @@ interface IconographySectionProps {
   brandColors?: Array<{ hex: string; name: string }>;
   organizationId?: string;
   productLineId?: string;
+  entityType?: 'brand' | 'product' | 'event';
+  entityName?: string;
+  industry?: string;
 }
 
 type GridSize = 'compact' | 'medium' | 'large';
@@ -65,6 +68,9 @@ export const IconographySection = ({
   brandColors = [],
   organizationId,
   productLineId,
+  entityType = 'brand',
+  entityName = '',
+  industry,
 }: IconographySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -73,6 +79,7 @@ export const IconographySection = ({
   const [iconColor, setIconColor] = useState<string>(defaultIconColor || 'currentColor');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [showIconCreator, setShowIconCreator] = useState(false);
+  const [showIconSetGenerator, setShowIconSetGenerator] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const ICONS_PREVIEW_LIMIT = 8;
@@ -487,9 +494,13 @@ ${innerContent}
             <Plus className="h-4 w-4" />
             Add Icon
           </Button>
-          <Button onClick={() => setShowIconCreator(true)} size="sm" className="gap-2">
+          <Button onClick={() => setShowIconCreator(true)} size="sm" className="gap-2" variant="outline">
             <Sparkles className="h-4 w-4" />
             Icon Creator
+          </Button>
+          <Button onClick={() => setShowIconSetGenerator(true)} size="sm" className="gap-2">
+            <Wand2 className="h-4 w-4" />
+            AI Icon Set
           </Button>
         </div>
       </div>
@@ -653,6 +664,18 @@ ${innerContent}
           onIconographyChange([...iconography, ...newIcons]);
         }}
         brandColors={brandColors}
+      />
+
+      {/* AI Icon Set Generator Dialog */}
+      <IconSetGeneratorDialog
+        open={showIconSetGenerator}
+        onOpenChange={setShowIconSetGenerator}
+        onSave={(newIcons) => {
+          onIconographyChange([...iconography, ...newIcons]);
+        }}
+        entityType={entityType}
+        entityName={entityName}
+        industry={industry}
       />
     </section>
   );
