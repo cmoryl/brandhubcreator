@@ -97,15 +97,9 @@ const ProductEditor = () => {
   const { user, isAdmin, isApproved, isLoading: authLoading } = useAuth();
   const { userRole: orgRole, organization } = useOrganization();
 
-  // Check if user can edit: global admin OR org member with appropriate role
-  // During auth loading, we preserve potential edit access for logged-in users to avoid UI flicker
-  const canEditOrg = orgRole && ['owner', 'admin', 'member'].includes(orgRole);
-  const canEdit = user && (isAdmin || canEditOrg || authLoading);
-  
-  // Treat organization owners/admins as "admins" within the guide as well.
-  // Otherwise they are treated as viewers and hiddenSections can hide key areas (e.g., Social sections).
-  const isGuideAdmin = Boolean(isAdmin || (orgRole && ['owner', 'admin'].includes(orgRole)));
-  
+  // Note: canEdit and isGuideAdmin are calculated below after currentProduct is defined
+  // to ensure we check against the correct organization
+
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('full');
@@ -280,7 +274,20 @@ const ProductEditor = () => {
   // Use context product if available, otherwise use fetched public product
   const currentProduct = contextProduct || publicProduct;
 
-  // Track product view for analytics
+  // Check if user can edit: global admin OR org member with appropriate role for THIS product's org
+  // During auth loading, we preserve potential edit access for logged-in users to avoid UI flicker
+  const isProductOrgMember = orgRole && 
+    ['owner', 'admin', 'member'].includes(orgRole) && 
+    organization?.id && 
+    currentProduct?.organizationId && 
+    organization.id === currentProduct.organizationId;
+  const canEditOrg = Boolean(isProductOrgMember);
+  const canEdit = user && (isAdmin || canEditOrg || authLoading);
+  
+  // Treat organization owners/admins as "admins" within the guide as well.
+  // Otherwise they are treated as viewers and hiddenSections can hide key areas (e.g., Social sections).
+  const isGuideAdmin = Boolean(isAdmin || canEditOrg);
+
   useEffect(() => {
     if (currentProduct?.id && user?.id) {
       trackEntityView(user.id, 'product', currentProduct.id, currentProduct.hero?.name || 'Unknown Product');

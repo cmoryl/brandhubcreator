@@ -277,11 +277,17 @@ const EventEditor = () => {
     fetchParentEvent();
   }, [event?.id, event?.slug]);
   
-  // Check if user can edit: global admin OR org member with appropriate role
+  // Check if user can edit: global admin OR org member with appropriate role for THIS event's org
   // During auth loading, we preserve potential edit access for logged-in users to avoid UI flicker
-  const canEditOrg = orgRole && ['owner', 'admin', 'member'].includes(orgRole);
+  const isEventOrgMember = orgRole && 
+    ['owner', 'admin', 'member'].includes(orgRole) && 
+    organization?.id && 
+    event?.organizationId && 
+    organization.id === event.organizationId;
+  const canEditOrg = Boolean(isEventOrgMember);
   const canEdit = user && (isAdmin || canEditOrg || authLoading);
   const isGuideAdmin = Boolean(isAdmin || canEditOrg);
+
   
   // Permission check (debug logging removed for production)
   
