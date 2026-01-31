@@ -305,7 +305,7 @@ export const BrandIntelligencePanel = ({
   }
 
   return (
-    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5 flex flex-col max-h-[calc(100vh-4rem)]">
+    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
       <CardHeader className="pb-4 shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
