@@ -412,12 +412,12 @@ export const IconSetGeneratorDialog = ({
             {/* Industry */}
             <div className="space-y-2">
               <Label>Industry (optional)</Label>
-              <Select value={industry} onValueChange={setIndustry} disabled={isGenerating}>
+              <Select value={industry || 'none'} onValueChange={(v) => setIndustry(v === 'none' ? '' : v)} disabled={isGenerating}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select industry..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {INDUSTRIES.map((ind) => (
                     <SelectItem key={ind} value={ind}>{ind}</SelectItem>
                   ))}
@@ -429,12 +429,12 @@ export const IconSetGeneratorDialog = ({
             {libraries.length > 0 && (
               <div className="space-y-2">
                 <Label>Save to Library</Label>
-                <Select value={selectedLibraryId} onValueChange={setSelectedLibraryId} disabled={isGenerating}>
+                <Select value={selectedLibraryId || 'auto'} onValueChange={(v) => setSelectedLibraryId(v === 'auto' ? '' : v)} disabled={isGenerating}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select target library..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Auto (first Core library)</SelectItem>
+                    <SelectItem value="auto">Auto (first Core library)</SelectItem>
                     {libraries.filter(l => l.is_active).map((lib) => (
                       <SelectItem key={lib.id} value={lib.id}>
                         <div className="flex items-center gap-2">
