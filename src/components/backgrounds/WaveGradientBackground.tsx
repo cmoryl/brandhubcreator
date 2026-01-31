@@ -1,4 +1,4 @@
-import { useEffect, useRef, memo } from 'react';
+import { useEffect, useRef, memo, useState } from 'react';
 
 interface WaveGradientBackgroundProps {
   variant?: 'default' | 'subtle' | 'bold' | 'dark';
@@ -47,6 +47,26 @@ const SPEED_MAP = {
   fast: 0.001,
 };
 
+// Hook to detect prefers-reduced-motion
+const usePrefersReducedMotion = () => {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handler = (event: MediaQueryListEvent) => {
+      setPrefersReducedMotion(event.matches);
+    };
+    
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+
+  return prefersReducedMotion;
+};
+
 export const WaveGradientBackground = memo(function WaveGradientBackground({
   variant = 'default',
   speed = 'medium',
@@ -55,6 +75,12 @@ export const WaveGradientBackground = memo(function WaveGradientBackground({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(0);
   const timeRef = useRef(0);
+  const prefersReducedMotion = usePrefersReducedMotion();
+  
+  // If user prefers reduced motion, render the static CSS fallback instead
+  if (prefersReducedMotion) {
+    return <WaveGradientBackgroundCSS variant={variant} className={className} />;
+  }
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -196,13 +222,14 @@ export const WaveGradientBackground = memo(function WaveGradientBackground({
       cancelAnimationFrame(animationRef.current);
       window.removeEventListener('resize', resizeCanvas);
     };
-  }, [variant, speed]);
+  }, [variant, speed, prefersReducedMotion]);
 
   return (
     <canvas
       ref={canvasRef}
       className={`absolute inset-0 w-full h-full pointer-events-none ${className}`}
       style={{ mixBlendMode: 'normal' }}
+      aria-hidden="true"
     />
   );
 });
@@ -216,6 +243,7 @@ export const WaveGradientBackgroundCSS = memo(function WaveGradientBackgroundCSS
     <div
       className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}
       style={{ isolation: 'isolate' }}
+      aria-hidden="true"
     >
       {/* Gradient blobs */}
       <div
