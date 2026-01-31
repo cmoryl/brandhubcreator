@@ -4,6 +4,7 @@
  * Consolidates all icon-related features into a single cohesive interface:
  * - Library: Manage organization icon libraries with hierarchy
  * - AI Generator: Generate complete icon sets with AI
+ * - Stylizer: Convert PNG images to brand-aligned SVG icons
  * - App Icons: Create platform-specific app icons (Android, iOS, PWA)
  * - Creator: Design individual custom icons
  */
@@ -24,6 +25,7 @@ import {
   Smartphone,
   Palette,
   Sparkles,
+  ImageIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BrandIconography } from '@/types/brand';
@@ -34,8 +36,9 @@ import { IconStudioLibrary } from './studio/IconStudioLibrary';
 import { IconStudioAIGenerator } from './studio/IconStudioAIGenerator';
 import { IconStudioAppIcons } from './studio/IconStudioAppIcons';
 import { IconStudioCreator } from './studio/IconStudioCreator';
+import { IconStylizer } from './studio/IconStylizer';
 
-export type IconStudioTab = 'library' | 'ai-generator' | 'app-icons' | 'creator';
+export type IconStudioTab = 'library' | 'ai-generator' | 'stylizer' | 'app-icons' | 'creator';
 
 interface IconStudioProps {
   open: boolean;
@@ -59,6 +62,12 @@ const TAB_CONFIG = [
     label: 'AI Generator',
     icon: Wand2,
     description: 'Generate icon sets with AI',
+  },
+  {
+    id: 'stylizer' as const,
+    label: 'Stylizer',
+    icon: ImageIcon,
+    description: 'PNG to SVG conversion',
   },
   {
     id: 'app-icons' as const,
@@ -151,7 +160,7 @@ export const IconStudio = ({
         >
           {/* Tab Navigation */}
           <div className="px-6 pt-4 pb-2 border-b bg-muted/30">
-            <TabsList className="grid grid-cols-4 w-full max-w-2xl">
+            <TabsList className="grid grid-cols-5 w-full max-w-3xl">
               {TAB_CONFIG.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -198,6 +207,17 @@ export const IconStudio = ({
                     brandColors={brandColors}
                     libraries={libraries}
                     onSaveIcons={handleSaveIcons}
+                  />
+                </div>
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="stylizer" className="h-full m-0 data-[state=inactive]:hidden">
+              <ScrollArea className="h-full">
+                <div className="p-6">
+                  <IconStylizer
+                    brandColors={brandColors.map(c => c.hex)}
+                    onIconCreated={(icon) => handleSaveIcons([icon])}
                   />
                 </div>
               </ScrollArea>
