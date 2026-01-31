@@ -23,6 +23,7 @@ import {
   Check,
   AlertCircle,
   Loader2,
+  Clock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -39,6 +40,16 @@ interface BatchProcessingPanelProps {
   libraryName: string;
   onComplete?: (result: BatchProcessingResult) => void;
 }
+
+// Format milliseconds to human readable time
+const formatTime = (ms: number): string => {
+  if (ms < 1000) return 'less than 1s';
+  const seconds = Math.floor(ms / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}m ${remainingSeconds}s`;
+};
 
 export const BatchProcessingPanel: React.FC<BatchProcessingPanelProps> = ({
   icons,
@@ -262,11 +273,23 @@ export const BatchProcessingPanel: React.FC<BatchProcessingPanelProps> = ({
               <span className="font-medium">{progress.percentage}%</span>
             </div>
             <Progress value={progress.percentage} className="h-2" />
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Badge variant="outline" className="text-[10px] capitalize">
-                {progress.phase}
-              </Badge>
-              <span>{progress.current} / {progress.total} icons</span>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-[10px] capitalize">
+                  {progress.phase}
+                </Badge>
+                <span>{progress.current} / {progress.total} icons</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                <span>
+                  {progress.estimatedRemainingMs > 0 
+                    ? formatTime(progress.estimatedRemainingMs) + ' remaining'
+                    : progress.phase === 'complete' 
+                      ? 'Done in ' + formatTime(progress.elapsedMs)
+                      : 'Calculating...'}
+                </span>
+              </div>
             </div>
           </div>
         )}

@@ -47,6 +47,9 @@ export interface BatchProcessingProgress {
   currentIconName: string;
   phase: 'optical' | 'states' | 'kinetic' | 'complete';
   percentage: number;
+  elapsedMs: number;
+  estimatedRemainingMs: number;
+  avgTimePerIcon: number;
 }
 
 const DEFAULT_OPTIONS: BatchProcessingOptions = {
@@ -87,6 +90,10 @@ export function useIconBatchProcessor() {
     let animationsGenerated = 0;
 
     const total = icons.length;
+    const startTime = Date.now();
+    let lastIconTime = startTime;
+    const iconTimes: number[] = [];
+    
     const phases = [
       opts.applyOpticalSizes && 'optical',
       opts.applyStates && 'states',
@@ -96,6 +103,19 @@ export function useIconBatchProcessor() {
     for (let i = 0; i < icons.length; i++) {
       const icon = icons[i];
       const progressPercent = Math.round(((i + 1) / total) * 100);
+      
+      // Calculate timing
+      const currentTime = Date.now();
+      const elapsedMs = currentTime - startTime;
+      const avgTimePerIcon = i > 0 ? elapsedMs / i : 0;
+      const remainingIcons = total - i;
+      const estimatedRemainingMs = avgTimePerIcon * remainingIcons;
+      
+      // Track individual icon processing time
+      if (i > 0) {
+        iconTimes.push(currentTime - lastIconTime);
+      }
+      lastIconTime = currentTime;
       
       // Show progress toast every 25% or on first/last icon
       if (i === 0 || i === total - 1 || progressPercent % 25 === 0) {
@@ -116,6 +136,9 @@ export function useIconBatchProcessor() {
             currentIconName: icon.name,
             phase: 'optical',
             percentage: Math.round(((i + 0.33) / total) * 100),
+            elapsedMs,
+            estimatedRemainingMs,
+            avgTimePerIcon,
           });
 
           processed.opticalSizes = responsiveIcon.generateAllVariants(icon.svgPath);
@@ -127,12 +150,18 @@ export function useIconBatchProcessor() {
 
         // Phase 2: State Variants
         if (opts.applyStates && icon.svgPath) {
+          const stateElapsed = Date.now() - startTime;
+          const stateAvg = i > 0 ? stateElapsed / i : 0;
+          
           setProgress({
             current: i + 1,
             total,
             currentIconName: icon.name,
             phase: 'states',
             percentage: Math.round(((i + 0.66) / total) * 100),
+            elapsedMs: stateElapsed,
+            estimatedRemainingMs: stateAvg * (total - i),
+            avgTimePerIcon: stateAvg,
           });
 
           processed.states = stateSystem.generateAllStates(icon.svgPath);
@@ -148,12 +177,18 @@ export function useIconBatchProcessor() {
 
         // Phase 3: Kinetic Animations
         if (opts.applyAnimations && icon.svgPath) {
+          const kineticElapsed = Date.now() - startTime;
+          const kineticAvg = i > 0 ? kineticElapsed / i : 0;
+          
           setProgress({
             current: i + 1,
             total,
             currentIconName: icon.name,
             phase: 'kinetic',
             percentage: Math.round(((i + 1) / total) * 100),
+            elapsedMs: kineticElapsed,
+            estimatedRemainingMs: kineticAvg * (total - i),
+            avgTimePerIcon: kineticAvg,
           });
 
           processed.kinetic = kineticBranding.applyKineticAnimation(
@@ -185,12 +220,17 @@ export function useIconBatchProcessor() {
       cssAccumulator += kineticBranding.generateStaggeredCSS(icons.length, 50);
     }
 
+    const totalElapsed = Date.now() - startTime;
+
     setProgress({
       current: total,
       total,
       currentIconName: 'Complete',
       phase: 'complete',
       percentage: 100,
+      elapsedMs: totalElapsed,
+      estimatedRemainingMs: 0,
+      avgTimePerIcon: total > 0 ? totalElapsed / total : 0,
     });
 
     const batchResult: BatchProcessingResult = {
