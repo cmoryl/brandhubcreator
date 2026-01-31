@@ -11,9 +11,11 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GoogleFontPicker, DEFAULT_FONT_SETTINGS, FontSettings } from '@/components/ui/google-font-picker';
 import { AnimatedTagline, TaglineAnimation, TaglineHoverEffect, TaglineEnvironment } from '@/components/ui/animated-tagline';
 import { TaglineAnimationSettings } from './TaglineAnimationSettings';
+import { TypographyPairingPreview, POPULAR_FONT_PAIRINGS } from './settings/TypographyPairingPreview';
 type TaglineBackgroundStyle = 'floating' | 'gradient' | 'solid' | 'glass';
 
 interface TaglineSectionProps {
@@ -169,15 +171,39 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                   Font
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 max-h-[80vh] overflow-y-auto" align="end">
-                <div className="space-y-4">
-                  <h4 className="font-medium text-sm">Primary Tagline Typography</h4>
-                  <GoogleFontPicker
-                    value={fontSettings}
-                    onChange={updateFontSettings}
-                    previewText={tagline.primary || 'Your tagline here'}
-                  />
-                </div>
+              <PopoverContent className="w-[420px] max-h-[85vh] overflow-y-auto" align="end">
+                <Tabs defaultValue="presets" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-4">
+                    <TabsTrigger value="presets">Quick Presets</TabsTrigger>
+                    <TabsTrigger value="custom">Custom Font</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="presets" className="space-y-4">
+                    <div>
+                      <h4 className="font-medium text-sm mb-3">Popular Font Pairings</h4>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Select a curated pairing to quickly style your tagline
+                      </p>
+                      <TypographyPairingPreview
+                        onSelect={(pairing) => {
+                          updateFontSettings({
+                            ...fontSettings,
+                            fontFamily: pairing.heading,
+                          });
+                        }}
+                      />
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="custom" className="space-y-4">
+                    <h4 className="font-medium text-sm">Primary Tagline Typography</h4>
+                    <GoogleFontPicker
+                      value={fontSettings}
+                      onChange={updateFontSettings}
+                      previewText={tagline.primary || 'Your tagline here'}
+                    />
+                  </TabsContent>
+                </Tabs>
               </PopoverContent>
             </Popover>
             

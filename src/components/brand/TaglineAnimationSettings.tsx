@@ -22,6 +22,7 @@ import {
   TaglineHoverEffect,
   TaglineEnvironment,
 } from '@/components/ui/animated-tagline';
+import { AnimationPreviewCards } from './settings/AnimationPreviewCards';
 
 export interface TaglineAnimationSettingsProps {
   animation: TaglineAnimation;
@@ -78,30 +79,17 @@ export const TaglineAnimationSettings = ({
             </div>
           </div>
 
-          {/* Animation Selection */}
+          {/* Animation Selection with Visual Previews */}
           <div className="space-y-2">
             <Label className="text-xs flex items-center gap-1.5">
               <Sparkles className="h-3 w-3" />
               Load Animation
             </Label>
-            <Select
+            <AnimationPreviewCards
+              options={TAGLINE_ANIMATION_OPTIONS}
               value={animation}
-              onValueChange={(value: TaglineAnimation) => onAnimationChange(value)}
-            >
-              <SelectTrigger className="h-9">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TAGLINE_ANIMATION_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <div className="flex flex-col">
-                      <span>{option.label}</span>
-                      <span className="text-xs text-muted-foreground">{option.description}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={onAnimationChange}
+            />
           </div>
 
           {/* Hover Effect Selection */}
