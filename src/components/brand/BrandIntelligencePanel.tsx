@@ -366,8 +366,7 @@ export const BrandIntelligencePanel = ({
         </div>
       </CardHeader>
 
-      <ScrollArea className="flex-1 min-h-0">
-        <CardContent className="space-y-6 pb-6">
+      <CardContent className="space-y-6 pb-6">
         {/* AI Analysis Summary */}
         {intelligence?.brand_summary && (
           <Collapsible 
@@ -671,7 +670,6 @@ export const BrandIntelligencePanel = ({
           </CollapsibleContent>
         </Collapsible>
         </CardContent>
-      </ScrollArea>
     </Card>
   );
 };
