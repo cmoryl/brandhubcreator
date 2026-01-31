@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp, Sparkles, Wand2 } from 'lucide-react';
+import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SectionHeader } from './SectionHeader';
-import { IconCreatorDialog, IconUsageGuidelines, HierarchicalIconDisplay, IconSetGeneratorDialog } from './iconography';
+import { IconStudio, IconUsageGuidelines, HierarchicalIconDisplay } from './iconography';
+import type { IconStudioTab } from './iconography';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 import JSZip from 'jszip';
@@ -78,8 +79,8 @@ export const IconographySection = ({
   const [gridSize, setGridSize] = useState<GridSize>('medium');
   const [iconColor, setIconColor] = useState<string>(defaultIconColor || 'currentColor');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-  const [showIconCreator, setShowIconCreator] = useState(false);
-  const [showIconSetGenerator, setShowIconSetGenerator] = useState(false);
+  const [showIconStudio, setShowIconStudio] = useState(false);
+  const [iconStudioInitialTab, setIconStudioInitialTab] = useState<IconStudioTab>('library');
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const ICONS_PREVIEW_LIMIT = 8;
@@ -494,13 +495,16 @@ ${innerContent}
             <Plus className="h-4 w-4" />
             Add Icon
           </Button>
-          <Button onClick={() => setShowIconCreator(true)} size="sm" className="gap-2" variant="outline">
+          <Button 
+            onClick={() => {
+              setIconStudioInitialTab('library');
+              setShowIconStudio(true);
+            }} 
+            size="sm" 
+            className="gap-2"
+          >
             <Sparkles className="h-4 w-4" />
-            Icon Creator
-          </Button>
-          <Button onClick={() => setShowIconSetGenerator(true)} size="sm" className="gap-2">
-            <Wand2 className="h-4 w-4" />
-            AI Icon Set
+            Icon Studio
           </Button>
         </div>
       </div>
@@ -656,26 +660,17 @@ ${innerContent}
         primaryColor={brandColors[0]?.hex}
       />
 
-      {/* Icon Creator Dialog */}
-      <IconCreatorDialog
-        open={showIconCreator}
-        onOpenChange={setShowIconCreator}
-        onSave={(newIcons) => {
-          onIconographyChange([...iconography, ...newIcons]);
-        }}
+      {/* Unified Icon Studio - All icon creation, editing, and management in one place */}
+      <IconStudio
+        open={showIconStudio}
+        onOpenChange={setShowIconStudio}
+        organizationId={organizationId || ''}
+        organizationName={entityName}
         brandColors={brandColors}
-      />
-
-      {/* AI Icon Set Generator Dialog */}
-      <IconSetGeneratorDialog
-        open={showIconSetGenerator}
-        onOpenChange={setShowIconSetGenerator}
-        onSave={(newIcons) => {
+        initialTab={iconStudioInitialTab}
+        onIconsCreated={(newIcons) => {
           onIconographyChange([...iconography, ...newIcons]);
         }}
-        entityType={entityType}
-        entityName={entityName}
-        industry={industry}
       />
     </section>
   );
