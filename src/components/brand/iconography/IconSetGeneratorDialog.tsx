@@ -52,6 +52,7 @@ import DOMPurify from 'dompurify';
 import { BrandIconography } from '@/types/brand';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { IconLibrary } from '@/hooks/useIconLibraries';
 
 // Entity type configurations
 const ENTITY_TYPES = [
@@ -123,7 +124,8 @@ interface GeneratedSection {
 interface IconSetGeneratorDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (icons: BrandIconography[]) => void;
+  onSave: (icons: BrandIconography[], libraryId?: string) => void;
+  libraries?: IconLibrary[];
   entityType?: 'brand' | 'product' | 'event';
   entityName?: string;
   industry?: string;
@@ -133,6 +135,7 @@ export const IconSetGeneratorDialog = ({
   open,
   onOpenChange,
   onSave,
+  libraries = [],
   entityType: initialEntityType = 'brand',
   entityName: initialEntityName = '',
   industry: initialIndustry,
@@ -141,6 +144,7 @@ export const IconSetGeneratorDialog = ({
   const [entityType, setEntityType] = useState<'brand' | 'product' | 'event'>(initialEntityType);
   const [entityName, setEntityName] = useState(initialEntityName);
   const [industry, setIndustry] = useState(initialIndustry || '');
+  const [selectedLibraryId, setSelectedLibraryId] = useState<string>('');
   
   // Style state
   const [iconStyle, setIconStyle] = useState<IconStyle>({
@@ -318,9 +322,11 @@ export const IconSetGeneratorDialog = ({
       return;
     }
 
-    onSave(iconsToSave);
+    onSave(iconsToSave, selectedLibraryId || undefined);
     onOpenChange(false);
-    toast.success(`Added ${iconsToSave.length} icons to your ${entityType}`);
+    
+    const libraryName = libraries.find(l => l.id === selectedLibraryId)?.name;
+    toast.success(`Added ${iconsToSave.length} icons${libraryName ? ` to "${libraryName}"` : ''}`);
   };
 
   // Reset state when dialog closes
@@ -418,6 +424,37 @@ export const IconSetGeneratorDialog = ({
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Target Library Selector */}
+            {libraries.length > 0 && (
+              <div className="space-y-2">
+                <Label>Save to Library</Label>
+                <Select value={selectedLibraryId} onValueChange={setSelectedLibraryId} disabled={isGenerating}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select target library..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Auto (first Core library)</SelectItem>
+                    {libraries.filter(l => l.is_active).map((lib) => (
+                      <SelectItem key={lib.id} value={lib.id}>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-[10px] px-1">
+                            {lib.level === 'core' ? 'Core' : lib.level === 'product_line' ? 'Product' : 'Brand'}
+                          </Badge>
+                          {lib.name}
+                          <span className="text-muted-foreground text-xs">
+                            ({lib.icons.length} icons)
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground">
+                  Choose where to add the generated icons
+                </p>
+              </div>
+            )}
 
             {/* Style Controls */}
             <div className="space-y-4">

@@ -418,9 +418,21 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
       <IconSetGeneratorDialog
         open={showIconSetGenerator}
         onOpenChange={setShowIconSetGenerator}
-        onSave={(newIcons) => {
-          // If there's an active library, add to it; otherwise user needs to create one first
-          if (activeLibraryForIcons) {
+        libraries={libraries}
+        onSave={(newIcons, libraryId) => {
+          // If a specific library was selected, add to it
+          if (libraryId) {
+            const targetLibrary = libraries.find(l => l.id === libraryId);
+            if (targetLibrary) {
+              updateLibrary.mutate({
+                id: libraryId,
+                updates: {
+                  icons: [...targetLibrary.icons, ...newIcons],
+                },
+              });
+            }
+          } else if (activeLibraryForIcons) {
+            // If there's an active library from the "Add Icons" action, add to it
             handleSaveIcons(newIcons);
           } else if (coreLibraries.length > 0) {
             // Add to the first core library by default
