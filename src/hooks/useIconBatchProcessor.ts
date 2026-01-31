@@ -64,6 +64,7 @@ export function useIconBatchProcessor() {
 
   const responsiveIcon = useResponsiveIcon(2);
   const stateSystem = useIconStateSystem();
+  const kineticBranding = useKineticBranding('professional');
 
   /**
    * Process a batch of icons with the specified options
@@ -73,7 +74,6 @@ export function useIconBatchProcessor() {
     options: Partial<BatchProcessingOptions> = {}
   ): Promise<BatchProcessingResult> => {
     const opts = { ...DEFAULT_OPTIONS, ...options };
-    const kineticBranding = useKineticBranding(opts.personality);
     
     setIsProcessing(true);
     setResult(null);
@@ -200,7 +200,7 @@ export function useIconBatchProcessor() {
     setIsProcessing(false);
 
     return batchResult;
-  }, [responsiveIcon, stateSystem]);
+  }, [responsiveIcon, stateSystem, kineticBranding]);
 
   /**
    * Export batch results as a downloadable package
