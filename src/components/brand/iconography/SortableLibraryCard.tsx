@@ -126,37 +126,42 @@ export const SortableLibraryCard = ({
         {/* Icon Preview Grid */}
         {library.icons.length > 0 ? (
           <div className="grid grid-cols-8 gap-2 mb-3">
-            {library.icons.slice(0, 16).map((icon) => (
-              <div
-                key={icon.id}
-                className="group relative aspect-square border rounded-md flex items-center justify-center bg-muted/30 hover:bg-muted transition-colors"
-                title={icon.name}
-              >
-                <div className="w-5 h-5 flex items-center justify-center">
-                  {icon.svgPath.includes('<') ? (
-                    <div 
-                      className="w-full h-full"
-                      dangerouslySetInnerHTML={{ __html: icon.svgPath }}
-                    />
-                  ) : (
-                    <svg viewBox={icon.viewBox || '0 0 24 24'} className="w-full h-full">
-                      <path 
-                        d={icon.svgPath} 
+            {library.icons.slice(0, 16).map((icon) => {
+              const viewBox = icon.viewBox || '0 0 24 24';
+              const isFullSvg = icon.svgPath.includes('<');
+              
+              return (
+                <div
+                  key={icon.id}
+                  className="group relative aspect-square border rounded-md flex items-center justify-center bg-muted/30 hover:bg-muted transition-colors"
+                  title={icon.name}
+                >
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    {isFullSvg ? (
+                      <svg viewBox={viewBox} className="w-full h-full" fill="currentColor">
+                        <g dangerouslySetInnerHTML={{ __html: icon.svgPath }} />
+                      </svg>
+                    ) : (
+                      <svg 
+                        viewBox={viewBox} 
+                        className="w-full h-full"
                         fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
                         stroke={icon.fillMode === 'stroke' ? 'currentColor' : 'none'}
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  )}
+                        strokeWidth={icon.fillMode === 'stroke' ? 2 : undefined}
+                      >
+                        <path d={icon.svgPath} />
+                      </svg>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => onRemoveIcon(library, icon.id)}
+                    className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                  >
+                    <X className="h-2.5 w-2.5" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => onRemoveIcon(library, icon.id)}
-                  className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                >
-                  <X className="h-2.5 w-2.5" />
-                </button>
-              </div>
-            ))}
+              );
+            })}
             {library.icons.length > 16 && (
               <div className="aspect-square border rounded-md flex items-center justify-center bg-muted/30 text-xs text-muted-foreground">
                 +{library.icons.length - 16}
