@@ -53,6 +53,7 @@ import { IconLibrary } from '@/hooks/useIconLibraries';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useIconOptimizer, IconAuditResult } from '@/hooks/useIconOptimizer';
+import { IconKitTooltip } from '@/components/help/IconKitTooltip';
 
 // 6-Category Taxonomy for 100-icon library
 const ICON_CATEGORIES = [
@@ -477,7 +478,10 @@ export const IconStudioAIGenerator = ({
 
           {/* Style Preset Selection */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Style Preset</Label>
+            <Label className="text-sm font-medium flex items-center gap-1">
+              Style Preset
+              <IconKitTooltip sectionId="style-presets" inline size="sm" />
+            </Label>
             <ScrollArea className="w-full">
               <div className="flex gap-2 pb-2">
                 {STYLE_PRESETS.map((preset) => (

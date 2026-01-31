@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { IconKitTooltip } from '@/components/help/IconKitTooltip';
 
 const ANDROID_SIZES = [
   { name: 'mdpi', size: 48 },
@@ -302,11 +303,16 @@ export const IconStudioAppIcons = ({ brandColors }: IconStudioAppIconsProps) => 
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold">App Icon Generator</h3>
-        <p className="text-sm text-muted-foreground">
-          Create adaptive icons for Android, iOS, and PWA with safe zone guides
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            App Icon Generator
+            <IconKitTooltip sectionId="app-icons" inline />
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Create adaptive icons for Android, iOS, and PWA with safe zone guides
+          </p>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -446,7 +452,10 @@ export const IconStudioAppIcons = ({ brandColors }: IconStudioAppIconsProps) => 
           {/* Android Mask Shape */}
           {activeTab === 'android' && (
             <div className="space-y-2">
-              <Label>Preview Mask Shape</Label>
+              <Label className="flex items-center gap-1">
+                Preview Mask Shape
+                <IconKitTooltip sectionId="mask-shapes" inline size="sm" />
+              </Label>
               <div className="grid grid-cols-4 gap-2">
                 {ANDROID_MASKS.map((mask) => {
                   const Icon = mask.icon;

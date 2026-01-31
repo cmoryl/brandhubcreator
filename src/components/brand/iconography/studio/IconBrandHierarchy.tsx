@@ -55,6 +55,7 @@ import {
   HierarchyLevel,
 } from '@/hooks/useIconHierarchy';
 import { BrandIconography } from '@/types/brand';
+import { IconKitTooltip } from '@/components/help/IconKitTooltip';
 
 interface IconBrandHierarchyProps {
   organizationId: string;
@@ -218,21 +219,25 @@ export const IconBrandHierarchy: React.FC<IconBrandHierarchyProps> = ({
         <div className="lg:col-span-2">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as HierarchyTab)}>
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="dna" className="gap-2">
+              <TabsTrigger value="dna" className="gap-1.5">
                 <Lock className="h-3 w-3" />
                 <span className="hidden sm:inline">DNA</span>
+                <IconKitTooltip sectionId="brand-dna" size="sm" />
               </TabsTrigger>
-              <TabsTrigger value="overrides" className="gap-2">
+              <TabsTrigger value="overrides" className="gap-1.5">
                 <Layers className="h-3 w-3" />
                 <span className="hidden sm:inline">Overrides</span>
+                <IconKitTooltip sectionId="style-overrides" size="sm" />
               </TabsTrigger>
-              <TabsTrigger value="events" className="gap-2">
+              <TabsTrigger value="events" className="gap-1.5">
                 <PartyPopper className="h-3 w-3" />
                 <span className="hidden sm:inline">Events</span>
+                <IconKitTooltip sectionId="event-overlays" size="sm" />
               </TabsTrigger>
-              <TabsTrigger value="colors" className="gap-2">
+              <TabsTrigger value="colors" className="gap-1.5">
                 <Palette className="h-3 w-3" />
                 <span className="hidden sm:inline">Colors</span>
+                <IconKitTooltip sectionId="color-mapping" size="sm" />
               </TabsTrigger>
             </TabsList>
 
