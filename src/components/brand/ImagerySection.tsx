@@ -22,7 +22,8 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pendingType, setPendingType] = useState<'do' | 'dont'>('do');
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('split');
+  // Default to grid-4 for compact small image preview grid
+  const [viewMode, setViewMode] = useState<ViewMode>('grid-4');
 
   const canEdit = Boolean(onImageryChange);
 
@@ -44,7 +45,8 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
 
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: handleFileDrop,
-    accept: 'image/*',
+    // Accept both images and SVGs
+    accept: 'image/*,.svg',
     // Many photography examples/screenshots exceed 2MB; allow up to 20MB (Lovable upload limit)
     maxSize: 20 * 1024 * 1024,
   });
@@ -176,7 +178,7 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,.svg,image/svg+xml"
         onChange={handleInputChange}
         className="hidden"
       />
