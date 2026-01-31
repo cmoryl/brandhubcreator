@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { X, Pencil, Upload, ThumbsUp, ThumbsDown, Grid2X2, Grid3X3, LayoutGrid, Rows3 } from 'lucide-react';
+import { X, Pencil, Upload, ThumbsUp, ThumbsDown, Grid2X2, Grid3X3, LayoutGrid, Rows3, ImageIcon } from 'lucide-react';
 import { BrandImagery } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
 import { OptimizedImage } from '@/components/ui/optimized-image';
+import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 
 interface ImagerySectionProps {
   imagery: BrandImagery[];
@@ -54,6 +55,17 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
   const triggerUpload = (type: 'do' | 'dont') => {
     setPendingType(type);
     openFilePicker();
+  };
+
+  const handleLibrarySelect = (url: string, type: 'do' | 'dont') => {
+    if (!onImageryChange) return;
+    const newImagery: BrandImagery = {
+      id: crypto.randomUUID(),
+      url,
+      type,
+      description: type === 'do' ? 'Good example of brand photography' : 'Avoid this style',
+    };
+    onImageryChange([...imagery, newImagery]);
   };
 
   const updateImagery = (id: string, updates: Partial<BrandImagery>) => {
@@ -196,20 +208,31 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
             <div className="space-y-3">
               {doImages.map((img, index) => renderImageCard(img, index, 'border-green-200', 'hover:bg-green-50'))}
               {canEdit && (
-                <button
-                  onClick={() => triggerUpload('do')}
-                  onDragOver={(e) => { setPendingType('do'); dragHandlers.onDragOver(e); }}
-                  onDragLeave={dragHandlers.onDragLeave}
-                  onDrop={(e) => { setPendingType('do'); dragHandlers.onDrop(e); }}
-                  className={`w-full h-24 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors ${
-                    isDragging && pendingType === 'do'
-                      ? 'border-green-500 bg-green-50 text-green-600'
-                      : 'border-green-300 text-green-600 hover:bg-green-50'
-                  }`}
-                >
-                  <Upload className="h-5 w-5" />
-                  <span className="text-sm font-medium">{isDragging && pendingType === 'do' ? 'Drop to add' : 'Add example'}</span>
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => triggerUpload('do')}
+                    onDragOver={(e) => { setPendingType('do'); dragHandlers.onDragOver(e); }}
+                    onDragLeave={dragHandlers.onDragLeave}
+                    onDrop={(e) => { setPendingType('do'); dragHandlers.onDrop(e); }}
+                    className={`flex-1 h-24 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors ${
+                      isDragging && pendingType === 'do'
+                        ? 'border-green-500 bg-green-50 text-green-600'
+                        : 'border-green-300 text-green-600 hover:bg-green-50'
+                    }`}
+                  >
+                    <Upload className="h-5 w-5" />
+                    <span className="text-sm font-medium">{isDragging && pendingType === 'do' ? 'Drop to add' : 'Upload'}</span>
+                  </button>
+                  <ImageLibraryPicker
+                    onSelect={(url) => handleLibrarySelect(url, 'do')}
+                    trigger={
+                      <button className="h-24 px-4 border-2 border-dashed border-green-300 rounded-xl flex items-center justify-center gap-2 text-green-600 hover:bg-green-50 transition-colors">
+                        <ImageIcon className="h-5 w-5" />
+                        <span className="text-sm font-medium">Library</span>
+                      </button>
+                    }
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -224,20 +247,31 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
             <div className="space-y-3">
               {dontImages.map((img, index) => renderImageCard(img, index, 'border-red-200', 'hover:bg-red-50'))}
               {canEdit && (
-                <button
-                  onClick={() => triggerUpload('dont')}
-                  onDragOver={(e) => { setPendingType('dont'); dragHandlers.onDragOver(e); }}
-                  onDragLeave={dragHandlers.onDragLeave}
-                  onDrop={(e) => { setPendingType('dont'); dragHandlers.onDrop(e); }}
-                  className={`w-full h-24 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors ${
-                    isDragging && pendingType === 'dont'
-                      ? 'border-red-500 bg-red-50 text-red-600'
-                      : 'border-red-300 text-red-600 hover:bg-red-50'
-                  }`}
-                >
-                  <Upload className="h-5 w-5" />
-                  <span className="text-sm font-medium">{isDragging && pendingType === 'dont' ? 'Drop to add' : 'Add example'}</span>
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => triggerUpload('dont')}
+                    onDragOver={(e) => { setPendingType('dont'); dragHandlers.onDragOver(e); }}
+                    onDragLeave={dragHandlers.onDragLeave}
+                    onDrop={(e) => { setPendingType('dont'); dragHandlers.onDrop(e); }}
+                    className={`flex-1 h-24 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors ${
+                      isDragging && pendingType === 'dont'
+                        ? 'border-red-500 bg-red-50 text-red-600'
+                        : 'border-red-300 text-red-600 hover:bg-red-50'
+                    }`}
+                  >
+                    <Upload className="h-5 w-5" />
+                    <span className="text-sm font-medium">{isDragging && pendingType === 'dont' ? 'Drop to add' : 'Upload'}</span>
+                  </button>
+                  <ImageLibraryPicker
+                    onSelect={(url) => handleLibrarySelect(url, 'dont')}
+                    trigger={
+                      <button className="h-24 px-4 border-2 border-dashed border-red-300 rounded-xl flex items-center justify-center gap-2 text-red-600 hover:bg-red-50 transition-colors">
+                        <ImageIcon className="h-5 w-5" />
+                        <span className="text-sm font-medium">Library</span>
+                      </button>
+                    }
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -246,15 +280,33 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
         /* Grid View - All images in grid with type badges */
         <div className="space-y-4">
           {canEdit && (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               <Button onClick={() => triggerUpload('do')} variant="outline" size="sm" className="gap-2 text-green-600 border-green-300 hover:bg-green-50">
                 <ThumbsUp className="h-4 w-4" />
-                Add Do
+                Upload Do
               </Button>
+              <ImageLibraryPicker
+                onSelect={(url) => handleLibrarySelect(url, 'do')}
+                trigger={
+                  <Button variant="outline" size="sm" className="gap-2 text-green-600 border-green-300 hover:bg-green-50">
+                    <ImageIcon className="h-4 w-4" />
+                    Do from Library
+                  </Button>
+                }
+              />
               <Button onClick={() => triggerUpload('dont')} variant="outline" size="sm" className="gap-2 text-red-600 border-red-300 hover:bg-red-50">
                 <ThumbsDown className="h-4 w-4" />
-                Add Don't
+                Upload Don't
               </Button>
+              <ImageLibraryPicker
+                onSelect={(url) => handleLibrarySelect(url, 'dont')}
+                trigger={
+                  <Button variant="outline" size="sm" className="gap-2 text-red-600 border-red-300 hover:bg-red-50">
+                    <ImageIcon className="h-4 w-4" />
+                    Don't from Library
+                  </Button>
+                }
+              />
             </div>
           )}
           
