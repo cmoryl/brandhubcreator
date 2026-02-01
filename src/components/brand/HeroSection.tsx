@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Upload, Image, Pencil, Check, TrendingUp, Eye, Users, Share2, Heart, BarChart3, Sparkles, Brain, Video, ImageIcon, Move, Loader2, FolderOpen } from 'lucide-react';
+import { Upload, Image, Pencil, Check, TrendingUp, BarChart3, Sparkles, Brain, Video, ImageIcon, Move, Loader2, FolderOpen } from 'lucide-react';
 import { BrandHero } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,10 +16,6 @@ import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { cn } from '@/lib/utils';
 
 interface HeroStats {
-  views?: number;
-  shares?: number;
-  followers?: number;
-  engagement?: number;
   healthScore?: number;
   trend?: 'up' | 'down' | 'stable';
 }
@@ -104,10 +100,6 @@ export const HeroSection = ({
       const easeOut = 1 - Math.pow(1 - progress, 3);
 
       setAnimatedStats({
-        views: Math.round((displayStats.views || 0) * easeOut),
-        shares: Math.round((displayStats.shares || 0) * easeOut),
-        followers: Math.round((displayStats.followers || 0) * easeOut),
-        engagement: Math.round((displayStats.engagement || 0) * easeOut),
         healthScore: Math.round((displayStats.healthScore || 0) * easeOut),
         trend: displayStats.trend,
       });
@@ -264,11 +256,6 @@ export const HeroSection = ({
     onHeroChange({ ...hero, kenBurnsEffect: !hero.kenBurnsEffect });
   };
 
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num.toString();
-  };
 
   // Enhanced height for wow factor - reduced on mobile for better viewport fit
   const heroHeight = enhancedMode 
@@ -623,50 +610,6 @@ export const HeroSection = ({
                   </div>
                 </div>
 
-                {/* Right: Social & Engagement Stats - Hidden on mobile */}
-                {showStats && enhancedMode && (
-                  <div className={`hidden lg:flex flex-col gap-4 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-                    <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-5 py-3 border border-white/20 shadow-lg hover:bg-white/15 transition-colors">
-                      <div className="p-2 bg-white/20 rounded-xl">
-                        <Eye className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-white font-bold text-lg">{formatNumber(animatedStats.views || 0)}</p>
-                        <p className="text-white/70 text-xs">Views</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-5 py-3 border border-white/20 shadow-lg hover:bg-white/15 transition-colors">
-                      <div className="p-2 bg-white/20 rounded-xl">
-                        <Users className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-white font-bold text-lg">{formatNumber(animatedStats.followers || 0)}</p>
-                        <p className="text-white/70 text-xs">Followers</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-5 py-3 border border-white/20 shadow-lg hover:bg-white/15 transition-colors">
-                      <div className="p-2 bg-white/20 rounded-xl">
-                        <Share2 className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-white font-bold text-lg">{formatNumber(animatedStats.shares || 0)}</p>
-                        <p className="text-white/70 text-xs">Shares</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3 bg-gradient-to-r from-pink-500/20 to-rose-500/20 backdrop-blur-md rounded-2xl px-5 py-3 border border-pink-400/30 shadow-lg hover:from-pink-500/30 hover:to-rose-500/30 transition-colors">
-                      <div className="p-2 bg-pink-500/30 rounded-xl">
-                        <Heart className="h-5 w-5 text-pink-300" />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-white font-bold text-lg">{animatedStats.engagement || 0}%</p>
-                        <p className="text-pink-200/80 text-xs">Engagement</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
