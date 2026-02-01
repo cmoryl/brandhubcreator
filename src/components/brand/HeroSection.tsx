@@ -1,16 +1,14 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Upload, Image, Pencil, Check, TrendingUp, BarChart3, Sparkles, Brain, Video, ImageIcon, Move, Loader2, FolderOpen } from 'lucide-react';
+import { Pencil, Check, TrendingUp, BarChart3, Sparkles, Brain, Loader2, Upload, Image as ImageIcon } from 'lucide-react';
 import { BrandHero } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BackgroundImage } from '@/components/ui/optimized-image';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { VideoUploadDialog } from '@/components/ui/video-upload-dialog';
-import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
-import { getAcceptedVideoFormats } from '@/lib/videoCompression';
+import { HeroEditToolbar } from '@/components/brand/HeroEditToolbar';
 import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { cn } from '@/lib/utils';
@@ -244,12 +242,6 @@ export const HeroSection = ({
     }
   };
 
-  const toggleMediaType = (value: string) => {
-    if (!onHeroChange) return;
-    if (value === 'video' || value === 'image') {
-      onHeroChange({ ...hero, useVideo: value === 'video' });
-    }
-  };
 
   const toggleKenBurns = () => {
     if (!onHeroChange) return;
@@ -366,127 +358,43 @@ export const HeroSection = ({
             </Button>
           )}
           
-          {/* Edit overlay with media type controls - Only show if canEdit and isEditing */}
+          {/* Edit overlay with consolidated toolbar - Only show if canEdit and isEditing */}
           {canEdit && isEditing && (
-            <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
-              {/* Media type toggle */}
-              <div className="pointer-events-auto">
-                <ToggleGroup 
-                  type="single" 
-                  value={hero.useVideo ? 'video' : 'image'} 
-                  onValueChange={toggleMediaType}
-                  className="bg-white/10 backdrop-blur-md rounded-full p-1 border border-white/20"
-                >
-                  <ToggleGroupItem 
-                    value="image" 
-                    className="text-white data-[state=on]:bg-white/20 data-[state=on]:text-white rounded-full px-4"
-                    title="Use static image background"
-                  >
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    Image
-                  </ToggleGroupItem>
-                  <ToggleGroupItem 
-                    value="video" 
-                    className="text-white data-[state=on]:bg-white/20 data-[state=on]:text-white rounded-full px-4"
-                    title="Use looping video background"
-                  >
-                    <Video className="h-4 w-4 mr-2" />
-                    Video
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-
-              {/* Ken Burns Effect Toggle - Only for images (when not using video) */}
-              {hero.useVideo !== true && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setKenBurnsPreview(false);
-                    toggleKenBurns();
-                  }}
-                  onMouseEnter={() => {
-                    // Only show preview if effect is not already enabled
-                    if (hero.kenBurnsEffect !== true) {
-                      setKenBurnsPreview(true);
-                    }
-                  }}
-                  onMouseLeave={() => setKenBurnsPreview(false)}
-                  className={cn(
-                    "pointer-events-auto flex items-center gap-2 px-4 py-2 rounded-full border transition-all",
-                    hero.kenBurnsEffect === true
-                      ? "bg-white/25 border-white/40 text-white" 
-                      : kenBurnsPreview
-                        ? "bg-white/20 border-white/30 text-white ring-2 ring-white/30"
-                        : "bg-white/10 border-white/20 text-white/80 hover:bg-white/15 hover:text-white"
-                  )}
-                  title="Ken Burns: Slow cinematic pan and zoom effect (hover to preview)"
-                >
-                  <Move className="h-4 w-4" />
-                  <span className="text-sm font-medium">
-                    {kenBurnsPreview ? 'Preview...' : 'Ken Burns Effect'}
-                  </span>
-                  {hero.kenBurnsEffect === true && <Check className="h-3 w-3" />}
-                </button>
-              )}
-
-              
-              {/* Upload prompt + Library picker row */}
-              <div className="flex items-center gap-3 pointer-events-auto">
-                <div 
-                  className={cn(
-                    "text-white flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20",
-                    isUploading ? "opacity-70 cursor-wait" : "cursor-pointer hover:bg-white/20"
-                  )}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (isUploading) return;
-                    if (hero.useVideo) {
-                      videoInputRef.current?.click();
-                    } else {
-                      coverInputRef.current?.click();
-                    }
-                  }}
-                >
-                  {isUploading ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      <span className="font-medium">Uploading...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-5 w-5" />
-                      <span className="font-medium">Upload {hero.useVideo ? 'Video' : 'Image'}</span>
-                    </>
-                  )}
-                </div>
-
-                {/* Image Library Picker - only for images */}
-                {hero.useVideo !== true && (
-                  <ImageLibraryPicker
-                    onSelect={(url) => {
-                      if (onHeroChange) {
-                        onHeroChange({ ...hero, coverImage: url });
-                      }
-                    }}
-                    defaultCategory="Backgrounds"
-                  />
-                )}
-              </div>
-
-              {/* Video URL option */}
-              {hero.useVideo && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleVideoUrlInput();
-                  }}
-                  className="text-white/80 text-sm underline hover:text-white transition-colors pointer-events-auto"
-                >
-                  Or paste video URL
-                </button>
-              )}
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <HeroEditToolbar
+                useVideo={hero.useVideo === true}
+                kenBurnsEffect={hero.kenBurnsEffect === true}
+                kenBurnsPreview={kenBurnsPreview}
+                isUploading={isUploading}
+                onMediaTypeChange={(type) => {
+                  if (onHeroChange) {
+                    onHeroChange({ ...hero, useVideo: type === 'video' });
+                  }
+                }}
+                onKenBurnsToggle={() => {
+                  setKenBurnsPreview(false);
+                  toggleKenBurns();
+                }}
+                onKenBurnsPreviewStart={() => {
+                  if (hero.kenBurnsEffect !== true) {
+                    setKenBurnsPreview(true);
+                  }
+                }}
+                onKenBurnsPreviewEnd={() => setKenBurnsPreview(false)}
+                onUploadClick={() => {
+                  if (hero.useVideo) {
+                    videoInputRef.current?.click();
+                  } else {
+                    coverInputRef.current?.click();
+                  }
+                }}
+                onVideoUrlClick={handleVideoUrlInput}
+                onLibrarySelect={(url) => {
+                  if (onHeroChange) {
+                    onHeroChange({ ...hero, coverImage: url });
+                  }
+                }}
+              />
             </div>
           )}
 
@@ -566,7 +474,7 @@ export const HeroSection = ({
                         decoding="async"
                       />
                     ) : (
-                      <Image className="h-8 w-8 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-muted-foreground" />
+                      <ImageIcon className="h-8 w-8 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-muted-foreground" />
                     )}
                     {canEdit && isEditing && (
                       <div className="absolute inset-0 bg-black/50 rounded-2xl sm:rounded-3xl flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity">
