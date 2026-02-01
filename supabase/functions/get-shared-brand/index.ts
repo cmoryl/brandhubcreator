@@ -53,9 +53,40 @@ serve(async (req) => {
     const logos = (guideData.logos as Array<Record<string, unknown>>) || [];
     const identity = (guideData.identity as Record<string, unknown>) || {};
     const tagline = (guideData.tagline as Record<string, unknown>) || {};
+    const social = (guideData.social as Array<Record<string, unknown>>) || [];
+    const imagery = (guideData.imagery as Array<Record<string, unknown>>) || [];
+    const misuse = (guideData.misuse as Array<Record<string, unknown>>) || [];
+    const values = (guideData.values as Array<Record<string, unknown>>) || [];
+    const services = (guideData.services as Array<Record<string, unknown>>) || [];
     
-    // Find primary logo or first available
+    // Find logo variants
     const primaryLogo = logos.find(l => l.variant === 'primary') || logos[0];
+    const monoLogo = logos.find(l => l.variant === 'monochrome');
+    const reversedLogo = logos.find(l => l.variant === 'reversed');
+    const iconLogo = logos.find(l => l.variant === 'icon');
+
+    // Extract photography guidelines from imagery (do/dont examples)
+    const photographyDos = imagery.filter(i => i.type === 'do').map(i => ({
+      url: i.url,
+      description: i.description
+    }));
+    const photographyDonts = imagery.filter(i => i.type === 'dont').map(i => ({
+      url: i.url,
+      description: i.description
+    }));
+
+    // Extract social handles and hashtags
+    const socialHandles = social.map(s => ({
+      platform: s.platform,
+      handle: s.handle,
+      url: s.url
+    }));
+
+    // Extract misuse examples (do's and don'ts for AI prompts)
+    const brandConstraints = misuse.map(m => ({
+      description: m.description,
+      exampleUrl: m.url
+    }));
 
     return new Response(
       JSON.stringify({
@@ -63,7 +94,8 @@ serve(async (req) => {
           id: brand.id,
           name: brand.name,
           slug: brand.slug,
-          // Core branding essentials for EventKIT import
+          
+          // === CORE BRANDING (Currently Supported) ===
           colors: guideData.colors || [],
           fonts: guideData.typography || [],
           logo_url: primaryLogo?.url || hero.logoUrl || null,
@@ -71,7 +103,67 @@ serve(async (req) => {
           voice: identity.toneOfVoice || [],
           mission: identity.missionStatement || null,
           archetype: identity.archetype || null,
-          // Full data for complete import
+          
+          // === LOGO VARIANTS ===
+          logos: {
+            primary: primaryLogo?.url || null,
+            monochrome: monoLogo?.url || null,
+            reversed: reversedLogo?.url || null,
+            icon: iconLogo?.url || null,
+            all: logos.map(l => ({ name: l.name, url: l.url, variant: l.variant }))
+          },
+          
+          // === VISUAL ASSETS ===
+          patterns: guideData.patterns || [],
+          gradients: guideData.gradients || [],
+          iconography: guideData.iconography || [],
+          defaultIconColor: guideData.defaultIconColor || null,
+          
+          // === PHOTOGRAPHY GUIDELINES ===
+          photography: {
+            approved: photographyDos,
+            rejected: photographyDonts,
+            styleDirection: imagery.length > 0 
+              ? `${photographyDos.length} approved styles, ${photographyDonts.length} rejected examples`
+              : null
+          },
+          
+          // === DO'S & DON'TS (for AI prompt constraints) ===
+          constraints: {
+            brandMisuse: brandConstraints,
+            colorCombinations: guideData.colorCombinations || []
+          },
+          
+          // === SOCIAL MEDIA ===
+          socialMedia: {
+            handles: socialHandles,
+            hashtags: values.map(v => v.text ? `#${String(v.text).replace(/\s+/g, '')}` : null).filter(Boolean),
+            assets: guideData.socialAssets || []
+          },
+          
+          // === LAYOUT & COMPOSITION ===
+          displayBanners: guideData.displayBanners || [],
+          templates: guideData.templates || [],
+          templateSpecs: guideData.templateSpecs || [],
+          
+          // === EXTENDED IDENTITY ===
+          values: values.map(v => ({ 
+            text: v.text, 
+            description: v.description,
+            icon: v.icon
+          })),
+          services: services.map(s => ({
+            name: s.name,
+            description: s.description,
+            icon: s.icon
+          })),
+          
+          // === METADATA ===
+          industry: guideData.industry || null,
+          targetAudience: guideData.targetAudience || null,
+          pageSettings: guideData.pageSettings || null,
+          
+          // === FULL DATA (for complete import) ===
           guide_data: guideData,
           created_at: brand.created_at,
           updated_at: brand.updated_at,
