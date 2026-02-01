@@ -256,6 +256,44 @@ export interface RevenueChartColors {
   textColor?: string; // Axis text color (hex)
 }
 
+// CHART THEME - Unified theming for all charts and infographics
+export interface ChartTheme {
+  id: string;
+  name: string;
+  description?: string;
+  // Primary colors for bars, areas, lines
+  primary: string;
+  secondary: string;
+  tertiary?: string;
+  // Accent for highlights and hover states
+  accent: string;
+  // Background and structural colors
+  background: string;
+  gridColor: string;
+  textColor: string;
+  // Optional gradient settings
+  useGradients?: boolean;
+  // Multi-series palette (for pie charts, multi-line charts, etc.)
+  palette?: string[];
+}
+
+// Pre-built chart theme presets
+export type ChartThemePresetId = 
+  | 'brand-primary'    // Uses brand's primary color
+  | 'brand-secondary'  // Uses brand's secondary color
+  | 'corporate-blue'   // Professional blue theme
+  | 'modern-purple'    // Modern purple/violet
+  | 'forest-green'     // Eco-friendly green
+  | 'sunset-orange'    // Warm sunset tones
+  | 'minimal-gray'     // Clean minimal gray
+  | 'high-contrast'    // Accessibility-focused
+  | 'custom';          // User-defined colors
+
+export interface ChartThemeSettings {
+  presetId: ChartThemePresetId;
+  customTheme?: ChartTheme; // Only used when presetId is 'custom'
+}
+
 // MISUSE - Anti-Patterns
 export interface BrandMisuse {
   id: string;
@@ -653,8 +691,10 @@ export interface BaseGuide {
   templateSpecs?: TemplateSpec[];
   // Revenue Data (for Revenue Growth chart)
   revenueData?: RevenueDataPoint[];
-  // Revenue Chart Colors (customizable chart theming)
+  // Revenue Chart Colors (customizable chart theming) - deprecated, use chartTheme
   revenueChartColors?: RevenueChartColors;
+  // Unified Chart Theme (applies to all charts and infographics)
+  chartTheme?: ChartThemeSettings;
   // Statistics (By the Numbers infographic section)
   statistics?: StatisticItem[];
   // Infographic layout for By the Numbers section
