@@ -320,7 +320,7 @@ export function InteractiveCTA() {
             <MagneticButton onClick={() => navigate('/auth')} primary>
               <span className="relative z-10 flex items-center gap-2">
                 <Rocket className="h-5 w-5" />
-                Get Started Free
+                Get Started
                 <ArrowRight className="h-5 w-5" />
               </span>
             </MagneticButton>
