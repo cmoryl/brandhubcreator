@@ -286,6 +286,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'brochures',
   'templatespecs',
   'assets',
+  'imageassets',
   'misuse',
 ];
 

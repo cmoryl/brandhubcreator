@@ -9,6 +9,7 @@ import { ImagerySection } from '@/components/brand/ImagerySection';
 import { SocialSection } from '@/components/brand/SocialSection';
 import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
+import { ImageAssetsSection } from '@/components/brand/ImageAssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
 import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
@@ -299,6 +300,14 @@ export const FullEventPage = ({
           <AssetsSection
             assets={event.assets || []}
             onAssetsChange={editHandler((assets) => updateEvent({ assets }))}
+          />
+        );
+      case 'imageassets':
+        return (
+          <ImageAssetsSection
+            imageAssets={event.imageAssets || []}
+            onImageAssetsChange={editHandler((imageAssets) => updateEvent({ imageAssets }))}
+            canEdit={canEdit}
           />
         );
       case 'misuse':
