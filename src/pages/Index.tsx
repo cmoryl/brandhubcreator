@@ -3,11 +3,11 @@
  * Features an interactive orbit visualization showcasing demo brands, products, and events
  */
 
-import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { useMemo, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap } from 'lucide-react';
-import { GlobalAssetOrbit, OrbitLegend } from '@/components/portal';
+import { HeroOrbit } from '@/components/landing/HeroOrbit';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -33,12 +33,9 @@ const Index = () => {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const { user, isAdmin, isApproved, accessStatus, isLoading } = useAuth();
-  const [orbitFilter, setOrbitFilter] = useState<'all' | 'brands' | 'products' | 'events'>('all');
   
   // 3D orbit hover effect state
   const orbitRef = useRef<HTMLDivElement>(null);
-  const [orbitRotate, setOrbitRotate] = useState({ x: 0, y: 0 });
-  const [isOrbitHovered, setIsOrbitHovered] = useState(false);
 
   // Auto-redirect authenticated users to dashboard
   useEffect(() => {
@@ -48,19 +45,6 @@ const Index = () => {
       navigate('/dashboard', { replace: true });
     }
   }, [user, accessStatus, isAdmin, isApproved, isLoading, navigate]);
-
-  const handleOrbitMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!orbitRef.current) return;
-    const rect = orbitRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setOrbitRotate({ x: -y * 15, y: x * 15 });
-  }, []);
-
-  const handleOrbitMouseLeave = useCallback(() => {
-    setOrbitRotate({ x: 0, y: 0 });
-    setIsOrbitHovered(false);
-  }, []);
 
   // Transform demo data for orbit
   const orbitBrands = useMemo(() => 
@@ -217,63 +201,17 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Right: Orbit Visualization with 3D Effect */}
+            {/* Right: Enhanced Orbit Visualization */}
             <div className="order-1 lg:order-2 relative">
-              <div 
+              <HeroOrbit
                 ref={orbitRef}
-                className="relative w-full aspect-square max-w-[600px] mx-auto"
-                style={{
-                  perspective: '1000px',
-                }}
-                onMouseMove={handleOrbitMouseMove}
-                onMouseEnter={() => setIsOrbitHovered(true)}
-                onMouseLeave={handleOrbitMouseLeave}
-              >
-                {/* 3D Transform Wrapper */}
-                <div
-                  className="relative w-full h-full transition-transform duration-200 ease-out"
-                  style={{
-                    transform: `rotateX(${orbitRotate.x}deg) rotateY(${orbitRotate.y}deg)`,
-                    transformStyle: 'preserve-3d',
-                  }}
-                >
-                  {/* Glow effect behind orbit */}
-                  <div 
-                    className="absolute inset-0 rounded-full blur-2xl scale-110 transition-all duration-300"
-                    style={{
-                      background: isOrbitHovered 
-                        ? 'radial-gradient(circle, hsl(var(--primary) / 0.35), hsl(var(--accent) / 0.25), transparent 70%)'
-                        : 'linear-gradient(135deg, hsl(var(--primary) / 0.2), transparent, hsl(var(--accent) / 0.2))',
-                      transform: `translateZ(-50px) scale(${isOrbitHovered ? 1.15 : 1.1})`,
-                    }}
-                  />
-                  
-                  {/* Additional depth layers */}
-                  <div 
-                    className="absolute inset-4 rounded-full blur-xl transition-opacity duration-300"
-                    style={{
-                      background: 'radial-gradient(circle, hsl(199 89% 48% / 0.15), transparent 60%)',
-                      opacity: isOrbitHovered ? 1 : 0.5,
-                      transform: 'translateZ(-25px)',
-                    }}
-                  />
-                  
-                  <GlobalAssetOrbit
-                    className="w-full h-full"
-                    primaryColor="hsl(var(--primary))"
-                    secondaryColor="hsl(var(--accent))"
-                    organizationName="BrandHub"
-                    organizationLogo={brandhubLogo}
-                    brands={orbitBrands}
-                    products={orbitProducts}
-                    events={orbitEvents}
-                    filter={orbitFilter}
-                    showLegend={true}
-                    onFilterChange={setOrbitFilter}
-                    demoMode={true}
-                  />
-                </div>
-              </div>
+                className="w-full aspect-square max-w-[600px] mx-auto"
+                primaryColor="#6366f1"
+                centerLogo={brandhubLogo}
+                brands={orbitBrands}
+                products={orbitProducts}
+                events={orbitEvents}
+              />
               
               {/* Orbit description */}
               <p className="text-center text-sm text-muted-foreground mt-4">
