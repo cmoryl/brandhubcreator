@@ -1,16 +1,26 @@
 /**
  * Interactive CTA Section - Clean design with orbit-style decorations
- * Features: Subtle gradients, orbit rings, animated connectors, elegant buttons
+ * Features: Multicolor connectors, mouse-reactive animations, orbit rings
  */
 
-import { useRef, useCallback, useMemo } from 'react';
+import { useRef, useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { ArrowRight, Sparkles, Rocket } from 'lucide-react';
 
+// Matching HeroOrbit type colors
+const TYPE_COLORS = {
+  brand: '#14b8a6',    // Teal
+  product: '#38bdf8',  // Light blue  
+  event: '#f59e0b',    // Amber
+  accent: '#8b5cf6',   // Purple
+};
+
 export function InteractiveCTA() {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isHovering, setIsHovering] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
 
   // Motion values for subtle 3D effect
   const mouseX = useMotionValue(0);
@@ -27,52 +37,56 @@ export function InteractiveCTA() {
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    mouseX.set(x);
-    mouseY.set(y);
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    mouseX.set(x - 0.5);
+    mouseY.set(y - 0.5);
+    setMousePos({ x, y });
   }, [mouseX, mouseY]);
 
   const handleMouseLeave = useCallback(() => {
     mouseX.set(0);
     mouseY.set(0);
+    setIsHovering(false);
   }, [mouseX, mouseY]);
 
   // Generate orbit ring data
   const orbitRings = useMemo(() => [
-    { radius: 180, opacity: 0.15, duration: 45, direction: 1 },
-    { radius: 280, opacity: 0.1, duration: 60, direction: -1 },
-    { radius: 380, opacity: 0.08, duration: 75, direction: 1 },
+    { radius: 180, opacity: 0.2, duration: 45, direction: 1, color: TYPE_COLORS.brand },
+    { radius: 280, opacity: 0.15, duration: 60, direction: -1, color: TYPE_COLORS.product },
+    { radius: 380, opacity: 0.12, duration: 75, direction: 1, color: TYPE_COLORS.event },
   ], []);
 
-  // Generate orbit nodes (small dots on the rings)
+  // Generate orbit nodes with colors
   const orbitNodes = useMemo(() => {
-    const nodes: Array<{ id: number; ring: number; angle: number; size: number; delay: number }> = [];
+    const nodes: Array<{ id: number; ring: number; angle: number; size: number; delay: number; color: string }> = [];
     let id = 0;
     
-    // Ring 1 nodes
+    // Ring 1 nodes (brand - teal)
     for (let i = 0; i < 4; i++) {
-      nodes.push({ id: id++, ring: 0, angle: i * 90 + 15, size: 6, delay: i * 0.5 });
+      nodes.push({ id: id++, ring: 0, angle: i * 90 + 15, size: 6, delay: i * 0.5, color: TYPE_COLORS.brand });
     }
-    // Ring 2 nodes
+    // Ring 2 nodes (product - blue)
     for (let i = 0; i < 6; i++) {
-      nodes.push({ id: id++, ring: 1, angle: i * 60 + 30, size: 5, delay: i * 0.4 });
+      nodes.push({ id: id++, ring: 1, angle: i * 60 + 30, size: 5, delay: i * 0.4, color: TYPE_COLORS.product });
     }
-    // Ring 3 nodes  
+    // Ring 3 nodes (event - amber)
     for (let i = 0; i < 8; i++) {
-      nodes.push({ id: id++, ring: 2, angle: i * 45 + 10, size: 4, delay: i * 0.3 });
+      nodes.push({ id: id++, ring: 2, angle: i * 45 + 10, size: 4, delay: i * 0.3, color: TYPE_COLORS.event });
     }
     
     return nodes;
   }, []);
 
-  // Generate connection lines between some nodes
+  // Generate multicolor connection lines
   const connections = useMemo(() => [
-    { from: { ring: 0, angle: 15 }, to: { ring: 1, angle: 30 } },
-    { from: { ring: 0, angle: 105 }, to: { ring: 1, angle: 90 } },
-    { from: { ring: 1, angle: 150 }, to: { ring: 2, angle: 145 } },
-    { from: { ring: 1, angle: 270 }, to: { ring: 2, angle: 280 } },
-    { from: { ring: 0, angle: 285 }, to: { ring: 2, angle: 325 } },
+    { from: { ring: 0, angle: 15 }, to: { ring: 1, angle: 30 }, color: TYPE_COLORS.brand, toColor: TYPE_COLORS.product },
+    { from: { ring: 0, angle: 105 }, to: { ring: 1, angle: 90 }, color: TYPE_COLORS.brand, toColor: TYPE_COLORS.product },
+    { from: { ring: 1, angle: 150 }, to: { ring: 2, angle: 145 }, color: TYPE_COLORS.product, toColor: TYPE_COLORS.event },
+    { from: { ring: 1, angle: 270 }, to: { ring: 2, angle: 280 }, color: TYPE_COLORS.product, toColor: TYPE_COLORS.event },
+    { from: { ring: 0, angle: 285 }, to: { ring: 2, angle: 325 }, color: TYPE_COLORS.brand, toColor: TYPE_COLORS.event },
+    { from: { ring: 0, angle: 195 }, to: { ring: 1, angle: 210 }, color: TYPE_COLORS.accent, toColor: TYPE_COLORS.product },
+    { from: { ring: 1, angle: 330 }, to: { ring: 2, angle: 10 }, color: TYPE_COLORS.product, toColor: TYPE_COLORS.event },
   ], []);
 
   // Helper to calculate position from ring and angle
@@ -85,115 +99,152 @@ export function InteractiveCTA() {
     };
   };
 
+  // Calculate speed multiplier based on hover
+  const speedMultiplier = isHovering ? 0.5 : 1;
+
   return (
     <section 
       ref={containerRef}
       className="relative py-32 overflow-hidden"
       onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={handleMouseLeave}
     >
       {/* Subtle gradient background matching hero */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/30" />
       
-      {/* Subtle radial glow */}
-      <div 
-        className="absolute inset-0 opacity-40"
-        style={{
-          background: 'radial-gradient(ellipse 80% 50% at 50% 50%, hsl(var(--primary) / 0.15), transparent)',
+      {/* Mouse-reactive radial glow */}
+      <motion.div 
+        className="absolute inset-0 pointer-events-none"
+        animate={{
+          background: `radial-gradient(ellipse 60% 40% at ${mousePos.x * 100}% ${mousePos.y * 100}%, hsl(var(--primary) / ${isHovering ? 0.2 : 0.1}), transparent)`,
         }}
+        transition={{ duration: 0.3 }}
       />
 
       {/* Orbit rings and decorations - centered behind content */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <svg 
+        <motion.svg 
           className="absolute w-[800px] h-[800px]" 
           viewBox="-400 -400 800 800"
-          style={{ opacity: 0.6 }}
+          animate={{ 
+            opacity: isHovering ? 0.9 : 0.6,
+            scale: isHovering ? 1.02 : 1,
+          }}
+          transition={{ duration: 0.4 }}
         >
           <defs>
-            {/* Gradient for connection lines */}
-            <linearGradient id="ctaLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
-              <stop offset="50%" stopColor="hsl(var(--accent))" stopOpacity="0.5" />
-              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
-            </linearGradient>
+            {/* Multicolor gradients for each connection */}
+            {connections.map((conn, i) => (
+              <linearGradient key={`grad-${i}`} id={`ctaGradient${i}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor={conn.color} stopOpacity="0.6" />
+                <stop offset="50%" stopColor={conn.toColor} stopOpacity="0.8" />
+                <stop offset="100%" stopColor={conn.toColor} stopOpacity="0.6" />
+              </linearGradient>
+            ))}
             
-            {/* Glow filter for nodes */}
-            <filter id="ctaNodeGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="2" result="blur" />
+            {/* Glow filters for each color */}
+            <filter id="ctaGlowTeal" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feFlood floodColor={TYPE_COLORS.brand} floodOpacity="0.5" />
+              <feComposite in2="blur" operator="in" />
               <feMerge>
-                <feMergeNode in="blur" />
+                <feMergeNode />
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
-
-            {/* Animated dash pattern */}
-            <pattern id="ctaDashPattern" patternUnits="userSpaceOnUse" width="20" height="1">
-              <line x1="0" y1="0.5" x2="10" y2="0.5" stroke="hsl(var(--primary))" strokeWidth="1" strokeOpacity="0.4" />
-            </pattern>
+            <filter id="ctaGlowBlue" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feFlood floodColor={TYPE_COLORS.product} floodOpacity="0.5" />
+              <feComposite in2="blur" operator="in" />
+              <feMerge>
+                <feMergeNode />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="ctaGlowAmber" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feFlood floodColor={TYPE_COLORS.event} floodOpacity="0.5" />
+              <feComposite in2="blur" operator="in" />
+              <feMerge>
+                <feMergeNode />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
           </defs>
 
-          {/* Orbit rings */}
+          {/* Orbit rings with colors */}
           {orbitRings.map((ring, i) => (
             <g key={i}>
-              {/* Main ring */}
               <circle
                 cx="0"
                 cy="0"
                 r={ring.radius}
                 fill="none"
-                stroke="hsl(var(--primary))"
-                strokeWidth="1"
-                strokeOpacity={ring.opacity}
+                stroke={ring.color}
+                strokeWidth={isHovering ? 1.5 : 1}
+                strokeOpacity={isHovering ? ring.opacity * 1.5 : ring.opacity}
                 strokeDasharray="4 8"
+                style={{ transition: 'stroke-width 0.3s, stroke-opacity 0.3s' }}
               >
                 <animateTransform
                   attributeName="transform"
                   type="rotate"
-                  from={`0 0 0`}
+                  from="0 0 0"
                   to={`${360 * ring.direction} 0 0`}
-                  dur={`${ring.duration}s`}
+                  dur={`${ring.duration * speedMultiplier}s`}
                   repeatCount="indefinite"
                 />
               </circle>
             </g>
           ))}
 
-          {/* Connection lines with animated flow */}
+          {/* Multicolor connection lines with animated flow */}
           {connections.map((conn, i) => {
             const from = getPosition(conn.from.ring, conn.from.angle);
             const to = getPosition(conn.to.ring, conn.to.angle);
             const midX = (from.x + to.x) / 2;
-            const midY = (from.y + to.y) / 2 - 20;
+            const midY = (from.y + to.y) / 2 - 30;
             
             return (
               <g key={`conn-${i}`}>
-                {/* Connection path */}
+                {/* Connection path with gradient */}
                 <path
                   d={`M ${from.x} ${from.y} Q ${midX} ${midY} ${to.x} ${to.y}`}
                   fill="none"
-                  stroke="url(#ctaLineGradient)"
-                  strokeWidth="1.5"
+                  stroke={`url(#ctaGradient${i})`}
+                  strokeWidth={isHovering ? 2 : 1.5}
                   strokeLinecap="round"
-                  opacity="0.4"
+                  opacity={isHovering ? 0.7 : 0.4}
+                  style={{ transition: 'stroke-width 0.3s, opacity 0.3s' }}
                 />
                 
-                {/* Animated traveling dot */}
-                <circle r="2" fill="hsl(var(--primary))" opacity="0.8" filter="url(#ctaNodeGlow)">
+                {/* Animated traveling dot with gradient color */}
+                <circle r={isHovering ? 3 : 2} fill={conn.toColor} opacity="0.9">
                   <animateMotion
-                    dur={`${3 + i * 0.5}s`}
+                    dur={`${(2 + i * 0.3) * speedMultiplier}s`}
                     repeatCount="indefinite"
                     path={`M ${from.x} ${from.y} Q ${midX} ${midY} ${to.x} ${to.y}`}
+                  />
+                </circle>
+                
+                {/* Second traveling dot going backwards */}
+                <circle r={isHovering ? 2.5 : 1.5} fill={conn.color} opacity="0.7">
+                  <animateMotion
+                    dur={`${(2.5 + i * 0.4) * speedMultiplier}s`}
+                    repeatCount="indefinite"
+                    path={`M ${to.x} ${to.y} Q ${midX} ${midY} ${from.x} ${from.y}`}
                   />
                 </circle>
               </g>
             );
           })}
 
-          {/* Orbit nodes */}
+          {/* Orbit nodes with their type colors */}
           {orbitNodes.map((node) => {
             const pos = getPosition(node.ring, node.angle);
             const ringData = orbitRings[node.ring];
+            const glowFilter = node.ring === 0 ? 'url(#ctaGlowTeal)' : node.ring === 1 ? 'url(#ctaGlowBlue)' : 'url(#ctaGlowAmber)';
             
             return (
               <g key={node.id}>
@@ -201,14 +252,23 @@ export function InteractiveCTA() {
                 <circle
                   cx={pos.x}
                   cy={pos.y}
-                  r={node.size + 4}
-                  fill="hsl(var(--primary))"
-                  opacity="0.1"
+                  r={isHovering ? node.size + 6 : node.size + 4}
+                  fill={node.color}
+                  opacity={isHovering ? 0.25 : 0.15}
+                  style={{ transition: 'r 0.3s, opacity 0.3s' }}
                 >
                   <animate
                     attributeName="opacity"
-                    values="0.1;0.2;0.1"
+                    values={isHovering ? "0.25;0.4;0.25" : "0.15;0.25;0.15"}
                     dur={`${2 + node.delay}s`}
+                    repeatCount="indefinite"
+                  />
+                  <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 0 0"
+                    to={`${-360 * ringData.direction} 0 0`}
+                    dur={`${ringData.duration * speedMultiplier}s`}
                     repeatCount="indefinite"
                   />
                 </circle>
@@ -219,42 +279,43 @@ export function InteractiveCTA() {
                   cy={pos.y}
                   r={node.size}
                   fill="hsl(var(--background))"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth="1.5"
-                  strokeOpacity="0.5"
-                  filter="url(#ctaNodeGlow)"
+                  stroke={node.color}
+                  strokeWidth={isHovering ? 2 : 1.5}
+                  filter={isHovering ? glowFilter : undefined}
+                  style={{ transition: 'stroke-width 0.3s' }}
                 >
                   <animateTransform
                     attributeName="transform"
                     type="rotate"
-                    from={`0 0 0`}
+                    from="0 0 0"
                     to={`${-360 * ringData.direction} 0 0`}
-                    dur={`${ringData.duration}s`}
+                    dur={`${ringData.duration * speedMultiplier}s`}
                     repeatCount="indefinite"
                   />
                 </circle>
                 
-                {/* Inner dot */}
+                {/* Inner colored dot */}
                 <circle
                   cx={pos.x}
                   cy={pos.y}
                   r={node.size * 0.4}
-                  fill="hsl(var(--primary))"
-                  opacity="0.6"
+                  fill={node.color}
+                  opacity={isHovering ? 0.9 : 0.6}
+                  style={{ transition: 'opacity 0.3s' }}
                 >
                   <animateTransform
                     attributeName="transform"
                     type="rotate"
-                    from={`0 0 0`}
+                    from="0 0 0"
                     to={`${-360 * ringData.direction} 0 0`}
-                    dur={`${ringData.duration}s`}
+                    dur={`${ringData.duration * speedMultiplier}s`}
                     repeatCount="indefinite"
                   />
                 </circle>
               </g>
             );
           })}
-        </svg>
+        </motion.svg>
       </div>
 
       {/* Main content with subtle 3D perspective */}
