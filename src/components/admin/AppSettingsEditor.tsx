@@ -189,6 +189,7 @@ export const AppSettingsEditor = forwardRef<HTMLDivElement, React.HTMLAttributes
   };
 
   return (
+    <div ref={ref} {...props}>
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" onClick={handleOpen} title="App Settings">
@@ -731,6 +732,7 @@ export const AppSettingsEditor = forwardRef<HTMLDivElement, React.HTMLAttributes
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </div>
   );
 });
 
