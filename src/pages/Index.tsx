@@ -6,14 +6,13 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play } from 'lucide-react';
-import tpLogoWhite from '@/assets/tp-logo-white.svg';
-import tpLogoColor from '@/assets/tp-logo-color.svg';
+import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap } from 'lucide-react';
 import { GlobalAssetOrbit, OrbitLegend } from '@/components/portal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_GRADIENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
+import brandhubLogo from '@/assets/brandhub-logo.svg';
 
 // Transform demo data to orbit format
 const transformToOrbitEntity = (item: any, type: 'brand' | 'product' | 'event') => ({
@@ -91,9 +90,9 @@ const Index = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img 
-              src={resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite} 
-              alt="TransPerfect" 
-              className="h-6 w-auto"
+              src={brandhubLogo} 
+              alt="BrandHub" 
+              className="h-8 w-auto"
             />
             <span className="font-serif font-semibold text-foreground">BrandHub</span>
           </div>
@@ -183,13 +182,14 @@ const Index = () => {
                   primaryColor="hsl(var(--primary))"
                   secondaryColor="hsl(var(--accent))"
                   organizationName="BrandHub"
-                  organizationLogo={resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite}
+                  organizationLogo={brandhubLogo}
                   brands={orbitBrands}
                   products={orbitProducts}
                   events={orbitEvents}
                   filter={orbitFilter}
                   showLegend={true}
                   onFilterChange={setOrbitFilter}
+                  demoMode={true}
                 />
               </div>
               
@@ -255,10 +255,33 @@ const Index = () => {
       <section className="py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Everything You Need</h2>
+            <Badge variant="secondary" className="mb-4 gap-1.5">
+              <Zap className="h-3 w-3" />
+              Automate Brand Management
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Save Time & Money</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              A complete platform for managing brand identity across all touchpoints
+              Eliminate manual brand asset creation and maintenance. Let AI handle the repetitive work while your team focuses on strategy.
             </p>
+          </div>
+
+          {/* Value Props Row */}
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-6 border border-primary/20 text-center">
+              <Clock className="h-8 w-8 text-primary mx-auto mb-3" />
+              <div className="text-3xl font-bold text-foreground mb-1">80%</div>
+              <p className="text-sm text-muted-foreground">Less time creating brand assets</p>
+            </div>
+            <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-2xl p-6 border border-accent/20 text-center">
+              <DollarSign className="h-8 w-8 text-accent mx-auto mb-3" />
+              <div className="text-3xl font-bold text-foreground mb-1">50%</div>
+              <p className="text-sm text-muted-foreground">Reduction in design costs</p>
+            </div>
+            <div className="bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-2xl p-6 border border-secondary/30 text-center">
+              <Zap className="h-8 w-8 text-secondary-foreground mx-auto mb-3" />
+              <div className="text-3xl font-bold text-foreground mb-1">10x</div>
+              <p className="text-sm text-muted-foreground">Faster brand guide creation</p>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -266,9 +289,9 @@ const Index = () => {
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
                 <Building2 className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Brand Guides</h3>
+              <h3 className="text-xl font-semibold mb-3">Automated Brand Guides</h3>
               <p className="text-muted-foreground">
-                Comprehensive brand identity documentation with logos, colors, typography, and usage guidelines.
+                AI generates patterns, gradients, and color specs automatically. Upload your logo and watch your brand guide build itself.
               </p>
             </div>
 
@@ -276,9 +299,9 @@ const Index = () => {
               <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6">
                 <Package className="h-6 w-6 text-accent" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Product Guides</h3>
+              <h3 className="text-xl font-semibold mb-3">Smart Product Lines</h3>
               <p className="text-muted-foreground">
-                Dedicated guidelines for product lines with unique visual identities linked to parent brands.
+                Automatically inherit parent brand assets. Create sub-brands and product guides with one click while maintaining consistency.
               </p>
             </div>
 
@@ -286,9 +309,9 @@ const Index = () => {
               <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-6">
                 <Calendar className="h-6 w-6 text-secondary-foreground" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Event Kits</h3>
+              <h3 className="text-xl font-semibold mb-3">Instant Event Kits</h3>
               <p className="text-muted-foreground">
-                Complete event branding packages including signage, digital assets, and sponsor materials.
+                Generate complete event branding packages in minutes. Signage specs, digital banners, and sponsor materials—all automated.
               </p>
             </div>
           </div>
@@ -320,14 +343,14 @@ const Index = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <img 
-                src={resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite} 
-                alt="TransPerfect" 
-                className="h-5 w-auto"
+                src={brandhubLogo} 
+                alt="BrandHub" 
+                className="h-6 w-auto"
               />
               <span className="font-serif font-semibold text-foreground">BrandHub</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} TransPerfect. All rights reserved.
+              © {new Date().getFullYear()} BrandHub. All rights reserved.
             </p>
           </div>
         </div>
