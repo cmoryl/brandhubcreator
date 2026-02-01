@@ -3,6 +3,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { safeUUID } from '@/lib/safeUUID';
 
+const getShareBaseUrl = (): string => {
+  // In Lovable previews, window.location.origin is a preview domain.
+  // External apps should always get the published URL.
+  const origin = window.location.origin;
+  if (origin.includes('lovableproject.com') || origin.includes('id-preview--')) {
+    return 'https://brandhubcreator.lovable.app';
+  }
+  return origin;
+};
+
 export function useShareBrand() {
   const [isSharing, setIsSharing] = useState(false);
 
@@ -33,7 +43,7 @@ export function useShareBrand() {
       }
 
       // Build the share URL
-      const shareUrl = `${window.location.origin}/share/${shareToken}`;
+      const shareUrl = `${getShareBaseUrl()}/share/${shareToken}`;
       console.log('[useShareBrand] Share URL:', shareUrl);
       
       // Copy to clipboard
