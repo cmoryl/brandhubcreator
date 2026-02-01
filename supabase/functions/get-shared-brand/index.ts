@@ -69,6 +69,7 @@ serve(async (req) => {
     const displayBanners = (guideData.displayBanners as Array<Record<string, unknown>>) || [];
     const videos = (guideData.videos as Array<Record<string, unknown>>) || [];
     const webinars = (guideData.webinars as Array<Record<string, unknown>>) || [];
+    const sponsorLogos = (guideData.sponsorLogos as Array<Record<string, unknown>>) || [];
     
     // Find logo variants
     const primaryLogo = logos.find(l => l.variant === 'primary') || logos[0];
@@ -204,6 +205,13 @@ serve(async (req) => {
       }
     });
 
+    // Sponsor logos
+    sponsorLogos.forEach(s => {
+      if (s.url) {
+        allImageryUrls.push({ url: String(s.url), type: 'sponsor-logo', name: String(s.name || 'Sponsor'), description: String(s.tier || '') });
+      }
+    });
+
     return new Response(
       JSON.stringify({
         brand: {
@@ -290,6 +298,7 @@ serve(async (req) => {
               social: allImageryUrls.filter(i => i.type.startsWith('social')).map(i => i.url),
               banners: allImageryUrls.filter(i => i.type === 'display-banner').map(i => i.url),
               video: allImageryUrls.filter(i => ['video-thumbnail', 'webinar'].includes(i.type)).map(i => i.url),
+              sponsors: allImageryUrls.filter(i => i.type === 'sponsor-logo').map(i => i.url),
             },
             all: allImageryUrls
           },
@@ -380,6 +389,64 @@ serve(async (req) => {
             imageUrl: s.imageUrl,
             headerImage: s.headerImage
           })),
+          
+          // === SPONSOR LOGOS ===
+          sponsorLogos: {
+            byTier: {
+              platinum: sponsorLogos.filter(s => s.tier === 'platinum').map(s => ({
+                id: s.id,
+                name: s.name,
+                url: s.url,
+                websiteUrl: s.websiteUrl,
+                placement: s.placement
+              })),
+              gold: sponsorLogos.filter(s => s.tier === 'gold').map(s => ({
+                id: s.id,
+                name: s.name,
+                url: s.url,
+                websiteUrl: s.websiteUrl,
+                placement: s.placement
+              })),
+              silver: sponsorLogos.filter(s => s.tier === 'silver').map(s => ({
+                id: s.id,
+                name: s.name,
+                url: s.url,
+                websiteUrl: s.websiteUrl,
+                placement: s.placement
+              })),
+              bronze: sponsorLogos.filter(s => s.tier === 'bronze').map(s => ({
+                id: s.id,
+                name: s.name,
+                url: s.url,
+                websiteUrl: s.websiteUrl,
+                placement: s.placement
+              })),
+              partner: sponsorLogos.filter(s => s.tier === 'partner').map(s => ({
+                id: s.id,
+                name: s.name,
+                url: s.url,
+                websiteUrl: s.websiteUrl,
+                placement: s.placement
+              })),
+              media: sponsorLogos.filter(s => s.tier === 'media').map(s => ({
+                id: s.id,
+                name: s.name,
+                url: s.url,
+                websiteUrl: s.websiteUrl,
+                placement: s.placement
+              })),
+            },
+            all: sponsorLogos.map(s => ({
+              id: s.id,
+              name: s.name,
+              url: s.url,
+              tier: s.tier,
+              websiteUrl: s.websiteUrl,
+              placement: s.placement
+            })),
+            allLogoUrls: sponsorLogos.map(s => s.url).filter(Boolean),
+            totalCount: sponsorLogos.length
+          },
           
           // === METADATA ===
           industry: guideData.industry || null,

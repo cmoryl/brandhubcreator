@@ -488,6 +488,17 @@ export interface BrandWebinar {
   attendees?: number;
 }
 
+// SPONSOR LOGOS - Partner/Sponsor Logo Placement
+export interface SponsorLogo {
+  id: string;
+  name: string;
+  url: string;
+  tier: 'platinum' | 'gold' | 'silver' | 'bronze' | 'partner' | 'media';
+  websiteUrl?: string;
+  description?: string;
+  placement?: string; // Where sponsor logo appears (e.g., "main stage", "lanyards")
+}
+
 // SECTION LAYOUTS - Per-section layout preferences
 export type LayoutPreset = 
   | 'grid-2'      // 2 columns
@@ -704,6 +715,8 @@ export interface BaseGuide {
   webinars?: BrandWebinar[];
   // Awards (Awards & Recognition)
   awards?: BrandAward[];
+  // Sponsor Logos (Partner/Sponsor Logo Placement)
+  sponsorLogos?: SponsorLogo[];
   // Metadata
   createdAt: Date;
   updatedAt: Date;
@@ -714,7 +727,7 @@ export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
   'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'imageassets', 'misuse',
-  'brochures', 'templates', 'templatespecs', 'universe', 'products', 'events'
+  'brochures', 'templates', 'templatespecs', 'sponsorlogos', 'universe', 'products', 'events'
 ];
 
 // Main Brand Guide interface (extends base)
@@ -765,7 +778,8 @@ export type SectionId =
   | 'webinars'
   | 'products'
   | 'events'
-  | 'universe';
+  | 'universe'
+  | 'sponsorlogos';
 
 // Statistic item for By the Numbers section
 export interface StatisticItem {

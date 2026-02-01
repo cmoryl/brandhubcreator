@@ -387,6 +387,41 @@ const schemaSections: SchemaSection[] = [
     ]
   },
   {
+    title: "Sponsor Logos",
+    icon: <Target className="h-5 w-5" />,
+    description: "Partner and sponsor logos organized by tier",
+    fields: [
+      {
+        name: "sponsorLogos.byTier",
+        type: "Object<Tier, Array<SponsorObject>>",
+        description: "Sponsors grouped by tier (platinum, gold, silver, bronze, partner, media)",
+        example: { platinum: [{ id: "uuid", name: "Acme Corp", url: "...", placement: "main stage" }] },
+        eventKitUse: "Tiered sponsor placement"
+      },
+      {
+        name: "sponsorLogos.all",
+        type: "Array<SponsorObject>",
+        description: "All sponsor logos with full metadata",
+        example: [{ id: "uuid", name: "Acme Corp", url: "...", tier: "platinum", websiteUrl: "https://...", placement: "lanyards" }],
+        eventKitUse: "Full sponsor inventory"
+      },
+      {
+        name: "sponsorLogos.allLogoUrls",
+        type: "Array<string>",
+        description: "Quick access to all sponsor logo URLs",
+        example: ["https://storage.example.com/sponsor1.png", "https://storage.example.com/sponsor2.png"],
+        eventKitUse: "Bulk sponsor logo access"
+      },
+      {
+        name: "sponsorLogos.totalCount",
+        type: "number",
+        description: "Total number of sponsors",
+        example: "12",
+        eventKitUse: "Sponsor count display"
+      }
+    ]
+  },
+  {
     title: "All Imagery",
     icon: <Globe className="h-5 w-5" />,
     description: "Consolidated inventory of all visual assets",
@@ -614,7 +649,8 @@ export default function BrandExportSchema() {
                 { type: "collateral", desc: "Case studies, brochures, templates" },
                 { type: "social", desc: "Social media assets" },
                 { type: "banners", desc: "Display ad banners" },
-                { type: "video", desc: "Video thumbnails" }
+                { type: "video", desc: "Video thumbnails" },
+                { type: "sponsors", desc: "Sponsor/partner logos" }
               ].map((cat) => (
                 <div key={cat.type} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
                   <Badge variant="outline" className="font-mono text-xs">{cat.type}</Badge>
