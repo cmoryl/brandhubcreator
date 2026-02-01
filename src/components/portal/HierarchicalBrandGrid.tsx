@@ -293,7 +293,7 @@ export const HierarchicalBrandGrid = ({ brands, orgColors }: HierarchicalBrandGr
                   <FileText className="h-3 w-3" />
                   Sub-Brands in {hero.name}
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {subBrands.map((subBrand) => (
                     <SubBrandCard key={subBrand.id} brand={subBrand} />
                   ))}
@@ -367,7 +367,7 @@ export const HierarchicalBrandGrid = ({ brands, orgColors }: HierarchicalBrandGr
   // If no hierarchy, just show all brands as standalone
   if (hierarchy.masterBrands.length === 0) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
         {brands.map((brand) => (
           <StandaloneBrandCard key={brand.id} brand={brand} />
         ))}
@@ -394,7 +394,7 @@ export const HierarchicalBrandGrid = ({ brands, orgColors }: HierarchicalBrandGr
               Other Brands
             </h3>
           )}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
             {hierarchy.standaloneBrands.map((brand) => (
               <StandaloneBrandCard key={brand.id} brand={brand} />
             ))}
