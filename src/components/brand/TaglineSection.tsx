@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, Quote, Sparkles, Palette, Type } from 'lucide-react';
+import { Plus, X, Quote, Sparkles, Palette, Type, Pencil, Check } from 'lucide-react';
 import { BrandTagline, TaglineFontSettings } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { SectionHeader } from './SectionHeader';
 import {
   Popover,
   PopoverContent,
@@ -141,17 +140,10 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
 
   return (
     <section className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <SectionHeader
-          title="Corporate Tagline"
-          defaultSubtitle="Your brand's memorable signature phrases"
-          customSubtitle={customSubtitle}
-          onSubtitleChange={onSubtitleChange}
-          isEditing={isEditing}
-          onEditToggle={() => setIsEditing(!isEditing)}
-        />
-        {isEditing && onTaglineChange && (
-          <div className="flex items-center gap-2">
+      {/* Options bar */}
+      <div className="flex items-center justify-end gap-2">
+        {isEditing ? (
+          <>
             {/* Animation Settings Button */}
             <TaglineAnimationSettings
               animation={tagline.taglineAnimation || 'fade-slide'}
@@ -215,87 +207,98 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                   Style
                 </Button>
               </PopoverTrigger>
-            <PopoverContent className="w-80" align="end">
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Background Style</label>
-                  <ToggleGroup 
-                    type="single" 
-                    value={settings.backgroundStyle}
-                    onValueChange={(value) => value && updateSettings({ backgroundStyle: value as TaglineBackgroundStyle })}
-                    className="flex flex-wrap gap-1"
-                  >
-                    <ToggleGroupItem value="floating" size="sm">Floating</ToggleGroupItem>
-                    <ToggleGroupItem value="gradient" size="sm">Gradient</ToggleGroupItem>
-                    <ToggleGroupItem value="solid" size="sm">Solid</ToggleGroupItem>
-                    <ToggleGroupItem value="glass" size="sm">Glass</ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-
-                {settings.backgroundStyle === 'gradient' && (
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium">Gradient Colors</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <label className="text-xs text-muted-foreground">From</label>
-                        <Input
-                          type="color"
-                          value={settings.gradientColors.from}
-                          onChange={(e) => updateSettings({ 
-                            gradientColors: { ...settings.gradientColors, from: e.target.value }
-                          })}
-                          className="h-10 p-1 cursor-pointer"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground">Via</label>
-                        <Input
-                          type="color"
-                          value={settings.gradientColors.via}
-                          onChange={(e) => updateSettings({ 
-                            gradientColors: { ...settings.gradientColors, via: e.target.value }
-                          })}
-                          className="h-10 p-1 cursor-pointer"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground">To</label>
-                        <Input
-                          type="color"
-                          value={settings.gradientColors.to}
-                          onChange={(e) => updateSettings({ 
-                            gradientColors: { ...settings.gradientColors, to: e.target.value }
-                          })}
-                          className="h-10 p-1 cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {settings.backgroundStyle === 'solid' && (
+              <PopoverContent className="w-80" align="end">
+                <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Background Color</label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="color"
-                        value={settings.solidColor}
-                        onChange={(e) => updateSettings({ solidColor: e.target.value })}
-                        className="h-10 w-16 p-1 cursor-pointer"
-                      />
-                      <Input
-                        value={settings.solidColor}
-                        onChange={(e) => updateSettings({ solidColor: e.target.value })}
-                        placeholder="#6366f1"
-                        className="flex-1"
-                      />
-                    </div>
+                    <label className="text-sm font-medium mb-2 block">Background Style</label>
+                    <ToggleGroup 
+                      type="single" 
+                      value={settings.backgroundStyle}
+                      onValueChange={(value) => value && updateSettings({ backgroundStyle: value as TaglineBackgroundStyle })}
+                      className="flex flex-wrap gap-1"
+                    >
+                      <ToggleGroupItem value="floating" size="sm">Floating</ToggleGroupItem>
+                      <ToggleGroupItem value="gradient" size="sm">Gradient</ToggleGroupItem>
+                      <ToggleGroupItem value="solid" size="sm">Solid</ToggleGroupItem>
+                      <ToggleGroupItem value="glass" size="sm">Glass</ToggleGroupItem>
+                    </ToggleGroup>
                   </div>
-                )}
-              </div>
-            </PopoverContent>
-          </Popover>
-          </div>
+
+                  {settings.backgroundStyle === 'gradient' && (
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium">Gradient Colors</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <label className="text-xs text-muted-foreground">From</label>
+                          <Input
+                            type="color"
+                            value={settings.gradientColors.from}
+                            onChange={(e) => updateSettings({ 
+                              gradientColors: { ...settings.gradientColors, from: e.target.value }
+                            })}
+                            className="h-10 p-1 cursor-pointer"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-muted-foreground">Via</label>
+                          <Input
+                            type="color"
+                            value={settings.gradientColors.via}
+                            onChange={(e) => updateSettings({ 
+                              gradientColors: { ...settings.gradientColors, via: e.target.value }
+                            })}
+                            className="h-10 p-1 cursor-pointer"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-muted-foreground">To</label>
+                          <Input
+                            type="color"
+                            value={settings.gradientColors.to}
+                            onChange={(e) => updateSettings({ 
+                              gradientColors: { ...settings.gradientColors, to: e.target.value }
+                            })}
+                            className="h-10 p-1 cursor-pointer"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {settings.backgroundStyle === 'solid' && (
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Background Color</label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="color"
+                          value={settings.solidColor}
+                          onChange={(e) => updateSettings({ solidColor: e.target.value })}
+                          className="h-10 w-16 p-1 cursor-pointer"
+                        />
+                        <Input
+                          value={settings.solidColor}
+                          onChange={(e) => updateSettings({ solidColor: e.target.value })}
+                          placeholder="#6366f1"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+            
+            {/* Done button */}
+            <Button variant="default" size="sm" className="gap-2" onClick={() => setIsEditing(false)}>
+              <Check className="h-4 w-4" />
+              Done
+            </Button>
+          </>
+        ) : (
+          <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" onClick={() => setIsEditing(true)}>
+            <Pencil className="h-4 w-4" />
+            Edit
+          </Button>
         )}
       </div>
 
