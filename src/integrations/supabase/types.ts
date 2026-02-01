@@ -206,6 +206,7 @@ export type Database = {
           name: string
           organization_id: string | null
           section_order: string[] | null
+          share_token: string | null
           slug: string | null
           updated_at: string
           user_id: string
@@ -220,6 +221,7 @@ export type Database = {
           name: string
           organization_id?: string | null
           section_order?: string[] | null
+          share_token?: string | null
           slug?: string | null
           updated_at?: string
           user_id: string
@@ -234,6 +236,7 @@ export type Database = {
           name?: string
           organization_id?: string | null
           section_order?: string[] | null
+          share_token?: string | null
           slug?: string | null
           updated_at?: string
           user_id?: string

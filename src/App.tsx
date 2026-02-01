@@ -40,6 +40,7 @@ const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const GlobalLinkUniversePage = lazy(() => import("./pages/GlobalLinkUniversePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
+const SharedBrandPage = lazy(() => import("./pages/SharedBrandPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -227,6 +228,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <HelpCenter />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="share/:token"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <SharedBrandPage />
                         </Suspense>
                       }
                     />

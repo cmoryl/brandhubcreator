@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Share2, Copy, Check, Link2, Mail, Globe, Lock, Linkedin, Facebook } from 'lucide-react';
+import { Share2, Copy, Check, Link2, Mail, Globe, Lock, Linkedin, Facebook, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import { useShareBrand } from '@/hooks/useShareBrand';
 
 interface ShareButtonProps {
   guideId: string;
@@ -36,6 +37,7 @@ export const ShareButton = ({
 }: ShareButtonProps) => {
   const [copied, setCopied] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const { isSharing, generateShareLink } = useShareBrand();
 
   const getShareUrl = () => {
     const baseUrl = window.location.origin;
@@ -212,6 +214,31 @@ export const ShareButton = ({
           <Facebook className="h-4 w-4" />
           Facebook
         </DropdownMenuItem>
+
+        {/* Share to External Apps (Brand only) */}
+        {type === 'brand' && canEdit && (
+          <>
+            <DropdownMenuSeparator />
+            <div className="px-3 py-2">
+              <p className="text-xs font-medium text-foreground mb-2">
+                Share to External Apps
+              </p>
+              <p className="text-xs text-muted-foreground mb-2">
+                Generate a link to import this brand into EventKIT or other apps.
+              </p>
+              <Button 
+                size="sm" 
+                variant="secondary" 
+                className="w-full gap-2"
+                onClick={() => generateShareLink(guideId)}
+                disabled={isSharing}
+              >
+                <ExternalLink className="h-4 w-4" />
+                {isSharing ? 'Generating...' : 'Generate Import Link'}
+              </Button>
+            </div>
+          </>
+        )}
 
         {/* Status Info */}
         {!isPublic && !canEdit && (
