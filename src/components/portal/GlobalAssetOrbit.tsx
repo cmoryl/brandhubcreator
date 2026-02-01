@@ -45,6 +45,10 @@ interface GlobalAssetOrbitProps {
    */
   showLegend?: boolean;
   onFilterChange?: (filter: 'all' | 'brands' | 'products' | 'events') => void;
+  /**
+   * Demo mode - uses generic BrandHub icon in center instead of org-specific logos
+   */
+  demoMode?: boolean;
 }
 
 // Distinct colors for each entity type - teal for brands, light blue for products, amber for events
@@ -106,6 +110,7 @@ export const GlobalAssetOrbit = ({
   filter: controlledFilter,
   showLegend = true,
   onFilterChange,
+  demoMode = false,
 }: GlobalAssetOrbitProps) => {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -638,8 +643,17 @@ export const GlobalAssetOrbit = ({
               background: `linear-gradient(145deg, ${primaryColor}60, ${primaryColor}30)`,
             }}
           />
-          {/* Use TransPerfect T icon for TransPerfect org, otherwise use org logo or fallback */}
-          {organizationName?.toLowerCase() === 'transperfect' ? (
+          {/* Center icon: Demo mode shows org logo directly, TransPerfect shows T icon, otherwise use org logo with invert filter */}
+          {demoMode && organizationLogo ? (
+            <img 
+              src={organizationLogo} 
+              alt={organizationName} 
+              className="w-12 h-12 object-contain transition-transform duration-300 hover:scale-105 relative z-10" 
+              style={{ 
+                filter: `drop-shadow(0 0 12px ${primaryColor}80) drop-shadow(0 0 24px ${primaryColor}40)`
+              }} 
+            />
+          ) : organizationName?.toLowerCase() === 'transperfect' ? (
             <img 
               src={transperfectLogoIcon} 
               alt={organizationName} 
