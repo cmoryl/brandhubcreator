@@ -43,7 +43,7 @@ export const SortableSectionItem = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-1 rounded-lg transition-all duration-200 group",
+        "flex items-center gap-0.5 rounded-lg transition-all duration-200 group pr-1",
         isDragging && "opacity-50 z-50 scale-105",
         isHidden && "opacity-50"
       )}
@@ -51,7 +51,7 @@ export const SortableSectionItem = ({
       <button
         {...attributes}
         {...listeners}
-        className="p-1 text-muted-foreground/50 hover:text-muted-foreground cursor-grab active:cursor-grabbing transition-colors duration-200"
+        className="p-1 text-muted-foreground/50 hover:text-muted-foreground cursor-grab active:cursor-grabbing transition-colors duration-200 shrink-0"
         aria-label="Drag to reorder"
       >
         <GripVertical className="h-3 w-3" />
@@ -59,7 +59,7 @@ export const SortableSectionItem = ({
       <button
         onClick={onClick}
         className={cn(
-          "flex-1 flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-all duration-200",
+          "flex-1 min-w-0 flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-all duration-200",
           isActive 
             ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-sm" 
             : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:translate-x-1",
@@ -79,7 +79,7 @@ export const SortableSectionItem = ({
             onToggleVisibility();
           }}
           className={cn(
-            "p-1.5 rounded-md transition-colors shrink-0",
+            "p-1 rounded-md transition-colors shrink-0",
             isHidden 
               ? "text-amber-500 hover:text-amber-400 hover:bg-amber-500/10" 
               : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-secondary"

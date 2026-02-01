@@ -170,7 +170,7 @@ export const EventSidebar = ({
 
       {/* Navigation */}
       <ScrollArea className="flex-1">
-        <nav className="p-2">
+        <nav className="p-2 pr-1">
           <DndContext 
             sensors={sensors}
             collisionDetection={closestCenter}
