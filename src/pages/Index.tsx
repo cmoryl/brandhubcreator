@@ -142,7 +142,8 @@ const Index = () => {
                 <span className="text-foreground">Create </span>
                 <GlitchText text="Living" glowColor="hsl(199 89% 48%)" />
                 <br />
-                <span className="text-foreground">Brand Guides</span>
+                <GlitchText text="Brand" glowColor="hsl(199 89% 48%)" />
+                <span className="text-foreground"> Guides</span>
               </h1>
               
               <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
@@ -202,7 +203,7 @@ const Index = () => {
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Explore Live Examples</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Explore <GlitchText text="Live" glowColor="hsl(199 89% 48%)" className="text-3xl sm:text-4xl" /> Examples</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               See how brands, products, and events come to life with interactive guidelines
             </p>
@@ -264,7 +265,7 @@ const Index = () => {
               <Zap className="h-3 w-3" />
               Automate Brand Management
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Save Time & Money</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Save Time & <GlitchText text="Money" glowColor="hsl(199 89% 48%)" className="text-3xl sm:text-4xl" /></h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Eliminate manual brand asset creation and maintenance. Let AI handle the repetitive work while your team focuses on strategy.
             </p>
