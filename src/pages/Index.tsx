@@ -6,6 +6,7 @@
 import { useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap } from 'lucide-react';
+import { GlitchText } from '@/components/ui/GlitchText';
 import { HeroOrbit } from '@/components/landing/HeroOrbit';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -139,9 +140,7 @@ const Index = () => {
               
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
                 <span className="text-foreground">Create </span>
-                <span className="text-subtle-glitch bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                  Living
-                </span>
+                <GlitchText text="Living" glowColor="hsl(199 89% 48%)" />
                 <br />
                 <span className="text-foreground">Brand Guides</span>
               </h1>
