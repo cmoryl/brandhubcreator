@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Brain, FileText, Building2, Download } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Brain, FileText, Building2, Download, Settings, HardDrive, ClipboardCheck } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, BrandGuide } from '@/types/brand';
@@ -56,6 +56,7 @@ import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEdi
 import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
 import { BrandBackupManager } from '@/components/brand/BrandBackupManager';
 import { QuickBackupButton } from '@/components/brand/QuickBackupButton';
+import { AdminToolbar } from '@/components/admin/AdminToolbar';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { HeroBackground } from '@/components/HeroBackground';
@@ -784,7 +785,7 @@ const BrandEditor = () => {
                   {canEdit && <SyncStatusIndicator compact />}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
@@ -808,36 +809,6 @@ const BrandEditor = () => {
                   canEdit={canEdit || false}
                   organizationSlug={organization?.slug}
                 />
-                {canEdit && <BrandAuditButton brand={brand} />}
-                {canEdit && (
-                  <Sheet open={intelligenceOpen} onOpenChange={setIntelligenceOpen}>
-                    <SheetTrigger asChild>
-                      <Button variant="ghost" size="icon" className="relative">
-                        <Brain className="h-5 w-5" />
-                        <span className="sr-only">Brand Intelligence</span>
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="right" className="w-full sm:w-[540px] sm:max-w-xl p-0 flex flex-col h-full min-h-0 overflow-hidden">
-                      <div className="p-6 flex-1 min-h-0">
-                        <BrandIntelligencePanel
-                          entityType="brand"
-                          entityId={brand.id}
-                          entityName={brand.hero.name}
-                          organizationId={brand.organizationId}
-                        />
-                      </div>
-                    </SheetContent>
-                  </Sheet>
-                )}
-                {canEdit && (
-                  <BrandPageSettingsEditor
-                    settings={pageSettings} 
-                    onSettingsChange={handlePageSettingsChange} 
-                  />
-                )}
-                <ExportPdfButton guide={brand} />
-                <QuickBackupButton guide={brand} />
-                <BrandBackupManager guide={brand} />
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -894,6 +865,75 @@ const BrandEditor = () => {
               </div>
             </div>
           </header>
+
+          {/* Admin Toolbar - Consolidated admin actions */}
+          <AdminToolbar
+            isVisible={canEdit || false}
+            guideType="brand"
+            hiddenSectionCount={hiddenSections.length}
+            actions={[
+              {
+                id: 'intelligence',
+                label: 'Intelligence',
+                icon: Brain,
+                render: () => (
+                  <Sheet open={intelligenceOpen} onOpenChange={setIntelligenceOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                        <Brain className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Intelligence</span>
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="w-full sm:w-[540px] sm:max-w-xl p-0 flex flex-col h-full min-h-0 overflow-hidden">
+                      <div className="p-6 flex-1 min-h-0">
+                        <BrandIntelligencePanel
+                          entityType="brand"
+                          entityId={brand.id}
+                          entityName={brand.hero.name}
+                          organizationId={brand.organizationId}
+                        />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                ),
+              },
+              {
+                id: 'audit',
+                label: 'Audit',
+                icon: ClipboardCheck,
+                render: () => <BrandAuditButton brand={brand} />,
+              },
+              {
+                id: 'settings',
+                label: 'Page Settings',
+                icon: Settings,
+                render: () => (
+                  <BrandPageSettingsEditor
+                    settings={pageSettings} 
+                    onSettingsChange={handlePageSettingsChange} 
+                  />
+                ),
+              },
+              {
+                id: 'export',
+                label: 'Export PDF',
+                icon: Download,
+                render: () => <ExportPdfButton guide={brand} />,
+              },
+              {
+                id: 'quick-backup',
+                label: 'Quick Backup',
+                icon: HardDrive,
+                render: () => <QuickBackupButton guide={brand} />,
+              },
+              {
+                id: 'backups',
+                label: 'Manage Backups',
+                icon: HardDrive,
+                render: () => <BrandBackupManager guide={brand} />,
+              },
+            ]}
+          />
 
           {/* Content */}
           <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
