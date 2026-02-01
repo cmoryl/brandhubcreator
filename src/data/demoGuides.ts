@@ -32,6 +32,14 @@ import signagePullupBanner from '@/assets/demos/signage-pullup-banner.jpg';
 import bannerLinkedinEvent from '@/assets/demos/banner-linkedin-event.jpg';
 import bannerEmail from '@/assets/demos/banner-email.jpg';
 
+// Import card imagery for landing page showcase
+import cardBrandHub from '@/assets/demos/card-brandhub.jpg';
+import cardNexusTech from '@/assets/demos/card-nexus-tech.jpg';
+import cardNexusCloud from '@/assets/demos/card-nexus-cloud.jpg';
+import cardInnovationSummit from '@/assets/demos/card-innovation-summit.jpg';
+import cardBloomWellness from '@/assets/demos/card-bloom-wellness.jpg';
+import cardBloomOils from '@/assets/demos/card-bloom-oils.jpg';
+
 // Default demo page settings with full-width hero and spacious layout
 const DEMO_PAGE_SETTINGS: BrandPageSettings = {
   backgroundType: 'inherit',
@@ -1067,4 +1075,14 @@ export const DEMO_INDUSTRIES: Record<string, string> = {
   'demo-nexus-cloud': 'Cloud Platform',
   'demo-bloom-oils': 'Consumer Products',
   'demo-innovation-summit': 'Conference',
+};
+
+// Card imagery for landing page showcase (hyper-realistic AI-generated)
+export const DEMO_CARD_IMAGES: Record<string, string> = {
+  'demo-brandhub': cardBrandHub,
+  'demo-nexus-tech': cardNexusTech,
+  'demo-bloom-wellness': cardBloomWellness,
+  'demo-nexus-cloud': cardNexusCloud,
+  'demo-bloom-oils': cardBloomOils,
+  'demo-innovation-summit': cardInnovationSummit,
 };
