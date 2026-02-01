@@ -19,7 +19,7 @@ type TaglineBackgroundStyle = 'floating' | 'gradient' | 'solid' | 'glass';
 
 interface TaglineSectionProps {
   tagline: BrandTagline;
-  onTaglineChange: (tagline: BrandTagline) => void;
+  onTaglineChange?: (tagline: BrandTagline) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
 }
@@ -66,7 +66,11 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
     }
   }, [fontSettings.fontFamily]);
 
+  // Check if editing is allowed
+  const canEdit = !!onTaglineChange;
+
   const updateSettings = (newSettings: Partial<TaglineSettings>) => {
+    if (!onTaglineChange) return;
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
     // Store settings in tagline object for persistence
@@ -74,10 +78,12 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
   };
 
   const updateFontSettings = (newFontSettings: FontSettings) => {
+    if (!onTaglineChange) return;
     onTaglineChange({ ...tagline, fontSettings: newFontSettings });
   };
 
   const addVariation = () => {
+    if (!onTaglineChange) return;
     if (newVariation.trim() && !tagline.variations?.includes(newVariation.trim())) {
       onTaglineChange({ 
         ...tagline, 
@@ -88,6 +94,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
   };
 
   const removeVariation = (variation: string) => {
+    if (!onTaglineChange) return;
     onTaglineChange({ 
       ...tagline, 
       variations: tagline.variations?.filter(v => v !== variation) || [] 
@@ -140,7 +147,8 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
 
   return (
     <section className="space-y-4 sm:space-y-6">
-      {/* Options bar */}
+      {/* Options bar - only show when editing is allowed */}
+      {canEdit && (
       <div className="flex items-center justify-end gap-2">
         {isEditing ? (
           <>
@@ -149,9 +157,9 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
               animation={tagline.taglineAnimation || 'fade-slide'}
               hoverEffect={tagline.taglineHoverEffect || 'none'}
               environment={tagline.taglineEnvironment || 'none'}
-              onAnimationChange={(animation) => onTaglineChange({ ...tagline, taglineAnimation: animation })}
-              onHoverEffectChange={(effect) => onTaglineChange({ ...tagline, taglineHoverEffect: effect })}
-              onEnvironmentChange={(env) => onTaglineChange({ ...tagline, taglineEnvironment: env })}
+              onAnimationChange={(animation) => onTaglineChange?.({ ...tagline, taglineAnimation: animation })}
+              onHoverEffectChange={(effect) => onTaglineChange?.({ ...tagline, taglineHoverEffect: effect })}
+              onEnvironmentChange={(env) => onTaglineChange?.({ ...tagline, taglineEnvironment: env })}
               previewText={tagline.primary || 'Your tagline here'}
             />
             
@@ -301,7 +309,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
           </Button>
         )}
       </div>
-
+      )}
       <div className="grid gap-6">
         {/* Primary Tagline - Floating/Customizable Design */}
         <div className={`relative ${bgStyles.container}`}>
@@ -361,7 +369,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
             {isEditing ? (
               <Input
                 value={tagline.primary}
-                onChange={(e) => onTaglineChange({ ...tagline, primary: e.target.value })}
+                onChange={(e) => onTaglineChange?.({ ...tagline, primary: e.target.value })}
                 placeholder="Your main corporate tagline"
                 className={`text-xl md:text-2xl text-center ${
                   settings.backgroundStyle === 'floating' 
@@ -412,7 +420,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
           {isEditing ? (
             <Input
               value={tagline.secondary || ''}
-              onChange={(e) => onTaglineChange({ ...tagline, secondary: e.target.value })}
+              onChange={(e) => onTaglineChange?.({ ...tagline, secondary: e.target.value })}
               placeholder="An alternative or supporting tagline"
             />
           ) : (
