@@ -133,7 +133,7 @@ const Index = () => {
                 Interactive Brand Guidelines Platform
               </Badge>
               
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+              <h1 className="text-fluid-4xl sm:text-fluid-5xl font-bold tracking-tight mb-6">
                 <span className="text-foreground">Create </span>
                 <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-gradient">
                   Living
@@ -142,7 +142,7 @@ const Index = () => {
                 <span className="text-foreground">Brand Guides</span>
               </h1>
               
-              <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
+              <p className="text-fluid-lg text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
                 Transform static brand guidelines into dynamic, interactive experiences. 
                 Manage brands, products, and events in one unified platform.
               </p>
