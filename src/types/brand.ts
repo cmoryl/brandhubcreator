@@ -247,6 +247,15 @@ export interface RevenueDataPoint {
   facts?: string[];
 }
 
+// REVENUE CHART COLORS - Customizable chart colors
+export interface RevenueChartColors {
+  barColor: string; // Primary bar color (hex)
+  barColorEnd?: string; // Gradient end color (hex) - defaults to barColor with opacity
+  hoverColor?: string; // Highlight color on hover (hex)
+  gridColor?: string; // Grid line color (hex)
+  textColor?: string; // Axis text color (hex)
+}
+
 // MISUSE - Anti-Patterns
 export interface BrandMisuse {
   id: string;
@@ -644,6 +653,8 @@ export interface BaseGuide {
   templateSpecs?: TemplateSpec[];
   // Revenue Data (for Revenue Growth chart)
   revenueData?: RevenueDataPoint[];
+  // Revenue Chart Colors (customizable chart theming)
+  revenueChartColors?: RevenueChartColors;
   // Statistics (By the Numbers infographic section)
   statistics?: StatisticItem[];
   // Infographic layout for By the Numbers section
