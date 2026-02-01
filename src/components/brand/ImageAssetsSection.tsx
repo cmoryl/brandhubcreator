@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
-import { X, Download, Upload, Image as ImageIcon, Eye, ZoomIn, Expand } from 'lucide-react';
+import { X, Download, Upload, Image as ImageIcon, Eye, ZoomIn, Expand, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
+import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { cn } from '@/lib/utils';
 import { safeUUID } from '@/lib/safeUUID';
 
@@ -66,6 +67,20 @@ export const ImageAssetsSection = ({
     reader.readAsDataURL(file);
   }, [imageAssets, onImageAssetsChange]);
 
+  const handleLibrarySelect = useCallback((url: string) => {
+    const urlParts = url.split('/');
+    const fileName = urlParts[urlParts.length - 1] || 'Library Image';
+    const newAsset: ImageAsset = {
+      id: safeUUID(),
+      name: fileName.split('.')[0] || 'Library Image',
+      type: 'image/jpeg',
+      url,
+      size: 'From Library',
+      uploadedAt: new Date().toISOString(),
+    };
+    onImageAssetsChange?.([...imageAssets, newAsset]);
+  }, [imageAssets, onImageAssetsChange]);
+
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: handleFileDrop,
     accept: 'image/png,image/jpeg,image/jpg,image/webp',
@@ -103,10 +118,22 @@ export const ImageAssetsSection = ({
           />
         </div>
         {canEdit && (
-          <Button onClick={openFilePicker} size="sm" className="gap-2 shrink-0">
-            <Upload className="h-4 w-4" />
-            Upload Image
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <ImageLibraryPicker
+              onSelect={handleLibrarySelect}
+              trigger={
+                <Button variant="outline" size="sm" className="gap-2">
+                  <FolderOpen className="h-4 w-4" />
+                  Library
+                </Button>
+              }
+              defaultCategory="Product Images"
+            />
+            <Button onClick={openFilePicker} size="sm" className="gap-2">
+              <Upload className="h-4 w-4" />
+              Upload
+            </Button>
+          </div>
         )}
       </div>
 

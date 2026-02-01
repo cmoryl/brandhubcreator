@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
-import { Plus, X, Upload, AlertTriangle } from 'lucide-react';
+import { Plus, X, Upload, AlertTriangle, FolderOpen } from 'lucide-react';
 import { BrandMisuse } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
 import { OptimizedImage } from '@/components/ui/optimized-image';
+import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 
 interface MisuseSectionProps {
   misuse: BrandMisuse[];
@@ -31,6 +32,16 @@ export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtit
       setEditingId(newMisuse.id);
     };
     reader.readAsDataURL(file);
+  }, [misuse, onMisuseChange]);
+
+  const handleLibrarySelect = useCallback((url: string) => {
+    const newMisuse: BrandMisuse = {
+      id: crypto.randomUUID(),
+      url,
+      description: 'Describe why this is incorrect usage',
+    };
+    onMisuseChange([...misuse, newMisuse]);
+    setEditingId(newMisuse.id);
   }, [misuse, onMisuseChange]);
 
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
@@ -60,10 +71,22 @@ export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtit
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button onClick={openFilePicker} size="sm" variant="destructive" className="gap-2 shrink-0">
-          <Upload className="h-4 w-4" />
-          Add Example
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <ImageLibraryPicker
+            onSelect={handleLibrarySelect}
+            trigger={
+              <Button variant="outline" size="sm" className="gap-2">
+                <FolderOpen className="h-4 w-4" />
+                Library
+              </Button>
+            }
+            defaultCategory="Logos"
+          />
+          <Button onClick={openFilePicker} size="sm" variant="destructive" className="gap-2">
+            <Upload className="h-4 w-4" />
+            Add Example
+          </Button>
+        </div>
       </div>
 
       <input
