@@ -135,7 +135,7 @@ const Index = () => {
               
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
                 <span className="text-foreground">Create </span>
-                <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-gradient">
+                <span className="text-subtle-glitch bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                   Living
                 </span>
                 <br />
