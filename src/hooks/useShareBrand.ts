@@ -7,36 +7,48 @@ export function useShareBrand() {
   const [isSharing, setIsSharing] = useState(false);
 
   const generateShareLink = async (brandId: string): Promise<string | null> => {
+    console.log('[useShareBrand] Starting generateShareLink for brandId:', brandId);
     setIsSharing(true);
     try {
       // Generate a unique share token
       const shareToken = safeUUID();
+      console.log('[useShareBrand] Generated share token:', shareToken);
       
       // Update the brand with the share token and set it to public
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('brands')
         .update({ 
           share_token: shareToken,
           is_public: true 
         })
-        .eq('id', brandId);
+        .eq('id', brandId)
+        .select();
+
+      console.log('[useShareBrand] Supabase update result:', { data, error });
 
       if (error) {
-        console.error('Error generating share link:', error);
-        toast.error('Failed to generate share link');
+        console.error('[useShareBrand] Error generating share link:', error);
+        toast.error('Failed to generate share link: ' + error.message);
         return null;
       }
 
       // Build the share URL
       const shareUrl = `${window.location.origin}/share/${shareToken}`;
+      console.log('[useShareBrand] Share URL:', shareUrl);
       
       // Copy to clipboard
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success('Share link copied to clipboard!');
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success('Share link copied to clipboard!');
+      } catch (clipboardError) {
+        console.error('[useShareBrand] Clipboard error:', clipboardError);
+        // Fallback: show the URL in a toast
+        toast.success(`Share link: ${shareUrl}`, { duration: 10000 });
+      }
       
       return shareUrl;
     } catch (error) {
-      console.error('Error sharing brand:', error);
+      console.error('[useShareBrand] Error sharing brand:', error);
       toast.error('Failed to share brand');
       return null;
     } finally {

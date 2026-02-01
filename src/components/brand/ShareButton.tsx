@@ -230,7 +230,12 @@ export const ShareButton = ({
                 size="sm" 
                 variant="secondary" 
                 className="w-full gap-2"
-                onClick={() => generateShareLink(guideId)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('[ShareButton] Generate Import Link clicked, guideId:', guideId);
+                  generateShareLink(guideId);
+                }}
                 disabled={isSharing}
               >
                 <ExternalLink className="h-4 w-4" />
