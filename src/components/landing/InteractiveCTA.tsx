@@ -185,23 +185,12 @@ export function InteractiveCTA() {
     >
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/30" />
-      
-      {/* Mouse-reactive radial glow */}
-      <motion.div 
-        className="absolute inset-0 pointer-events-none"
-        animate={{
-          background: `radial-gradient(circle 300px at ${mousePos.x * 100}% ${mousePos.y * 100}%, hsl(var(--primary) / ${isHovering ? 0.12 : 0.05}), transparent)`,
-        }}
-        transition={{ duration: 0.15 }}
-      />
 
       {/* Orbit visualization */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <motion.svg 
-          className="absolute w-full max-w-[800px] aspect-square" 
+        <svg 
+          className="absolute w-full max-w-[800px] aspect-square opacity-50" 
           viewBox="-400 -400 800 800"
-          animate={{ opacity: isHovering ? 0.9 : 0.65 }}
-          transition={{ duration: 0.3 }}
         >
           <defs>
             {/* Gradient definitions for connections */}
@@ -230,16 +219,6 @@ export function InteractiveCTA() {
             </filter>
           </defs>
 
-          {/* Mouse proximity glow indicator */}
-          {isHovering && (
-            <circle
-              cx={svgMousePos.x}
-              cy={svgMousePos.y}
-              r="60"
-              fill="hsl(var(--primary))"
-              opacity="0.08"
-            />
-          )}
 
           {/* Orbit rings */}
           {ORBIT_RINGS.map((ring, i) => {
@@ -423,7 +402,7 @@ export function InteractiveCTA() {
               </g>
             );
           })}
-        </motion.svg>
+        </svg>
       </div>
 
       {/* Main content */}
