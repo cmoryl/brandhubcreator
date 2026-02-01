@@ -41,6 +41,21 @@
   <meta property="og:description" content="Create and manage comprehensive brand guides">
   <meta name="twitter:description" content="Create and manage comprehensive brand guides">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  
+  <!-- Critical inline CSS for faster FCP - minimal styles for initial paint -->
+  <style>
+    /* Critical base styles for immediate render */
+    *,*::before,*::after{box-sizing:border-box}
+    html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:Poppins,ui-sans-serif,system-ui,sans-serif}
+    body{margin:0;min-height:100vh}
+    :root{--background:40 20% 98%;--foreground:220 20% 10%}
+    .dark{--background:220 20% 8%;--foreground:40 20% 98%}
+    body{background-color:hsl(var(--background));color:hsl(var(--foreground))}
+    #root{min-height:100vh;display:flex;flex-direction:column}
+    /* Skeleton placeholder to prevent layout shift */
+    .loading-skeleton{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  </style>
 </head>
 
   <body>
