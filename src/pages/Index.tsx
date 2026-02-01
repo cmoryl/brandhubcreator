@@ -12,22 +12,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
-import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_GRADIENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
+import { DEMO_GRADIENTS, DEMO_INDUSTRIES, getOrbitBrands, getOrbitProducts, getOrbitEvents } from '@/data/demoGuides';
 import { ParticleEmbers } from '@/components/ParticleEmbers';
 import { InteractiveCTA } from '@/components/landing/InteractiveCTA';
 import brandhubLogo from '@/assets/brandhub-logo.svg';
-
-// Transform demo data to orbit format
-const transformToOrbitEntity = (item: any, type: 'brand' | 'product' | 'event') => ({
-  id: item.id,
-  name: item.hero?.name || item.name,
-  slug: item.slug,
-  type,
-  updatedAt: new Date().toISOString(),
-  coverImage: item.hero?.coverImage,
-  color: item.colors?.[0]?.hex,
-  parentBrandId: item.parentBrandId,
-});
 
 const Index = () => {
   const navigate = useNavigate();
@@ -46,13 +34,10 @@ const Index = () => {
     }
   }, [user, accessStatus, isAdmin, isApproved, isLoading, navigate]);
 
-  // Transform demo data for orbit
-  const orbitBrands = useMemo(() => 
-    DEMO_BRANDS.map(b => transformToOrbitEntity(b, 'brand')), []);
-  const orbitProducts = useMemo(() => 
-    DEMO_PRODUCTS.map(p => transformToOrbitEntity(p, 'product')), []);
-  const orbitEvents = useMemo(() => 
-    DEMO_EVENTS.map(e => transformToOrbitEntity(e, 'event')), []);
+  // Get orbit entities (lightweight stubs for visualization)
+  const orbitBrands = useMemo(() => getOrbitBrands(), []);
+  const orbitProducts = useMemo(() => getOrbitProducts(), []);
+  const orbitEvents = useMemo(() => getOrbitEvents(), []);
 
   // Featured demos for cards below
   const featuredDemos = [
@@ -187,15 +172,15 @@ const Index = () => {
               {/* Stats */}
               <div className="mt-12 grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
                 <div className="text-center lg:text-left">
-                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{DEMO_BRANDS.length}</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{orbitBrands.length}</div>
                   <div className="text-sm text-muted-foreground">Demo Brands</div>
                 </div>
                 <div className="text-center lg:text-left">
-                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{DEMO_PRODUCTS.length}</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{orbitProducts.length}</div>
                   <div className="text-sm text-muted-foreground">Products</div>
                 </div>
                 <div className="text-center lg:text-left">
-                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{DEMO_EVENTS.length}</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{orbitEvents.length}</div>
                   <div className="text-sm text-muted-foreground">Events</div>
                 </div>
               </div>

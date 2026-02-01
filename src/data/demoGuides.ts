@@ -976,9 +976,51 @@ export const DEMO_EVENT_SUMMIT: Omit<EventGuide, 'createdAt' | 'updatedAt'> = {
 };
 
 // All demo guides collection - BrandHub is featured first
+// These are FULL guides used by DemoGuideViewer and other components
 export const DEMO_BRANDS = [DEMO_BRAND_BRANDHUB, DEMO_BRAND_NEXUS, DEMO_BRAND_BLOOM];
 export const DEMO_PRODUCTS = [DEMO_PRODUCT_CLOUD, DEMO_PRODUCT_OILS];
 export const DEMO_EVENTS = [DEMO_EVENT_SUMMIT];
+
+// ============================================
+// Lightweight orbit entities for landing page visualization
+// These are minimal stubs to showcase the hierarchical universe
+// ============================================
+export interface OrbitDemoEntity {
+  id: string;
+  name: string;
+  slug: string;
+  type: 'brand' | 'product' | 'event';
+  parentBrandId?: string;
+  color: string;
+}
+
+export const ORBIT_DEMO_ENTITIES: OrbitDemoEntity[] = [
+  // Brands (inner ring)
+  { id: 'demo-brandhub', name: 'BrandHub', slug: 'brandhub', type: 'brand', color: '#0ea5e9' },
+  { id: 'demo-nexus-tech', name: 'Nexus Tech', slug: 'demo-nexus-tech', type: 'brand', color: '#0066FF' },
+  { id: 'demo-bloom-wellness', name: 'Bloom Wellness', slug: 'demo-bloom-wellness', type: 'brand', color: '#10b981' },
+  { id: 'demo-pulse-media', name: 'Pulse Media', slug: 'demo-pulse-media', type: 'brand', color: '#ec4899' },
+  { id: 'demo-horizon-finance', name: 'Horizon Finance', slug: 'demo-horizon-finance', type: 'brand', color: '#8b5cf6' },
+  
+  // Products (middle ring) - linked to parent brands
+  { id: 'demo-nexus-cloud', name: 'Nexus Cloud', slug: 'demo-nexus-cloud', type: 'product', parentBrandId: 'demo-nexus-tech', color: '#38bdf8' },
+  { id: 'demo-nexus-ai', name: 'Nexus AI', slug: 'demo-nexus-ai', type: 'product', parentBrandId: 'demo-nexus-tech', color: '#06b6d4' },
+  { id: 'demo-bloom-oils', name: 'Bloom Oils', slug: 'demo-bloom-oils', type: 'product', parentBrandId: 'demo-bloom-wellness', color: '#d946ef' },
+  { id: 'demo-bloom-spa', name: 'Bloom Spa', slug: 'demo-bloom-spa', type: 'product', parentBrandId: 'demo-bloom-wellness', color: '#a3e635' },
+  { id: 'demo-pulse-stream', name: 'Pulse Stream', slug: 'demo-pulse-stream', type: 'product', parentBrandId: 'demo-pulse-media', color: '#f472b6' },
+  { id: 'demo-horizon-invest', name: 'Horizon Invest', slug: 'demo-horizon-invest', type: 'product', parentBrandId: 'demo-horizon-finance', color: '#a78bfa' },
+  
+  // Events (outer ring) - linked to parent brands
+  { id: 'demo-innovation-summit', name: 'Innovation Summit', slug: 'demo-innovation-summit', type: 'event', parentBrandId: 'demo-nexus-tech', color: '#f59e0b' },
+  { id: 'demo-bloom-retreat', name: 'Wellness Retreat', slug: 'demo-bloom-retreat', type: 'event', parentBrandId: 'demo-bloom-wellness', color: '#34d399' },
+  { id: 'demo-pulse-live', name: 'Pulse Live Festival', slug: 'demo-pulse-live', type: 'event', parentBrandId: 'demo-pulse-media', color: '#fb7185' },
+  { id: 'demo-horizon-summit', name: 'Finance Summit', slug: 'demo-horizon-summit', type: 'event', parentBrandId: 'demo-horizon-finance', color: '#818cf8' },
+];
+
+// Helper to get entities by type for orbit
+export const getOrbitBrands = () => ORBIT_DEMO_ENTITIES.filter(e => e.type === 'brand');
+export const getOrbitProducts = () => ORBIT_DEMO_ENTITIES.filter(e => e.type === 'product');
+export const getOrbitEvents = () => ORBIT_DEMO_ENTITIES.filter(e => e.type === 'event');
 
 // Gradient classes for display cards
 export const DEMO_GRADIENTS: Record<string, string> = {

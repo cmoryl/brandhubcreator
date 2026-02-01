@@ -68,9 +68,11 @@ export const HeroOrbit = forwardRef<HTMLDivElement, HeroOrbitProps>(({
   const entityPositions = useMemo(() => {
     const positions = new Map<string, { x: number; y: number; radius: number; angle: number }>();
     
-    // Brands on inner ring
-    brands.slice(0, 4).forEach((brand, i) => {
-      const angle = ((i * 360) / Math.max(brands.length, 4) - 90) * (Math.PI / 180);
+    // Brands on inner ring (show all, up to 6)
+    const visibleBrands = brands.slice(0, 6);
+    visibleBrands.forEach((brand, i) => {
+      const total = visibleBrands.length;
+      const angle = ((i * 360) / total - 90) * (Math.PI / 180);
       const radius = 20;
       positions.set(brand.id, {
         x: 50 + radius * Math.cos(angle),
@@ -80,9 +82,11 @@ export const HeroOrbit = forwardRef<HTMLDivElement, HeroOrbitProps>(({
       });
     });
     
-    // Products on middle ring
-    products.slice(0, 5).forEach((product, i) => {
-      const angle = ((i * 360) / Math.max(products.length, 5) - 60) * (Math.PI / 180);
+    // Products on middle ring (show all, up to 8)
+    const visibleProducts = products.slice(0, 8);
+    visibleProducts.forEach((product, i) => {
+      const total = visibleProducts.length;
+      const angle = ((i * 360) / total - 60) * (Math.PI / 180);
       const radius = 33;
       positions.set(product.id, {
         x: 50 + radius * Math.cos(angle),
@@ -92,9 +96,11 @@ export const HeroOrbit = forwardRef<HTMLDivElement, HeroOrbitProps>(({
       });
     });
     
-    // Events on outer ring
-    events.slice(0, 3).forEach((event, i) => {
-      const angle = ((i * 360) / Math.max(events.length, 3) - 30) * (Math.PI / 180);
+    // Events on outer ring (show all, up to 6)
+    const visibleEvents = events.slice(0, 6);
+    visibleEvents.forEach((event, i) => {
+      const total = visibleEvents.length;
+      const angle = ((i * 360) / total - 30) * (Math.PI / 180);
       const radius = 44;
       positions.set(event.id, {
         x: 50 + radius * Math.cos(angle),
@@ -206,11 +212,11 @@ export const HeroOrbit = forwardRef<HTMLDivElement, HeroOrbitProps>(({
     return related;
   }, [hoveredEntity, products, events]);
 
-  // All visible entities
+  // All visible entities (matching the limits used in entityPositions)
   const allEntities = useMemo(() => [
-    ...brands.slice(0, 4).map(b => ({ ...b, type: 'brand' as const })),
-    ...products.slice(0, 5).map(p => ({ ...p, type: 'product' as const })),
-    ...events.slice(0, 3).map(e => ({ ...e, type: 'event' as const })),
+    ...brands.slice(0, 6).map(b => ({ ...b, type: 'brand' as const })),
+    ...products.slice(0, 8).map(p => ({ ...p, type: 'product' as const })),
+    ...events.slice(0, 6).map(e => ({ ...e, type: 'event' as const })),
   ], [brands, products, events]);
 
   return (
