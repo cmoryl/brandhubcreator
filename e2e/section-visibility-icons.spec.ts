@@ -1,8 +1,16 @@
+/**
+ * E2E Test Suite: Section Visibility Eye Icons
+ * 
+ * Tests the permission gating for section visibility controls (eye icons).
+ * Uses the unified useGuideAdmin hook for consistent behavior across:
+ * - Brand Editor (/brand/:slug)
+ * - Product Editor (/product/:slug) 
+ * - Event Editor (/event/:slug)
+ * 
+ * Admin = global admin OR org owner/admin for the entity's organization
+ * Public = unauthenticated users (no eye icons visible)
+ */
 import { test, expect } from "../playwright-fixture";
-
-test.describe("Section Visibility Eye Icons - Admin Access", () => {
-  // These tests verify that eye icons for hiding/showing sections
-  // are ONLY visible to admin users, not to public viewers
 
   test.describe("Brand Editor", () => {
     test("admin should see eye icons in sidebar", async ({ page }) => {

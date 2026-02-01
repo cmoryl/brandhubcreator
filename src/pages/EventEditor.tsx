@@ -17,6 +17,7 @@ import { useEvents } from '@/contexts/EventContext';
 import { Json } from '@/integrations/supabase/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { useSEO } from '@/hooks/useSEO';
 import { trackEntityView } from '@/hooks/usePageTracking';
 import { EventSidebar } from '@/components/event/EventSidebar';
@@ -277,21 +278,10 @@ const EventEditor = () => {
     fetchParentEvent();
   }, [event?.id, event?.slug]);
   
-  // Check if user can edit: global admin OR org member with appropriate role for THIS event's org
-  // During auth loading, we preserve potential edit access for logged-in users to avoid UI flicker
-  const isEventOrgMember = orgRole && 
-    ['owner', 'admin', 'member'].includes(orgRole) && 
-    organization?.id && 
-    event?.organizationId && 
-    organization.id === event.organizationId;
-  const canEditOrg = Boolean(isEventOrgMember);
-  const canEdit = user && (isAdmin || canEditOrg || authLoading);
-  // Include loading states to ensure the eye icon shows while contexts are hydrating.
-  const isGuideAdmin = Boolean(
-    isAdmin || 
-    canEditOrg || 
-    (user && (authLoading || orgLoading || canEdit))
-  );
+  // Use centralized admin detection hook for consistent behavior across all editors
+  const { isGuideAdmin, canEdit } = useGuideAdmin({ 
+    entityOrgId: event?.organizationId 
+  });
 
   
   // Permission check (debug logging removed for production)
