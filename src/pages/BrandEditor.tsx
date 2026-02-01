@@ -392,7 +392,8 @@ const BrandEditor = () => {
 
   // In the editor experience, anyone who can edit should be able to see (and manage) all sections.
   // Otherwise, `hiddenSections` can unintentionally hide important areas (e.g. Social Assets) for org members.
-  const isGuideAdmin = Boolean(isAdmin || canEditOrg);
+  // Include canEdit to ensure the eye icon shows for users during auth loading.
+  const isGuideAdmin = Boolean(isAdmin || canEditOrg || (user && canEdit));
   
   // Forward-compat: older guides may have persisted sectionOrder without newly-added sections (e.g., socialassets)
   const sectionOrder = useMemo(

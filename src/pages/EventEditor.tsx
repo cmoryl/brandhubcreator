@@ -286,7 +286,8 @@ const EventEditor = () => {
     organization.id === event.organizationId;
   const canEditOrg = Boolean(isEventOrgMember);
   const canEdit = user && (isAdmin || canEditOrg || authLoading);
-  const isGuideAdmin = Boolean(isAdmin || canEditOrg);
+  // Include canEdit to ensure the eye icon shows for users during auth loading.
+  const isGuideAdmin = Boolean(isAdmin || canEditOrg || (user && canEdit));
 
   
   // Permission check (debug logging removed for production)

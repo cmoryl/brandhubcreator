@@ -286,7 +286,8 @@ const ProductEditor = () => {
   
   // Treat organization owners/admins as "admins" within the guide as well.
   // Otherwise they are treated as viewers and hiddenSections can hide key areas (e.g., Social sections).
-  const isGuideAdmin = Boolean(isAdmin || canEditOrg);
+  // Include canEdit to ensure the eye icon shows for users during auth loading.
+  const isGuideAdmin = Boolean(isAdmin || canEditOrg || (user && canEdit));
 
   useEffect(() => {
     if (currentProduct?.id && user?.id) {
