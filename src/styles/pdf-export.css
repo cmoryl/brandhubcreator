@@ -6,25 +6,135 @@
 /* Base PDF Container */
 .pdf-export-container {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  line-height: 1.5;
+  line-height: 1.6;
   color: #1a1a2e;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* Page break utilities */
+/* ========================================
+   Typography Hierarchy System
+   ======================================== */
+
+/* Display - for hero titles */
+.pdf-text-display {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+
+/* H1 - section titles */
+.pdf-text-h1 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* H2 - subsection titles */
+.pdf-text-h2 {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+/* H3 - card/item titles */
+.pdf-text-h3 {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Body - main content */
+.pdf-text-body {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* Caption - metadata and small text */
+.pdf-text-caption {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+/* Overline - labels and categories */
+.pdf-text-overline {
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Mono - code and technical values */
+.pdf-text-mono {
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* ========================================
+   Page Break & Orphan Control
+   ======================================== */
+
+/* Prevent breaking inside elements */
 .pdf-avoid-break {
   break-inside: avoid !important;
   page-break-inside: avoid !important;
 }
 
+/* Force page break before */
 .pdf-page-break-before {
   break-before: page !important;
   page-break-before: always !important;
 }
 
+/* Force page break after */
 .pdf-page-break-after {
   break-after: page !important;
   page-break-after: always !important;
+}
+
+/* Keep headers with their content (orphan control) */
+.pdf-keep-with-next {
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}
+
+/* Section wrapper - keeps header with first content item */
+.pdf-section-group {
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+
+/* Minimum lines before break (widow control) */
+.pdf-widow-control {
+  orphans: 3;
+  widows: 3;
+}
+
+/* Image containers should never break */
+.pdf-image-atomic {
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  display: block;
+}
+
+/* Grid items as atomic units */
+.pdf-grid-item-atomic {
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
+
+/* Card group that keeps cards together when possible */
+.pdf-card-group {
+  break-inside: avoid-page;
 }
 
 /* ========================================
@@ -157,7 +267,7 @@
   opacity: 0.9;
 }
 
-/* Section Headers */
+/* Section Headers - ALWAYS keep with content (orphan prevention) */
 .pdf-section-header {
   display: flex;
   align-items: center;
@@ -165,6 +275,8 @@
   margin-bottom: 16px;
   padding-bottom: 8px;
   border-bottom: 2px solid currentColor;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
 }
 
 .pdf-section-header h2 {
@@ -185,6 +297,12 @@
   justify-content: center;
   font-size: 12px;
   font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Section content wrapper for proper orphan control */
+.pdf-section-content {
+  break-inside: avoid-page;
 }
 
 /* ========================================
@@ -406,7 +524,7 @@
 }
 
 /* ========================================
-   Image Containers
+   Image Containers - Atomic (never break across pages)
    ======================================== */
 
 .pdf-image-container {
@@ -414,6 +532,8 @@
   overflow: hidden;
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.05);
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
 }
 
 .pdf-image-container img {
@@ -421,22 +541,27 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  max-height: 180mm; /* Prevent images from exceeding page height */
 }
 
 .pdf-image-16-9 {
   aspect-ratio: 16 / 9;
+  max-height: 120mm;
 }
 
 .pdf-image-4-3 {
   aspect-ratio: 4 / 3;
+  max-height: 140mm;
 }
 
 .pdf-image-3-4 {
   aspect-ratio: 3 / 4;
+  max-height: 200mm;
 }
 
 .pdf-image-1-1 {
   aspect-ratio: 1 / 1;
+  max-height: 150mm;
 }
 
 .pdf-image-contain {
@@ -444,14 +569,33 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
+  break-inside: avoid !important;
 }
 
 .pdf-image-contain img {
   width: auto;
   height: auto;
   max-width: 100%;
-  max-height: 100%;
+  max-height: 160mm;
   object-fit: contain;
+}
+
+/* Logo images - smaller, atomic */
+.pdf-logo-image {
+  break-inside: avoid !important;
+  max-height: 80px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+/* Gallery images - consistent sizing */
+.pdf-gallery-image {
+  break-inside: avoid !important;
+  width: 100%;
+  height: auto;
+  max-height: 100mm;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
 /* ========================================
@@ -775,9 +919,25 @@
     print-color-adjust: exact !important;
   }
   
-  .pdf-avoid-break {
+  .pdf-avoid-break,
+  .pdf-image-container,
+  .pdf-card,
+  .pdf-logo-item,
+  .pdf-color-swatch,
+  .pdf-value-card,
+  .pdf-stat-card,
+  .pdf-type-specimen,
+  .pdf-gradient-item,
+  .pdf-case-study-card,
+  .pdf-signature-card,
+  .pdf-qr-container {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+  }
+  
+  .pdf-section-header {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
   }
   
   .pdf-page-break-before {
@@ -786,6 +946,34 @@
   
   .pdf-page-break-after {
     break-after: page !important;
+  }
+  
+  /* Ensure orphan/widow control in print */
+  p, li, dd {
+    orphans: 3;
+    widows: 3;
+  }
+  
+  /* Headers should never be alone at bottom of page */
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+  
+  /* Grid containers break between items, not within */
+  .pdf-grid-2,
+  .pdf-grid-3,
+  .pdf-grid-4,
+  .pdf-grid-6 {
+    break-inside: auto;
+  }
+  
+  .pdf-grid-2 > *,
+  .pdf-grid-3 > *,
+  .pdf-grid-4 > *,
+  .pdf-grid-6 > * {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 }
 
