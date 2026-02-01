@@ -6,7 +6,7 @@ import {
   UserPlus, LogIn, Eye, Edit, Trash2, Download, RefreshCw,
   Settings, Database, HardDrive, AlertTriangle, CheckCircle,
   Crown, Search, Filter, MoreHorizontal, ArrowUpRight, Calendar,
-  FileText, Brain, UserCheck, Wrench
+  FileText, Brain, UserCheck, Wrench, CalendarDays
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,6 +35,7 @@ import { toast } from 'sonner';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { BrandReportGenerator } from '@/components/admin/BrandReportGenerator';
 import { ProductReportGenerator } from '@/components/admin/ProductReportGenerator';
+import { EventReportGenerator } from '@/components/admin/EventReportGenerator';
 import { AIMarketAnalysis } from '@/components/admin/AIMarketAnalysis';
 import { DataInspector } from '@/components/admin/DataInspector';
 import { DemoGuidesManager } from '@/components/admin/DemoGuidesManager';
@@ -1039,12 +1040,19 @@ export default function AdminDashboard() {
                   <Package className="h-4 w-4" />
                   Product Reports
                 </TabsTrigger>
+                <TabsTrigger value="events" className="gap-2">
+                  <CalendarDays className="h-4 w-4" />
+                  Event Reports
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="brands">
                 <BrandReportGenerator />
               </TabsContent>
               <TabsContent value="products">
                 <ProductReportGenerator />
+              </TabsContent>
+              <TabsContent value="events">
+                <EventReportGenerator />
               </TabsContent>
             </Tabs>
           </TabsContent>
