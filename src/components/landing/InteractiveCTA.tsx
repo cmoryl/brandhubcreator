@@ -1,9 +1,9 @@
 /**
- * Interactive CTA Section - Clean design matching hero aesthetic
- * Features: Subtle gradients, minimal motion, elegant buttons
+ * Interactive CTA Section - Clean design with orbit-style decorations
+ * Features: Subtle gradients, orbit rings, animated connectors, elegant buttons
  */
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { ArrowRight, Sparkles, Rocket } from 'lucide-react';
@@ -38,6 +38,53 @@ export function InteractiveCTA() {
     mouseY.set(0);
   }, [mouseX, mouseY]);
 
+  // Generate orbit ring data
+  const orbitRings = useMemo(() => [
+    { radius: 180, opacity: 0.15, duration: 45, direction: 1 },
+    { radius: 280, opacity: 0.1, duration: 60, direction: -1 },
+    { radius: 380, opacity: 0.08, duration: 75, direction: 1 },
+  ], []);
+
+  // Generate orbit nodes (small dots on the rings)
+  const orbitNodes = useMemo(() => {
+    const nodes: Array<{ id: number; ring: number; angle: number; size: number; delay: number }> = [];
+    let id = 0;
+    
+    // Ring 1 nodes
+    for (let i = 0; i < 4; i++) {
+      nodes.push({ id: id++, ring: 0, angle: i * 90 + 15, size: 6, delay: i * 0.5 });
+    }
+    // Ring 2 nodes
+    for (let i = 0; i < 6; i++) {
+      nodes.push({ id: id++, ring: 1, angle: i * 60 + 30, size: 5, delay: i * 0.4 });
+    }
+    // Ring 3 nodes  
+    for (let i = 0; i < 8; i++) {
+      nodes.push({ id: id++, ring: 2, angle: i * 45 + 10, size: 4, delay: i * 0.3 });
+    }
+    
+    return nodes;
+  }, []);
+
+  // Generate connection lines between some nodes
+  const connections = useMemo(() => [
+    { from: { ring: 0, angle: 15 }, to: { ring: 1, angle: 30 } },
+    { from: { ring: 0, angle: 105 }, to: { ring: 1, angle: 90 } },
+    { from: { ring: 1, angle: 150 }, to: { ring: 2, angle: 145 } },
+    { from: { ring: 1, angle: 270 }, to: { ring: 2, angle: 280 } },
+    { from: { ring: 0, angle: 285 }, to: { ring: 2, angle: 325 } },
+  ], []);
+
+  // Helper to calculate position from ring and angle
+  const getPosition = (ring: number, angle: number) => {
+    const radius = orbitRings[ring]?.radius || 200;
+    const rad = (angle * Math.PI) / 180;
+    return {
+      x: Math.cos(rad) * radius,
+      y: Math.sin(rad) * radius,
+    };
+  };
+
   return (
     <section 
       ref={containerRef}
@@ -55,6 +102,160 @@ export function InteractiveCTA() {
           background: 'radial-gradient(ellipse 80% 50% at 50% 50%, hsl(var(--primary) / 0.15), transparent)',
         }}
       />
+
+      {/* Orbit rings and decorations - centered behind content */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <svg 
+          className="absolute w-[800px] h-[800px]" 
+          viewBox="-400 -400 800 800"
+          style={{ opacity: 0.6 }}
+        >
+          <defs>
+            {/* Gradient for connection lines */}
+            <linearGradient id="ctaLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
+              <stop offset="50%" stopColor="hsl(var(--accent))" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
+            </linearGradient>
+            
+            {/* Glow filter for nodes */}
+            <filter id="ctaNodeGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+
+            {/* Animated dash pattern */}
+            <pattern id="ctaDashPattern" patternUnits="userSpaceOnUse" width="20" height="1">
+              <line x1="0" y1="0.5" x2="10" y2="0.5" stroke="hsl(var(--primary))" strokeWidth="1" strokeOpacity="0.4" />
+            </pattern>
+          </defs>
+
+          {/* Orbit rings */}
+          {orbitRings.map((ring, i) => (
+            <g key={i}>
+              {/* Main ring */}
+              <circle
+                cx="0"
+                cy="0"
+                r={ring.radius}
+                fill="none"
+                stroke="hsl(var(--primary))"
+                strokeWidth="1"
+                strokeOpacity={ring.opacity}
+                strokeDasharray="4 8"
+              >
+                <animateTransform
+                  attributeName="transform"
+                  type="rotate"
+                  from={`0 0 0`}
+                  to={`${360 * ring.direction} 0 0`}
+                  dur={`${ring.duration}s`}
+                  repeatCount="indefinite"
+                />
+              </circle>
+            </g>
+          ))}
+
+          {/* Connection lines with animated flow */}
+          {connections.map((conn, i) => {
+            const from = getPosition(conn.from.ring, conn.from.angle);
+            const to = getPosition(conn.to.ring, conn.to.angle);
+            const midX = (from.x + to.x) / 2;
+            const midY = (from.y + to.y) / 2 - 20;
+            
+            return (
+              <g key={`conn-${i}`}>
+                {/* Connection path */}
+                <path
+                  d={`M ${from.x} ${from.y} Q ${midX} ${midY} ${to.x} ${to.y}`}
+                  fill="none"
+                  stroke="url(#ctaLineGradient)"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  opacity="0.4"
+                />
+                
+                {/* Animated traveling dot */}
+                <circle r="2" fill="hsl(var(--primary))" opacity="0.8" filter="url(#ctaNodeGlow)">
+                  <animateMotion
+                    dur={`${3 + i * 0.5}s`}
+                    repeatCount="indefinite"
+                    path={`M ${from.x} ${from.y} Q ${midX} ${midY} ${to.x} ${to.y}`}
+                  />
+                </circle>
+              </g>
+            );
+          })}
+
+          {/* Orbit nodes */}
+          {orbitNodes.map((node) => {
+            const pos = getPosition(node.ring, node.angle);
+            const ringData = orbitRings[node.ring];
+            
+            return (
+              <g key={node.id}>
+                {/* Node glow */}
+                <circle
+                  cx={pos.x}
+                  cy={pos.y}
+                  r={node.size + 4}
+                  fill="hsl(var(--primary))"
+                  opacity="0.1"
+                >
+                  <animate
+                    attributeName="opacity"
+                    values="0.1;0.2;0.1"
+                    dur={`${2 + node.delay}s`}
+                    repeatCount="indefinite"
+                  />
+                </circle>
+                
+                {/* Node core */}
+                <circle
+                  cx={pos.x}
+                  cy={pos.y}
+                  r={node.size}
+                  fill="hsl(var(--background))"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="1.5"
+                  strokeOpacity="0.5"
+                  filter="url(#ctaNodeGlow)"
+                >
+                  <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    from={`0 0 0`}
+                    to={`${-360 * ringData.direction} 0 0`}
+                    dur={`${ringData.duration}s`}
+                    repeatCount="indefinite"
+                  />
+                </circle>
+                
+                {/* Inner dot */}
+                <circle
+                  cx={pos.x}
+                  cy={pos.y}
+                  r={node.size * 0.4}
+                  fill="hsl(var(--primary))"
+                  opacity="0.6"
+                >
+                  <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    from={`0 0 0`}
+                    to={`${-360 * ringData.direction} 0 0`}
+                    dur={`${ringData.duration}s`}
+                    repeatCount="indefinite"
+                  />
+                </circle>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
 
       {/* Main content with subtle 3D perspective */}
       <motion.div 
@@ -148,28 +349,6 @@ export function InteractiveCTA() {
               Explore Demo
             </motion.button>
           </motion.div>
-
-          {/* Subtle floating accents - much slower and less intrusive */}
-          <div className="relative mt-16 h-24">
-            <motion.div
-              className="absolute left-1/4 top-0"
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <div className="w-12 h-12 rounded-xl bg-muted/30 backdrop-blur-sm border border-border/30 flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-muted-foreground/50" />
-              </div>
-            </motion.div>
-            <motion.div
-              className="absolute right-1/4 top-4"
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-            >
-              <div className="w-10 h-10 rounded-xl bg-muted/30 backdrop-blur-sm border border-border/30 flex items-center justify-center">
-                <div className="w-3 h-3 rounded-full bg-primary/30" />
-              </div>
-            </motion.div>
-          </div>
         </motion.div>
       </motion.div>
 
