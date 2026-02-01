@@ -14,6 +14,7 @@ import { useStableLoading } from '@/hooks/useStableLoading';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { useSEO } from '@/hooks/useSEO';
 import { trackEntityView } from '@/hooks/usePageTracking';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
@@ -380,24 +381,10 @@ const BrandEditor = () => {
     void syncPublicBrandToDb(merged);
   }, [brand, contextBrand, syncPublicBrandToDb, updateBrandContext]);
   
-  // Check if user can edit: global admin OR org member with appropriate role for THIS brand's org
-  // During auth loading, we preserve potential edit access for logged-in users to avoid UI flicker
-  const isBrandOrgMember = orgRole && 
-    ['owner', 'admin', 'member'].includes(orgRole) && 
-    organization?.id && 
-    brand?.organizationId && 
-    organization.id === brand.organizationId;
-  const canEditOrg = Boolean(isBrandOrgMember);
-  const canEdit = user && (isAdmin || canEditOrg || authLoading);
-
-  // In the editor experience, anyone who can edit should be able to see (and manage) all sections.
-  // Include loading states to ensure the eye icon shows while contexts are hydrating.
-  // This prevents the icon from flickering off during initial load.
-  const isGuideAdmin = Boolean(
-    isAdmin || 
-    canEditOrg || 
-    (user && (authLoading || orgLoading || canEdit))
-  );
+  // Use centralized admin detection hook for consistent behavior across all editors
+  const { isGuideAdmin, canEdit } = useGuideAdmin({ 
+    entityOrgId: brand?.organizationId 
+  });
   
   // Forward-compat: older guides may have persisted sectionOrder without newly-added sections (e.g., socialassets)
   const sectionOrder = useMemo(

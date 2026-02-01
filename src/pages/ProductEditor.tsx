@@ -13,6 +13,7 @@ import { useBrands } from '@/contexts/BrandContext';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { normalizeProductGuide } from '@/lib/guideNormalization';
 import { trackEntityView } from '@/hooks/usePageTracking';
@@ -274,23 +275,10 @@ const ProductEditor = () => {
   // Use context product if available, otherwise use fetched public product
   const currentProduct = contextProduct || publicProduct;
 
-  // Check if user can edit: global admin OR org member with appropriate role for THIS product's org
-  // During auth loading, we preserve potential edit access for logged-in users to avoid UI flicker
-  const isProductOrgMember = orgRole && 
-    ['owner', 'admin', 'member'].includes(orgRole) && 
-    organization?.id && 
-    currentProduct?.organizationId && 
-    organization.id === currentProduct.organizationId;
-  const canEditOrg = Boolean(isProductOrgMember);
-  const canEdit = user && (isAdmin || canEditOrg || authLoading);
-  
-  // Treat organization owners/admins as "admins" within the guide as well.
-  // Include loading states to ensure the eye icon shows while contexts are hydrating.
-  const isGuideAdmin = Boolean(
-    isAdmin || 
-    canEditOrg || 
-    (user && (authLoading || orgLoading || canEdit))
-  );
+  // Use centralized admin detection hook for consistent behavior across all editors
+  const { isGuideAdmin, canEdit } = useGuideAdmin({ 
+    entityOrgId: currentProduct?.organizationId 
+  });
 
   useEffect(() => {
     if (currentProduct?.id && user?.id) {
