@@ -11,6 +11,7 @@ import { GlobalAssetOrbit, OrbitLegend } from '@/components/portal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useAuth } from '@/contexts/AuthContext';
 import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_GRADIENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
 import { ParticleEmbers } from '@/components/ParticleEmbers';
 import { InteractiveCTA } from '@/components/landing/InteractiveCTA';
@@ -31,6 +32,7 @@ const transformToOrbitEntity = (item: any, type: 'brand' | 'product' | 'event') 
 const Index = () => {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
+  const { user, isAdmin, isApproved, accessStatus } = useAuth();
   const [orbitFilter, setOrbitFilter] = useState<'all' | 'brands' | 'products' | 'events'>('all');
   
   // 3D orbit hover effect state
@@ -103,6 +105,13 @@ const Index = () => {
     },
   ];
 
+  const handleSignInClick = useCallback(() => {
+    // If the user is already authenticated + approved, don't send them to /auth only to immediately redirect back to /.
+    // This was perceived as “Sign In does nothing”.
+    const hasAccess = !!user && accessStatus === 'ready' && (isAdmin || isApproved);
+    navigate(hasAccess ? '/dashboard' : '/auth');
+  }, [user, accessStatus, isAdmin, isApproved, navigate]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -118,10 +127,10 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <Button onClick={() => navigate('/auth')} variant="outline" size="sm">
+            <Button onClick={handleSignInClick} variant="outline" size="sm">
               Sign In
             </Button>
-            <Button onClick={() => navigate('/auth')} size="sm">
+            <Button onClick={handleSignInClick} size="sm">
               Get Started
             </Button>
           </div>
@@ -172,7 +181,7 @@ const Index = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Button size="lg" onClick={() => navigate('/auth')} className="gap-2">
+                <Button size="lg" onClick={handleSignInClick} className="gap-2">
                   Start Building
                   <ArrowRight className="h-4 w-4" />
                 </Button>
