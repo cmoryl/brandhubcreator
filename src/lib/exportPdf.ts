@@ -91,6 +91,27 @@ export const exportToPdf = async (
           img.style.maxWidth = '100%';
           img.style.height = 'auto';
           img.crossOrigin = 'anonymous';
+          // Ensure images don't break across pages
+          img.style.pageBreakInside = 'avoid';
+          img.style.breakInside = 'avoid';
+        });
+        
+        // Apply orphan control to all section headers
+        const headers = clonedDoc.querySelectorAll('.pdf-section-header, h1, h2, h3, h4');
+        headers.forEach((header) => {
+          (header as HTMLElement).style.pageBreakAfter = 'avoid';
+          (header as HTMLElement).style.breakAfter = 'avoid';
+        });
+        
+        // Ensure cards and atomic elements don't break
+        const atomicElements = clonedDoc.querySelectorAll(
+          '.pdf-card, .pdf-logo-item, .pdf-color-swatch, .pdf-value-card, .pdf-stat-card, ' +
+          '.pdf-type-specimen, .pdf-gradient-item, .pdf-case-study-card, .pdf-image-container, ' +
+          '.pdf-signature-card, .pdf-qr-container, .pdf-avoid-break'
+        );
+        atomicElements.forEach((el) => {
+          (el as HTMLElement).style.pageBreakInside = 'avoid';
+          (el as HTMLElement).style.breakInside = 'avoid';
         });
       },
     },
@@ -105,7 +126,23 @@ export const exportToPdf = async (
       mode: ['avoid-all', 'css', 'legacy'],
       before: '.pdf-page-break-before',
       after: '.pdf-page-break-after',
-      avoid: '.pdf-avoid-break',
+      avoid: [
+        '.pdf-avoid-break',
+        '.pdf-card',
+        '.pdf-logo-item',
+        '.pdf-color-swatch',
+        '.pdf-value-card',
+        '.pdf-stat-card',
+        '.pdf-type-specimen',
+        '.pdf-gradient-item',
+        '.pdf-case-study-card',
+        '.pdf-image-container',
+        '.pdf-section-header',
+        '.pdf-signature-card',
+        '.pdf-qr-container',
+        '.pdf-keep-with-next',
+        'img'
+      ].join(','),
     }
   };
 

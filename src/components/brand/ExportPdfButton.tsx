@@ -499,15 +499,15 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'values':
         if (guide.values.length === 0) return null;
         return (
-          <div id="pdf-section-values" className={cn("py-6 border-b", t.border)} key="values">
-            <div className="pdf-section-header">
+          <div id="pdf-section-values" className={cn("py-6 border-b pdf-section-group", t.border)} key="values">
+            <div className="pdf-section-header pdf-keep-with-next">
               <h2>Core Values</h2>
             </div>
-            <div className="pdf-grid-2">
+            <div className="pdf-grid-2 pdf-section-content">
               {guide.values.map((value) => (
-                <div key={value.id} className="pdf-value-card pdf-avoid-break">
-                  <div className="pdf-value-title">{value.text}</div>
-                  <div className="pdf-value-description">{value.description}</div>
+                <div key={value.id} className="pdf-value-card pdf-avoid-break pdf-grid-item-atomic">
+                  <div className="pdf-value-title pdf-text-h3">{value.text}</div>
+                  <div className="pdf-value-description pdf-text-body">{value.description}</div>
                 </div>
               ))}
             </div>
@@ -517,17 +517,17 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'bythenumbers':
         if (!guide.statistics || guide.statistics.length === 0) return null;
         return (
-          <div id="pdf-section-bythenumbers" className={cn("py-6 border-b", t.border)} key="bythenumbers">
-            <div className="pdf-section-header">
+          <div id="pdf-section-bythenumbers" className={cn("py-6 border-b pdf-section-group", t.border)} key="bythenumbers">
+            <div className="pdf-section-header pdf-keep-with-next">
               <h2>By the Numbers</h2>
             </div>
-            <div className="pdf-grid-3">
+            <div className="pdf-grid-3 pdf-section-content">
               {guide.statistics.slice(0, 6).map((stat) => (
-                <div key={stat.id} className="pdf-stat-card pdf-avoid-break">
-                  <div className="pdf-stat-value">
+                <div key={stat.id} className="pdf-stat-card pdf-avoid-break pdf-grid-item-atomic">
+                  <div className="pdf-stat-value pdf-text-display">
                     {stat.prefix}{stat.value}{stat.suffix}
                   </div>
-                  <div className="pdf-stat-label">{stat.label}</div>
+                  <div className="pdf-stat-label pdf-text-overline">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -722,22 +722,24 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'logos':
         if (guide.logos.length === 0) return null;
         return (
-          <div id="pdf-section-logos" className={cn("py-6 border-b", t.border)} key="logos">
-            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Logo Variations</h2>
-            <div className="grid grid-cols-3 gap-3">
+          <div id="pdf-section-logos" className={cn("py-6 border-b pdf-section-group", t.border)} key="logos">
+            <div className="pdf-section-header pdf-keep-with-next">
+              <h2 className="pdf-text-h1">Logo Variations</h2>
+            </div>
+            <div className="grid grid-cols-3 gap-3 pdf-section-content">
               {guide.logos.map((logo) => (
-                <div key={logo.id} className={cn("p-3 rounded-lg text-center pdf-avoid-break", t.card)}>
-                  <div className="h-16 flex items-center justify-center mb-2">
+                <div key={logo.id} className={cn("p-3 rounded-lg text-center pdf-avoid-break pdf-grid-item-atomic", t.card)}>
+                  <div className="h-16 flex items-center justify-center mb-2 pdf-image-atomic">
                     <img 
                       src={logo.url} 
                       alt={logo.name}
-                      className="max-h-full max-w-full object-contain"
+                      className="max-h-full max-w-full object-contain pdf-logo-image"
                       crossOrigin="anonymous"
                       loading="eager"
                     />
                   </div>
-                  <p className={cn("font-medium text-xs", t.text)}>{logo.name}</p>
-                  <p className={cn("text-xs capitalize", t.textMuted)}>{logo.variant}</p>
+                  <p className={cn("font-medium text-xs pdf-text-caption", t.text)}>{logo.name}</p>
+                  <p className={cn("text-xs capitalize pdf-text-caption", t.textMuted)}>{logo.variant}</p>
                 </div>
               ))}
             </div>
@@ -771,22 +773,22 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'colors':
         if (guide.colors.length === 0) return null;
         return (
-          <div id="pdf-section-colors" className={cn("py-6 border-b", t.border)} key="colors">
-            <div className="pdf-section-header">
-              <h2>Color Palette</h2>
+          <div id="pdf-section-colors" className={cn("py-6 border-b pdf-section-group", t.border)} key="colors">
+            <div className="pdf-section-header pdf-keep-with-next">
+              <h2 className="pdf-text-h1">Color Palette</h2>
             </div>
-            <div className="pdf-grid-2">
+            <div className="pdf-grid-2 pdf-section-content">
               {guide.colors.map((color) => {
                 const formats = getAllColorFormats(color.hex);
                 return (
-                  <div key={color.id} className="pdf-color-swatch pdf-avoid-break">
+                  <div key={color.id} className="pdf-color-swatch pdf-avoid-break pdf-grid-item-atomic">
                     <div 
                       className="pdf-color-preview"
                       style={{ backgroundColor: color.hex }}
                     />
                     <div className="pdf-color-info">
-                      <div className="pdf-color-name">{color.name}</div>
-                      <div className="pdf-color-values">
+                      <div className="pdf-color-name pdf-text-h3">{color.name}</div>
+                      <div className="pdf-color-values pdf-text-mono">
                         <div><strong>HEX:</strong> {formats.hex}</div>
                         <div><strong>RGB:</strong> {formats.rgb.replace('rgb(', '').replace(')', '')}</div>
                         <div><strong>CMYK:</strong> {formats.cmyk.replace('cmyk(', '').replace(')', '')}</div>
@@ -929,28 +931,30 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'imagery':
         if (guide.imagery.length === 0) return null;
         return (
-          <div id="pdf-section-imagery" className={cn("py-6 border-b", t.border)} key="imagery">
-            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Imagery Guidelines</h2>
-            <div className="grid grid-cols-2 gap-3">
+          <div id="pdf-section-imagery" className={cn("py-6 border-b pdf-section-group", t.border)} key="imagery">
+            <div className="pdf-section-header pdf-keep-with-next">
+              <h2 className="pdf-text-h1">Imagery Guidelines</h2>
+            </div>
+            <div className="grid grid-cols-2 gap-3 pdf-section-content">
               {guide.imagery.map((img) => (
-                <div key={img.id} className={cn("p-2 rounded-lg pdf-avoid-break", t.card)}>
-                  <div className="aspect-[16/10] w-full overflow-hidden rounded mb-1">
+                <div key={img.id} className={cn("p-2 rounded-lg pdf-avoid-break pdf-grid-item-atomic", t.card)}>
+                  <div className="aspect-[16/10] w-full overflow-hidden rounded mb-1 pdf-image-atomic">
                     <img 
                       src={img.url} 
                       alt={img.description} 
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover pdf-gallery-image"
                       crossOrigin="anonymous"
                       loading="eager"
                     />
                   </div>
                   <div className="flex items-center gap-1">
                     <span className={cn(
-                      "text-xs px-1.5 py-0.5 rounded font-medium",
+                      "text-xs px-1.5 py-0.5 rounded font-medium pdf-text-overline",
                       img.type === 'do' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     )}>
                       {img.type === 'do' ? 'DO' : "DON'T"}
                     </span>
-                    <p className={cn("text-xs", t.textMuted)}>{img.description}</p>
+                    <p className={cn("text-xs pdf-text-caption", t.textMuted)}>{img.description}</p>
                   </div>
                 </div>
               ))}
@@ -1153,26 +1157,27 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'casestudies':
         if (guide.caseStudies.length === 0) return null;
         return (
-          <div id="pdf-section-casestudies" className={cn("py-6 border-b pdf-page-break-before", t.border)} key="casestudies">
-            <div className="pdf-section-header" style={{ marginBottom: '16px' }}>
+          <div id="pdf-section-casestudies" className={cn("py-6 border-b pdf-page-break-before pdf-section-group", t.border)} key="casestudies">
+            <div className="pdf-section-header pdf-keep-with-next" style={{ marginBottom: '16px' }}>
               <FileText className="h-5 w-5" />
-              <h2>Case Studies & Success Stories</h2>
+              <h2 className="pdf-text-h1">Case Studies & Success Stories</h2>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 pdf-section-content">
               {guide.caseStudies.map((study, idx) => (
                 <div 
                   key={study.id} 
                   className={cn(
-                    "pdf-case-study-card pdf-avoid-break overflow-hidden",
+                    "pdf-case-study-card pdf-avoid-break pdf-grid-item-atomic overflow-hidden",
                     pdfTheme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'
                   )}
                   style={{ borderRadius: '12px' }}
                 >
                   {study.previewUrl && (
-                    <div className="pdf-image-container pdf-image-16-9">
+                    <div className="pdf-image-container pdf-image-16-9 pdf-image-atomic">
                       <img 
                         src={study.previewUrl} 
                         alt={study.title} 
+                        className="pdf-gallery-image"
                         crossOrigin="anonymous"
                         loading="eager"
                       />
@@ -1180,17 +1185,17 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                   )}
                   <div className="pdf-case-study-content" style={{ padding: '16px' }}>
                     <div className="flex items-start justify-between gap-3 mb-2">
-                      <h3 className={cn("font-bold text-base", t.text)}>{study.title}</h3>
+                      <h3 className={cn("font-bold text-base pdf-text-h2", t.text)}>{study.title}</h3>
                       <span 
                         className={cn(
-                          "shrink-0 px-2 py-1 rounded-full text-xs font-medium",
+                          "shrink-0 px-2 py-1 rounded-full text-xs font-medium pdf-text-overline",
                           pdfTheme === 'dark' ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'
                         )}
                       >
                         Case #{idx + 1}
                       </span>
                     </div>
-                    <p className={cn("text-sm leading-relaxed", t.textMuted)}>{study.description}</p>
+                    <p className={cn("text-sm leading-relaxed pdf-text-body pdf-widow-control", t.textMuted)}>{study.description}</p>
                   </div>
                 </div>
               ))}
@@ -1202,7 +1207,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                 pdfTheme === 'dark' ? 'bg-blue-500/10 border-l-blue-400' : 'bg-blue-50 border-l-blue-500'
               )}
             >
-              <p className={cn("text-sm font-medium", t.text)}>
+              <p className={cn("text-sm font-medium pdf-text-body", t.text)}>
                 {guide.caseStudies.length} documented success {guide.caseStudies.length === 1 ? 'story' : 'stories'} demonstrating brand impact and market results.
               </p>
             </div>
