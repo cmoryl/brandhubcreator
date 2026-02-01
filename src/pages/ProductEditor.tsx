@@ -95,7 +95,7 @@ const ProductEditor = () => {
   const { theme } = useTheme();
   const { getProduct, getProductBySlug, updateProduct, toggleFavorite, isLoading } = useBrands();
   const { user, isAdmin, isApproved, isLoading: authLoading } = useAuth();
-  const { userRole: orgRole, organization } = useOrganization();
+  const { userRole: orgRole, organization, isLoading: orgLoading } = useOrganization();
 
   // Note: canEdit and isGuideAdmin are calculated below after currentProduct is defined
   // to ensure we check against the correct organization
@@ -285,9 +285,12 @@ const ProductEditor = () => {
   const canEdit = user && (isAdmin || canEditOrg || authLoading);
   
   // Treat organization owners/admins as "admins" within the guide as well.
-  // Otherwise they are treated as viewers and hiddenSections can hide key areas (e.g., Social sections).
-  // Include canEdit to ensure the eye icon shows for users during auth loading.
-  const isGuideAdmin = Boolean(isAdmin || canEditOrg || (user && canEdit));
+  // Include loading states to ensure the eye icon shows while contexts are hydrating.
+  const isGuideAdmin = Boolean(
+    isAdmin || 
+    canEditOrg || 
+    (user && (authLoading || orgLoading || canEdit))
+  );
 
   useEffect(() => {
     if (currentProduct?.id && user?.id) {

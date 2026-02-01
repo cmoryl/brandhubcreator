@@ -93,7 +93,7 @@ const BrandEditor = () => {
   const previousThemeRef = useRef<string | undefined>(undefined);
   const { getBrand, getBrandBySlug, updateBrand: updateBrandContext, toggleFavorite, isLoading, saveNow } = useBrands();
   const { user, isAdmin, isApproved, signOut, isLoading: authLoading } = useAuth();
-  const { userRole: orgRole, organization } = useOrganization();
+  const { userRole: orgRole, organization, isLoading: orgLoading } = useOrganization();
   
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -391,9 +391,13 @@ const BrandEditor = () => {
   const canEdit = user && (isAdmin || canEditOrg || authLoading);
 
   // In the editor experience, anyone who can edit should be able to see (and manage) all sections.
-  // Otherwise, `hiddenSections` can unintentionally hide important areas (e.g. Social Assets) for org members.
-  // Include canEdit to ensure the eye icon shows for users during auth loading.
-  const isGuideAdmin = Boolean(isAdmin || canEditOrg || (user && canEdit));
+  // Include loading states to ensure the eye icon shows while contexts are hydrating.
+  // This prevents the icon from flickering off during initial load.
+  const isGuideAdmin = Boolean(
+    isAdmin || 
+    canEditOrg || 
+    (user && (authLoading || orgLoading || canEdit))
+  );
   
   // Forward-compat: older guides may have persisted sectionOrder without newly-added sections (e.g., socialassets)
   const sectionOrder = useMemo(
