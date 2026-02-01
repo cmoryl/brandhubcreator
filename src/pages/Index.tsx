@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
-import { DEMO_GRADIENTS, DEMO_INDUSTRIES, getOrbitBrands, getOrbitProducts, getOrbitEvents } from '@/data/demoGuides';
+import { DEMO_GRADIENTS, DEMO_INDUSTRIES, DEMO_CARD_IMAGES, getOrbitBrands, getOrbitProducts, getOrbitEvents } from '@/data/demoGuides';
 import { ParticleEmbers } from '@/components/ParticleEmbers';
 import { InteractiveCTA } from '@/components/landing/InteractiveCTA';
 import { BrandHubLogo } from '@/components/BrandHubLogo';
@@ -44,6 +44,7 @@ const Index = () => {
       description: 'The platform itself - explore how BrandHub documents its own brand identity',
       gradient: DEMO_GRADIENTS['demo-brandhub'],
       industry: DEMO_INDUSTRIES['demo-brandhub'],
+      cardImage: DEMO_CARD_IMAGES['demo-brandhub'],
       icon: Rocket,
       path: '/demo/brand/brandhub',
     },
@@ -54,6 +55,7 @@ const Index = () => {
       description: 'A modern tech company brand guide with comprehensive identity system',
       gradient: DEMO_GRADIENTS['demo-nexus-tech'],
       industry: DEMO_INDUSTRIES['demo-nexus-tech'],
+      cardImage: DEMO_CARD_IMAGES['demo-nexus-tech'],
       icon: Building2,
       path: '/demo/brand/demo-nexus-tech',
     },
@@ -64,6 +66,7 @@ const Index = () => {
       description: 'Enterprise cloud product with complete visual guidelines',
       gradient: DEMO_GRADIENTS['demo-nexus-cloud'],
       industry: DEMO_INDUSTRIES['demo-nexus-cloud'],
+      cardImage: DEMO_CARD_IMAGES['demo-nexus-cloud'],
       icon: Package,
       path: '/demo/product/demo-nexus-cloud',
     },
@@ -74,6 +77,7 @@ const Index = () => {
       description: 'Conference event kit with signage, banners, and digital assets',
       gradient: DEMO_GRADIENTS['demo-innovation-summit'],
       industry: DEMO_INDUSTRIES['demo-innovation-summit'],
+      cardImage: DEMO_CARD_IMAGES['demo-innovation-summit'],
       icon: Calendar,
       path: '/demo/event/demo-innovation-summit',
     },
@@ -214,10 +218,19 @@ const Index = () => {
                   onClick={() => navigate(demo.path)}
                   className="group relative overflow-hidden rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 text-left"
                 >
-                  {/* Gradient header */}
-                  <div className={`h-24 bg-gradient-to-br ${demo.gradient} relative overflow-hidden`}>
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-                    <Icon className="absolute bottom-3 right-3 h-8 w-8 text-white/80" />
+                  {/* Card image or gradient fallback */}
+                  <div className="h-32 relative overflow-hidden">
+                    {demo.cardImage ? (
+                      <img 
+                        src={demo.cardImage} 
+                        alt={demo.name}
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className={`absolute inset-0 bg-gradient-to-br ${demo.gradient}`} />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 group-hover:from-black/40 transition-colors" />
+                    <Icon className="absolute bottom-3 right-3 h-8 w-8 text-white/90 drop-shadow-lg" />
                   </div>
                   
                   {/* Content */}
