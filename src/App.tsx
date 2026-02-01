@@ -21,6 +21,7 @@ import { checkAndClearExpiredCaches } from "@/lib/cacheManager";
 checkAndClearExpiredCaches();
 
 // Lazy load pages for faster initial load
+const Index = lazy(() => import("./pages/Index"));
 const BrandsIndex = lazy(() => import("./pages/BrandsIndex"));
 const BrandEditor = lazy(() => import("./pages/BrandEditor"));
 const ProductEditor = lazy(() => import("./pages/ProductEditor"));
@@ -79,6 +80,14 @@ const App = () => (
                   <Route element={<RootLayout />}>
                     <Route
                       index
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <Index />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="dashboard"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <BrandsIndex />
