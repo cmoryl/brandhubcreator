@@ -219,7 +219,11 @@ export const ShareButton = ({
         {type === 'brand' && canEdit && (
           <>
             <DropdownMenuSeparator />
-            <div className="px-3 py-2">
+            <div 
+              className="px-3 py-2"
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
               <p className="text-xs font-medium text-foreground mb-2">
                 Share to External Apps
               </p>
@@ -230,6 +234,8 @@ export const ShareButton = ({
                 size="sm" 
                 variant="secondary" 
                 className="w-full gap-2"
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
