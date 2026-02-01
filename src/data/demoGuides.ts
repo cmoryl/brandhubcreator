@@ -5,6 +5,33 @@ import type { BrandGuide, ProductGuide, SectionId, BrandPageSettings } from '@/t
 import type { EventGuide, EventSectionId } from '@/types/event';
 import { DEMO_BRAND_BRANDHUB } from './demoBrandHub';
 
+// Import demo imagery assets
+import heroNexusTech from '@/assets/demos/hero-nexus-tech.jpg';
+import heroBloomWellness from '@/assets/demos/hero-bloom-wellness.jpg';
+import heroNexusCloud from '@/assets/demos/hero-nexus-cloud.jpg';
+import heroBloomOils from '@/assets/demos/hero-bloom-oils.jpg';
+import heroInnovationSummit from '@/assets/demos/hero-innovation-summit.jpg';
+
+import patternNexusTech from '@/assets/demos/pattern-nexus-tech.jpg';
+import patternBloomWellness from '@/assets/demos/pattern-bloom-wellness.jpg';
+import patternNexusCloud from '@/assets/demos/pattern-nexus-cloud.jpg';
+import patternBloomOils from '@/assets/demos/pattern-bloom-oils.jpg';
+
+import imageryNexusDo1 from '@/assets/demos/imagery-nexus-do-1.jpg';
+import imageryNexusDo2 from '@/assets/demos/imagery-nexus-do-2.jpg';
+import imageryBloomDo1 from '@/assets/demos/imagery-bloom-do-1.jpg';
+import imageryBloomDo2 from '@/assets/demos/imagery-bloom-do-2.jpg';
+
+import socialNexusLinkedin from '@/assets/demos/social-nexus-linkedin.jpg';
+import socialNexusTwitter from '@/assets/demos/social-nexus-twitter.jpg';
+import socialBloomInstagram from '@/assets/demos/social-bloom-instagram.jpg';
+import socialBloomLinkedin from '@/assets/demos/social-bloom-linkedin.jpg';
+
+import signageBoothBackdrop from '@/assets/demos/signage-booth-backdrop.jpg';
+import signagePullupBanner from '@/assets/demos/signage-pullup-banner.jpg';
+import bannerLinkedinEvent from '@/assets/demos/banner-linkedin-event.jpg';
+import bannerEmail from '@/assets/demos/banner-email.jpg';
+
 // Default demo page settings with full-width hero and spacious layout
 const DEMO_PAGE_SETTINGS: BrandPageSettings = {
   backgroundType: 'inherit',
@@ -40,7 +67,7 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   hero: {
     name: 'Nexus Tech',
     tagline: 'Building tomorrow\'s digital infrastructure today',
-    coverImage: '/images/demos/card-nexus-tech.jpg',
+    coverImage: heroNexusTech,
     logoUrl: '/images/demos/logo-nexus-tech.png',
   },
   tagline: {
@@ -96,8 +123,8 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'g3', name: 'Aurora', css: 'linear-gradient(135deg, #0066FF 0%, #8B5CF6 50%, #00D4FF 100%)' },
   ],
   patterns: [
-    { id: 'p1', name: 'Hexagonal Network', url: '/images/demos/pattern-nexus-tech.jpg' },
-    { id: 'p2', name: 'Circuit Nodes', url: '/images/demos/pattern-nexus-tech.jpg' },
+    { id: 'p1', name: 'Hexagonal Network', url: patternNexusTech },
+    { id: 'p2', name: 'Circuit Nodes', url: patternNexusTech },
   ],
   typography: [
     { id: 't1', name: 'Display', fontFamily: 'Inter', weight: '700', usage: 'Headlines, hero sections, key statements', role: 'display' },
@@ -117,10 +144,10 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   ],
   socialIcons: [],
   imagery: [
-    { id: 'im1', url: '/images/demos/imagery-nexus-do-1.jpg', type: 'do', description: 'Use high-quality abstract tech imagery with blue tones and glowing elements' },
-    { id: 'im2', url: '/images/demos/imagery-nexus-do-2.jpg', type: 'do', description: 'Digital circuit patterns and futuristic geometric designs work well' },
-    { id: 'im3', url: '/images/demos/social-nexus-linkedin.jpg', type: 'do', description: 'LinkedIn company page with tech-forward banner and professional layout' },
-    { id: 'im4', url: '/images/demos/social-nexus-twitter.jpg', type: 'do', description: 'Twitter/X profile showcasing dark mode tech aesthetic with circuit patterns' },
+    { id: 'im1', url: imageryNexusDo1, type: 'do', description: 'Use high-quality abstract tech imagery with blue tones and glowing elements' },
+    { id: 'im2', url: imageryNexusDo2, type: 'do', description: 'Digital circuit patterns and futuristic geometric designs work well' },
+    { id: 'im3', url: socialNexusLinkedin, type: 'do', description: 'LinkedIn company page with tech-forward banner and professional layout' },
+    { id: 'im4', url: socialNexusTwitter, type: 'do', description: 'Twitter/X profile showcasing dark mode tech aesthetic with circuit patterns' },
     { id: 'im5', url: '', type: 'dont', description: 'Avoid cluttered or outdated technology images' },
   ],
   social: [
@@ -319,7 +346,7 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   hero: {
     name: 'Bloom Wellness',
     tagline: 'Nurturing your journey to holistic well-being',
-    coverImage: '/images/demos/card-bloom-wellness.jpg',
+    coverImage: heroBloomWellness,
     logoUrl: '/images/demos/logo-bloom-wellness.png',
   },
   tagline: {
@@ -371,8 +398,8 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'g2', name: 'Sunset Wellness', css: 'linear-gradient(180deg, #FFF8E7 0%, #FFE0B2 100%)' },
   ],
   patterns: [
-    { id: 'p1', name: 'Botanical Leaves', url: '/images/demos/pattern-bloom-wellness.jpg' },
-    { id: 'p2', name: 'Fern & Eucalyptus', url: '/images/demos/pattern-bloom-wellness.jpg' },
+    { id: 'p1', name: 'Botanical Leaves', url: patternBloomWellness },
+    { id: 'p2', name: 'Fern & Eucalyptus', url: patternBloomWellness },
   ],
   typography: [
     { id: 't1', name: 'Display', fontFamily: 'Playfair Display', weight: '600', usage: 'Headlines, hero sections', role: 'display' },
@@ -386,10 +413,10 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   iconography: [],
   socialIcons: [],
   imagery: [
-    { id: 'im1', url: '/images/demos/imagery-bloom-do-1.jpg', type: 'do', description: 'Use serene botanical close-ups with soft natural lighting' },
-    { id: 'im2', url: '/images/demos/imagery-bloom-do-2.jpg', type: 'do', description: 'Organic flat lays with herbs and natural textures' },
-    { id: 'im3', url: '/images/demos/social-bloom-instagram.jpg', type: 'do', description: 'Instagram profile with botanical aesthetic and wellness lifestyle grid' },
-    { id: 'im4', url: '/images/demos/social-bloom-linkedin.jpg', type: 'do', description: 'LinkedIn company page with professional green botanical theme' },
+    { id: 'im1', url: imageryBloomDo1, type: 'do', description: 'Use serene botanical close-ups with soft natural lighting' },
+    { id: 'im2', url: imageryBloomDo2, type: 'do', description: 'Organic flat lays with herbs and natural textures' },
+    { id: 'im3', url: socialBloomInstagram, type: 'do', description: 'Instagram profile with botanical aesthetic and wellness lifestyle grid' },
+    { id: 'im4', url: socialBloomLinkedin, type: 'do', description: 'LinkedIn company page with professional green botanical theme' },
     { id: 'im5', url: '', type: 'dont', description: 'Avoid artificial or overly processed imagery' },
   ],
   social: [
@@ -504,7 +531,7 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
   hero: {
     name: 'Nexus Cloud',
     tagline: 'Enterprise cloud infrastructure that scales with you',
-    coverImage: '/images/demos/hero-nexus-cloud.jpg',
+    coverImage: heroNexusCloud,
     logoUrl: '/images/demos/logo-nexus-cloud.png',
   },
   tagline: {
@@ -646,7 +673,7 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
   hero: {
     name: 'Bloom Essential Oils',
     tagline: 'Pure botanical essences for everyday wellness',
-    coverImage: '/images/demos/hero-bloom-oils.jpg',
+    coverImage: heroBloomOils,
     logoUrl: '/images/demos/logo-bloom-oils.png',
   },
   tagline: {
@@ -780,7 +807,7 @@ export const DEMO_EVENT_SUMMIT: Omit<EventGuide, 'createdAt' | 'updatedAt'> = {
   hero: {
     name: 'Global Innovation Summit 2026',
     tagline: 'Where visionaries converge to shape the future of technology',
-    coverImage: '/images/events/hero-innovation-summit.jpg',
+    coverImage: heroInnovationSummit,
     logoUrl: '/images/demos/logo-nexus-tech.png',
   },
   tagline: {
