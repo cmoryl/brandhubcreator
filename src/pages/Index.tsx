@@ -1,271 +1,338 @@
-import { useState, useCallback } from 'react';
+/**
+ * BrandHub Index Page
+ * Features an interactive orbit visualization showcasing demo brands, products, and events
+ */
+
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText } from 'lucide-react';
+import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
-import { BrandGuide, SectionId } from '@/types/brand';
-import { BrandSidebar } from '@/components/brand/BrandSidebar';
-import { BrandSelector } from '@/components/brand/BrandSelector';
-import { FullBrandPage } from '@/components/brand/FullBrandPage';
-import { HeroSection } from '@/components/brand/HeroSection';
-import { TaglineSection } from '@/components/brand/TaglineSection';
-import { IdentitySection } from '@/components/brand/IdentitySection';
-import { ValuesSection } from '@/components/brand/ValuesSection';
-import { LogoSection } from '@/components/brand/LogoSection';
-import { BrandIconsSection } from '@/components/brand/BrandIconsSection';
-import { ColorPaletteSection } from '@/components/brand/ColorPaletteSection';
-import { GradientsSection } from '@/components/brand/GradientsSection';
-import { PatternsSection } from '@/components/brand/PatternsSection';
-import { TypographySection } from '@/components/brand/TypographySection';
-import { TextStylesSection } from '@/components/brand/TextStylesSection';
-import { IconographySection } from '@/components/brand/IconographySection';
-import { SocialIconsSection } from '@/components/brand/SocialIconsSection';
-import { ImagerySection } from '@/components/brand/ImagerySection';
-import { SocialSection } from '@/components/brand/SocialSection';
-import { SignaturesSection } from '@/components/brand/SignaturesSection';
-import { QRSection } from '@/components/brand/QRSection';
-import { VideosSection } from '@/components/brand/VideosSection';
-import { AssetsSection } from '@/components/brand/AssetsSection';
-import { MisuseSection } from '@/components/brand/MisuseSection';
-import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
-import { TemplatesSection } from '@/components/brand/TemplatesSection';
+import { GlobalAssetOrbit, OrbitLegend } from '@/components/portal';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
-import { DEFAULT_SECTION_ORDER } from '@/types/brand';
+import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_GRADIENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
 
-const createDefaultBrand = (name: string = 'My Brand'): BrandGuide => ({
-  id: crypto.randomUUID(),
-  type: 'brand',
-  hero: { name, tagline: 'Crafting exceptional experiences', coverImage: '', logoUrl: '' },
-  tagline: { primary: '', secondary: '', variations: [] },
-  identity: { missionStatement: '', archetype: '', toneOfVoice: [] },
-  values: [],
-  logos: [],
-  brandIcons: [],
-  colors: [
-    { id: '1', name: 'Primary', hex: '#1a1a2e', usage: 'Main brand color' },
-    { id: '2', name: 'Secondary', hex: '#e94560', usage: 'Accent and CTAs' },
-    { id: '3', name: 'Background', hex: '#f8f7f4', usage: 'Light backgrounds' },
-  ],
-  colorCombinations: [],
-  gradients: [],
-  patterns: [],
-  typography: [
-    { id: '1', name: 'Heading', fontFamily: 'Fraunces, serif', weight: '600', usage: 'Headlines and titles' },
-    { id: '2', name: 'Body', fontFamily: 'DM Sans, sans-serif', weight: '400', usage: 'Body text' },
-  ],
-  textStyles: [],
-  iconography: [],
-  socialIcons: [],
-  imagery: [],
-  social: [],
-  websites: [],
-  signatures: [],
-  qr: { defaultUrl: 'https://yourbrand.com', fgColor: '#1a1a2e', bgColor: '#ffffff' },
-  videos: [],
-  assets: [],
-  misuse: [],
-  atmosphere: { style: 'gradient', animate: true, opacity: 0.5, blur: 0 },
-  caseStudies: [],
-  brochures: [],
-  templates: [],
-  services: [],
-  createdAt: new Date(),
-  updatedAt: new Date(),
+// Transform demo data to orbit format
+const transformToOrbitEntity = (item: any, type: 'brand' | 'product' | 'event') => ({
+  id: item.id,
+  name: item.hero?.name || item.name,
+  slug: item.slug,
+  type,
+  updatedAt: new Date().toISOString(),
+  coverImage: item.hero?.coverImage,
+  color: item.colors?.[0]?.hex,
+  parentBrandId: item.parentBrandId,
 });
 
-type ViewMode = 'sections' | 'full';
-
 const Index = () => {
+  const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
-  const [brands, setBrands] = useState<BrandGuide[]>([createDefaultBrand()]);
-  const [currentBrandId, setCurrentBrandId] = useState<string>(brands[0].id);
-  const [activeSection, setActiveSection] = useState<SectionId>('hero');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('sections');
-  const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
+  const [orbitFilter, setOrbitFilter] = useState<'all' | 'brands' | 'products' | 'events'>('all');
 
-  const currentBrand = brands.find(b => b.id === currentBrandId) || brands[0];
+  // Transform demo data for orbit
+  const orbitBrands = useMemo(() => 
+    DEMO_BRANDS.map(b => transformToOrbitEntity(b, 'brand')), []);
+  const orbitProducts = useMemo(() => 
+    DEMO_PRODUCTS.map(p => transformToOrbitEntity(p, 'product')), []);
+  const orbitEvents = useMemo(() => 
+    DEMO_EVENTS.map(e => transformToOrbitEntity(e, 'event')), []);
 
-  const updateBrand = (updates: Partial<BrandGuide>) => {
-    setBrands(prev => prev.map(brand => 
-      brand.id === currentBrandId 
-        ? { ...brand, ...updates, updatedAt: new Date() }
-        : brand
-    ));
-  };
-
-  const handleBrandCreate = (name: string) => {
-    const newBrand = createDefaultBrand(name);
-    setBrands(prev => [...prev, newBrand]);
-    setCurrentBrandId(newBrand.id);
-    setActiveSection('hero');
-  };
-
-  const handleBrandDelete = (brandId: string) => {
-    if (brands.length <= 1) return;
-    
-    setBrands(prev => prev.filter(b => b.id !== brandId));
-    if (currentBrandId === brandId) {
-      const remainingBrands = brands.filter(b => b.id !== brandId);
-      setCurrentBrandId(remainingBrands[0].id);
-    }
-  };
-
-  const handleBrandSelect = (brandId: string) => {
-    setCurrentBrandId(brandId);
-    setActiveSection('hero');
-  };
-
-  const handleSectionChange = useCallback((section: SectionId) => {
-    setActiveSection(section);
-    if (viewMode === 'full') {
-      setScrollToSection(section);
-      // Reset after triggering scroll
-      setTimeout(() => setScrollToSection(null), 100);
-    }
-  }, [viewMode]);
-
-  const handleSectionVisible = useCallback((section: SectionId) => {
-    if (viewMode === 'full') {
-      setActiveSection(section);
-    }
-  }, [viewMode]);
-
-  const renderSection = () => {
-    switch (activeSection) {
-      case 'hero': return <HeroSection hero={currentBrand.hero} onHeroChange={(hero) => updateBrand({ hero })} guideData={currentBrand as unknown as Record<string, unknown>} entityType="brand" entityId={currentBrand.id} />;
-      case 'tagline': return <TaglineSection tagline={currentBrand.tagline} onTaglineChange={(tagline) => updateBrand({ tagline })} />;
-      case 'identity': return <IdentitySection identity={currentBrand.identity} onIdentityChange={(identity) => updateBrand({ identity })} />;
-      case 'values': return <ValuesSection values={currentBrand.values} onValuesChange={(values) => updateBrand({ values })} />;
-      case 'logos': return <LogoSection logos={currentBrand.logos} onLogosChange={(logos) => updateBrand({ logos })} />;
-      case 'brandicon': return <BrandIconsSection brandIcons={currentBrand.brandIcons} onBrandIconsChange={(brandIcons) => updateBrand({ brandIcons })} />;
-      case 'colors': return <ColorPaletteSection colors={currentBrand.colors} onColorsChange={(colors) => updateBrand({ colors })} colorCombinations={currentBrand.colorCombinations} onColorCombinationsChange={(colorCombinations) => updateBrand({ colorCombinations })} />;
-      case 'gradients': return <GradientsSection gradients={currentBrand.gradients} onGradientsChange={(gradients) => updateBrand({ gradients })} />;
-      case 'patterns': return <PatternsSection patterns={currentBrand.patterns} onPatternsChange={(patterns) => updateBrand({ patterns })} />;
-      case 'typography': return <TypographySection typography={currentBrand.typography} onTypographyChange={(typography) => updateBrand({ typography })} />;
-      case 'textstyles': return <TextStylesSection textStyles={currentBrand.textStyles} onTextStylesChange={(textStyles) => updateBrand({ textStyles })} />;
-      case 'iconography': return <IconographySection iconography={currentBrand.iconography} onIconographyChange={(iconography) => updateBrand({ iconography })} brandColors={currentBrand.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} />;
-      case 'socialicons': return <SocialIconsSection socialIcons={currentBrand.socialIcons} onSocialIconsChange={(socialIcons) => updateBrand({ socialIcons })} />;
-      case 'imagery': return <ImagerySection imagery={currentBrand.imagery} onImageryChange={(imagery) => updateBrand({ imagery })} />;
-      case 'social': return <SocialSection social={currentBrand.social} onSocialChange={(social) => updateBrand({ social })} />;
-      case 'signatures': return <SignaturesSection signatures={currentBrand.signatures} onSignaturesChange={(signatures) => updateBrand({ signatures })} />;
-      case 'qr': return <QRSection qr={currentBrand.qr} onQRChange={(qr) => updateBrand({ qr })} />;
-      case 'videos': return <VideosSection videos={currentBrand.videos} onVideosChange={(videos) => updateBrand({ videos })} />;
-      case 'assets': return <AssetsSection assets={currentBrand.assets} onAssetsChange={(assets) => updateBrand({ assets })} />;
-      case 'misuse': return <MisuseSection misuse={currentBrand.misuse} onMisuseChange={(misuse) => updateBrand({ misuse })} />;
-      case 'casestudies':
-      case 'brochures': return <DigitalCollateralSection collateral={currentBrand.brochures} onCollateralChange={(brochures) => updateBrand({ brochures })} />;
-      case 'templates': return <TemplatesSection templates={currentBrand.templates} onTemplatesChange={(templates) => updateBrand({ templates })} />;
-      default: return null;
-    }
-  };
+  // Featured demos for cards below
+  const featuredDemos = [
+    {
+      id: 'demo-brandhub',
+      name: 'BrandHub',
+      type: 'brand',
+      description: 'The platform itself - explore how BrandHub documents its own brand identity',
+      gradient: DEMO_GRADIENTS['demo-brandhub'],
+      industry: DEMO_INDUSTRIES['demo-brandhub'],
+      icon: Rocket,
+      path: '/demo/brand/brandhub',
+    },
+    {
+      id: 'demo-nexus-tech',
+      name: 'Nexus Tech',
+      type: 'brand',
+      description: 'A modern tech company brand guide with comprehensive identity system',
+      gradient: DEMO_GRADIENTS['demo-nexus-tech'],
+      industry: DEMO_INDUSTRIES['demo-nexus-tech'],
+      icon: Building2,
+      path: '/demo/brand/demo-nexus-tech',
+    },
+    {
+      id: 'demo-nexus-cloud',
+      name: 'Nexus Cloud Platform',
+      type: 'product',
+      description: 'Enterprise cloud product with complete visual guidelines',
+      gradient: DEMO_GRADIENTS['demo-nexus-cloud'],
+      industry: DEMO_INDUSTRIES['demo-nexus-cloud'],
+      icon: Package,
+      path: '/demo/product/demo-nexus-cloud',
+    },
+    {
+      id: 'demo-innovation-summit',
+      name: 'Innovation Summit 2026',
+      type: 'event',
+      description: 'Conference event kit with signage, banners, and digital assets',
+      gradient: DEMO_GRADIENTS['demo-innovation-summit'],
+      industry: DEMO_INDUSTRIES['demo-innovation-summit'],
+      icon: Calendar,
+      path: '/demo/event/demo-innovation-summit',
+    },
+  ];
 
   return (
-    <TooltipProvider>
-      <div className="min-h-screen bg-background flex">
-        {/* Desktop Sidebar */}
-        <div className="hidden lg:block">
-          <BrandSidebar activeSection={activeSection} onSectionChange={handleSectionChange} brandName={currentBrand.hero.name} />
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img 
+              src={resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite} 
+              alt="TransPerfect" 
+              className="h-6 w-auto"
+            />
+            <span className="font-serif font-semibold text-foreground">BrandHub</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <Button onClick={() => navigate('/auth')} variant="outline" size="sm">
+              Sign In
+            </Button>
+            <Button onClick={() => navigate('/auth')} size="sm">
+              Get Started
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section with Orbit */}
+      <section className="relative pt-16 min-h-[85vh] flex items-center overflow-hidden">
+        {/* Background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+        
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000" />
+          <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-secondary/10 rounded-full blur-3xl animate-pulse delay-500" />
         </div>
 
-        {/* Mobile Sidebar */}
-        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-          <SheetContent side="left" className="p-0 w-72">
-            <BrandSidebar activeSection={activeSection} onSectionChange={(section) => { handleSectionChange(section); setSidebarOpen(false); }} brandName={currentBrand.hero.name} />
-          </SheetContent>
-        </Sheet>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Left: Text content */}
+            <div className="order-2 lg:order-1 text-center lg:text-left">
+              <Badge variant="secondary" className="mb-4 gap-1.5">
+                <Sparkles className="h-3 w-3" />
+                Interactive Brand Guidelines Platform
+              </Badge>
+              
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+                <span className="text-foreground">Create </span>
+                <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-gradient">
+                  Living
+                </span>
+                <br />
+                <span className="text-foreground">Brand Guides</span>
+              </h1>
+              
+              <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
+                Transform static brand guidelines into dynamic, interactive experiences. 
+                Manage brands, products, and events in one unified platform.
+              </p>
 
-        {/* Main content */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Header */}
-          <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border animate-fade-in-down">
-            <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-                  <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="lg:hidden">
-                      <Menu className="h-5 w-5" />
-                    </Button>
-                  </SheetTrigger>
-                </Sheet>
-                <div className="flex items-center gap-2">
-                  <img 
-                    src={resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite} 
-                    alt="TransPerfect" 
-                    className="h-6 w-auto"
-                  />
-                  <span className="font-serif font-semibold text-foreground hidden sm:inline">BrandHub</span>
-                </div>
-                <div className="h-6 w-px bg-border mx-2 hidden sm:block" />
-                <BrandSelector
-                  brands={brands}
-                  currentBrandId={currentBrandId}
-                  onBrandSelect={handleBrandSelect}
-                  onBrandCreate={handleBrandCreate}
-                  onBrandDelete={handleBrandDelete}
-                />
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Button size="lg" onClick={() => navigate('/auth')} className="gap-2">
+                  Start Building
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+                <Button size="lg" variant="outline" onClick={() => navigate('/demo/brand/brandhub')} className="gap-2">
+                  <Play className="h-4 w-4" />
+                  View Demo
+                </Button>
               </div>
-              <div className="flex items-center gap-4">
-                <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <ToggleGroupItem value="sections" aria-label="Section view" className="h-8 w-8 data-[state=on]:bg-background">
-                        <LayoutList className="h-4 w-4" />
-                      </ToggleGroupItem>
-                    </TooltipTrigger>
-                    <TooltipContent>Section View</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <ToggleGroupItem value="full" aria-label="Full page view" className="h-8 w-8 data-[state=on]:bg-background">
-                        <ScrollText className="h-4 w-4" />
-                      </ToggleGroupItem>
-                    </TooltipTrigger>
-                    <TooltipContent>Full Page View</TooltipContent>
-                  </Tooltip>
-                </ToggleGroup>
-                <ThemeToggle />
-                <div className="text-xs text-muted-foreground hidden sm:block">
-                  Saved {currentBrand.updatedAt.toLocaleTimeString()}
+
+              {/* Stats */}
+              <div className="mt-12 grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
+                <div className="text-center lg:text-left">
+                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{DEMO_BRANDS.length}</div>
+                  <div className="text-sm text-muted-foreground">Demo Brands</div>
+                </div>
+                <div className="text-center lg:text-left">
+                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{DEMO_PRODUCTS.length}</div>
+                  <div className="text-sm text-muted-foreground">Products</div>
+                </div>
+                <div className="text-center lg:text-left">
+                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{DEMO_EVENTS.length}</div>
+                  <div className="text-sm text-muted-foreground">Events</div>
                 </div>
               </div>
             </div>
-          </header>
 
-          {/* Content */}
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
-            <div className="max-w-5xl mx-auto animate-fade-in-up">
-              {viewMode === 'sections' ? (
-                <div className="animate-zoom-in">{renderSection()}</div>
-              ) : (
-                <FullBrandPage 
-                  brand={currentBrand}
-                  brandId={currentBrand.id}
-                  onBrandUpdate={updateBrand}
-                  scrollToSection={scrollToSection}
-                  onSectionVisible={handleSectionVisible}
-                  canEdit={true}
+            {/* Right: Orbit Visualization */}
+            <div className="order-1 lg:order-2 relative">
+              <div className="relative w-full aspect-square max-w-[500px] mx-auto">
+                {/* Glow effect behind orbit */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-accent/20 rounded-full blur-2xl scale-110" />
+                
+                <GlobalAssetOrbit
+                  className="w-full h-full"
+                  primaryColor="hsl(var(--primary))"
+                  secondaryColor="hsl(var(--accent))"
+                  organizationName="BrandHub"
+                  organizationLogo={resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite}
+                  brands={orbitBrands}
+                  products={orbitProducts}
+                  events={orbitEvents}
+                  filter={orbitFilter}
+                  showLegend={true}
+                  onFilterChange={setOrbitFilter}
                 />
-              )}
+              </div>
+              
+              {/* Orbit description */}
+              <p className="text-center text-sm text-muted-foreground mt-4">
+                Click entities to explore demo guides • Hover to see details
+              </p>
             </div>
-          </main>
+          </div>
         </div>
-      </div>
-      
-      {/* Mobile Section Navigation */}
-      <MobileSectionNav
-        sectionOrder={DEFAULT_SECTION_ORDER}
-        hiddenSections={[]}
-        activeSection={activeSection}
-        onSectionSelect={handleSectionChange}
-        brandName={currentBrand.hero.name}
-      />
-    </TooltipProvider>
+      </section>
+
+      {/* Featured Demos Section */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Explore Live Examples</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              See how brands, products, and events come to life with interactive guidelines
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredDemos.map((demo) => {
+              const Icon = demo.icon;
+              return (
+                <button
+                  key={demo.id}
+                  onClick={() => navigate(demo.path)}
+                  className="group relative overflow-hidden rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 text-left"
+                >
+                  {/* Gradient header */}
+                  <div className={`h-24 bg-gradient-to-br ${demo.gradient} relative overflow-hidden`}>
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                    <Icon className="absolute bottom-3 right-3 h-8 w-8 text-white/80" />
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="p-5">
+                    <Badge variant="outline" className="mb-2 text-xs">
+                      {demo.industry}
+                    </Badge>
+                    <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
+                      {demo.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {demo.description}
+                    </p>
+                    
+                    <div className="flex items-center gap-1 mt-4 text-sm text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                      Explore
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Everything You Need</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              A complete platform for managing brand identity across all touchpoints
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-card rounded-2xl p-8 border border-border hover:border-primary/30 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
+                <Building2 className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Brand Guides</h3>
+              <p className="text-muted-foreground">
+                Comprehensive brand identity documentation with logos, colors, typography, and usage guidelines.
+              </p>
+            </div>
+
+            <div className="bg-card rounded-2xl p-8 border border-border hover:border-primary/30 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6">
+                <Package className="h-6 w-6 text-accent" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Product Guides</h3>
+              <p className="text-muted-foreground">
+                Dedicated guidelines for product lines with unique visual identities linked to parent brands.
+              </p>
+            </div>
+
+            <div className="bg-card rounded-2xl p-8 border border-border hover:border-primary/30 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-6">
+                <Calendar className="h-6 w-6 text-secondary-foreground" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Event Kits</h3>
+              <p className="text-muted-foreground">
+                Complete event branding packages including signage, digital assets, and sponsor materials.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-br from-primary/10 via-background to-accent/10">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to Transform Your Brand?</h2>
+          <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
+            Join organizations that trust BrandHub for their brand management needs.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" onClick={() => navigate('/auth')} className="gap-2">
+              Get Started Free
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => navigate('/demo/brand/brandhub')}>
+              Explore Demo
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 border-t border-border">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <img 
+                src={resolvedTheme === 'light' ? tpLogoColor : tpLogoWhite} 
+                alt="TransPerfect" 
+                className="h-5 w-auto"
+              />
+              <span className="font-serif font-semibold text-foreground">BrandHub</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} TransPerfect. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 };
 
