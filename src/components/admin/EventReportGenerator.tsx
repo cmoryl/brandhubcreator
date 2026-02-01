@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { CalendarDays, Download, Loader2, Calendar, Filter, BarChart3, AlertTriangle, Clock, MapPin, Users, Video, Mic2 } from 'lucide-react';
+import { CalendarDays, Download, Loader2, Calendar, Filter, BarChart3, AlertTriangle, Clock, MapPin, Users, Video, Mic2, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, subDays, subMonths, isPast, isFuture, parseISO } from 'date-fns';
 import { EventCustomPromptRunner } from './EventCustomPromptRunner';
+import { EventAnalyticsCharts } from './EventAnalyticsCharts';
 
 interface EventReportData {
   id: string;
@@ -352,15 +354,28 @@ export function EventReportGenerator() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CalendarDays className="h-5 w-5" />
-            Event Reports
-          </CardTitle>
-          <CardDescription>Generate and download comprehensive event analytics reports with event-specific metrics</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <Tabs defaultValue="reports" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="reports" className="gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Reports & Data
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Analytics Charts
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="reports" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CalendarDays className="h-5 w-5" />
+                Event Reports
+              </CardTitle>
+              <CardDescription>Generate and download comprehensive event analytics reports with event-specific metrics</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
           {/* Report Controls */}
           <div className="flex flex-wrap gap-3">
             <Select value={dateRange} onValueChange={setDateRange}>
@@ -636,12 +651,47 @@ export function EventReportGenerator() {
             </div>
           )}
         </CardContent>
-      </Card>
+          </Card>
 
-      {/* Custom AI Prompt Runner for Events */}
-      {reportData && reportData.length > 0 && (
-        <EventCustomPromptRunner events={reportData.map(e => ({ id: e.id, name: e.event_name || e.name }))} />
-      )}
+          {/* Custom AI Prompt Runner for Events */}
+          {reportData && reportData.length > 0 && (
+            <EventCustomPromptRunner events={reportData.map(e => ({ id: e.id, name: e.event_name || e.name }))} />
+          )}
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          {reportData && reportData.length > 0 ? (
+            <EventAnalyticsCharts 
+              events={reportData.map(e => ({
+                id: e.id,
+                name: e.name,
+                created_at: e.created_at,
+                event_name: e.event_name,
+                event_type: e.event_type,
+                speakers_count: e.speakers_count,
+                sponsors_count: e.sponsors_count,
+                expected_attendees: e.expected_attendees,
+                event_status: e.event_status,
+                completeness_score: e.completeness_score,
+                has_schedule: e.has_schedule,
+                videos_count: e.videos_count,
+                signage_count: e.signage_count,
+                banners_count: e.banners_count,
+              }))}
+            />
+          ) : (
+            <Card>
+              <CardContent className="py-12">
+                <div className="text-center text-muted-foreground">
+                  <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium">Generate a report first</p>
+                  <p className="text-sm">Switch to "Reports & Data" tab and click "Generate Report" to view analytics charts</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
