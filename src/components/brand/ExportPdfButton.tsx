@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb, Minus, Briefcase, Sparkles, Palette, Layout, Image, Calendar, Type, Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb, Minus, Briefcase, Sparkles, Palette, Layout, Image, Calendar, Type, Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw, SplitSquareVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseGuide, DEFAULT_SECTION_ORDER, SectionId, BrandSocialAssetSpec, BrandDisplayBannerSpec, TemplateSpec } from '@/types/brand';
 import { exportToPdf, PdfTheme, PaperSize, PAPER_SIZES, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
@@ -25,6 +25,7 @@ import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { PageBreakIndicator, PrintPageSimulator, PrintPreviewContainer, PageBreakDivider, PrintPreviewHeader, useEstimatedPages } from '@/components/pdf-export';
@@ -76,12 +77,26 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
   const [includeToc, setIncludeToc] = useState(true);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [selectedSections, setSelectedSections] = useState<Set<SectionId>>(new Set(DEFAULT_SECTION_ORDER));
+  const [pageBreaksBefore, setPageBreaksBefore] = useState<Set<SectionId>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['core', 'visual']));
   const [intelligence, setIntelligence] = useState<BrandIntelligenceData | null>(null);
   const [previewZoom, setPreviewZoom] = useState(0.65);
   const [showMarginGuides, setShowMarginGuides] = useState(true);
   const [viewMode, setViewMode] = useState<'scroll' | 'single'>('scroll');
   const exportRef = useRef<HTMLDivElement>(null);
+
+  // Toggle page break before a section
+  const togglePageBreak = useCallback((sectionId: SectionId) => {
+    setPageBreaksBefore(prev => {
+      const next = new Set(prev);
+      if (next.has(sectionId)) {
+        next.delete(sectionId);
+      } else {
+        next.add(sectionId);
+      }
+      return next;
+    });
+  }, []);
 
   const sectionOrder = guide.sectionOrder || DEFAULT_SECTION_ORDER;
 
@@ -1607,12 +1622,28 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
 
               {/* Section Selection */}
               <div className="flex-1 overflow-hidden flex flex-col">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-1">
                   <Label className="text-xs font-medium">Sections ({selectedCount}/{totalWithContent})</Label>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={selectAll}>All</Button>
                     <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={selectNone}>None</Button>
                   </div>
+                </div>
+                
+                {/* Page break legend */}
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <SplitSquareVertical className="h-2.5 w-2.5" />
+                    <span>Hover to add page breaks</span>
+                  </div>
+                  {pageBreaksBefore.size > 0 && (
+                    <button 
+                      onClick={() => setPageBreaksBefore(new Set())}
+                      className="text-[10px] text-primary hover:underline"
+                    >
+                      Clear all ({pageBreaksBefore.size})
+                    </button>
+                  )}
                 </div>
                 
                 <ScrollArea className="flex-1 pr-2">
@@ -1654,25 +1685,66 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                           </CollapsibleTrigger>
                           <CollapsibleContent>
                             <div className="pl-6 space-y-0.5 py-1">
-                              {sections.map((section) => {
+                              {sections.map((section, sectionIdx) => {
                                 const sectionId = section.id as SectionId;
                                 const hasContent = hasSectionContent(sectionId);
+                                const isSelected = selectedSections.has(sectionId);
+                                const hasPageBreak = pageBreaksBefore.has(sectionId);
+                                const canHavePageBreak = hasContent && isSelected && sectionId !== 'hero';
+                                
                                 return (
                                   <div 
                                     key={section.id}
                                     className={cn(
-                                      "flex items-center gap-2 py-1 px-2 rounded-md",
-                                      hasContent ? "hover:bg-muted cursor-pointer" : "opacity-40 cursor-not-allowed"
+                                      "group flex items-center gap-2 py-1.5 px-2 rounded-md transition-colors",
+                                      hasContent ? "hover:bg-muted" : "opacity-40 cursor-not-allowed",
+                                      hasPageBreak && "bg-primary/5 border-l-2 border-primary"
                                     )}
-                                    onClick={() => hasContent && toggleSection(sectionId)}
                                   >
                                     <Checkbox 
-                                      checked={selectedSections.has(sectionId)}
+                                      checked={isSelected}
                                       disabled={!hasContent}
                                       onCheckedChange={() => hasContent && toggleSection(sectionId)}
+                                      className="cursor-pointer"
                                     />
-                                    <span className="text-xs">{section.label}</span>
-                                    {!hasContent && <span className="text-xs text-muted-foreground ml-auto">(empty)</span>}
+                                    <span 
+                                      className={cn("text-xs flex-1 cursor-pointer", !hasContent && "cursor-not-allowed")}
+                                      onClick={() => hasContent && toggleSection(sectionId)}
+                                    >
+                                      {section.label}
+                                    </span>
+                                    
+                                    {/* Page break toggle button */}
+                                    {canHavePageBreak && (
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                togglePageBreak(sectionId);
+                                              }}
+                                              className={cn(
+                                                "p-1 rounded transition-all opacity-0 group-hover:opacity-100",
+                                                hasPageBreak 
+                                                  ? "bg-primary/10 text-primary opacity-100" 
+                                                  : "hover:bg-muted-foreground/10 text-muted-foreground"
+                                              )}
+                                            >
+                                              <SplitSquareVertical className="h-3 w-3" />
+                                            </button>
+                                          </TooltipTrigger>
+                                          <TooltipContent side="left" className="text-xs">
+                                            {hasPageBreak ? 'Remove page break' : 'Add page break before'}
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    )}
+                                    
+                                    {!hasContent && <span className="text-xs text-muted-foreground">(empty)</span>}
+                                    {hasPageBreak && (
+                                      <span className="text-[10px] text-primary font-medium">⏎</span>
+                                    )}
                                   </div>
                                 );
                               })}
@@ -1778,15 +1850,23 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                         {/* Render remaining sections with page break hints */}
                         {sectionOrder.filter(id => id !== 'hero').map((sectionId, idx) => {
                           const section = renderSection(sectionId);
-                          // Add page break indicator every ~4 sections for visual feedback
-                          const showPageBreak = idx > 0 && idx % 4 === 0 && selectedSections.has(sectionId);
+                          // Show page break if user forced it OR every ~4 sections for visual feedback
+                          const hasForcedPageBreak = pageBreaksBefore.has(sectionId) && selectedSections.has(sectionId);
+                          const hasAutoPageBreak = idx > 0 && idx % 4 === 0 && selectedSections.has(sectionId);
+                          const showPageBreak = hasForcedPageBreak || hasAutoPageBreak;
+                          
                           return (
                             <div key={sectionId}>
                               {showPageBreak && (
                                 <PageBreakIndicator 
                                   pageNumber={Math.floor(idx / 4) + (includeToc ? 3 : 2) + (selectedSections.has('hero') ? 1 : 0)} 
-                                  paperSize={paperSize} 
+                                  paperSize={paperSize}
+                                  className={hasForcedPageBreak ? 'border-primary/40 bg-primary/5' : undefined}
                                 />
+                              )}
+                              {/* Add forced page break CSS class for export */}
+                              {hasForcedPageBreak && (
+                                <div className="pdf-page-break-before" />
                               )}
                               {section}
                             </div>
