@@ -3,9 +3,8 @@
  * Features an interactive orbit visualization showcasing demo brands, products, and events
  */
 
-import { useMemo, useRef, useEffect, useCallback } from 'react';
+import { useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from 'next-themes';
 import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap } from 'lucide-react';
 import { HeroOrbit } from '@/components/landing/HeroOrbit';
 import { Button } from '@/components/ui/button';
@@ -15,15 +14,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DEMO_GRADIENTS, DEMO_INDUSTRIES, getOrbitBrands, getOrbitProducts, getOrbitEvents } from '@/data/demoGuides';
 import { ParticleEmbers } from '@/components/ParticleEmbers';
 import { InteractiveCTA } from '@/components/landing/InteractiveCTA';
+import { BrandHubLogo } from '@/components/BrandHubLogo';
 import brandhubLogo from '@/assets/brandhub-logo.svg';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
   const { user, isAdmin, isApproved, accessStatus, isLoading } = useAuth();
-  
-  // 3D orbit hover effect state
-  const orbitRef = useRef<HTMLDivElement>(null);
 
   // Auto-redirect authenticated users to dashboard
   useEffect(() => {
@@ -95,14 +91,7 @@ const Index = () => {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img 
-              src={brandhubLogo} 
-              alt="BrandHub" 
-              className="h-8 w-auto"
-            />
-            <span className="font-serif font-semibold text-foreground">BrandHub</span>
-          </div>
+          <BrandHubLogo size="md" />
           <div className="flex items-center gap-4">
             <ThemeToggle />
             <Button onClick={handleSignInClick} variant="outline" size="sm">
@@ -189,7 +178,6 @@ const Index = () => {
             {/* Right: Enhanced Orbit Visualization */}
             <div className="order-1 lg:order-2 relative">
               <HeroOrbit
-                ref={orbitRef}
                 className="w-full aspect-square max-w-[600px] mx-auto"
                 primaryColor="#6366f1"
                 centerLogo={brandhubLogo}
