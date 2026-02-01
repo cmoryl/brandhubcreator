@@ -3,7 +3,7 @@
  * Features an interactive orbit visualization showcasing demo brands, products, and events
  */
 
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap } from 'lucide-react';
@@ -32,13 +32,22 @@ const transformToOrbitEntity = (item: any, type: 'brand' | 'product' | 'event') 
 const Index = () => {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
-  const { user, isAdmin, isApproved, accessStatus } = useAuth();
+  const { user, isAdmin, isApproved, accessStatus, isLoading } = useAuth();
   const [orbitFilter, setOrbitFilter] = useState<'all' | 'brands' | 'products' | 'events'>('all');
   
   // 3D orbit hover effect state
   const orbitRef = useRef<HTMLDivElement>(null);
   const [orbitRotate, setOrbitRotate] = useState({ x: 0, y: 0 });
   const [isOrbitHovered, setIsOrbitHovered] = useState(false);
+
+  // Auto-redirect authenticated users to dashboard
+  useEffect(() => {
+    if (isLoading) return; // Wait for auth to settle
+    const hasAccess = !!user && accessStatus === 'ready' && (isAdmin || isApproved);
+    if (hasAccess) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, accessStatus, isAdmin, isApproved, isLoading, navigate]);
 
   const handleOrbitMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!orbitRef.current) return;
