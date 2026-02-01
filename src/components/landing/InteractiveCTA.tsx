@@ -1,9 +1,9 @@
 /**
- * Interactive CTA Section - Clean design with orbit-style decorations
- * Features: Multicolor connectors, mouse-reactive animations, orbit rings
+ * Interactive CTA Section - Mouse-reactive orbit with proximity effects
+ * Features: Multicolor rings, proximity-based interactions, dynamic glow
  */
 
-import { useRef, useCallback, useMemo, useState } from 'react';
+import { useRef, useCallback, useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { ArrowRight, Sparkles, Rocket } from 'lucide-react';
@@ -16,11 +16,23 @@ const TYPE_COLORS = {
   accent: '#8b5cf6',   // Purple
 };
 
+interface RingState {
+  isHovered: boolean;
+  intensity: number;
+}
+
 export function InteractiveCTA() {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
+  const [svgMousePos, setSvgMousePos] = useState({ x: 0, y: 0 });
+  const [ringStates, setRingStates] = useState<RingState[]>([
+    { isHovered: false, intensity: 0 },
+    { isHovered: false, intensity: 0 },
+    { isHovered: false, intensity: 0 },
+  ]);
 
   // Motion values for subtle 3D effect
   const mouseX = useMotionValue(0);
@@ -34,6 +46,28 @@ export function InteractiveCTA() {
   const rotateX = useTransform(smoothY, [-0.5, 0.5], [3, -3]);
   const rotateY = useTransform(smoothX, [-0.5, 0.5], [-3, 3]);
 
+  // Generate orbit ring data
+  const orbitRings = useMemo(() => [
+    { radius: 180, baseOpacity: 0.2, duration: 45, direction: 1, color: TYPE_COLORS.brand, name: 'Brands' },
+    { radius: 280, baseOpacity: 0.15, duration: 60, direction: -1, color: TYPE_COLORS.product, name: 'Products' },
+    { radius: 380, baseOpacity: 0.12, duration: 75, direction: 1, color: TYPE_COLORS.event, name: 'Events' },
+  ], []);
+
+  // Calculate distance from mouse to each ring
+  const updateRingStates = useCallback((mouseX: number, mouseY: number) => {
+    const distFromCenter = Math.sqrt(mouseX * mouseX + mouseY * mouseY);
+    
+    const newStates = orbitRings.map((ring, i) => {
+      const distToRing = Math.abs(distFromCenter - ring.radius);
+      const threshold = 60; // How close mouse needs to be to activate
+      const isHovered = distToRing < threshold;
+      const intensity = isHovered ? Math.max(0, 1 - distToRing / threshold) : 0;
+      return { isHovered, intensity };
+    });
+    
+    setRingStates(newStates);
+  }, [orbitRings]);
+
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -42,35 +76,34 @@ export function InteractiveCTA() {
     mouseX.set(x - 0.5);
     mouseY.set(y - 0.5);
     setMousePos({ x, y });
-  }, [mouseX, mouseY]);
+
+    // Calculate mouse position in SVG coordinates
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const svgX = ((e.clientX - rect.left) - centerX) * (800 / Math.min(rect.width, 800));
+    const svgY = ((e.clientY - rect.top) - centerY) * (800 / Math.min(rect.height, 800));
+    setSvgMousePos({ x: svgX, y: svgY });
+    updateRingStates(svgX, svgY);
+  }, [mouseX, mouseY, updateRingStates]);
 
   const handleMouseLeave = useCallback(() => {
     mouseX.set(0);
     mouseY.set(0);
     setIsHovering(false);
-  }, [mouseX, mouseY]);
-
-  // Generate orbit ring data
-  const orbitRings = useMemo(() => [
-    { radius: 180, opacity: 0.2, duration: 45, direction: 1, color: TYPE_COLORS.brand },
-    { radius: 280, opacity: 0.15, duration: 60, direction: -1, color: TYPE_COLORS.product },
-    { radius: 380, opacity: 0.12, duration: 75, direction: 1, color: TYPE_COLORS.event },
-  ], []);
+    setRingStates(orbitRings.map(() => ({ isHovered: false, intensity: 0 })));
+  }, [mouseX, mouseY, orbitRings]);
 
   // Generate orbit nodes with colors
   const orbitNodes = useMemo(() => {
     const nodes: Array<{ id: number; ring: number; angle: number; size: number; delay: number; color: string }> = [];
     let id = 0;
     
-    // Ring 1 nodes (brand - teal)
     for (let i = 0; i < 4; i++) {
       nodes.push({ id: id++, ring: 0, angle: i * 90 + 15, size: 6, delay: i * 0.5, color: TYPE_COLORS.brand });
     }
-    // Ring 2 nodes (product - blue)
     for (let i = 0; i < 6; i++) {
       nodes.push({ id: id++, ring: 1, angle: i * 60 + 30, size: 5, delay: i * 0.4, color: TYPE_COLORS.product });
     }
-    // Ring 3 nodes (event - amber)
     for (let i = 0; i < 8; i++) {
       nodes.push({ id: id++, ring: 2, angle: i * 45 + 10, size: 4, delay: i * 0.3, color: TYPE_COLORS.event });
     }
@@ -100,7 +133,11 @@ export function InteractiveCTA() {
   };
 
   // Calculate speed multiplier based on hover
-  const speedMultiplier = isHovering ? 0.5 : 1;
+  const getSpeedMultiplier = (ringIndex: number) => {
+    if (ringStates[ringIndex]?.isHovered) return 0.3;
+    if (isHovering) return 0.7;
+    return 1;
+  };
 
   return (
     <section 
@@ -113,25 +150,25 @@ export function InteractiveCTA() {
       {/* Subtle gradient background matching hero */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/30" />
       
-      {/* Mouse-reactive radial glow */}
+      {/* Mouse-reactive radial glow that follows cursor */}
       <motion.div 
         className="absolute inset-0 pointer-events-none"
         animate={{
-          background: `radial-gradient(ellipse 60% 40% at ${mousePos.x * 100}% ${mousePos.y * 100}%, hsl(var(--primary) / ${isHovering ? 0.2 : 0.1}), transparent)`,
+          background: `radial-gradient(ellipse 40% 30% at ${mousePos.x * 100}% ${mousePos.y * 100}%, hsl(var(--primary) / ${isHovering ? 0.15 : 0.05}), transparent)`,
         }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.2 }}
       />
 
       {/* Orbit rings and decorations - centered behind content */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <motion.svg 
+          ref={svgRef}
           className="absolute w-[800px] h-[800px]" 
           viewBox="-400 -400 800 800"
           animate={{ 
-            opacity: isHovering ? 0.9 : 0.6,
-            scale: isHovering ? 1.02 : 1,
+            opacity: isHovering ? 0.95 : 0.6,
           }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.3 }}
         >
           <defs>
             {/* Multicolor gradients for each connection */}
@@ -143,61 +180,107 @@ export function InteractiveCTA() {
               </linearGradient>
             ))}
             
-            {/* Glow filters for each color */}
-            <filter id="ctaGlowTeal" x="-100%" y="-100%" width="300%" height="300%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feFlood floodColor={TYPE_COLORS.brand} floodOpacity="0.5" />
-              <feComposite in2="blur" operator="in" />
-              <feMerge>
-                <feMergeNode />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-            <filter id="ctaGlowBlue" x="-100%" y="-100%" width="300%" height="300%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feFlood floodColor={TYPE_COLORS.product} floodOpacity="0.5" />
-              <feComposite in2="blur" operator="in" />
-              <feMerge>
-                <feMergeNode />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-            <filter id="ctaGlowAmber" x="-100%" y="-100%" width="300%" height="300%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feFlood floodColor={TYPE_COLORS.event} floodOpacity="0.5" />
-              <feComposite in2="blur" operator="in" />
-              <feMerge>
-                <feMergeNode />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
+            {/* Dynamic glow filters for each ring */}
+            {orbitRings.map((ring, i) => (
+              <filter key={`glow-${i}`} id={`ctaRingGlow${i}`} x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation={4 + ringStates[i].intensity * 6} result="blur" />
+                <feFlood floodColor={ring.color} floodOpacity={0.4 + ringStates[i].intensity * 0.4} />
+                <feComposite in2="blur" operator="in" />
+                <feMerge>
+                  <feMergeNode />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            ))}
+            
+            {/* Mouse proximity glow */}
+            <radialGradient id="mouseGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+            </radialGradient>
           </defs>
 
-          {/* Orbit rings with colors */}
-          {orbitRings.map((ring, i) => (
-            <g key={i}>
-              <circle
-                cx="0"
-                cy="0"
-                r={ring.radius}
-                fill="none"
-                stroke={ring.color}
-                strokeWidth={isHovering ? 1.5 : 1}
-                strokeOpacity={isHovering ? ring.opacity * 1.5 : ring.opacity}
-                strokeDasharray="4 8"
-                style={{ transition: 'stroke-width 0.3s, stroke-opacity 0.3s' }}
-              >
-                <animateTransform
-                  attributeName="transform"
-                  type="rotate"
-                  from="0 0 0"
-                  to={`${360 * ring.direction} 0 0`}
-                  dur={`${ring.duration * speedMultiplier}s`}
-                  repeatCount="indefinite"
-                />
-              </circle>
-            </g>
-          ))}
+          {/* Mouse proximity indicator */}
+          {isHovering && (
+            <circle
+              cx={svgMousePos.x}
+              cy={svgMousePos.y}
+              r="80"
+              fill="url(#mouseGlow)"
+              style={{ transition: 'cx 0.1s, cy 0.1s' }}
+            />
+          )}
+
+          {/* Orbit rings with proximity-reactive styling */}
+          {orbitRings.map((ring, i) => {
+            const state = ringStates[i];
+            const opacity = ring.baseOpacity + state.intensity * 0.4;
+            const strokeWidth = 1 + state.intensity * 2;
+            
+            return (
+              <g key={i}>
+                {/* Outer glow ring when hovered */}
+                {state.isHovered && (
+                  <circle
+                    cx="0"
+                    cy="0"
+                    r={ring.radius}
+                    fill="none"
+                    stroke={ring.color}
+                    strokeWidth={8 + state.intensity * 12}
+                    strokeOpacity={0.1 + state.intensity * 0.15}
+                    filter={`url(#ctaRingGlow${i})`}
+                  >
+                    <animateTransform
+                      attributeName="transform"
+                      type="rotate"
+                      from="0 0 0"
+                      to={`${360 * ring.direction} 0 0`}
+                      dur={`${ring.duration * getSpeedMultiplier(i)}s`}
+                      repeatCount="indefinite"
+                    />
+                  </circle>
+                )}
+                
+                {/* Main ring */}
+                <circle
+                  cx="0"
+                  cy="0"
+                  r={ring.radius}
+                  fill="none"
+                  stroke={ring.color}
+                  strokeWidth={strokeWidth}
+                  strokeOpacity={opacity}
+                  strokeDasharray={state.isHovered ? "8 4" : "4 8"}
+                  style={{ transition: 'stroke-width 0.3s, stroke-opacity 0.3s, stroke-dasharray 0.3s' }}
+                >
+                  <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 0 0"
+                    to={`${360 * ring.direction} 0 0`}
+                    dur={`${ring.duration * getSpeedMultiplier(i)}s`}
+                    repeatCount="indefinite"
+                  />
+                </circle>
+                
+                {/* Ring label when hovered */}
+                {state.intensity > 0.5 && (
+                  <text
+                    x={ring.radius + 15}
+                    y="0"
+                    fill={ring.color}
+                    fontSize="12"
+                    fontWeight="500"
+                    opacity={state.intensity}
+                    style={{ transition: 'opacity 0.2s' }}
+                  >
+                    {ring.name}
+                  </text>
+                )}
+              </g>
+            );
+          })}
 
           {/* Multicolor connection lines with animated flow */}
           {connections.map((conn, i) => {
@@ -205,33 +288,35 @@ export function InteractiveCTA() {
             const to = getPosition(conn.to.ring, conn.to.angle);
             const midX = (from.x + to.x) / 2;
             const midY = (from.y + to.y) / 2 - 30;
+            const fromRingHovered = ringStates[conn.from.ring]?.isHovered;
+            const toRingHovered = ringStates[conn.to.ring]?.isHovered;
+            const isActive = fromRingHovered || toRingHovered;
             
             return (
-              <g key={`conn-${i}`}>
+              <g key={`conn-${i}`} style={{ opacity: isActive ? 1 : (isHovering ? 0.6 : 0.4), transition: 'opacity 0.3s' }}>
                 {/* Connection path with gradient */}
                 <path
                   d={`M ${from.x} ${from.y} Q ${midX} ${midY} ${to.x} ${to.y}`}
                   fill="none"
                   stroke={`url(#ctaGradient${i})`}
-                  strokeWidth={isHovering ? 2 : 1.5}
+                  strokeWidth={isActive ? 3 : (isHovering ? 2 : 1.5)}
                   strokeLinecap="round"
-                  opacity={isHovering ? 0.7 : 0.4}
-                  style={{ transition: 'stroke-width 0.3s, opacity 0.3s' }}
+                  style={{ transition: 'stroke-width 0.3s' }}
                 />
                 
-                {/* Animated traveling dot with gradient color */}
-                <circle r={isHovering ? 3 : 2} fill={conn.toColor} opacity="0.9">
+                {/* Animated traveling dot */}
+                <circle r={isActive ? 4 : (isHovering ? 3 : 2)} fill={conn.toColor} opacity="0.9">
                   <animateMotion
-                    dur={`${(2 + i * 0.3) * speedMultiplier}s`}
+                    dur={`${(2 + i * 0.3) * (isActive ? 0.4 : isHovering ? 0.6 : 1)}s`}
                     repeatCount="indefinite"
                     path={`M ${from.x} ${from.y} Q ${midX} ${midY} ${to.x} ${to.y}`}
                   />
                 </circle>
                 
                 {/* Second traveling dot going backwards */}
-                <circle r={isHovering ? 2.5 : 1.5} fill={conn.color} opacity="0.7">
+                <circle r={isActive ? 3 : (isHovering ? 2 : 1.5)} fill={conn.color} opacity="0.7">
                   <animateMotion
-                    dur={`${(2.5 + i * 0.4) * speedMultiplier}s`}
+                    dur={`${(2.5 + i * 0.4) * (isActive ? 0.4 : isHovering ? 0.6 : 1)}s`}
                     repeatCount="indefinite"
                     path={`M ${to.x} ${to.y} Q ${midX} ${midY} ${from.x} ${from.y}`}
                   />
@@ -240,26 +325,28 @@ export function InteractiveCTA() {
             );
           })}
 
-          {/* Orbit nodes with their type colors */}
+          {/* Orbit nodes with proximity-reactive effects */}
           {orbitNodes.map((node) => {
             const pos = getPosition(node.ring, node.angle);
             const ringData = orbitRings[node.ring];
-            const glowFilter = node.ring === 0 ? 'url(#ctaGlowTeal)' : node.ring === 1 ? 'url(#ctaGlowBlue)' : 'url(#ctaGlowAmber)';
+            const ringState = ringStates[node.ring];
+            const isRingActive = ringState?.isHovered;
+            const nodeSize = node.size + (isRingActive ? ringState.intensity * 3 : 0);
             
             return (
               <g key={node.id}>
-                {/* Node glow */}
+                {/* Node outer glow - enhanced when ring is hovered */}
                 <circle
                   cx={pos.x}
                   cy={pos.y}
-                  r={isHovering ? node.size + 6 : node.size + 4}
+                  r={nodeSize + 8 + (isRingActive ? ringState.intensity * 8 : 0)}
                   fill={node.color}
-                  opacity={isHovering ? 0.25 : 0.15}
+                  opacity={isRingActive ? 0.2 + ringState.intensity * 0.2 : 0.1}
                   style={{ transition: 'r 0.3s, opacity 0.3s' }}
                 >
                   <animate
                     attributeName="opacity"
-                    values={isHovering ? "0.25;0.4;0.25" : "0.15;0.25;0.15"}
+                    values={isRingActive ? "0.3;0.5;0.3" : "0.1;0.2;0.1"}
                     dur={`${2 + node.delay}s`}
                     repeatCount="indefinite"
                   />
@@ -268,7 +355,7 @@ export function InteractiveCTA() {
                     type="rotate"
                     from="0 0 0"
                     to={`${-360 * ringData.direction} 0 0`}
-                    dur={`${ringData.duration * speedMultiplier}s`}
+                    dur={`${ringData.duration * getSpeedMultiplier(node.ring)}s`}
                     repeatCount="indefinite"
                   />
                 </circle>
@@ -277,19 +364,18 @@ export function InteractiveCTA() {
                 <circle
                   cx={pos.x}
                   cy={pos.y}
-                  r={node.size}
+                  r={nodeSize}
                   fill="hsl(var(--background))"
                   stroke={node.color}
-                  strokeWidth={isHovering ? 2 : 1.5}
-                  filter={isHovering ? glowFilter : undefined}
-                  style={{ transition: 'stroke-width 0.3s' }}
+                  strokeWidth={isRingActive ? 2 + ringState.intensity : 1.5}
+                  style={{ transition: 'r 0.3s, stroke-width 0.3s' }}
                 >
                   <animateTransform
                     attributeName="transform"
                     type="rotate"
                     from="0 0 0"
                     to={`${-360 * ringData.direction} 0 0`}
-                    dur={`${ringData.duration * speedMultiplier}s`}
+                    dur={`${ringData.duration * getSpeedMultiplier(node.ring)}s`}
                     repeatCount="indefinite"
                   />
                 </circle>
@@ -298,17 +384,17 @@ export function InteractiveCTA() {
                 <circle
                   cx={pos.x}
                   cy={pos.y}
-                  r={node.size * 0.4}
+                  r={nodeSize * 0.5}
                   fill={node.color}
-                  opacity={isHovering ? 0.9 : 0.6}
-                  style={{ transition: 'opacity 0.3s' }}
+                  opacity={isRingActive ? 0.9 : 0.6}
+                  style={{ transition: 'r 0.3s, opacity 0.3s' }}
                 >
                   <animateTransform
                     attributeName="transform"
                     type="rotate"
                     from="0 0 0"
                     to={`${-360 * ringData.direction} 0 0`}
-                    dur={`${ringData.duration * speedMultiplier}s`}
+                    dur={`${ringData.duration * getSpeedMultiplier(node.ring)}s`}
                     repeatCount="indefinite"
                   />
                 </circle>
