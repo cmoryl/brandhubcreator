@@ -1019,3 +1019,54 @@ div[role="region"][aria-label^="Notifications"] {
   }
 }
 
+/* Subtle TV Glitch Effect */
+@keyframes subtle-glitch {
+  0%, 100% {
+    transform: translate(0);
+    text-shadow: none;
+  }
+  2% {
+    transform: translate(-1px, 0);
+    text-shadow: 1px 0 0 hsl(var(--accent) / 0.5), -1px 0 0 hsl(199 89% 48% / 0.5);
+  }
+  4% {
+    transform: translate(1px, 0);
+    text-shadow: -1px 0 0 hsl(var(--accent) / 0.5), 1px 0 0 hsl(199 89% 48% / 0.5);
+  }
+  6% {
+    transform: translate(0);
+    text-shadow: none;
+  }
+  50% {
+    transform: translate(0);
+    text-shadow: none;
+  }
+  52% {
+    transform: translate(0.5px, 0);
+    text-shadow: -0.5px 0 0 hsl(var(--accent) / 0.3), 0.5px 0 0 hsl(199 89% 48% / 0.3);
+  }
+  54% {
+    transform: translate(-0.5px, 0);
+    text-shadow: 0.5px 0 0 hsl(var(--accent) / 0.3), -0.5px 0 0 hsl(199 89% 48% / 0.3);
+  }
+  56% {
+    transform: translate(0);
+    text-shadow: none;
+  }
+}
+
+@keyframes subtle-flicker {
+  0%, 100% { opacity: 1; }
+  5% { opacity: 0.95; }
+  10% { opacity: 1; }
+  50% { opacity: 1; }
+  52% { opacity: 0.92; }
+  54% { opacity: 1; }
+}
+
+.text-subtle-glitch {
+  display: inline-block;
+  animation: subtle-glitch 4s ease-in-out infinite, subtle-flicker 3s ease-in-out infinite;
+  will-change: transform;
+}
+
