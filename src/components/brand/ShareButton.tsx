@@ -37,8 +37,8 @@ export const ShareButton = ({
 }: ShareButtonProps) => {
   const [copied, setCopied] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [generatedImportLink, setGeneratedImportLink] = useState<string | null>(null);
   const { isSharing, generateShareLink } = useShareBrand();
-
   const getShareUrl = () => {
     const baseUrl = window.location.origin;
     // Use slug if available, otherwise fall back to ID
@@ -230,22 +230,62 @@ export const ShareButton = ({
               <p className="text-xs text-muted-foreground mb-2">
                 Generate a link to import this brand into EventKIT or other apps.
               </p>
+              
+              {/* Show generated link if available */}
+              {generatedImportLink && (
+                <div className="mb-3 space-y-2">
+                  <p className="text-xs font-medium text-green-600 dark:text-green-400">
+                    ✓ Import link generated
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      value={generatedImportLink} 
+                      readOnly 
+                      className="text-xs h-8 bg-muted font-mono"
+                      onClick={(e) => e.currentTarget.select()}
+                    />
+                    <Button 
+                      size="sm" 
+                      variant="secondary" 
+                      className="h-8 px-2 shrink-0"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        try {
+                          await navigator.clipboard.writeText(generatedImportLink);
+                          toast.success('Import link copied!');
+                        } catch {
+                          toast.error('Failed to copy');
+                        }
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
               <Button 
                 size="sm" 
                 variant="secondary" 
                 className="w-full gap-2"
                 onPointerDown={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
+                onClick={async (e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   console.log('[ShareButton] Generate Import Link clicked, guideId:', guideId);
-                  generateShareLink(guideId);
+                  const url = await generateShareLink(guideId);
+                  if (url) {
+                    setGeneratedImportLink(url);
+                  }
                 }}
                 disabled={isSharing}
               >
                 <ExternalLink className="h-4 w-4" />
-                {isSharing ? 'Generating...' : 'Generate Import Link'}
+                {isSharing ? 'Generating...' : generatedImportLink ? 'Regenerate Link' : 'Generate Import Link'}
               </Button>
             </div>
           </>
