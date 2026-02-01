@@ -3,7 +3,7 @@
  * Features an interactive orbit visualization showcasing demo brands, products, and events
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap } from 'lucide-react';
@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_GRADIENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
+import { ParticleEmbers } from '@/components/ParticleEmbers';
+import { InteractiveCTA } from '@/components/landing/InteractiveCTA';
 import brandhubLogo from '@/assets/brandhub-logo.svg';
 
 // Transform demo data to orbit format
@@ -30,6 +32,24 @@ const Index = () => {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const [orbitFilter, setOrbitFilter] = useState<'all' | 'brands' | 'products' | 'events'>('all');
+  
+  // 3D orbit hover effect state
+  const orbitRef = useRef<HTMLDivElement>(null);
+  const [orbitRotate, setOrbitRotate] = useState({ x: 0, y: 0 });
+  const [isOrbitHovered, setIsOrbitHovered] = useState(false);
+
+  const handleOrbitMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!orbitRef.current) return;
+    const rect = orbitRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setOrbitRotate({ x: -y * 15, y: x * 15 });
+  }, []);
+
+  const handleOrbitMouseLeave = useCallback(() => {
+    setOrbitRotate({ x: 0, y: 0 });
+    setIsOrbitHovered(false);
+  }, []);
 
   // Transform demo data for orbit
   const orbitBrands = useMemo(() => 
@@ -113,6 +133,14 @@ const Index = () => {
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         
+        {/* Blue Particle Embers Background */}
+        <ParticleEmbers 
+          count={45} 
+          color="hsl(199 89% 48%)" 
+          interactive={true}
+          className="z-[1]"
+        />
+        
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
@@ -171,26 +199,62 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Right: Orbit Visualization */}
+            {/* Right: Orbit Visualization with 3D Effect */}
             <div className="order-1 lg:order-2 relative">
-              <div className="relative w-full aspect-square max-w-[500px] mx-auto">
-                {/* Glow effect behind orbit */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-accent/20 rounded-full blur-2xl scale-110" />
-                
-                <GlobalAssetOrbit
-                  className="w-full h-full"
-                  primaryColor="hsl(var(--primary))"
-                  secondaryColor="hsl(var(--accent))"
-                  organizationName="BrandHub"
-                  organizationLogo={brandhubLogo}
-                  brands={orbitBrands}
-                  products={orbitProducts}
-                  events={orbitEvents}
-                  filter={orbitFilter}
-                  showLegend={true}
-                  onFilterChange={setOrbitFilter}
-                  demoMode={true}
-                />
+              <div 
+                ref={orbitRef}
+                className="relative w-full aspect-square max-w-[600px] mx-auto"
+                style={{
+                  perspective: '1000px',
+                }}
+                onMouseMove={handleOrbitMouseMove}
+                onMouseEnter={() => setIsOrbitHovered(true)}
+                onMouseLeave={handleOrbitMouseLeave}
+              >
+                {/* 3D Transform Wrapper */}
+                <div
+                  className="relative w-full h-full transition-transform duration-200 ease-out"
+                  style={{
+                    transform: `rotateX(${orbitRotate.x}deg) rotateY(${orbitRotate.y}deg)`,
+                    transformStyle: 'preserve-3d',
+                  }}
+                >
+                  {/* Glow effect behind orbit */}
+                  <div 
+                    className="absolute inset-0 rounded-full blur-2xl scale-110 transition-all duration-300"
+                    style={{
+                      background: isOrbitHovered 
+                        ? 'radial-gradient(circle, hsl(var(--primary) / 0.35), hsl(var(--accent) / 0.25), transparent 70%)'
+                        : 'linear-gradient(135deg, hsl(var(--primary) / 0.2), transparent, hsl(var(--accent) / 0.2))',
+                      transform: `translateZ(-50px) scale(${isOrbitHovered ? 1.15 : 1.1})`,
+                    }}
+                  />
+                  
+                  {/* Additional depth layers */}
+                  <div 
+                    className="absolute inset-4 rounded-full blur-xl transition-opacity duration-300"
+                    style={{
+                      background: 'radial-gradient(circle, hsl(199 89% 48% / 0.15), transparent 60%)',
+                      opacity: isOrbitHovered ? 1 : 0.5,
+                      transform: 'translateZ(-25px)',
+                    }}
+                  />
+                  
+                  <GlobalAssetOrbit
+                    className="w-full h-full"
+                    primaryColor="hsl(var(--primary))"
+                    secondaryColor="hsl(var(--accent))"
+                    organizationName="BrandHub"
+                    organizationLogo={brandhubLogo}
+                    brands={orbitBrands}
+                    products={orbitProducts}
+                    events={orbitEvents}
+                    filter={orbitFilter}
+                    showLegend={true}
+                    onFilterChange={setOrbitFilter}
+                    demoMode={true}
+                  />
+                </div>
               </div>
               
               {/* Orbit description */}
@@ -318,24 +382,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-primary/10 via-background to-accent/10">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to Transform Your Brand?</h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-            Join organizations that trust BrandHub for their brand management needs.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" onClick={() => navigate('/auth')} className="gap-2">
-              Get Started Free
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-            <Button size="lg" variant="outline" onClick={() => navigate('/demo/brand/brandhub')}>
-              Explore Demo
-            </Button>
-          </div>
-        </div>
-      </section>
+      {/* Interactive CTA Section */}
+      <InteractiveCTA />
 
       {/* Footer */}
       <footer className="py-12 border-t border-border">
