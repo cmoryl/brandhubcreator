@@ -80,7 +80,7 @@ const EventEditor = () => {
   const { theme } = useTheme();
   const { getEvent, getEventBySlug, updateEvent: updateEventContext, toggleFavorite, isLoading } = useEvents();
   const { user, isAdmin, isApproved, signOut, isLoading: authLoading } = useAuth();
-  const { userRole: orgRole, organization } = useOrganization();
+  const { userRole: orgRole, organization, isLoading: orgLoading } = useOrganization();
   
   const [activeSection, setActiveSection] = useState<EventSectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -286,8 +286,12 @@ const EventEditor = () => {
     organization.id === event.organizationId;
   const canEditOrg = Boolean(isEventOrgMember);
   const canEdit = user && (isAdmin || canEditOrg || authLoading);
-  // Include canEdit to ensure the eye icon shows for users during auth loading.
-  const isGuideAdmin = Boolean(isAdmin || canEditOrg || (user && canEdit));
+  // Include loading states to ensure the eye icon shows while contexts are hydrating.
+  const isGuideAdmin = Boolean(
+    isAdmin || 
+    canEditOrg || 
+    (user && (authLoading || orgLoading || canEdit))
+  );
 
   
   // Permission check (debug logging removed for production)
