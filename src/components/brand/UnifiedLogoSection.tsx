@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { Trash2, Download, Package, Upload, Image as ImageIcon, Link2, Maximize2 } from 'lucide-react';
+import { Trash2, Download, Package, Upload, Image as ImageIcon, Link2, Maximize2, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +22,7 @@ import {
 import { SectionHeader } from './SectionHeader';
 import { toast } from 'sonner';
 import { useDropZone } from '@/components/ui/drop-zone';
+import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { cn } from '@/lib/utils';
 
 // Generic logo type that works for all entity types
@@ -128,6 +129,21 @@ export const UnifiedLogoSection = ({
     setUrlPopoverOpen(null);
     toast.success('Logo added from URL');
   }, [logos, onLogosChange, urlInput]);
+
+  const handleLibrarySelect = useCallback((url: string, variant: string) => {
+    if (!onLogosChange) return;
+    
+    const urlParts = url.split('/');
+    const fileName = urlParts[urlParts.length - 1]?.split('.')[0] || 'Library Logo';
+    const newLogo: UnifiedLogo = {
+      id: crypto.randomUUID(),
+      name: fileName,
+      url,
+      variant,
+    };
+    onLogosChange([...logos, newLogo]);
+    toast.success('Logo added from library');
+  }, [logos, onLogosChange]);
 
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: (file) => handleFileDrop(file, pendingVariant),
@@ -489,31 +505,44 @@ export const UnifiedLogoSection = ({
         </span>
       </button>
       
-      <Popover open={urlPopoverOpen === variant} onOpenChange={(open) => setUrlPopoverOpen(open ? variant : null)}>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-7 text-xs gap-1.5 w-full">
-            <Link2 className="h-3 w-3" />
-            Or paste URL
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-72 p-3" align="center">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Image URL</Label>
-            <div className="flex gap-2">
-              <Input
-                value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="https://..."
-                className="h-8 text-sm"
-                onKeyDown={(e) => e.key === 'Enter' && handleUrlSubmit(variant)}
-              />
-              <Button size="sm" onClick={() => handleUrlSubmit(variant)} className="h-8">
-                Add
-              </Button>
+      <div className="flex gap-2">
+        <ImageLibraryPicker
+          onSelect={(url) => handleLibrarySelect(url, variant)}
+          trigger={
+            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1.5 flex-1">
+              <FolderOpen className="h-3 w-3" />
+              Library
+            </Button>
+          }
+          defaultCategory="Logos"
+        />
+        
+        <Popover open={urlPopoverOpen === variant} onOpenChange={(open) => setUrlPopoverOpen(open ? variant : null)}>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1.5 flex-1">
+              <Link2 className="h-3 w-3" />
+              URL
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 p-3" align="center">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Image URL</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  placeholder="https://..."
+                  className="h-8 text-sm"
+                  onKeyDown={(e) => e.key === 'Enter' && handleUrlSubmit(variant)}
+                />
+                <Button size="sm" onClick={() => handleUrlSubmit(variant)} className="h-8">
+                  Add
+                </Button>
+              </div>
             </div>
-          </div>
-        </PopoverContent>
-      </Popover>
+          </PopoverContent>
+        </Popover>
+      </div>
     </div>
   );
 

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers } from 'lucide-react';
+import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers, FolderOpen } from 'lucide-react';
 import { BrandSocialAssetSpec, BrandDisplayBannerSpec, SocialAssetTemplate } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDropZone } from '@/components/ui/drop-zone';
+import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { safeUUID } from '@/lib/safeUUID';
 import { cn } from '@/lib/utils';
 
@@ -354,6 +355,16 @@ const PlatformDetailModal = ({
     reader.readAsDataURL(file);
   }, [asset, onUpdate]);
 
+  const handleLibrarySelectPreview = useCallback((url: string) => {
+    if (!asset) return;
+    onUpdate(asset.id, { previewImageUrl: url });
+  }, [asset, onUpdate]);
+
+  const handleLibrarySelectProfile = useCallback((url: string) => {
+    if (!asset) return;
+    onUpdate(asset.id, { profileIconUrl: url });
+  }, [asset, onUpdate]);
+
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: handleFileDrop,
     accept: 'image/*',
@@ -430,6 +441,16 @@ const PlatformDetailModal = ({
                       <Upload className="h-3.5 w-3.5 mr-1.5" />
                       Replace
                     </Button>
+                    <ImageLibraryPicker
+                      onSelect={handleLibrarySelectPreview}
+                      trigger={
+                        <Button size="sm" variant="secondary">
+                          <FolderOpen className="h-3.5 w-3.5 mr-1.5" />
+                          Library
+                        </Button>
+                      }
+                      defaultCategory="Backgrounds"
+                    />
                     <Button size="sm" variant="destructive" onClick={() => onUpdate(asset.id, { previewImageUrl: '' })}>
                       <X className="h-3.5 w-3.5" />
                     </Button>
@@ -442,10 +463,26 @@ const PlatformDetailModal = ({
                   </div>
                 </>
               ) : (
-                <button onClick={openFilePicker} className="w-full h-full flex flex-col items-center justify-center bg-muted/30">
-                  <Image className="h-8 w-8 text-muted-foreground mb-2" />
+                <div className="w-full h-full flex flex-col items-center justify-center bg-muted/30 gap-2">
+                  <Image className="h-8 w-8 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">Drop image or click to upload (up to 10MB)</span>
-                </button>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={openFilePicker}>
+                      <Upload className="h-3.5 w-3.5 mr-1.5" />
+                      Upload
+                    </Button>
+                    <ImageLibraryPicker
+                      onSelect={handleLibrarySelectPreview}
+                      trigger={
+                        <Button size="sm" variant="outline">
+                          <FolderOpen className="h-3.5 w-3.5 mr-1.5" />
+                          Library
+                        </Button>
+                      }
+                      defaultCategory="Backgrounds"
+                    />
+                  </div>
+                </div>
               )}
             </div>
             

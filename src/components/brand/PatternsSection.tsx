@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { X, Pencil, Upload, Download, Package, Maximize2, Sparkles, Loader2 } from 'lucide-react';
+import { X, Pencil, Upload, Download, Package, Maximize2, Sparkles, Loader2, FolderOpen } from 'lucide-react';
 import { BrandPattern, BrandColor, LayoutPreset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useDropZone } from '@/components/ui/drop-zone';
 import { supabase } from '@/integrations/supabase/client';
 import { PatternPreviewModal } from './PatternPreviewModal';
+import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import {
   Select,
   SelectContent,
@@ -113,6 +114,17 @@ export const PatternsSection = ({
       onPatternsChange([...patterns, newPattern]);
     };
     reader.readAsDataURL(file);
+  }, [patterns, onPatternsChange]);
+
+  const handleLibrarySelect = useCallback((url: string) => {
+    const urlParts = url.split('/');
+    const fileName = urlParts[urlParts.length - 1]?.split('.')[0] || 'Library Pattern';
+    const newPattern: BrandPattern = {
+      id: crypto.randomUUID(),
+      name: fileName,
+      url,
+    };
+    onPatternsChange([...patterns, newPattern]);
   }, [patterns, onPatternsChange]);
 
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
@@ -271,6 +283,16 @@ export const PatternsSection = ({
             )}
             {isGenerating ? 'Generating...' : 'AI Generate'}
           </Button>
+          <ImageLibraryPicker
+            onSelect={handleLibrarySelect}
+            trigger={
+              <Button variant="outline" size="sm" className="gap-2">
+                <FolderOpen className="h-4 w-4" />
+                Library
+              </Button>
+            }
+            defaultCategory="Backgrounds"
+          />
           <Button onClick={openFilePicker} size="sm" className="gap-2">
             <Upload className="h-4 w-4" />
             Upload
