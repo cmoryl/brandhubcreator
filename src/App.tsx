@@ -41,6 +41,7 @@ const GlobalLinkUniversePage = lazy(() => import("./pages/GlobalLinkUniversePage
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 const SharedBrandPage = lazy(() => import("./pages/SharedBrandPage"));
+const BrandExportSchema = lazy(() => import("./pages/BrandExportSchema"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -236,6 +237,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <SharedBrandPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="docs/brand-export-schema"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <BrandExportSchema />
                         </Suspense>
                       }
                     />
