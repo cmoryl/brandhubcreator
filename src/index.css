@@ -192,6 +192,143 @@
 }
 
 @layer utilities {
+  /* ========================== */
+  /* FLUID TYPOGRAPHY SCALE     */
+  /* ========================== */
+  
+  /* Fluid text that scales between mobile and desktop */
+  .text-fluid-xs {
+    font-size: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  }
+  
+  .text-fluid-sm {
+    font-size: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+  }
+  
+  .text-fluid-base {
+    font-size: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
+  }
+  
+  .text-fluid-lg {
+    font-size: clamp(1.125rem, 1rem + 0.6vw, 1.25rem);
+  }
+  
+  .text-fluid-xl {
+    font-size: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
+  }
+  
+  .text-fluid-2xl {
+    font-size: clamp(1.5rem, 1.25rem + 1.25vw, 2rem);
+  }
+  
+  .text-fluid-3xl {
+    font-size: clamp(1.875rem, 1.5rem + 1.875vw, 2.5rem);
+  }
+  
+  .text-fluid-4xl {
+    font-size: clamp(2.25rem, 1.75rem + 2.5vw, 3.5rem);
+  }
+  
+  .text-fluid-5xl {
+    font-size: clamp(3rem, 2rem + 5vw, 5rem);
+  }
+
+  /* ========================== */
+  /* RESPONSIVE SPACING SCALE   */
+  /* ========================== */
+  
+  .space-y-responsive-sm > * + * {
+    margin-top: clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem);
+  }
+  
+  .space-y-responsive-md > * + * {
+    margin-top: clamp(1rem, 0.75rem + 1.25vw, 1.5rem);
+  }
+  
+  .space-y-responsive-lg > * + * {
+    margin-top: clamp(1.5rem, 1rem + 2.5vw, 2.5rem);
+  }
+  
+  .space-y-responsive-xl > * + * {
+    margin-top: clamp(2rem, 1.5rem + 2.5vw, 4rem);
+  }
+  
+  .gap-responsive-sm {
+    gap: clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem);
+  }
+  
+  .gap-responsive-md {
+    gap: clamp(0.75rem, 0.5rem + 1.25vw, 1.5rem);
+  }
+  
+  .gap-responsive-lg {
+    gap: clamp(1rem, 0.75rem + 1.25vw, 2rem);
+  }
+  
+  .p-responsive-sm {
+    padding: clamp(0.75rem, 0.5rem + 1.25vw, 1.25rem);
+  }
+  
+  .p-responsive-md {
+    padding: clamp(1rem, 0.75rem + 1.25vw, 1.75rem);
+  }
+  
+  .p-responsive-lg {
+    padding: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+  }
+  
+  .px-responsive {
+    padding-left: clamp(1rem, 0.5rem + 2.5vw, 2rem);
+    padding-right: clamp(1rem, 0.5rem + 2.5vw, 2rem);
+  }
+  
+  .py-responsive {
+    padding-top: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+    padding-bottom: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+  }
+  
+  /* ========================== */
+  /* TOUCH TARGET UTILITIES     */
+  /* ========================== */
+  
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .touch-target-sm {
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  /* ========================== */
+  /* MOBILE-FIRST CARD LAYOUTS  */
+  /* ========================== */
+  
+  .card-grid-responsive {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(0.75rem, 0.5rem + 1.25vw, 1.5rem);
+  }
+  
+  @media (min-width: 640px) {
+    .card-grid-responsive {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .card-grid-responsive {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .card-grid-responsive {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
   /* Hide scrollbar while maintaining scroll functionality */
   .scrollbar-hide {
     -ms-overflow-style: none;
@@ -204,8 +341,6 @@
   .text-balance {
     text-wrap: balance;
   }
-
-  /* Scroll-triggered animation utilities */
   .scroll-fade-up {
     opacity: 0;
     transform: translateY(40px);
