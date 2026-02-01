@@ -80,13 +80,14 @@ const AuthPage = () => {
           description: accessError || 'Please refresh and try again.',
           variant: 'destructive',
         });
-        navigate('/');
+        // User is signed in; send them into the app instead of bouncing back to the marketing page.
+        navigate('/dashboard');
         return;
       }
 
       // Only route based on approval once the access checks are verified.
       if (accessStatus === 'ready') {
-        if (isAdmin || isApproved) navigate('/');
+        if (isAdmin || isApproved) navigate('/dashboard');
         else navigate('/pending-approval');
       }
     }

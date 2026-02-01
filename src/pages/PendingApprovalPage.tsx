@@ -13,7 +13,7 @@ const PendingApprovalPage = () => {
   // If the user becomes approved (or is an admin), immediately return them to the landing page.
   useEffect(() => {
     if (!authLoading && user && accessStatus === 'ready' && (isAdmin || isApproved)) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [authLoading, user, accessStatus, isAdmin, isApproved, navigate]);
 
