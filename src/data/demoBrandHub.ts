@@ -5,6 +5,10 @@
 
 import type { BrandGuide, SectionId, BrandPageSettings } from '@/types/brand';
 import brandHubLogo from '@/assets/brandhub-logo.png';
+import brandHubHero from '@/assets/brandhub-hero.jpg';
+import brandHubPattern1 from '@/assets/brandhub-pattern-1.png';
+import brandHubPattern2 from '@/assets/brandhub-pattern-2.png';
+import brandHubPattern3 from '@/assets/brandhub-pattern-3.png';
 
 // BrandHub page settings - bold, modern tech aesthetic
 const BRANDHUB_PAGE_SETTINGS: BrandPageSettings = {
@@ -40,7 +44,7 @@ export const DEMO_BRAND_BRANDHUB: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = 
   hero: {
     name: 'BrandHub',
     tagline: 'Create stunning live brand guides that stay up-to-date',
-    coverImage: '',
+    coverImage: brandHubHero,
     logoUrl: brandHubLogo,
   },
   tagline: {
@@ -176,7 +180,11 @@ export const DEMO_BRAND_BRANDHUB: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = 
     { id: 'g3', name: 'Radiant Glow', css: 'radial-gradient(ellipse at center, #0EA5E9 0%, transparent 70%)' },
     { id: 'g4', name: 'Sunset Accent', css: 'linear-gradient(135deg, #0EA5E9 0%, #8B5CF6 50%, #F59E0B 100%)' },
   ],
-  patterns: [],
+  patterns: [
+    { id: 'p1', name: 'Network Grid', url: brandHubPattern1 },
+    { id: 'p2', name: 'Wave Flow', url: brandHubPattern2 },
+    { id: 'p3', name: 'Dimensional Blocks', url: brandHubPattern3 },
+  ],
   typography: [
     { id: 't1', name: 'Display', fontFamily: 'Poppins', weight: '600', usage: 'Headlines, hero sections, brand statements', role: 'display' },
     { id: 't2', name: 'Body', fontFamily: 'Inter', weight: '400', usage: 'Body text, descriptions, general content', role: 'body' },
