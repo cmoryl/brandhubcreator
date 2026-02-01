@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb, Minus, Briefcase, Sparkles, Palette, Layout, Image, Calendar, Type, Eye, EyeOff } from 'lucide-react';
+import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb, Minus, Briefcase, Sparkles, Palette, Layout, Image, Calendar, Type, Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseGuide, DEFAULT_SECTION_ORDER, SectionId, BrandSocialAssetSpec, BrandDisplayBannerSpec, TemplateSpec } from '@/types/brand';
 import { exportToPdf, PdfTheme, PaperSize, PAPER_SIZES, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
@@ -25,7 +25,9 @@ import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { PageBreakIndicator } from '@/components/pdf-export/PageBreakIndicator';
 import '@/styles/pdf-export.css';
 
 // Intelligence data type
@@ -76,6 +78,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
   const [selectedSections, setSelectedSections] = useState<Set<SectionId>>(new Set(DEFAULT_SECTION_ORDER));
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['core', 'visual']));
   const [intelligence, setIntelligence] = useState<BrandIntelligenceData | null>(null);
+  const [previewZoom, setPreviewZoom] = useState(0.85);
   const exportRef = useRef<HTMLDivElement>(null);
 
   const sectionOrder = guide.sectionOrder || DEFAULT_SECTION_ORDER;
@@ -1677,45 +1680,131 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             </div>
 
             {/* Right panel - Preview */}
-            <div className="flex-1 overflow-hidden flex flex-col border rounded-lg">
-              <div className="px-3 py-2 border-b bg-muted/50 flex items-center justify-between">
+            <div className="flex-1 overflow-hidden flex flex-col border rounded-lg bg-muted/30">
+              {/* Preview Header with Zoom Controls */}
+              <div className="px-4 py-2.5 border-b bg-background flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <span className="text-sm font-medium">{PDF_PRESETS[layoutPreset].label}</span>
+                    <span className="text-xs text-muted-foreground ml-2">• {paper.label}</span>
+                  </div>
+                </div>
+                
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium">Preview</span>
-                  <span className="text-xs text-muted-foreground px-1.5 py-0.5 rounded bg-muted">
-                    {PDF_PRESETS[layoutPreset].label}
+                  <span className="text-xs text-muted-foreground mr-2">
+                    ~{Math.ceil(selectedCount / 4) + 1} pages
+                  </span>
+                  
+                  <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-7 w-7" 
+                      onClick={() => setPreviewZoom(Math.max(previewZoom - 0.15, 0.4))}
+                      disabled={previewZoom <= 0.4}
+                    >
+                      <ZoomOut className="h-3.5 w-3.5" />
+                    </Button>
+                    <div className="w-16 px-1">
+                      <Slider
+                        value={[previewZoom * 100]}
+                        onValueChange={([v]) => setPreviewZoom(v / 100)}
+                        min={40}
+                        max={150}
+                        step={10}
+                      />
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-7 w-7" 
+                      onClick={() => setPreviewZoom(Math.min(previewZoom + 0.15, 1.5))}
+                      disabled={previewZoom >= 1.5}
+                    >
+                      <ZoomIn className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-7 w-7" 
+                      onClick={() => setPreviewZoom(0.85)}
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  
+                  <span className="text-xs font-mono text-muted-foreground w-10 text-right">
+                    {Math.round(previewZoom * 100)}%
                   </span>
                 </div>
-                <span className="text-xs text-muted-foreground">{paper.label}</span>
               </div>
+
+              {/* Preview Content */}
               <ScrollArea className="flex-1">
-                <div className="p-4 flex justify-center bg-muted/30">
+                <div className="p-6 flex justify-center">
                   <div 
-                    ref={exportRef} 
-                    className={cn(
-                      "p-8 shadow-lg pdf-export-container rounded-sm",
-                      `pdf-preset-${layoutPreset}`,
-                      pdfTheme === 'dark' ? 'pdf-theme-dark' : '',
-                      t.bg
-                    )}
                     style={{ 
-                      width: `${paper.width * 0.95}mm`,
-                      minHeight: `${paper.height * 0.5}mm`,
-                      maxWidth: '100%',
+                      transform: `scale(${previewZoom})`,
+                      transformOrigin: 'top center',
                     }}
                   >
-                    {/* Render Hero first */}
-                    {renderSection('hero')}
+                    {/* Page 1 indicator */}
+                    <div className="mb-3 flex items-center justify-center">
+                      <span className="text-xs font-medium text-muted-foreground bg-background px-3 py-1.5 rounded-full border shadow-sm">
+                        📄 Page 1 of ~{Math.ceil(selectedCount / 4) + 1}
+                      </span>
+                    </div>
                     
-                    {/* Render Table of Contents after Hero */}
-                    {renderTableOfContents()}
-                    
-                    {/* Render remaining sections */}
-                    {sectionOrder.filter(id => id !== 'hero').map((sectionId) => renderSection(sectionId))}
+                    {/* PDF Document */}
+                    <div 
+                      ref={exportRef} 
+                      className={cn(
+                        "shadow-2xl pdf-export-container rounded-sm relative",
+                        `pdf-preset-${layoutPreset}`,
+                        pdfTheme === 'dark' ? 'pdf-theme-dark' : '',
+                        t.bg
+                      )}
+                      style={{ 
+                        width: `${paper.width}mm`,
+                        minHeight: `${paper.height}mm`,
+                        padding: `${paper.margins[0]}mm ${paper.margins[1]}mm ${paper.margins[2]}mm ${paper.margins[3]}mm`,
+                      }}
+                    >
+                      {/* Render Hero first */}
+                      {renderSection('hero')}
+                      
+                      {/* Page break after cover */}
+                      {selectedSections.has('hero') && includeToc && (
+                        <PageBreakIndicator pageNumber={2} paperSize={paperSize} />
+                      )}
+                      
+                      {/* Render Table of Contents after Hero */}
+                      {renderTableOfContents()}
+                      
+                      {/* Render remaining sections with page break hints */}
+                      {sectionOrder.filter(id => id !== 'hero').map((sectionId, idx) => {
+                        const section = renderSection(sectionId);
+                        // Add page break indicator every ~4 sections for visual feedback
+                        const showPageBreak = idx > 0 && idx % 4 === 0 && selectedSections.has(sectionId);
+                        return (
+                          <div key={sectionId}>
+                            {showPageBreak && (
+                              <PageBreakIndicator 
+                                pageNumber={Math.floor(idx / 4) + (includeToc ? 3 : 2)} 
+                                paperSize={paperSize} 
+                              />
+                            )}
+                            {section}
+                          </div>
+                        );
+                      })}
 
-                    {/* Footer */}
-                    <div className="pdf-footer">
-                      <p>Generated on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                      <p className="mt-1">© {new Date().getFullYear()} {guide.hero.name}. All rights reserved.</p>
+                      {/* Footer */}
+                      <div className="pdf-footer">
+                        <p>Generated on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                        <p className="mt-1">© {new Date().getFullYear()} {guide.hero.name}. All rights reserved.</p>
+                      </div>
                     </div>
                   </div>
                 </div>
