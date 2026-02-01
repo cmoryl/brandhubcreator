@@ -82,7 +82,7 @@ export const SortableSectionItem = ({
             "p-1.5 rounded-md transition-colors shrink-0",
             isHidden 
               ? "text-amber-500 hover:text-amber-400 hover:bg-amber-500/10" 
-              : "text-muted-foreground/40 hover:text-muted-foreground hover:bg-secondary"
+              : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-secondary"
           )}
           aria-label={isHidden ? "Show section" : "Hide section"}
           title={isHidden ? "Section hidden from viewers - click to show" : "Click to hide from viewers"}
