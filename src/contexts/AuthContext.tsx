@@ -195,7 +195,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               setIsApproved(true); // Grant access during outage
               setAccessError('Backend temporarily unreachable. Access granted with limited features.');
               setAccessStatus('ready'); // Mark as ready so user isn't stuck
-              lastAccessCheckUserIdRef.current = userId;
+              // CRITICAL: Do NOT mark the user as "checked" here.
+              // If we cache this userId, we will never re-run the admin/approval checks on focus,
+              // which can incorrectly hide admin-only UI (e.g., section visibility eye icons)
+              // even after the backend becomes reachable again.
               setAccessLoading(false);
             }
             return;
@@ -222,7 +225,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setIsApproved(true);
             setAccessError('Backend temporarily unreachable. Access granted with limited features.');
             setAccessStatus('ready');
-            lastAccessCheckUserIdRef.current = userId;
+            // Do not cache the check result on outage; allow re-check on focus/refresh.
             setAccessLoading(false);
           }
         });
