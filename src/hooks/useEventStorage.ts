@@ -96,6 +96,7 @@ const dbToEventGuide = (db: DbEvent): EventGuide => {
     
     // Resources
     assets: asArray(guideData.assets, []) as EventGuide['assets'],
+    imageAssets: asArray(guideData.imageAssets, []) as EventGuide['imageAssets'],
     misuse: asArray(guideData.misuse, []) as EventGuide['misuse'],
     atmosphere: asObject(guideData.atmosphere, { style: 'gradient', animate: true, opacity: 0.5, blur: 0 }) as EventGuide['atmosphere'],
     

@@ -24,6 +24,7 @@ import {
   BrandQR,
   BrandVideo,
   BrandAsset,
+  ImageAsset,
   BrandMisuse,
   BrandAtmosphere,
   BrandCaseStudy,
@@ -347,6 +348,7 @@ export interface EventGuide {
   
   // Resources (reused from brand)
   assets: BrandAsset[];
+  imageAssets?: ImageAsset[];
   misuse: BrandMisuse[];
   atmosphere: BrandAtmosphere;
   
