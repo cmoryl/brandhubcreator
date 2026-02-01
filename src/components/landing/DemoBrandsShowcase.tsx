@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_GRADIENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
+import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_GRADIENTS, DEMO_INDUSTRIES, DEMO_CARD_IMAGES } from '@/data/demoGuides';
 import brandHubLogo from '@/assets/brandhub-logo.png';
 
 // Demo brands, products, and events showcase for the landing page
@@ -192,32 +192,23 @@ function DemoGuideGrid({ items, type }: { items: typeof DEMO_BRANDS | typeof DEM
             style={{ animationDelay: `${index * 0.1}s` }}
           >
             <CardContent className="p-0">
-              {/* Gradient Header with Cover Image */}
-              <div 
-                className={`relative h-40 sm:h-48 bg-gradient-to-br ${gradientClass} overflow-hidden`}
-              >
-                {/* Cover Image - lazy load since section is below the fold */}
-                {item.hero.coverImage && (
+              {/* Card Image Header - Using hyper-realistic AI imagery */}
+              <div className="relative h-40 sm:h-48 overflow-hidden">
+                {/* Full-bleed Card Image */}
+                {DEMO_CARD_IMAGES[item.id] ? (
                   <img 
-                    src={item.hero.coverImage}
-                    alt=""
+                    src={DEMO_CARD_IMAGES[item.id]}
+                    alt={item.hero.name}
                     loading="lazy"
                     decoding="async"
-                    className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity"
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
+                ) : (
+                  <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass}`} />
                 )}
                 
-                {/* Pattern Overlay */}
-                <div className="absolute inset-0 opacity-20">
-                  <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <pattern id={`pattern-${item.id}`} width="40" height="40" patternUnits="userSpaceOnUse">
-                        <circle cx="20" cy="20" r="2" fill="white" />
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill={`url(#pattern-${item.id})`} />
-                  </svg>
-                </div>
+                {/* Gradient overlay for readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
                 
                 {/* Logo Initial */}
                 <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 w-12 h-12 sm:w-16 sm:h-16 bg-white/95 backdrop-blur rounded-xl shadow-lg flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
@@ -331,16 +322,23 @@ function DemoEventGrid() {
             className="group overflow-hidden border bg-card shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
           >
             <CardContent className="p-0">
-              <div className={`relative h-44 sm:h-56 bg-gradient-to-br ${gradientClass} overflow-hidden`}>
-                {event.hero.coverImage && (
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity"
-                    style={{ backgroundImage: `url(${event.hero.coverImage})` }}
+              <div className="relative h-44 sm:h-56 overflow-hidden">
+                {/* Full-bleed Card Image */}
+                {DEMO_CARD_IMAGES[event.id] ? (
+                  <img 
+                    src={DEMO_CARD_IMAGES[event.id]}
+                    alt={event.hero.name}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
+                ) : (
+                  <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass}`} />
                 )}
-                <div className="absolute inset-0 opacity-20">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[length:20px_20px]" />
-                </div>
+                
+                {/* Gradient overlay for readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+                
                 <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 w-12 h-12 sm:w-16 sm:h-16 bg-white/95 backdrop-blur rounded-xl shadow-lg flex items-center justify-center">
                   <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                 </div>
