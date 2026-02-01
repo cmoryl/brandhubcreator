@@ -48,18 +48,28 @@
     *,*::before,*::after{box-sizing:border-box}
     html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:Poppins,ui-sans-serif,system-ui,sans-serif}
     body{margin:0;min-height:100vh}
-    :root{--background:40 20% 98%;--foreground:220 20% 10%}
-    .dark{--background:220 20% 8%;--foreground:40 20% 98%}
+    :root{--background:40 20% 98%;--foreground:220 20% 10%;--primary:220 15% 20%}
+    .dark{--background:220 20% 8%;--foreground:40 20% 98%;--primary:40 20% 98%}
     body{background-color:hsl(var(--background));color:hsl(var(--foreground))}
     #root{min-height:100vh;display:flex;flex-direction:column}
-    /* Skeleton placeholder to prevent layout shift */
-    .loading-skeleton{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    /* Loading state for immediate FCP */
+    .initial-loader{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1rem}
+    .initial-loader svg{width:48px;height:48px;animation:spin 1s linear infinite}
+    .initial-loader p{font-size:0.875rem;color:hsl(var(--foreground)/0.6)}
+    @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
   </style>
 </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Immediate visible content for FCP -->
+      <div class="initial-loader" aria-label="Loading">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        <p>Loading BrandHub...</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
