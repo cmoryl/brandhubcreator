@@ -23,7 +23,17 @@ interface ShareButtonProps {
   onPublicChange?: (isPublic: boolean) => void;
   canEdit?: boolean;
   organizationSlug?: string;
+  existingShareToken?: string | null;
 }
+
+// Helper to build import URL from token
+const getImportUrlFromToken = (token: string): string => {
+  const origin = window.location.origin;
+  const baseUrl = origin.includes('lovableproject.com') || origin.includes('id-preview--')
+    ? 'https://brandhubcreator.lovable.app'
+    : origin;
+  return `${baseUrl}/share/${token}`;
+};
 
 export const ShareButton = ({ 
   guideId, 
@@ -33,11 +43,15 @@ export const ShareButton = ({
   isPublic = false, 
   onPublicChange,
   canEdit = false,
-  organizationSlug
+  organizationSlug,
+  existingShareToken
 }: ShareButtonProps) => {
   const [copied, setCopied] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [generatedImportLink, setGeneratedImportLink] = useState<string | null>(null);
+  // Initialize with existing token if available
+  const [generatedImportLink, setGeneratedImportLink] = useState<string | null>(
+    existingShareToken ? getImportUrlFromToken(existingShareToken) : null
+  );
   const { isSharing, generateShareLink } = useShareBrand();
   const getShareUrl = () => {
     const baseUrl = window.location.origin;

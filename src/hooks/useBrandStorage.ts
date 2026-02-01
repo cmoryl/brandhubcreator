@@ -24,6 +24,7 @@ interface DbBrand {
   slug: string | null;
   is_favorite: boolean;
   is_public: boolean;
+  share_token: string | null;
   section_order: string[] | null;
   hidden_sections: string[] | null;
   guide_data: Record<string, unknown>;
@@ -130,6 +131,7 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     organizationId: db.organization_id,
     isFavorite: db.is_favorite,
     isPublic: db.is_public ?? false,
+    shareToken: db.share_token || undefined,
     sectionOrder: mergeSectionOrder(db.section_order),
     hiddenSections: asArray( db.hidden_sections, [] ) as BrandGuide['hiddenSections'],
     hero: asObject(guideData.hero, { name: db.name, tagline: '', coverImage: '', logoUrl: '' }) as BrandGuide['hero'],

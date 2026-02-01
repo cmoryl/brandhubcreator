@@ -808,6 +808,7 @@ const BrandEditor = () => {
                   onPublicChange={(isPublic) => updateBrand({ isPublic })}
                   canEdit={canEdit || false}
                   organizationSlug={organization?.slug}
+                  existingShareToken={brand.shareToken}
                 />
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
                   <Tooltip>

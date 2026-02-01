@@ -611,6 +611,7 @@ export interface BaseGuide {
   organizationId?: string | null; // Organization this guide belongs to
   isFavorite?: boolean;
   isPublic?: boolean;
+  shareToken?: string | null; // Token for external sharing/import
   // Section ordering
   sectionOrder?: SectionId[];
   // Hidden sections (admin can toggle visibility)
