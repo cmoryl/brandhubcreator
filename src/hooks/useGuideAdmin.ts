@@ -47,14 +47,17 @@ export const useGuideAdmin = (options: UseGuideAdminOptions = {}): UseGuideAdmin
       };
     }
 
-    // Check if user can edit this org's content
-    const canEditOrg = 
-      (orgRole === 'owner' || orgRole === 'admin') &&
-      // If we know the entity's org, verify it matches the user's org
-      (!entityOrgId || organization?.id === entityOrgId);
+    // Global admins always have access regardless of loading state
+    if (isGlobalAdmin) {
+      return {
+        isGuideAdmin: true,
+        isLoading: false,
+        canEdit: true,
+      };
+    }
 
-    // While loading, assume admin for authenticated users to prevent UI flicker
-    // This ensures the eye icons show while contexts are hydrating
+    // While auth or org is still loading, assume admin for authenticated users
+    // This prevents the eye icons from flickering
     const isStillLoading = authLoading || orgLoading;
     
     if (isStillLoading) {
@@ -65,15 +68,33 @@ export const useGuideAdmin = (options: UseGuideAdminOptions = {}): UseGuideAdmin
       };
     }
 
-    // Final determination
-    const isGuideAdmin = isGlobalAdmin || canEditOrg;
+    // If we have a user but no orgRole yet and not loading, 
+    // the org data might not have been fetched yet (race condition)
+    // In this case, be optimistic to prevent UI flicker
+    if (!orgRole && !organization) {
+      return {
+        isGuideAdmin: true, // Optimistic until we know for sure
+        isLoading: true,
+        canEdit: true,
+      };
+    }
+
+    // Check if user can edit this org's content
+    // User must be owner or admin in their organization
+    const hasOrgAdminRole = orgRole === 'owner' || orgRole === 'admin';
     
+    // If entity has no org, org admins can edit
+    // If entity has an org, it must match the user's org
+    const orgMatches = !entityOrgId || !organization?.id || organization.id === entityOrgId;
+    
+    const canEditOrg = hasOrgAdminRole && orgMatches;
+
     return {
-      isGuideAdmin,
+      isGuideAdmin: canEditOrg,
       isLoading: false,
-      canEdit: isGuideAdmin,
+      canEdit: canEditOrg,
     };
-  }, [user, isGlobalAdmin, authLoading, orgRole, organization?.id, orgLoading, entityOrgId]);
+  }, [user, isGlobalAdmin, authLoading, orgRole, organization, orgLoading, entityOrgId]);
 
   return result;
 };
