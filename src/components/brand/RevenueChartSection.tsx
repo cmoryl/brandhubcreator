@@ -7,9 +7,19 @@ import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Download, TrendingUp, TrendingDown, DollarSign, BarChart3, Target, Pencil, Plus, Trash2, X, Check, RotateCcw } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Download, TrendingUp, TrendingDown, DollarSign, BarChart3, Target, Pencil, Plus, Trash2, X, Check, RotateCcw, Palette } from 'lucide-react';
 import { toast } from 'sonner';
-import { RevenueDataPoint } from '@/types/brand';
+import { RevenueDataPoint, RevenueChartColors, BrandColor } from '@/types/brand';
+
+// Default chart colors
+const DEFAULT_CHART_COLORS: RevenueChartColors = {
+  barColor: '#6366f1', // Primary indigo
+  barColorEnd: '#6366f199', // Primary with opacity
+  hoverColor: '#8b5cf6', // Accent violet
+  gridColor: '#e5e7eb', // Border gray
+  textColor: '#6b7280', // Muted foreground
+};
 
 interface RevenueChartSectionProps {
   customSubtitle?: string;
@@ -17,6 +27,9 @@ interface RevenueChartSectionProps {
   revenueData?: RevenueDataPoint[];
   onRevenueDataChange?: (data: RevenueDataPoint[]) => void;
   brandName?: string;
+  chartColors?: RevenueChartColors;
+  onChartColorsChange?: (colors: RevenueChartColors) => void;
+  brandColors?: BrandColor[]; // Available brand colors to pick from
 }
 
 // TransPerfect revenue data 1992-2025 (default)
@@ -83,8 +96,16 @@ export const RevenueChartSection = ({
   onSubtitleChange, 
   revenueData,
   onRevenueDataChange,
-  brandName = 'TransPerfect'
+  brandName = 'TransPerfect',
+  chartColors,
+  onChartColorsChange,
+  brandColors = []
 }: RevenueChartSectionProps) => {
+  // Merge custom colors with defaults
+  const activeColors = useMemo(() => ({
+    ...DEFAULT_CHART_COLORS,
+    ...chartColors
+  }), [chartColors]);
   // Use custom data if provided, otherwise fall back to TransPerfect defaults
   const chartData = useMemo(() => {
     const data = revenueData && revenueData.length > 0 ? revenueData : DEFAULT_REVENUE_DATA;
@@ -317,6 +338,197 @@ export const RevenueChartSection = ({
               </Button>
             </div>
           </div>
+
+          {/* Chart Color Customization */}
+          {onChartColorsChange && (
+            <div className="bg-card border border-border rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Palette className="h-4 w-4 text-primary" />
+                <span className="font-semibold text-sm">Chart Colors</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {/* Bar Color */}
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">Bar Color</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="w-full h-10 rounded-lg border border-border flex items-center gap-2 px-3 hover:border-primary/50 transition-colors">
+                        <div 
+                          className="w-6 h-6 rounded-md border border-border" 
+                          style={{ backgroundColor: activeColors.barColor }}
+                        />
+                        <span className="text-xs font-mono text-muted-foreground truncate">{activeColors.barColor}</span>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-3" align="start">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="color"
+                            value={activeColors.barColor}
+                            onChange={(e) => onChartColorsChange({ ...activeColors, barColor: e.target.value })}
+                            className="w-10 h-10 p-1 cursor-pointer"
+                          />
+                          <Input
+                            type="text"
+                            value={activeColors.barColor}
+                            onChange={(e) => onChartColorsChange({ ...activeColors, barColor: e.target.value })}
+                            placeholder="#6366f1"
+                            className="flex-1 font-mono text-sm"
+                          />
+                        </div>
+                        {brandColors.length > 0 && (
+                          <div className="space-y-2">
+                            <span className="text-xs font-medium text-muted-foreground">Brand Colors</span>
+                            <div className="flex flex-wrap gap-2">
+                              {brandColors.map((color, idx) => (
+                                <button
+                                  key={idx}
+                                  className="w-8 h-8 rounded-md border-2 border-transparent hover:border-primary transition-colors"
+                                  style={{ backgroundColor: color.hex }}
+                                  onClick={() => onChartColorsChange({ ...activeColors, barColor: color.hex })}
+                                  title={color.name}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Hover/Highlight Color */}
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">Highlight Color</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="w-full h-10 rounded-lg border border-border flex items-center gap-2 px-3 hover:border-primary/50 transition-colors">
+                        <div 
+                          className="w-6 h-6 rounded-md border border-border" 
+                          style={{ backgroundColor: activeColors.hoverColor }}
+                        />
+                        <span className="text-xs font-mono text-muted-foreground truncate">{activeColors.hoverColor}</span>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-3" align="start">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="color"
+                            value={activeColors.hoverColor}
+                            onChange={(e) => onChartColorsChange({ ...activeColors, hoverColor: e.target.value })}
+                            className="w-10 h-10 p-1 cursor-pointer"
+                          />
+                          <Input
+                            type="text"
+                            value={activeColors.hoverColor}
+                            onChange={(e) => onChartColorsChange({ ...activeColors, hoverColor: e.target.value })}
+                            placeholder="#8b5cf6"
+                            className="flex-1 font-mono text-sm"
+                          />
+                        </div>
+                        {brandColors.length > 0 && (
+                          <div className="space-y-2">
+                            <span className="text-xs font-medium text-muted-foreground">Brand Colors</span>
+                            <div className="flex flex-wrap gap-2">
+                              {brandColors.map((color, idx) => (
+                                <button
+                                  key={idx}
+                                  className="w-8 h-8 rounded-md border-2 border-transparent hover:border-primary transition-colors"
+                                  style={{ backgroundColor: color.hex }}
+                                  onClick={() => onChartColorsChange({ ...activeColors, hoverColor: color.hex })}
+                                  title={color.name}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Grid Color */}
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">Grid Color</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="w-full h-10 rounded-lg border border-border flex items-center gap-2 px-3 hover:border-primary/50 transition-colors">
+                        <div 
+                          className="w-6 h-6 rounded-md border border-border" 
+                          style={{ backgroundColor: activeColors.gridColor }}
+                        />
+                        <span className="text-xs font-mono text-muted-foreground truncate">{activeColors.gridColor}</span>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-3" align="start">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="color"
+                          value={activeColors.gridColor}
+                          onChange={(e) => onChartColorsChange({ ...activeColors, gridColor: e.target.value })}
+                          className="w-10 h-10 p-1 cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          value={activeColors.gridColor}
+                          onChange={(e) => onChartColorsChange({ ...activeColors, gridColor: e.target.value })}
+                          placeholder="#e5e7eb"
+                          className="flex-1 font-mono text-sm"
+                        />
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Text Color */}
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">Text Color</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="w-full h-10 rounded-lg border border-border flex items-center gap-2 px-3 hover:border-primary/50 transition-colors">
+                        <div 
+                          className="w-6 h-6 rounded-md border border-border" 
+                          style={{ backgroundColor: activeColors.textColor }}
+                        />
+                        <span className="text-xs font-mono text-muted-foreground truncate">{activeColors.textColor}</span>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-3" align="start">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="color"
+                          value={activeColors.textColor}
+                          onChange={(e) => onChartColorsChange({ ...activeColors, textColor: e.target.value })}
+                          className="w-10 h-10 p-1 cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          value={activeColors.textColor}
+                          onChange={(e) => onChartColorsChange({ ...activeColors, textColor: e.target.value })}
+                          placeholder="#6b7280"
+                          className="flex-1 font-mono text-sm"
+                        />
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              <div className="mt-3 flex justify-end">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => onChartColorsChange(DEFAULT_CHART_COLORS)}
+                  className="text-xs"
+                >
+                  <RotateCcw className="h-3 w-3 mr-1" />
+                  Reset Colors
+                </Button>
+              </div>
+            </div>
+          )}
           
           {/* Editable Data Table */}
           <div className="bg-card border border-border rounded-xl overflow-hidden max-h-[300px] overflow-y-auto">
@@ -494,44 +706,44 @@ export const RevenueChartSection = ({
               onClick={handleBarClick}
             >
               <defs>
-                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={1} />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.6} />
+                <linearGradient id="barGradientCustom" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={activeColors.barColor} stopOpacity={1} />
+                  <stop offset="100%" stopColor={activeColors.barColorEnd || activeColors.barColor} stopOpacity={0.6} />
                 </linearGradient>
-                <linearGradient id="barGradientHover" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={1} />
-                  <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity={0.8} />
+                <linearGradient id="barGradientHoverCustom" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={activeColors.hoverColor || activeColors.barColor} stopOpacity={1} />
+                  <stop offset="100%" stopColor={activeColors.barColor} stopOpacity={0.8} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+              <CartesianGrid strokeDasharray="3 3" stroke={activeColors.gridColor} opacity={0.5} />
               <XAxis 
                 dataKey="year" 
-                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontWeight: 600 }}
-                tickLine={{ stroke: 'hsl(var(--border))' }}
-                axisLine={{ stroke: 'hsl(var(--border))' }}
+                tick={{ fill: activeColors.textColor, fontSize: 11, fontWeight: 600 }}
+                tickLine={{ stroke: activeColors.gridColor }}
+                axisLine={{ stroke: activeColors.gridColor }}
                 angle={-45}
                 textAnchor="end"
                 height={60}
               />
               <YAxis 
                 tickFormatter={(v) => v >= 1000 ? `$${v/1000}B` : `$${v}M`}
-                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontWeight: 600 }}
-                tickLine={{ stroke: 'hsl(var(--border))' }}
-                axisLine={{ stroke: 'hsl(var(--border))' }}
+                tick={{ fill: activeColors.textColor, fontSize: 11, fontWeight: 600 }}
+                tickLine={{ stroke: activeColors.gridColor }}
+                axisLine={{ stroke: activeColors.gridColor }}
               />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))', opacity: 0.1 }} />
-              <ReferenceLine y={1000} stroke="hsl(var(--primary))" strokeDasharray="5 5" opacity={0.5} />
+              <ReferenceLine y={1000} stroke={activeColors.barColor} strokeDasharray="5 5" opacity={0.5} />
               <Bar 
                 dataKey="revenue" 
-                fill="url(#barGradient)" 
+                fill="url(#barGradientCustom)" 
                 radius={[4, 4, 0, 0]}
                 cursor="pointer"
               >
                 {filteredData.map((entry) => (
                   <Cell 
                     key={entry.year}
-                    fill={selectedYear === entry.year ? 'url(#barGradientHover)' : 'url(#barGradient)'}
-                    stroke={selectedYear === entry.year ? 'hsl(var(--primary))' : 'transparent'}
+                    fill={selectedYear === entry.year ? 'url(#barGradientHoverCustom)' : 'url(#barGradientCustom)'}
+                    stroke={selectedYear === entry.year ? activeColors.hoverColor || activeColors.barColor : 'transparent'}
                     strokeWidth={2}
                   />
                 ))}
