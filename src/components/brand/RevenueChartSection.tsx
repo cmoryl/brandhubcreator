@@ -10,9 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Download, TrendingUp, TrendingDown, DollarSign, BarChart3, Target, Pencil, Plus, Trash2, X, Check, RotateCcw, Palette } from 'lucide-react';
 import { toast } from 'sonner';
-import { RevenueDataPoint, RevenueChartColors, BrandColor } from '@/types/brand';
+import { RevenueDataPoint, RevenueChartColors, BrandColor, ChartThemeSettings } from '@/types/brand';
+import { resolveChartTheme, themeToRevenueColors } from '@/lib/chartThemes';
+import { ChartThemeSelector } from './ChartThemeSelector';
 
-// Default chart colors
+// Default chart colors (fallback)
 const DEFAULT_CHART_COLORS: RevenueChartColors = {
   barColor: '#6366f1', // Primary indigo
   barColorEnd: '#6366f199', // Primary with opacity
@@ -27,8 +29,12 @@ interface RevenueChartSectionProps {
   revenueData?: RevenueDataPoint[];
   onRevenueDataChange?: (data: RevenueDataPoint[]) => void;
   brandName?: string;
+  // Legacy per-section colors (deprecated)
   chartColors?: RevenueChartColors;
   onChartColorsChange?: (colors: RevenueChartColors) => void;
+  // New unified chart theme
+  chartTheme?: ChartThemeSettings;
+  onChartThemeChange?: (theme: ChartThemeSettings) => void;
   brandColors?: BrandColor[]; // Available brand colors to pick from
 }
 
@@ -99,13 +105,21 @@ export const RevenueChartSection = ({
   brandName = 'TransPerfect',
   chartColors,
   onChartColorsChange,
+  chartTheme,
+  onChartThemeChange,
   brandColors = []
 }: RevenueChartSectionProps) => {
-  // Merge custom colors with defaults
-  const activeColors = useMemo(() => ({
-    ...DEFAULT_CHART_COLORS,
-    ...chartColors
-  }), [chartColors]);
+  // Resolve colors: prefer unified theme, fall back to legacy colors, then defaults
+  const activeColors = useMemo(() => {
+    if (chartTheme) {
+      const theme = resolveChartTheme(chartTheme, brandColors);
+      return themeToRevenueColors(theme);
+    }
+    return {
+      ...DEFAULT_CHART_COLORS,
+      ...chartColors
+    };
+  }, [chartTheme, chartColors, brandColors]);
   // Use custom data if provided, otherwise fall back to TransPerfect defaults
   const chartData = useMemo(() => {
     const data = revenueData && revenueData.length > 0 ? revenueData : DEFAULT_REVENUE_DATA;
@@ -339,8 +353,17 @@ export const RevenueChartSection = ({
             </div>
           </div>
 
-          {/* Chart Color Customization */}
-          {onChartColorsChange && (
+          {/* Chart Theme Selector (unified approach) */}
+          {onChartThemeChange && (
+            <ChartThemeSelector
+              settings={chartTheme}
+              onSettingsChange={onChartThemeChange}
+              brandColors={brandColors}
+            />
+          )}
+
+          {/* Legacy Chart Color Customization (for backward compatibility) */}
+          {!onChartThemeChange && onChartColorsChange && (
             <div className="bg-card border border-border rounded-xl p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Palette className="h-4 w-4 text-primary" />
