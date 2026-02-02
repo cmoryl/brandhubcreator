@@ -3,7 +3,7 @@
  * Features an interactive orbit visualization showcasing demo brands, products, and events
  */
 
-import { useMemo, useEffect, useCallback } from 'react';
+import { useMemo, useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap } from 'lucide-react';
 import { GlitchText } from '@/components/ui/GlitchText';
@@ -16,11 +16,13 @@ import { DEMO_GRADIENTS, DEMO_INDUSTRIES, DEMO_CARD_IMAGES, getOrbitBrands, getO
 import { ParticleEmbers } from '@/components/ParticleEmbers';
 import { InteractiveCTA } from '@/components/landing/InteractiveCTA';
 import { BrandHubLogo } from '@/components/BrandHubLogo';
+import { GetStartedSurveyModal } from '@/components/landing/GetStartedSurveyModal';
 import brandhubLogo from '@/assets/brandhub-logo.svg';
 
 const Index = () => {
   const navigate = useNavigate();
   const { user, isAdmin, isApproved, accessStatus, isLoading } = useAuth();
+  const [showSurveyModal, setShowSurveyModal] = useState(false);
 
   // Auto-redirect authenticated users to dashboard
   useEffect(() => {
@@ -102,7 +104,7 @@ const Index = () => {
             <Button onClick={handleSignInClick} variant="outline" size="sm">
               Sign In
             </Button>
-            <Button onClick={handleSignInClick} size="sm">
+            <Button onClick={() => setShowSurveyModal(true)} size="sm">
               Get Started
             </Button>
           </div>
@@ -345,6 +347,9 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Get Started Survey Modal */}
+      <GetStartedSurveyModal open={showSurveyModal} onOpenChange={setShowSurveyModal} />
     </div>
   );
 };

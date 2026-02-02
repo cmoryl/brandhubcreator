@@ -50,6 +50,7 @@ import { UniverseBackupManager } from '@/components/admin/UniverseBackupManager'
 import { ProductSuiteBackupManager } from '@/components/admin/ProductSuiteBackupManager';
 import { AdminImageLibrary } from '@/components/admin/AdminImageLibrary';
 import { AdminSidebar, AdminMobileNav } from '@/components/admin/AdminSidebar';
+import { LeadSubmissionsPanel } from '@/components/admin/LeadSubmissionsPanel';
 
 interface DashboardStats {
   totalUsers: number;
@@ -1184,6 +1185,11 @@ export default function AdminDashboard() {
           {/* Product Suite Backups Tab */}
           <TabsContent value="suite-backups" className="space-y-6">
             <ProductSuiteBackupManager />
+          </TabsContent>
+
+          {/* Lead Submissions Tab */}
+          <TabsContent value="leads" className="space-y-6">
+            <LeadSubmissionsPanel />
           </TabsContent>
         </Tabs>
           </div>

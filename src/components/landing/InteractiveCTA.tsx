@@ -7,6 +7,7 @@ import { useRef, useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { ArrowRight, Sparkles, Rocket } from 'lucide-react';
+import { GetStartedSurveyModal } from './GetStartedSurveyModal';
 
 // Matching HeroOrbit type colors
 const TYPE_COLORS = {
@@ -92,6 +93,7 @@ export function InteractiveCTA() {
   const [ringStates, setRingStates] = useState<RingState[]>(
     ORBIT_RINGS.map(() => ({ isHovered: false, intensity: 0 }))
   );
+  const [showSurveyModal, setShowSurveyModal] = useState(false);
 
   // Motion values for subtle 3D effect
   const mouseX = useMotionValue(0);
@@ -476,7 +478,7 @@ export function InteractiveCTA() {
             transition={{ duration: 0.6, delay: 0.5 }}
           >
             <motion.button
-              onClick={() => navigate('/auth')}
+              onClick={() => setShowSurveyModal(true)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="group relative px-8 py-4 rounded-xl font-semibold text-lg bg-foreground text-background hover:bg-foreground/90 transition-colors cursor-pointer flex items-center gap-2"
@@ -495,6 +497,9 @@ export function InteractiveCTA() {
               Explore Demo
             </motion.button>
           </motion.div>
+
+          {/* Survey Modal */}
+          <GetStartedSurveyModal open={showSurveyModal} onOpenChange={setShowSurveyModal} />
         </motion.div>
       </motion.div>
 
