@@ -78,6 +78,12 @@ import speakerSummit3 from '@/assets/demos/speaker-summit-3.jpg';
 import speakerSummit4 from '@/assets/demos/speaker-summit-4.jpg';
 import videoSummit1 from '@/assets/demos/video-summit-1.jpg';
 import videoSummit2 from '@/assets/demos/video-summit-2.jpg';
+import videoSummit3 from '@/assets/demos/video-summit-3.jpg';
+import videoSummit4 from '@/assets/demos/video-summit-4.jpg';
+import videoNexus1 from '@/assets/demos/video-nexus-1.jpg';
+import videoNexus2 from '@/assets/demos/video-nexus-2.jpg';
+import videoBloom1 from '@/assets/demos/video-bloom-1.jpg';
+import videoBloom2 from '@/assets/demos/video-bloom-2.jpg';
 import casestudyCloud1 from '@/assets/demos/casestudy-cloud-1.jpg';
 import brochureCloud1 from '@/assets/demos/brochure-cloud-1.jpg';
 import templateCloud1 from '@/assets/demos/template-cloud-1.jpg';
@@ -85,7 +91,6 @@ import casestudyOils1 from '@/assets/demos/casestudy-oils-1.jpg';
 import brochureOils1 from '@/assets/demos/brochure-oils-1.jpg';
 import templateOils1 from '@/assets/demos/template-oils-1.jpg';
 import assetDownload1 from '@/assets/demos/asset-download-1.jpg';
-
 // New comprehensive section assets
 import socialassetsNexusSpecs from '@/assets/demos/socialassets-nexus-specs.jpg';
 import qrGuidelinesNexus from '@/assets/demos/qr-guidelines-nexus.jpg';
@@ -406,8 +411,8 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     bgColor: '#FFFFFF',
   },
   videos: [
-    { id: 'vid1', title: 'Brand Story', url: 'https://www.youtube.com/watch?v=example1', type: 'youtube', description: 'Our journey and mission' },
-    { id: 'vid2', title: 'Product Overview', url: 'https://www.youtube.com/watch?v=example2', type: 'youtube', description: 'Platform walkthrough' },
+    { id: 'vid1', title: 'Brand Story', url: 'https://www.youtube.com/watch?v=example1', type: 'youtube', description: 'Our journey and mission', thumbnail: videoNexus1 },
+    { id: 'vid2', title: 'Product Overview', url: 'https://www.youtube.com/watch?v=example2', type: 'youtube', description: 'Platform walkthrough', thumbnail: videoNexus2 },
   ],
   assets: [
     { id: 'a1', name: 'Logo Pack', type: 'zip', url: '', size: '2.5 MB' },
@@ -729,8 +734,8 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     bgColor: '#FFFFFF',
   },
   videos: [
-    { id: 'vid1', title: 'Our Wellness Journey', url: 'https://www.youtube.com/watch?v=example1', type: 'youtube', description: 'The story behind Bloom Wellness' },
-    { id: 'vid2', title: 'How We Source Our Ingredients', url: 'https://www.youtube.com/watch?v=example2', type: 'youtube', description: 'Farm to bottle transparency' },
+    { id: 'vid1', title: 'Our Wellness Journey', url: 'https://www.youtube.com/watch?v=example1', type: 'youtube', description: 'The story behind Bloom Wellness', thumbnail: videoBloom1 },
+    { id: 'vid2', title: 'How We Source Our Ingredients', url: 'https://www.youtube.com/watch?v=example2', type: 'youtube', description: 'Farm to bottle transparency', thumbnail: videoBloom2 },
   ],
   assets: [
     { id: 'a1', name: 'Logo Pack', type: 'zip', url: '', size: '1.8 MB' },
@@ -984,8 +989,8 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
     bgColor: '#FFFFFF',
   },
   videos: [
-    { id: 'vid1', title: 'Getting Started with Nexus Cloud', url: 'https://www.youtube.com/watch?v=example1', type: 'youtube', description: 'Quick start guide for new users' },
-    { id: 'vid2', title: 'Cloud Architecture Overview', url: 'https://www.youtube.com/watch?v=example2', type: 'youtube', description: 'Understanding our infrastructure' },
+    { id: 'vid1', title: 'Getting Started with Nexus Cloud', url: 'https://www.youtube.com/watch?v=example1', type: 'youtube', description: 'Quick start guide for new users', thumbnail: videoNexus2 },
+    { id: 'vid2', title: 'Cloud Architecture Overview', url: 'https://www.youtube.com/watch?v=example2', type: 'youtube', description: 'Understanding our infrastructure', thumbnail: videoNexus1 },
   ],
   assets: [
     { id: 'a1', name: 'Cloud SDK', type: 'zip', url: '', size: '12.5 MB' },
@@ -1215,7 +1220,8 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
     bgColor: '#FFFFFF',
   },
   videos: [
-    { id: 'vid1', title: 'Oil Blending Guide', url: 'https://www.youtube.com/watch?v=example1', type: 'youtube', description: 'Learn the art of creating custom blends' },
+    { id: 'vid1', title: 'Oil Blending Guide', url: 'https://www.youtube.com/watch?v=example1', type: 'youtube', description: 'Learn the art of creating custom blends', thumbnail: videoBloom2 },
+    { id: 'vid2', title: 'Product Application Tips', url: 'https://www.youtube.com/watch?v=example2', type: 'youtube', description: 'How to get the most out of your essential oils', thumbnail: videoBloom1 },
   ],
   assets: [
     { id: 'a1', name: 'Product Labels', type: 'zip', url: '', size: '1.5 MB' },
@@ -1441,8 +1447,8 @@ export const DEMO_EVENT_SUMMIT: Omit<EventGuide, 'createdAt' | 'updatedAt'> = {
   eventVideos: [
     { id: 'ev1', title: 'GIS 2026 Official Teaser', url: 'https://youtube.com/watch?v=example', type: 'teaser', platform: 'youtube', description: '60-second event preview with keynote highlights', thumbnailUrl: videoSummit1 },
     { id: 'ev2', title: 'GIS 2025 Highlights', url: 'https://youtube.com/watch?v=example2', type: 'recap', platform: 'youtube', description: '5-minute recap of the Austin summit', year: 2025, thumbnailUrl: videoSummit2 },
-    { id: 'ev3', title: 'Speaker Announcement', url: 'https://youtube.com/watch?v=example3', type: 'promo', platform: 'youtube', description: 'Meet our keynote speakers', thumbnailUrl: videoSummit2 },
-    { id: 'ev4', title: 'Venue Tour', url: 'https://youtube.com/watch?v=example4', type: 'promo', platform: 'youtube', description: 'Virtual walkthrough of Moscone Center', thumbnailUrl: videoSummit1 },
+    { id: 'ev3', title: 'Speaker Announcement', url: 'https://youtube.com/watch?v=example3', type: 'promo', platform: 'youtube', description: 'Meet our keynote speakers', thumbnailUrl: videoSummit3 },
+    { id: 'ev4', title: 'Venue Tour', url: 'https://youtube.com/watch?v=example4', type: 'promo', platform: 'youtube', description: 'Virtual walkthrough of Moscone Center', thumbnailUrl: videoSummit4 },
   ],
   colors: [
     { id: 'ec1', name: 'Summit Blue', hex: '#0066FF', rgb: 'rgb(0, 102, 255)', usage: 'Primary event color', role: 'primary', pantone: 'PMS 2728 C' },

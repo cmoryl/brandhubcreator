@@ -188,7 +188,17 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
             return (
               <Card key={video.id} className="group overflow-hidden">
                 <div className="relative aspect-video bg-muted">
-                  {video.type !== 'direct' ? (
+                  {video.thumbnail ? (
+                    <div className="relative w-full h-full">
+                      <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                      <button
+                        onClick={() => openVideo(video)}
+                        className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors"
+                      >
+                        <Play className="h-12 w-12 text-white" />
+                      </button>
+                    </div>
+                  ) : video.type !== 'direct' ? (
                     <iframe
                       src={embedUrl}
                       className="w-full h-full"
