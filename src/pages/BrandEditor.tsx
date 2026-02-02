@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Brain, FileText, Building2, Download, Settings, HardDrive, ClipboardCheck, TrendingUp } from 'lucide-react';
@@ -88,6 +88,10 @@ const BRAND_SLUG_ALIASES: Record<string, string> = {
   lifesci: 'life-sciences',
   'life-sciences-brand': 'life-sciences',
 };
+
+const CompetitiveReportCardLazy = lazy(() =>
+  import('@/components/brand/CompetitiveReportCard').then((m) => ({ default: m.CompetitiveReportCard }))
+);
 
 const BrandEditor = () => {
   const { brandSlug } = useParams<{ brandSlug: string }>();
@@ -905,14 +909,15 @@ const BrandEditor = () => {
                 label: 'Competitive',
                 icon: TrendingUp,
                 render: () => {
-                  const CompetitiveReportCard = require('@/components/brand/CompetitiveReportCard').CompetitiveReportCard;
                   return (
-                    <CompetitiveReportCard
-                      entityType="brand"
-                      entityId={brand.id}
-                      entityName={brand.hero.name}
-                      organizationId={brand.organizationId}
-                    />
+                    <Suspense fallback={null}>
+                      <CompetitiveReportCardLazy
+                        entityType="brand"
+                        entityId={brand.id}
+                        entityName={brand.hero.name}
+                        organizationId={brand.organizationId}
+                      />
+                    </Suspense>
                   );
                 },
               },
