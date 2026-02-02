@@ -982,13 +982,33 @@ export const useBrandStorage = () => {
       }
 
       // Set new debounced sync
-      const timeout = setTimeout(() => {
+      const timeout = setTimeout(async () => {
         try {
           const latestBrand = brandsRef.current.find(b => b.id === id);
           const finalUpdates = pendingBrandUpdates.current.get(id) || {};
           
-          // Even if brand not in local state, sync using pending updates with a base object
-          const baseData = latestBrand || currentBrand || { id } as BrandGuide;
+          // If brand not in local state, fetch current data from DB first
+          let baseData = latestBrand || currentBrand;
+          
+          if (!baseData) {
+            console.log('[SYNC] updateBrand: Brand not in local state, fetching from DB first:', id);
+            const { data: dbBrand, error } = await supabase
+              .from('brands')
+              .select('*')
+              .eq('id', id)
+              .maybeSingle();
+            
+            if (error || !dbBrand) {
+              console.error('[SYNC] updateBrand: Failed to fetch brand from DB:', error);
+              pendingBrandUpdates.current.delete(id);
+              brandSyncTimeouts.current.delete(id);
+              return;
+            }
+            
+            // Convert DB format to BrandGuide
+            baseData = dbToBrandGuide(dbBrand as DbBrand);
+          }
+          
           const merged = { ...baseData, ...finalUpdates };
           syncBrandToDb(id, merged as BrandGuide);
           
@@ -1047,13 +1067,33 @@ export const useBrandStorage = () => {
       }
 
       // Set new debounced sync
-      const timeout = setTimeout(() => {
+      const timeout = setTimeout(async () => {
         try {
           const latestProduct = productsRef.current.find(p => p.id === id);
           const finalUpdates = pendingProductUpdates.current.get(id) || {};
           
-          // Even if product not in local state, sync using pending updates with a base object
-          const baseData = latestProduct || currentProduct || { id } as ProductGuide;
+          // If product not in local state, fetch current data from DB first
+          let baseData = latestProduct || currentProduct;
+          
+          if (!baseData) {
+            console.log('[SYNC] updateProduct: Product not in local state, fetching from DB first:', id);
+            const { data: dbProduct, error } = await supabase
+              .from('products')
+              .select('*')
+              .eq('id', id)
+              .maybeSingle();
+            
+            if (error || !dbProduct) {
+              console.error('[SYNC] updateProduct: Failed to fetch product from DB:', error);
+              pendingProductUpdates.current.delete(id);
+              productSyncTimeouts.current.delete(id);
+              return;
+            }
+            
+            // Convert DB format to ProductGuide
+            baseData = dbToProductGuide(dbProduct as DbProduct);
+          }
+          
           const merged = { ...baseData, ...finalUpdates };
           syncProductToDb(id, merged as ProductGuide);
           
