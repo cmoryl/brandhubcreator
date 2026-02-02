@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Calendar, Building2, Brain, Settings, Download, TrendingUp } from 'lucide-react';
@@ -75,6 +75,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 
 type ViewMode = 'sections' | 'full';
+
+const CompetitiveReportCardLazy = lazy(() =>
+  import('@/components/brand/CompetitiveReportCard').then((m) => ({ default: m.CompetitiveReportCard }))
+);
 
 const EventEditor = () => {
   const { eventSlug } = useParams<{ eventSlug: string }>();
@@ -903,14 +907,15 @@ const EventEditor = () => {
                 label: 'Competitive',
                 icon: TrendingUp,
                 render: () => {
-                  const CompetitiveReportCard = require('@/components/brand/CompetitiveReportCard').CompetitiveReportCard;
                   return (
-                    <CompetitiveReportCard
-                      entityType="event"
-                      entityId={event.id}
-                      entityName={event.hero.name}
-                      organizationId={event.organizationId || undefined}
-                    />
+                    <Suspense fallback={null}>
+                      <CompetitiveReportCardLazy
+                        entityType="event"
+                        entityId={event.id}
+                        entityName={event.hero.name}
+                        organizationId={event.organizationId || undefined}
+                      />
+                    </Suspense>
                   );
                 },
               },

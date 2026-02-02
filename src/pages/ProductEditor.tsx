@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock, Download, Settings, HardDrive, ClipboardCheck, TrendingUp } from 'lucide-react';
@@ -69,6 +69,10 @@ import { Badge } from '@/components/ui/badge';
 import { normalizeHiddenSections, normalizeSectionOrder } from '@/lib/sectionOrder';
 
 type ViewMode = 'sections' | 'full';
+
+const CompetitiveReportCardLazy = lazy(() =>
+  import('@/components/brand/CompetitiveReportCard').then((m) => ({ default: m.CompetitiveReportCard }))
+);
 
 // Legacy/short slugs that may exist in old links, emails, or bookmarks.
 // Keep this small and explicit to avoid unexpected matches.
@@ -736,14 +740,15 @@ const ProductEditor = () => {
                 label: 'Competitive',
                 icon: TrendingUp,
                 render: () => {
-                  const CompetitiveReportCard = require('@/components/brand/CompetitiveReportCard').CompetitiveReportCard;
                   return (
-                    <CompetitiveReportCard
-                      entityType="product"
-                      entityId={currentProduct.id}
-                      entityName={currentProduct.hero.name}
-                      organizationId={currentProduct.organizationId}
-                    />
+                    <Suspense fallback={null}>
+                      <CompetitiveReportCardLazy
+                        entityType="product"
+                        entityId={currentProduct.id}
+                        entityName={currentProduct.hero.name}
+                        organizationId={currentProduct.organizationId}
+                      />
+                    </Suspense>
                   );
                 },
               },
