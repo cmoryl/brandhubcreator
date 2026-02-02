@@ -155,7 +155,7 @@ export default function DemoGuideViewer() {
             )}
           </div>
           <div className="flex items-center gap-1.5 sm:gap-3">
-            <StartTourButton onClick={() => setIsTourOpen(true)} />
+            <StartTourButton onClick={() => setIsTourOpen(true)} stepCount={tourSteps.length} />
             <ThemeToggle />
             <Button size="sm" onClick={() => window.location.href = 'mailto:support@brandhub.com?subject=BrandHub Demo Request'} className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-4 text-xs sm:text-sm">
               <span className="hidden sm:inline">Get Started</span>
