@@ -175,6 +175,7 @@ export type Database = {
           brand_summary: string | null
           brand_voice_profile: Json | null
           competitive_advantages: Json | null
+          competitive_landscape: Json | null
           confidence_history: Json | null
           created_at: string
           created_by: string | null
@@ -202,6 +203,7 @@ export type Database = {
           brand_summary?: string | null
           brand_voice_profile?: Json | null
           competitive_advantages?: Json | null
+          competitive_landscape?: Json | null
           confidence_history?: Json | null
           created_at?: string
           created_by?: string | null
@@ -229,6 +231,7 @@ export type Database = {
           brand_summary?: string | null
           brand_voice_profile?: Json | null
           competitive_advantages?: Json | null
+          competitive_landscape?: Json | null
           confidence_history?: Json | null
           created_at?: string
           created_by?: string | null
