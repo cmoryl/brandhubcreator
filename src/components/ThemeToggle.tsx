@@ -18,7 +18,7 @@ export const ThemeToggle = React.forwardRef<
       ref={ref}
       variant="ghost" 
       size="icon" 
-      className={className ?? "h-8 w-8"}
+      className={className ?? "h-8 w-8 relative"}
       onClick={toggleTheme}
       title={resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
       {...props}
