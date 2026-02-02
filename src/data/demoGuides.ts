@@ -58,6 +58,24 @@ import iconographyNexusTech from '@/assets/demos/iconography-nexus-tech.jpg';
 import iconographyBloomWellness from '@/assets/demos/iconography-bloom-wellness.jpg';
 import collateralSummitBadges from '@/assets/demos/collateral-summit-badges.jpg';
 
+// New AI-generated card imagery
+import casestudyNexus1 from '@/assets/demos/casestudy-nexus-1.jpg';
+import casestudyNexus2 from '@/assets/demos/casestudy-nexus-2.jpg';
+import webinarNexus1 from '@/assets/demos/webinar-nexus-1.jpg';
+import webinarNexus2 from '@/assets/demos/webinar-nexus-2.jpg';
+import awardNexus1 from '@/assets/demos/award-nexus-1.jpg';
+import brochureNexus1 from '@/assets/demos/brochure-nexus-1.jpg';
+import templateNexus1 from '@/assets/demos/template-nexus-1.jpg';
+import bannerNexus1 from '@/assets/demos/banner-nexus-1.jpg';
+import casestudyBloom1 from '@/assets/demos/casestudy-bloom-1.jpg';
+import webinarBloom1 from '@/assets/demos/webinar-bloom-1.jpg';
+import awardBloom1 from '@/assets/demos/award-bloom-1.jpg';
+import brochureBloom1 from '@/assets/demos/brochure-bloom-1.jpg';
+import templateBloom1 from '@/assets/demos/template-bloom-1.jpg';
+import speakerSummit1 from '@/assets/demos/speaker-summit-1.jpg';
+import speakerSummit2 from '@/assets/demos/speaker-summit-2.jpg';
+import videoSummit1 from '@/assets/demos/video-summit-1.jpg';
+
 // New comprehensive section assets
 import socialassetsNexusSpecs from '@/assets/demos/socialassets-nexus-specs.jpg';
 import qrGuidelinesNexus from '@/assets/demos/qr-guidelines-nexus.jpg';
@@ -399,31 +417,31 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     blur: 60,
   },
   caseStudies: [
-    { id: 'cs1', title: 'Enterprise Cloud Migration', description: 'How we helped Fortune 500 companies transition to cloud infrastructure with zero downtime', previewUrl: collateralNexusCasestudy },
-    { id: 'cs2', title: 'Startup Scale-up Success', description: 'Supporting rapid growth from 10 to 10,000 users with scalable architecture', previewUrl: collateralNexusCasestudy },
-    { id: 'cs3', title: 'Healthcare Data Security', description: 'Implementing HIPAA-compliant cloud solutions for medical records', previewUrl: collateralNexusCasestudy },
+    { id: 'cs1', title: 'Enterprise Cloud Migration', description: 'How we helped Fortune 500 companies transition to cloud infrastructure with zero downtime', previewUrl: casestudyNexus1 },
+    { id: 'cs2', title: 'AI Automation Implementation', description: 'Supporting rapid growth from 10 to 10,000 users with scalable architecture', previewUrl: casestudyNexus2 },
+    { id: 'cs3', title: 'Healthcare Data Security', description: 'Implementing HIPAA-compliant cloud solutions for medical records', previewUrl: casestudyNexus1 },
   ],
   brochures: [
-    { id: 'br1', title: 'Company Overview 2026', category: 'Corporate', previewUrl: collateralNexusBrochure, thumbnailUrl: collateralNexusBrochure },
-    { id: 'br2', title: 'Product Catalog', category: 'Products', previewUrl: collateralNexusBrochure, thumbnailUrl: collateralNexusBrochure },
-    { id: 'br3', title: 'Enterprise Solutions Guide', category: 'Enterprise', previewUrl: collateralNexusBrochure, thumbnailUrl: collateralNexusBrochure },
+    { id: 'br1', title: 'API Documentation Guide', category: 'Technical', previewUrl: brochureNexus1, thumbnailUrl: brochureNexus1 },
+    { id: 'br2', title: 'Company Overview 2026', category: 'Corporate', previewUrl: brochureNexus1, thumbnailUrl: brochureNexus1 },
+    { id: 'br3', title: 'Enterprise Solutions Guide', category: 'Enterprise', previewUrl: brochureNexus1, thumbnailUrl: brochureNexus1 },
   ],
   templates: [
-    { id: 'tmp1', name: 'Presentation Template', fileType: 'pptx', fileSize: '5.2 MB', thumbnailUrl: templateNexusPresentation },
-    { id: 'tmp2', name: 'Letterhead', fileType: 'docx', fileSize: '1.1 MB', thumbnailUrl: collateralNexusStationery },
-    { id: 'tmp3', name: 'Business Card Template', fileType: 'ai', fileSize: '2.8 MB', thumbnailUrl: collateralNexusStationery },
-    { id: 'tmp4', name: 'Email Signature Kit', fileType: 'zip', fileSize: '1.5 MB', thumbnailUrl: collateralNexusStationery },
+    { id: 'tmp1', name: 'Presentation Template', fileType: 'pptx', fileSize: '5.2 MB', thumbnailUrl: templateNexus1 },
+    { id: 'tmp2', name: 'Data Dashboard Template', fileType: 'figma', fileSize: '12 MB', thumbnailUrl: templateNexus1 },
+    { id: 'tmp3', name: 'Business Card Template', fileType: 'ai', fileSize: '2.8 MB', thumbnailUrl: templateNexus1 },
+    { id: 'tmp4', name: 'Email Signature Kit', fileType: 'zip', fileSize: '1.5 MB', thumbnailUrl: templateNexus1 },
   ],
   awards: [
-    { id: 'aw1', title: 'Best Cloud Platform 2025', description: 'Recognized for innovation in enterprise cloud solutions', organization: 'TechCrunch Disrupt', year: 2025, imageUrl: awardsNexusTech },
-    { id: 'aw2', title: 'Innovation Excellence Award', description: 'Honoring breakthrough technology achievements', organization: 'Forbes Technology Council', year: 2024, imageUrl: awardsNexusTech },
-    { id: 'aw3', title: 'Top 10 Fastest Growing Tech', description: 'Celebrating exceptional growth and innovation', organization: 'Inc. 5000', year: 2024, imageUrl: awardsNexusTech },
-    { id: 'aw4', title: 'Enterprise Solution of the Year', description: 'Best-in-class enterprise technology platform', organization: 'Gartner', year: 2023, imageUrl: awardsNexusTech },
+    { id: 'aw1', title: 'Best Cloud Platform 2025', description: 'Recognized for innovation in enterprise cloud solutions', organization: 'TechCrunch Disrupt', year: 2025, imageUrl: awardNexus1 },
+    { id: 'aw2', title: 'Innovation Excellence Award', description: 'Honoring breakthrough technology achievements', organization: 'Forbes Technology Council', year: 2024, imageUrl: awardNexus1 },
+    { id: 'aw3', title: 'Top 10 Fastest Growing Tech', description: 'Celebrating exceptional growth and innovation', organization: 'Inc. 5000', year: 2024, imageUrl: awardNexus1 },
+    { id: 'aw4', title: 'Enterprise Solution of the Year', description: 'Best-in-class enterprise technology platform', organization: 'Gartner', year: 2023, imageUrl: awardNexus1 },
   ],
   webinars: [
-    { id: 'web1', title: 'Cloud Architecture Best Practices', description: 'Learn how to design scalable cloud infrastructure', thumbnailUrl: webinarNexusTech, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-11-15' },
-    { id: 'web2', title: 'Security in the Cloud Era', description: 'Protecting your data with zero-trust architecture', thumbnailUrl: webinarNexusTech, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-10-22' },
-    { id: 'web3', title: 'AI-Powered Analytics Deep Dive', description: 'Leveraging machine learning for business insights', thumbnailUrl: webinarNexusTech, status: 'upcoming', date: '2026-03-15' },
+    { id: 'web1', title: 'Cloud Architecture Best Practices', description: 'Learn how to design scalable cloud infrastructure', thumbnailUrl: webinarNexus1, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-11-15' },
+    { id: 'web2', title: 'Kubernetes Deep Dive Workshop', description: 'Protecting your data with zero-trust architecture', thumbnailUrl: webinarNexus2, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-10-22' },
+    { id: 'web3', title: 'AI-Powered Analytics Deep Dive', description: 'Leveraging machine learning for business insights', thumbnailUrl: webinarNexus1, status: 'upcoming', date: '2026-03-15' },
   ],
   imageAssets: [
     { id: 'ia1', name: 'Brand Stationery Suite', url: collateralNexusStationery, type: 'collateral', size: '4.2 MB', uploadedAt: '2025-12-01' },
@@ -437,9 +455,9 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'sa3', platform: 'Instagram', postSize: '1080x1080', storySize: '1080x1920', previewImageUrl: socialNexusLinkedin, textLegibility: 'Bold text on gradient backgrounds', directive: 'Vibrant tech imagery with brand accents' },
   ],
   displayBanners: [
-    { id: 'db1', name: 'LinkedIn Banner', dimensions: '1584x396', aspectRatio: 4, category: 'desktop', previewImageUrl: socialNexusLinkedin, maxMessaging: 'Headline + CTA only', textLegibility: '24pt minimum', safeZonePolicy: '10% margins all sides' },
-    { id: 'db2', name: 'Twitter Header', dimensions: '1500x500', aspectRatio: 3, category: 'desktop', previewImageUrl: socialNexusTwitter, maxMessaging: 'Brand tagline + logo', textLegibility: '20pt minimum', safeZonePolicy: '15% center safe zone' },
-    { id: 'db3', name: 'Email Header', dimensions: '600x200', aspectRatio: 3, category: 'native', previewImageUrl: collateralNexusStationery, maxMessaging: 'Logo + tagline', textLegibility: '16pt minimum', safeZonePolicy: '5% margins' },
+    { id: 'db1', name: 'Responsive Ad Campaign', dimensions: '1920x1080', aspectRatio: 1.78, category: 'desktop', previewImageUrl: bannerNexus1, maxMessaging: 'Headline + CTA only', textLegibility: '24pt minimum', safeZonePolicy: '10% margins all sides' },
+    { id: 'db2', name: 'LinkedIn Banner', dimensions: '1584x396', aspectRatio: 4, category: 'desktop', previewImageUrl: socialNexusLinkedin, maxMessaging: 'Brand tagline + logo', textLegibility: '20pt minimum', safeZonePolicy: '15% center safe zone' },
+    { id: 'db3', name: 'Email Header', dimensions: '600x200', aspectRatio: 3, category: 'native', previewImageUrl: bannerNexus1, maxMessaging: 'Logo + tagline', textLegibility: '16pt minimum', safeZonePolicy: '5% margins' },
   ],
   services: [
     { id: 'srv1', name: 'Cloud Infrastructure', description: 'Enterprise-grade cloud solutions tailored to your needs', icon: 'Cloud' },
@@ -721,22 +739,23 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     blur: 80,
   },
   caseStudies: [
-    { id: 'cs1', title: 'Wellness Retreat Partnership', description: 'How we partnered with luxury resorts to provide spa-quality products', previewUrl: collateralBloomBrochure },
-    { id: 'cs2', title: 'Sustainable Packaging Initiative', description: 'Our journey to 100% recyclable and biodegradable packaging', previewUrl: collateralBloomBrochure },
+    { id: 'cs1', title: 'Wellness Retreat Partnership', description: 'How we partnered with luxury resorts to provide spa-quality products', previewUrl: casestudyBloom1 },
+    { id: 'cs2', title: 'Sustainable Packaging Initiative', description: 'Our journey to 100% recyclable and biodegradable packaging', previewUrl: casestudyBloom1 },
   ],
   brochures: [
-    { id: 'br1', title: 'Product Catalog 2026', category: 'Products', previewUrl: collateralBloomBrochure, thumbnailUrl: collateralBloomBrochure },
-    { id: 'br2', title: 'Wellness Guide', category: 'Educational', previewUrl: collateralBloomBrochure, thumbnailUrl: collateralBloomBrochure },
-    { id: 'br3', title: 'Retail Partner Kit', category: 'B2B', previewUrl: collateralBloomBrochure, thumbnailUrl: collateralBloomBrochure },
+    { id: 'br1', title: 'Essential Oils Catalog', category: 'Products', previewUrl: brochureBloom1, thumbnailUrl: brochureBloom1 },
+    { id: 'br2', title: 'Wellness Guide', category: 'Educational', previewUrl: brochureBloom1, thumbnailUrl: brochureBloom1 },
+    { id: 'br3', title: 'Retail Partner Kit', category: 'B2B', previewUrl: brochureBloom1, thumbnailUrl: brochureBloom1 },
   ],
   templates: [
-    { id: 'tmp1', name: 'Letterhead', fileType: 'docx', fileSize: '800 KB', thumbnailUrl: collateralBloomStationery },
-    { id: 'tmp2', name: 'Business Card', fileType: 'ai', fileSize: '2.1 MB', thumbnailUrl: collateralBloomStationery },
-    { id: 'tmp3', name: 'Presentation Template', fileType: 'pptx', fileSize: '4.2 MB', thumbnailUrl: collateralBloomStationery },
+    { id: 'tmp1', name: 'Product Label Design', fileType: 'ai', fileSize: '3.5 MB', thumbnailUrl: templateBloom1 },
+    { id: 'tmp2', name: 'Essential Oil Bottles Mockup', fileType: 'psd', fileSize: '45 MB', thumbnailUrl: templateBloom1 },
+    { id: 'tmp3', name: 'Presentation Template', fileType: 'pptx', fileSize: '4.2 MB', thumbnailUrl: templateBloom1 },
   ],
   awards: [
-    { id: 'aw1', title: 'Best Organic Wellness Brand', description: 'Recognized for commitment to organic ingredients', organization: 'Natural Products Expo', year: 2025 },
-    { id: 'aw2', title: 'Sustainability Excellence Award', description: 'Leading the industry in eco-friendly practices', organization: 'Green Business Council', year: 2024 },
+    { id: 'aw1', title: 'Best Organic Wellness Brand', description: 'Recognized for commitment to organic ingredients', organization: 'Natural Products Expo', year: 2025, imageUrl: awardBloom1 },
+    { id: 'aw2', title: 'Sustainability Excellence Award', description: 'Leading the industry in eco-friendly practices', organization: 'Green Business Council', year: 2024, imageUrl: awardBloom1 },
+    { id: 'aw3', title: 'Eco-Packaging Award', description: 'Recognition for recyclable glass packaging', organization: 'Sustainable Packaging Coalition', year: 2024, imageUrl: awardBloom1 },
   ],
   imageAssets: [
     { id: 'ia1', name: 'Brand Stationery Suite', url: collateralBloomStationery, type: 'collateral', size: '3.2 MB', uploadedAt: '2025-12-01' },
@@ -772,10 +791,10 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'db3', name: 'Retail Display', dimensions: '1080x1920', aspectRatio: 0.56, category: 'mobile', previewImageUrl: socialBloomInstagram, maxMessaging: 'Product + price + CTA', textLegibility: '24pt minimum for distance', safeZonePolicy: 'Bottom 20% for product placement' },
   ],
   webinars: [
-    { id: 'web1', title: 'Introduction to Essential Oils', description: 'Learn the basics of aromatherapy and essential oil usage', thumbnailUrl: heroBloomWellness, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-09-15' },
-    { id: 'web2', title: 'Building a Daily Wellness Routine', description: 'Expert tips for incorporating wellness into your daily life', thumbnailUrl: heroBloomWellness, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-10-20' },
-    { id: 'web3', title: 'Sustainable Beauty Practices', description: 'Eco-friendly approaches to personal care and wellness', thumbnailUrl: heroBloomWellness, status: 'upcoming', date: '2026-03-15' },
-    { id: 'web4', title: 'Corporate Wellness Workshop', description: 'Implementing wellness programs in the workplace', thumbnailUrl: heroBloomWellness, status: 'upcoming', date: '2026-04-10' },
+    { id: 'web1', title: 'Introduction to Essential Oils', description: 'Learn the basics of aromatherapy and essential oil usage', thumbnailUrl: webinarBloom1, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-09-15' },
+    { id: 'web2', title: 'Building a Daily Wellness Routine', description: 'Expert tips for incorporating wellness into your daily life', thumbnailUrl: webinarBloom1, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-10-20' },
+    { id: 'web3', title: 'Sustainable Beauty Practices', description: 'Eco-friendly approaches to personal care and wellness', thumbnailUrl: webinarBloom1, status: 'upcoming', date: '2026-03-15' },
+    { id: 'web4', title: 'Corporate Wellness Workshop', description: 'Implementing wellness programs in the workplace', thumbnailUrl: webinarBloom1, status: 'upcoming', date: '2026-04-10' },
   ],
   revenueData: [
     { year: 2020, revenue: 2.5, facts: ['Launched first product line'] },
@@ -980,7 +999,7 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
     { id: 'br2', title: 'Pricing Guide', category: 'Sales', previewUrl: collateralNexusBrochure, thumbnailUrl: collateralNexusBrochure },
   ],
   templates: [
-    { id: 'tmp1', name: 'Architecture Diagram Template', fileType: 'pptx', fileSize: '3.5 MB', thumbnailUrl: templateNexusPresentation },
+    { id: 'tmp1', name: 'Architecture Diagram Template', fileType: 'pptx', fileSize: '3.5 MB', thumbnailUrl: templateNexus1 },
   ],
   imageAssets: [
     { id: 'ia1', name: 'Cloud Platform Screenshot', url: imageassetsLibrary, type: 'product', size: '2.1 MB', uploadedAt: '2025-12-01' },
@@ -1016,15 +1035,15 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
     { year: 2025, revenue: 450, facts: ['1000+ customers'] },
   ],
   awards: [
-    { id: 'aw1', title: 'Best Cloud Platform 2025', description: 'Recognized for enterprise reliability', organization: 'Cloud Computing Awards', year: 2025, imageUrl: awardsNexusTech },
-    { id: 'aw2', title: 'Developer Choice Award', description: 'Most developer-friendly cloud platform', organization: 'DevOps World', year: 2024, imageUrl: awardsNexusTech },
-    { id: 'aw3', title: 'Security Excellence Award', description: 'Industry-leading security practices', organization: 'CSO 50 Awards', year: 2024, imageUrl: awardsNexusTech },
+    { id: 'aw1', title: 'Best Cloud Platform 2025', description: 'Recognized for enterprise reliability', organization: 'Cloud Computing Awards', year: 2025, imageUrl: awardNexus1 },
+    { id: 'aw2', title: 'Developer Choice Award', description: 'Most developer-friendly cloud platform', organization: 'DevOps World', year: 2024, imageUrl: awardNexus1 },
+    { id: 'aw3', title: 'Security Excellence Award', description: 'Industry-leading security practices', organization: 'CSO 50 Awards', year: 2024, imageUrl: awardNexus1 },
   ],
   webinars: [
-    { id: 'web1', title: 'Getting Started with Nexus Cloud', description: 'Complete onboarding walkthrough', thumbnailUrl: webinarNexusTech, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-11-01' },
-    { id: 'web2', title: 'Advanced Kubernetes Management', description: 'Deep dive into container orchestration', thumbnailUrl: webinarNexusTech, status: 'upcoming', date: '2026-03-20' },
-    { id: 'web3', title: 'Security Best Practices', description: 'Zero-trust architecture implementation', thumbnailUrl: webinarNexusTech, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-09-15' },
-    { id: 'web4', title: 'Cost Optimization Workshop', description: 'Reduce cloud spend by 30%', thumbnailUrl: webinarNexusTech, status: 'upcoming', date: '2026-04-10' },
+    { id: 'web1', title: 'Getting Started with Nexus Cloud', description: 'Complete onboarding walkthrough', thumbnailUrl: webinarNexus1, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-11-01' },
+    { id: 'web2', title: 'Advanced Kubernetes Management', description: 'Deep dive into container orchestration', thumbnailUrl: webinarNexus2, status: 'upcoming', date: '2026-03-20' },
+    { id: 'web3', title: 'Security Best Practices', description: 'Zero-trust architecture implementation', thumbnailUrl: webinarNexus1, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-09-15' },
+    { id: 'web4', title: 'Cost Optimization Workshop', description: 'Reduce cloud spend by 30%', thumbnailUrl: webinarNexus2, status: 'upcoming', date: '2026-04-10' },
   ],
   templateSpecs: [
     { 
@@ -1198,18 +1217,18 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
     blur: 80,
   },
   caseStudies: [
-    { id: 'cs1', title: 'Spa Partnership Success', description: 'How we became the exclusive oil supplier for 50+ luxury spas', previewUrl: collateralBloomBrochure },
-    { id: 'cs2', title: 'Retail Expansion', description: 'From local markets to 500+ retail locations nationwide', previewUrl: collateralBloomBrochure },
+    { id: 'cs1', title: 'Spa Partnership Success', description: 'How we became the exclusive oil supplier for 50+ luxury spas', previewUrl: casestudyBloom1 },
+    { id: 'cs2', title: 'Retail Expansion', description: 'From local markets to 500+ retail locations nationwide', previewUrl: casestudyBloom1 },
   ],
   brochures: [
-    { id: 'br1', title: 'Essential Oils Guide', category: 'Product', previewUrl: collateralBloomBrochure, thumbnailUrl: collateralBloomBrochure },
-    { id: 'br2', title: 'Blending Handbook', category: 'Educational', previewUrl: collateralBloomBrochure, thumbnailUrl: collateralBloomBrochure },
-    { id: 'br3', title: 'Wholesale Catalog', category: 'B2B', previewUrl: collateralBloomBrochure, thumbnailUrl: collateralBloomBrochure },
+    { id: 'br1', title: 'Essential Oils Guide', category: 'Product', previewUrl: brochureBloom1, thumbnailUrl: brochureBloom1 },
+    { id: 'br2', title: 'Blending Handbook', category: 'Educational', previewUrl: brochureBloom1, thumbnailUrl: brochureBloom1 },
+    { id: 'br3', title: 'Wholesale Catalog', category: 'B2B', previewUrl: brochureBloom1, thumbnailUrl: brochureBloom1 },
   ],
   templates: [
-    { id: 'tmp1', name: 'Product Label Template', fileType: 'ai', fileSize: '2.1 MB', thumbnailUrl: collateralBloomStationery },
-    { id: 'tmp2', name: 'Bottle Mockup', fileType: 'psd', fileSize: '45 MB', thumbnailUrl: collateralBloomStationery },
-    { id: 'tmp3', name: 'Gift Set Box Design', fileType: 'ai', fileSize: '8.5 MB', thumbnailUrl: collateralBloomStationery },
+    { id: 'tmp1', name: 'Product Label Template', fileType: 'ai', fileSize: '2.1 MB', thumbnailUrl: templateBloom1 },
+    { id: 'tmp2', name: 'Bottle Mockup', fileType: 'psd', fileSize: '45 MB', thumbnailUrl: templateBloom1 },
+    { id: 'tmp3', name: 'Gift Set Box Design', fileType: 'ai', fileSize: '8.5 MB', thumbnailUrl: templateBloom1 },
   ],
   imageAssets: [
     { id: 'ia1', name: 'Botanical Illustrations', url: iconographyBloomWellness, type: 'illustration', size: '3.5 MB', uploadedAt: '2025-12-01' },
@@ -1223,17 +1242,17 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
   ],
   displayBanners: [
     { id: 'db1', name: 'E-commerce Banner', dimensions: '1200x400', aspectRatio: 3, category: 'desktop', previewImageUrl: heroBloomOils, maxMessaging: 'Product + benefit + CTA', textLegibility: '28pt headline', safeZonePolicy: 'Center third for text' },
-    { id: 'db2', name: 'Retail Shelf Talker', dimensions: '4x6 inches', aspectRatio: 0.67, category: 'native', previewImageUrl: collateralBloomBrochure, maxMessaging: 'Product name + key benefit', textLegibility: '14pt minimum', safeZonePolicy: 'Top third for product image' },
+    { id: 'db2', name: 'Retail Shelf Talker', dimensions: '4x6 inches', aspectRatio: 0.67, category: 'native', previewImageUrl: brochureBloom1, maxMessaging: 'Product name + key benefit', textLegibility: '14pt minimum', safeZonePolicy: 'Top third for product image' },
   ],
   awards: [
-    { id: 'aw1', title: 'Best Essential Oil Brand', description: 'Top rated for purity and sustainability', organization: 'Natural Beauty Awards', year: 2025 },
-    { id: 'aw2', title: 'Eco-Packaging Award', description: 'Recognition for recyclable glass packaging initiative', organization: 'Sustainable Packaging Coalition', year: 2024 },
-    { id: 'aw3', title: 'Customer Choice Award', description: 'Voted #1 by wellness enthusiasts', organization: 'Wellness Magazine', year: 2024 },
+    { id: 'aw1', title: 'Best Essential Oil Brand', description: 'Top rated for purity and sustainability', organization: 'Natural Beauty Awards', year: 2025, imageUrl: awardBloom1 },
+    { id: 'aw2', title: 'Eco-Packaging Award', description: 'Recognition for recyclable glass packaging initiative', organization: 'Sustainable Packaging Coalition', year: 2024, imageUrl: awardBloom1 },
+    { id: 'aw3', title: 'Customer Choice Award', description: 'Voted #1 by wellness enthusiasts', organization: 'Wellness Magazine', year: 2024, imageUrl: awardBloom1 },
   ],
   webinars: [
-    { id: 'web1', title: 'Introduction to Aromatherapy', description: 'Basics of essential oil usage for beginners', thumbnailUrl: heroBloomOils, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-08-15' },
-    { id: 'web2', title: 'DIY Blending Workshop', description: 'Create your own custom essential oil blends', thumbnailUrl: heroBloomOils, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-10-01' },
-    { id: 'web3', title: 'Seasonal Wellness Rituals', description: 'Oils for every season and occasion', thumbnailUrl: heroBloomOils, status: 'upcoming', date: '2026-03-21' },
+    { id: 'web1', title: 'Introduction to Aromatherapy', description: 'Basics of essential oil usage for beginners', thumbnailUrl: webinarBloom1, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-08-15' },
+    { id: 'web2', title: 'DIY Blending Workshop', description: 'Create your own custom essential oil blends', thumbnailUrl: webinarBloom1, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-10-01' },
+    { id: 'web3', title: 'Seasonal Wellness Rituals', description: 'Oils for every season and occasion', thumbnailUrl: webinarBloom1, status: 'upcoming', date: '2026-03-21' },
   ],
   templateSpecs: [
     { 
@@ -1384,12 +1403,12 @@ export const DEMO_EVENT_SUMMIT: Omit<EventGuide, 'createdAt' | 'updatedAt'> = {
     { id: 's21', time: '2:30 PM', title: 'Farewell Networking', location: 'Expo Hall' },
   ],
   eventSpeakers: [
-    { id: 'spk1', name: 'Dr. Sarah Chen', title: 'Chief AI Officer', company: 'TechCorp Global', bio: 'Leading expert in enterprise AI implementation with 15+ years of experience. Former Google AI researcher.' },
-    { id: 'spk2', name: 'Marcus Johnson', title: 'VP of Engineering', company: 'CloudScale Inc', bio: 'Pioneer in cloud-native architecture, author of "Scaling with Kubernetes". Built systems serving 100M+ users.' },
-    { id: 'spk3', name: 'Dr. Elena Rodriguez', title: 'Head of ML Research', company: 'DataFlow Systems', bio: 'PhD in Machine Learning from Stanford. Specializes in large language models and neural network optimization.' },
-    { id: 'spk4', name: 'James Mitchell', title: 'CISO', company: 'SecureNet', bio: 'Former NSA cybersecurity advisor. Leading voice in zero-trust architecture and cloud security.' },
-    { id: 'spk5', name: 'Aisha Patel', title: 'CEO & Founder', company: 'GreenTech Innovations', bio: 'Forbes 30 Under 30. Building sustainable technology solutions for enterprise.' },
-    { id: 'spk6', name: 'David Kim', title: 'CTO', company: 'Nexus Tech', bio: 'Architected Nexus Cloud from the ground up. 20+ years in distributed systems.' },
+    { id: 'spk1', name: 'Dr. Sarah Chen', title: 'Chief AI Officer', company: 'TechCorp Global', bio: 'Leading expert in enterprise AI implementation with 15+ years of experience. Former Google AI researcher.', photoUrl: speakerSummit1 },
+    { id: 'spk2', name: 'Marcus Johnson', title: 'VP of Engineering', company: 'CloudScale Inc', bio: 'Pioneer in cloud-native architecture, author of "Scaling with Kubernetes". Built systems serving 100M+ users.', photoUrl: speakerSummit2 },
+    { id: 'spk3', name: 'Dr. Elena Rodriguez', title: 'Head of ML Research', company: 'DataFlow Systems', bio: 'PhD in Machine Learning from Stanford. Specializes in large language models and neural network optimization.', photoUrl: speakerSummit1 },
+    { id: 'spk4', name: 'James Mitchell', title: 'CISO', company: 'SecureNet', bio: 'Former NSA cybersecurity advisor. Leading voice in zero-trust architecture and cloud security.', photoUrl: speakerSummit2 },
+    { id: 'spk5', name: 'Aisha Patel', title: 'CEO & Founder', company: 'GreenTech Innovations', bio: 'Forbes 30 Under 30. Building sustainable technology solutions for enterprise.', photoUrl: speakerSummit1 },
+    { id: 'spk6', name: 'David Kim', title: 'CTO', company: 'Nexus Tech', bio: 'Architected Nexus Cloud from the ground up. 20+ years in distributed systems.', photoUrl: speakerSummit2 },
   ],
   eventSponsors: [
     { id: 'sp1', name: 'TechCorp Global', tier: 'platinum', logoUrl: '/images/demos/logo-nexus-tech.png', websiteUrl: 'https://techcorp.com', description: 'Title Sponsor' },
@@ -1406,10 +1425,10 @@ export const DEMO_EVENT_SUMMIT: Omit<EventGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'eh3', year: 2023, eventName: 'Global Innovation Summit 2023', location: 'New York, NY', venue: 'Javits Center', attendees: 2800, highlights: 'Inaugural summit, sold out in 48 hours, 30+ sponsors' },
   ],
   eventVideos: [
-    { id: 'ev1', title: 'GIS 2026 Official Teaser', url: 'https://youtube.com/watch?v=example', type: 'teaser', platform: 'youtube', description: '60-second event preview with keynote highlights' },
-    { id: 'ev2', title: 'GIS 2025 Highlights', url: 'https://youtube.com/watch?v=example2', type: 'recap', platform: 'youtube', description: '5-minute recap of the Austin summit', year: 2025 },
-    { id: 'ev3', title: 'Speaker Announcement', url: 'https://youtube.com/watch?v=example3', type: 'promo', platform: 'youtube', description: 'Meet our keynote speakers' },
-    { id: 'ev4', title: 'Venue Tour', url: 'https://youtube.com/watch?v=example4', type: 'promo', platform: 'youtube', description: 'Virtual walkthrough of Moscone Center' },
+    { id: 'ev1', title: 'GIS 2026 Official Teaser', url: 'https://youtube.com/watch?v=example', type: 'teaser', platform: 'youtube', description: '60-second event preview with keynote highlights', thumbnailUrl: videoSummit1 },
+    { id: 'ev2', title: 'GIS 2025 Highlights', url: 'https://youtube.com/watch?v=example2', type: 'recap', platform: 'youtube', description: '5-minute recap of the Austin summit', year: 2025, thumbnailUrl: videoSummit1 },
+    { id: 'ev3', title: 'Speaker Announcement', url: 'https://youtube.com/watch?v=example3', type: 'promo', platform: 'youtube', description: 'Meet our keynote speakers', thumbnailUrl: videoSummit1 },
+    { id: 'ev4', title: 'Venue Tour', url: 'https://youtube.com/watch?v=example4', type: 'promo', platform: 'youtube', description: 'Virtual walkthrough of Moscone Center', thumbnailUrl: videoSummit1 },
   ],
   colors: [
     { id: 'ec1', name: 'Summit Blue', hex: '#0066FF', rgb: 'rgb(0, 102, 255)', usage: 'Primary event color', role: 'primary', pantone: 'PMS 2728 C' },
