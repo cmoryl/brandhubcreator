@@ -10,6 +10,7 @@ import { GlobalLinkUniverseSection } from '@/components/brand/GlobalLinkUniverse
 import { normalizeLinkedGuides } from '@/lib/guideNormalization';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface LinkedGuide {
   id: string;
@@ -92,7 +93,7 @@ const GlobalLinkUniversePage: React.FC = () => {
             GlobalLink Universe
           </h1>
           
-          <div className="w-24" /> {/* Spacer for centering */}
+          <ThemeToggle />
         </div>
       </header>
 
