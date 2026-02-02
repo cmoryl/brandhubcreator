@@ -63,6 +63,13 @@ import cardNexusCloud from '@/assets/demos/card-nexus-cloud.jpg';
 import cardInnovationSummit from '@/assets/demos/card-innovation-summit.jpg';
 import cardBloomWellness from '@/assets/demos/card-bloom-wellness.jpg';
 import cardBloomOils from '@/assets/demos/card-bloom-oils.jpg';
+import cardPulseMedia from '@/assets/demos/card-pulse-media.jpg';
+import cardPulseStream from '@/assets/demos/card-pulse-stream.jpg';
+import cardPulseLive from '@/assets/demos/card-pulse-live.jpg';
+import cardHorizonFinance from '@/assets/demos/card-horizon-finance.jpg';
+import cardHorizonInvest from '@/assets/demos/card-horizon-invest.jpg';
+import cardFinanceSummit from '@/assets/demos/card-finance-summit.jpg';
+import cardBloomRetreat from '@/assets/demos/card-bloom-retreat.jpg';
 
 // Default demo page settings with animated backgrounds and full-width hero
 const DEMO_PAGE_SETTINGS_TECH: BrandPageSettings = {
@@ -1327,17 +1334,24 @@ export interface OrbitDemoEntity {
 }
 
 export const ORBIT_DEMO_ENTITIES: OrbitDemoEntity[] = [
-  // Brands (inner ring) - only those with full demo guides
+  // Brands (inner ring)
   { id: 'demo-brandhub', name: 'BrandHub', slug: 'brandhub', type: 'brand', color: '#0ea5e9' },
   { id: 'demo-nexus-tech', name: 'Nexus Tech', slug: 'demo-nexus-tech', type: 'brand', color: '#0066FF' },
   { id: 'demo-bloom-wellness', name: 'Bloom Wellness', slug: 'demo-bloom-wellness', type: 'brand', color: '#10b981' },
+  { id: 'demo-pulse-media', name: 'Pulse Media', slug: 'demo-pulse-media', type: 'brand', color: '#ef4444' },
+  { id: 'demo-horizon-finance', name: 'Horizon Finance', slug: 'demo-horizon-finance', type: 'brand', color: '#8b5cf6' },
   
-  // Products (middle ring) - only those with full demo guides
+  // Products (middle ring)
   { id: 'demo-nexus-cloud', name: 'Nexus Cloud', slug: 'demo-nexus-cloud', type: 'product', parentBrandId: 'demo-nexus-tech', color: '#38bdf8' },
   { id: 'demo-bloom-oils', name: 'Bloom Oils', slug: 'demo-bloom-oils', type: 'product', parentBrandId: 'demo-bloom-wellness', color: '#d946ef' },
+  { id: 'demo-pulse-stream', name: 'Pulse Stream', slug: 'demo-pulse-stream', type: 'product', parentBrandId: 'demo-pulse-media', color: '#f97316' },
+  { id: 'demo-horizon-invest', name: 'Horizon Invest', slug: 'demo-horizon-invest', type: 'product', parentBrandId: 'demo-horizon-finance', color: '#a855f7' },
   
-  // Events (outer ring) - only those with full demo guides
+  // Events (outer ring)
   { id: 'demo-innovation-summit', name: 'Innovation Summit', slug: 'demo-innovation-summit', type: 'event', parentBrandId: 'demo-nexus-tech', color: '#f59e0b' },
+  { id: 'demo-pulse-live', name: 'Pulse Live Festival', slug: 'demo-pulse-live', type: 'event', parentBrandId: 'demo-pulse-media', color: '#ec4899' },
+  { id: 'demo-finance-summit', name: 'Finance Summit 2026', slug: 'demo-finance-summit', type: 'event', parentBrandId: 'demo-horizon-finance', color: '#6366f1' },
+  { id: 'demo-bloom-retreat', name: 'Bloom Wellness Retreat', slug: 'demo-bloom-retreat', type: 'event', parentBrandId: 'demo-bloom-wellness', color: '#14b8a6' },
 ];
 
 // Helper to get entities by type for orbit
@@ -1350,9 +1364,16 @@ export const DEMO_GRADIENTS: Record<string, string> = {
   'demo-brandhub': 'from-cyan-500 via-blue-500 to-teal-400',
   'demo-nexus-tech': 'from-blue-500 via-cyan-500 to-blue-600',
   'demo-bloom-wellness': 'from-green-400 via-emerald-500 to-teal-500',
+  'demo-pulse-media': 'from-red-500 via-orange-500 to-amber-500',
+  'demo-horizon-finance': 'from-violet-500 via-purple-500 to-indigo-500',
   'demo-nexus-cloud': 'from-blue-400 via-teal-500 to-cyan-500',
   'demo-bloom-oils': 'from-purple-400 via-pink-400 to-amber-400',
+  'demo-pulse-stream': 'from-orange-500 via-red-500 to-pink-500',
+  'demo-horizon-invest': 'from-purple-500 via-violet-500 to-blue-500',
   'demo-innovation-summit': 'from-violet-500 via-purple-500 to-fuchsia-500',
+  'demo-pulse-live': 'from-pink-500 via-rose-500 to-red-500',
+  'demo-finance-summit': 'from-indigo-500 via-blue-500 to-cyan-500',
+  'demo-bloom-retreat': 'from-teal-400 via-emerald-500 to-green-500',
 };
 
 // Industry labels for display
@@ -1360,9 +1381,16 @@ export const DEMO_INDUSTRIES: Record<string, string> = {
   'demo-brandhub': 'Brand Platform',
   'demo-nexus-tech': 'Technology',
   'demo-bloom-wellness': 'Wellness',
+  'demo-pulse-media': 'Media & Entertainment',
+  'demo-horizon-finance': 'Financial Services',
   'demo-nexus-cloud': 'Cloud Platform',
   'demo-bloom-oils': 'Consumer Products',
+  'demo-pulse-stream': 'Streaming Platform',
+  'demo-horizon-invest': 'Investment Platform',
   'demo-innovation-summit': 'Conference',
+  'demo-pulse-live': 'Music Festival',
+  'demo-finance-summit': 'Finance Conference',
+  'demo-bloom-retreat': 'Wellness Retreat',
 };
 
 // Card imagery for landing page showcase (hyper-realistic AI-generated)
@@ -1370,7 +1398,14 @@ export const DEMO_CARD_IMAGES: Record<string, string> = {
   'demo-brandhub': cardBrandHub,
   'demo-nexus-tech': cardNexusTech,
   'demo-bloom-wellness': cardBloomWellness,
+  'demo-pulse-media': cardPulseMedia,
+  'demo-horizon-finance': cardHorizonFinance,
   'demo-nexus-cloud': cardNexusCloud,
   'demo-bloom-oils': cardBloomOils,
+  'demo-pulse-stream': cardPulseStream,
+  'demo-horizon-invest': cardHorizonInvest,
   'demo-innovation-summit': cardInnovationSummit,
+  'demo-pulse-live': cardPulseLive,
+  'demo-finance-summit': cardFinanceSummit,
+  'demo-bloom-retreat': cardBloomRetreat,
 };
