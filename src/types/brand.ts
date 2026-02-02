@@ -56,6 +56,12 @@ export interface BrandHero {
   taglineHoverEffect?: 'none' | 'glow-pulse' | 'letter-dance' | 'color-shift' | 'underline-grow';
   /** Tagline environmental effect */
   taglineEnvironment?: 'none' | 'shimmer' | 'particle-dust' | 'aurora' | 'glitch';
+  /** Overlay darkness intensity (0-100, default 50) */
+  overlayIntensity?: number;
+  /** Overlay gradient preset */
+  overlayGradient?: 'default' | 'radial-dark' | 'top-fade' | 'vignette' | 'brand-tint' | 'none';
+  /** Parallax effect intensity (0 = disabled, 1-3 = intensity levels) */
+  parallaxIntensity?: 0 | 1 | 2 | 3;
 }
 
 // TAGLINE - Corporate Tagline
