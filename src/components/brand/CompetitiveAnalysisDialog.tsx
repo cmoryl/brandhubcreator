@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, Plus, X, Loader2, Sparkles, BarChart3, Target, Lightbulb, FileText, Users, AlertTriangle, CheckCircle, Download } from 'lucide-react';
+import { TrendingUp, Plus, X, Loader2, Sparkles, BarChart3, Target, Lightbulb, FileText, Users, AlertTriangle, CheckCircle, Download, Wand2, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import { useCompetitiveAnalysis } from '@/hooks/useCompetitiveAnalysis';
 import { ScoreGauge } from '@/components/admin/competitive-analysis/ScoreGauge';
 import { PersonalityMatrixChart } from '@/components/admin/competitive-analysis/PersonalityMatrixChart';
@@ -21,8 +23,16 @@ import { StrengthsWeaknessesMatrix } from '@/components/admin/competitive-analys
 import { ActionPlanTimeline } from '@/components/admin/competitive-analysis/ActionPlanTimeline';
 import { DesignPriorityTable } from '@/components/admin/competitive-analysis/DesignPriorityTable';
 import { exportCompetitiveAnalysisPdf } from '@/lib/exportCompetitiveAnalysisPdf';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { EntityType, CompetitiveAnalysisReportData } from '@/types/competitiveAnalysis';
+
+interface DiscoveredCompetitor {
+  name: string;
+  reason: string;
+  type: 'direct' | 'indirect' | 'emerging';
+  selected: boolean;
+}
 
 interface CompetitiveAnalysisDialogProps {
   open: boolean;
@@ -45,6 +55,13 @@ export function CompetitiveAnalysisDialog({
   const [newCompetitor, setNewCompetitor] = useState('');
   const [activeTab, setActiveTab] = useState('generate');
   const [isExporting, setIsExporting] = useState(false);
+  
+  // AI Discovery state
+  const [isDiscovering, setIsDiscovering] = useState(false);
+  const [discoveredCompetitors, setDiscoveredCompetitors] = useState<DiscoveredCompetitor[]>([]);
+  const [industryHint, setIndustryHint] = useState('');
+  const [additionalContext, setAdditionalContext] = useState('');
+  const [showDiscoveryPanel, setShowDiscoveryPanel] = useState(false);
 
   const {
     latestReport,
@@ -70,6 +87,66 @@ export function CompetitiveAnalysisDialog({
     }
   };
 
+  const handleDiscoverCompetitors = async () => {
+    setIsDiscovering(true);
+    setDiscoveredCompetitors([]);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('discover-competitors', {
+        body: {
+          entityType,
+          entityId,
+          entityName,
+          industry: industryHint || undefined,
+          additionalContext: additionalContext || undefined,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      if (data?.competitors && Array.isArray(data.competitors)) {
+        setDiscoveredCompetitors(
+          data.competitors.map((c: any) => ({
+            ...c,
+            selected: true, // Pre-select all discovered competitors
+          }))
+        );
+        toast.success(`Found ${data.competitors.length} potential competitors`);
+      }
+    } catch (error) {
+      console.error('Error discovering competitors:', error);
+      toast.error('Failed to discover competitors. Please try again.');
+    } finally {
+      setIsDiscovering(false);
+    }
+  };
+
+  const handleToggleDiscoveredCompetitor = (index: number) => {
+    setDiscoveredCompetitors((prev) =>
+      prev.map((c, i) => (i === index ? { ...c, selected: !c.selected } : c))
+    );
+  };
+
+  const handleAddSelectedCompetitors = () => {
+    const selected = discoveredCompetitors
+      .filter((c) => c.selected)
+      .map((c) => c.name)
+      .filter((name) => !competitors.includes(name));
+
+    const newList = [...competitors, ...selected].slice(0, 10);
+    setCompetitors(newList);
+    setShowDiscoveryPanel(false);
+    setDiscoveredCompetitors([]);
+    toast.success(`Added ${selected.length} competitors`);
+  };
+
   const handleExportPdf = async () => {
     if (!reportData) return;
     
@@ -92,6 +169,19 @@ export function CompetitiveAnalysisDialog({
   };
 
   const reportData = latestReport?.report_data as CompetitiveAnalysisReportData | undefined;
+
+  const getCompetitorTypeBadge = (type: string) => {
+    switch (type) {
+      case 'direct':
+        return <Badge variant="destructive" className="text-xs">Direct</Badge>;
+      case 'indirect':
+        return <Badge variant="secondary" className="text-xs">Indirect</Badge>;
+      case 'emerging':
+        return <Badge className="text-xs bg-orange-500 hover:bg-orange-600">Emerging</Badge>;
+      default:
+        return null;
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -120,12 +210,159 @@ export function CompetitiveAnalysisDialog({
 
           <TabsContent value="generate" className="flex-1 overflow-auto mt-4">
             <div className="space-y-6">
+              {/* AI Competitor Discovery Section */}
+              <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Wand2 className="w-5 h-5 text-primary" />
+                    AI Competitor Discovery
+                  </CardTitle>
+                  <CardDescription>
+                    Let AI analyze your brand and suggest relevant competitors
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {!showDiscoveryPanel ? (
+                    <Button
+                      onClick={() => setShowDiscoveryPanel(true)}
+                      variant="outline"
+                      className="w-full gap-2 border-primary/30 hover:bg-primary/10"
+                    >
+                      <Search className="w-4 h-4" />
+                      Discover Competitors with AI
+                    </Button>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                          <Label htmlFor="industry" className="text-sm">
+                            Industry (optional)
+                          </Label>
+                          <Input
+                            id="industry"
+                            value={industryHint}
+                            onChange={(e) => setIndustryHint(e.target.value)}
+                            placeholder="e.g., Translation Services, SaaS"
+                            className="mt-1.5"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="context" className="text-sm">
+                            Additional Context (optional)
+                          </Label>
+                          <Textarea
+                            id="context"
+                            value={additionalContext}
+                            onChange={(e) => setAdditionalContext(e.target.value)}
+                            placeholder="e.g., Focus on enterprise market, B2B only..."
+                            className="mt-1.5 min-h-[38px] resize-none"
+                            rows={1}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleDiscoverCompetitors}
+                          disabled={isDiscovering}
+                          className="flex-1 gap-2"
+                        >
+                          {isDiscovering ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Analyzing...
+                            </>
+                          ) : (
+                            <>
+                              <Wand2 className="w-4 h-4" />
+                              Find Competitors
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            setShowDiscoveryPanel(false);
+                            setDiscoveredCompetitors([]);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+
+                      {/* Discovered Competitors Results */}
+                      {discoveredCompetitors.length > 0 && (
+                        <div className="space-y-3 pt-2">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm font-medium">
+                              Select competitors to add ({discoveredCompetitors.filter(c => c.selected).length} selected)
+                            </Label>
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="h-auto p-0 text-xs"
+                              onClick={() => {
+                                const allSelected = discoveredCompetitors.every(c => c.selected);
+                                setDiscoveredCompetitors(prev => 
+                                  prev.map(c => ({ ...c, selected: !allSelected }))
+                                );
+                              }}
+                            >
+                              {discoveredCompetitors.every(c => c.selected) ? 'Deselect All' : 'Select All'}
+                            </Button>
+                          </div>
+                          
+                          <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                            {discoveredCompetitors.map((competitor, index) => (
+                              <div
+                                key={index}
+                                className={`flex items-start gap-3 p-3 rounded-lg border transition-colors cursor-pointer ${
+                                  competitor.selected
+                                    ? 'bg-primary/5 border-primary/30'
+                                    : 'bg-muted/30 border-transparent hover:border-muted'
+                                }`}
+                                onClick={() => handleToggleDiscoveredCompetitor(index)}
+                              >
+                                <Checkbox
+                                  checked={competitor.selected}
+                                  onCheckedChange={() => handleToggleDiscoveredCompetitor(index)}
+                                  className="mt-0.5"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-medium text-sm">{competitor.name}</span>
+                                    {getCompetitorTypeBadge(competitor.type)}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                    {competitor.reason}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          <Button
+                            onClick={handleAddSelectedCompetitors}
+                            disabled={!discoveredCompetitors.some(c => c.selected)}
+                            className="w-full gap-2"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Add {discoveredCompetitors.filter(c => c.selected).length} Competitors
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Manual Competitor Entry */}
               <div>
                 <Label htmlFor="competitors" className="text-base font-medium">
-                  Add Competitors (up to 10)
+                  Competitors ({competitors.length}/10)
                 </Label>
                 <p className="text-sm text-muted-foreground mt-1 mb-3">
-                  Enter the names of competitors you want to compare against
+                  Add competitors manually or use AI discovery above
                 </p>
                 
                 <div className="flex gap-2">
