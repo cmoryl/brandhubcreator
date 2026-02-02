@@ -146,6 +146,8 @@ interface FullBrandPageProps {
   heroFullWidth?: boolean;
   /** Callback to open the Intelligence panel from the hero */
   onOpenIntelligence?: () => void;
+  /** Entity type for storage uploads */
+  entityType?: 'brand' | 'product' | 'event';
 }
 
 export const FullBrandPage = ({ 
@@ -161,6 +163,7 @@ export const FullBrandPage = ({
   canEdit = false,
   heroFullWidth = false,
   onOpenIntelligence,
+  entityType = 'brand',
 }: FullBrandPageProps) => {
   const sectionRefs = useRef<Map<SectionId, HTMLDivElement>>(new Map());
 
@@ -255,7 +258,7 @@ export const FullBrandPage = ({
       case 'bythenumbers': return <ByTheNumbersSection statistics={brand.statistics || []} onStatisticsChange={editHandler((statistics) => onBrandUpdate({ statistics }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} infographicLayout={brand.infographicLayout || 'infographic'} onLayoutChange={canEdit ? (infographicLayout: InfographicLayout) => onBrandUpdate({ infographicLayout }) : undefined} brandColors={brand.colors || []} />;
       case 'services': return <ServicesSection services={brand.services || []} onServicesChange={editHandler((services) => onBrandUpdate({ services }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'revenue': return <RevenueChartSection revenueData={brand.revenueData} onRevenueDataChange={editHandler((revenueData) => onBrandUpdate({ revenueData }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} chartTheme={brand.chartTheme} onChartThemeChange={editHandler((chartTheme) => onBrandUpdate({ chartTheme }))} brandColors={brand.colors || []} />;
-      case 'awards': return <AwardsSection awards={brand.awards || []} onUpdate={editHandler((awards) => onBrandUpdate({ awards }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'awards': return <AwardsSection awards={brand.awards || []} onUpdate={editHandler((awards) => onBrandUpdate({ awards }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityType={entityType} entityId={brandId} />;
       case 'webinars': return <WebinarSeriesSection webinars={brand.webinars || []} onWebinarsChange={editHandler((webinars) => onBrandUpdate({ webinars }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'logos': return <LogoSection logos={brand.logos} onLogosChange={editHandler((logos) => onBrandUpdate({ logos }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={editHandler((brandIcons) => onBrandUpdate({ brandIcons }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;

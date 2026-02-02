@@ -35,7 +35,8 @@ export const useStorageUpload = ({ entityType, entityId }: UseStorageUploadOptio
    */
   const uploadFile = useCallback(async (
     file: File,
-    fileType: 'hero' | 'logo' | 'cover' | 'asset'
+    fileType: 'hero' | 'logo' | 'cover' | 'asset' | 'award',
+    customFileName?: string
   ): Promise<UploadResult | null> => {
     if (!organization?.id) {
       toast.error('Organization not found. Please try again.');
@@ -54,7 +55,9 @@ export const useStorageUpload = ({ entityType, entityId }: UseStorageUploadOptio
       // Create a unique filename with timestamp to avoid cache issues
       const timestamp = Date.now();
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileName = `${fileType}-${timestamp}.${fileExt}`;
+      const fileName = customFileName 
+        ? `${customFileName}-${timestamp}.${fileExt}`
+        : `${fileType}-${timestamp}.${fileExt}`;
       
       // Path structure: orgId/entityType/entityId/fileName
       const filePath = `${organization.id}/${entityType}s/${entityId}/${fileName}`;
