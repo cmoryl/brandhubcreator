@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, Building2, Package, Calendar, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,8 +28,8 @@ export default function DemoGuideViewer() {
 
   const tourSteps = getTourSteps(type || 'brand');
 
-  // Find the demo guide based on type
-  const demoGuide = (() => {
+  // Find the initial demo guide based on type
+  const initialDemoGuide = useMemo(() => {
     if (type === 'brand') {
       return DEMO_BRANDS.find(b => b.slug === slug);
     } else if (type === 'product') {
@@ -38,10 +38,31 @@ export default function DemoGuideViewer() {
       return DEMO_EVENTS.find(e => e.slug === slug);
     }
     return undefined;
-  })();
+  }, [type, slug]);
+
+  // Local state for demo guide data (allows editing without persistence)
+  // Local state for demo guide data (allows editing without persistence)
+  const [demoGuideData, setDemoGuideData] = useState<typeof initialDemoGuide>(initialDemoGuide);
+
+  // Reset data when switching demos
+  useEffect(() => {
+    setDemoGuideData(initialDemoGuide);
+  }, [initialDemoGuide]);
+
+  // Use demoGuideData for rendering (aliased as demoGuide for compatibility)
+  const demoGuide = demoGuideData;
 
   const sectionOrder = (demoGuide?.sectionOrder || []) as SectionId[];
   const isEvent = type === 'event';
+
+  // Handle updates to the demo guide (local only, not persisted)
+  const handleBrandUpdate = useCallback((updates: Partial<BrandGuide | ProductGuide>) => {
+    setDemoGuideData(prev => prev ? { ...prev, ...updates } as typeof prev : prev);
+  }, []);
+
+  const handleEventUpdate = useCallback((updates: Partial<EventGuide>) => {
+    setDemoGuideData(prev => prev ? { ...prev, ...updates } as typeof prev : prev);
+  }, []);
 
   const handleSectionSelect = useCallback((sectionId: SectionId) => {
     setScrollToSection(sectionId);
@@ -163,11 +184,12 @@ export default function DemoGuideViewer() {
           <FullEventPage
             event={fullGuide as EventGuide}
             eventId={demoGuide.id}
+            onEventUpdate={handleEventUpdate}
             sectionOrder={(demoGuide.sectionOrder || []) as EventSectionId[]}
             hiddenSections={[]}
-            isAdmin={false}
+            isAdmin={true}
             heroFullWidth={true}
-            canEdit={false}
+            canEdit={true}
             scrollToSection={scrollToEventSection}
             onSectionVisible={handleEventSectionVisible}
           />
@@ -175,14 +197,14 @@ export default function DemoGuideViewer() {
           <FullBrandPage
             brand={fullGuide as BrandGuide | ProductGuide}
             brandId={demoGuide.id}
-            onBrandUpdate={() => {}} // No-op for demo
+            onBrandUpdate={handleBrandUpdate}
             sectionOrder={sectionOrder}
             scrollToSection={scrollToSection}
             onSectionVisible={handleSectionVisible}
             hiddenSections={[]}
-            isAdmin={false}
+            isAdmin={true}
             heroFullWidth={true}
-            canEdit={false}
+            canEdit={true}
           />
         )}
       </div>
