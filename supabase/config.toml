@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.competitive-analysis]
 verify_jwt = false
+
+[functions.discover-competitors]
+verify_jwt = false
