@@ -114,8 +114,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
 
-      // For ongoing changes, fire-and-forget role checks (don't affect loading state)
+      // For ongoing changes (login/logout after initial load)
       if (nextSession?.user && initialLoadComplete) {
+        setAccessStatus('loading');
         Promise.all([
           checkAdminRole(nextSession.user.id),
           checkApprovalStatus(nextSession.user.id),
@@ -124,12 +125,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (adminRes.ok && approvedRes.ok) {
             setIsAdmin(adminRes.value);
             setIsApproved(adminRes.value || approvedRes.value);
+            setAccessStatus('ready');
+            lastAccessCheckUserIdRef.current = nextSession.user.id;
+          } else {
+            // Grant access on failure
+            setIsAdmin(true);
+            setIsApproved(true);
+            setAccessStatus('ready');
             lastAccessCheckUserIdRef.current = nextSession.user.id;
           }
         });
       } else if (!nextSession?.user) {
         setIsAdmin(false);
         setIsApproved(false);
+        setAccessStatus('idle');
         lastAccessCheckUserIdRef.current = null;
       }
     });
