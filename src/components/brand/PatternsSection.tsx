@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { X, Pencil, Upload, Download, Package, Maximize2, Sparkles, Loader2, FolderOpen, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Pencil, Upload, Download, Package, Maximize2, Sparkles, Loader2, FolderOpen } from 'lucide-react';
 import { BrandPattern, BrandColor, LayoutPreset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PatternPreviewModal } from './PatternPreviewModal';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { DesignElementsSection } from './DesignElementsSection';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+
 import {
   Select,
   SelectContent,
@@ -58,7 +58,7 @@ export const PatternsSection = ({
   const [previewPattern, setPreviewPattern] = useState<BrandPattern | null>(null);
   const [downloadResolution, setDownloadResolution] = useState('1024');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showDesignElements, setShowDesignElements] = useState(false);
+  
   const { gridClass } = useLayoutClasses(layout);
 
   const generateAIPatterns = async () => {
@@ -406,28 +406,16 @@ export const PatternsSection = ({
         </div>
       )}
 
-      {/* Design Elements Collapsible */}
-      <Collapsible open={showDesignElements} onOpenChange={setShowDesignElements} className="mt-8">
-        <CollapsibleTrigger asChild>
-          <Button 
-            variant="outline" 
-            className="w-full justify-between h-12 text-base font-medium"
-          >
-            <span className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              Design Elements Library
-            </span>
-            {showDesignElements ? (
-              <ChevronUp className="h-5 w-5" />
-            ) : (
-              <ChevronDown className="h-5 w-5" />
-            )}
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="mt-4 p-4 bg-muted/30 rounded-xl border border-border">
+      {/* Design Elements Library - Always Visible */}
+      <div className="mt-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold">Design Elements Library</h3>
+        </div>
+        <div className="p-4 bg-muted/30 rounded-xl border border-border">
           <DesignElementsSection canEdit={Boolean(onPatternsChange)} />
-        </CollapsibleContent>
-      </Collapsible>
+        </div>
+      </div>
 
       {/* Pattern Preview Modal */}
       <PatternPreviewModal
