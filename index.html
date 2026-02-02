@@ -32,9 +32,10 @@
     
     <!-- Note: Demo guides are fetched via Supabase client with proper auth headers -->
     
-    <!-- Fonts with non-blocking load -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"></noscript>
+    <!-- Fonts with non-blocking load using media print trick -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
     <meta property="og:title" content="BrandHub">
   <meta name="twitter:title" content="BrandHub">
   <meta property="og:description" content="Create and manage comprehensive brand guides">

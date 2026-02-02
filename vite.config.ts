@@ -15,17 +15,39 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       sourcemap: true,
+      cssCodeSplit: true, // Split CSS for better caching
       modulePreload: {
         polyfill: true, // Enables modulepreload polyfill for better browser support
       },
       rollupOptions: {
         output: {
           // Reduce chunk fragmentation by grouping small modules
-          manualChunks: {
-            // Group vendor libraries together to reduce request chain depth
-            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-            'vendor-supabase': ['@supabase/supabase-js'],
-            'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs', '@radix-ui/react-accordion'],
+          manualChunks: (id) => {
+            // Core React libraries - loaded first
+            if (id.includes('node_modules/react') || 
+                id.includes('node_modules/react-dom') || 
+                id.includes('node_modules/react-router')) {
+              return 'vendor-react';
+            }
+            // Supabase - defer loading
+            if (id.includes('node_modules/@supabase')) {
+              return 'vendor-supabase';
+            }
+            // UI components - commonly used
+            if (id.includes('node_modules/@radix-ui')) {
+              return 'vendor-ui';
+            }
+            // Animation libraries - can be deferred
+            if (id.includes('node_modules/framer-motion') || 
+                id.includes('node_modules/motion')) {
+              return 'vendor-animation';
+            }
+            // Utility libraries
+            if (id.includes('node_modules/date-fns') ||
+                id.includes('node_modules/clsx') ||
+                id.includes('node_modules/tailwind-merge')) {
+              return 'vendor-utils';
+            }
           },
         },
       },
