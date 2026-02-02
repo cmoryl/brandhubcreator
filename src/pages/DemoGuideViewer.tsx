@@ -41,7 +41,6 @@ export default function DemoGuideViewer() {
   }, [type, slug]);
 
   // Local state for demo guide data (allows editing without persistence)
-  // Local state for demo guide data (allows editing without persistence)
   const [demoGuideData, setDemoGuideData] = useState<typeof initialDemoGuide>(initialDemoGuide);
 
   // Reset data when switching demos
