@@ -10,12 +10,12 @@ import brandHubPattern1 from '@/assets/brandhub-pattern-1.png';
 import brandHubPattern2 from '@/assets/brandhub-pattern-2.png';
 import brandHubPattern3 from '@/assets/brandhub-pattern-3.png';
 
-// BrandHub page settings - bold, modern tech aesthetic
+// BrandHub page settings - animated wave lines for modern tech aesthetic
 const BRANDHUB_PAGE_SETTINGS: BrandPageSettings = {
-  backgroundType: 'gradient',
+  backgroundType: 'animated-wave-lines',
   backgroundImage: '',
   backgroundColor: '',
-  accentColor: '',
+  accentColor: 'hsl(199, 89%, 48%)',
   animationTintColor: 'hsl(199, 89%, 48%)',
   animationSpeed: 'medium',
   showHeader: true,
@@ -24,8 +24,8 @@ const BRANDHUB_PAGE_SETTINGS: BrandPageSettings = {
   sectionSpacing: 'spacious',
   heroFullWidth: true,
   defaultTheme: 'dark',
-  customPrimaryColor: '',
-  customSecondaryColor: '',
+  customPrimaryColor: 'hsl(199, 89%, 48%)',
+  customSecondaryColor: 'hsl(199, 89%, 58%)',
 };
 
 // BrandHub Demo Brand
@@ -36,12 +36,12 @@ export const DEMO_BRAND_BRANDHUB: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = 
   isFavorite: true,
   isPublic: true,
   sectionOrder: [
-    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 
+    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'awards', 'webinars',
     'logos', 'brandicon', 'colors', 'gradients', 'patterns',
     'typography', 'textstyles', 'iconography', 'socialicons',
     'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 
     'videos', 'assets', 'imageassets', 'misuse',
-    'brochures', 'templates'
+    'casestudies', 'brochures', 'templates', 'templatespecs', 'sponsorlogos'
   ] as SectionId[],
   hiddenSections: [],
   pageSettings: BRANDHUB_PAGE_SETTINGS,
@@ -291,7 +291,7 @@ export const DEMO_BRAND_BRANDHUB: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = 
     opacity: 0.3,
     blur: 60,
   },
-  caseStudies: [],
+  
   brochures: [
     { id: 'br1', title: 'Platform Overview', category: 'Product', previewUrl: '', thumbnailUrl: '' },
     { id: 'br2', title: 'Feature Guide', category: 'Product', previewUrl: '', thumbnailUrl: '' },
@@ -319,6 +319,35 @@ export const DEMO_BRAND_BRANDHUB: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = 
     { id: 'stat4', value: '∞', suffix: '', label: 'Team Members', icon: 'Users', category: 'secondary' },
   ],
   infographicLayout: 'cards',
+  awards: [
+    { id: 'aw1', title: 'Best Brand Management Platform', description: 'Recognized for innovation in brand management', organization: 'SaaS Awards', year: 2025 },
+    { id: 'aw2', title: 'Top 10 Design Tools', description: 'Featured in the top design tools for teams', organization: 'Product Hunt', year: 2024 },
+  ],
+  webinars: [
+    { id: 'web1', title: 'Getting Started with BrandHub', description: 'Complete walkthrough of creating your first brand guide', thumbnailUrl: '', recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-10-15' },
+    { id: 'web2', title: 'Advanced Brand Management', description: 'Master organization portals and team collaboration', thumbnailUrl: '', status: 'upcoming', date: '2026-03-10' },
+  ],
+  caseStudies: [
+    { id: 'cs1', title: 'How TransPerfect Unified Global Branding', description: 'Consolidating 100+ sub-brands into one living platform', previewUrl: '' },
+  ],
+  templateSpecs: [
+    { 
+      id: 'ts1', 
+      name: 'Brand Guide Template Spec', 
+      category: 'template', 
+      previewImageUrl: '',
+      items: [
+        { id: 'spec1', number: 1, title: 'Hero Section', description: 'Full-width hero with logo and tagline', dimensions: '1920 x 600 pixels' },
+        { id: 'spec2', number: 2, title: 'Color Grid', description: '4-6 primary colors with swatches', dimensions: 'Responsive grid' },
+        { id: 'spec3', number: 3, title: 'Typography Scale', description: 'H1-H6 with body text samples', dimensions: 'Full width section' },
+      ],
+      notes: 'Use consistent section spacing and brand colors throughout.'
+    },
+  ],
+  sponsorLogos: [
+    { id: 'sp1', name: 'TransPerfect', url: '', tier: 'platinum' },
+    { id: 'sp2', name: 'Lovable', url: '', tier: 'gold' },
+  ],
 };
 
 // Platform feature highlights for the tour section

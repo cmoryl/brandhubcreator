@@ -64,22 +64,56 @@ import cardInnovationSummit from '@/assets/demos/card-innovation-summit.jpg';
 import cardBloomWellness from '@/assets/demos/card-bloom-wellness.jpg';
 import cardBloomOils from '@/assets/demos/card-bloom-oils.jpg';
 
-// Default demo page settings with full-width hero and spacious layout
-const DEMO_PAGE_SETTINGS: BrandPageSettings = {
-  backgroundType: 'inherit',
+// Default demo page settings with animated backgrounds and full-width hero
+const DEMO_PAGE_SETTINGS_TECH: BrandPageSettings = {
+  backgroundType: 'animated-data-particles',
   backgroundImage: '',
   backgroundColor: '',
-  accentColor: '',
-  animationTintColor: '',
+  accentColor: '#0066FF',
+  animationTintColor: '#0066FF',
   animationSpeed: 'medium',
   showHeader: true,
-  headerStyle: 'default',
-  contentWidth: 'wide',
+  headerStyle: 'transparent',
+  contentWidth: 'full',
   sectionSpacing: 'spacious',
   heroFullWidth: true,
-  defaultTheme: 'system',
-  customPrimaryColor: '',
-  customSecondaryColor: '',
+  defaultTheme: 'dark',
+  customPrimaryColor: '#0066FF',
+  customSecondaryColor: '#00D4FF',
+};
+
+const DEMO_PAGE_SETTINGS_WELLNESS: BrandPageSettings = {
+  backgroundType: 'animated-flow-field',
+  backgroundImage: '',
+  backgroundColor: '',
+  accentColor: '#22C55E',
+  animationTintColor: '#22C55E',
+  animationSpeed: 'slow',
+  showHeader: true,
+  headerStyle: 'transparent',
+  contentWidth: 'full',
+  sectionSpacing: 'spacious',
+  heroFullWidth: true,
+  defaultTheme: 'light',
+  customPrimaryColor: '#22C55E',
+  customSecondaryColor: '#10B981',
+};
+
+const DEMO_PAGE_SETTINGS_EVENT: BrandPageSettings = {
+  backgroundType: 'animated-aurora',
+  backgroundImage: '',
+  backgroundColor: '',
+  accentColor: '#8B5CF6',
+  animationTintColor: '#8B5CF6',
+  animationSpeed: 'medium',
+  showHeader: true,
+  headerStyle: 'transparent',
+  contentWidth: 'full',
+  sectionSpacing: 'spacious',
+  heroFullWidth: true,
+  defaultTheme: 'dark',
+  customPrimaryColor: '#8B5CF6',
+  customSecondaryColor: '#A855F7',
 };
 
 // Demo Brand 1: Nexus Tech - Modern Tech Company
@@ -95,10 +129,10 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     'typography', 'textstyles', 'iconography', 'socialicons', 
     'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 
     'videos', 'assets', 'imageassets', 'misuse',
-    'brochures', 'templates', 'templatespecs'
+    'casestudies', 'brochures', 'templates', 'templatespecs', 'products', 'events', 'sponsorlogos'
   ] as SectionId[],
   hiddenSections: [],
-  pageSettings: DEMO_PAGE_SETTINGS,
+  pageSettings: DEMO_PAGE_SETTINGS_TECH,
   hero: {
     name: 'Nexus Tech',
     tagline: 'Building tomorrow\'s digital infrastructure today',
@@ -433,6 +467,16 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
       notes: 'Standard business card size: 3.5" x 2" (88.9mm x 50.8mm)'
     },
   ],
+  linkedGuides: [
+    { id: 'lg1', guideId: 'demo-nexus-cloud', guideType: 'product', name: 'Nexus Cloud', slug: 'demo-nexus-cloud', type: 'product', coverImage: cardNexusCloud },
+    { id: 'lg2', guideId: 'demo-innovation-summit', guideType: 'event', name: 'Innovation Summit 2026', slug: 'demo-innovation-summit', type: 'event', coverImage: cardInnovationSummit },
+  ],
+  sponsorLogos: [
+    { id: 'sp1', name: 'AWS', url: '', tier: 'platinum' },
+    { id: 'sp2', name: 'Microsoft Azure', url: '', tier: 'gold' },
+    { id: 'sp3', name: 'Google Cloud', url: '', tier: 'gold' },
+    { id: 'sp4', name: 'Cloudflare', url: '', tier: 'silver' },
+  ],
 };
 
 // Demo Brand 2: Bloom Wellness - Health & Lifestyle Brand
@@ -445,13 +489,13 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   sectionOrder: [
     'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards',
     'logos', 'brandicon', 'colors', 'gradients', 'patterns',
-    'typography', 'textstyles', 'iconography',
+    'typography', 'textstyles', 'iconography', 'socialicons',
     'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 
     'videos', 'assets', 'imageassets', 'misuse',
-    'brochures', 'templates'
+    'casestudies', 'brochures', 'templates', 'products', 'sponsorlogos'
   ] as SectionId[],
   hiddenSections: [],
-  pageSettings: DEMO_PAGE_SETTINGS,
+  pageSettings: DEMO_PAGE_SETTINGS_WELLNESS,
   hero: {
     name: 'Bloom Wellness',
     tagline: 'Nurturing your journey to holistic well-being',
@@ -671,6 +715,14 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'stat4', value: '98', suffix: '%', label: 'Customer Satisfaction', icon: 'Star', category: 'primary' },
   ],
   infographicLayout: 'cards',
+  linkedGuides: [
+    { id: 'lg1', guideId: 'demo-bloom-oils', guideType: 'product', name: 'Essential Oils', slug: 'demo-bloom-oils', type: 'product', coverImage: cardBloomOils },
+  ],
+  sponsorLogos: [
+    { id: 'sp1', name: 'Whole Foods Market', url: '', tier: 'platinum' },
+    { id: 'sp2', name: 'Gaia Herbs', url: '', tier: 'gold' },
+    { id: 'sp3', name: 'Dr. Bronners', url: '', tier: 'silver' },
+  ],
 };
 
 // Demo Product: Nexus Cloud Platform
@@ -682,15 +734,15 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
   isFavorite: false,
   isPublic: true,
   sectionOrder: [
-    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 
+    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'awards', 'webinars',
     'logos', 'brandicon', 'colors', 'gradients', 'patterns', 
-    'typography', 'textstyles', 'iconography',
+    'typography', 'textstyles', 'iconography', 'socialicons',
     'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr',
     'videos', 'assets', 'imageassets', 'misuse',
-    'brochures', 'templates'
+    'casestudies', 'brochures', 'templates', 'templatespecs'
   ] as SectionId[],
   hiddenSections: [],
-  pageSettings: DEMO_PAGE_SETTINGS,
+  pageSettings: DEMO_PAGE_SETTINGS_TECH,
   hero: {
     name: 'Nexus Cloud',
     tagline: 'Enterprise cloud infrastructure that scales with you',
@@ -851,6 +903,28 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
     { id: 'stat2', value: '200', suffix: 'ms', label: 'Average Latency', icon: 'Zap', category: 'primary' },
     { id: 'stat3', value: '25', label: 'Global Regions', icon: 'Globe', category: 'secondary' },
   ],
+  awards: [
+    { id: 'aw1', title: 'Best Cloud Platform 2025', description: 'Recognized for enterprise reliability', organization: 'Cloud Computing Awards', year: 2025, imageUrl: awardsNexusTech },
+    { id: 'aw2', title: 'Developer Choice Award', description: 'Most developer-friendly cloud platform', organization: 'DevOps World', year: 2024, imageUrl: awardsNexusTech },
+  ],
+  webinars: [
+    { id: 'web1', title: 'Getting Started with Nexus Cloud', description: 'Complete onboarding walkthrough', thumbnailUrl: webinarNexusTech, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-11-01' },
+    { id: 'web2', title: 'Advanced Kubernetes Management', description: 'Deep dive into container orchestration', thumbnailUrl: webinarNexusTech, status: 'upcoming', date: '2026-03-20' },
+  ],
+  templateSpecs: [
+    { 
+      id: 'ts1', 
+      name: 'Architecture Diagram Spec', 
+      category: 'template', 
+      previewImageUrl: templatespecsNexus,
+      items: [
+        { id: 'spec1', number: 1, title: 'Service Nodes', description: 'Use rounded rectangles for services', dimensions: '120 x 80 pixels' },
+        { id: 'spec2', number: 2, title: 'Connection Lines', description: 'Use brand cyan for data flow arrows', dimensions: '2px stroke' },
+        { id: 'spec3', number: 3, title: 'Labels', description: 'Inter Medium 12pt for all labels', dimensions: 'Auto' },
+      ],
+      notes: 'Maintain consistent spacing of 40px between service nodes.'
+    },
+  ],
 };
 
 // Demo Product: Bloom Essential Oils
@@ -862,15 +936,15 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
   isFavorite: false,
   isPublic: true,
   sectionOrder: [
-    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 
+    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'awards',
     'logos', 'brandicon', 'colors', 'gradients', 'patterns', 
-    'typography', 'textstyles', 'iconography',
-    'imagery', 'social', 'website', 'signatures', 'qr',
-    'videos', 'assets', 'misuse',
+    'typography', 'textstyles', 'iconography', 'socialicons',
+    'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr',
+    'videos', 'assets', 'imageassets', 'misuse',
     'brochures', 'templates'
   ] as SectionId[],
   hiddenSections: [],
-  pageSettings: DEMO_PAGE_SETTINGS,
+  pageSettings: DEMO_PAGE_SETTINGS_WELLNESS,
   hero: {
     name: 'Bloom Essential Oils',
     tagline: 'Pure botanical essences for everyday wellness',
@@ -972,9 +1046,16 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
     fgColor: '#9575CD',
     bgColor: '#FFFFFF',
   },
-  videos: [],
-  assets: [],
-  misuse: [],
+  videos: [
+    { id: 'vid1', title: 'Oil Blending Guide', url: 'https://www.youtube.com/watch?v=example1', type: 'youtube', description: 'Learn the art of creating custom blends' },
+  ],
+  assets: [
+    { id: 'a1', name: 'Product Labels', type: 'zip', url: '', size: '1.5 MB' },
+  ],
+  misuse: [
+    { id: 'm1', url: '', description: 'Do not use Essential Oils branding on non-organic products' },
+    { id: 'm2', url: '', description: 'Do not alter the botanical illustrations' },
+  ],
   atmosphere: {
     style: 'organic',
     animate: true,
@@ -982,12 +1063,30 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
     blur: 80,
   },
   caseStudies: [],
-  brochures: [],
-  templates: [],
+  brochures: [
+    { id: 'br1', title: 'Essential Oils Guide', category: 'Product', previewUrl: collateralBloomBrochure, thumbnailUrl: collateralBloomBrochure },
+  ],
+  templates: [
+    { id: 'tmp1', name: 'Product Label Template', fileType: 'ai', fileSize: '2.1 MB', thumbnailUrl: collateralBloomStationery },
+  ],
+  imageAssets: [
+    { id: 'ia1', name: 'Botanical Illustrations', url: iconographyBloomWellness, type: 'illustration', size: '3.5 MB', uploadedAt: '2025-12-01' },
+  ],
+  socialAssets: [
+    { id: 'sa1', platform: 'Instagram', postSize: '1080x1080', storySize: '1080x1920', previewImageUrl: socialBloomInstagram, textLegibility: 'Elegant serif, 18pt minimum', directive: 'Product photography with botanical accents' },
+  ],
+  awards: [
+    { id: 'aw1', title: 'Best Essential Oil Brand', description: 'Top rated for purity and sustainability', organization: 'Natural Beauty Awards', year: 2025 },
+  ],
   services: [
     { id: 'srv1', name: 'Single Oils', description: 'Pure single-origin essential oils', icon: 'Droplet' },
     { id: 'srv2', name: 'Blends', description: 'Expertly crafted oil blends', icon: 'Sparkles' },
     { id: 'srv3', name: 'Diffusers', description: 'Premium aromatherapy diffusers', icon: 'Wind' },
+  ],
+  statistics: [
+    { id: 'stat1', value: '100', suffix: '%', label: 'Pure Oils', icon: 'Droplet', category: 'primary' },
+    { id: 'stat2', value: '30', suffix: '+', label: 'Oil Varieties', icon: 'Leaf', category: 'primary' },
+    { id: 'stat3', value: '5', label: 'Star Rating', icon: 'Star', category: 'secondary' },
   ],
 };
 
@@ -1004,7 +1103,7 @@ export const DEMO_EVENT_SUMMIT: Omit<EventGuide, 'createdAt' | 'updatedAt'> = {
     'eventsignage', 'eventbanners', 'eventdigital', 'eventvideos', 'eventwebsites', 'eventhistory'
   ] as EventSectionId[],
   hiddenSections: [],
-  pageSettings: DEMO_PAGE_SETTINGS,
+  pageSettings: DEMO_PAGE_SETTINGS_EVENT,
   hero: {
     name: 'Global Innovation Summit 2026',
     tagline: 'Where visionaries converge to shape the future of technology',
