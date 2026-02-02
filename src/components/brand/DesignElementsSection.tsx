@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Download, ChevronUp, Square, MessageCircle, Waves, Eye, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,9 +6,17 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { BrandColor } from '@/types/brand';
 
-// Design element color variants based on GlobalLink brand colors
-const COLOR_VARIANTS = [
+interface ColorVariant {
+  id: string;
+  name: string;
+  gradient: string;
+  colors: string[];
+}
+
+// Default fallback variants if no brand colors provided
+const DEFAULT_VARIANTS: ColorVariant[] = [
   { id: 'teal', name: 'Teal', gradient: 'from-teal-400 to-emerald-500', colors: ['#2dd4bf', '#10b981'] },
   { id: 'sunset', name: 'Sunset', gradient: 'from-yellow-300 via-pink-400 to-pink-500', colors: ['#fde047', '#f472b6', '#ec4899'] },
   { id: 'rainbow', name: 'Rainbow', gradient: 'from-yellow-400 via-pink-500 to-purple-600', colors: ['#facc15', '#ec4899', '#9333ea'] },
@@ -16,11 +24,86 @@ const COLOR_VARIANTS = [
   { id: 'navy', name: 'Navy', gradient: 'from-slate-700 to-slate-900', colors: ['#334155', '#0f172a'] },
 ];
 
+// Generate brand-based color variants from brand colors
+const generateBrandVariants = (brandColors: BrandColor[]): ColorVariant[] => {
+  if (!brandColors || brandColors.length === 0) return DEFAULT_VARIANTS;
+
+  const variants: ColorVariant[] = [];
+  const sortedColors = [...brandColors];
+
+  // Primary variant - uses primary color with a lighter shade
+  const primaryColor = sortedColors.find(c => c.role === 'primary') || sortedColors[0];
+  if (primaryColor) {
+    variants.push({
+      id: 'brand-primary',
+      name: primaryColor.name || 'Primary',
+      gradient: `from-[${primaryColor.hex}] to-[${adjustBrightness(primaryColor.hex, 30)}]`,
+      colors: [primaryColor.hex, adjustBrightness(primaryColor.hex, 30)],
+    });
+  }
+
+  // Secondary variant - uses secondary color or second color
+  const secondaryColor = sortedColors.find(c => c.role === 'secondary') || sortedColors[1];
+  if (secondaryColor && secondaryColor !== primaryColor) {
+    variants.push({
+      id: 'brand-secondary',
+      name: secondaryColor.name || 'Secondary',
+      gradient: `from-[${secondaryColor.hex}] to-[${adjustBrightness(secondaryColor.hex, 20)}]`,
+      colors: [secondaryColor.hex, adjustBrightness(secondaryColor.hex, 20)],
+    });
+  }
+
+  // Accent variant - uses accent color or third color
+  const accentColor = sortedColors.find(c => c.role === 'accent') || sortedColors[2];
+  if (accentColor && accentColor !== primaryColor && accentColor !== secondaryColor) {
+    variants.push({
+      id: 'brand-accent',
+      name: accentColor.name || 'Accent',
+      gradient: `from-[${accentColor.hex}] to-[${adjustBrightness(accentColor.hex, 25)}]`,
+      colors: [accentColor.hex, adjustBrightness(accentColor.hex, 25)],
+    });
+  }
+
+  // Gradient combo - primary to secondary
+  if (primaryColor && secondaryColor && primaryColor !== secondaryColor) {
+    variants.push({
+      id: 'brand-gradient',
+      name: 'Brand Gradient',
+      gradient: `from-[${primaryColor.hex}] to-[${secondaryColor.hex}]`,
+      colors: [primaryColor.hex, secondaryColor.hex],
+    });
+  }
+
+  // Multi-color variant if we have 3+ colors
+  if (sortedColors.length >= 3) {
+    const top3 = sortedColors.slice(0, 3);
+    variants.push({
+      id: 'brand-spectrum',
+      name: 'Brand Spectrum',
+      gradient: `from-[${top3[0].hex}] via-[${top3[1].hex}] to-[${top3[2].hex}]`,
+      colors: top3.map(c => c.hex),
+    });
+  }
+
+  // Ensure we have at least some variants
+  return variants.length > 0 ? variants : DEFAULT_VARIANTS;
+};
+
+// Helper to adjust color brightness
+const adjustBrightness = (hex: string, percent: number): string => {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = Math.min(255, Math.max(0, (num >> 16) + amt));
+  const G = Math.min(255, Math.max(0, (num >> 8 & 0x00FF) + amt));
+  const B = Math.min(255, Math.max(0, (num & 0x0000FF) + amt));
+  return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+};
+
 interface DesignElement {
   id: string;
   name: string;
   type: 'speech-bubble' | 'chevron' | 'frame' | 'wave';
-  variant: typeof COLOR_VARIANTS[number];
+  variant: ColorVariant;
   svg: string;
 }
 
@@ -100,11 +183,11 @@ const generateWaveSVG = (colors: string[]): string => {
 </svg>`;
 };
 
-// Generate all design elements
-const generateElements = (): DesignElement[] => {
+// Generate all design elements for given variants
+const generateElements = (variants: ColorVariant[]): DesignElement[] => {
   const elements: DesignElement[] = [];
   
-  COLOR_VARIANTS.forEach(variant => {
+  variants.forEach(variant => {
     elements.push({
       id: `speech-${variant.id}`,
       name: `Speech Bubble - ${variant.name}`,
@@ -138,15 +221,20 @@ const generateElements = (): DesignElement[] => {
   return elements;
 };
 
-const DESIGN_ELEMENTS = generateElements();
-
 interface DesignElementsSectionProps {
   canEdit?: boolean;
+  brandColors?: BrandColor[];
 }
 
-export const DesignElementsSection = ({ canEdit = false }: DesignElementsSectionProps) => {
+export const DesignElementsSection = ({ canEdit = false, brandColors }: DesignElementsSectionProps) => {
   const [selectedElement, setSelectedElement] = useState<DesignElement | null>(null);
   const [downloadedIds, setDownloadedIds] = useState<Set<string>>(new Set());
+
+  // Generate elements based on brand colors
+  const colorVariants = useMemo(() => generateBrandVariants(brandColors || []), [brandColors]);
+  const designElements = useMemo(() => generateElements(colorVariants), [colorVariants]);
+
+  const hasBrandColors = brandColors && brandColors.length > 0;
 
   const downloadAsSVG = (element: DesignElement) => {
     const blob = new Blob([element.svg], { type: 'image/svg+xml' });
@@ -190,7 +278,7 @@ export const DesignElementsSection = ({ canEdit = false }: DesignElementsSection
   };
 
   const getElementsByType = (type: DesignElement['type']) => 
-    DESIGN_ELEMENTS.filter(el => el.type === type);
+    designElements.filter(el => el.type === type);
 
   const renderElementCard = (element: DesignElement) => (
     <Card 
@@ -237,13 +325,22 @@ export const DesignElementsSection = ({ canEdit = false }: DesignElementsSection
         <div>
           <h3 className="text-lg font-semibold">Design Elements</h3>
           <p className="text-sm text-muted-foreground">
-            Downloadable brand assets in SVG and PNG formats
+            {hasBrandColors 
+              ? 'Brand-colored assets in SVG and PNG formats'
+              : 'Downloadable brand assets in SVG and PNG formats'}
           </p>
         </div>
-        <Badge variant="outline" className="gap-1">
-          <Download className="h-3 w-3" />
-          {DESIGN_ELEMENTS.length} assets
-        </Badge>
+        <div className="flex items-center gap-2">
+          {hasBrandColors && (
+            <Badge variant="secondary" className="gap-1 bg-primary/10 text-primary border-primary/20">
+              Brand Colors
+            </Badge>
+          )}
+          <Badge variant="outline" className="gap-1">
+            <Download className="h-3 w-3" />
+            {designElements.length} assets
+          </Badge>
+        </div>
       </div>
 
       <Tabs defaultValue="speech-bubble" className="w-full">

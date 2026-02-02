@@ -413,7 +413,7 @@ export const PatternsSection = ({
           <h3 className="text-lg font-semibold">Design Elements Library</h3>
         </div>
         <div className="p-4 bg-muted/30 rounded-xl border border-border">
-          <DesignElementsSection canEdit={Boolean(onPatternsChange)} />
+          <DesignElementsSection canEdit={Boolean(onPatternsChange)} brandColors={brandColors} />
         </div>
       </div>
 
