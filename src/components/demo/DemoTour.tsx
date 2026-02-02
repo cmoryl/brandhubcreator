@@ -25,7 +25,17 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
 
   const step = steps[currentStep];
 
-  const updateTargetRect = useCallback(() => {
+  const isElementInViewport = (rect: DOMRect) => {
+    const buffer = 100; // Extra buffer for tooltip space
+    return (
+      rect.top >= buffer &&
+      rect.left >= 0 &&
+      rect.bottom <= (window.innerHeight - buffer) &&
+      rect.right <= window.innerWidth
+    );
+  };
+
+  const updateTargetRect = useCallback((shouldScroll = false) => {
     if (!step?.target) return;
     
     const element = document.querySelector(step.target);
@@ -33,8 +43,14 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
       const rect = element.getBoundingClientRect();
       setTargetRect(rect);
       
-      // Scroll element into view with offset for the tooltip
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Only scroll if explicitly requested AND element is not in viewport
+      if (shouldScroll && !isElementInViewport(rect)) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Update rect after scroll animation
+        setTimeout(() => {
+          setTargetRect(element.getBoundingClientRect());
+        }, 350);
+      }
     }
   }, [step?.target]);
 
@@ -46,7 +62,7 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
 
     setIsAnimating(true);
     const timer = setTimeout(() => {
-      updateTargetRect();
+      updateTargetRect(true); // Only scroll on step change
       setIsAnimating(false);
     }, 300);
 
@@ -56,12 +72,15 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
   useEffect(() => {
     if (!isOpen) return;
     
-    window.addEventListener('resize', updateTargetRect);
-    window.addEventListener('scroll', updateTargetRect, true);
+    const handleResize = () => updateTargetRect(false);
+    const handleScroll = () => updateTargetRect(false);
+    
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll, true);
     
     return () => {
-      window.removeEventListener('resize', updateTargetRect);
-      window.removeEventListener('scroll', updateTargetRect, true);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll, true);
     };
   }, [isOpen, updateTargetRect]);
 
