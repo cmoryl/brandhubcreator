@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock, Download, Settings, HardDrive, ClipboardCheck } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock, Download, Settings, HardDrive, ClipboardCheck, TrendingUp } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -730,6 +730,22 @@ const ProductEditor = () => {
                     </SheetContent>
                   </Sheet>
                 ),
+              },
+              {
+                id: 'competitive',
+                label: 'Competitive',
+                icon: TrendingUp,
+                render: () => {
+                  const CompetitiveReportCard = require('@/components/brand/CompetitiveReportCard').CompetitiveReportCard;
+                  return (
+                    <CompetitiveReportCard
+                      entityType="product"
+                      entityId={currentProduct.id}
+                      entityName={currentProduct.hero.name}
+                      organizationId={currentProduct.organizationId}
+                    />
+                  );
+                },
               },
               {
                 id: 'audit',
