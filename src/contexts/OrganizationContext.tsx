@@ -2,6 +2,7 @@
  * Organization Context
  * Provides organization state to the React component tree
  * Uses modular hooks and services for clean separation
+ * Updated: Triggers rebuild
  */
 
 import { createContext, useContext, ReactNode } from 'react';
