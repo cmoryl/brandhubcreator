@@ -106,9 +106,19 @@ export const ImportFromUrlDialog = ({
         setExtractedData(data.branding);
         toast.success('Branding extracted successfully!');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Extraction error:', err);
-      toast.error('Failed to extract branding. Please try again.');
+      // Provide more specific error messages
+      const message = err?.message || '';
+      if (message.includes('401') || message.includes('auth') || message.includes('Authentication')) {
+        toast.error('Please log in to use this feature.');
+      } else if (message.includes('Memory') || message.includes('timeout')) {
+        toast.error('The website is too large to process. Try a simpler page.');
+      } else if (message.includes('fetch') || message.includes('network')) {
+        toast.error('Could not reach the website. Check the URL and try again.');
+      } else {
+        toast.error('Failed to extract branding. Please try again.');
+      }
     } finally {
       setIsExtracting(false);
     }
