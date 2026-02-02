@@ -32,6 +32,22 @@ import signagePullupBanner from '@/assets/demos/signage-pullup-banner.jpg';
 import bannerLinkedinEvent from '@/assets/demos/banner-linkedin-event.jpg';
 import bannerEmail from '@/assets/demos/banner-email.jpg';
 
+// Import new collateral and event assets
+import collateralNexusStationery from '@/assets/demos/collateral-nexus-stationery.jpg';
+import collateralNexusBrochure from '@/assets/demos/collateral-nexus-brochure.jpg';
+import collateralNexusCasestudy from '@/assets/demos/collateral-nexus-casestudy.jpg';
+import templateNexusPresentation from '@/assets/demos/template-nexus-presentation.jpg';
+import collateralBloomBrochure from '@/assets/demos/collateral-bloom-brochure.jpg';
+import collateralBloomStationery from '@/assets/demos/collateral-bloom-stationery.jpg';
+import signageSummitStage from '@/assets/demos/signage-summit-stage.jpg';
+import signageSummitRegistration from '@/assets/demos/signage-summit-registration.jpg';
+import signageSummitWayfinding from '@/assets/demos/signage-summit-wayfinding.jpg';
+import webinarNexusTech from '@/assets/demos/webinar-nexus-tech.jpg';
+import awardsNexusTech from '@/assets/demos/awards-nexus-tech.jpg';
+import iconographyNexusTech from '@/assets/demos/iconography-nexus-tech.jpg';
+import iconographyBloomWellness from '@/assets/demos/iconography-bloom-wellness.jpg';
+import collateralSummitBadges from '@/assets/demos/collateral-summit-badges.jpg';
+
 // Import card imagery for landing page showcase
 import cardBrandHub from '@/assets/demos/card-brandhub.jpg';
 import cardNexusTech from '@/assets/demos/card-nexus-tech.jpg';
@@ -305,16 +321,47 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     blur: 60,
   },
   caseStudies: [
-    { id: 'cs1', title: 'Enterprise Cloud Migration', description: 'How we helped Fortune 500 companies transition to cloud infrastructure', previewUrl: '' },
-    { id: 'cs2', title: 'Startup Scale-up', description: 'Supporting rapid growth with scalable solutions', previewUrl: '' },
+    { id: 'cs1', title: 'Enterprise Cloud Migration', description: 'How we helped Fortune 500 companies transition to cloud infrastructure with zero downtime', previewUrl: collateralNexusCasestudy },
+    { id: 'cs2', title: 'Startup Scale-up Success', description: 'Supporting rapid growth from 10 to 10,000 users with scalable architecture', previewUrl: collateralNexusCasestudy },
+    { id: 'cs3', title: 'Healthcare Data Security', description: 'Implementing HIPAA-compliant cloud solutions for medical records', previewUrl: collateralNexusCasestudy },
   ],
   brochures: [
-    { id: 'br1', title: 'Company Overview', category: 'Corporate', previewUrl: '' },
-    { id: 'br2', title: 'Product Catalog 2024', category: 'Products', previewUrl: '' },
+    { id: 'br1', title: 'Company Overview 2026', category: 'Corporate', previewUrl: collateralNexusBrochure, thumbnailUrl: collateralNexusBrochure },
+    { id: 'br2', title: 'Product Catalog', category: 'Products', previewUrl: collateralNexusBrochure, thumbnailUrl: collateralNexusBrochure },
+    { id: 'br3', title: 'Enterprise Solutions Guide', category: 'Enterprise', previewUrl: collateralNexusBrochure, thumbnailUrl: collateralNexusBrochure },
   ],
   templates: [
-    { id: 'tmp1', name: 'Presentation Template', fileType: 'pptx', fileSize: '5.2 MB' },
-    { id: 'tmp2', name: 'Letterhead', fileType: 'docx', fileSize: '1.1 MB' },
+    { id: 'tmp1', name: 'Presentation Template', fileType: 'pptx', fileSize: '5.2 MB', thumbnailUrl: templateNexusPresentation },
+    { id: 'tmp2', name: 'Letterhead', fileType: 'docx', fileSize: '1.1 MB', thumbnailUrl: collateralNexusStationery },
+    { id: 'tmp3', name: 'Business Card Template', fileType: 'ai', fileSize: '2.8 MB', thumbnailUrl: collateralNexusStationery },
+    { id: 'tmp4', name: 'Email Signature Kit', fileType: 'zip', fileSize: '1.5 MB', thumbnailUrl: collateralNexusStationery },
+  ],
+  awards: [
+    { id: 'aw1', title: 'Best Cloud Platform 2025', description: 'Recognized for innovation in enterprise cloud solutions', organization: 'TechCrunch Disrupt', year: 2025, imageUrl: awardsNexusTech },
+    { id: 'aw2', title: 'Innovation Excellence Award', description: 'Honoring breakthrough technology achievements', organization: 'Forbes Technology Council', year: 2024, imageUrl: awardsNexusTech },
+    { id: 'aw3', title: 'Top 10 Fastest Growing Tech', description: 'Celebrating exceptional growth and innovation', organization: 'Inc. 5000', year: 2024, imageUrl: awardsNexusTech },
+    { id: 'aw4', title: 'Enterprise Solution of the Year', description: 'Best-in-class enterprise technology platform', organization: 'Gartner', year: 2023, imageUrl: awardsNexusTech },
+  ],
+  webinars: [
+    { id: 'web1', title: 'Cloud Architecture Best Practices', description: 'Learn how to design scalable cloud infrastructure', thumbnailUrl: webinarNexusTech, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-11-15' },
+    { id: 'web2', title: 'Security in the Cloud Era', description: 'Protecting your data with zero-trust architecture', thumbnailUrl: webinarNexusTech, recordingUrl: 'https://youtube.com/watch?v=example', status: 'recorded', date: '2025-10-22' },
+    { id: 'web3', title: 'AI-Powered Analytics Deep Dive', description: 'Leveraging machine learning for business insights', thumbnailUrl: webinarNexusTech, status: 'upcoming', date: '2026-03-15' },
+  ],
+  imageAssets: [
+    { id: 'ia1', name: 'Brand Stationery Suite', url: collateralNexusStationery, type: 'collateral', size: '4.2 MB', uploadedAt: '2025-12-01' },
+    { id: 'ia2', name: 'Product Brochure Preview', url: collateralNexusBrochure, type: 'collateral', size: '3.8 MB', uploadedAt: '2025-12-01' },
+    { id: 'ia3', name: 'Case Study Template', url: collateralNexusCasestudy, type: 'collateral', size: '2.1 MB', uploadedAt: '2025-12-01' },
+    { id: 'ia4', name: 'Icon Set Preview', url: iconographyNexusTech, type: 'iconography', size: '1.5 MB', uploadedAt: '2025-12-01' },
+  ],
+  socialAssets: [
+    { id: 'sa1', platform: 'LinkedIn', postSize: '1200x1200', storySize: '1080x1920', coverSize: '1584x396', previewImageUrl: socialNexusLinkedin, textLegibility: 'High contrast, 24pt minimum', directive: 'Use brand colors and professional imagery' },
+    { id: 'sa2', platform: 'Twitter', postSize: '1200x675', coverSize: '1500x500', previewImageUrl: socialNexusTwitter, textLegibility: 'High contrast, 18pt minimum', directive: 'Tech-forward, dark mode preferred' },
+    { id: 'sa3', platform: 'Instagram', postSize: '1080x1080', storySize: '1080x1920', previewImageUrl: socialNexusLinkedin, textLegibility: 'Bold text on gradient backgrounds', directive: 'Vibrant tech imagery with brand accents' },
+  ],
+  displayBanners: [
+    { id: 'db1', name: 'LinkedIn Banner', dimensions: '1584x396', aspectRatio: 4, category: 'desktop', previewImageUrl: socialNexusLinkedin, maxMessaging: 'Headline + CTA only', textLegibility: '24pt minimum', safeZonePolicy: '10% margins all sides' },
+    { id: 'db2', name: 'Twitter Header', dimensions: '1500x500', aspectRatio: 3, category: 'desktop', previewImageUrl: socialNexusTwitter, maxMessaging: 'Brand tagline + logo', textLegibility: '20pt minimum', safeZonePolicy: '15% center safe zone' },
+    { id: 'db3', name: 'Email Header', dimensions: '600x200', aspectRatio: 3, category: 'native', previewImageUrl: collateralNexusStationery, maxMessaging: 'Logo + tagline', textLegibility: '16pt minimum', safeZonePolicy: '5% margins' },
   ],
   services: [
     { id: 'srv1', name: 'Cloud Infrastructure', description: 'Enterprise-grade cloud solutions tailored to your needs', icon: 'Cloud' },
@@ -499,28 +546,67 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     fgColor: '#7CB342',
     bgColor: '#FFFFFF',
   },
-  videos: [],
-  assets: [],
-  misuse: [],
+  videos: [
+    { id: 'vid1', title: 'Our Wellness Journey', url: 'https://www.youtube.com/watch?v=example1', type: 'youtube', description: 'The story behind Bloom Wellness' },
+    { id: 'vid2', title: 'How We Source Our Ingredients', url: 'https://www.youtube.com/watch?v=example2', type: 'youtube', description: 'Farm to bottle transparency' },
+  ],
+  assets: [
+    { id: 'a1', name: 'Logo Pack', type: 'zip', url: '', size: '1.8 MB' },
+    { id: 'a2', name: 'Brand Guidelines PDF', type: 'pdf', url: '', size: '5.4 MB' },
+    { id: 'a3', name: 'Product Photography Kit', type: 'zip', url: '', size: '45 MB' },
+  ],
+  misuse: [
+    { id: 'm1', url: '', description: 'Do not use artificial or synthetic-looking imagery' },
+    { id: 'm2', url: '', description: 'Do not combine brand colors with neon or harsh tones' },
+    { id: 'm3', url: '', description: 'Do not place logo on busy or cluttered backgrounds' },
+  ],
   atmosphere: {
     style: 'organic',
     animate: true,
     opacity: 0.2,
     blur: 80,
   },
-  caseStudies: [],
-  brochures: [],
-  templates: [],
+  caseStudies: [
+    { id: 'cs1', title: 'Wellness Retreat Partnership', description: 'How we partnered with luxury resorts to provide spa-quality products', previewUrl: collateralBloomBrochure },
+    { id: 'cs2', title: 'Sustainable Packaging Initiative', description: 'Our journey to 100% recyclable and biodegradable packaging', previewUrl: collateralBloomBrochure },
+  ],
+  brochures: [
+    { id: 'br1', title: 'Product Catalog 2026', category: 'Products', previewUrl: collateralBloomBrochure, thumbnailUrl: collateralBloomBrochure },
+    { id: 'br2', title: 'Wellness Guide', category: 'Educational', previewUrl: collateralBloomBrochure, thumbnailUrl: collateralBloomBrochure },
+    { id: 'br3', title: 'Retail Partner Kit', category: 'B2B', previewUrl: collateralBloomBrochure, thumbnailUrl: collateralBloomBrochure },
+  ],
+  templates: [
+    { id: 'tmp1', name: 'Letterhead', fileType: 'docx', fileSize: '800 KB', thumbnailUrl: collateralBloomStationery },
+    { id: 'tmp2', name: 'Business Card', fileType: 'ai', fileSize: '2.1 MB', thumbnailUrl: collateralBloomStationery },
+    { id: 'tmp3', name: 'Presentation Template', fileType: 'pptx', fileSize: '4.2 MB', thumbnailUrl: collateralBloomStationery },
+  ],
+  awards: [
+    { id: 'aw1', title: 'Best Organic Wellness Brand', description: 'Recognized for commitment to organic ingredients', organization: 'Natural Products Expo', year: 2025 },
+    { id: 'aw2', title: 'Sustainability Excellence Award', description: 'Leading the industry in eco-friendly practices', organization: 'Green Business Council', year: 2024 },
+  ],
+  imageAssets: [
+    { id: 'ia1', name: 'Brand Stationery Suite', url: collateralBloomStationery, type: 'collateral', size: '3.2 MB', uploadedAt: '2025-12-01' },
+    { id: 'ia2', name: 'Product Catalog Preview', url: collateralBloomBrochure, type: 'collateral', size: '2.8 MB', uploadedAt: '2025-12-01' },
+    { id: 'ia3', name: 'Botanical Icon Set', url: iconographyBloomWellness, type: 'iconography', size: '1.2 MB', uploadedAt: '2025-12-01' },
+  ],
+  socialAssets: [
+    { id: 'sa1', platform: 'Instagram', postSize: '1080x1080', storySize: '1080x1920', previewImageUrl: socialBloomInstagram, textLegibility: 'Elegant script, 20pt minimum', directive: 'Natural botanical imagery with soft lighting' },
+    { id: 'sa2', platform: 'Pinterest', postSize: '1000x1500', previewImageUrl: socialBloomInstagram, textLegibility: 'Clean serif, high contrast', directive: 'Lifestyle and product flat lays' },
+    { id: 'sa3', platform: 'LinkedIn', postSize: '1200x1200', coverSize: '1584x396', previewImageUrl: socialBloomLinkedin, textLegibility: 'Professional, 22pt minimum', directive: 'Company culture and behind-the-scenes' },
+  ],
   services: [
     { id: 'srv1', name: 'Wellness Coaching', description: 'Personalized guidance for your wellness journey', icon: 'Heart' },
-    { id: 'srv2', name: 'Organic Products', description: 'Premium organic wellness products', icon: 'Leaf' },
-    { id: 'srv3', name: 'Retreat Programs', description: 'Immersive wellness retreat experiences', icon: 'Sunrise' },
+    { id: 'srv2', name: 'Organic Products', description: 'Premium organic wellness products for mind and body', icon: 'Leaf' },
+    { id: 'srv3', name: 'Retreat Programs', description: 'Immersive wellness retreat experiences in nature', icon: 'Sunrise' },
+    { id: 'srv4', name: 'Corporate Wellness', description: 'Workplace wellness programs for teams', icon: 'Users' },
   ],
   statistics: [
     { id: 'stat1', value: '100', suffix: '%', label: 'Organic Ingredients', icon: 'Leaf', category: 'primary' },
-    { id: 'stat2', value: '50K', suffix: '+', label: 'Happy Customers', icon: 'Heart', category: 'primary' },
+    { id: 'stat2', value: '50', suffix: 'K+', label: 'Happy Customers', icon: 'Heart', category: 'primary' },
     { id: 'stat3', value: '12', label: 'Wellness Retreats', icon: 'MapPin', category: 'secondary' },
+    { id: 'stat4', value: '98', suffix: '%', label: 'Customer Satisfaction', icon: 'Star', category: 'primary' },
   ],
+  infographicLayout: 'cards',
 };
 
 // Demo Product: Nexus Cloud Platform
@@ -865,19 +951,24 @@ export const DEMO_EVENT_SUMMIT: Omit<EventGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'el3', name: 'Date Lockup', url: '', variant: 'date-lockup' },
   ],
   eventSignage: [
-    { id: 'sig1', name: 'Main Stage Backdrop', type: 'stage-backdrop', dimensions: '40ft x 15ft', previewUrl: '/images/events/signage-booth-backdrop.jpg', notes: 'Full bleed event gradient with centered logo' },
-    { id: 'sig2', name: 'Registration Banner', type: 'pull-up-banner', dimensions: '8ft x 3ft', previewUrl: '/images/events/signage-pullup-banner.jpg' },
-    { id: 'sig3', name: 'Directional Signs', type: 'directional', dimensions: '24in x 36in', notes: 'Wayfinding for halls A-D' },
+    { id: 'sig1', name: 'Main Stage Backdrop', type: 'stage-backdrop', dimensions: '40ft x 15ft', previewUrl: signageSummitStage, notes: 'Full bleed event gradient with centered logo. Blue and purple lighting.' },
+    { id: 'sig2', name: 'Registration Counter', type: 'other', dimensions: '20ft x 8ft', previewUrl: signageSummitRegistration, notes: 'Welcome desk with branded pull-up banners and digital displays' },
+    { id: 'sig3', name: 'Wayfinding Signage', type: 'directional', dimensions: '24in x 36in', previewUrl: signageSummitWayfinding, notes: 'Directional signs for Halls A-D, workshops, and amenities' },
+    { id: 'sig4', name: 'Pull-up Banner', type: 'pull-up-banner', dimensions: '8ft x 3ft', previewUrl: signagePullupBanner, notes: 'Session track banners and sponsor displays' },
+    { id: 'sig5', name: 'Booth Backdrop', type: 'booth-backdrop', dimensions: '10ft x 8ft', previewUrl: signageBoothBackdrop, notes: 'Exhibitor booth backdrop with gradient mesh pattern' },
   ],
   eventBanners: [
-    { id: 'ban1', name: 'Email Header', type: 'email-header', dimensions: '600px x 200px', previewUrl: '/images/events/banner-email.jpg', platform: 'Email' },
-    { id: 'ban2', name: 'LinkedIn Event Banner', type: 'social-cover', dimensions: '1200px x 628px', previewUrl: '/images/events/banner-linkedin.jpg', platform: 'LinkedIn' },
-    { id: 'ban3', name: 'Website Hero', type: 'website-hero', dimensions: '1920px x 600px', platform: 'Web' },
+    { id: 'ban1', name: 'Email Header', type: 'email-header', dimensions: '600px x 200px', previewUrl: bannerEmail, platform: 'Email' },
+    { id: 'ban2', name: 'LinkedIn Event Banner', type: 'social-cover', dimensions: '1200px x 628px', previewUrl: bannerLinkedinEvent, platform: 'LinkedIn' },
+    { id: 'ban3', name: 'Website Hero', type: 'website-hero', dimensions: '1920px x 600px', previewUrl: signageSummitStage, platform: 'Web' },
+    { id: 'ban4', name: 'Twitter Header', type: 'social-cover', dimensions: '1500px x 500px', previewUrl: bannerLinkedinEvent, platform: 'Twitter' },
   ],
   eventDigitalMaterials: [
-    { id: 'da1', name: 'Event Program PDF', type: 'agenda', fileType: 'pdf', description: 'Complete event schedule and speaker bios' },
-    { id: 'da2', name: 'Speaker Kit', type: 'presentation-template', fileType: 'zip', description: 'Presentation templates and guidelines' },
-    { id: 'da3', name: 'Press Release Template', type: 'other', fileType: 'docx', description: 'Media announcement template' },
+    { id: 'da1', name: 'Event Program PDF', type: 'agenda', fileType: 'pdf', description: 'Complete 3-day schedule with speaker bios and session abstracts' },
+    { id: 'da2', name: 'Speaker Kit', type: 'presentation-template', fileType: 'zip', description: 'PowerPoint/Keynote templates with brand guidelines' },
+    { id: 'da3', name: 'Press Release Template', type: 'other', fileType: 'docx', description: 'Media announcement template with boilerplate' },
+    { id: 'da4', name: 'Attendee Badge Designs', type: 'other', fileType: 'pdf', description: 'VIP, Speaker, Attendee, and Staff badge templates', previewUrl: collateralSummitBadges },
+    { id: 'da5', name: 'Social Media Kit', type: 'other', fileType: 'zip', description: 'Pre-made graphics for attendee sharing' },
   ],
   eventSchedule: [
     { id: 's1', time: '9:00 AM - Day 1', title: 'Opening Keynote: The Next Decade', speaker: 'CEO Panel', location: 'Main Stage' },
