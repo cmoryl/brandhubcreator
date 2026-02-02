@@ -309,7 +309,7 @@ export const HeroSection = ({
           preferVideo={hero.useVideo === true}
           kenBurnsEffect={hero.useVideo !== true && (hero.kenBurnsEffect === true || kenBurnsPreview)}
           fallbackSrc=""
-          className={`relative ${heroHeight} ${canEdit ? 'cursor-pointer' : ''} group`}
+          className={`relative ${heroHeight} group`}
           priority={true}
           parallax={hero.kenBurnsEffect !== true && !kenBurnsPreview}
           parallaxOffset={parallaxOffset}
@@ -329,30 +329,30 @@ export const HeroSection = ({
             <>
               {/* Primary overlay - intensity controlled */}
               <div 
-                className="absolute inset-0 z-10 transition-opacity duration-300"
+                className="absolute inset-0 z-10 transition-opacity duration-300 pointer-events-none"
                 style={{
                   background: getOverlayStyle(hero.overlayGradient || 'default'),
                   opacity: (hero.overlayIntensity ?? 50) / 100
                 }}
               />
               {/* Side vignette */}
-              <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/40 via-transparent to-black/40" style={{ opacity: (hero.overlayIntensity ?? 50) / 100 }} />
+              <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/40 via-transparent to-black/40 pointer-events-none" style={{ opacity: (hero.overlayIntensity ?? 50) / 100 }} />
               {/* Brand tint accent */}
-              <div className="absolute inset-0 z-10 bg-gradient-to-b from-primary/10 via-transparent to-accent/10 mix-blend-overlay" />
+              <div className="absolute inset-0 z-10 bg-gradient-to-b from-primary/10 via-transparent to-accent/10 mix-blend-overlay pointer-events-none" />
             </>
           )}
           
           {/* Animated ambient glow - hidden on mobile for performance */}
           {enhancedMode && (
             <>
-              <div className="hidden sm:block absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] animate-pulse" />
-              <div className="hidden sm:block absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/20 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
+              <div className="hidden sm:block absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] animate-pulse pointer-events-none" />
+              <div className="hidden sm:block absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/20 rounded-full blur-[100px] animate-pulse pointer-events-none" style={{ animationDelay: '1s' }} />
             </>
           )}
           
           {/* Decorative elements */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
           
           {/* Floating particles effect - hidden on mobile */}
           {enhancedMode && (
@@ -371,202 +371,211 @@ export const HeroSection = ({
               ))}
             </div>
           )}
-          
-          {/* Edit button - z-30 to be above everything - Only show if canEdit */}
-          {canEdit && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsEditing(!isEditing);
-              }}
-              className="absolute top-4 right-4 z-30 bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 hover:text-white shadow-lg"
-            >
-              {isEditing ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-            </Button>
-          )}
-          
-          {/* Edit overlay with consolidated toolbar - Only show if canEdit and isEditing */}
-          {canEdit && isEditing && (
-            <HeroEditToolbar
-              useVideo={hero.useVideo === true}
-              kenBurnsEffect={hero.kenBurnsEffect === true}
-              kenBurnsPreview={kenBurnsPreview}
-              isUploading={isUploading}
-              overlayIntensity={hero.overlayIntensity ?? 50}
-              overlayGradient={hero.overlayGradient || 'default'}
-              parallaxIntensity={hero.parallaxIntensity ?? 1}
-              onMediaTypeChange={(type) => {
-                if (onHeroChange) {
-                  onHeroChange({ ...hero, useVideo: type === 'video' });
-                }
-              }}
-              onKenBurnsToggle={() => {
-                setKenBurnsPreview(false);
-                toggleKenBurns();
-              }}
-              onKenBurnsPreviewStart={() => {
-                if (hero.kenBurnsEffect !== true) {
-                  setKenBurnsPreview(true);
-                }
-              }}
-              onKenBurnsPreviewEnd={() => setKenBurnsPreview(false)}
-              onUploadClick={() => {
-                if (hero.useVideo) {
-                  videoInputRef.current?.click();
-                } else {
-                  coverInputRef.current?.click();
-                }
-              }}
-              onVideoUrlClick={handleVideoUrlInput}
-              onLibrarySelect={(url) => {
-                if (onHeroChange) {
-                  onHeroChange({ ...hero, coverImage: url });
-                }
-              }}
-              onOverlayIntensityChange={(value) => {
-                if (onHeroChange) {
-                  onHeroChange({ ...hero, overlayIntensity: value });
-                }
-              }}
-              onOverlayGradientChange={(value) => {
-                if (onHeroChange) {
-                  onHeroChange({ ...hero, overlayGradient: value });
-                }
-              }}
-              onParallaxIntensityChange={(value) => {
-                if (onHeroChange) {
-                  onHeroChange({ ...hero, parallaxIntensity: value });
-                }
-              }}
-            />
-          )}
+        </BackgroundImage>
 
-          {/* Stats Panel - Top Left - Hidden on mobile to reduce clutter */}
-          {showStats && enhancedMode && (
-            <div className={`hidden sm:flex absolute top-4 left-4 sm:top-6 sm:left-6 z-20 flex-col gap-2 transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 shadow-lg cursor-help">
-                    <div className="flex items-center gap-1.5">
-                      <BarChart3 className="h-4 w-4 text-white" />
-                      <span className="text-white/80 text-sm">Health</span>
-                    </div>
-                    <span className="text-white font-bold">{animatedStats.healthScore || 0}%</span>
-                    {displayStats.trend === 'up' && (
-                      <TrendingUp className="h-4 w-4 text-green-400" />
-                    )}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="max-w-xs p-3 bg-popover/95 backdrop-blur-sm">
-                  <div className="space-y-2">
-                    <p className="font-semibold text-sm">Brand Completeness: {calculatedHealth.overallScore}%</p>
-                    <p className="text-xs text-muted-foreground">{calculatedHealth.filledSections}/{calculatedHealth.totalSections} sections filled</p>
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs mt-2">
-                      {calculatedHealth.breakdown.map((item) => (
-                        <div key={item.section} className="flex items-center gap-1">
-                          {item.filled ? (
-                            <Check className="h-3 w-3 text-green-500 shrink-0" />
-                          ) : (
-                            <span className="h-3 w-3 rounded-full border border-muted-foreground/30 shrink-0" />
-                          )}
-                          <span className={item.filled ? 'text-foreground' : 'text-muted-foreground'}>{item.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-              <Badge variant="secondary" className="bg-white/10 backdrop-blur-md border-white/20 text-white w-fit">
-                <Sparkles className="h-3 w-3 mr-1" />
-                Brand Guide Active
-              </Badge>
-              {/* Brain / Intelligence quick-access */}
-              {onOpenIntelligence && (
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); onOpenIntelligence(); }}
-                  className="pointer-events-auto flex items-center gap-1.5 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 shadow-lg hover:bg-white/20 transition-colors text-white text-sm font-medium cursor-pointer"
-                >
-                  <Brain className="h-4 w-4" />
-                  <span className="hidden sm:inline">Intelligence</span>
-                </button>
-              )}
-            </div>
-          )}
+        {/* Edit button - OUTSIDE BackgroundImage for reliable click handling */}
+        {canEdit && (
+          <Button
+            variant="ghost"
+            size="icon"
+            data-testid="hero-edit-button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(!isEditing);
+            }}
+            className="absolute top-4 right-4 z-50 bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 hover:text-white shadow-lg"
+          >
+            {isEditing ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
+          </Button>
+        )}
+        
+        {/* Edit overlay with consolidated toolbar - OUTSIDE BackgroundImage */}
+        {canEdit && isEditing && (
+          <HeroEditToolbar
+            useVideo={hero.useVideo === true}
+            kenBurnsEffect={hero.kenBurnsEffect === true}
+            kenBurnsPreview={kenBurnsPreview}
+            isUploading={isUploading}
+            overlayIntensity={hero.overlayIntensity ?? 50}
+            overlayGradient={hero.overlayGradient || 'default'}
+            parallaxIntensity={hero.parallaxIntensity ?? 1}
+            onMediaTypeChange={(type) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, useVideo: type === 'video' });
+              }
+            }}
+            onKenBurnsToggle={() => {
+              setKenBurnsPreview(false);
+              toggleKenBurns();
+            }}
+            onKenBurnsPreviewStart={() => {
+              if (hero.kenBurnsEffect !== true) {
+                setKenBurnsPreview(true);
+              }
+            }}
+            onKenBurnsPreviewEnd={() => setKenBurnsPreview(false)}
+            onUploadClick={() => {
+              if (hero.useVideo) {
+                videoInputRef.current?.click();
+              } else {
+                coverInputRef.current?.click();
+              }
+            }}
+            onVideoUrlClick={handleVideoUrlInput}
+            onLibrarySelect={(url) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, coverImage: url });
+              }
+            }}
+            onOverlayIntensityChange={(value) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, overlayIntensity: value });
+              }
+            }}
+            onOverlayGradientChange={(value) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, overlayGradient: value });
+              }
+            }}
+            onParallaxIntensityChange={(value) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, parallaxIntensity: value });
+              }
+            }}
+          />
+        )}
 
-          {/* Main Content Area - z-20 to be above overlays, pointer-events-none so stats panel is clickable */}
-          <div className="absolute inset-0 flex items-end z-20 pointer-events-none">
-            <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 pb-4 sm:pb-8 lg:pb-12 pointer-events-auto">
-              <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-start lg:items-end justify-between">
-                {/* Left: Logo & Brand Info */}
-                <div className="flex gap-4 sm:gap-6 items-end flex-1">
-                  {/* Logo with enhanced styling - smaller on mobile */}
-                  <div
-                    className={`relative shrink-0 w-20 h-20 sm:w-32 sm:h-32 lg:w-44 lg:h-44 xl:w-52 xl:h-52 bg-white border-2 sm:border-4 border-white rounded-2xl sm:rounded-3xl shadow-2xl flex items-center justify-center overflow-hidden transform transition-all duration-300 hover:scale-105 ${canEdit && isEditing ? 'cursor-pointer group/logo' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      canEdit && isEditing && logoInputRef.current?.click();
-                    }}
-                  >
-                    {hero.logoUrl ? (
-                      <img 
-                        src={hero.logoUrl} 
-                        alt="Logo" 
-                        className="max-h-full max-w-full object-contain p-2 sm:p-4 lg:p-6"
-                        loading="eager"
-                        decoding="async"
-                      />
-                    ) : (
-                      <ImageIcon className="h-8 w-8 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-muted-foreground" />
-                    )}
-                    {canEdit && isEditing && (
-                      <div className="absolute inset-0 bg-black/50 rounded-2xl sm:rounded-3xl flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity">
-                        <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+        {/* Stats Panel - Top Left - OUTSIDE BackgroundImage */}
+        {showStats && enhancedMode && (
+          <div className={`hidden sm:flex absolute top-4 left-4 sm:top-6 sm:left-6 z-20 flex-col gap-2 transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 shadow-lg cursor-help">
+                  <div className="flex items-center gap-1.5">
+                    <BarChart3 className="h-4 w-4 text-white" />
+                    <span className="text-white/80 text-sm">Health</span>
+                  </div>
+                  <span className="text-white font-bold">{animatedStats.healthScore || 0}%</span>
+                  {displayStats.trend === 'up' && (
+                    <TrendingUp className="h-4 w-4 text-green-400" />
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="max-w-xs p-3 bg-popover/95 backdrop-blur-sm">
+                <div className="space-y-2">
+                  <p className="font-semibold text-sm">Brand Completeness: {calculatedHealth.overallScore}%</p>
+                  <p className="text-xs text-muted-foreground">{calculatedHealth.filledSections}/{calculatedHealth.totalSections} sections filled</p>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs mt-2">
+                    {calculatedHealth.breakdown.map((item) => (
+                      <div key={item.section} className="flex items-center gap-1">
+                        {item.filled ? (
+                          <Check className="h-3 w-3 text-green-500 shrink-0" />
+                        ) : (
+                          <span className="h-3 w-3 rounded-full border border-muted-foreground/30 shrink-0" />
+                        )}
+                        <span className={item.filled ? 'text-foreground' : 'text-muted-foreground'}>{item.label}</span>
                       </div>
-                    )}
-                    
-                    {/* Logo glow effect - hidden on mobile */}
-                    <div className="hidden sm:block absolute -inset-2 bg-gradient-to-br from-primary/30 to-accent/30 rounded-3xl blur-2xl -z-10 animate-pulse" />
-                  </div>
-
-                  {/* Name & Tagline */}
-                  <div className="flex-1 space-y-1 sm:space-y-3 pb-1 sm:pb-2 min-w-0">
-                    {canEdit && isEditing ? (
-                      <>
-                        <Input
-                          value={hero.name}
-                          onChange={(e) => onHeroChange?.({ ...hero, name: e.target.value })}
-                          placeholder="Brand Name"
-                          className="text-xl sm:text-3xl lg:text-5xl xl:text-6xl font-serif font-bold h-auto py-1 sm:py-2 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 rounded-xl"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <Textarea
-                          value={hero.tagline}
-                          onChange={(e) => onHeroChange?.({ ...hero, tagline: e.target.value })}
-                          placeholder="Your brand tagline..."
-                          className="text-sm sm:text-lg lg:text-2xl resize-none bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 rounded-xl min-h-[60px] sm:min-h-[80px]"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <h1 className={`text-xl sm:text-3xl lg:text-5xl xl:text-6xl font-serif font-bold text-white drop-shadow-lg tracking-tight transition-all duration-700 leading-tight ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                          {hero.name || 'Brand Name'}
-                        </h1>
-                        <p className={`text-sm sm:text-lg lg:text-2xl text-white/90 drop-shadow-md max-w-3xl line-clamp-2 sm:line-clamp-none transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                          {hero.tagline || 'Your brand tagline goes here'}
-                        </p>
-                      </>
-                    )}
+                    ))}
                   </div>
                 </div>
+              </TooltipContent>
+            </Tooltip>
+            <Badge variant="secondary" className="bg-white/10 backdrop-blur-md border-white/20 text-white w-fit">
+              <Sparkles className="h-3 w-3 mr-1" />
+              Brand Guide Active
+            </Badge>
+            {/* Brain / Intelligence quick-access */}
+            {onOpenIntelligence && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onOpenIntelligence(); }}
+                className="pointer-events-auto flex items-center gap-1.5 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 shadow-lg hover:bg-white/20 transition-colors text-white text-sm font-medium cursor-pointer"
+              >
+                <Brain className="h-4 w-4" />
+                <span className="hidden sm:inline">Intelligence</span>
+              </button>
+            )}
+          </div>
+        )}
 
+        {/* Main Content Area - z-20 to be above overlays */}
+        <div className="absolute inset-0 flex items-end z-20 pointer-events-none">
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 pb-4 sm:pb-8 lg:pb-12 pointer-events-auto">
+            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-start lg:items-end justify-between">
+              {/* Left: Logo & Brand Info */}
+              <div className="flex gap-4 sm:gap-6 items-end flex-1">
+                {/* Logo with enhanced styling - smaller on mobile */}
+                <div
+                  className={`relative shrink-0 w-20 h-20 sm:w-32 sm:h-32 lg:w-44 lg:h-44 xl:w-52 xl:h-52 bg-white border-2 sm:border-4 border-white rounded-2xl sm:rounded-3xl shadow-2xl flex items-center justify-center overflow-hidden transform transition-all duration-300 hover:scale-105 ${canEdit && isEditing ? 'cursor-pointer group/logo' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    canEdit && isEditing && logoInputRef.current?.click();
+                  }}
+                >
+                  {hero.logoUrl ? (
+                    <img 
+                      src={hero.logoUrl} 
+                      alt="Logo" 
+                      className="max-h-full max-w-full object-contain p-2 sm:p-4 lg:p-6"
+                      loading="eager"
+                      decoding="async"
+                    />
+                  ) : (
+                    <div className="text-2xl sm:text-4xl lg:text-6xl font-bold text-muted-foreground/30">
+                      {hero.name?.charAt(0) || 'B'}
+                    </div>
+                  )}
+                  {canEdit && isEditing && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity">
+                      {isUploading ? (
+                        <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 text-white animate-spin" />
+                      ) : (
+                        <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Brand name and tagline with enhanced typography */}
+                <div className="flex flex-col gap-1 sm:gap-3 min-w-0 flex-1">
+                  {/* Editable title or display */}
+                  {canEdit && isEditing ? (
+                    <Input
+                      value={hero.name || ''}
+                      onChange={(e) => onHeroChange && onHeroChange({ ...hero, name: e.target.value })}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-xl sm:text-3xl lg:text-5xl xl:text-6xl font-bold border-none bg-transparent focus:bg-white/10 text-white placeholder:text-white/50 p-0 h-auto leading-tight shadow-none"
+                      placeholder="Brand Name"
+                    />
+                  ) : (
+                    <h1 className={`text-xl sm:text-3xl lg:text-5xl xl:text-6xl font-bold text-white drop-shadow-lg tracking-tight transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                      {hero.name || 'Brand Name'}
+                    </h1>
+                  )}
+                  
+                  {/* Tagline */}
+                  {canEdit && isEditing ? (
+                    <Textarea
+                      value={hero.tagline || ''}
+                      onChange={(e) => onHeroChange && onHeroChange({ ...hero, tagline: e.target.value })}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-sm sm:text-lg lg:text-2xl border-none bg-transparent focus:bg-white/10 text-white/90 placeholder:text-white/40 p-0 h-auto resize-none shadow-none min-h-[2.5rem]"
+                      placeholder="Your brand tagline..."
+                      rows={2}
+                    />
+                  ) : (
+                    <>
+                      <p className={`text-sm sm:text-lg lg:text-2xl text-white/90 drop-shadow-md max-w-3xl line-clamp-2 sm:line-clamp-none transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                        {hero.tagline || 'Your brand tagline goes here'}
+                      </p>
+                    </>
+                  )}
+                </div>
               </div>
+
             </div>
           </div>
-        </BackgroundImage>
+        </div>
       </div>
       
       {/* Floating animation keyframes */}
