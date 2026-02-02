@@ -9,6 +9,7 @@ import { FullEventPage } from '@/components/event/FullEventPage';
 import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
 import { MobileEventSectionNav } from '@/components/event/MobileEventSectionNav';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
+import { BackToTopButton } from '@/components/BackToTopButton';
 import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
 import type { BrandGuide, ProductGuide, SectionId } from '@/types/brand';
 import type { EventGuide, EventSectionId } from '@/types/event';
@@ -221,6 +222,9 @@ export default function DemoGuideViewer() {
           </div>
         </div>
       </div>
+
+      {/* Back to Top Button */}
+      <BackToTopButton />
     </div>
   );
 }

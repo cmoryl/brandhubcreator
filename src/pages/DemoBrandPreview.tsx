@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
+import { BackToTopButton } from '@/components/BackToTopButton';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 
@@ -404,6 +405,9 @@ export default function DemoBrandPreview() {
           </Button>
         </div>
       </section>
+
+      {/* Back to Top Button */}
+      <BackToTopButton />
     </div>
   );
 }
