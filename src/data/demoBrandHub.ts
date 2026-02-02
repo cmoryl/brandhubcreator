@@ -36,8 +36,12 @@ export const DEMO_BRAND_BRANDHUB: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = 
   isFavorite: true,
   isPublic: true,
   sectionOrder: [
-    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'logos', 'brandicon', 'colors', 'gradients',
-    'typography', 'textstyles', 'imagery', 'social', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
+    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 
+    'logos', 'brandicon', 'colors', 'gradients', 'patterns',
+    'typography', 'textstyles', 'iconography', 'socialicons',
+    'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 
+    'videos', 'assets', 'imageassets', 'misuse',
+    'brochures', 'templates'
   ] as SectionId[],
   hiddenSections: [],
   pageSettings: BRANDHUB_PAGE_SETTINGS,
@@ -197,8 +201,18 @@ export const DEMO_BRAND_BRANDHUB: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = 
     { id: 'ts4', tag: 'Body', size: '16px', weight: '400', lineHeight: '1.6' },
     { id: 'ts5', tag: 'Small', size: '14px', weight: '400', lineHeight: '1.5' },
   ],
-  iconography: [],
-  socialIcons: [],
+  iconography: [
+    { id: 'i1', name: 'Layers', svgPath: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5', category: 'UI', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i2', name: 'Palette', svgPath: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c3.31 0 6-2.69 6-6 0-4.96-4.48-9-10-9z', category: 'Design', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i3', name: 'Type', svgPath: 'M4 7V4h16v3M9 20h6M12 4v16', category: 'Typography', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i4', name: 'Share', svgPath: 'M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13', category: 'Actions', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i5', name: 'Settings', svgPath: 'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z', category: 'UI', viewBox: '0 0 24 24', fillMode: 'stroke' },
+  ],
+  socialIcons: [
+    { id: 'si1', platform: 'Twitter', svgPath: 'M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z' },
+    { id: 'si2', platform: 'LinkedIn', svgPath: 'M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z' },
+    { id: 'si3', platform: 'GitHub', svgPath: 'M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22' },
+  ],
   imagery: [
     { id: 'im1', url: '', type: 'do', description: 'Use clean, modern interface screenshots showing the platform in action' },
     { id: 'im2', url: '', type: 'do', description: 'Abstract tech patterns with cyan and teal gradients work well' },
@@ -257,11 +271,19 @@ export const DEMO_BRAND_BRANDHUB: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = 
   videos: [
     { id: 'vid1', title: 'Platform Overview', url: '', type: 'youtube', description: 'See how BrandHub works in 2 minutes' },
   ],
-  assets: [],
+  assets: [
+    { id: 'a1', name: 'Logo Pack', type: 'zip', url: '', size: '2.8 MB' },
+    { id: 'a2', name: 'Brand Guidelines PDF', type: 'pdf', url: '', size: '6.5 MB' },
+  ],
+  imageAssets: [
+    { id: 'ia1', name: 'Hero Background', url: '', type: 'background', size: '1.2 MB', uploadedAt: '2025-12-01' },
+    { id: 'ia2', name: 'Pattern Library', url: '', type: 'pattern', size: '3.5 MB', uploadedAt: '2025-12-01' },
+  ],
   misuse: [
     { id: 'm1', url: '', description: 'Do not stretch or distort the BrandHub logo' },
     { id: 'm2', url: '', description: 'Do not use the logo on busy or patterned backgrounds' },
     { id: 'm3', url: '', description: 'Do not change the logo colors outside approved variants' },
+    { id: 'm4', url: '', description: 'Do not add shadows, gradients, or effects to the logo' },
   ],
   atmosphere: {
     style: 'tech',
@@ -270,8 +292,18 @@ export const DEMO_BRAND_BRANDHUB: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = 
     blur: 60,
   },
   caseStudies: [],
-  brochures: [],
-  templates: [],
+  brochures: [
+    { id: 'br1', title: 'Platform Overview', category: 'Product', previewUrl: '', thumbnailUrl: '' },
+    { id: 'br2', title: 'Feature Guide', category: 'Product', previewUrl: '', thumbnailUrl: '' },
+  ],
+  templates: [
+    { id: 'tmp1', name: 'Presentation Deck', fileType: 'pptx', fileSize: '4.5 MB', thumbnailUrl: '' },
+    { id: 'tmp2', name: 'Social Media Kit', fileType: 'zip', fileSize: '8.2 MB', thumbnailUrl: '' },
+  ],
+  socialAssets: [
+    { id: 'sa1', platform: 'Twitter', postSize: '1200x675', coverSize: '1500x500', textLegibility: 'High contrast, 18pt minimum', directive: 'Use BrandHub cyan on dark backgrounds' },
+    { id: 'sa2', platform: 'LinkedIn', postSize: '1200x1200', coverSize: '1584x396', textLegibility: 'Professional, 22pt minimum', directive: 'Clean, modern tech aesthetic' },
+  ],
   services: [
     { id: 'srv1', name: 'Brand Guides', description: 'Create comprehensive, living brand guidelines that everyone can access', icon: 'BookOpen' },
     { id: 'srv2', name: 'Product Guides', description: 'Document product-specific branding with hierarchical organization', icon: 'Package' },
