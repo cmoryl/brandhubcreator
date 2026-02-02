@@ -48,6 +48,14 @@ import iconographyNexusTech from '@/assets/demos/iconography-nexus-tech.jpg';
 import iconographyBloomWellness from '@/assets/demos/iconography-bloom-wellness.jpg';
 import collateralSummitBadges from '@/assets/demos/collateral-summit-badges.jpg';
 
+// New comprehensive section assets
+import socialassetsNexusSpecs from '@/assets/demos/socialassets-nexus-specs.jpg';
+import qrGuidelinesNexus from '@/assets/demos/qr-guidelines-nexus.jpg';
+import revenueChartNexus from '@/assets/demos/revenue-chart-nexus.jpg';
+import misuseNexusExamples from '@/assets/demos/misuse-nexus-examples.jpg';
+import imageassetsLibrary from '@/assets/demos/imageassets-library.jpg';
+import templatespecsNexus from '@/assets/demos/templatespecs-nexus.jpg';
+
 // Import card imagery for landing page showcase
 import cardBrandHub from '@/assets/demos/card-brandhub.jpg';
 import cardNexusTech from '@/assets/demos/card-nexus-tech.jpg';
@@ -82,9 +90,12 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   isFavorite: false,
   isPublic: true,
   sectionOrder: [
-    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'logos', 'brandicon', 'colors', 'gradients', 'patterns',
-    'typography', 'textstyles', 'imagery', 'social', 'website', 'signatures', 'qr', 'videos', 'assets', 'misuse',
-    'casestudies', 'brochures', 'templates'
+    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'webinars',
+    'logos', 'brandicon', 'colors', 'gradients', 'patterns',
+    'typography', 'textstyles', 'iconography', 'socialicons', 
+    'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 
+    'videos', 'assets', 'imageassets', 'misuse',
+    'brochures', 'templates', 'templatespecs'
   ] as SectionId[],
   hiddenSections: [],
   pageSettings: DEMO_PAGE_SETTINGS,
@@ -163,10 +174,19 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'ts5', tag: 'Caption', size: '14px', weight: '500', lineHeight: '1.5' },
   ],
   iconography: [
-    { id: 'i1', name: 'Cloud', svgPath: 'M3 8.5a6.5 6.5 0 1 1 13 0 5.5 5.5 0 1 1 0 11H6a5 5 0 1 1 0-10', category: 'Services' },
-    { id: 'i2', name: 'Shield', svgPath: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10', category: 'Security' },
+    { id: 'i1', name: 'Cloud', svgPath: 'M3 8.5a6.5 6.5 0 1 1 13 0 5.5 5.5 0 1 1 0 11H6a5 5 0 1 1 0-10', category: 'Services', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i2', name: 'Shield', svgPath: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10', category: 'Security', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i3', name: 'Server', svgPath: 'M2 9h20M2 15h20M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', category: 'Infrastructure', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i4', name: 'Database', svgPath: 'M12 2a9 3 0 0 1 9 3c0 1.657-4.03 3-9 3s-9-1.343-9-3a9 3 0 0 1 9-3zm0 18c-4.97 0-9-1.343-9-3V5m18 12c0 1.657-4.03 3-9 3s-9-1.343-9-3m18-6c0 1.657-4.03 3-9 3s-9-1.343-9-3', category: 'Data', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i5', name: 'Network', svgPath: 'M12 4v4m0 4v8M8 8h8M6 16h12', category: 'Infrastructure', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i6', name: 'API', svgPath: 'M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 11V7a5 5 0 0 1 10 0v4', category: 'Development', viewBox: '0 0 24 24', fillMode: 'stroke' },
   ],
-  socialIcons: [],
+  socialIcons: [
+    { id: 'si1', platform: 'LinkedIn', svgPath: 'M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z' },
+    { id: 'si2', platform: 'Twitter', svgPath: 'M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z' },
+    { id: 'si3', platform: 'GitHub', svgPath: 'M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22' },
+    { id: 'si4', platform: 'YouTube', svgPath: 'M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z' },
+  ],
   imagery: [
     { id: 'im1', url: imageryNexusDo1, type: 'do', description: 'Use high-quality abstract tech imagery with blue tones and glowing elements' },
     { id: 'im2', url: imageryNexusDo2, type: 'do', description: 'Digital circuit patterns and futuristic geometric designs work well' },
@@ -311,8 +331,11 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'a2', name: 'Brand Guidelines PDF', type: 'pdf', url: '', size: '8.2 MB' },
   ],
   misuse: [
-    { id: 'm1', url: '', description: 'Do not stretch or distort the logo' },
-    { id: 'm2', url: '', description: 'Do not use unapproved color combinations' },
+    { id: 'm1', url: misuseNexusExamples, description: 'Do not stretch or distort the logo proportions' },
+    { id: 'm2', url: misuseNexusExamples, description: 'Do not use unapproved color combinations' },
+    { id: 'm3', url: misuseNexusExamples, description: 'Do not place logo on busy or cluttered backgrounds' },
+    { id: 'm4', url: misuseNexusExamples, description: 'Do not rotate or skew the logo mark' },
+    { id: 'm5', url: misuseNexusExamples, description: 'Do not add effects like shadows or glows' },
   ],
   atmosphere: {
     style: 'tech',
@@ -383,6 +406,33 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { year: 2023, revenue: 450, facts: ['Global expansion'] },
     { year: 2024, revenue: 720, facts: ['IPO planned'] },
   ],
+  templateSpecs: [
+    { 
+      id: 'ts1', 
+      name: 'Presentation Template Spec', 
+      category: 'template', 
+      previewImageUrl: templatespecsNexus,
+      items: [
+        { id: 'spec1', number: 1, title: 'Header Zone', description: 'Primary headline placement with 32pt Inter Bold', dimensions: '1920 x 200 pixels' },
+        { id: 'spec2', number: 2, title: 'Body Content Area', description: 'Main content area with 18pt Inter Regular', dimensions: '1600 x 600 pixels' },
+        { id: 'spec3', number: 3, title: 'Footer Bar', description: 'Logo placement and page number zone', dimensions: '1920 x 80 pixels' },
+        { id: 'spec4', number: 4, title: 'Accent Strip', description: 'Brand gradient accent element', dimensions: '100% width x 8px height' },
+      ],
+      notes: 'Use brand colors only. Maintain 10% margin safe zones on all sides.'
+    },
+    { 
+      id: 'ts2', 
+      name: 'Business Card Spec', 
+      category: 'template', 
+      previewImageUrl: templatespecsNexus,
+      items: [
+        { id: 'spec1', number: 1, title: 'Logo Area', description: 'Primary logo at 40% scale', dimensions: '200 x 50 pixels' },
+        { id: 'spec2', number: 2, title: 'Contact Info', description: 'Name, title, email, phone in Inter Medium', dimensions: 'Flexible height' },
+        { id: 'spec3', number: 3, title: 'QR Code Zone', description: 'Optional QR code placement', dimensions: '80 x 80 pixels' },
+      ],
+      notes: 'Standard business card size: 3.5" x 2" (88.9mm x 50.8mm)'
+    },
+  ],
 };
 
 // Demo Brand 2: Bloom Wellness - Health & Lifestyle Brand
@@ -393,8 +443,12 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   isFavorite: false,
   isPublic: true,
   sectionOrder: [
-    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'logos', 'colors', 'gradients', 'patterns',
-    'typography', 'imagery', 'social', 'website', 'qr'
+    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards',
+    'logos', 'brandicon', 'colors', 'gradients', 'patterns',
+    'typography', 'textstyles', 'iconography',
+    'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 
+    'videos', 'assets', 'imageassets', 'misuse',
+    'brochures', 'templates'
   ] as SectionId[],
   hiddenSections: [],
   pageSettings: DEMO_PAGE_SETTINGS,
@@ -465,8 +519,18 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'ts2', tag: 'H2', size: '32px', weight: '600', lineHeight: '1.4' },
     { id: 'ts3', tag: 'Body', size: '16px', weight: '400', lineHeight: '1.7' },
   ],
-  iconography: [],
-  socialIcons: [],
+  iconography: [
+    { id: 'i1', name: 'Leaf', svgPath: 'M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z', category: 'Nature', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i2', name: 'Heart', svgPath: 'M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z', category: 'Wellness', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i3', name: 'Droplet', svgPath: 'M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z', category: 'Essential Oils', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i4', name: 'Sun', svgPath: 'M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z', category: 'Energy', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i5', name: 'Flower', svgPath: 'M12 7.5a4.5 4.5 0 1 1 4.5 4.5M12 7.5A4.5 4.5 0 1 0 7.5 12M12 7.5V9m-4.5 3a4.5 4.5 0 1 0 4.5 4.5M7.5 12H9m7.5 0a4.5 4.5 0 1 1-4.5 4.5m4.5-4.5H15m-3 4.5V15', category: 'Botanical', viewBox: '0 0 24 24', fillMode: 'stroke' },
+  ],
+  socialIcons: [
+    { id: 'si1', platform: 'Instagram', svgPath: 'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm8 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2z' },
+    { id: 'si2', platform: 'Pinterest', svgPath: 'M12 2a10 10 0 0 0-4.16 19.12c-.08-.94-.02-2.07.24-3.1l1.8-7.62s-.45-.9-.45-2.24c0-2.1 1.22-3.66 2.74-3.66 1.3 0 1.92.97 1.92 2.14 0 1.3-.83 3.26-1.26 5.07-.36 1.5.75 2.74 2.24 2.74 2.68 0 4.5-3.44 4.5-7.5 0-3.1-2.1-5.4-5.9-5.4-4.3 0-7 3.2-7 6.8 0 1.24.37 2.12.94 2.8.26.3.3.44.2.8l-.3 1.1c-.1.36-.4.5-.74.36-2-.82-2.92-3-2.92-5.46 0-4.04 3.4-8.9 10.14-8.9 5.4 0 8.96 3.9 8.96 8.1 0 5.56-3.1 9.7-7.66 9.7-1.54 0-2.98-.82-3.48-1.76l-.96 3.78c-.3 1.04-.9 2.08-1.44 2.9A10 10 0 1 0 12 2z' },
+    { id: 'si3', platform: 'Facebook', svgPath: 'M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z' },
+  ],
   imagery: [
     { id: 'im1', url: imageryBloomDo1, type: 'do', description: 'Use serene botanical close-ups with soft natural lighting' },
     { id: 'im2', url: imageryBloomDo2, type: 'do', description: 'Organic flat lays with herbs and natural textures' },
@@ -618,7 +682,12 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
   isFavorite: false,
   isPublic: true,
   sectionOrder: [
-    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'logos', 'colors', 'gradients', 'patterns', 'typography', 'imagery'
+    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 
+    'logos', 'brandicon', 'colors', 'gradients', 'patterns', 
+    'typography', 'textstyles', 'iconography',
+    'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr',
+    'videos', 'assets', 'imageassets', 'misuse',
+    'brochures', 'templates'
   ] as SectionId[],
   hiddenSections: [],
   pageSettings: DEMO_PAGE_SETTINGS,
@@ -671,8 +740,16 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
     { id: 'ts1', tag: 'H1', size: '40px', weight: '700', lineHeight: '1.2' },
     { id: 'ts2', tag: 'Code', size: '14px', weight: '400', lineHeight: '1.6' },
   ],
-  iconography: [],
-  socialIcons: [],
+  iconography: [
+    { id: 'i1', name: 'Server', svgPath: 'M2 9h20M2 15h20M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', category: 'Infrastructure', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i2', name: 'Database', svgPath: 'M12 2a9 3 0 0 1 9 3c0 1.657-4.03 3-9 3s-9-1.343-9-3a9 3 0 0 1 9-3zm0 18c-4.97 0-9-1.343-9-3V5m18 12c0 1.657-4.03 3-9 3s-9-1.343-9-3m18-6c0 1.657-4.03 3-9 3s-9-1.343-9-3', category: 'Data', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i3', name: 'Container', svgPath: 'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM9 9h6m-6 6h6', category: 'DevOps', viewBox: '0 0 24 24', fillMode: 'stroke' },
+    { id: 'i4', name: 'LoadBalancer', svgPath: 'M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83', category: 'Networking', viewBox: '0 0 24 24', fillMode: 'stroke' },
+  ],
+  socialIcons: [
+    { id: 'si1', platform: 'Twitter', svgPath: 'M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z' },
+    { id: 'si2', platform: 'GitHub', svgPath: 'M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22' },
+  ],
   imagery: [
     { id: 'im1', url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&q=80', type: 'do', description: 'Use clean server room imagery' },
   ],
@@ -726,18 +803,43 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
     fgColor: '#3B82F6',
     bgColor: '#FFFFFF',
   },
-  videos: [],
-  assets: [],
-  misuse: [],
+  videos: [
+    { id: 'vid1', title: 'Getting Started with Nexus Cloud', url: 'https://www.youtube.com/watch?v=example1', type: 'youtube', description: 'Quick start guide for new users' },
+    { id: 'vid2', title: 'Cloud Architecture Overview', url: 'https://www.youtube.com/watch?v=example2', type: 'youtube', description: 'Understanding our infrastructure' },
+  ],
+  assets: [
+    { id: 'a1', name: 'Cloud SDK', type: 'zip', url: '', size: '12.5 MB' },
+    { id: 'a2', name: 'API Documentation', type: 'pdf', url: '', size: '3.2 MB' },
+  ],
+  misuse: [
+    { id: 'm1', url: misuseNexusExamples, description: 'Do not modify the cloud icon proportions' },
+    { id: 'm2', url: misuseNexusExamples, description: 'Do not use non-brand colors for product materials' },
+  ],
   atmosphere: {
     style: 'tech',
     animate: true,
     opacity: 0.25,
     blur: 50,
   },
-  caseStudies: [],
-  brochures: [],
-  templates: [],
+  caseStudies: [
+    { id: 'cs1', title: 'Enterprise Migration Success', description: 'How Fortune 100 companies migrated to Nexus Cloud', previewUrl: collateralNexusCasestudy },
+  ],
+  brochures: [
+    { id: 'br1', title: 'Nexus Cloud Overview', category: 'Product', previewUrl: collateralNexusBrochure, thumbnailUrl: collateralNexusBrochure },
+    { id: 'br2', title: 'Pricing Guide', category: 'Sales', previewUrl: collateralNexusBrochure, thumbnailUrl: collateralNexusBrochure },
+  ],
+  templates: [
+    { id: 'tmp1', name: 'Architecture Diagram Template', fileType: 'pptx', fileSize: '3.5 MB', thumbnailUrl: templateNexusPresentation },
+  ],
+  imageAssets: [
+    { id: 'ia1', name: 'Cloud Platform Screenshot', url: imageassetsLibrary, type: 'product', size: '2.1 MB', uploadedAt: '2025-12-01' },
+  ],
+  socialAssets: [
+    { id: 'sa1', platform: 'LinkedIn', postSize: '1200x1200', previewImageUrl: socialassetsNexusSpecs, textLegibility: 'High contrast on dark backgrounds', directive: 'Use cloud imagery with gradient accents' },
+  ],
+  displayBanners: [
+    { id: 'db1', name: 'Product Banner', dimensions: '1200x628', aspectRatio: 1.91, category: 'native', previewImageUrl: socialNexusLinkedin, maxMessaging: 'Product features + CTA', textLegibility: '20pt minimum', safeZonePolicy: '10% margins' },
+  ],
   services: [
     { id: 'srv1', name: 'Compute', description: 'Scalable virtual machines and containers', icon: 'Server' },
     { id: 'srv2', name: 'Storage', description: 'Object, block, and file storage solutions', icon: 'Database' },
@@ -760,7 +862,12 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
   isFavorite: false,
   isPublic: true,
   sectionOrder: [
-    'hero', 'tagline', 'identity', 'values', 'services', 'logos', 'colors', 'gradients', 'patterns', 'typography', 'imagery'
+    'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 
+    'logos', 'brandicon', 'colors', 'gradients', 'patterns', 
+    'typography', 'textstyles', 'iconography',
+    'imagery', 'social', 'website', 'signatures', 'qr',
+    'videos', 'assets', 'misuse',
+    'brochures', 'templates'
   ] as SectionId[],
   hiddenSections: [],
   pageSettings: DEMO_PAGE_SETTINGS,
