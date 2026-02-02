@@ -6,6 +6,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper to safely extract array with limit
+function safeArray<T>(arr: unknown, limit = 50): T[] {
+  if (!Array.isArray(arr)) return [];
+  return arr.slice(0, limit) as T[];
+}
+
+// Helper to safely extract string
+function safeStr(val: unknown): string | null {
+  return typeof val === 'string' ? val : null;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -49,425 +60,183 @@ serve(async (req) => {
     }
 
     const guideData = (brand.guide_data as Record<string, unknown>) || {};
+    
+    // Extract only essential data with memory limits
     const hero = (guideData.hero as Record<string, unknown>) || {};
-    const logos = (guideData.logos as Array<Record<string, unknown>>) || [];
     const identity = (guideData.identity as Record<string, unknown>) || {};
     const tagline = (guideData.tagline as Record<string, unknown>) || {};
-    const social = (guideData.social as Array<Record<string, unknown>>) || [];
-    const imagery = (guideData.imagery as Array<Record<string, unknown>>) || [];
-    const misuse = (guideData.misuse as Array<Record<string, unknown>>) || [];
-    const values = (guideData.values as Array<Record<string, unknown>>) || [];
-    const services = (guideData.services as Array<Record<string, unknown>>) || [];
-    const patterns = (guideData.patterns as Array<Record<string, unknown>>) || [];
-    const gradients = (guideData.gradients as Array<Record<string, unknown>>) || [];
-    const brandIcons = (guideData.brandIcons as Array<Record<string, unknown>>) || [];
-    const imageAssets = (guideData.imageAssets as Array<Record<string, unknown>>) || [];
-    const caseStudies = (guideData.caseStudies as Array<Record<string, unknown>>) || [];
-    const brochures = (guideData.brochures as Array<Record<string, unknown>>) || [];
-    const templates = (guideData.templates as Array<Record<string, unknown>>) || [];
-    const socialAssets = (guideData.socialAssets as Array<Record<string, unknown>>) || [];
-    const displayBanners = (guideData.displayBanners as Array<Record<string, unknown>>) || [];
-    const videos = (guideData.videos as Array<Record<string, unknown>>) || [];
-    const webinars = (guideData.webinars as Array<Record<string, unknown>>) || [];
-    const sponsorLogos = (guideData.sponsorLogos as Array<Record<string, unknown>>) || [];
     
-    // Find logo variants
-    const primaryLogo = logos.find(l => l.variant === 'primary') || logos[0];
-    const monoLogo = logos.find(l => l.variant === 'monochrome');
-    const reversedLogo = logos.find(l => l.variant === 'reversed');
-    const iconLogo = logos.find(l => l.variant === 'icon');
-    const wordmarkLogo = logos.find(l => l.variant === 'wordmark');
-    const secondaryLogo = logos.find(l => l.variant === 'secondary');
+    // Limit arrays to prevent memory bloat
+    const logos = safeArray<Record<string, unknown>>(guideData.logos, 10);
+    const colors = safeArray<Record<string, unknown>>(guideData.colors, 20);
+    const typography = safeArray<Record<string, unknown>>(guideData.typography, 10);
+    const patterns = safeArray<Record<string, unknown>>(guideData.patterns, 20);
+    const gradients = safeArray<Record<string, unknown>>(guideData.gradients, 20);
+    const brandIcons = safeArray<Record<string, unknown>>(guideData.brandIcons, 30);
+    const imagery = safeArray<Record<string, unknown>>(guideData.imagery, 30);
+    const values = safeArray<Record<string, unknown>>(guideData.values, 20);
+    const services = safeArray<Record<string, unknown>>(guideData.services, 20);
+    const social = safeArray<Record<string, unknown>>(guideData.social, 10);
+    const sponsorLogos = safeArray<Record<string, unknown>>(guideData.sponsorLogos, 50);
+    
+    // Find logo variants efficiently
+    const findLogo = (variant: string) => logos.find(l => l.variant === variant);
+    const primaryLogo = findLogo('primary') || logos[0];
+    
+    // Simplified photo extraction
+    const photographyDos = imagery
+      .filter(i => i.type === 'do')
+      .slice(0, 15)
+      .map(i => ({ id: i.id, url: i.url, description: i.description }));
+    
+    const photographyDonts = imagery
+      .filter(i => i.type === 'dont')
+      .slice(0, 15)
+      .map(i => ({ id: i.id, url: i.url, description: i.description }));
 
-    // Extract photography guidelines from imagery (do/dont examples)
-    const photographyDos = imagery.filter(i => i.type === 'do').map(i => ({
-      id: i.id,
-      url: i.url,
-      description: i.description
-    }));
-    const photographyDonts = imagery.filter(i => i.type === 'dont').map(i => ({
-      id: i.id,
-      url: i.url,
-      description: i.description
-    }));
-
-    // Extract social handles
-    const socialHandles = social.map(s => ({
-      platform: s.platform,
-      handle: s.handle,
-      url: s.url,
-      color: s.color
-    }));
-
-    // Extract misuse examples (do's and don'ts for AI prompts)
-    const brandConstraints = misuse.map(m => ({
-      id: m.id,
-      description: m.description,
-      exampleUrl: m.url
-    }));
-
-    // Collect ALL imagery URLs for EventKIT asset library
-    const allImageryUrls: Array<{ url: string; type: string; name?: string; description?: string }> = [];
-
-    // Hero images
-    if (hero.coverImage) {
-      allImageryUrls.push({ url: String(hero.coverImage), type: 'hero', name: 'Hero Cover Image' });
-    }
-    if (hero.logoUrl) {
-      allImageryUrls.push({ url: String(hero.logoUrl), type: 'hero-logo', name: 'Hero Logo' });
-    }
-
-    // All logos
+    // Collect imagery URLs efficiently - limit total
+    const allImageryUrls: Array<{ url: string; type: string; name?: string }> = [];
+    
+    // Add hero images (max 2)
+    if (hero.coverImage) allImageryUrls.push({ url: String(hero.coverImage), type: 'hero', name: 'Hero Cover' });
+    if (hero.logoUrl) allImageryUrls.push({ url: String(hero.logoUrl), type: 'hero-logo', name: 'Hero Logo' });
+    
+    // Add logos (max 10)
     logos.forEach(l => {
-      if (l.url) {
+      if (l.url && allImageryUrls.length < 100) {
         allImageryUrls.push({ url: String(l.url), type: 'logo', name: String(l.name || l.variant) });
       }
     });
-
-    // Brand icons/symbols
-    brandIcons.forEach(icon => {
-      if (icon.url) {
-        allImageryUrls.push({ url: String(icon.url), type: 'brand-icon', name: String(icon.name || 'Brand Icon') });
+    
+    // Add brand icons (max 20)
+    brandIcons.slice(0, 20).forEach(icon => {
+      if (icon.url && allImageryUrls.length < 100) {
+        allImageryUrls.push({ url: String(icon.url), type: 'brand-icon', name: String(icon.name || 'Icon') });
       }
     });
-
-    // Approved photography (do's)
-    photographyDos.forEach(p => {
-      allImageryUrls.push({ url: String(p.url), type: 'photography-approved', description: String(p.description || '') });
-    });
-
-    // Patterns
-    patterns.forEach(p => {
-      if (p.url) {
+    
+    // Add patterns (max 15)
+    patterns.slice(0, 15).forEach(p => {
+      if (p.url && allImageryUrls.length < 100) {
         allImageryUrls.push({ url: String(p.url), type: 'pattern', name: String(p.name || 'Pattern') });
       }
     });
-
-    // Image assets library
-    imageAssets.forEach(asset => {
-      if (asset.url) {
-        allImageryUrls.push({ url: String(asset.url), type: 'image-asset', name: String(asset.name || 'Image Asset') });
+    
+    // Add approved photography (max 10)
+    photographyDos.slice(0, 10).forEach(p => {
+      if (p.url && allImageryUrls.length < 100) {
+        allImageryUrls.push({ url: String(p.url), type: 'photography-approved' });
+      }
+    });
+    
+    // Add sponsor logos (max 30)
+    sponsorLogos.slice(0, 30).forEach(s => {
+      if (s.url && allImageryUrls.length < 100) {
+        allImageryUrls.push({ url: String(s.url), type: 'sponsor-logo', name: String(s.name || 'Sponsor') });
       }
     });
 
-    // Case study previews
-    caseStudies.forEach(cs => {
-      if (cs.previewUrl) {
-        allImageryUrls.push({ url: String(cs.previewUrl), type: 'case-study', name: String(cs.title || 'Case Study') });
+    // Build compact response
+    const response = {
+      brand: {
+        id: brand.id,
+        name: brand.name,
+        slug: brand.slug,
+        
+        // Core branding
+        colors: colors.map(c => ({ 
+          id: c.id, name: c.name, hex: c.hex, role: c.role, usage: c.usage 
+        })),
+        fonts: typography.map(t => ({ 
+          id: t.id, role: t.role, family: t.fontFamily || t.family, weight: t.weight 
+        })),
+        logo_url: primaryLogo?.url || hero.logoUrl || null,
+        tagline: tagline.primary || hero.tagline || null,
+        voice: identity.toneOfVoice || [],
+        mission: identity.missionStatement || null,
+        
+        // Logo variants
+        logos: {
+          primary: findLogo('primary')?.url || null,
+          secondary: findLogo('secondary')?.url || null,
+          monochrome: findLogo('monochrome')?.url || null,
+          reversed: findLogo('reversed')?.url || null,
+          icon: findLogo('icon')?.url || null,
+          wordmark: findLogo('wordmark')?.url || null,
+          all: logos.map(l => ({ id: l.id, name: l.name, url: l.url, variant: l.variant }))
+        },
+        
+        // Brand icons
+        brandIcons: brandIcons.map(icon => ({
+          id: icon.id, name: icon.name, url: icon.url, isPrimary: icon.isPrimary || false
+        })),
+        
+        // Visual assets
+        patterns: patterns.map(p => ({ id: p.id, name: p.name, url: p.url })),
+        gradients: gradients.map(g => ({ id: g.id, name: g.name, css: g.css })),
+        
+        // Photography
+        photography: {
+          approved: photographyDos,
+          rejected: photographyDonts,
+        },
+        
+        // All imagery (limited for memory)
+        allImagery: {
+          totalCount: allImageryUrls.length,
+          all: allImageryUrls
+        },
+        
+        // Constraints for AI
+        constraints: {
+          brandMisuse: safeArray(guideData.misuse, 20).map(m => ({
+            id: (m as Record<string, unknown>).id,
+            description: (m as Record<string, unknown>).description,
+            exampleUrl: (m as Record<string, unknown>).url
+          })),
+          rejectedPhotography: photographyDonts
+        },
+        
+        // Social media
+        socialMedia: {
+          handles: social.map(s => ({ platform: s.platform, handle: s.handle, url: s.url })),
+          hashtags: values.slice(0, 10).map(v => v.text ? `#${String(v.text).replace(/\s+/g, '')}` : null).filter(Boolean),
+        },
+        
+        // Values and services (limited)
+        values: values.map(v => ({ id: v.id, text: v.text, description: v.description })),
+        services: services.map(s => ({ id: s.id, name: s.name, description: s.description })),
+        
+        // Sponsor logos
+        sponsorLogos: {
+          all: sponsorLogos.map(s => ({ id: s.id, name: s.name, url: s.url, tier: s.tier })),
+          allLogoUrls: sponsorLogos.map(s => s.url).filter(Boolean).slice(0, 50),
+          totalCount: sponsorLogos.length
+        },
+        
+        // Hero settings
+        heroSettings: {
+          coverImage: hero.coverImage || null,
+          coverVideo: hero.coverVideo || null,
+          useVideo: hero.useVideo || false,
+        },
+        
+        // Metadata
+        industry: guideData.industry || null,
+        created_at: brand.created_at,
+        updated_at: brand.updated_at,
+        
+        // Full data for complete import (only on request - commented for memory)
+        // guide_data: guideData,
       }
-    });
-
-    // Brochure previews/thumbnails
-    brochures.forEach(b => {
-      if (b.thumbnailUrl) {
-        allImageryUrls.push({ url: String(b.thumbnailUrl), type: 'brochure', name: String(b.title || 'Brochure') });
-      }
-      if (b.previewUrl && b.previewUrl !== b.thumbnailUrl) {
-        allImageryUrls.push({ url: String(b.previewUrl), type: 'brochure-preview', name: String(b.title || 'Brochure') });
-      }
-    });
-
-    // Template thumbnails
-    templates.forEach(t => {
-      if (t.thumbnailUrl) {
-        allImageryUrls.push({ url: String(t.thumbnailUrl), type: 'template', name: String(t.name || 'Template') });
-      }
-    });
-
-    // Social asset previews
-    socialAssets.forEach(sa => {
-      if (sa.previewImageUrl) {
-        allImageryUrls.push({ url: String(sa.previewImageUrl), type: 'social-asset', name: String(sa.platform || 'Social Asset') });
-      }
-      if (sa.profileIconUrl) {
-        allImageryUrls.push({ url: String(sa.profileIconUrl), type: 'social-profile-icon', name: `${sa.platform} Profile` });
-      }
-    });
-
-    // Display banner previews
-    displayBanners.forEach(db => {
-      if (db.previewImageUrl) {
-        allImageryUrls.push({ url: String(db.previewImageUrl), type: 'display-banner', name: String(db.name || 'Display Banner') });
-      }
-    });
-
-    // Video thumbnails
-    videos.forEach(v => {
-      if (v.thumbnail) {
-        allImageryUrls.push({ url: String(v.thumbnail), type: 'video-thumbnail', name: String(v.title || 'Video') });
-      }
-    });
-
-    // Webinar thumbnails
-    webinars.forEach(w => {
-      if (w.thumbnailUrl) {
-        allImageryUrls.push({ url: String(w.thumbnailUrl), type: 'webinar', name: String(w.title || 'Webinar') });
-      }
-    });
-
-    // Sponsor logos
-    sponsorLogos.forEach(s => {
-      if (s.url) {
-        allImageryUrls.push({ url: String(s.url), type: 'sponsor-logo', name: String(s.name || 'Sponsor'), description: String(s.tier || '') });
-      }
-    });
+    };
 
     return new Response(
-      JSON.stringify({
-        brand: {
-          id: brand.id,
-          name: brand.name,
-          slug: brand.slug,
-          
-          // === CORE BRANDING ===
-          colors: guideData.colors || [],
-          fonts: guideData.typography || [],
-          logo_url: primaryLogo?.url || hero.logoUrl || null,
-          tagline: tagline.primary || hero.tagline || null,
-          taglineVariations: tagline.variations || [],
-          voice: identity.toneOfVoice || [],
-          mission: identity.missionStatement || null,
-          archetype: identity.archetype || null,
-          
-          // === LOGO VARIANTS (structured) ===
-          logos: {
-            primary: primaryLogo?.url || null,
-            secondary: secondaryLogo?.url || null,
-            monochrome: monoLogo?.url || null,
-            reversed: reversedLogo?.url || null,
-            icon: iconLogo?.url || null,
-            wordmark: wordmarkLogo?.url || null,
-            all: logos.map(l => ({ 
-              id: l.id,
-              name: l.name, 
-              url: l.url, 
-              variant: l.variant 
-            }))
-          },
-          
-          // === BRAND SYMBOLS/ICONS ===
-          brandIcons: brandIcons.map(icon => ({
-            id: icon.id,
-            name: icon.name,
-            url: icon.url,
-            isPrimary: icon.isPrimary || false
-          })),
-          
-          // === VISUAL ASSETS ===
-          patterns: patterns.map(p => ({
-            id: p.id,
-            name: p.name,
-            url: p.url
-          })),
-          gradients: gradients.map(g => ({
-            id: g.id,
-            name: g.name,
-            css: g.css
-          })),
-          iconography: guideData.iconography || [],
-          defaultIconColor: guideData.defaultIconColor || null,
-          
-          // === PHOTOGRAPHY GUIDELINES ===
-          photography: {
-            approved: photographyDos,
-            rejected: photographyDonts,
-            allApprovedUrls: photographyDos.map(p => p.url),
-            styleDirection: imagery.length > 0 
-              ? `${photographyDos.length} approved styles, ${photographyDonts.length} rejected examples`
-              : null
-          },
-          
-          // === IMAGE ASSET LIBRARY ===
-          imageAssets: imageAssets.map(asset => ({
-            id: asset.id,
-            name: asset.name,
-            url: asset.url,
-            type: asset.type
-          })),
-          
-          // === ALL IMAGERY (consolidated for easy consumption) ===
-          allImagery: {
-            totalCount: allImageryUrls.length,
-            byType: {
-              logos: allImageryUrls.filter(i => i.type === 'logo').map(i => i.url),
-              brandIcons: allImageryUrls.filter(i => i.type === 'brand-icon').map(i => i.url),
-              patterns: allImageryUrls.filter(i => i.type === 'pattern').map(i => i.url),
-              photography: allImageryUrls.filter(i => i.type === 'photography-approved').map(i => i.url),
-              heroImages: allImageryUrls.filter(i => i.type.startsWith('hero')).map(i => i.url),
-              collateral: allImageryUrls.filter(i => ['case-study', 'brochure', 'template'].includes(i.type)).map(i => i.url),
-              social: allImageryUrls.filter(i => i.type.startsWith('social')).map(i => i.url),
-              banners: allImageryUrls.filter(i => i.type === 'display-banner').map(i => i.url),
-              video: allImageryUrls.filter(i => ['video-thumbnail', 'webinar'].includes(i.type)).map(i => i.url),
-              sponsors: allImageryUrls.filter(i => i.type === 'sponsor-logo').map(i => i.url),
-            },
-            all: allImageryUrls
-          },
-          
-          // === DO'S & DON'TS (for AI prompt constraints) ===
-          constraints: {
-            brandMisuse: brandConstraints,
-            colorCombinations: guideData.colorCombinations || [],
-            rejectedPhotography: photographyDonts
-          },
-          
-          // === SOCIAL MEDIA ===
-          socialMedia: {
-            handles: socialHandles,
-            hashtags: values.map(v => v.text ? `#${String(v.text).replace(/\s+/g, '')}` : null).filter(Boolean),
-            assets: socialAssets.map(sa => ({
-              id: sa.id,
-              platform: sa.platform,
-              postSize: sa.postSize,
-              storySize: sa.storySize,
-              coverSize: sa.coverSize,
-              previewImageUrl: sa.previewImageUrl,
-              profileIconUrl: sa.profileIconUrl
-            }))
-          },
-          
-          // === LAYOUT & COMPOSITION ===
-          displayBanners: displayBanners.map(db => ({
-            id: db.id,
-            name: db.name,
-            dimensions: db.dimensions,
-            aspectRatio: db.aspectRatio,
-            category: db.category,
-            previewImageUrl: db.previewImageUrl
-          })),
-          templates: templates.map(t => ({
-            id: t.id,
-            name: t.name,
-            fileType: t.fileType,
-            thumbnailUrl: t.thumbnailUrl,
-            externalUrl: t.externalUrl
-          })),
-          templateSpecs: guideData.templateSpecs || [],
-          
-          // === COLLATERAL PREVIEWS ===
-          caseStudies: caseStudies.map(cs => ({
-            id: cs.id,
-            title: cs.title,
-            description: cs.description,
-            previewUrl: cs.previewUrl
-          })),
-          brochures: brochures.map(b => ({
-            id: b.id,
-            title: b.title,
-            category: b.category,
-            previewUrl: b.previewUrl,
-            thumbnailUrl: b.thumbnailUrl
-          })),
-          
-          // === VIDEO CONTENT ===
-          videos: videos.map(v => ({
-            id: v.id,
-            title: v.title,
-            url: v.url,
-            type: v.type,
-            thumbnail: v.thumbnail
-          })),
-          webinars: webinars.map(w => ({
-            id: w.id,
-            title: w.title,
-            thumbnailUrl: w.thumbnailUrl,
-            recordingUrl: w.recordingUrl,
-            status: w.status
-          })),
-          
-          // === EXTENDED IDENTITY ===
-          values: values.map(v => ({ 
-            id: v.id,
-            text: v.text, 
-            description: v.description,
-            icon: v.icon
-          })),
-          services: services.map(s => ({
-            id: s.id,
-            name: s.name,
-            description: s.description,
-            icon: s.icon,
-            imageUrl: s.imageUrl,
-            headerImage: s.headerImage
-          })),
-          
-          // === SPONSOR LOGOS ===
-          sponsorLogos: {
-            byTier: {
-              platinum: sponsorLogos.filter(s => s.tier === 'platinum').map(s => ({
-                id: s.id,
-                name: s.name,
-                url: s.url,
-                websiteUrl: s.websiteUrl,
-                placement: s.placement
-              })),
-              gold: sponsorLogos.filter(s => s.tier === 'gold').map(s => ({
-                id: s.id,
-                name: s.name,
-                url: s.url,
-                websiteUrl: s.websiteUrl,
-                placement: s.placement
-              })),
-              silver: sponsorLogos.filter(s => s.tier === 'silver').map(s => ({
-                id: s.id,
-                name: s.name,
-                url: s.url,
-                websiteUrl: s.websiteUrl,
-                placement: s.placement
-              })),
-              bronze: sponsorLogos.filter(s => s.tier === 'bronze').map(s => ({
-                id: s.id,
-                name: s.name,
-                url: s.url,
-                websiteUrl: s.websiteUrl,
-                placement: s.placement
-              })),
-              partner: sponsorLogos.filter(s => s.tier === 'partner').map(s => ({
-                id: s.id,
-                name: s.name,
-                url: s.url,
-                websiteUrl: s.websiteUrl,
-                placement: s.placement
-              })),
-              media: sponsorLogos.filter(s => s.tier === 'media').map(s => ({
-                id: s.id,
-                name: s.name,
-                url: s.url,
-                websiteUrl: s.websiteUrl,
-                placement: s.placement
-              })),
-            },
-            all: sponsorLogos.map(s => ({
-              id: s.id,
-              name: s.name,
-              url: s.url,
-              tier: s.tier,
-              websiteUrl: s.websiteUrl,
-              placement: s.placement
-            })),
-            allLogoUrls: sponsorLogos.map(s => s.url).filter(Boolean),
-            totalCount: sponsorLogos.length
-          },
-          
-          // === METADATA ===
-          industry: guideData.industry || null,
-          targetAudience: guideData.targetAudience || null,
-          pageSettings: guideData.pageSettings || null,
-          heroSettings: {
-            coverImage: hero.coverImage || null,
-            coverVideo: hero.coverVideo || null,
-            useVideo: hero.useVideo || false,
-            kenBurnsEffect: hero.kenBurnsEffect || false
-          },
-          
-          // === FULL DATA (for complete import) ===
-          guide_data: guideData,
-          created_at: brand.created_at,
-          updated_at: brand.updated_at,
-        }
-      }),
+      JSON.stringify(response),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch {
+  } catch (err) {
+    console.error('[get-shared-brand] Error:', err);
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
