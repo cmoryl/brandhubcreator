@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, Plus, X, Loader2, Sparkles, BarChart3, Target, Lightbulb, FileText, Users, AlertTriangle, CheckCircle, Download, Wand2, Search } from 'lucide-react';
+import { TrendingUp, Plus, X, Loader2, Sparkles, BarChart3, Target, Lightbulb, FileText, Users, AlertTriangle, CheckCircle, Download, Wand2, Search, Star, Heart } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useCompetitiveAnalysis } from '@/hooks/useCompetitiveAnalysis';
+import { useFavoriteCompetitors } from '@/hooks/useFavoriteCompetitors';
 import { ScoreGauge } from '@/components/admin/competitive-analysis/ScoreGauge';
 import { PersonalityMatrixChart } from '@/components/admin/competitive-analysis/PersonalityMatrixChart';
 import { StrengthsWeaknessesMatrix } from '@/components/admin/competitive-analysis/StrengthsWeaknessesMatrix';
@@ -63,11 +65,22 @@ export function CompetitiveAnalysisDialog({
   const [additionalContext, setAdditionalContext] = useState('');
   const [showDiscoveryPanel, setShowDiscoveryPanel] = useState(false);
 
+  // Favorites state
+  const [showFavoritesPanel, setShowFavoritesPanel] = useState(false);
+
   const {
     latestReport,
     isGenerating,
     generateReport,
   } = useCompetitiveAnalysis({ entityType, entityId, organizationId });
+
+  const {
+    favorites,
+    isLoading: isLoadingFavorites,
+    addMultipleFavorites,
+    removeFavorite,
+    isFavorite,
+  } = useFavoriteCompetitors({ organizationId });
 
   const handleAddCompetitor = () => {
     if (newCompetitor.trim() && competitors.length < 10) {
@@ -146,6 +159,38 @@ export function CompetitiveAnalysisDialog({
     setDiscoveredCompetitors([]);
     toast.success(`Added ${selected.length} competitors`);
   };
+
+  const handleSaveDiscoveredToFavorites = async () => {
+    const selected = discoveredCompetitors.filter((c) => c.selected);
+    if (selected.length === 0) return;
+
+    await addMultipleFavorites(
+      selected.map((c) => ({
+        name: c.name,
+        competitor_type: c.type,
+        reason: c.reason,
+        industry: industryHint || undefined,
+      }))
+    );
+  };
+
+  const handleAddFromFavorites = (names: string[]) => {
+    const toAdd = names.filter((name) => !competitors.includes(name));
+    const newList = [...competitors, ...toAdd].slice(0, 10);
+    setCompetitors(newList);
+    setShowFavoritesPanel(false);
+    if (toAdd.length > 0) {
+      toast.success(`Added ${toAdd.length} competitor(s) from favorites`);
+    }
+  };
+
+  const handleToggleFavoriteSelection = (name: string) => {
+    setSelectedFavorites((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+    );
+  };
+
+  const [selectedFavorites, setSelectedFavorites] = useState<string[]>([]);
 
   const handleExportPdf = async () => {
     if (!reportData) return;
@@ -341,20 +386,141 @@ export function CompetitiveAnalysisDialog({
                             ))}
                           </div>
 
-                          <Button
-                            onClick={handleAddSelectedCompetitors}
-                            disabled={!discoveredCompetitors.some(c => c.selected)}
-                            className="w-full gap-2"
-                          >
-                            <Plus className="w-4 h-4" />
-                            Add {discoveredCompetitors.filter(c => c.selected).length} Competitors
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={handleAddSelectedCompetitors}
+                              disabled={!discoveredCompetitors.some(c => c.selected)}
+                              className="flex-1 gap-2"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Add {discoveredCompetitors.filter(c => c.selected).length} to Report
+                            </Button>
+                            <Button
+                              onClick={handleSaveDiscoveredToFavorites}
+                              disabled={!discoveredCompetitors.some(c => c.selected)}
+                              variant="outline"
+                              className="gap-2"
+                            >
+                              <Heart className="w-4 h-4" />
+                              Save to Favorites
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>
                   )}
                 </CardContent>
               </Card>
+
+              {/* Saved Favorites Section */}
+              {favorites.length > 0 && (
+                <Card className="border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent">
+                  <Collapsible open={showFavoritesPanel} onOpenChange={setShowFavoritesPanel}>
+                    <CollapsibleTrigger asChild>
+                      <CardHeader className="pb-3 cursor-pointer hover:bg-muted/20 transition-colors rounded-t-lg">
+                        <CardTitle className="flex items-center justify-between text-base">
+                          <div className="flex items-center gap-2">
+                            <Star className="w-5 h-5 text-amber-500" />
+                            Saved Favorites ({favorites.length})
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {showFavoritesPanel ? 'Click to collapse' : 'Click to expand'}
+                          </Badge>
+                        </CardTitle>
+                        <CardDescription>
+                          Quickly add previously saved competitors
+                        </CardDescription>
+                      </CardHeader>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <CardContent className="space-y-4 pt-0">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-medium">
+                            Select favorites to add ({selectedFavorites.length} selected)
+                          </Label>
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-xs"
+                            onClick={() => {
+                              const availableFavorites = favorites
+                                .filter(f => !competitors.includes(f.name))
+                                .map(f => f.name);
+                              const allSelected = availableFavorites.every(n => selectedFavorites.includes(n));
+                              setSelectedFavorites(allSelected ? [] : availableFavorites);
+                            }}
+                          >
+                            {favorites
+                              .filter(f => !competitors.includes(f.name))
+                              .every(f => selectedFavorites.includes(f.name))
+                              ? 'Deselect All'
+                              : 'Select All'}
+                          </Button>
+                        </div>
+
+                        <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                          {favorites.map((fav) => {
+                            const alreadyAdded = competitors.includes(fav.name);
+                            return (
+                              <div
+                                key={fav.id}
+                                className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+                                  alreadyAdded
+                                    ? 'bg-muted/20 border-transparent opacity-50'
+                                    : selectedFavorites.includes(fav.name)
+                                    ? 'bg-amber-500/10 border-amber-500/30 cursor-pointer'
+                                    : 'bg-muted/30 border-transparent hover:border-muted cursor-pointer'
+                                }`}
+                                onClick={() => !alreadyAdded && handleToggleFavoriteSelection(fav.name)}
+                              >
+                                <Checkbox
+                                  checked={alreadyAdded || selectedFavorites.includes(fav.name)}
+                                  disabled={alreadyAdded}
+                                  onCheckedChange={() => !alreadyAdded && handleToggleFavoriteSelection(fav.name)}
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-medium text-sm">{fav.name}</span>
+                                    {getCompetitorTypeBadge(fav.competitor_type)}
+                                    {alreadyAdded && (
+                                      <Badge variant="outline" className="text-xs">Already added</Badge>
+                                    )}
+                                  </div>
+                                  {fav.reason && (
+                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                                      {fav.reason}
+                                    </p>
+                                  )}
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeFavorite(fav.id);
+                                  }}
+                                >
+                                  <X className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        <Button
+                          onClick={() => handleAddFromFavorites(selectedFavorites)}
+                          disabled={selectedFavorites.length === 0}
+                          className="w-full gap-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add {selectedFavorites.length} from Favorites
+                        </Button>
+                      </CardContent>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </Card>
+              )}
 
               {/* Manual Competitor Entry */}
               <div>

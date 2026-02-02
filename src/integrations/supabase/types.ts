@@ -473,6 +473,50 @@ export type Database = {
           },
         ]
       }
+      favorite_competitors: {
+        Row: {
+          competitor_type: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          industry: string | null
+          name: string
+          organization_id: string | null
+          reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          competitor_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          industry?: string | null
+          name: string
+          organization_id?: string | null
+          reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          competitor_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          industry?: string | null
+          name?: string
+          organization_id?: string | null
+          reason?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorite_competitors_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_submissions: {
         Row: {
           admin_notes: string | null
