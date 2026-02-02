@@ -10,6 +10,8 @@ import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
 import { MobileEventSectionNav } from '@/components/event/MobileEventSectionNav';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { BackToTopButton } from '@/components/BackToTopButton';
+import { DemoTour, StartTourButton } from '@/components/demo/DemoTour';
+import { getTourSteps } from '@/data/demoTourSteps';
 import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
 import type { BrandGuide, ProductGuide, SectionId } from '@/types/brand';
 import type { EventGuide, EventSectionId } from '@/types/event';
@@ -22,6 +24,9 @@ export default function DemoGuideViewer() {
   const [activeEventSection, setActiveEventSection] = useState<EventSectionId | null>(null);
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
   const [scrollToEventSection, setScrollToEventSection] = useState<EventSectionId | null>(null);
+  const [isTourOpen, setIsTourOpen] = useState(false);
+
+  const tourSteps = getTourSteps(type || 'brand');
 
   // Find the demo guide based on type
   const demoGuide = (() => {
@@ -130,6 +135,7 @@ export default function DemoGuideViewer() {
             )}
           </div>
           <div className="flex items-center gap-1.5 sm:gap-3">
+            <StartTourButton onClick={() => setIsTourOpen(true)} />
             <ThemeToggle />
             <Button size="sm" onClick={() => window.location.href = 'mailto:support@brandhub.com?subject=BrandHub Demo Request'} className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-4 text-xs sm:text-sm">
               <span className="hidden sm:inline">Get Started</span>
@@ -225,6 +231,13 @@ export default function DemoGuideViewer() {
 
       {/* Back to Top Button */}
       <BackToTopButton />
+
+      {/* Interactive Tour */}
+      <DemoTour
+        steps={tourSteps}
+        isOpen={isTourOpen}
+        onClose={() => setIsTourOpen(false)}
+      />
     </div>
   );
 }
