@@ -74,7 +74,17 @@ import brochureBloom1 from '@/assets/demos/brochure-bloom-1.jpg';
 import templateBloom1 from '@/assets/demos/template-bloom-1.jpg';
 import speakerSummit1 from '@/assets/demos/speaker-summit-1.jpg';
 import speakerSummit2 from '@/assets/demos/speaker-summit-2.jpg';
+import speakerSummit3 from '@/assets/demos/speaker-summit-3.jpg';
+import speakerSummit4 from '@/assets/demos/speaker-summit-4.jpg';
 import videoSummit1 from '@/assets/demos/video-summit-1.jpg';
+import videoSummit2 from '@/assets/demos/video-summit-2.jpg';
+import casestudyCloud1 from '@/assets/demos/casestudy-cloud-1.jpg';
+import brochureCloud1 from '@/assets/demos/brochure-cloud-1.jpg';
+import templateCloud1 from '@/assets/demos/template-cloud-1.jpg';
+import casestudyOils1 from '@/assets/demos/casestudy-oils-1.jpg';
+import brochureOils1 from '@/assets/demos/brochure-oils-1.jpg';
+import templateOils1 from '@/assets/demos/template-oils-1.jpg';
+import assetDownload1 from '@/assets/demos/asset-download-1.jpg';
 
 // New comprehensive section assets
 import socialassetsNexusSpecs from '@/assets/demos/socialassets-nexus-specs.jpg';
@@ -992,17 +1002,21 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
     blur: 50,
   },
   caseStudies: [
-    { id: 'cs1', title: 'Enterprise Migration Success', description: 'How Fortune 100 companies migrated to Nexus Cloud', previewUrl: collateralNexusCasestudy },
+    { id: 'cs1', title: 'Enterprise Migration Success', description: 'How Fortune 100 companies migrated to Nexus Cloud', previewUrl: casestudyCloud1 },
+    { id: 'cs2', title: 'Startup Scale Story', description: 'From 0 to 10M users in 18 months on Nexus Cloud', previewUrl: casestudyCloud1 },
   ],
   brochures: [
-    { id: 'br1', title: 'Nexus Cloud Overview', category: 'Product', previewUrl: collateralNexusBrochure, thumbnailUrl: collateralNexusBrochure },
-    { id: 'br2', title: 'Pricing Guide', category: 'Sales', previewUrl: collateralNexusBrochure, thumbnailUrl: collateralNexusBrochure },
+    { id: 'br1', title: 'Nexus Cloud Overview', category: 'Product', previewUrl: brochureCloud1, thumbnailUrl: brochureCloud1 },
+    { id: 'br2', title: 'Pricing Guide', category: 'Sales', previewUrl: brochureCloud1, thumbnailUrl: brochureCloud1 },
+    { id: 'br3', title: 'Security Whitepaper', category: 'Technical', previewUrl: brochureCloud1, thumbnailUrl: brochureCloud1 },
   ],
   templates: [
-    { id: 'tmp1', name: 'Architecture Diagram Template', fileType: 'pptx', fileSize: '3.5 MB', thumbnailUrl: templateNexus1 },
+    { id: 'tmp1', name: 'Architecture Diagram Template', fileType: 'pptx', fileSize: '3.5 MB', thumbnailUrl: templateCloud1 },
+    { id: 'tmp2', name: 'API Documentation Template', fileType: 'md', fileSize: '500 KB', thumbnailUrl: templateCloud1 },
   ],
   imageAssets: [
     { id: 'ia1', name: 'Cloud Platform Screenshot', url: imageassetsLibrary, type: 'product', size: '2.1 MB', uploadedAt: '2025-12-01' },
+    { id: 'ia2', name: 'Dashboard UI Kit', url: assetDownload1, type: 'ui', size: '15 MB', uploadedAt: '2025-12-01' },
   ],
   socialAssets: [
     { id: 'sa1', platform: 'LinkedIn', postSize: '1200x1200', previewImageUrl: socialassetsNexusSpecs, textLegibility: 'High contrast on dark backgrounds', directive: 'Use cloud imagery with gradient accents' },
@@ -1217,18 +1231,18 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
     blur: 80,
   },
   caseStudies: [
-    { id: 'cs1', title: 'Spa Partnership Success', description: 'How we became the exclusive oil supplier for 50+ luxury spas', previewUrl: casestudyBloom1 },
-    { id: 'cs2', title: 'Retail Expansion', description: 'From local markets to 500+ retail locations nationwide', previewUrl: casestudyBloom1 },
+    { id: 'cs1', title: 'Spa Partnership Success', description: 'How we became the exclusive oil supplier for 50+ luxury spas', previewUrl: casestudyOils1 },
+    { id: 'cs2', title: 'Retail Expansion', description: 'From local markets to 500+ retail locations nationwide', previewUrl: casestudyOils1 },
   ],
   brochures: [
-    { id: 'br1', title: 'Essential Oils Guide', category: 'Product', previewUrl: brochureBloom1, thumbnailUrl: brochureBloom1 },
-    { id: 'br2', title: 'Blending Handbook', category: 'Educational', previewUrl: brochureBloom1, thumbnailUrl: brochureBloom1 },
-    { id: 'br3', title: 'Wholesale Catalog', category: 'B2B', previewUrl: brochureBloom1, thumbnailUrl: brochureBloom1 },
+    { id: 'br1', title: 'Essential Oils Guide', category: 'Product', previewUrl: brochureOils1, thumbnailUrl: brochureOils1 },
+    { id: 'br2', title: 'Blending Handbook', category: 'Educational', previewUrl: brochureOils1, thumbnailUrl: brochureOils1 },
+    { id: 'br3', title: 'Wholesale Catalog', category: 'B2B', previewUrl: brochureOils1, thumbnailUrl: brochureOils1 },
   ],
   templates: [
-    { id: 'tmp1', name: 'Product Label Template', fileType: 'ai', fileSize: '2.1 MB', thumbnailUrl: templateBloom1 },
-    { id: 'tmp2', name: 'Bottle Mockup', fileType: 'psd', fileSize: '45 MB', thumbnailUrl: templateBloom1 },
-    { id: 'tmp3', name: 'Gift Set Box Design', fileType: 'ai', fileSize: '8.5 MB', thumbnailUrl: templateBloom1 },
+    { id: 'tmp1', name: 'Product Label Template', fileType: 'ai', fileSize: '2.1 MB', thumbnailUrl: templateOils1 },
+    { id: 'tmp2', name: 'Bottle Mockup', fileType: 'psd', fileSize: '45 MB', thumbnailUrl: templateOils1 },
+    { id: 'tmp3', name: 'Gift Set Box Design', fileType: 'ai', fileSize: '8.5 MB', thumbnailUrl: templateOils1 },
   ],
   imageAssets: [
     { id: 'ia1', name: 'Botanical Illustrations', url: iconographyBloomWellness, type: 'illustration', size: '3.5 MB', uploadedAt: '2025-12-01' },
@@ -1405,10 +1419,10 @@ export const DEMO_EVENT_SUMMIT: Omit<EventGuide, 'createdAt' | 'updatedAt'> = {
   eventSpeakers: [
     { id: 'spk1', name: 'Dr. Sarah Chen', title: 'Chief AI Officer', company: 'TechCorp Global', bio: 'Leading expert in enterprise AI implementation with 15+ years of experience. Former Google AI researcher.', photoUrl: speakerSummit1 },
     { id: 'spk2', name: 'Marcus Johnson', title: 'VP of Engineering', company: 'CloudScale Inc', bio: 'Pioneer in cloud-native architecture, author of "Scaling with Kubernetes". Built systems serving 100M+ users.', photoUrl: speakerSummit2 },
-    { id: 'spk3', name: 'Dr. Elena Rodriguez', title: 'Head of ML Research', company: 'DataFlow Systems', bio: 'PhD in Machine Learning from Stanford. Specializes in large language models and neural network optimization.', photoUrl: speakerSummit1 },
-    { id: 'spk4', name: 'James Mitchell', title: 'CISO', company: 'SecureNet', bio: 'Former NSA cybersecurity advisor. Leading voice in zero-trust architecture and cloud security.', photoUrl: speakerSummit2 },
-    { id: 'spk5', name: 'Aisha Patel', title: 'CEO & Founder', company: 'GreenTech Innovations', bio: 'Forbes 30 Under 30. Building sustainable technology solutions for enterprise.', photoUrl: speakerSummit1 },
-    { id: 'spk6', name: 'David Kim', title: 'CTO', company: 'Nexus Tech', bio: 'Architected Nexus Cloud from the ground up. 20+ years in distributed systems.', photoUrl: speakerSummit2 },
+    { id: 'spk3', name: 'Dr. Elena Rodriguez', title: 'Head of ML Research', company: 'DataFlow Systems', bio: 'PhD in Machine Learning from Stanford. Specializes in large language models and neural network optimization.', photoUrl: speakerSummit3 },
+    { id: 'spk4', name: 'James Mitchell', title: 'CISO', company: 'SecureNet', bio: 'Former NSA cybersecurity advisor. Leading voice in zero-trust architecture and cloud security.', photoUrl: speakerSummit4 },
+    { id: 'spk5', name: 'Aisha Patel', title: 'CEO & Founder', company: 'GreenTech Innovations', bio: 'Forbes 30 Under 30. Building sustainable technology solutions for enterprise.', photoUrl: speakerSummit3 },
+    { id: 'spk6', name: 'David Kim', title: 'CTO', company: 'Nexus Tech', bio: 'Architected Nexus Cloud from the ground up. 20+ years in distributed systems.', photoUrl: speakerSummit4 },
   ],
   eventSponsors: [
     { id: 'sp1', name: 'TechCorp Global', tier: 'platinum', logoUrl: '/images/demos/logo-nexus-tech.png', websiteUrl: 'https://techcorp.com', description: 'Title Sponsor' },
@@ -1426,8 +1440,8 @@ export const DEMO_EVENT_SUMMIT: Omit<EventGuide, 'createdAt' | 'updatedAt'> = {
   ],
   eventVideos: [
     { id: 'ev1', title: 'GIS 2026 Official Teaser', url: 'https://youtube.com/watch?v=example', type: 'teaser', platform: 'youtube', description: '60-second event preview with keynote highlights', thumbnailUrl: videoSummit1 },
-    { id: 'ev2', title: 'GIS 2025 Highlights', url: 'https://youtube.com/watch?v=example2', type: 'recap', platform: 'youtube', description: '5-minute recap of the Austin summit', year: 2025, thumbnailUrl: videoSummit1 },
-    { id: 'ev3', title: 'Speaker Announcement', url: 'https://youtube.com/watch?v=example3', type: 'promo', platform: 'youtube', description: 'Meet our keynote speakers', thumbnailUrl: videoSummit1 },
+    { id: 'ev2', title: 'GIS 2025 Highlights', url: 'https://youtube.com/watch?v=example2', type: 'recap', platform: 'youtube', description: '5-minute recap of the Austin summit', year: 2025, thumbnailUrl: videoSummit2 },
+    { id: 'ev3', title: 'Speaker Announcement', url: 'https://youtube.com/watch?v=example3', type: 'promo', platform: 'youtube', description: 'Meet our keynote speakers', thumbnailUrl: videoSummit2 },
     { id: 'ev4', title: 'Venue Tour', url: 'https://youtube.com/watch?v=example4', type: 'promo', platform: 'youtube', description: 'Virtual walkthrough of Moscone Center', thumbnailUrl: videoSummit1 },
   ],
   colors: [
