@@ -60,15 +60,21 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
     return (
       <div 
         ref={ref}
-        className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity"
+        className="absolute inset-0 z-40 bg-black/40 flex items-center justify-center transition-opacity animate-fade-in"
         onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
       >
         {/* Enhanced toolbar container with tabs */}
-        <div className="bg-black/70 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl max-w-lg w-full mx-4 overflow-hidden pointer-events-auto">
+        <div 
+          className="bg-black/70 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl max-w-lg w-full mx-4 overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             {/* Tab Navigation */}
-            <TabsList className="w-full bg-white/5 rounded-none border-b border-white/10 p-1 h-auto gap-1">
-              <TabsTrigger 
+            <TabsList className="w-full bg-white/5 rounded-none border-b border-white/10 p-1 h-auto gap-1" onClick={(e) => e.stopPropagation()}>
+              <TabsTrigger
                 value="media" 
                 className="flex-1 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/15 rounded-lg py-2.5 text-sm gap-2"
               >

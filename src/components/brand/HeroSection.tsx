@@ -309,11 +309,10 @@ export const HeroSection = ({
           preferVideo={hero.useVideo === true}
           kenBurnsEffect={hero.useVideo !== true && (hero.kenBurnsEffect === true || kenBurnsPreview)}
           fallbackSrc=""
-          className={`relative ${heroHeight} cursor-pointer group`}
+          className={`relative ${heroHeight} ${canEdit ? 'cursor-pointer' : ''} group`}
           priority={true}
           parallax={hero.kenBurnsEffect !== true && !kenBurnsPreview}
           parallaxOffset={parallaxOffset}
-          onClick={() => isEditing && (hero.useVideo ? videoInputRef.current?.click() : coverInputRef.current?.click())}
         >
           {/* Fallback gradient when no image */}
           {!hero.coverImage && (
