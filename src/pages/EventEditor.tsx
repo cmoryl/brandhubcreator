@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Calendar, Building2, Brain, Settings, Download } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Calendar, Building2, Brain, Settings, Download, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
@@ -897,6 +897,22 @@ const EventEditor = () => {
                     </SheetContent>
                   </Sheet>
                 ),
+              },
+              {
+                id: 'competitive',
+                label: 'Competitive',
+                icon: TrendingUp,
+                render: () => {
+                  const CompetitiveReportCard = require('@/components/brand/CompetitiveReportCard').CompetitiveReportCard;
+                  return (
+                    <CompetitiveReportCard
+                      entityType="event"
+                      entityId={event.id}
+                      entityName={event.hero.name}
+                      organizationId={event.organizationId || undefined}
+                    />
+                  );
+                },
               },
               {
                 id: 'settings',

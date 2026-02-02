@@ -316,6 +316,59 @@ export type Database = {
           },
         ]
       }
+      competitive_analysis_reports: {
+        Row: {
+          competitors: Json | null
+          created_at: string | null
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          organization_id: string | null
+          report_data: Json
+          report_type: string
+          score: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          competitors?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          organization_id?: string | null
+          report_data: Json
+          report_type?: string
+          score?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          competitors?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          organization_id?: string | null
+          report_data?: Json
+          report_type?: string
+          score?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitive_analysis_reports_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demo_guides: {
         Row: {
           brand_id: string | null
