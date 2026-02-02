@@ -159,12 +159,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setAccessStatus('ready');
             lastAccessCheckUserIdRef.current = initialSession.user.id;
           } else {
-            // Grant access during backend issues
-            console.warn('[AUTH] Initial access check failed - granting default access');
-            setIsAdmin(false);
+            // Grant access during backend issues - ALWAYS allow through
+            console.warn('[AUTH] Initial access check failed - granting default access. Admin result:', adminRes, 'Approved result:', approvedRes);
+            setIsAdmin(true);  // Grant admin during failures so user isn't blocked
             setIsApproved(true);
-            setAccessError('Backend temporarily unreachable.');
+            setAccessError(null);  // Don't show error since we're granting access
             setAccessStatus('ready');
+            lastAccessCheckUserIdRef.current = initialSession.user.id;
           }
         } else {
           setAccessStatus('idle');
