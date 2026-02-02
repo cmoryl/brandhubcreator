@@ -248,6 +248,23 @@ export const HeroSection = ({
     onHeroChange({ ...hero, kenBurnsEffect: !hero.kenBurnsEffect });
   };
 
+  // Helper to get overlay CSS based on gradient preset
+  const getOverlayStyle = (gradient: string): string => {
+    switch (gradient) {
+      case 'radial-dark':
+        return 'radial-gradient(ellipse at center, rgba(0,0,0,0.3), rgba(0,0,0,0.8))';
+      case 'top-fade':
+        return 'linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)';
+      case 'vignette':
+        return 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.8))';
+      case 'brand-tint':
+        return 'linear-gradient(135deg, hsl(var(--primary) / 0.4), hsl(var(--accent) / 0.3))';
+      case 'none':
+        return 'transparent';
+      default:
+        return 'linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.3), transparent)';
+    }
+  };
 
   // Enhanced height for wow factor - reduced on mobile for better viewport fit
   const heroHeight = enhancedMode 
@@ -308,10 +325,23 @@ export const HeroSection = ({
             />
           )}
           
-          {/* Multi-layer overlays for depth - z-10 to be above background, below content */}
-          <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-          <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
-          <div className="absolute inset-0 z-10 bg-gradient-to-b from-primary/10 via-transparent to-accent/10 mix-blend-overlay" />
+          {/* Dynamic overlay based on settings */}
+          {hero.overlayGradient !== 'none' && (
+            <>
+              {/* Primary overlay - intensity controlled */}
+              <div 
+                className="absolute inset-0 z-10 transition-opacity duration-300"
+                style={{
+                  background: getOverlayStyle(hero.overlayGradient || 'default'),
+                  opacity: (hero.overlayIntensity ?? 50) / 100
+                }}
+              />
+              {/* Side vignette */}
+              <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/40 via-transparent to-black/40" style={{ opacity: (hero.overlayIntensity ?? 50) / 100 }} />
+              {/* Brand tint accent */}
+              <div className="absolute inset-0 z-10 bg-gradient-to-b from-primary/10 via-transparent to-accent/10 mix-blend-overlay" />
+            </>
+          )}
           
           {/* Animated ambient glow - hidden on mobile for performance */}
           {enhancedMode && (
@@ -366,6 +396,9 @@ export const HeroSection = ({
                 kenBurnsEffect={hero.kenBurnsEffect === true}
                 kenBurnsPreview={kenBurnsPreview}
                 isUploading={isUploading}
+                overlayIntensity={hero.overlayIntensity ?? 50}
+                overlayGradient={hero.overlayGradient || 'default'}
+                parallaxIntensity={hero.parallaxIntensity ?? 1}
                 onMediaTypeChange={(type) => {
                   if (onHeroChange) {
                     onHeroChange({ ...hero, useVideo: type === 'video' });
@@ -392,6 +425,21 @@ export const HeroSection = ({
                 onLibrarySelect={(url) => {
                   if (onHeroChange) {
                     onHeroChange({ ...hero, coverImage: url });
+                  }
+                }}
+                onOverlayIntensityChange={(value) => {
+                  if (onHeroChange) {
+                    onHeroChange({ ...hero, overlayIntensity: value });
+                  }
+                }}
+                onOverlayGradientChange={(value) => {
+                  if (onHeroChange) {
+                    onHeroChange({ ...hero, overlayGradient: value });
+                  }
+                }}
+                onParallaxIntensityChange={(value) => {
+                  if (onHeroChange) {
+                    onHeroChange({ ...hero, parallaxIntensity: value });
                   }
                 }}
               />
