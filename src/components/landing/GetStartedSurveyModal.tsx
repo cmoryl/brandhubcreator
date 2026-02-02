@@ -1,30 +1,26 @@
 /**
- * GetStartedSurveyModal - Contact survey form for lead capture
- * Saves submissions to database for admin review
+ * GetStartedSurveyModal - Friendly, conversational contact form
+ * Simplified lead capture with warm, relationship-focused copy
  */
 
 import { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Send, CheckCircle, Building2, Users, Briefcase } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Loader2, MessageCircle, CheckCircle, Sparkles, ArrowRight, Heart } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const surveySchema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  email: z.string().trim().email('Invalid email address').max(255, 'Email must be less than 255 characters'),
-  company: z.string().trim().max(100, 'Company name must be less than 100 characters').optional(),
-  role: z.string().trim().max(100, 'Role must be less than 100 characters').optional(),
-  teamSize: z.string().optional(),
-  useCase: z.string().optional(),
-  message: z.string().trim().max(1000, 'Message must be less than 1000 characters').optional(),
+  name: z.string().trim().min(1, 'What should we call you?').max(100),
+  email: z.string().trim().email('We need a valid email to reach you').max(255),
+  company: z.string().trim().max(100).optional(),
+  message: z.string().trim().max(1000).optional(),
 });
 
 type SurveyFormData = z.infer<typeof surveySchema>;
@@ -33,25 +29,6 @@ interface GetStartedSurveyModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const TEAM_SIZES = [
-  { value: '1', label: 'Just me' },
-  { value: '2-5', label: '2-5 people' },
-  { value: '6-20', label: '6-20 people' },
-  { value: '21-50', label: '21-50 people' },
-  { value: '51-200', label: '51-200 people' },
-  { value: '200+', label: '200+ people' },
-];
-
-const USE_CASES = [
-  { value: 'brand-guidelines', label: 'Brand Guidelines Management' },
-  { value: 'product-branding', label: 'Product Branding' },
-  { value: 'event-branding', label: 'Event Branding' },
-  { value: 'agency-clients', label: 'Managing Client Brands (Agency)' },
-  { value: 'rebrand', label: 'Company Rebrand' },
-  { value: 'startup', label: 'New Startup Branding' },
-  { value: 'other', label: 'Other' },
-];
 
 export function GetStartedSurveyModal({ open, onOpenChange }: GetStartedSurveyModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,9 +40,6 @@ export function GetStartedSurveyModal({ open, onOpenChange }: GetStartedSurveyMo
       name: '',
       email: '',
       company: '',
-      role: '',
-      teamSize: '',
-      useCase: '',
       message: '',
     },
   });
@@ -77,23 +51,19 @@ export function GetStartedSurveyModal({ open, onOpenChange }: GetStartedSurveyMo
         name: data.name,
         email: data.email,
         company: data.company || null,
-        role: data.role || null,
-        team_size: data.teamSize || null,
-        use_case: data.useCase || null,
         message: data.message || null,
       });
 
       if (error) throw error;
 
       setIsSuccess(true);
-      toast.success('Thank you! We\'ll be in touch soon.');
+      toast.success('Thanks! We\'ll be in touch soon 💙');
       
-      // Reset after brief delay
       setTimeout(() => {
         onOpenChange(false);
         setIsSuccess(false);
         form.reset();
-      }, 2000);
+      }, 2500);
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('Something went wrong. Please try again.');
@@ -105,14 +75,14 @@ export function GetStartedSurveyModal({ open, onOpenChange }: GetStartedSurveyMo
   if (isSuccess) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-              <CheckCircle className="h-8 w-8 text-primary" />
+        <DialogContent className="sm:max-w-md border-0 bg-gradient-to-br from-primary/5 via-background to-accent/5">
+          <div className="flex flex-col items-center justify-center py-10 text-center">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-6 animate-pulse">
+              <Heart className="h-10 w-10 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Thank You!</h3>
-            <p className="text-muted-foreground">
-              We've received your information and will be in touch shortly.
+            <h3 className="text-2xl font-semibold mb-3">You're Awesome! 🎉</h3>
+            <p className="text-muted-foreground max-w-xs">
+              We're excited to connect with you. Check your inbox soon — a real human will reach out!
             </p>
           </div>
         </DialogContent>
@@ -122,142 +92,102 @@ export function GetStartedSurveyModal({ open, onOpenChange }: GetStartedSurveyMo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-primary" />
-            Get Started with BrandHub
-          </DialogTitle>
-          <DialogDescription>
-            Tell us about yourself and your needs. We'll reach out to help you get started.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
-          {/* Name & Email Row */}
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
-              <Input
-                id="name"
-                placeholder="Your name"
-                {...form.register('name')}
-              />
-              {form.formState.errors.name && (
-                <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@company.com"
-                {...form.register('email')}
-              />
-              {form.formState.errors.email && (
-                <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>
-              )}
-            </div>
+      <DialogContent className="sm:max-w-md border-0 p-0 overflow-hidden">
+        {/* Header with gradient */}
+        <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 px-6 pt-8 pb-6 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <MessageCircle className="h-7 w-7 text-primary" />
           </div>
+          <h2 className="text-xl font-semibold mb-2">Let's Start a Conversation</h2>
+          <p className="text-sm text-muted-foreground">
+            No pressure, no sales pitch — just a friendly chat about your brand needs.
+          </p>
+        </div>
 
-          {/* Company & Role Row */}
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="company" className="flex items-center gap-1">
-                <Building2 className="h-3.5 w-3.5" />
-                Company
-              </Label>
-              <Input
-                id="company"
-                placeholder="Company name"
-                {...form.register('company')}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="role" className="flex items-center gap-1">
-                <Briefcase className="h-3.5 w-3.5" />
-                Role
-              </Label>
-              <Input
-                id="role"
-                placeholder="Your role"
-                {...form.register('role')}
-              />
-            </div>
-          </div>
-
-          {/* Team Size & Use Case Row */}
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1">
-                <Users className="h-3.5 w-3.5" />
-                Team Size
-              </Label>
-              <Select
-                value={form.watch('teamSize')}
-                onValueChange={(value) => form.setValue('teamSize', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select team size" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TEAM_SIZES.map((size) => (
-                    <SelectItem key={size.value} value={size.value}>
-                      {size.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Primary Use Case</Label>
-              <Select
-                value={form.watch('useCase')}
-                onValueChange={(value) => form.setValue('useCase', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select use case" />
-                </SelectTrigger>
-                <SelectContent>
-                  {USE_CASES.map((uc) => (
-                    <SelectItem key={uc.value} value={uc.value}>
-                      {uc.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Message */}
+        <form onSubmit={form.handleSubmit(onSubmit)} className="px-6 pb-6 pt-4 space-y-4">
+          {/* Name - Single prominent field */}
           <div className="space-y-2">
-            <Label htmlFor="message">Tell us more (optional)</Label>
+            <Label htmlFor="name" className="text-sm font-medium">
+              What's your name? <span className="text-primary">*</span>
+            </Label>
+            <Input
+              id="name"
+              placeholder="e.g., Sarah"
+              className="h-11"
+              {...form.register('name')}
+            />
+            {form.formState.errors.name && (
+              <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
+            )}
+          </div>
+
+          {/* Email */}
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-sm font-medium">
+              Best email to reach you <span className="text-primary">*</span>
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@company.com"
+              className="h-11"
+              {...form.register('email')}
+            />
+            {form.formState.errors.email && (
+              <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
+            )}
+          </div>
+
+          {/* Company - Optional with friendly label */}
+          <div className="space-y-2">
+            <Label htmlFor="company" className="text-sm font-medium text-muted-foreground">
+              Company or brand <span className="text-xs">(optional)</span>
+            </Label>
+            <Input
+              id="company"
+              placeholder="Where do you work?"
+              className="h-11"
+              {...form.register('company')}
+            />
+          </div>
+
+          {/* Message - Conversational prompt */}
+          <div className="space-y-2">
+            <Label htmlFor="message" className="text-sm font-medium text-muted-foreground">
+              Anything you'd like us to know? <span className="text-xs">(optional)</span>
+            </Label>
             <Textarea
               id="message"
-              placeholder="What are you hoping to achieve with BrandHub?"
+              placeholder="Tell us about your brand challenges, what you're hoping to achieve, or just say hi! 👋"
               rows={3}
+              className="resize-none"
               {...form.register('message')}
             />
           </div>
 
-          {/* Submit Button */}
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {/* Submit Button - Warm CTA */}
+          <Button 
+            type="submit" 
+            className="w-full h-12 text-base gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary" 
+            disabled={isSubmitting}
+          >
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Submitting...
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Sending...
               </>
             ) : (
               <>
-                <Send className="mr-2 h-4 w-4" />
-                Submit Request
+                <Sparkles className="h-4 w-4" />
+                Let's Connect
+                <ArrowRight className="h-4 w-4" />
               </>
             )}
           </Button>
 
-          <p className="text-xs text-muted-foreground text-center">
-            We respect your privacy. Your information will only be used to contact you about BrandHub.
+          {/* Trust message */}
+          <p className="text-xs text-center text-muted-foreground pt-2">
+            💙 We reply within 24 hours • No spam, ever
           </p>
         </form>
       </DialogContent>
