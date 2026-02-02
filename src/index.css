@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Poppins font loaded via index.html */
+/* Poppins (primary) & Montserrat (fallback) fonts loaded via index.html */
 
 @layer base {
   :root {
@@ -119,7 +119,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Poppins', 'Montserrat', sans-serif;
     /* Use dynamic viewport height for mobile */
     min-height: 100vh;
     min-height: 100dvh;
@@ -148,12 +148,12 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Poppins', 'Montserrat', sans-serif;
     font-weight: 700;
   }
 
   h1, h2 {
-    font-family: 'Poppins', sans-serif !important;
+    font-family: 'Poppins', 'Montserrat', sans-serif !important;
     font-weight: 700 !important;
   }
 
