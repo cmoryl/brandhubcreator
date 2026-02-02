@@ -114,26 +114,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
 
-      // For ongoing changes (login/logout after initial load)
-      if (nextSession?.user && initialLoadComplete) {
+      // For ongoing changes (login/logout). We still want accessStatus to update even if
+      // the user signs in before the initial load completes.
+      if (nextSession?.user) {
         setAccessStatus('loading');
         Promise.all([
           checkAdminRole(nextSession.user.id),
           checkApprovalStatus(nextSession.user.id),
         ]).then(([adminRes, approvedRes]) => {
           if (cancelled) return;
+
           if (adminRes.ok && approvedRes.ok) {
             setIsAdmin(adminRes.value);
             setIsApproved(adminRes.value || approvedRes.value);
+            setAccessError(null);
             setAccessStatus('ready');
             lastAccessCheckUserIdRef.current = nextSession.user.id;
-          } else {
-            // Grant access on failure
-            setIsAdmin(true);
-            setIsApproved(true);
-            setAccessStatus('ready');
-            lastAccessCheckUserIdRef.current = nextSession.user.id;
+            return;
           }
+
+          // If the backend checks fail (network/RLS/etc), don't block the user on auth.
+          // Default to approved but NOT admin.
+          setIsAdmin(false);
+          setIsApproved(true);
+          setAccessError('Backend temporarily unreachable.');
+          setAccessStatus('ready');
+          lastAccessCheckUserIdRef.current = nextSession.user.id;
         });
       } else if (!nextSession?.user) {
         setIsAdmin(false);
@@ -168,11 +174,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setAccessStatus('ready');
             lastAccessCheckUserIdRef.current = initialSession.user.id;
           } else {
-            // Grant access during backend issues - ALWAYS allow through
-            console.warn('[AUTH] Initial access check failed - granting default access. Admin result:', adminRes, 'Approved result:', approvedRes);
-            setIsAdmin(true);  // Grant admin during failures so user isn't blocked
+            // Grant access during backend issues so users aren't blocked.
+            // Default to approved but NOT admin.
+            console.warn('[AUTH] Initial access check failed - granting default approved access');
+            setIsAdmin(false);
             setIsApproved(true);
-            setAccessError(null);  // Don't show error since we're granting access
+            setAccessError('Backend temporarily unreachable.');
             setAccessStatus('ready');
             lastAccessCheckUserIdRef.current = initialSession.user.id;
           }
