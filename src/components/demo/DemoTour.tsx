@@ -3,14 +3,8 @@ import { createPortal } from 'react-dom';
 import { X, ChevronLeft, ChevronRight, Play, Keyboard, SkipForward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { TourCategory, TOUR_CATEGORIES, getCategoryStartIndices } from '@/data/demoTourSteps';
+import { TourCategory, TOUR_CATEGORIES } from '@/data/demoTourSteps';
 import { Progress } from '@/components/ui/progress';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 export interface TourStep {
   target: string; // CSS selector
@@ -45,6 +39,17 @@ const CategoryBadge = ({ category }: { category?: TourCategory }) => {
   );
 };
 
+// Get first step index for each category from available steps
+const getCategoryStartIndices = (steps: TourStep[]): Map<TourCategory, number> => {
+  const indices = new Map<TourCategory, number>();
+  steps.forEach((step, index) => {
+    if (step.category && !indices.has(step.category)) {
+      indices.set(step.category, index);
+    }
+  });
+  return indices;
+};
+
 // Category navigation pills
 const CategoryNav = ({ 
   steps, 
@@ -58,9 +63,18 @@ const CategoryNav = ({
   const categoryIndices = useMemo(() => getCategoryStartIndices(steps), [steps]);
   const currentCategory = steps[currentStep]?.category;
   
+  // Get unique categories that exist in the available steps
+  const availableCategories = useMemo(() => {
+    const cats = new Set<TourCategory>();
+    steps.forEach(step => {
+      if (step.category) cats.add(step.category);
+    });
+    return TOUR_CATEGORIES.filter(c => cats.has(c.id));
+  }, [steps]);
+  
   return (
     <div className="flex flex-wrap gap-1 mb-3">
-      {TOUR_CATEGORIES.map(cat => {
+      {availableCategories.map(cat => {
         const startIndex = categoryIndices.get(cat.id);
         if (startIndex === undefined) return null;
         
@@ -68,28 +82,21 @@ const CategoryNav = ({
         const isPast = startIndex < currentStep && !isActive;
         
         return (
-          <TooltipProvider key={cat.id} delayDuration={300}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => onJumpToCategory(startIndex)}
-                  className={cn(
-                    "px-2 py-0.5 rounded-full text-[10px] font-medium transition-all",
-                    isActive 
-                      ? `bg-gradient-to-r ${cat.color} text-white shadow-md scale-105` 
-                      : isPast
-                        ? "bg-muted text-muted-foreground/70 line-through"
-                        : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  {cat.label}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="top" className="text-xs">
-                Jump to {cat.label} section
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <button
+            key={cat.id}
+            onClick={() => onJumpToCategory(startIndex)}
+            title={`Jump to ${cat.label} section`}
+            className={cn(
+              "px-2 py-0.5 rounded-full text-[10px] font-medium transition-all",
+              isActive 
+                ? `bg-gradient-to-r ${cat.color} text-white shadow-md scale-105` 
+                : isPast
+                  ? "bg-muted text-muted-foreground/70 line-through"
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted"
+            )}
+          >
+            {cat.label}
+          </button>
         );
       })}
     </div>
@@ -98,21 +105,13 @@ const CategoryNav = ({
 
 // Keyboard shortcuts hint
 const KeyboardHint = () => (
-  <TooltipProvider delayDuration={300}>
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <div className="flex items-center gap-1 text-[10px] text-muted-foreground/60">
-          <Keyboard className="h-3 w-3" />
-          <span className="hidden sm:inline">← → Esc</span>
-        </div>
-      </TooltipTrigger>
-      <TooltipContent side="top" className="text-xs space-y-1">
-        <div><kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">←</kbd> Previous step</div>
-        <div><kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">→</kbd> or <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">Enter</kbd> Next step</div>
-        <div><kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">Esc</kbd> Close tour</div>
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
+  <div 
+    className="flex items-center gap-1 text-[10px] text-muted-foreground/60 cursor-help"
+    title="Keyboard: ← Previous | → Next | Esc Close"
+  >
+    <Keyboard className="h-3 w-3" />
+    <span className="hidden sm:inline">← → Esc</span>
+  </div>
 );
 
 export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) => {
@@ -120,8 +119,20 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  const step = steps[currentStep];
-  const progress = ((currentStep + 1) / steps.length) * 100;
+  // Filter steps to only include those with existing elements on the page
+  const availableSteps = useMemo(() => {
+    if (!isOpen) return steps;
+    
+    return steps.filter(step => {
+      const element = document.querySelector(step.target);
+      return element !== null;
+    });
+  }, [steps, isOpen]);
+
+  // Ensure currentStep is within bounds
+  const safeCurrentStep = Math.min(currentStep, availableSteps.length - 1);
+  const step = availableSteps[safeCurrentStep];
+  const progress = availableSteps.length > 0 ? ((safeCurrentStep + 1) / availableSteps.length) * 100 : 0;
 
   const isElementInViewport = (rect: DOMRect) => {
     const buffer = 100;
@@ -147,12 +158,22 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
           setTargetRect(element.getBoundingClientRect());
         }, 350);
       }
+    } else {
+      // Element not found - this shouldn't happen with filtered steps but handle gracefully
+      setTargetRect(null);
     }
   }, [step?.target]);
 
   useEffect(() => {
     if (!isOpen) {
       setCurrentStep(0);
+      setTargetRect(null);
+      return;
+    }
+
+    // If no available steps, close the tour
+    if (availableSteps.length === 0) {
+      onClose();
       return;
     }
 
@@ -163,7 +184,7 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [isOpen, currentStep, updateTargetRect]);
+  }, [isOpen, safeCurrentStep, updateTargetRect, availableSteps.length, onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -181,19 +202,19 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
   }, [isOpen, updateTargetRect]);
 
   const handleNext = useCallback(() => {
-    if (currentStep < steps.length - 1) {
+    if (safeCurrentStep < availableSteps.length - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
       onComplete?.();
       onClose();
     }
-  }, [currentStep, steps.length, onComplete, onClose]);
+  }, [safeCurrentStep, availableSteps.length, onComplete, onClose]);
 
   const handlePrev = useCallback(() => {
-    if (currentStep > 0) {
+    if (safeCurrentStep > 0) {
       setCurrentStep(prev => prev - 1);
     }
-  }, [currentStep]);
+  }, [safeCurrentStep]);
 
   const handleJumpToCategory = useCallback((index: number) => {
     setCurrentStep(index);
@@ -221,14 +242,14 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  if (!isOpen) return null;
+  if (!isOpen || availableSteps.length === 0) return null;
 
   const getTooltipPosition = () => {
     if (!targetRect) return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
 
     const padding = 16;
-    const tooltipHeight = 280; // Increased for category nav
-    const tooltipWidth = 360; // Slightly wider
+    const tooltipHeight = 280;
+    const tooltipWidth = 360;
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
     
@@ -353,8 +374,8 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
         <div className="p-5 pt-3">
           {/* Category navigation */}
           <CategoryNav 
-            steps={steps} 
-            currentStep={currentStep} 
+            steps={availableSteps} 
+            currentStep={safeCurrentStep} 
             onJumpToCategory={handleJumpToCategory}
           />
 
@@ -380,37 +401,34 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
           <div className="flex items-center justify-between pt-2 border-t border-border/50">
             <div className="flex items-center gap-3">
               <span className="text-xs font-medium text-muted-foreground tabular-nums">
-                {currentStep + 1} / {steps.length}
+                {safeCurrentStep + 1} / {availableSteps.length}
               </span>
               <KeyboardHint />
             </div>
             
             <div className="flex items-center gap-2">
-              {currentStep > 0 && (
+              {safeCurrentStep > 0 && (
                 <Button variant="ghost" size="sm" onClick={handlePrev} className="gap-1 h-8">
                   <ChevronLeft className="h-4 w-4" />
                   <span className="hidden sm:inline">Back</span>
                 </Button>
               )}
               
-              {currentStep < steps.length - 1 && (
-                <TooltipProvider delayDuration={300}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="sm" onClick={handleSkipToEnd} className="h-8 px-2">
-                        <SkipForward className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs">
-                      Skip tour
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+              {safeCurrentStep < availableSteps.length - 1 && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleSkipToEnd} 
+                  className="h-8 px-2"
+                  title="Skip tour"
+                >
+                  <SkipForward className="h-4 w-4" />
+                </Button>
               )}
               
               <Button size="sm" onClick={handleNext} className="gap-1 h-8 px-4">
-                {currentStep === steps.length - 1 ? 'Complete' : 'Next'}
-                {currentStep < steps.length - 1 && <ChevronRight className="h-4 w-4" />}
+                {safeCurrentStep === availableSteps.length - 1 ? 'Complete' : 'Next'}
+                {safeCurrentStep < availableSteps.length - 1 && <ChevronRight className="h-4 w-4" />}
               </Button>
             </div>
           </div>
