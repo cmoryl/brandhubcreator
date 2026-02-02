@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Trash2, ExternalLink, Building2, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,7 +17,21 @@ interface AwardCardProps {
 
 const AwardCard = React.forwardRef<HTMLDivElement, AwardCardProps>(
   ({ award, canEdit, onEdit, onDelete, compact = false, animationDelay = 0 }, ref) => {
-    const hasImage = !!award.imageUrl;
+    const [imageError, setImageError] = useState(false);
+    const hasImage = !!award.imageUrl && !imageError;
+
+    // Validate image URL
+    const isValidImageUrl = (url: string | undefined): boolean => {
+      if (!url || typeof url !== 'string') return false;
+      try {
+        const parsed = new URL(url);
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    };
+
+    const showImage = hasImage && isValidImageUrl(award.imageUrl);
 
     return (
       <Card
@@ -41,7 +55,7 @@ const AwardCard = React.forwardRef<HTMLDivElement, AwardCardProps>(
         <CardContent className={cn("relative", compact ? "p-3" : "p-4")}>
           <div className="space-y-2">
             {/* Logo/Image Section */}
-            {hasImage ? (
+            {showImage ? (
               <div className={cn(
                 "relative flex items-center justify-center rounded-md overflow-hidden bg-white",
                 compact ? "h-12 mb-2" : "h-16 mb-3"
@@ -51,6 +65,7 @@ const AwardCard = React.forwardRef<HTMLDivElement, AwardCardProps>(
                   alt={`${award.organization} logo`}
                   className="max-h-full max-w-full object-contain p-1.5"
                   loading="lazy"
+                  onError={() => setImageError(true)}
                 />
                 {canEdit && (
                   <Button
