@@ -420,6 +420,57 @@ export type Database = {
           },
         ]
       }
+      lead_submissions: {
+        Row: {
+          admin_notes: string | null
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          name: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          role: string | null
+          status: string
+          team_size: string | null
+          updated_at: string
+          use_case: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role?: string | null
+          status?: string
+          team_size?: string | null
+          updated_at?: string
+          use_case?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role?: string | null
+          status?: string
+          team_size?: string | null
+          updated_at?: string
+          use_case?: string | null
+        }
+        Relationships: []
+      }
       organization_icon_libraries: {
         Row: {
           created_at: string
