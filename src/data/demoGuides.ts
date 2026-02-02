@@ -19,8 +19,18 @@ import patternBloomOils from '@/assets/demos/pattern-bloom-oils.jpg';
 
 import imageryNexusDo1 from '@/assets/demos/imagery-nexus-do-1.jpg';
 import imageryNexusDo2 from '@/assets/demos/imagery-nexus-do-2.jpg';
+import imageryNexusDo3 from '@/assets/demos/imagery-nexus-do-3.jpg';
+import imageryNexusDo4 from '@/assets/demos/imagery-nexus-do-4.jpg';
+import imageryNexusDont1 from '@/assets/demos/imagery-nexus-dont-1.jpg';
 import imageryBloomDo1 from '@/assets/demos/imagery-bloom-do-1.jpg';
 import imageryBloomDo2 from '@/assets/demos/imagery-bloom-do-2.jpg';
+import imageryBloomDo3 from '@/assets/demos/imagery-bloom-do-3.jpg';
+import imageryBloomDo4 from '@/assets/demos/imagery-bloom-do-4.jpg';
+import imageryBloomDont1 from '@/assets/demos/imagery-bloom-dont-1.jpg';
+
+// Logo variation showcases
+import logosNexusVariations from '@/assets/demos/logos-nexus-variations.jpg';
+import logosBloomVariations from '@/assets/demos/logos-bloom-variations.jpg';
 
 import socialNexusLinkedin from '@/assets/demos/social-nexus-linkedin.jpg';
 import socialNexusTwitter from '@/assets/demos/social-nexus-twitter.jpg';
@@ -173,14 +183,17 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'v4', text: 'Collaboration', description: 'Great things happen when talented people work together towards a common goal.', icon: 'Users' },
   ],
   logos: [
-    { id: 'l1', name: 'Primary Logo', url: '/images/demos/logo-nexus-tech.png', variant: 'primary' },
-    { id: 'l2', name: 'Icon Mark', url: '/images/demos/logo-nexus-tech.png', variant: 'icon' },
-    { id: 'l3', name: 'Wordmark', url: '', variant: 'wordmark' },
-    { id: 'l4', name: 'Reversed', url: '', variant: 'reversed' },
+    { id: 'l1', name: 'Primary Logo', url: logosNexusVariations, variant: 'primary' },
+    { id: 'l2', name: 'Icon Mark', url: logosNexusVariations, variant: 'icon' },
+    { id: 'l3', name: 'Wordmark', url: logosNexusVariations, variant: 'wordmark' },
+    { id: 'l4', name: 'Reversed (White)', url: logosNexusVariations, variant: 'reversed' },
+    { id: 'l5', name: 'Monochrome (Black)', url: logosNexusVariations, variant: 'monochrome' },
+    { id: 'l6', name: 'Favicon', url: logosNexusVariations, variant: 'icon' },
   ],
   brandIcons: [
-    { id: 'bi1', name: 'Primary Symbol', url: '/images/demos/logo-nexus-tech.png', settings: 'Main brand mark', isPrimary: true },
-    { id: 'bi2', name: 'App Icon', url: '/images/demos/logo-nexus-tech.png', settings: 'For mobile applications', isVariation: true },
+    { id: 'bi1', name: 'Primary Symbol', url: logosNexusVariations, settings: 'Main brand mark - circuit-inspired geometric symbol', isPrimary: true },
+    { id: 'bi2', name: 'App Icon', url: logosNexusVariations, settings: 'For mobile applications and favicons', isVariation: true },
+    { id: 'bi3', name: 'Social Icon', url: logosNexusVariations, settings: 'Optimized for social media profile images', isVariation: true },
   ],
   colors: [
     { id: 'c1', name: 'Nexus Blue', hex: '#0066FF', rgb: 'rgb(0, 102, 255)', usage: 'Primary brand color, CTAs, key elements', role: 'primary', pantone: 'PMS 2728 C' },
@@ -231,9 +244,10 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   imagery: [
     { id: 'im1', url: imageryNexusDo1, type: 'do', description: 'Use high-quality abstract tech imagery with blue tones and glowing elements' },
     { id: 'im2', url: imageryNexusDo2, type: 'do', description: 'Digital circuit patterns and futuristic geometric designs work well' },
-    { id: 'im3', url: socialNexusLinkedin, type: 'do', description: 'LinkedIn company page with tech-forward banner and professional layout' },
-    { id: 'im4', url: socialNexusTwitter, type: 'do', description: 'Twitter/X profile showcasing dark mode tech aesthetic with circuit patterns' },
-    { id: 'im5', url: '', type: 'dont', description: 'Avoid cluttered or outdated technology images' },
+    { id: 'im3', url: imageryNexusDo3, type: 'do', description: 'Cloud infrastructure visualization with glowing server rooms and holographic data' },
+    { id: 'im4', url: imageryNexusDo4, type: 'do', description: 'Hexagonal network patterns with luminous cyan nodes representing connectivity' },
+    { id: 'im5', url: imageryNexusDont1, type: 'dont', description: 'Avoid cluttered layouts with off-brand neon colors and poor contrast' },
+    { id: 'im6', url: imageryNexusDont1, type: 'dont', description: 'Never use distorted or stretched logos on busy backgrounds' },
   ],
   social: [
     { id: 's1', platform: 'LinkedIn', handle: '@nexustech', url: 'https://linkedin.com/company/nexustech', color: '#0A66C2' },
@@ -555,12 +569,17 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'v4', text: 'Community', description: 'Building a supportive community of wellness seekers.', icon: 'Users' },
   ],
   logos: [
-    { id: 'l1', name: 'Primary Logo', url: '/images/demos/logo-bloom-wellness.png', variant: 'primary' },
-    { id: 'l2', name: 'Leaf Mark', url: '/images/demos/logo-bloom-wellness.png', variant: 'icon' },
-    { id: 'l3', name: 'Wordmark', url: '', variant: 'wordmark' },
+    { id: 'l1', name: 'Primary Logo', url: logosBloomVariations, variant: 'primary' },
+    { id: 'l2', name: 'Leaf Mark', url: logosBloomVariations, variant: 'icon' },
+    { id: 'l3', name: 'Wordmark', url: logosBloomVariations, variant: 'wordmark' },
+    { id: 'l4', name: 'White Reversed', url: logosBloomVariations, variant: 'reversed' },
+    { id: 'l5', name: 'Monochrome Black', url: logosBloomVariations, variant: 'monochrome' },
+    { id: 'l6', name: 'Stacked Logo', url: logosBloomVariations, variant: 'secondary' },
   ],
   brandIcons: [
-    { id: 'bi1', name: 'Bloom Symbol', url: '/images/demos/logo-bloom-wellness.png', settings: 'Main brand mark', isPrimary: true },
+    { id: 'bi1', name: 'Bloom Leaf Symbol', url: logosBloomVariations, settings: 'Main botanical leaf mark - organic three-leaf design', isPrimary: true },
+    { id: 'bi2', name: 'App Icon', url: logosBloomVariations, settings: 'Simplified leaf for mobile apps', isVariation: true },
+    { id: 'bi3', name: 'Favicon', url: logosBloomVariations, settings: 'Minimal leaf for browser tabs', isVariation: true },
   ],
   colors: [
     { id: 'c1', name: 'Sage Green', hex: '#7CB342', rgb: 'rgb(124, 179, 66)', usage: 'Primary brand color, natural elements', role: 'primary', pantone: 'PMS 576 C' },
@@ -604,9 +623,10 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
   imagery: [
     { id: 'im1', url: imageryBloomDo1, type: 'do', description: 'Use serene botanical close-ups with soft natural lighting' },
     { id: 'im2', url: imageryBloomDo2, type: 'do', description: 'Organic flat lays with herbs and natural textures' },
-    { id: 'im3', url: socialBloomInstagram, type: 'do', description: 'Instagram profile with botanical aesthetic and wellness lifestyle grid' },
-    { id: 'im4', url: socialBloomLinkedin, type: 'do', description: 'LinkedIn company page with professional green botanical theme' },
-    { id: 'im5', url: '', type: 'dont', description: 'Avoid artificial or overly processed imagery' },
+    { id: 'im3', url: imageryBloomDo3, type: 'do', description: 'Wellness flat lays with lavender, essential oils, and wooden bowls on linen' },
+    { id: 'im4', url: imageryBloomDo4, type: 'do', description: 'Lifestyle imagery showing meditation in natural botanical garden settings' },
+    { id: 'im5', url: imageryBloomDont1, type: 'dont', description: 'Avoid artificial flowers, harsh fluorescent lighting, and neon colors' },
+    { id: 'im6', url: imageryBloomDont1, type: 'dont', description: 'Never use clinical or sterile environments that feel unnatural' },
   ],
   social: [
     { id: 's1', platform: 'Instagram', handle: '@bloomwellness', url: 'https://instagram.com/bloomwellness', color: '#E4405F' },
