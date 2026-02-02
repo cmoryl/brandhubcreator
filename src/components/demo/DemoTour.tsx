@@ -122,42 +122,74 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
     if (!targetRect) return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
 
     const padding = 16;
-    const tooltipHeight = 180;
+    const tooltipHeight = 200;
     const tooltipWidth = 320;
-    const position = step?.position || 'bottom';
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    
+    // Calculate center of viewport
+    const viewportCenterY = viewportHeight / 2;
+    
+    // For tall elements (like hero), position tooltip in the visible portion
+    let targetY: number;
+    if (targetRect.height > viewportHeight * 0.6) {
+      // For very tall elements, position based on what's visible in viewport
+      const visibleTop = Math.max(targetRect.top, 80); // Account for header
+      const visibleBottom = Math.min(targetRect.bottom, viewportHeight - 100);
+      targetY = (visibleTop + visibleBottom) / 2;
+    } else {
+      // For normal elements, use center of element
+      targetY = targetRect.top + targetRect.height / 2;
+    }
+    
+    // Calculate horizontal center
+    let targetX = Math.min(
+      Math.max(targetRect.left + targetRect.width / 2, tooltipWidth / 2 + padding),
+      viewportWidth - tooltipWidth / 2 - padding
+    );
 
+    const position = step?.position || 'bottom';
+    
+    // Smart positioning - prefer specified position but adjust to stay in viewport
+    let finalTop: number;
+    let finalLeft = targetX;
+    
     switch (position) {
       case 'top':
-        return {
-          top: `${targetRect.top - tooltipHeight - padding}px`,
-          left: `${targetRect.left + targetRect.width / 2}px`,
-          transform: 'translateX(-50%)',
-        };
+        finalTop = Math.max(padding, targetRect.top - tooltipHeight - padding);
+        break;
       case 'bottom':
-        return {
-          top: `${targetRect.bottom + padding}px`,
-          left: `${targetRect.left + targetRect.width / 2}px`,
-          transform: 'translateX(-50%)',
-        };
+        // If bottom would go off screen, try to fit within visible area
+        finalTop = Math.min(
+          targetRect.bottom + padding,
+          viewportHeight - tooltipHeight - padding
+        );
+        break;
       case 'left':
-        return {
-          top: `${targetRect.top + targetRect.height / 2}px`,
-          left: `${targetRect.left - tooltipWidth - padding}px`,
-          transform: 'translateY(-50%)',
-        };
       case 'right':
-        return {
-          top: `${targetRect.top + targetRect.height / 2}px`,
-          left: `${targetRect.right + padding}px`,
-          transform: 'translateY(-50%)',
-        };
+        finalTop = Math.max(
+          padding,
+          Math.min(targetY - tooltipHeight / 2, viewportHeight - tooltipHeight - padding)
+        );
+        break;
       default:
-        return {
-          top: `${targetRect.bottom + padding}px`,
-          left: `${targetRect.left + targetRect.width / 2}px`,
-          transform: 'translateX(-50%)',
-        };
+        finalTop = Math.min(
+          targetRect.bottom + padding,
+          viewportHeight - tooltipHeight - padding
+        );
     }
+    
+    // Ensure tooltip stays within horizontal bounds
+    finalLeft = Math.min(
+      Math.max(finalLeft, tooltipWidth / 2 + padding),
+      viewportWidth - tooltipWidth / 2 - padding
+    );
+    
+    return {
+      top: `${finalTop}px`,
+      left: `${finalLeft}px`,
+      transform: 'translateX(-50%)',
+    };
   };
 
   const tooltipStyle = getTooltipPosition();
