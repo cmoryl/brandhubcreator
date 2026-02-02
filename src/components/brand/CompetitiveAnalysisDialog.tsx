@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, Plus, X, Loader2, Sparkles, BarChart3, Target, Lightbulb, FileText, Users, AlertTriangle, CheckCircle } from 'lucide-react';
+import { TrendingUp, Plus, X, Loader2, Sparkles, BarChart3, Target, Lightbulb, FileText, Users, AlertTriangle, CheckCircle, Download } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +20,8 @@ import { PersonalityMatrixChart } from '@/components/admin/competitive-analysis/
 import { StrengthsWeaknessesMatrix } from '@/components/admin/competitive-analysis/StrengthsWeaknessesMatrix';
 import { ActionPlanTimeline } from '@/components/admin/competitive-analysis/ActionPlanTimeline';
 import { DesignPriorityTable } from '@/components/admin/competitive-analysis/DesignPriorityTable';
+import { exportCompetitiveAnalysisPdf } from '@/lib/exportCompetitiveAnalysisPdf';
+import { toast } from 'sonner';
 import type { EntityType, CompetitiveAnalysisReportData } from '@/types/competitiveAnalysis';
 
 interface CompetitiveAnalysisDialogProps {
@@ -42,6 +44,7 @@ export function CompetitiveAnalysisDialog({
   const [competitors, setCompetitors] = useState<string[]>([]);
   const [newCompetitor, setNewCompetitor] = useState('');
   const [activeTab, setActiveTab] = useState('generate');
+  const [isExporting, setIsExporting] = useState(false);
 
   const {
     latestReport,
@@ -64,6 +67,27 @@ export function CompetitiveAnalysisDialog({
     const result = await generateReport(competitors);
     if (result) {
       setActiveTab('results');
+    }
+  };
+
+  const handleExportPdf = async () => {
+    if (!reportData) return;
+    
+    setIsExporting(true);
+    try {
+      await exportCompetitiveAnalysisPdf(reportData, {
+        entityName,
+        entityType,
+      }, (status) => {
+        if (status.includes('successfully')) {
+          toast.success(status);
+        }
+      });
+    } catch (error) {
+      toast.error('Failed to export PDF');
+      console.error('PDF export error:', error);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -194,12 +218,28 @@ export function CompetitiveAnalysisDialog({
             {reportData && (
               <ScrollArea className="h-[calc(90vh-200px)]">
                 <Tabs defaultValue="summary" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 mb-4">
-                    <TabsTrigger value="summary" className="text-xs">Summary</TabsTrigger>
-                    <TabsTrigger value="positioning" className="text-xs">Positioning</TabsTrigger>
-                    <TabsTrigger value="recommendations" className="text-xs">Recommendations</TabsTrigger>
-                    <TabsTrigger value="action-plan" className="text-xs">Action Plan</TabsTrigger>
-                  </TabsList>
+                  <div className="flex items-center justify-between mb-4 gap-4">
+                    <TabsList className="grid flex-1 grid-cols-4">
+                      <TabsTrigger value="summary" className="text-xs">Summary</TabsTrigger>
+                      <TabsTrigger value="positioning" className="text-xs">Positioning</TabsTrigger>
+                      <TabsTrigger value="recommendations" className="text-xs">Recommendations</TabsTrigger>
+                      <TabsTrigger value="action-plan" className="text-xs">Action Plan</TabsTrigger>
+                    </TabsList>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleExportPdf}
+                      disabled={isExporting}
+                      className="gap-2 shrink-0"
+                    >
+                      {isExporting ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Download className="w-4 h-4" />
+                      )}
+                      Export PDF
+                    </Button>
+                  </div>
 
                   <TabsContent value="summary" className="space-y-6">
                     <div className="flex items-start gap-6">
