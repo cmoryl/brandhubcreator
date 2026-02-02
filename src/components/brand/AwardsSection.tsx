@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Award, Plus } from 'lucide-react';
+import { useState, useMemo, useRef } from 'react';
+import { Award, Plus, Upload, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,15 +16,19 @@ import { SectionHeader } from './SectionHeader';
 import AwardCard from './awards/AwardCard';
 import AwardsTimeline from './awards/AwardsTimeline';
 import AwardsSortControls, { SortOption, ViewMode } from './awards/AwardsSortControls';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { cn } from '@/lib/utils';
 
 interface AwardsSectionProps {
   awards: BrandAward[];
   onUpdate?: (awards: BrandAward[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  entityType?: 'brand' | 'product' | 'event';
+  entityId?: string;
 }
 
-const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange }: AwardsSectionProps) => {
+const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, entityType = 'product', entityId }: AwardsSectionProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingAward, setEditingAward] = useState<BrandAward | null>(null);
@@ -39,6 +43,9 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange }: A
     linkUrl: '',
     category: '',
   });
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
 
   const canEdit = !!onUpdate;
 
@@ -94,6 +101,28 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange }: A
     if (onUpdate) {
       onUpdate(awards.filter((a) => a.id !== id));
     }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Generate a unique name for this award image
+    const awardId = editingAward?.id || crypto.randomUUID();
+    const result = await uploadFile(file, 'award', `award-${awardId}`);
+    
+    if (result) {
+      setFormData(prev => ({ ...prev, imageUrl: result.url }));
+    }
+    
+    // Reset the input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleClearImage = () => {
+    setFormData(prev => ({ ...prev, imageUrl: '' }));
   };
 
   // Sort awards based on selected option
@@ -203,12 +232,74 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange }: A
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Image URL</label>
-                <Input
-                  placeholder="https://..."
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                />
+                <label className="text-sm font-medium mb-1.5 block">Award Image</label>
+                
+                {/* Image preview */}
+                {formData.imageUrl && (
+                  <div className="relative mb-2 p-2 bg-muted rounded-md">
+                    <div className="flex items-center gap-3">
+                      <div className="w-16 h-16 bg-white rounded flex items-center justify-center overflow-hidden">
+                        <img
+                          src={formData.imageUrl}
+                          alt="Award preview"
+                          className="max-w-full max-h-full object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground truncate">{formData.imageUrl}</p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 shrink-0"
+                        onClick={handleClearImage}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Upload and URL input */}
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="https://... or upload an image"
+                    value={formData.imageUrl}
+                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                    className="flex-1"
+                  />
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className={cn(
+                      "shrink-0",
+                      isUploading && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    {isUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Enter a URL or click the upload button to add an image
+                </p>
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Link URL</label>

@@ -792,6 +792,7 @@ const ProductEditor = () => {
                   isAdmin={isGuideAdmin}
                   canEdit={isGuideAdmin}
                   onOpenIntelligence={isGuideAdmin ? () => setIntelligenceOpen(true) : undefined}
+                  entityType="product"
                 />
               )}
             </div>
