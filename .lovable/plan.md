@@ -1,183 +1,350 @@
 
-# Event & Sub-Event Save Fixes
+# Comprehensive Competitive Analysis Reporting System
 
-## Problem Analysis
+## Overview
+This plan implements an in-depth competitive analysis system that generates comprehensive background reports for all brand guides, including parent companies, sub-companies, products, sub-products, events, and sub-events. The system will use the detailed 8-section analysis framework you provided.
 
-After thorough investigation, I've identified **multiple critical issues** preventing event updates from persisting:
+## Current Architecture
 
-### Issue 1: UnsavedChangesBlocker Only Works with Brands
-The `UnsavedChangesBlocker` component (line 14) uses `useBrands()` context only:
-```tsx
-export const UnsavedChangesBlocker = () => {
-  const { hasPendingChanges, saveNow } = useBrands();  // ❌ Events not included!
-```
-This means:
-- Events don't get saved when navigating away
-- No `beforeunload` protection for event changes
-- Pending event updates are lost on navigation
-
-### Issue 2: useEventStorage Missing Cleanup/Flush on Unmount
-The `useBrandStorage` hook has comprehensive cleanup (lines 913-926):
-```tsx
-useEffect(() => {
-  window.addEventListener('beforeunload', handleBeforeUnload);
-  return () => {
-    flushPendingUpdates();  // ✅ Brands flush on unmount
-  };
-}, [flushPendingUpdates]);
-```
-
-But `useEventStorage` has **no equivalent** - pending updates are simply lost when the component unmounts.
-
-### Issue 3: No flushPendingUpdates for Events
-`useBrandStorage` has a sophisticated `flushPendingUpdates()` function (lines 830-911) that uses `fetch` with `keepalive: true` to reliably persist data during page unload. `useEventStorage` completely lacks this.
-
-### Issue 4: Public Event Direct Updates May Fail Silently
-In `EventEditor.tsx` (lines 385-432), when editing a public event not in context:
-- Optimistic updates are made to local state
-- Direct Supabase updates are attempted
-- But if the sync fails, the error may not properly revert the state or notify the user
-
----
+The project already has:
+- **AI-powered analysis infrastructure**: `market-analysis`, `brand-audit`, `brand-intelligence` edge functions
+- **Saved prompt system**: `saved_report_prompts` table and `useSavedPrompts` hook
+- **Custom prompt runners**: `CustomPromptRunner.tsx` for brands, `EventCustomPromptRunner.tsx` for events
+- **Brand intelligence storage**: `brand_intelligence` table with JSONB fields for storing analysis results
 
 ## Implementation Plan
 
-### Step 1: Create Event-Aware Unsaved Changes Blocker
-Create a unified blocker that handles both brands AND events.
+### Phase 1: Database Schema Updates
 
-**File: `src/components/UnsavedChangesBlocker.tsx`**
-- Import both `useBrands` and `useEvents` contexts
-- Check `hasPendingChanges()` for BOTH contexts
-- Call `saveNow()` on BOTH contexts during cleanup
+**1.1 Create `competitive_analysis_reports` table**
+Store generated reports separately for persistence and history tracking:
 
-### Step 2: Add Flush Mechanism to useEventStorage
-Add robust flush functionality matching `useBrandStorage`.
+```sql
+CREATE TABLE competitive_analysis_reports (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  entity_type TEXT NOT NULL CHECK (entity_type IN ('brand', 'product', 'event')),
+  entity_id UUID NOT NULL,
+  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+  report_type TEXT NOT NULL DEFAULT 'competitive',
+  
+  -- The comprehensive analysis data (JSONB)
+  report_data JSONB NOT NULL,
+  
+  -- User-specified competitors
+  competitors JSONB DEFAULT '[]',
+  
+  -- Metadata
+  score INTEGER,
+  status TEXT DEFAULT 'completed',
+  created_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
 
-**File: `src/hooks/useEventStorage.ts`**
+-- Indexes
+CREATE INDEX idx_competitive_reports_entity ON competitive_analysis_reports(entity_type, entity_id);
+CREATE INDEX idx_competitive_reports_org ON competitive_analysis_reports(organization_id);
 
-Add:
-- User ref tracking (`userRef`, `accessTokenRef`, `orgRef`)
-- Individual event sync timeout tracking (like `brandSyncTimeouts`)
-- `flushPendingUpdates()` function using `fetch` with `keepalive: true`
-- `beforeunload` listener and unmount cleanup effect
-- Proper pending updates tracking per event ID
-
-### Step 3: Improve EventEditor Direct Save Reliability
-Enhance the direct Supabase update path for public events.
-
-**File: `src/pages/EventEditor.tsx`**
-
-- Add better error handling with user feedback
-- Ensure state reverts are more robust
-- Add console logging for debugging sync issues
-
-### Step 4: Add saveCache on Successful Sync
-Ensure localStorage cache is updated after successful sync.
-
-**File: `src/hooks/useEventStorage.ts`**
-
-- Call `saveCache(eventsRef.current)` after successful `syncPendingUpdates`
-- This ensures offline resilience data stays current
-
----
-
-## Technical Details
-
-### Updated UnsavedChangesBlocker
-```typescript
-export const UnsavedChangesBlocker = () => {
-  const { hasPendingChanges: hasBrandChanges, saveNow: saveBrands } = useBrands();
-  const { hasPendingChanges: hasEventChanges, saveNow: saveEvents } = useEvents();
-
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasBrandChanges() || hasEventChanges()) {
-        e.preventDefault();
-        e.returnValue = 'You have unsaved changes...';
-        return e.returnValue;
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasBrandChanges, hasEventChanges]);
-
-  useEffect(() => {
-    return () => {
-      if (hasBrandChanges()) saveBrands().catch(console.error);
-      if (hasEventChanges()) saveEvents().catch(console.error);
-    };
-  }, [hasBrandChanges, hasEventChanges, saveBrands, saveEvents]);
-
-  return null;
-};
+-- RLS Policies
+ALTER TABLE competitive_analysis_reports ENABLE ROW LEVEL SECURITY;
 ```
 
-### Key useEventStorage Additions
+**1.2 Add default competitive analysis prompt to `saved_report_prompts`**
+Pre-populate the system with your comprehensive prompt as a default template.
+
+### Phase 2: New Edge Function
+
+**2.1 Create `competitive-analysis` edge function**
+
+Location: `supabase/functions/competitive-analysis/index.ts`
+
+This function will:
+- Accept entity type (brand/product/event), entity ID, and competitor list
+- Fetch complete guide_data for the entity
+- Extract all visual identity data (logo, colors, typography, patterns, imagery)
+- Extract brand positioning data (identity, values, services, tagline)
+- Call Lovable AI Gateway with the comprehensive prompt
+- Return structured JSON with all 8 analysis sections
+- Store results in `competitive_analysis_reports` table
+
+Key implementation details:
+- Use `google/gemini-2.5-pro` for complex reasoning (large context window needed)
+- Implement rate limiting (5 reports/hour per user)
+- Handle parent/child relationships for sub-products and sub-events
+- Extract relevant data efficiently to stay within token limits
+
+**2.2 Report Data Structure**
+
 ```typescript
-// Add refs for reliable flush access
-const userRef = useRef(user);
-const accessTokenRef = useRef<string | null>(null);
-const orgRef = useRef(organization);
-const eventSyncTimeouts = useRef<Map<string, NodeJS.Timeout>>(new Map());
-const pendingEventUpdates = useRef<Map<string, Partial<EventGuide>>>(new Map());
-
-// Track access token for flush operations
-useEffect(() => {
-  supabase.auth.getSession().then(({ data }) => {
-    accessTokenRef.current = data.session?.access_token ?? null;
-  });
-}, [user]);
-
-// Flush function with keepalive for page unload
-const flushPendingUpdates = useCallback(() => {
-  eventSyncTimeouts.current.forEach((timeout, id) => {
-    clearTimeout(timeout);
-    const event = eventsRef.current.find(e => e.id === id);
-    const pending = pendingEventUpdates.current.get(id);
-    if (event && pending && userRef.current && accessTokenRef.current) {
-      const merged = { ...event, ...pending };
-      const dbPayload = eventGuideToDb(merged, userRef.current.id, orgRef.current?.id);
-      fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/events?id=eq.${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Authorization': `Bearer ${accessTokenRef.current}`,
-          'Prefer': 'return=minimal',
-        },
-        body: JSON.stringify(dbPayload),
-        keepalive: true,
-      }).catch(console.error);
-    }
-  });
-  eventSyncTimeouts.current.clear();
-}, []);
-
-// Cleanup effect
-useEffect(() => {
-  window.addEventListener('beforeunload', flushPendingUpdates);
-  return () => {
-    window.removeEventListener('beforeunload', flushPendingUpdates);
-    flushPendingUpdates();
+interface CompetitiveAnalysisReport {
+  // Section 1: Visual Identity Audit
+  visualIdentityAudit: {
+    logoAnalysis: {
+      style: string;
+      typography: string;
+      symbolism: string;
+      scalability: string;
+      memorability: string;
+    };
+    colorPalette: {
+      primary: string[];
+      secondary: string[];
+      psychology: string;
+      accessibility: string;
+      consistency: string;
+    };
+    typographySystem: {
+      fonts: string[];
+      hierarchy: string;
+      personality: string;
+    };
+    visualStyle: {
+      photographyStyle: string;
+      illustrationApproach: string;
+      iconography: string;
+      aesthetic: string;
+    };
+    designPatterns: {
+      uiElements: string;
+      whitespace: string;
+      interactions: string;
+    };
   };
-}, [flushPendingUpdates]);
+
+  // Section 2: Digital Presence Analysis
+  digitalPresence: {
+    homepageImpression: {
+      heroImpact: string;
+      hierarchy: string;
+      ctaDesign: string;
+      effectiveness: string;
+    };
+    uxAnalysis: {
+      navigation: string;
+      contentOrganization: string;
+      mobileResponsive: string;
+      overallPolish: string;
+    };
+    contentPresentation: {
+      videoUsage: string;
+      dataVisualization: string;
+      caseStudyDesign: string;
+    };
+  };
+
+  // Section 3: Marketing Collateral
+  marketingCollateral: {
+    materialQuality: string[];
+    productMarketing: string[];
+    socialConsistency: string;
+  };
+
+  // Section 4: Brand Positioning Matrix
+  brandPositioning: {
+    personalityMatrix: {
+      innovationScore: number; // 1-10
+      approachabilityScore: number;
+      technicalScore: number;
+      boldnessScore: number;
+      enterpriseScore: number;
+      globalScore: number;
+    };
+    targetAudienceSignals: string[];
+    trustIndicators: string[];
+    differentiation: string[];
+  };
+
+  // Section 5: Strengths & Weaknesses Matrix
+  strengthsWeaknesses: {
+    designSophistication: number;
+    visualConsistency: number;
+    userCentricity: number;
+    innovation: number;
+    clarity: number;
+    emotionalConnection: number;
+    professionalPolish: number;
+  };
+
+  // Section 6: Recommendations
+  recommendations: {
+    positioningOpportunities: string[];
+    designPriorities: Array<{ title: string; impact: string; effort: string }>;
+    brandRefinements: {
+      logo: string;
+      colors: string;
+      typography: string;
+      imagery: string;
+    };
+    digitalImprovements: string[];
+    assetOptimization: string[];
+  };
+
+  // Section 7: Market Perception Summary
+  marketPerception: {
+    categoryMaturity: string;
+    dominantTrends: string[];
+    currentRanking: number;
+    keyStrengths: string[];
+    criticalGaps: string[];
+    risks: string[];
+  };
+
+  // Section 8: Executive Summary & Action Plan
+  executiveSummary: {
+    overview: string;
+    currentPosition: string;
+    topPriorities: string[];
+    actionPlan: {
+      thirtyDay: string[];
+      sixtyDay: string[];
+      ninetyDay: string[];
+    };
+    successMetrics: string[];
+  };
+
+  // Metadata
+  score: number;
+  generatedAt: string;
+  competitors: string[];
+}
 ```
 
+### Phase 3: Frontend Components
+
+**3.1 Create `CompetitiveAnalysisGenerator.tsx`**
+
+Location: `src/components/admin/CompetitiveAnalysisGenerator.tsx`
+
+Features:
+- Entity selector (brands, products, events dropdown)
+- Competitor input (add/remove up to 10 competitors)
+- Analysis type selector
+- Generate button with loading state
+- Results display with tabbed sections for each of the 8 analysis areas
+- Export options (PDF, copy to clipboard)
+- History/saved reports viewer
+
+**3.2 Create `CompetitiveReportCard.tsx`**
+
+Location: `src/components/brand/CompetitiveReportCard.tsx`
+
+A card component that can be embedded in brand/product/event editors showing:
+- Latest analysis score
+- Quick summary
+- Button to view full report or generate new one
+
+**3.3 Update Entity Editors**
+
+Add a "Competitive Analysis" section/button to:
+- `src/pages/BrandEditor.tsx`
+- `src/pages/ProductEditor.tsx`
+- `src/pages/EventEditor.tsx`
+
+**3.4 Create `CompetitiveAnalysisDialog.tsx`**
+
+A dialog component for:
+- Viewing full analysis results
+- Competitor configuration
+- Running new analysis
+- Viewing historical reports
+
+### Phase 4: Report Visualization Components
+
+**4.1 Create visualization components**
+
+Location: `src/components/admin/competitive-analysis/`
+
+- `PersonalityMatrixChart.tsx` - Radar chart for brand personality scores
+- `StrengthsWeaknessesMatrix.tsx` - Comparative bar charts
+- `ActionPlanTimeline.tsx` - 30/60/90 day visual timeline
+- `DesignPriorityTable.tsx` - Sortable priority table
+- `ScoreGauge.tsx` - Overall score visualization
+
+### Phase 5: Integration Points
+
+**5.1 Add to Admin Dashboard**
+- Add "Competitive Analysis" card in admin reporting section
+- Link from AIMarketAnalysis component
+
+**5.2 Quick Access from Entity Pages**
+- Add "Run Competitive Analysis" button in the toolbar of brand/product/event pages
+- Show last analysis score badge
+
+**5.3 Saved Prompts Integration**
+- Pre-populate competitive analysis prompt as a default template
+- Allow customization and saving of modified prompts
+
 ---
 
-## Files to Modify
+## Technical Implementation Details
 
-1. **`src/components/UnsavedChangesBlocker.tsx`** - Add event context integration
-2. **`src/hooks/useEventStorage.ts`** - Add flush mechanism, refs, and cleanup
-3. **`src/pages/EventEditor.tsx`** - Improve direct update error handling
+### Edge Function Flow
+
+```
+1. User selects entity + enters competitors
+2. Frontend calls competitive-analysis function
+3. Function fetches entity guide_data from DB
+4. Extracts: hero, identity, values, colors, typography, 
+   services, logos, patterns, social, websites
+5. Builds context string (optimized for token efficiency)
+6. Calls Lovable AI with comprehensive prompt
+7. Parses structured JSON response
+8. Stores report in competitive_analysis_reports
+9. Returns report to frontend
+```
+
+### Token Optimization Strategy
+
+Given the comprehensive prompt size:
+- Use `google/gemini-2.5-pro` (large context)
+- Limit competitor analysis to top 5 if more provided
+- Extract only relevant fields from guide_data
+- Use tool calling for structured output
+- Max tokens: 8000 for response
+
+### Rate Limiting
+
+- 5 comprehensive analyses per hour per user
+- 20 quick analyses per hour
+- Logged in `audit_logs` table
 
 ---
 
-## Testing Checklist
+## File Changes Summary
 
-After implementation:
-- [ ] Make changes to an event, navigate away, verify changes persist
-- [ ] Make changes to a sub-event, navigate away, verify changes persist
-- [ ] Close browser tab while editing, reopen, verify changes saved
-- [ ] Test offline scenario - make changes, go offline, verify cached
-- [ ] Test public event editing path for non-context events
+### New Files
+1. `supabase/functions/competitive-analysis/index.ts` - Main edge function
+2. `src/components/admin/CompetitiveAnalysisGenerator.tsx` - Main UI component
+3. `src/components/admin/competitive-analysis/PersonalityMatrixChart.tsx`
+4. `src/components/admin/competitive-analysis/StrengthsWeaknessesMatrix.tsx`
+5. `src/components/admin/competitive-analysis/ActionPlanTimeline.tsx`
+6. `src/components/admin/competitive-analysis/DesignPriorityTable.tsx`
+7. `src/components/admin/competitive-analysis/ScoreGauge.tsx`
+8. `src/components/brand/CompetitiveReportCard.tsx` - Embeddable card
+9. `src/components/brand/CompetitiveAnalysisDialog.tsx` - Full report dialog
+10. `src/hooks/useCompetitiveAnalysis.ts` - Hook for fetching/managing reports
+11. `src/types/competitiveAnalysis.ts` - TypeScript interfaces
+
+### Modified Files
+1. `supabase/config.toml` - Add new function config
+2. `src/pages/BrandEditor.tsx` - Add competitive analysis button
+3. `src/pages/ProductEditor.tsx` - Add competitive analysis button
+4. `src/pages/EventEditor.tsx` - Add competitive analysis button
+5. `src/components/admin/AdminSidebar.tsx` - Add competitive analysis link (if applicable)
+
+### Database Changes
+1. New table: `competitive_analysis_reports`
+2. New RLS policies for the table
+3. Default prompt inserted into `saved_report_prompts`
+
+---
+
+## Estimated Effort
+
+- **Phase 1 (Database)**: Database migration setup
+- **Phase 2 (Edge Function)**: Core AI integration
+- **Phase 3 (Frontend Components)**: UI components
+- **Phase 4 (Visualizations)**: Charts and graphs
+- **Phase 5 (Integration)**: Connecting everything
+
+This system will provide comprehensive, AI-powered competitive intelligence for every entity in your brand management ecosystem.
