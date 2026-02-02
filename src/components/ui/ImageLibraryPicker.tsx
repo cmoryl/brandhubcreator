@@ -199,7 +199,7 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
             </div>
 
             {/* Image Grid */}
-            <ScrollArea className="flex-1 -mx-2 px-2">
+            <ScrollArea className="flex-1 -mx-2 px-2 h-[400px]">
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -226,7 +226,7 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 pb-2">
                   {filteredImages.map((img) => (
                     <button
                       key={img.id}
@@ -306,7 +306,7 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
               </Badge>
             </div>
 
-            <ScrollArea className="flex-1 -mx-2 px-2">
+            <ScrollArea className="flex-1 -mx-2 px-2 h-[400px]">
               {projectImages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <ImageIcon className="h-12 w-12 text-muted-foreground/40 mb-3" />
@@ -315,7 +315,7 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 pb-2">
                   {projectImages.map((img) => (
                     <button
                       key={img.path}
