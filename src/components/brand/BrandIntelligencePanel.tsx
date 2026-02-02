@@ -33,6 +33,7 @@ import { InsightFeedbackControls } from './intelligence/InsightFeedbackControls'
 import { LearningStatusBadge } from './intelligence/LearningStatusBadge';
 import { ConfidenceIndicator } from './intelligence/ConfidenceIndicator';
 import { InsightActionTracker } from './intelligence/InsightActionTracker';
+import { CompetitiveLandscapeSection } from './intelligence/CompetitiveLandscapeSection';
 
 interface KnowledgeEntry {
   id: string;
@@ -59,6 +60,19 @@ interface LearningContext {
   user_corrections?: Array<{ original: string; corrected: string }>;
   high_engagement_insights?: string[];
   confidence_calibration?: number;
+}
+
+interface CompetitiveLandscape {
+  tracked_competitors: string[];
+  positioning_summary: string;
+  competitive_gaps: string[];
+  differentiation_opportunities: string[];
+  threat_assessment: {
+    competitor: string;
+    threat_level: 'high' | 'medium' | 'low';
+    key_threat: string;
+  }[];
+  market_share_estimate: string;
 }
 
 interface BrandIntelligence {
@@ -89,6 +103,7 @@ interface BrandIntelligence {
     rationale: string;
     confidence?: number;
   }[];
+  competitive_landscape?: CompetitiveLandscape | null;
   analysis_count: number;
   last_analyzed_at: string | null;
   insight_actions?: any[];
@@ -134,6 +149,7 @@ export const BrandIntelligencePanel = ({
     knowledge: true,
     analysis: true,
     recommendations: false,
+    competitive: false,
   });
 
   const getFeedbackForInsight = useCallback((insightId: string): InsightFeedback | undefined => {
@@ -516,6 +532,18 @@ export const BrandIntelligencePanel = ({
               ))}
             </CollapsibleContent>
           </Collapsible>
+        )}
+
+        {/* Competitive Landscape Section */}
+        {intelligence?.competitive_landscape && (
+          <>
+            <Separator />
+            <CompetitiveLandscapeSection
+              landscape={intelligence.competitive_landscape}
+              isExpanded={expandedSections.competitive}
+              onToggle={() => toggleSection('competitive')}
+            />
+          </>
         )}
 
         <Separator />
