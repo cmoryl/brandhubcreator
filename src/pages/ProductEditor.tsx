@@ -413,9 +413,15 @@ const ProductEditor = () => {
 
   const handleUpdateProduct = useCallback((updates: Partial<ProductGuide>) => {
     if (currentProduct) {
+      // When product comes from publicProduct (not context), also update local state
+      // to ensure the full product data is available for syncing
+      if (!contextProduct && publicProduct) {
+        // Update local publicProduct state so UI stays in sync
+        setPublicProduct(prev => prev ? { ...prev, ...updates, updatedAt: new Date() } : prev);
+      }
       updateProduct(currentProduct.id, updates);
     }
-  }, [currentProduct, updateProduct]);
+  }, [currentProduct, contextProduct, publicProduct, updateProduct]);
 
   const handleSectionChange = useCallback((section: SectionId) => {
     setActiveSection(section);
