@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { GlobalLinkUniverseSection } from '@/components/brand/GlobalLinkUniverseSection';
 import { normalizeLinkedGuides } from '@/lib/guideNormalization';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
 interface LinkedGuide {
@@ -92,7 +93,7 @@ const GlobalLinkUniversePage: React.FC = () => {
             GlobalLink Universe
           </h1>
           
-          <div className="w-24" /> {/* Spacer for centering */}
+          <ThemeToggle />
         </div>
       </header>
 
