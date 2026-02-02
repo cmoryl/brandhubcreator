@@ -32,13 +32,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isApproved, setIsApproved] = useState(false);
   const [accessStatus, setAccessStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [accessError, setAccessError] = useState<string | null>(null);
-  const [accessCheckVersion, setAccessCheckVersion] = useState(0);
 
-  // Split loading into: (1) session hydration, (2) access checks.
-  const [sessionLoading, setSessionLoading] = useState(true);
-  const [accessLoading, setAccessLoading] = useState(false);
-  const isLoading = sessionLoading || accessLoading;
-
+  // Single unified loading state - true until BOTH session AND access checks complete
+  const [isLoading, setIsLoading] = useState(true);
+  // Track whether initial load is complete (prevents re-triggering loading on auth changes)
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  
+  // Ref to track last successfully checked user
+  const lastAccessCheckUserIdRef = useRef<string | null>(null);
+  
   type CheckResult = { ok: true; value: boolean } | { ok: false; error: unknown };
 
   // Faster timeouts to prevent long blocking - 8s default
@@ -97,38 +99,91 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // 1) Hydrate session (must be synchronous inside auth callbacks)
+  // 1) Hydrate session and fetch access in ONE flow to prevent race conditions
   useEffect(() => {
     let cancelled = false;
 
-    // Set up auth state listener FIRST
+    // Set up auth state listener for ONGOING changes (after initial load)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      // Skip initial session event - we handle it separately
       if (event === 'INITIAL_SESSION') return;
       if (cancelled) return;
 
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
+
+      // For ongoing changes, fire-and-forget role checks (don't affect loading state)
+      if (nextSession?.user && initialLoadComplete) {
+        Promise.all([
+          checkAdminRole(nextSession.user.id),
+          checkApprovalStatus(nextSession.user.id),
+        ]).then(([adminRes, approvedRes]) => {
+          if (cancelled) return;
+          if (adminRes.ok && approvedRes.ok) {
+            setIsAdmin(adminRes.value);
+            setIsApproved(adminRes.value || approvedRes.value);
+            lastAccessCheckUserIdRef.current = nextSession.user.id;
+          }
+        });
+      } else if (!nextSession?.user) {
+        setIsAdmin(false);
+        setIsApproved(false);
+        lastAccessCheckUserIdRef.current = null;
+      }
     });
 
-    // THEN check for existing session
-    (async () => {
+    // INITIAL load - controls isLoading state
+    const initializeAuth = async () => {
       try {
         const { data: { session: initialSession } } = await withTimeout(supabase.auth.getSession(), 6000);
         if (cancelled) return;
+        
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
+
+        // Fetch roles BEFORE setting loading to false
+        if (initialSession?.user) {
+          const [adminRes, approvedRes] = await Promise.all([
+            checkAdminRole(initialSession.user.id),
+            checkApprovalStatus(initialSession.user.id),
+          ]);
+
+          if (cancelled) return;
+
+          if (adminRes.ok && approvedRes.ok) {
+            setIsAdmin(adminRes.value);
+            setIsApproved(adminRes.value || approvedRes.value);
+            setAccessError(null);
+            setAccessStatus('ready');
+            lastAccessCheckUserIdRef.current = initialSession.user.id;
+          } else {
+            // Grant access during backend issues
+            console.warn('[AUTH] Initial access check failed - granting default access');
+            setIsAdmin(false);
+            setIsApproved(true);
+            setAccessError('Backend temporarily unreachable.');
+            setAccessStatus('ready');
+          }
+        } else {
+          setAccessStatus('idle');
+        }
       } catch (err) {
-        // If the backend/network is temporarily unreachable, don't deadlock the app in "loading".
         if (cancelled) return;
         console.warn('[AUTH] getSession failed', err);
         setSession(null);
         setUser(null);
+        setAccessStatus('idle');
       } finally {
-        if (!cancelled) setSessionLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+          setInitialLoadComplete(true);
+        }
       }
-    })();
+    };
+
+    initializeAuth();
 
     return () => {
       cancelled = true;
@@ -136,119 +191,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  // 2) Fetch access flags AFTER user is known (defer Supabase calls)
-  const lastAccessCheckUserIdRef = useRef<string | null>(null);
+  // 2) Re-check access on window focus (for users who were offline)
   useEffect(() => {
-    let cancelled = false;
+    if (!initialLoadComplete) return;
+    
     const userId = user?.id ?? null;
-
-    if (!userId) {
-      lastAccessCheckUserIdRef.current = null;
-      setIsAdmin(false);
-      setIsApproved(false);
-      setAccessError(null);
-      setAccessStatus('idle');
-      setAccessLoading(false);
-      return;
-    }
-
-    let attempt = 0;
-    const MAX_ATTEMPTS = 5;
-    const RETRY_MS = 1500;
-
-    // Mark "auth still settling" immediately so pages don't route to /pending-approval
-    // during the tiny window between session hydration and access checks.
-    setAccessError(null);
-    setAccessStatus('loading');
-    setAccessLoading(true);
-
-    const runCheck = () => {
-      if (cancelled) return;
-
-      // If we already successfully checked this user, don't repeat.
-      if (lastAccessCheckUserIdRef.current === userId) return;
-
-      attempt += 1;
-
-      // Run both checks in parallel for faster resolution
-      Promise.all([checkAdminRole(userId), checkApprovalStatus(userId)])
-        .then(([adminRes, approvedRes]) => {
-          if (cancelled) return;
-
-          const allOk = adminRes.ok && approvedRes.ok;
-          if (!allOk) {
-            console.warn('[AUTH] Access check failed', {
-              attempt,
-              adminOk: adminRes.ok,
-              approvedOk: approvedRes.ok,
-            });
-
-            // Keep previous flags on transient failure.
-            if (attempt < MAX_ATTEMPTS) {
-              setTimeout(runCheck, RETRY_MS);
-            } else {
-              // Stop "loading" so the UI remains usable; user can refresh/focus to retry.
-              // IMPORTANT: On backend timeout, assume user is approved so they can use the app
-              // This prevents users from being locked out during temporary infrastructure issues
-              console.warn('[AUTH] Backend unreachable after retries - allowing app access');
-              setIsAdmin(false);
-              setIsApproved(true); // Grant access during outage
-              setAccessError('Backend temporarily unreachable. Access granted with limited features.');
-              setAccessStatus('ready'); // Mark as ready so user isn't stuck
-              // CRITICAL: Do NOT mark the user as "checked" here.
-              // If we cache this userId, we will never re-run the admin/approval checks on focus,
-              // which can incorrectly hide admin-only UI (e.g., section visibility eye icons)
-              // even after the backend becomes reachable again.
-              setAccessLoading(false);
-            }
-            return;
-          }
-
-          const adminVal = adminRes.value;
-          const approvedVal = approvedRes.value;
-
-          setIsAdmin(adminVal);
-          setIsApproved(adminVal || approvedVal);
-          setAccessError(null);
-          setAccessStatus('ready');
-          lastAccessCheckUserIdRef.current = userId;
-          setAccessLoading(false);
-        })
-        .catch((err) => {
-          console.error('Error checking user access:', err);
-          if (attempt < MAX_ATTEMPTS) {
-            setTimeout(runCheck, RETRY_MS);
-          } else {
-            // Grant access during backend outage
-            console.warn('[AUTH] Backend unreachable - granting app access');
-            setIsAdmin(false);
-            setIsApproved(true);
-            setAccessError('Backend temporarily unreachable. Access granted with limited features.');
-            setAccessStatus('ready');
-            // Do not cache the check result on outage; allow re-check on focus/refresh.
-            setAccessLoading(false);
-          }
-        });
-    };
-
-    // Initial check
-    setTimeout(runCheck, 0);
-
-    // Also retry when the tab regains focus (useful after waking from sleep / network hiccups)
+    
     const onFocus = () => {
-      // Only re-run if we haven't successfully checked yet.
-      if (lastAccessCheckUserIdRef.current !== userId) {
-        setAccessLoading(true);
-        runCheck();
+      // Only re-run if we haven't successfully checked this user yet
+      if (userId && lastAccessCheckUserIdRef.current !== userId) {
+        Promise.all([checkAdminRole(userId), checkApprovalStatus(userId)])
+          .then(([adminRes, approvedRes]) => {
+            if (adminRes.ok && approvedRes.ok) {
+              setIsAdmin(adminRes.value);
+              setIsApproved(adminRes.value || approvedRes.value);
+              setAccessError(null);
+              setAccessStatus('ready');
+              lastAccessCheckUserIdRef.current = userId;
+            }
+          });
       }
     };
+    
     window.addEventListener('focus', onFocus);
-
-    return () => {
-      cancelled = true;
-      window.removeEventListener('focus', onFocus);
-    };
-  }, [user?.id, accessCheckVersion]);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [user?.id, initialLoadComplete]);
 
   const toSafeAuthError = (err: unknown): Error => {
     if (err instanceof Error) {
@@ -326,9 +293,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const refreshAccess = () => {
-    // Force the access-check effect to run again for the current user.
+    // Force re-check of access for current user
+    const userId = user?.id;
+    if (!userId) return;
+    
     lastAccessCheckUserIdRef.current = null;
-    setAccessCheckVersion((v) => v + 1);
+    Promise.all([checkAdminRole(userId), checkApprovalStatus(userId)])
+      .then(([adminRes, approvedRes]) => {
+        if (adminRes.ok && approvedRes.ok) {
+          setIsAdmin(adminRes.value);
+          setIsApproved(adminRes.value || approvedRes.value);
+          setAccessError(null);
+          setAccessStatus('ready');
+          lastAccessCheckUserIdRef.current = userId;
+        }
+      });
   };
 
   return (
