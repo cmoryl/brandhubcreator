@@ -103,6 +103,71 @@ export type Database = {
           },
         ]
       }
+      backup_jobs: {
+        Row: {
+          backup_path: string | null
+          brands_count: number | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          events_count: number | null
+          file_size_bytes: number | null
+          id: string
+          job_type: string
+          organization_id: string
+          products_count: number | null
+          scheduled_for: string | null
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          backup_path?: string | null
+          brands_count?: number | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          events_count?: number | null
+          file_size_bytes?: number | null
+          id?: string
+          job_type?: string
+          organization_id: string
+          products_count?: number | null
+          scheduled_for?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          backup_path?: string | null
+          brands_count?: number | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          events_count?: number | null
+          file_size_bytes?: number | null
+          id?: string
+          job_type?: string
+          organization_id?: string
+          products_count?: number | null
+          scheduled_for?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backup_jobs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brand_intelligence: {
         Row: {
           analysis_count: number
@@ -515,6 +580,7 @@ export type Database = {
       organizations: {
         Row: {
           accent_color: string | null
+          backup_schedule: Json | null
           created_at: string
           created_by: string | null
           custom_domain: string | null
@@ -536,6 +602,7 @@ export type Database = {
         }
         Insert: {
           accent_color?: string | null
+          backup_schedule?: Json | null
           created_at?: string
           created_by?: string | null
           custom_domain?: string | null
@@ -557,6 +624,7 @@ export type Database = {
         }
         Update: {
           accent_color?: string | null
+          backup_schedule?: Json | null
           created_at?: string
           created_by?: string | null
           custom_domain?: string | null

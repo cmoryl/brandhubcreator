@@ -29,10 +29,14 @@ import {
   History,
   Shield,
   Trash2,
-  HardDrive
+  HardDrive,
+  Calendar,
+  Play,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow, format } from 'date-fns';
+import { useBackupJobs, BackupJob } from '@/hooks/useBackupJobs';
 
 interface BackupHistory {
   id: string;
@@ -55,18 +59,27 @@ interface BackupManagerProps {
 export const BackupManager = ({ organizationId, organizationName }: BackupManagerProps) => {
   const [backups, setBackups] = useState<BackupHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreatingBackup, setIsCreatingBackup] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState<BackupHistory | null>(null);
   const [showRestoreDialog, setShowRestoreDialog] = useState(false);
-  const [backupProgress, setBackupProgress] = useState(0);
-  const [backupStatus, setBackupStatus] = useState('');
   const [restoreOptions, setRestoreOptions] = useState({
     brands: true,
     products: true,
     events: true,
     overwrite: false,
   });
+
+  // Use the queue-based backup system
+  const { 
+    jobs, 
+    isQueueing, 
+    queueBackup, 
+    cancelJob, 
+    getActiveJob,
+    fetchJobs,
+  } = useBackupJobs(organizationId);
+
+  const activeJob = getActiveJob();
 
   useEffect(() => {
     fetchBackups();
@@ -92,145 +105,15 @@ export const BackupManager = ({ organizationId, organizationName }: BackupManage
     }
   };
 
-  // Client-side backup - fetches data directly and uploads to storage
+  // Queue-based backup - fast and async
   const createBackup = async () => {
-    setIsCreatingBackup(true);
-    setBackupProgress(0);
-    setBackupStatus('Starting backup...');
-    
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('You must be logged in to create backups');
-        return;
-      }
-
-      setBackupStatus('Fetching organization data...');
-      setBackupProgress(10);
-
-      // Fetch org info
-      const { data: org, error: orgError } = await supabase
-        .from('organizations')
-        .select('id, name, slug')
-        .eq('id', organizationId)
-        .single();
-
-      if (orgError || !org) {
-        throw new Error('Organization not found');
-      }
-
-      setBackupStatus('Fetching brands...');
-      setBackupProgress(20);
-
-      // Fetch all brands
-      const { data: brands, error: brandsError } = await supabase
-        .from('brands')
-        .select('*')
-        .eq('organization_id', organizationId);
-
-      if (brandsError) throw brandsError;
-
-      setBackupStatus('Fetching products...');
-      setBackupProgress(40);
-
-      // Fetch all products
-      const { data: products, error: productsError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('organization_id', organizationId);
-
-      if (productsError) throw productsError;
-
-      setBackupStatus('Fetching events...');
-      setBackupProgress(60);
-
-      // Fetch all events
-      const { data: events, error: eventsError } = await supabase
-        .from('events')
-        .select('*')
-        .eq('organization_id', organizationId);
-
-      if (eventsError) throw eventsError;
-
-      setBackupStatus('Creating backup file...');
-      setBackupProgress(70);
-
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      
-      // Create backup object
-      const backupData = {
-        version: '1.0',
-        createdAt: new Date().toISOString(),
-        backupType: 'manual',
-        organization: { id: org.id, name: org.name, slug: org.slug },
-        data: {
-          brands: brands || [],
-          products: products || [],
-          events: events || [],
-        },
-        counts: {
-          brands: brands?.length || 0,
-          products: products?.length || 0,
-          events: events?.length || 0,
-        }
-      };
-
-      const backupJson = JSON.stringify(backupData);
-      const backupPath = `${org.id}/${timestamp}/backup.json`;
-
-      setBackupStatus('Uploading to storage...');
-      setBackupProgress(80);
-
-      // Upload to storage
-      const { error: uploadError } = await supabase.storage
-        .from('brand-backups')
-        .upload(backupPath, backupJson, {
-          contentType: 'application/json',
-          upsert: true,
-        });
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw new Error(`Failed to upload: ${uploadError.message}`);
-      }
-
-      setBackupStatus('Recording backup history...');
-      setBackupProgress(90);
-
-      // Record in backup_history
-      const { error: historyError } = await supabase
-        .from('backup_history')
-        .insert({
-          organization_id: org.id,
-          backup_type: 'manual',
-          backup_path: backupPath,
-          brands_count: brands?.length || 0,
-          products_count: products?.length || 0,
-          file_size_bytes: backupJson.length,
-          created_by: user.id,
-          status: 'completed',
-        });
-
-      if (historyError) {
-        console.error('Failed to record backup history:', historyError);
-      }
-
-      setBackupProgress(100);
-      setBackupStatus('Complete!');
-      
-      toast.success(`Backed up ${brands?.length || 0} brands, ${products?.length || 0} products`);
-      fetchBackups();
-    } catch (err) {
-      console.error('Backup error:', err);
-      toast.error(err instanceof Error ? err.message : 'Failed to create backup');
-    } finally {
-      setIsCreatingBackup(false);
-      setTimeout(() => {
-        setBackupProgress(0);
-        setBackupStatus('');
-      }, 2000);
+    const result = await queueBackup({ jobType: 'manual' });
+    if (result.success) {
+      // Refresh backup history after a short delay
+      setTimeout(fetchBackups, 2000);
     }
   };
+
 
   // Client-side restore
   const restoreBackup = async () => {
@@ -478,27 +361,40 @@ export const BackupManager = ({ organizationId, organizationName }: BackupManage
             </Button>
             <Button
               onClick={createBackup}
-              disabled={isCreatingBackup}
+              disabled={isQueueing || !!activeJob}
               size="sm"
             >
-              {isCreatingBackup ? (
+              {isQueueing || activeJob ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 <Download className="h-4 w-4 mr-2" />
               )}
-              Create Backup
+              {activeJob ? 'Backup in Progress' : 'Create Backup'}
             </Button>
           </div>
         </div>
         
-        {/* Backup Progress */}
-        {isCreatingBackup && (
-          <div className="mt-4 space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{backupStatus}</span>
-              <span className="font-medium">{backupProgress}%</span>
+        {/* Active Job Status */}
+        {activeJob && (
+          <div className="mt-4 p-3 rounded-lg border bg-muted/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <span className="text-sm font-medium">
+                  {activeJob.status === 'pending' ? 'Backup queued...' : 'Backup processing...'}
+                </span>
+              </div>
+              {activeJob.status === 'pending' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => cancelJob(activeJob.id)}
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Cancel
+                </Button>
+              )}
             </div>
-            <Progress value={backupProgress} className="h-2" />
           </div>
         )}
       </CardHeader>
