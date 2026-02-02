@@ -25,6 +25,39 @@ interface AnalysisResult {
     rationale: string;
   }>;
   key_insights: string[];
+  competitive_landscape?: {
+    tracked_competitors: string[];
+    positioning_summary: string;
+    competitive_gaps: string[];
+    differentiation_opportunities: string[];
+    threat_assessment: Array<{
+      competitor: string;
+      threat_level: 'high' | 'medium' | 'low';
+      key_threat: string;
+    }>;
+    market_share_estimate: string;
+  };
+}
+
+interface FavoriteCompetitor {
+  name: string;
+  competitor_type: string;
+  reason: string | null;
+  industry: string | null;
+}
+
+interface CompetitiveReport {
+  competitors: string[];
+  report_data: {
+    marketPerception?: {
+      keyStrengths?: string[];
+      criticalGaps?: string[];
+      risks?: string[];
+    };
+    brandPositioning?: {
+      differentiation?: string[];
+    };
+  };
 }
 
 interface ExistingIntelligence {
@@ -97,7 +130,7 @@ Deno.serve(async (req) => {
       const tableName = entityType === 'brand' ? 'brands' : 'products';
       const { data: entity, error } = await supabaseAdmin
         .from(tableName)
-        .select('id, name, guide_data')
+        .select('id, name, guide_data, organization_id')
         .eq('id', entityId)
         .single();
 
@@ -115,7 +148,8 @@ Deno.serve(async (req) => {
         entity.name,
         entityType,
         entity.guide_data as Record<string, unknown>,
-        skipRecent
+        skipRecent,
+        entity.organization_id
       );
 
       return new Response(
@@ -159,7 +193,8 @@ async function processEntity(
   entityName: string,
   entityType: 'brand' | 'product',
   guideData: Record<string, unknown>,
-  skipRecent: boolean
+  skipRecent: boolean,
+  organizationId?: string | null
 ): Promise<{ entity: string; status: string; error?: string }> {
   try {
     console.log(`Processing ${entityType}: ${entityName}`);
@@ -184,8 +219,29 @@ async function processEntity(
       }
     }
 
-    // Build analysis prompt
-    const analysisPrompt = buildAnalysisPrompt(entityName, entityType, guideData);
+    // Fetch favorite competitors for this organization
+    let favoriteCompetitors: FavoriteCompetitor[] = [];
+    if (organizationId) {
+      const { data: favoritesRaw } = await supabaseAdmin
+        .from('favorite_competitors')
+        .select('name, competitor_type, reason, industry')
+        .eq('organization_id', organizationId);
+      favoriteCompetitors = (favoritesRaw || []) as FavoriteCompetitor[];
+    }
+
+    // Fetch recent competitive analysis reports for this entity
+    let competitiveReports: CompetitiveReport[] = [];
+    const { data: reportsRaw } = await supabaseAdmin
+      .from('competitive_analysis_reports')
+      .select('competitors, report_data')
+      .eq('entity_id', entityId)
+      .eq('entity_type', entityType)
+      .order('created_at', { ascending: false })
+      .limit(3);
+    competitiveReports = (reportsRaw || []) as CompetitiveReport[];
+
+    // Build analysis prompt with competitive context
+    const analysisPrompt = buildAnalysisPrompt(entityName, entityType, guideData, favoriteCompetitors, competitiveReports);
 
     // Call AI Gateway
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -220,8 +276,20 @@ Return your analysis as a JSON object with this exact structure:
     {"priority": "high", "recommendation": "Recommendation text", "rationale": "Why this matters"},
     {"priority": "medium", "recommendation": "Recommendation text", "rationale": "Why this matters"}
   ],
-  "key_insights": ["Insight 1", "Insight 2", "Insight 3"]
+  "key_insights": ["Insight 1", "Insight 2", "Insight 3"],
+  "competitive_landscape": {
+    "tracked_competitors": ["Competitor 1", "Competitor 2"],
+    "positioning_summary": "How this brand is positioned relative to competitors",
+    "competitive_gaps": ["Gap 1", "Gap 2"],
+    "differentiation_opportunities": ["Opportunity 1", "Opportunity 2"],
+    "threat_assessment": [
+      {"competitor": "Competitor name", "threat_level": "high|medium|low", "key_threat": "Description of threat"}
+    ],
+    "market_share_estimate": "Estimated market position (e.g., 'Top 5 in enterprise segment')"
+  }
 }
+
+IMPORTANT: If competitor information is provided in the prompt, use it to inform your competitive_landscape analysis. Be specific about how this brand compares to named competitors. If no competitor data is provided, make reasonable inferences based on the brand's market and positioning.
 
 Be specific, actionable, and insightful. Base analysis on the actual brand data provided.`
           },
@@ -231,7 +299,7 @@ Be specific, actionable, and insightful. Base analysis on the actual brand data 
           }
         ],
         temperature: 0.3,
-        max_tokens: 2000,
+        max_tokens: 3000,
       }),
     });
 
@@ -321,7 +389,13 @@ Be specific, actionable, and insightful. Base analysis on the actual brand data 
   }
 }
 
-function buildAnalysisPrompt(name: string, entityType: string, guideData: Record<string, unknown>): string {
+function buildAnalysisPrompt(
+  name: string,
+  entityType: string,
+  guideData: Record<string, unknown>,
+  favoriteCompetitors: FavoriteCompetitor[],
+  competitiveReports: CompetitiveReport[]
+): string {
   const sections: string[] = [];
 
   sections.push(`# ${entityType === 'brand' ? 'Brand' : 'Product'} Analysis Request: ${name}`);
@@ -368,7 +442,43 @@ function buildAnalysisPrompt(name: string, entityType: string, guideData: Record
     sections.push(`\n## Typography: ${typography.length} styles defined`);
   }
 
-  sections.push(`\n\nPlease analyze this ${entityType} and provide comprehensive brand intelligence insights.`);
+  // Add competitive context if available
+  if (favoriteCompetitors.length > 0 || competitiveReports.length > 0) {
+    sections.push(`\n## Competitive Context`);
+    
+    if (favoriteCompetitors.length > 0) {
+      sections.push(`\n### Tracked Competitors (${favoriteCompetitors.length})`);
+      favoriteCompetitors.forEach((c, i) => {
+        const details = [c.competitor_type];
+        if (c.industry) details.push(`industry: ${c.industry}`);
+        if (c.reason) details.push(`reason: ${c.reason}`);
+        sections.push(`${i + 1}. ${c.name} (${details.join(', ')})`);
+      });
+    }
+
+    if (competitiveReports.length > 0) {
+      sections.push(`\n### Previous Competitive Analysis Insights`);
+      competitiveReports.forEach((report, i) => {
+        const reportData = report.report_data || {};
+        sections.push(`\nReport ${i + 1} (vs ${report.competitors?.join(', ') || 'unknown'}):`);
+        
+        if (reportData.marketPerception?.keyStrengths?.length) {
+          sections.push(`- Key Strengths: ${reportData.marketPerception.keyStrengths.slice(0, 3).join('; ')}`);
+        }
+        if (reportData.marketPerception?.criticalGaps?.length) {
+          sections.push(`- Critical Gaps: ${reportData.marketPerception.criticalGaps.slice(0, 3).join('; ')}`);
+        }
+        if (reportData.brandPositioning?.differentiation?.length) {
+          sections.push(`- Differentiation: ${reportData.brandPositioning.differentiation.slice(0, 3).join('; ')}`);
+        }
+        if (reportData.marketPerception?.risks?.length) {
+          sections.push(`- Risks: ${reportData.marketPerception.risks.slice(0, 2).join('; ')}`);
+        }
+      });
+    }
+  }
+
+  sections.push(`\n\nPlease analyze this ${entityType} and provide comprehensive brand intelligence insights. ${favoriteCompetitors.length > 0 || competitiveReports.length > 0 ? 'Use the competitive context provided to inform your competitive_landscape analysis with specific insights about how this brand compares to its tracked competitors.' : ''}`);
 
   return sections.join('\n');
 }
