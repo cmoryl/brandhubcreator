@@ -99,6 +99,20 @@ import misuseNexusExamples from '@/assets/demos/misuse-nexus-examples.jpg';
 import imageassetsLibrary from '@/assets/demos/imageassets-library.jpg';
 import templatespecsNexus from '@/assets/demos/templatespecs-nexus.jpg';
 
+// Service card header images
+import serviceNexus1 from '@/assets/demos/service-nexus-1.jpg';
+import serviceNexus2 from '@/assets/demos/service-nexus-2.jpg';
+import serviceNexus3 from '@/assets/demos/service-nexus-3.jpg';
+import serviceNexus4 from '@/assets/demos/service-nexus-4.jpg';
+import serviceBloom1 from '@/assets/demos/service-bloom-1.jpg';
+import serviceBloom2 from '@/assets/demos/service-bloom-2.jpg';
+import serviceBloom3 from '@/assets/demos/service-bloom-3.jpg';
+import serviceBloom4 from '@/assets/demos/service-bloom-4.jpg';
+import serviceCloud1 from '@/assets/demos/service-cloud-1.jpg';
+import serviceCloud2 from '@/assets/demos/service-cloud-2.jpg';
+import serviceOils1 from '@/assets/demos/service-oils-1.jpg';
+import serviceOils2 from '@/assets/demos/service-oils-2.jpg';
+
 // Import card imagery for landing page showcase
 import cardBrandHub from '@/assets/demos/card-brandhub.jpg';
 import cardNexusTech from '@/assets/demos/card-nexus-tech.jpg';
@@ -475,12 +489,12 @@ export const DEMO_BRAND_NEXUS: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'db3', name: 'Email Header', dimensions: '600x200', aspectRatio: 3, category: 'native', previewImageUrl: bannerNexus1, maxMessaging: 'Logo + tagline', textLegibility: '16pt minimum', safeZonePolicy: '5% margins' },
   ],
   services: [
-    { id: 'srv1', name: 'Cloud Infrastructure', description: 'Enterprise-grade cloud solutions tailored to your needs', icon: 'Cloud' },
-    { id: 'srv2', name: 'Cybersecurity', description: 'Comprehensive security solutions to protect your business', icon: 'Shield' },
-    { id: 'srv3', name: 'AI & Analytics', description: 'Unlock insights with machine learning and data analytics', icon: 'Brain' },
-    { id: 'srv4', name: 'Digital Transformation', description: 'End-to-end digital transformation consulting', icon: 'Rocket' },
-    { id: 'srv5', name: 'DevOps Solutions', description: 'Streamline your development and deployment pipelines', icon: 'GitBranch' },
-    { id: 'srv6', name: 'API Development', description: 'Build robust, scalable APIs for any platform', icon: 'Code' },
+    { id: 'srv1', name: 'Cloud Infrastructure', description: 'Enterprise-grade cloud solutions tailored to your needs', icon: 'Cloud', headerImage: serviceNexus1 },
+    { id: 'srv2', name: 'Cybersecurity', description: 'Comprehensive security solutions to protect your business', icon: 'Shield', headerImage: serviceNexus3 },
+    { id: 'srv3', name: 'AI & Analytics', description: 'Unlock insights with machine learning and data analytics', icon: 'Brain', headerImage: serviceNexus4 },
+    { id: 'srv4', name: 'Digital Transformation', description: 'End-to-end digital transformation consulting', icon: 'Rocket', headerImage: serviceNexus2 },
+    { id: 'srv5', name: 'DevOps Solutions', description: 'Streamline your development and deployment pipelines', icon: 'GitBranch', headerImage: serviceNexus1 },
+    { id: 'srv6', name: 'API Development', description: 'Build robust, scalable APIs for any platform', icon: 'Code', headerImage: serviceNexus2 },
   ],
   statistics: [
     { id: 'stat1', value: '500', suffix: '+', label: 'Enterprise Clients', icon: 'Building2', category: 'primary' },
@@ -778,12 +792,12 @@ export const DEMO_BRAND_BLOOM: Omit<BrandGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'ia3', name: 'Botanical Icon Set', url: iconographyBloomWellness, type: 'iconography', size: '1.2 MB', uploadedAt: '2025-12-01' },
   ],
   services: [
-    { id: 'srv1', name: 'Wellness Coaching', description: 'Personalized guidance for your wellness journey', icon: 'Heart' },
-    { id: 'srv2', name: 'Organic Products', description: 'Premium organic wellness products for mind and body', icon: 'Leaf' },
-    { id: 'srv3', name: 'Retreat Programs', description: 'Immersive wellness retreat experiences in nature', icon: 'Sunrise' },
-    { id: 'srv4', name: 'Corporate Wellness', description: 'Workplace wellness programs for teams', icon: 'Users' },
-    { id: 'srv5', name: 'Online Classes', description: 'Virtual yoga, meditation, and wellness workshops', icon: 'Play' },
-    { id: 'srv6', name: 'Spa Partnerships', description: 'White-label products for luxury spas and resorts', icon: 'Sparkles' },
+    { id: 'srv1', name: 'Wellness Coaching', description: 'Personalized guidance for your wellness journey', icon: 'Heart', headerImage: serviceBloom1 },
+    { id: 'srv2', name: 'Organic Products', description: 'Premium organic wellness products for mind and body', icon: 'Leaf', headerImage: serviceBloom3 },
+    { id: 'srv3', name: 'Retreat Programs', description: 'Immersive wellness retreat experiences in nature', icon: 'Sunrise', headerImage: serviceBloom4 },
+    { id: 'srv4', name: 'Corporate Wellness', description: 'Workplace wellness programs for teams', icon: 'Users', headerImage: serviceBloom2 },
+    { id: 'srv5', name: 'Online Classes', description: 'Virtual yoga, meditation, and wellness workshops', icon: 'Play', headerImage: serviceBloom2 },
+    { id: 'srv6', name: 'Spa Partnerships', description: 'White-label products for luxury spas and resorts', icon: 'Sparkles', headerImage: serviceBloom3 },
   ],
   statistics: [
     { id: 'stat1', value: '100', suffix: '%', label: 'Organic Ingredients', icon: 'Leaf', category: 'primary' },
@@ -1030,12 +1044,12 @@ export const DEMO_PRODUCT_CLOUD: Omit<ProductGuide, 'createdAt' | 'updatedAt'> =
     { id: 'db1', name: 'Product Banner', dimensions: '1200x628', aspectRatio: 1.91, category: 'native', previewImageUrl: socialNexusLinkedin, maxMessaging: 'Product features + CTA', textLegibility: '20pt minimum', safeZonePolicy: '10% margins' },
   ],
   services: [
-    { id: 'srv1', name: 'Compute', description: 'Scalable virtual machines and containers', icon: 'Server' },
-    { id: 'srv2', name: 'Storage', description: 'Object, block, and file storage solutions', icon: 'Database' },
-    { id: 'srv3', name: 'Networking', description: 'Global load balancing and CDN', icon: 'Globe' },
-    { id: 'srv4', name: 'Kubernetes', description: 'Managed Kubernetes clusters', icon: 'Box' },
-    { id: 'srv5', name: 'Serverless', description: 'Functions-as-a-service with auto-scaling', icon: 'Zap' },
-    { id: 'srv6', name: 'Security', description: 'Identity management and encryption', icon: 'Shield' },
+    { id: 'srv1', name: 'Compute', description: 'Scalable virtual machines and containers', icon: 'Server', headerImage: serviceCloud1 },
+    { id: 'srv2', name: 'Storage', description: 'Object, block, and file storage solutions', icon: 'Database', headerImage: serviceCloud2 },
+    { id: 'srv3', name: 'Networking', description: 'Global load balancing and CDN', icon: 'Globe', headerImage: serviceCloud1 },
+    { id: 'srv4', name: 'Kubernetes', description: 'Managed Kubernetes clusters', icon: 'Box', headerImage: serviceCloud2 },
+    { id: 'srv5', name: 'Serverless', description: 'Functions-as-a-service with auto-scaling', icon: 'Zap', headerImage: serviceCloud1 },
+    { id: 'srv6', name: 'Security', description: 'Identity management and encryption', icon: 'Shield', headerImage: serviceCloud2 },
   ],
   statistics: [
     { id: 'stat1', value: '99.99', suffix: '%', label: 'Uptime SLA', icon: 'Shield', category: 'primary' },
@@ -1290,11 +1304,11 @@ export const DEMO_PRODUCT_OILS: Omit<ProductGuide, 'createdAt' | 'updatedAt'> = 
     },
   ],
   services: [
-    { id: 'srv1', name: 'Single Oils', description: 'Pure single-origin essential oils from around the world', icon: 'Droplet' },
-    { id: 'srv2', name: 'Signature Blends', description: 'Expertly crafted therapeutic oil blends', icon: 'Sparkles' },
-    { id: 'srv3', name: 'Diffusers', description: 'Premium ultrasonic aromatherapy diffusers', icon: 'Wind' },
-    { id: 'srv4', name: 'Gift Sets', description: 'Curated collections for every occasion', icon: 'Gift' },
-    { id: 'srv5', name: 'Subscription Box', description: 'Monthly discovery of new oils and blends', icon: 'Package' },
+    { id: 'srv1', name: 'Single Oils', description: 'Pure single-origin essential oils from around the world', icon: 'Droplet', headerImage: serviceOils1 },
+    { id: 'srv2', name: 'Signature Blends', description: 'Expertly crafted therapeutic oil blends', icon: 'Sparkles', headerImage: serviceOils2 },
+    { id: 'srv3', name: 'Diffusers', description: 'Premium ultrasonic aromatherapy diffusers', icon: 'Wind', headerImage: serviceOils1 },
+    { id: 'srv4', name: 'Gift Sets', description: 'Curated collections for every occasion', icon: 'Gift', headerImage: serviceOils2 },
+    { id: 'srv5', name: 'Subscription Box', description: 'Monthly discovery of new oils and blends', icon: 'Package', headerImage: serviceOils1 },
   ],
   statistics: [
     { id: 'stat1', value: '100', suffix: '%', label: 'Pure Oils', icon: 'Droplet', category: 'primary' },
