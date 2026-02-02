@@ -390,60 +390,58 @@ export const HeroSection = ({
           
           {/* Edit overlay with consolidated toolbar - Only show if canEdit and isEditing */}
           {canEdit && isEditing && (
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-              <HeroEditToolbar
-                useVideo={hero.useVideo === true}
-                kenBurnsEffect={hero.kenBurnsEffect === true}
-                kenBurnsPreview={kenBurnsPreview}
-                isUploading={isUploading}
-                overlayIntensity={hero.overlayIntensity ?? 50}
-                overlayGradient={hero.overlayGradient || 'default'}
-                parallaxIntensity={hero.parallaxIntensity ?? 1}
-                onMediaTypeChange={(type) => {
-                  if (onHeroChange) {
-                    onHeroChange({ ...hero, useVideo: type === 'video' });
-                  }
-                }}
-                onKenBurnsToggle={() => {
-                  setKenBurnsPreview(false);
-                  toggleKenBurns();
-                }}
-                onKenBurnsPreviewStart={() => {
-                  if (hero.kenBurnsEffect !== true) {
-                    setKenBurnsPreview(true);
-                  }
-                }}
-                onKenBurnsPreviewEnd={() => setKenBurnsPreview(false)}
-                onUploadClick={() => {
-                  if (hero.useVideo) {
-                    videoInputRef.current?.click();
-                  } else {
-                    coverInputRef.current?.click();
-                  }
-                }}
-                onVideoUrlClick={handleVideoUrlInput}
-                onLibrarySelect={(url) => {
-                  if (onHeroChange) {
-                    onHeroChange({ ...hero, coverImage: url });
-                  }
-                }}
-                onOverlayIntensityChange={(value) => {
-                  if (onHeroChange) {
-                    onHeroChange({ ...hero, overlayIntensity: value });
-                  }
-                }}
-                onOverlayGradientChange={(value) => {
-                  if (onHeroChange) {
-                    onHeroChange({ ...hero, overlayGradient: value });
-                  }
-                }}
-                onParallaxIntensityChange={(value) => {
-                  if (onHeroChange) {
-                    onHeroChange({ ...hero, parallaxIntensity: value });
-                  }
-                }}
-              />
-            </div>
+            <HeroEditToolbar
+              useVideo={hero.useVideo === true}
+              kenBurnsEffect={hero.kenBurnsEffect === true}
+              kenBurnsPreview={kenBurnsPreview}
+              isUploading={isUploading}
+              overlayIntensity={hero.overlayIntensity ?? 50}
+              overlayGradient={hero.overlayGradient || 'default'}
+              parallaxIntensity={hero.parallaxIntensity ?? 1}
+              onMediaTypeChange={(type) => {
+                if (onHeroChange) {
+                  onHeroChange({ ...hero, useVideo: type === 'video' });
+                }
+              }}
+              onKenBurnsToggle={() => {
+                setKenBurnsPreview(false);
+                toggleKenBurns();
+              }}
+              onKenBurnsPreviewStart={() => {
+                if (hero.kenBurnsEffect !== true) {
+                  setKenBurnsPreview(true);
+                }
+              }}
+              onKenBurnsPreviewEnd={() => setKenBurnsPreview(false)}
+              onUploadClick={() => {
+                if (hero.useVideo) {
+                  videoInputRef.current?.click();
+                } else {
+                  coverInputRef.current?.click();
+                }
+              }}
+              onVideoUrlClick={handleVideoUrlInput}
+              onLibrarySelect={(url) => {
+                if (onHeroChange) {
+                  onHeroChange({ ...hero, coverImage: url });
+                }
+              }}
+              onOverlayIntensityChange={(value) => {
+                if (onHeroChange) {
+                  onHeroChange({ ...hero, overlayIntensity: value });
+                }
+              }}
+              onOverlayGradientChange={(value) => {
+                if (onHeroChange) {
+                  onHeroChange({ ...hero, overlayGradient: value });
+                }
+              }}
+              onParallaxIntensityChange={(value) => {
+                if (onHeroChange) {
+                  onHeroChange({ ...hero, parallaxIntensity: value });
+                }
+              }}
+            />
           )}
 
           {/* Stats Panel - Top Left - Hidden on mobile to reduce clutter */}
