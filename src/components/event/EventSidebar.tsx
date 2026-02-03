@@ -1,4 +1,3 @@
-import { lazy, Suspense } from 'react';
 import { 
   Shield, Quote, Calendar, MapPin, Image, Palette, Type, Camera, 
   Users, LayoutGrid, FolderArchive, Ban, Flag, Presentation, Crown,
@@ -22,12 +21,7 @@ import {
 } from '@dnd-kit/sortable';
 import { EventSectionId, DEFAULT_EVENT_SECTION_ORDER } from '@/types/event';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
 import { SortableSectionItem } from '@/components/brand/SortableSectionItem';
-
-const CompetitiveReportCard = lazy(() =>
-  import('@/components/brand/CompetitiveReportCard').then((m) => ({ default: m.CompetitiveReportCard }))
-);
 
 interface EventSidebarProps {
   activeSection: EventSectionId;
@@ -220,19 +214,6 @@ export const EventSidebar = ({
         </nav>
       </ScrollArea>
 
-      {/* Competitive Analysis Card - Admin only */}
-      {isAdmin && eventId && (
-        <div className="p-3 border-t border-sidebar-border animate-fade-in" style={{ animationDelay: '0.5s' }}>
-          <Suspense fallback={<Skeleton className="h-[120px] w-full rounded-lg" />}>
-            <CompetitiveReportCard
-              entityType="event"
-              entityId={eventId}
-              entityName={eventName}
-              organizationId={organizationId}
-            />
-          </Suspense>
-        </div>
-      )}
     </aside>
   );
 };
