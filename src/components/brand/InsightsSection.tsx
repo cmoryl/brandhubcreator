@@ -33,7 +33,7 @@ const typeColors = {
   report: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
   analytics: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
   news: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
-  update: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+  update: 'bg-sky-500/10 text-sky-500 border-sky-500/20',
   alert: 'bg-red-500/10 text-red-500 border-red-500/20',
 };
 
@@ -65,7 +65,7 @@ const InsightCard = ({
         insight.type === 'report' && "bg-gradient-to-r from-blue-500 to-blue-400",
         insight.type === 'analytics' && "bg-gradient-to-r from-emerald-500 to-emerald-400",
         insight.type === 'news' && "bg-gradient-to-r from-purple-500 to-purple-400",
-        insight.type === 'update' && "bg-gradient-to-r from-amber-500 to-amber-400",
+        insight.type === 'update' && "bg-gradient-to-r from-sky-500 to-sky-400",
         insight.type === 'alert' && "bg-gradient-to-r from-red-500 to-red-400",
       )} />
 

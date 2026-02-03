@@ -65,7 +65,7 @@ const coreFeatures: Feature[] = [
     icon: Globe,
     title: 'Public Portals',
     description: 'Share brand guides publicly. Organization portals with custom branding.',
-    gradient: 'from-orange-500/20 to-amber-500/20',
+    gradient: 'from-sky-500/20 to-cyan-500/20',
   },
   {
     icon: FileText,
@@ -93,7 +93,7 @@ const eventFeatures: Feature[] = [
     icon: Ticket,
     title: 'Digital Banners',
     description: 'Manage email headers, social media banners, and web assets with size presets.',
-    gradient: 'from-amber-500/20 to-orange-500/20',
+    gradient: 'from-teal-500/20 to-cyan-500/20',
   },
 ];
 
@@ -135,7 +135,7 @@ const adminFeatures: Feature[] = [
     icon: FolderCheck,
     title: 'Bulk Repair Tools',
     description: 'Normalize sections, fix hidden content, and ensure platform-wide consistency.',
-    gradient: 'from-yellow-500/20 to-orange-500/20',
+    gradient: 'from-sky-500/20 to-teal-500/20',
   },
   {
     icon: ShieldCheck,

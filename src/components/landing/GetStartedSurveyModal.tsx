@@ -55,7 +55,7 @@ const GOALS = [
     icon: Calendar, 
     label: 'Event Kits',
     description: 'Conference & event materials',
-    color: 'from-amber-500 to-orange-500'
+    color: 'from-sky-500 to-cyan-500'
   },
   { 
     id: 'agency', 

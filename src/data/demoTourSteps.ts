@@ -6,7 +6,7 @@ export type TourCategory = 'Identity' | 'Visual' | 'Typography' | 'Assets' | 'Co
 export const TOUR_CATEGORIES: { id: TourCategory; label: string; icon: string; color: string }[] = [
   { id: 'Identity', label: 'Identity', icon: 'Shield', color: 'from-blue-500 to-cyan-500' },
   { id: 'Visual', label: 'Visual', icon: 'Palette', color: 'from-purple-500 to-pink-500' },
-  { id: 'Typography', label: 'Typography', icon: 'Type', color: 'from-orange-500 to-amber-500' },
+  { id: 'Typography', label: 'Typography', icon: 'Type', color: 'from-sky-500 to-cyan-500' },
   { id: 'Assets', label: 'Assets', icon: 'Layers', color: 'from-green-500 to-emerald-500' },
   { id: 'Communication', label: 'Communication', icon: 'Share2', color: 'from-indigo-500 to-violet-500' },
   { id: 'Resources', label: 'Resources', icon: 'FolderArchive', color: 'from-rose-500 to-red-500' },

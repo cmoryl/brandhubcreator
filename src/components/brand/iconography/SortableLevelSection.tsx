@@ -55,9 +55,9 @@ const LEVEL_CONFIG = {
     label: 'Brand-Specific Icons',
     description: 'Custom icons for individual brands',
     icon: Layers,
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-500/10',
-    borderColor: 'border-orange-500/30',
+    color: 'text-sky-500',
+    bgColor: 'bg-sky-500/10',
+    borderColor: 'border-sky-500/30',
   },
 };
 
