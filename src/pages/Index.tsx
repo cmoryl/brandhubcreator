@@ -117,11 +117,11 @@ const Index = () => {
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         
-        {/* Blue Particle Embers Background */}
+        {/* Blue Particle Embers Background - non-interactive for smooth scrolling */}
         <ParticleEmbers 
-          count={45} 
+          count={35} 
           color="hsl(199 89% 48%)" 
-          interactive={true}
+          interactive={false}
           className="z-[1]"
         />
         
