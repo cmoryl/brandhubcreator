@@ -36,7 +36,7 @@ export function BrandHubLogo({ className, size = 'md', showIcon = true }: BrandH
         />
       )}
       <span className={cn('font-semibold tracking-tight text-foreground', sizeClasses[size])}>
-        Brand<span className="text-accent">HUB</span>
+        Brand<span style={{ color: '#139cd8' }}>HUB</span>
       </span>
     </div>
   );
