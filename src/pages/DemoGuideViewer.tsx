@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Star, Building2, Package, Calendar, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Star, Building2, Package, Calendar, ExternalLink, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -13,13 +13,17 @@ import { BackToTopButton } from '@/components/BackToTopButton';
 import { DemoTour, StartTourButton } from '@/components/demo/DemoTour';
 import { getTourSteps } from '@/data/demoTourSteps';
 import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 import type { BrandGuide, ProductGuide, SectionId } from '@/types/brand';
 import type { EventGuide, EventSectionId } from '@/types/event';
 
 // Demo guide viewer page - renders static demo data for brands, products, and events
+// Admins can edit demo content (session-only changes)
 export default function DemoGuideViewer() {
   const { type, slug } = useParams<{ type: 'brand' | 'product' | 'event'; slug: string }>();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [activeSection, setActiveSection] = useState<SectionId | null>(null);
   const [activeEventSection, setActiveEventSection] = useState<EventSectionId | null>(null);
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
@@ -40,7 +44,7 @@ export default function DemoGuideViewer() {
     return undefined;
   }, [type, slug]);
 
-  // Local state for demo guide data
+  // Local state for demo guide data - admins can edit this in-session
   const [demoGuideData, setDemoGuideData] = useState<typeof initialDemoGuide>(initialDemoGuide);
 
   // Reset data when switching demos
@@ -53,6 +57,29 @@ export default function DemoGuideViewer() {
 
   const sectionOrder = (demoGuide?.sectionOrder || []) as SectionId[];
   const isEvent = type === 'event';
+
+  // Admin update handlers - modify local state (session-only)
+  const handleBrandUpdate = useCallback((updates: Partial<BrandGuide | ProductGuide>) => {
+    if (!isAdmin) return;
+    setDemoGuideData(prev => {
+      if (!prev) return prev;
+      return { ...prev, ...updates } as typeof prev;
+    });
+    toast.success('Demo updated (session only)', { 
+      description: 'Changes will reset on page reload' 
+    });
+  }, [isAdmin]);
+
+  const handleEventUpdate = useCallback((updates: Partial<EventGuide>) => {
+    if (!isAdmin) return;
+    setDemoGuideData(prev => {
+      if (!prev) return prev;
+      return { ...prev, ...updates } as typeof prev;
+    });
+    toast.success('Demo updated (session only)', { 
+      description: 'Changes will reset on page reload' 
+    });
+  }, [isAdmin]);
 
   const handleSectionSelect = useCallback((sectionId: SectionId) => {
     setScrollToSection(sectionId);
@@ -134,6 +161,12 @@ export default function DemoGuideViewer() {
               <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
               <span className="hidden xs:inline">Demo</span>
             </Badge>
+            {isAdmin && (
+              <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30 gap-1 hidden sm:flex text-xs">
+                <Shield className="h-3 w-3" />
+                Admin Edit Mode
+              </Badge>
+            )}
             <Badge variant="outline" className="gap-1 hidden md:flex text-xs">
               {getTypeIcon()}
               {industry}
@@ -176,11 +209,12 @@ export default function DemoGuideViewer() {
             eventId={demoGuide.id}
             sectionOrder={(demoGuide.sectionOrder || []) as EventSectionId[]}
             hiddenSections={[]}
-            isAdmin={false}
+            isAdmin={isAdmin}
             heroFullWidth={true}
-            canEdit={false}
+            canEdit={isAdmin}
             scrollToSection={scrollToEventSection}
             onSectionVisible={handleEventSectionVisible}
+            onEventUpdate={isAdmin ? handleEventUpdate : undefined}
           />
         ) : (
           <FullBrandPage
@@ -190,9 +224,10 @@ export default function DemoGuideViewer() {
             scrollToSection={scrollToSection}
             onSectionVisible={handleSectionVisible}
             hiddenSections={[]}
-            isAdmin={false}
+            isAdmin={isAdmin}
             heroFullWidth={true}
-            canEdit={false}
+            canEdit={isAdmin}
+            onBrandUpdate={isAdmin ? handleBrandUpdate : undefined}
           />
         )}
       </div>
