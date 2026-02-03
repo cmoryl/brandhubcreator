@@ -183,9 +183,9 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Orbit Visualization - Right side */}
+            {/* Orbit Visualization - Right side (30% larger) */}
             <div className="order-1 lg:order-2 flex justify-center lg:justify-end">
-              <div className="w-full max-w-[450px] lg:max-w-[520px]">
+              <div className="w-full max-w-[580px] lg:max-w-[680px]">
                 <HeroOrbit
                   className="w-full aspect-square"
                   primaryColor="#6366f1"

@@ -35,6 +35,7 @@ import { EventsSection } from './EventsSection';
 import { WebinarSeriesSection } from './WebinarSeriesSection';
 import AwardsSection from './AwardsSection';
 import { GlobalLinkUniverseSection } from './GlobalLinkUniverseSection';
+import { InsightsSection } from './InsightsSection';
 import { Separator } from '@/components/ui/separator';
 import { ScrollAnimate, AnimationType } from '@/components/ui/scroll-animate';
 
@@ -73,7 +74,9 @@ const sectionAnimations: Record<string, AnimationType> = {
   templatespecs: 'fade-up',
   products: 'fade-up',
   events: 'fade-up',
-  universe: 'zoom-in'
+  universe: 'zoom-in',
+  insights: 'fade-up',
+  sponsorlogos: 'fade-up',
 };
 
 // Memoized section wrapper with scroll animations
@@ -308,6 +311,15 @@ export const FullBrandPage = ({
           return <GlobalLinkUniverseSection linkedGuides={brand.linkedGuides} primaryColor={primaryColor} />;
         }
         return null;
+      case 'insights':
+        return <InsightsSection 
+          insights={brand.insights || []} 
+          layout={brand.insightsLayout}
+          onInsightsChange={editHandler((insights) => onBrandUpdate({ insights }))} 
+          onLayoutChange={canEdit ? (insightsLayout) => onBrandUpdate({ insightsLayout }) : undefined}
+          customSubtitle={customSubtitle} 
+          onSubtitleChange={onSubtitleChange} 
+        />;
       default: return null;
     }
   }, [brand, brandId, onBrandUpdate, sectionSubtitles, sectionLayouts, handleSubtitleChange, handleLayoutChange, heroFullWidth, onOpenIntelligence, canEdit]);
