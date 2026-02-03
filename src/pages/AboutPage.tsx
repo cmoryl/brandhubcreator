@@ -176,8 +176,8 @@ export default function AboutPage() {
                   <p className="text-sm font-medium text-foreground">Growth Tips</p>
                   <p className="text-xs text-muted-foreground mt-1">Recommendations</p>
                 </Card>
-                <Card className="p-5 border-border/50 bg-gradient-to-br from-orange-500/5 to-transparent">
-                  <Rocket className="h-6 w-6 text-orange-500 mb-3" />
+                <Card className="p-5 border-border/50 bg-gradient-to-br from-sky-500/5 to-transparent">
+                  <Rocket className="h-6 w-6 text-sky-500 mb-3" />
                   <p className="text-sm font-medium text-foreground">Competitor Intel</p>
                   <p className="text-xs text-muted-foreground mt-1">Stay ahead</p>
                 </Card>

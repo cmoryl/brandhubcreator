@@ -222,7 +222,7 @@ export function CompetitiveAnalysisDialog({
       case 'indirect':
         return <Badge variant="secondary" className="text-xs">Indirect</Badge>;
       case 'emerging':
-        return <Badge className="text-xs bg-orange-500 hover:bg-orange-600">Emerging</Badge>;
+        return <Badge className="text-xs bg-sky-500 hover:bg-sky-600">Emerging</Badge>;
       default:
         return null;
     }

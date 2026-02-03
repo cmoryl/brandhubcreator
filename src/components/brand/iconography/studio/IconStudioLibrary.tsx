@@ -305,7 +305,7 @@ export const IconStudioLibrary = ({
           </div>
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
           <div className="flex items-center gap-2">
-            <Layers className="h-4 w-4 text-orange-500" />
+            <Layers className="h-4 w-4 text-sky-500" />
             <span>Brand</span>
           </div>
           <span className="text-muted-foreground ml-auto hidden sm:inline">
@@ -333,9 +333,9 @@ export const IconStudioLibrary = ({
         {renderLevelSection(
           'brand',
           brandLibraries,
-          <Layers className="h-4 w-4 text-orange-500" />,
+          <Layers className="h-4 w-4 text-sky-500" />,
           'Brand Libraries',
-          'bg-orange-500/10'
+          'bg-sky-500/10'
         )}
       </div>
 
@@ -396,7 +396,7 @@ export const IconStudioLibrary = ({
                     </SelectItem>
                     <SelectItem value="brand">
                       <div className="flex items-center gap-2">
-                        <Layers className="h-4 w-4 text-orange-500" />
+                        <Layers className="h-4 w-4 text-sky-500" />
                         Brand - Brand specific
                       </div>
                     </SelectItem>
