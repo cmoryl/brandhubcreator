@@ -149,9 +149,7 @@ const AuthPage = () => {
           title: 'Welcome back!',
           description: 'You have successfully logged in.',
         });
-        // Failsafe: navigate immediately. The access checks will still run in the background,
-        // and the app can re-route if needed.
-        navigate('/dashboard');
+        // Navigation handled by useEffect watching user/accessStatus
       }
     } finally {
       setIsLoading(false);
