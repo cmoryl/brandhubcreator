@@ -113,7 +113,7 @@ const Index = () => {
       </header>
 
       {/* Hero Section with Orbit */}
-      <section className="relative pt-16 min-h-[calc(100vh-4rem)] flex items-center overflow-hidden">
+      <section className="relative pt-8 pb-8 min-h-[50vh] flex items-center overflow-hidden">
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         
@@ -358,14 +358,7 @@ const Index = () => {
       <footer className="py-12 border-t border-border">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <img 
-                src={brandhubLogo} 
-                alt="BrandHub" 
-                className="h-6 w-auto"
-              />
-              <span className="font-serif font-semibold text-foreground">BrandHub</span>
-            </div>
+            <BrandHubLogo size="sm" />
             
             {/* Footer Links */}
             <div className="flex items-center gap-6">
