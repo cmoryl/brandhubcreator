@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, Globe,
@@ -21,12 +22,20 @@ import {
 import { SectionId, DEFAULT_SECTION_ORDER } from '@/types/brand';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import { SortableSectionItem } from './SortableSectionItem';
+import type { EntityType } from '@/types/competitiveAnalysis';
+
+const CompetitiveReportCard = lazy(() =>
+  import('@/components/brand/CompetitiveReportCard').then((m) => ({ default: m.CompetitiveReportCard }))
+);
 
 interface ReorderableBrandSidebarProps {
   activeSection: SectionId;
   onSectionChange: (section: SectionId) => void;
   brandName: string;
+  brandId?: string;
+  organizationId?: string | null;
   sectionOrder: SectionId[];
   onSectionOrderChange: (newOrder: SectionId[]) => void;
   hiddenSections?: SectionId[];
@@ -79,6 +88,8 @@ export const ReorderableBrandSidebar = ({
   activeSection, 
   onSectionChange, 
   brandName,
+  brandId,
+  organizationId,
   sectionOrder,
   onSectionOrderChange,
   hiddenSections = [],
@@ -170,6 +181,20 @@ export const ReorderableBrandSidebar = ({
           </DndContext>
         </nav>
       </ScrollArea>
+
+      {/* Competitive Analysis Card - Admin only */}
+      {isAdmin && brandId && (
+        <div className="p-3 border-t border-sidebar-border animate-fade-in" style={{ animationDelay: '0.5s' }}>
+          <Suspense fallback={<Skeleton className="h-[120px] w-full rounded-lg" />}>
+            <CompetitiveReportCard
+              entityType="brand"
+              entityId={brandId}
+              entityName={brandName}
+              organizationId={organizationId}
+            />
+          </Suspense>
+        </div>
+      )}
     </aside>
   );
 };

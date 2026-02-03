@@ -720,6 +720,8 @@ const BrandEditor = () => {
             activeSection={activeSection} 
             onSectionChange={handleSectionChange} 
             brandName={brand.hero.name}
+            brandId={brand.id}
+            organizationId={brand.organizationId}
             sectionOrder={sectionOrder}
             onSectionOrderChange={handleSectionOrderChange}
             hiddenSections={hiddenSections}
@@ -738,6 +740,8 @@ const BrandEditor = () => {
               activeSection={activeSection} 
               onSectionChange={(section) => { handleSectionChange(section); setSidebarOpen(false); }} 
               brandName={brand.hero.name}
+              brandId={brand.id}
+              organizationId={brand.organizationId}
               sectionOrder={sectionOrder}
               onSectionOrderChange={handleSectionOrderChange}
               hiddenSections={hiddenSections}
