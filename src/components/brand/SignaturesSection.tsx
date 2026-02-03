@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Copy, Check, Code, LayoutTemplate, Mail, Phone, Globe, MapPin, Building2, Image, ExternalLink, ImagePlus, Upload, Link2, Loader2 } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { Plus, X, Pencil, Copy, Check, Code, LayoutTemplate, Mail, Phone, Globe, MapPin, Building2, Image, ExternalLink, ImagePlus, Upload, Link2, Loader2, Lock, Unlock, Maximize2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { BrandSignature, BrandEmailBanner } from '@/types/brand';
 import { Button } from '@/components/ui/button';
@@ -109,6 +109,104 @@ const bannerSizePresets = [
   { name: 'Wide Banner', width: 600, height: 200, description: 'High-impact visuals' },
   { name: 'Square Feature', width: 300, height: 300, description: 'Product spotlight' },
 ];
+
+const logoSizePresets = [
+  { name: 'Small', width: 60, height: 60 },
+  { name: 'Default', width: 100, height: 100 },
+  { name: 'Medium', width: 120, height: 120 },
+  { name: 'Large', width: 150, height: 150 },
+];
+
+// Logo Size Controls Component with Aspect Ratio Lock
+interface LogoSizeControlsProps {
+  width: number;
+  height: number;
+  onChange: (width: number, height: number) => void;
+}
+
+const LogoSizeControls = ({ width, height, onChange }: LogoSizeControlsProps) => {
+  const [aspectLocked, setAspectLocked] = useState(true);
+  const aspectRatio = width / height || 1;
+
+  const handleWidthChange = (newWidth: number) => {
+    if (aspectLocked) {
+      onChange(newWidth, Math.round(newWidth / aspectRatio));
+    } else {
+      onChange(newWidth, height);
+    }
+  };
+
+  const handleHeightChange = (newHeight: number) => {
+    if (aspectLocked) {
+      onChange(Math.round(newHeight * aspectRatio), newHeight);
+    } else {
+      onChange(width, newHeight);
+    }
+  };
+
+  return (
+    <div className="space-y-3 p-3 bg-muted/30 rounded-lg border border-border">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Maximize2 className="h-4 w-4 text-muted-foreground" />
+          <span className="text-xs font-medium">Logo Size</span>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setAspectLocked(!aspectLocked)}
+          className="h-7 gap-1.5 text-xs"
+        >
+          {aspectLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
+          {aspectLocked ? 'Locked' : 'Unlocked'}
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <label className="text-xs text-muted-foreground">Width (px)</label>
+          <Input
+            type="number"
+            value={width}
+            onChange={(e) => handleWidthChange(parseInt(e.target.value) || 100)}
+            min={20}
+            max={300}
+            className="h-8 text-sm"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-xs text-muted-foreground">Height (px)</label>
+          <Input
+            type="number"
+            value={height}
+            onChange={(e) => handleHeightChange(parseInt(e.target.value) || 100)}
+            min={20}
+            max={300}
+            className="h-8 text-sm"
+          />
+        </div>
+      </div>
+      
+      <div className="flex flex-wrap gap-1.5">
+        {logoSizePresets.map((preset) => (
+          <Button
+            key={preset.name}
+            variant={width === preset.width && height === preset.height ? "default" : "outline"}
+            size="sm"
+            className="h-7 text-xs"
+            onClick={() => onChange(preset.width, preset.height)}
+          >
+            {preset.name}
+          </Button>
+        ))}
+      </div>
+      
+      <p className="text-xs text-muted-foreground">
+        {aspectLocked ? 'Aspect ratio locked - dimensions scale proportionally' : 'Aspect ratio unlocked - set custom dimensions'}
+      </p>
+    </div>
+  );
+};
 
 export const SignaturesSection = ({ 
   signatures, 
@@ -326,6 +424,10 @@ export const SignaturesSection = ({
     const accentColor = signature.accentColor || TP_BLUE_LIGHT;
     const darkColor = signature.accentColor ? signature.accentColor : TP_BLUE_DARK;
     
+    // Get logo dimensions with defaults
+    const logoWidth = signature.logoWidth || 100;
+    const logoHeight = signature.logoHeight || 100;
+    
     let html = signature.html
       .replace(/\[NAME\]/g, signature.name)
       .replace(/\[ROLE\]/g, signature.role)
@@ -335,7 +437,10 @@ export const SignaturesSection = ({
       .replace(/\[WEBSITE\]/g, signature.website || 'www.company.com')
       .replace(/\[ADDRESS\]/g, signature.address || '123 Business St, City')
       .replace(/\[CONFIDENTIALITY\]/g, signature.confidentialityNotice || '')
-      .replace(/\[LOGO_URL\]/g, signature.logoUrl || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23f0f0f0" width="100" height="100" rx="4"/><text x="50" y="55" text-anchor="middle" fill="%23999" font-family="Arial" font-size="10">Logo</text></svg>')
+      .replace(/\[LOGO_URL\]/g, signature.logoUrl || `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="${logoWidth}" height="${logoHeight}"><rect fill="%23f0f0f0" width="${logoWidth}" height="${logoHeight}" rx="4"/><text x="${logoWidth/2}" y="${logoHeight/2 + 5}" text-anchor="middle" fill="%23999" font-family="Arial" font-size="10">Logo</text></svg>`)
+      // Replace logo dimensions in template
+      .replace(/width="100" height="100"/g, `width="${logoWidth}" height="${logoHeight}"`)
+      .replace(/width="80" height="80"/g, `width="${Math.round(logoWidth * 0.8)}" height="${Math.round(logoHeight * 0.8)}"`)
       // Replace accent colors in template with custom color
       .replace(new RegExp(TP_BLUE_LIGHT, 'gi'), accentColor)
       .replace(new RegExp(TP_BLUE_DARK, 'gi'), darkColor);
@@ -671,6 +776,15 @@ export const SignaturesSection = ({
                         <p className="text-xs text-muted-foreground">
                           Recommended: 100×100px, PNG or SVG with transparent background
                         </p>
+                        
+                        {/* Logo Size Controls */}
+                        {signature.logoUrl && (
+                          <LogoSizeControls 
+                            width={signature.logoWidth || 100}
+                            height={signature.logoHeight || 100}
+                            onChange={(width, height) => updateSignature(signature.id, { logoWidth: width, logoHeight: height })}
+                          />
+                        )}
                       </div>
                     </div>
                   </div>

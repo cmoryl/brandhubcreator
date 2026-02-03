@@ -98,7 +98,7 @@ export const brandDemoTourSteps: TourStep[] = [
   },
   {
     target: '[data-section="colors"]',
-    title: 'Prismatic Lab',
+    title: 'Color Palette',
     description: 'Your complete color system with HEX, RGB, CMYK, and Pantone values. Click any color to copy instantly. Includes role assignments and usage guidelines.',
     position: 'top',
     category: 'Visual',
@@ -188,7 +188,7 @@ export const brandDemoTourSteps: TourStep[] = [
   },
   {
     target: '[data-section="qr"]',
-    title: 'Access Ports (QR)',
+    title: 'QR Codes',
     description: 'Generate branded QR codes with custom colors matching your palette. Perfect for print materials and event signage.',
     position: 'top',
     category: 'Communication',

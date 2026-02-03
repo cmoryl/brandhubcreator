@@ -74,7 +74,7 @@ export const QRSection = ({ qr, onQRChange, customSubtitle, onSubtitleChange }: 
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1">
           <SectionHeader
-            title="Access Ports"
+            title="QR Codes"
             defaultSubtitle="Physical-to-digital bridge - brand-compliant QR codes"
             customSubtitle={customSubtitle}
             onSubtitleChange={onSubtitleChange}
