@@ -53,6 +53,12 @@ export interface BrandHero {
   gradientBarsEffect?: boolean;
   /** Intensity of the gradient bars effect */
   gradientBarsIntensity?: 'subtle' | 'medium' | 'bold';
+  /** Color scheme for gradient bars */
+  gradientBarsColorScheme?: 'cyan-purple' | 'blue-teal' | 'purple-pink' | 'green-cyan' | 'amber-orange' | 'custom';
+  /** Dark or light mode for gradient bars */
+  gradientBarsMode?: 'dark' | 'light';
+  /** Brightness level for gradient bars (0-100) */
+  gradientBarsBrightness?: number;
   logoUrl: string;
   /** Tagline animation effect on load */
   taglineAnimation?: 'typewriter' | 'fade-slide' | 'blur-reveal' | 'split-chars' | 'wave-glow';
