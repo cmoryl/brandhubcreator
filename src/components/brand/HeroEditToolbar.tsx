@@ -1,9 +1,11 @@
 import { forwardRef, useState } from 'react';
-import { ImageIcon, Video, Move, Upload, Loader2, Check, FolderOpen, Layers, Sparkles, SlidersHorizontal, LayoutPanelLeft } from 'lucide-react';
+import { ImageIcon, Video, Move, Upload, Loader2, Check, FolderOpen, Layers, Sparkles, SlidersHorizontal, LayoutPanelLeft, Type, Palette } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
 interface HeroEditToolbarProps {
@@ -16,6 +18,10 @@ interface HeroEditToolbarProps {
   overlayIntensity?: number;
   overlayGradient?: 'default' | 'radial-dark' | 'top-fade' | 'vignette' | 'brand-tint' | 'none';
   parallaxIntensity?: 0 | 1 | 2 | 3;
+  // Text customization props
+  taglineColor?: string;
+  titleColor?: string;
+  taglineGlow?: boolean;
   onMediaTypeChange: (type: 'image' | 'video') => void;
   onKenBurnsToggle: () => void;
   onKenBurnsPreviewStart: () => void;
@@ -28,6 +34,10 @@ interface HeroEditToolbarProps {
   onOverlayIntensityChange?: (value: number) => void;
   onOverlayGradientChange?: (value: 'default' | 'radial-dark' | 'top-fade' | 'vignette' | 'brand-tint' | 'none') => void;
   onParallaxIntensityChange?: (value: 0 | 1 | 2 | 3) => void;
+  // Text customization callbacks
+  onTaglineColorChange?: (color: string) => void;
+  onTitleColorChange?: (color: string) => void;
+  onTaglineGlowChange?: (enabled: boolean) => void;
 }
 
 const OVERLAY_PRESETS = [
@@ -45,6 +55,17 @@ const GRADIENT_BARS_INTENSITIES = [
   { id: 'bold', label: 'Bold' },
 ] as const;
 
+const TEXT_COLOR_PRESETS = [
+  { id: '#ffffff', label: 'White' },
+  { id: '#f0f0f0', label: 'Off-White' },
+  { id: '#139cd8', label: 'Brand Blue' },
+  { id: '#00d4ff', label: 'Cyan' },
+  { id: '#a855f7', label: 'Purple' },
+  { id: '#f59e0b', label: 'Amber' },
+  { id: '#10b981', label: 'Emerald' },
+  { id: '#f43f5e', label: 'Rose' },
+] as const;
+
 export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
   function HeroEditToolbar({
     useVideo,
@@ -56,6 +77,9 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
     overlayIntensity = 50,
     overlayGradient = 'default',
     parallaxIntensity = 1,
+    taglineColor = '#ffffff',
+    titleColor = '#ffffff',
+    taglineGlow = false,
     onMediaTypeChange,
     onKenBurnsToggle,
     onKenBurnsPreviewStart,
@@ -68,6 +92,9 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
     onOverlayIntensityChange,
     onOverlayGradientChange,
     onParallaxIntensityChange,
+    onTaglineColorChange,
+    onTitleColorChange,
+    onTaglineGlowChange,
   }, ref) {
     const [activeTab, setActiveTab] = useState('media');
 
@@ -108,6 +135,13 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
               >
                 <Layers className="h-4 w-4" />
                 Overlay
+              </TabsTrigger>
+              <TabsTrigger 
+                value="text" 
+                className="flex-1 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/15 rounded-lg py-2.5 text-sm gap-2"
+              >
+                <Type className="h-4 w-4" />
+                Text
               </TabsTrigger>
             </TabsList>
 
@@ -385,6 +419,116 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
                       </button>
                     ))}
                   </div>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Text Tab */}
+            <TabsContent value="text" className="p-4 space-y-4 mt-0">
+              {/* Title Color */}
+              {onTitleColorChange && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-white/60 text-xs font-medium uppercase tracking-wider">Title Color</label>
+                    <div 
+                      className="w-6 h-6 rounded-full border-2 border-white/30"
+                      style={{ backgroundColor: titleColor }}
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {TEXT_COLOR_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onTitleColorChange(preset.id);
+                        }}
+                        className={cn(
+                          "relative h-10 rounded-lg border-2 overflow-hidden transition-all flex items-center justify-center",
+                          titleColor === preset.id
+                            ? "border-accent ring-2 ring-accent/30"
+                            : "border-white/20 hover:border-white/40"
+                        )}
+                        style={{ backgroundColor: preset.id }}
+                      >
+                        {titleColor === preset.id && (
+                          <Check className="h-4 w-4" style={{ color: preset.id === '#ffffff' || preset.id === '#f0f0f0' ? '#000' : '#fff' }} />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Custom color input */}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={titleColor}
+                      onChange={(e) => onTitleColorChange(e.target.value)}
+                      className="w-10 h-10 rounded-lg border border-white/20 cursor-pointer bg-transparent"
+                    />
+                    <span className="text-white/60 text-xs">Custom color</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Tagline Color */}
+              {onTaglineColorChange && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-white/60 text-xs font-medium uppercase tracking-wider">Tagline Color</label>
+                    <div 
+                      className="w-6 h-6 rounded-full border-2 border-white/30"
+                      style={{ backgroundColor: taglineColor }}
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {TEXT_COLOR_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onTaglineColorChange(preset.id);
+                        }}
+                        className={cn(
+                          "relative h-10 rounded-lg border-2 overflow-hidden transition-all flex items-center justify-center",
+                          taglineColor === preset.id
+                            ? "border-accent ring-2 ring-accent/30"
+                            : "border-white/20 hover:border-white/40"
+                        )}
+                        style={{ backgroundColor: preset.id }}
+                      >
+                        {taglineColor === preset.id && (
+                          <Check className="h-4 w-4" style={{ color: preset.id === '#ffffff' || preset.id === '#f0f0f0' ? '#000' : '#fff' }} />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Custom color input */}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={taglineColor}
+                      onChange={(e) => onTaglineColorChange(e.target.value)}
+                      className="w-10 h-10 rounded-lg border border-white/20 cursor-pointer bg-transparent"
+                    />
+                    <span className="text-white/60 text-xs">Custom color</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Tagline Glow Effect */}
+              {onTaglineGlowChange && (
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-white/60" />
+                    <Label htmlFor="tagline-glow" className="text-white/80 text-sm">Text Glow Effect</Label>
+                  </div>
+                  <Switch
+                    id="tagline-glow"
+                    checked={taglineGlow}
+                    onCheckedChange={onTaglineGlowChange}
+                  />
                 </div>
               )}
             </TabsContent>
