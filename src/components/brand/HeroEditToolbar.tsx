@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
-export type HeroEffectType = 'none' | 'gradient-bars' | 'horizon-glow' | 'floating-orbs' | 'gradient-spheres';
+export type HeroEffectType = 'none' | 'gradient-bars' | 'horizon-glow' | 'floating-orbs' | 'gradient-spheres' | 'image-orbs';
 
 interface HeroEditToolbarProps {
   useVideo: boolean;
@@ -129,6 +129,13 @@ const HERO_EFFECTS: Array<{
       { id: 'blue-teal', label: 'Blue/Teal', colors: ['#3b82f6', '#14b8a6'] },
       { id: 'pink-purple', label: 'Pink/Purple', colors: ['#ec4899', '#a855f7'] },
     ],
+  },
+  {
+    id: 'image-orbs',
+    label: 'Image Orbs',
+    description: 'Real PNG orbs with parallax',
+    preview: 'radial-gradient(circle at 30% 40%, #00d4ff 0%, transparent 40%), radial-gradient(circle at 70% 60%, #6366f1 0%, transparent 40%), linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%)',
+    colorSchemes: [], // Uses actual PNG images - no color schemes
   },
 ];
 

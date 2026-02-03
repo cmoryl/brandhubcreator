@@ -13,6 +13,7 @@ import { GradientBarsHero } from '@/components/backgrounds/GradientBarsHero';
 import { HorizonGlowHero } from '@/components/backgrounds/HorizonGlowHero';
 import { FloatingOrbsHero } from '@/components/backgrounds/FloatingOrbsHero';
 import { GradientSpheresHero } from '@/components/backgrounds/GradientSpheresHero';
+import { ImageOrbsHero } from '@/components/backgrounds/ImageOrbsHero';
 import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { cn } from '@/lib/utils';
@@ -345,11 +346,19 @@ export const HeroSection = ({
             />
           </div>
         )}
+        {hero.heroEffect === 'image-orbs' && !hero.useVideo && (
+          <div className={`absolute inset-0 ${heroHeight} z-0`}>
+            <ImageOrbsHero 
+              mode={hero.heroEffectMode || 'dark'}
+              brightness={hero.heroEffectBrightness ?? 50}
+              orbCount={4}
+            />
+          </div>
+        )}
 
         {/* Cover Image/Video - Enhanced Height with Parallax/Ken Burns and optimized loading */}
         {/* Hide when hero effects are active */}
-        {!hero.heroEffect || hero.heroEffect === 'none' ? (
-          hero.gradientBarsEffect !== true && (
+        {(!hero.heroEffect || hero.heroEffect === 'none') && hero.gradientBarsEffect !== true && (
           <BackgroundImage
             src={hero.coverImage || ''}
             videoSrc={hero.useVideo ? hero.coverVideo : undefined}
