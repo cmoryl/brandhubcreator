@@ -33,7 +33,7 @@ interface HeroOrbitProps {
 const TYPE_COLORS = {
   brand: '#14b8a6',    // Teal
   product: '#139cd8',  // TransPerfect light blue
-  event: '#0ea5e9',    // Sky blue (variation)
+  event: '#a855f7',    // Purple (for visual distinction)
 };
 
 // Seeded random for consistent patterns
