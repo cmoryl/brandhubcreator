@@ -132,15 +132,28 @@ const Index = () => {
         </div>
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            {/* Left: Text content */}
-            <div className="order-2 lg:order-1 text-center lg:text-left">
+          {/* Centered layout with text overlaying orbit */}
+          <div className="flex flex-col items-center justify-center">
+            {/* Orbit Visualization - Behind text */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40 lg:opacity-50">
+              <HeroOrbit
+                className="w-full max-w-[800px] aspect-square"
+                primaryColor="#6366f1"
+                centerLogo={brandhubLogo}
+                brands={orbitBrands}
+                products={orbitProducts}
+                events={orbitEvents}
+              />
+            </div>
+
+            {/* Text content - Centered and on top */}
+            <div className="relative z-20 text-center max-w-3xl mx-auto">
               <Badge variant="secondary" className="mb-4 gap-1.5">
                 <Sparkles className="h-3 w-3" />
                 Interactive Brand Guidelines Platform
               </Badge>
               
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight mb-6">
                 <span className="text-foreground">Create </span>
                 <GlitchText text="Living" glowColor="hsl(199 89% 48%)" />
                 <br />
@@ -148,12 +161,12 @@ const Index = () => {
                 <span className="text-foreground"> Guides</span>
               </h1>
               
-              <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
+              <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-xl mx-auto">
                 Transform static brand guidelines into dynamic, interactive experiences. 
                 Manage brands, products, and events in one unified platform.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" onClick={handleSignInClick} className="gap-2">
                   Start Building
                   <ArrowRight className="h-4 w-4" />
@@ -165,35 +178,23 @@ const Index = () => {
               </div>
 
               {/* Stats */}
-              <div className="mt-12 grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
-                <div className="text-center lg:text-left">
+              <div className="mt-12 grid grid-cols-3 gap-6 max-w-md mx-auto">
+                <div className="text-center">
                   <div className="text-2xl sm:text-3xl font-bold text-foreground">{orbitBrands.length}</div>
                   <div className="text-sm text-muted-foreground">Demo Brands</div>
                 </div>
-                <div className="text-center lg:text-left">
+                <div className="text-center">
                   <div className="text-2xl sm:text-3xl font-bold text-foreground">{orbitProducts.length}</div>
                   <div className="text-sm text-muted-foreground">Products</div>
                 </div>
-                <div className="text-center lg:text-left">
+                <div className="text-center">
                   <div className="text-2xl sm:text-3xl font-bold text-foreground">{orbitEvents.length}</div>
                   <div className="text-sm text-muted-foreground">Events</div>
                 </div>
               </div>
-            </div>
 
-            {/* Right: Enhanced Orbit Visualization */}
-            <div className="order-1 lg:order-2 relative">
-              <HeroOrbit
-                className="w-full aspect-square max-w-[600px] mx-auto"
-                primaryColor="#6366f1"
-                centerLogo={brandhubLogo}
-                brands={orbitBrands}
-                products={orbitProducts}
-                events={orbitEvents}
-              />
-              
-              {/* Orbit description */}
-              <p className="text-center text-sm text-muted-foreground mt-4">
+              {/* Orbit hint */}
+              <p className="text-center text-sm text-muted-foreground mt-8">
                 Click entities to explore demo guides • Hover to see details
               </p>
             </div>
