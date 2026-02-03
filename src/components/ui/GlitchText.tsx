@@ -1,4 +1,5 @@
 import { useEffect, useState, forwardRef } from 'react';
+import { useTheme } from 'next-themes';
 
 interface GlitchTextProps {
   text: string;
@@ -9,6 +10,8 @@ interface GlitchTextProps {
 export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
   ({ text, className = '', glowColor = 'hsl(199 89% 48%)' }, ref) => {
   const [glitchOffset, setGlitchOffset] = useState({ x: 0, y: 0 });
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -26,27 +29,44 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
     return () => clearInterval(interval);
   }, []);
 
+  // Theme-aware styling
+  const scanlineColor = isDark 
+    ? 'rgba(0, 0, 0, 0.15)' 
+    : 'rgba(0, 60, 100, 0.06)';
+  
+  const chromaticBlendMode = isDark ? 'screen' : 'multiply';
+  const chromaticOpacity = isDark ? 0.7 : 0.15;
+  
+  // Lighter, more subtle colors for light mode chromatic aberration
+  const redColor = isDark ? '#ff0040' : 'hsl(199 70% 35%)';
+  const cyanColor = isDark ? '#00ffff' : 'hsl(199 90% 45%)';
+
   return (
     <span ref={ref} className={`glitch-text-wrapper relative inline-block ${className}`}>
-      {/* Blue glow layer */}
+      {/* Blue glow layer - more subtle in light mode */}
       <span 
-        className="absolute inset-0 blur-lg opacity-60 pointer-events-none"
+        className="absolute inset-0 pointer-events-none"
         style={{ 
           color: glowColor,
-          textShadow: `0 0 20px ${glowColor}, 0 0 40px ${glowColor}, 0 0 60px ${glowColor}`,
+          filter: isDark ? 'blur(16px)' : 'blur(12px)',
+          opacity: isDark ? 0.6 : 0.25,
+          textShadow: isDark 
+            ? `0 0 20px ${glowColor}, 0 0 40px ${glowColor}, 0 0 60px ${glowColor}`
+            : `0 0 15px ${glowColor}, 0 0 25px ${glowColor}`,
         }}
         aria-hidden="true"
       >
         {text}
       </span>
       
-      {/* Chromatic aberration layers */}
+      {/* Chromatic aberration layers - theme aware */}
       <span 
-        className="absolute inset-0 pointer-events-none opacity-70"
+        className="absolute inset-0 pointer-events-none"
         style={{ 
-          color: '#ff0040',
+          color: redColor,
           transform: `translate(${glitchOffset.x - 1}px, ${glitchOffset.y}px)`,
-          mixBlendMode: 'screen',
+          mixBlendMode: chromaticBlendMode,
+          opacity: chromaticOpacity,
           clipPath: 'polygon(0 0, 100% 0, 100% 45%, 0 45%)',
         }}
         aria-hidden="true"
@@ -54,11 +74,12 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
         {text}
       </span>
       <span 
-        className="absolute inset-0 pointer-events-none opacity-70"
+        className="absolute inset-0 pointer-events-none"
         style={{ 
-          color: '#00ffff',
+          color: cyanColor,
           transform: `translate(${glitchOffset.x + 1}px, ${glitchOffset.y}px)`,
-          mixBlendMode: 'screen',
+          mixBlendMode: chromaticBlendMode,
+          opacity: chromaticOpacity,
           clipPath: 'polygon(0 55%, 100% 55%, 100% 100%, 0 100%)',
         }}
         aria-hidden="true"
@@ -66,19 +87,20 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
         {text}
       </span>
       
-      {/* Scanlines overlay */}
+      {/* Scanlines overlay - much more subtle in light mode */}
       <span 
         className="absolute inset-0 pointer-events-none overflow-hidden"
         style={{
-          background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.15) 2px, rgba(0, 0, 0, 0.15) 4px)',
+          background: `repeating-linear-gradient(0deg, transparent, transparent 2px, ${scanlineColor} 2px, ${scanlineColor} 4px)`,
           animation: 'scanlines 8s linear infinite',
+          opacity: isDark ? 1 : 0.7,
         }}
         aria-hidden="true"
       />
       
-      {/* Random horizontal glitch bars */}
+      {/* Random horizontal glitch bars - theme aware */}
       <span 
-        className="absolute inset-0 pointer-events-none overflow-hidden opacity-30"
+        className="absolute inset-0 pointer-events-none overflow-hidden"
         style={{
           background: `linear-gradient(
             to bottom,
@@ -94,6 +116,7 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
             transparent 100%
           )`,
           animation: 'glitch-bars 3s steps(1) infinite',
+          opacity: isDark ? 0.3 : 0.15,
         }}
         aria-hidden="true"
       />
@@ -102,11 +125,15 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
       <span 
         className="relative z-10"
         style={{
-          background: `linear-gradient(90deg, ${glowColor}, hsl(198 84% 60%), ${glowColor})`,
+          background: isDark 
+            ? `linear-gradient(90deg, ${glowColor}, hsl(198 84% 60%), ${glowColor})`
+            : `linear-gradient(90deg, hsl(199 90% 38%), hsl(199 95% 45%), hsl(199 90% 38%))`,
           backgroundClip: 'text',
           WebkitBackgroundClip: 'text',
           color: 'transparent',
-          textShadow: `0 0 10px ${glowColor}40, 0 0 20px ${glowColor}30, 0 0 30px ${glowColor}20`,
+          textShadow: isDark 
+            ? `0 0 10px ${glowColor}40, 0 0 20px ${glowColor}30, 0 0 30px ${glowColor}20`
+            : `0 0 8px ${glowColor}20, 0 0 16px ${glowColor}15`,
           transform: `translate(${glitchOffset.x * 0.5}px, ${glitchOffset.y * 0.5}px)`,
         }}
       >
@@ -122,9 +149,9 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
         
         @keyframes glitch-bars {
           0%, 90% { opacity: 0; }
-          91% { opacity: 0.3; transform: translateX(-2px); }
+          91% { opacity: ${isDark ? 0.3 : 0.15}; transform: translateX(-2px); }
           92% { opacity: 0; }
-          93% { opacity: 0.2; transform: translateX(2px); }
+          93% { opacity: ${isDark ? 0.2 : 0.1}; transform: translateX(2px); }
           94%, 100% { opacity: 0; transform: translateX(0); }
         }
         
@@ -135,20 +162,20 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
           background: linear-gradient(
             90deg,
             transparent 0%,
-            ${glowColor}10 10%,
-            ${glowColor}05 50%,
-            ${glowColor}10 90%,
+            ${glowColor}${isDark ? '10' : '08'} 10%,
+            ${glowColor}${isDark ? '05' : '03'} 50%,
+            ${glowColor}${isDark ? '10' : '08'} 90%,
             transparent 100%
           );
           filter: blur(8px);
-          opacity: 0.5;
+          opacity: ${isDark ? 0.5 : 0.3};
           animation: glow-pulse 2s ease-in-out infinite;
           pointer-events: none;
         }
         
         @keyframes glow-pulse {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.6; }
+          0%, 100% { opacity: ${isDark ? 0.3 : 0.2}; }
+          50% { opacity: ${isDark ? 0.6 : 0.35}; }
         }
       `}</style>
     </span>
