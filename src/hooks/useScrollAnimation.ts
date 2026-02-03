@@ -78,50 +78,53 @@ export function useScrollAnimation<T extends HTMLElement = HTMLDivElement>({
   }, [threshold, rootMargin, triggerOnce, delay]);
 
   const getAnimationStyles = useCallback(() => {
+    // Smoother, more refined easing curves for professional animations
     const baseStyles = {
-      transition: `all ${duration}ms cubic-bezier(0.16, 1, 0.3, 1)`,
+      transition: `opacity ${duration}ms cubic-bezier(0.22, 1, 0.36, 1), transform ${duration}ms cubic-bezier(0.22, 1, 0.36, 1), filter ${duration}ms cubic-bezier(0.22, 1, 0.36, 1)`,
       transitionDelay: `${delay}ms`,
+      willChange: 'opacity, transform',
     };
 
+    // Reduced movement distances for subtler, more elegant animations
     const animations: Record<AnimationType, { initial: React.CSSProperties; visible: React.CSSProperties }> = {
       'fade-up': {
-        initial: { opacity: 0, transform: 'translateY(40px)' },
+        initial: { opacity: 0, transform: 'translateY(24px)' },
         visible: { opacity: 1, transform: 'translateY(0)' }
       },
       'fade-down': {
-        initial: { opacity: 0, transform: 'translateY(-40px)' },
+        initial: { opacity: 0, transform: 'translateY(-24px)' },
         visible: { opacity: 1, transform: 'translateY(0)' }
       },
       'fade-left': {
-        initial: { opacity: 0, transform: 'translateX(40px)' },
+        initial: { opacity: 0, transform: 'translateX(24px)' },
         visible: { opacity: 1, transform: 'translateX(0)' }
       },
       'fade-right': {
-        initial: { opacity: 0, transform: 'translateX(-40px)' },
+        initial: { opacity: 0, transform: 'translateX(-24px)' },
         visible: { opacity: 1, transform: 'translateX(0)' }
       },
       'zoom-in': {
-        initial: { opacity: 0, transform: 'scale(0.8)' },
+        initial: { opacity: 0, transform: 'scale(0.92)' },
         visible: { opacity: 1, transform: 'scale(1)' }
       },
       'zoom-out': {
-        initial: { opacity: 0, transform: 'scale(1.2)' },
+        initial: { opacity: 0, transform: 'scale(1.08)' },
         visible: { opacity: 1, transform: 'scale(1)' }
       },
       'flip-up': {
-        initial: { opacity: 0, transform: 'perspective(1000px) rotateX(45deg)' },
-        visible: { opacity: 1, transform: 'perspective(1000px) rotateX(0)' }
+        initial: { opacity: 0, transform: 'perspective(1200px) rotateX(20deg) translateY(10px)' },
+        visible: { opacity: 1, transform: 'perspective(1200px) rotateX(0) translateY(0)' }
       },
       'flip-down': {
-        initial: { opacity: 0, transform: 'perspective(1000px) rotateX(-45deg)' },
-        visible: { opacity: 1, transform: 'perspective(1000px) rotateX(0)' }
+        initial: { opacity: 0, transform: 'perspective(1200px) rotateX(-20deg) translateY(-10px)' },
+        visible: { opacity: 1, transform: 'perspective(1200px) rotateX(0) translateY(0)' }
       },
       'blur-in': {
-        initial: { opacity: 0, filter: 'blur(10px)' },
-        visible: { opacity: 1, filter: 'blur(0)' }
+        initial: { opacity: 0, filter: 'blur(8px)' },
+        visible: { opacity: 1, filter: 'blur(0px)' }
       },
       'rotate-in': {
-        initial: { opacity: 0, transform: 'rotate(-10deg) scale(0.9)' },
+        initial: { opacity: 0, transform: 'rotate(-5deg) scale(0.95)' },
         visible: { opacity: 1, transform: 'rotate(0) scale(1)' }
       }
     };

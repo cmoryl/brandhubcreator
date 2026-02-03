@@ -201,56 +201,86 @@ const Index = () => {
       </section>
 
       {/* Featured Demos Section */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Explore <GlitchText text="Live" glowColor="hsl(199 89% 48%)" className="text-3xl sm:text-4xl" /> Examples</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              See how brands, products, and events come to life with interactive guidelines
+      <section className="py-24 bg-gradient-to-b from-muted/20 via-muted/40 to-muted/20 relative overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        </div>
+
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-12 relative z-10">
+          <div className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4 gap-1.5 animate-fade-in">
+              <Sparkles className="h-3 w-3" />
+              Interactive Demos
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-5">
+              Explore <GlitchText text="Live" glowColor="hsl(199 89% 48%)" className="text-3xl sm:text-4xl lg:text-5xl" /> Examples
+            </h2>
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
+              See how brands, products, and events come to life with interactive guidelines. 
+              Click any card to explore a fully-featured demo.
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredDemos.map((demo) => {
+          <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8">
+            {featuredDemos.map((demo, index) => {
               const Icon = demo.icon;
               return (
                 <button
                   key={demo.id}
                   onClick={() => navigate(demo.path)}
-                  className="group relative overflow-hidden rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 text-left"
+                  className="group relative overflow-hidden rounded-3xl bg-card/80 backdrop-blur-sm border border-border/50 hover:border-accent/60 text-left shadow-lg hover:shadow-2xl hover:shadow-accent/10 transition-all duration-500 ease-out hover:-translate-y-2"
+                  style={{
+                    animationDelay: `${index * 100}ms`,
+                    animation: 'fadeInUp 0.6s ease-out backwards',
+                  }}
                 >
                   {/* Card image or gradient fallback */}
-                  <div className="h-32 relative overflow-hidden">
+                  <div className="h-44 sm:h-48 relative overflow-hidden">
                     {demo.cardImage ? (
                       <img 
                         src={demo.cardImage} 
                         alt={demo.name}
-                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                       />
                     ) : (
                       <div className={`absolute inset-0 bg-gradient-to-br ${demo.gradient}`} />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 group-hover:from-black/40 transition-colors" />
-                    <Icon className="absolute bottom-3 right-3 h-8 w-8 text-white/90 drop-shadow-lg" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent group-hover:from-black/60 transition-colors duration-500" />
+                    
+                    {/* Icon with glow effect */}
+                    <div className="absolute bottom-4 right-4 p-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 group-hover:bg-accent/20 group-hover:border-accent/40 transition-all duration-500">
+                      <Icon className="h-6 w-6 text-white drop-shadow-lg" />
+                    </div>
+                    
+                    {/* Industry badge overlay */}
+                    <div className="absolute top-4 left-4">
+                      <Badge className="bg-black/40 backdrop-blur-md text-white border-white/20 text-xs font-medium">
+                        {demo.industry}
+                      </Badge>
+                    </div>
                   </div>
                   
                   {/* Content */}
-                  <div className="p-5">
-                    <Badge variant="outline" className="mb-2 text-xs">
-                      {demo.industry}
-                    </Badge>
-                    <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
+                  <div className="p-6">
+                    <h3 className="font-bold text-xl mb-3 group-hover:text-accent transition-colors duration-300">
                       {demo.name}
                     </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
+                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
                       {demo.description}
                     </p>
                     
-                    <div className="flex items-center gap-1 mt-4 text-sm text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                      Explore
+                    <div className="flex items-center gap-2 mt-5 text-sm font-medium text-accent translate-x-0 group-hover:translate-x-1 transition-transform duration-300">
+                      <span>Explore Demo</span>
                       <ArrowRight className="h-4 w-4" />
                     </div>
                   </div>
+
+                  {/* Hover glow effect */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-3xl ring-1 ring-accent/30" />
                 </button>
               );
             })}
