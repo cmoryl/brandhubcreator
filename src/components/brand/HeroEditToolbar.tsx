@@ -401,6 +401,14 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
                               onKenBurnsToggle();
                             }
                             onHeroEffectChange?.(effect.id);
+                            
+                            // Auto-reset color scheme to the first valid option for the new effect
+                            if (effect.colorSchemes.length > 0) {
+                              const validSchemeIds = effect.colorSchemes.map(s => s.id);
+                              if (!validSchemeIds.includes(heroEffectColorScheme || '')) {
+                                onHeroEffectColorSchemeChange?.(effect.colorSchemes[0].id);
+                              }
+                            }
                           } catch (error) {
                             console.error('Error changing hero effect:', error);
                           }
