@@ -425,6 +425,9 @@ export const HeroSection = ({
             overlayIntensity={hero.overlayIntensity ?? 50}
             overlayGradient={hero.overlayGradient || 'default'}
             parallaxIntensity={hero.parallaxIntensity ?? 1}
+            taglineColor={hero.taglineColor || '#ffffff'}
+            titleColor={hero.titleColor || '#ffffff'}
+            taglineGlow={hero.taglineGlow ?? false}
             onMediaTypeChange={(type) => {
               if (onHeroChange) {
                 onHeroChange({ ...hero, useVideo: type === 'video', gradientBarsEffect: false });
@@ -472,6 +475,21 @@ export const HeroSection = ({
             onParallaxIntensityChange={(value) => {
               if (onHeroChange) {
                 onHeroChange({ ...hero, parallaxIntensity: value });
+              }
+            }}
+            onTaglineColorChange={(color) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, taglineColor: color });
+              }
+            }}
+            onTitleColorChange={(color) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, titleColor: color });
+              }
+            }}
+            onTaglineGlowChange={(enabled) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, taglineGlow: enabled });
               }
             }}
           />
@@ -580,7 +598,13 @@ export const HeroSection = ({
                       placeholder="Brand Name"
                     />
                   ) : (
-                    <h1 className={`text-xl sm:text-3xl lg:text-5xl xl:text-6xl font-bold text-white drop-shadow-lg tracking-tight transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                    <h1 
+                      className={`text-xl sm:text-3xl lg:text-5xl xl:text-6xl font-bold drop-shadow-lg tracking-tight transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+                      style={{ 
+                        color: hero.titleColor || '#ffffff',
+                        textShadow: hero.taglineGlow ? `0 0 20px ${hero.titleColor || '#ffffff'}40, 0 0 40px ${hero.titleColor || '#ffffff'}20` : undefined
+                      }}
+                    >
                       {hero.name || 'Brand Name'}
                     </h1>
                   )}
@@ -597,7 +621,13 @@ export const HeroSection = ({
                     />
                   ) : (
                     <>
-                      <p className={`text-sm sm:text-lg lg:text-2xl text-white/90 drop-shadow-md max-w-3xl line-clamp-2 sm:line-clamp-none transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                      <p 
+                        className={`text-sm sm:text-lg lg:text-2xl drop-shadow-md max-w-3xl line-clamp-2 sm:line-clamp-none transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+                        style={{ 
+                          color: hero.taglineColor || 'rgba(255,255,255,0.9)',
+                          textShadow: hero.taglineGlow ? `0 0 15px ${hero.taglineColor || '#ffffff'}50, 0 0 30px ${hero.taglineColor || '#ffffff'}30` : undefined
+                        }}
+                      >
                         {hero.tagline || 'Your brand tagline goes here'}
                       </p>
                     </>

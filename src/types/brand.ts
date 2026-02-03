@@ -66,6 +66,12 @@ export interface BrandHero {
   overlayGradient?: 'default' | 'radial-dark' | 'top-fade' | 'vignette' | 'brand-tint' | 'none';
   /** Parallax effect intensity (0 = disabled, 1-3 = intensity levels) */
   parallaxIntensity?: 0 | 1 | 2 | 3;
+  /** Custom tagline text color (hex) */
+  taglineColor?: string;
+  /** Custom title text color (hex) */
+  titleColor?: string;
+  /** Text glow effect for tagline */
+  taglineGlow?: boolean;
 }
 
 // TAGLINE - Corporate Tagline
