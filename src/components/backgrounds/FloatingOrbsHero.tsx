@@ -62,7 +62,17 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
   const [time, setTime] = useState(0);
   const animationRef = useRef<number>(0);
 
-  const colors = COLOR_SCHEMES[colorScheme === 'custom' ? 'blue-purple' : colorScheme];
+  // Defensive fallback: hero editor can temporarily pass a colorScheme from another effect.
+  const schemeKey =
+    colorScheme !== 'custom' && Object.prototype.hasOwnProperty.call(COLOR_SCHEMES, colorScheme)
+      ? colorScheme
+      : 'blue-purple';
+
+  if (colorScheme !== 'custom' && schemeKey !== colorScheme) {
+    console.warn('[FloatingOrbsHero] Invalid colorScheme, falling back:', { colorScheme, schemeKey });
+  }
+
+  const colors = COLOR_SCHEMES[schemeKey];
   const brightnessMultiplier = 0.4 + (brightness / 100) * 1.2;
   const speedMultiplier = SPEED_MULTIPLIERS[speed];
   const actualOrbCount = orbCount ?? DENSITY_COUNTS[density];
