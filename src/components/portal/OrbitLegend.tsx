@@ -17,7 +17,7 @@ export interface OrbitLegendProps extends React.HTMLAttributes<HTMLDivElement> {
 const TYPE_COLORS = {
   brands: '#14b8a6',   // Teal
   products: '#38bdf8', // Light blue (sky-400)
-  events: '#f59e0b',   // Amber
+  events: '#a855f7',   // Purple (violet-500)
 };
 
 /**
