@@ -54,7 +54,9 @@ export const GradientBarsHero = memo(function GradientBarsHero({
     setMousePos(prev => ({ ...prev, isActive: false }));
   }, []);
 
-  // Generate overlapping accordion bars
+  const [hoveredBar, setHoveredBar] = useState<number | null>(null);
+
+  // Generate overlapping accordion bars with heavy overlap
   const bars = Array.from({ length: barCount }, (_, i) => {
     const progress = i / (barCount - 1);
     
@@ -66,12 +68,20 @@ export const GradientBarsHero = memo(function GradientBarsHero({
 
     // Subtle breathing animation
     const breathe = Math.sin(time + i * 0.5) * 2;
+    
+    // Hover lift effect
+    const isHovered = hoveredBar === i;
+    const hoverOffset = isHovered ? -8 : 0;
+    const hoverScale = isHovered ? 1.02 : 1;
 
     return {
       id: i,
       parallaxX: parallaxX + breathe,
       progress,
-      zIndex: barCount - Math.abs(i - Math.floor(barCount / 2)), // Center bars on top
+      zIndex: isHovered ? 100 : barCount - Math.abs(i - Math.floor(barCount / 2)),
+      hoverOffset,
+      hoverScale,
+      isHovered,
     };
   });
 
@@ -97,38 +107,51 @@ export const GradientBarsHero = memo(function GradientBarsHero({
       {/* Accordion bars container */}
       <div className="absolute inset-0 flex justify-center items-stretch">
         {bars.map((bar, index) => {
-          const barWidth = 100 / barCount;
-          const overlap = barWidth * 0.08; // Slight overlap for depth
+          const barWidth = 100 / (barCount * 0.4); // Wider bars for more overlap
+          const overlap = barWidth * 0.65; // Heavy overlap - 65% of bar width
           
           return (
             <div
               key={bar.id}
-              className="relative h-full transition-transform duration-200 ease-out"
+              className="relative h-full cursor-pointer"
               style={{
-                width: `${barWidth + overlap}%`,
-                marginLeft: index === 0 ? 0 : `-${overlap / 2}%`,
-                transform: `translateX(${bar.parallaxX}px)`,
+                width: `${barWidth}%`,
+                marginLeft: index === 0 ? 0 : `-${overlap}%`,
+                transform: `translateX(${bar.parallaxX}px) translateY(${bar.hoverOffset}px) scale(${bar.hoverScale})`,
                 zIndex: bar.zIndex,
+                transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), z-index 0.1s',
               }}
+              onMouseEnter={() => setHoveredBar(bar.id)}
+              onMouseLeave={() => setHoveredBar(null)}
             >
               {/* Main bar panel with 3D gradient */}
               <div
-                className="absolute inset-0 overflow-hidden"
+                className="absolute inset-0 overflow-hidden rounded-sm"
                 style={{
                   background: `linear-gradient(
-                    90deg,
-                    hsla(200, 90%, 60%, ${0.9 * config.glowOpacity}) 0%,
-                    hsla(220, 80%, 55%, 0.8) 8%,
-                    hsla(250, 60%, 45%, 0.9) 30%,
-                    hsla(260, 55%, 40%, 0.95) 50%,
-                    hsla(250, 60%, 45%, 0.9) 70%,
-                    hsla(220, 80%, 55%, 0.8) 92%,
-                    hsla(200, 90%, 60%, ${0.9 * config.glowOpacity}) 100%
+                    95deg,
+                    hsla(195, 100%, 55%, ${0.95 * config.glowOpacity}) 0%,
+                    hsla(210, 90%, 50%, 0.9) 15%,
+                    hsla(240, 70%, 45%, 0.95) 40%,
+                    hsla(260, 60%, 38%, 0.98) 60%,
+                    hsla(250, 65%, 42%, 0.95) 80%,
+                    hsla(220, 85%, 48%, 0.9) 95%,
+                    hsla(195, 100%, 55%, ${0.9 * config.glowOpacity}) 100%
                   )`,
-                  boxShadow: `
-                    inset 8px 0 40px hsla(200, 100%, 70%, ${0.3 * config.glowOpacity}),
-                    inset -8px 0 30px hsla(260, 60%, 30%, 0.4)
-                  `,
+                  boxShadow: bar.isHovered
+                    ? `
+                      inset 12px 0 50px hsla(195, 100%, 70%, ${0.5 * config.glowOpacity}),
+                      inset -10px 0 40px hsla(260, 60%, 25%, 0.5),
+                      0 0 40px hsla(195, 100%, 60%, 0.4),
+                      0 10px 30px hsla(240, 50%, 20%, 0.6)
+                    `
+                    : `
+                      inset 10px 0 45px hsla(195, 100%, 70%, ${0.35 * config.glowOpacity}),
+                      inset -8px 0 35px hsla(260, 60%, 28%, 0.45),
+                      -5px 0 20px hsla(240, 50%, 15%, 0.4)
+                    `,
+                  filter: bar.isHovered ? 'brightness(1.15)' : 'brightness(1)',
+                  transition: 'box-shadow 0.3s ease, filter 0.3s ease',
                 }}
               >
                 {/* Vertical gradient overlay for depth */}
@@ -137,68 +160,88 @@ export const GradientBarsHero = memo(function GradientBarsHero({
                   style={{
                     background: `linear-gradient(
                       180deg,
-                      hsla(200, 90%, 70%, 0.3) 0%,
-                      transparent 15%,
+                      hsla(195, 100%, 75%, ${bar.isHovered ? 0.4 : 0.25}) 0%,
+                      transparent 12%,
                       transparent 50%,
-                      hsla(260, 50%, 35%, 0.2) 85%,
-                      hsla(200, 90%, 70%, 0.25) 100%
+                      hsla(260, 50%, 30%, 0.15) 88%,
+                      hsla(195, 100%, 70%, ${bar.isHovered ? 0.35 : 0.2}) 100%
                     )`,
                   }}
                 />
 
                 {/* Left edge glow - the bright cyan edge */}
                 <div
-                  className="absolute left-0 top-0 bottom-0 w-3"
+                  className="absolute left-0 top-0 bottom-0"
                   style={{
+                    width: bar.isHovered ? '16px' : '12px',
                     background: `linear-gradient(
                       90deg,
-                      hsla(195, 100%, 65%, ${config.glowOpacity}) 0%,
-                      hsla(200, 90%, 60%, ${0.6 * config.glowOpacity}) 40%,
+                      hsla(190, 100%, 65%, ${config.glowOpacity * (bar.isHovered ? 1.2 : 1)}) 0%,
+                      hsla(195, 95%, 58%, ${0.7 * config.glowOpacity}) 35%,
                       transparent 100%
                     )`,
+                    transition: 'width 0.3s ease',
                   }}
                 />
 
                 {/* Left edge highlight line */}
                 <div
-                  className="absolute left-0 top-0 bottom-0 w-[2px]"
+                  className="absolute left-0 top-0 bottom-0"
                   style={{
+                    width: bar.isHovered ? '3px' : '2px',
                     background: `linear-gradient(
                       180deg,
-                      hsla(195, 100%, 80%, 0.2) 0%,
-                      hsla(195, 100%, 75%, ${0.9 * config.glowOpacity}) 20%,
-                      hsla(195, 100%, 80%, ${config.glowOpacity}) 50%,
-                      hsla(195, 100%, 75%, ${0.9 * config.glowOpacity}) 80%,
-                      hsla(195, 100%, 80%, 0.2) 100%
+                      hsla(190, 100%, 85%, 0.15) 0%,
+                      hsla(190, 100%, 80%, ${config.glowOpacity * (bar.isHovered ? 1.3 : 0.95)}) 15%,
+                      hsla(190, 100%, 85%, ${config.glowOpacity * (bar.isHovered ? 1.2 : 1)}) 50%,
+                      hsla(190, 100%, 80%, ${config.glowOpacity * (bar.isHovered ? 1.3 : 0.95)}) 85%,
+                      hsla(190, 100%, 85%, 0.15) 100%
                     )`,
-                    boxShadow: `0 0 12px hsla(195, 100%, 70%, ${0.8 * config.glowOpacity})`,
+                    boxShadow: bar.isHovered 
+                      ? `0 0 20px hsla(190, 100%, 70%, ${config.glowOpacity}), 0 0 40px hsla(190, 100%, 60%, 0.5)`
+                      : `0 0 14px hsla(190, 100%, 70%, ${0.85 * config.glowOpacity})`,
+                    transition: 'width 0.3s ease, box-shadow 0.3s ease',
                   }}
                 />
 
                 {/* Right shadow edge for depth between bars */}
                 <div
-                  className="absolute right-0 top-0 bottom-0 w-6"
+                  className="absolute right-0 top-0 bottom-0 w-10"
                   style={{
                     background: `linear-gradient(
                       90deg,
                       transparent 0%,
-                      hsla(240, 50%, 10%, 0.6) 70%,
-                      hsla(240, 50%, 5%, 0.8) 100%
+                      hsla(240, 55%, 8%, 0.7) 60%,
+                      hsla(240, 55%, 4%, 0.9) 100%
                     )`,
                   }}
                 />
+                
+                {/* Inner highlight on hover */}
+                {bar.isHovered && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: `radial-gradient(
+                        ellipse 60% 40% at 30% 50%,
+                        hsla(195, 100%, 70%, 0.15) 0%,
+                        transparent 70%
+                      )`,
+                    }}
+                  />
+                )}
               </div>
 
               {/* Interactive mouse highlight */}
               {mousePos.isActive && (
                 <div
-                  className="absolute inset-x-0 h-48 pointer-events-none transition-all duration-150"
+                  className="absolute inset-x-0 h-56 pointer-events-none"
                   style={{
-                    top: `${mousePos.y * 100 - 12}%`,
+                    top: `${mousePos.y * 100 - 14}%`,
                     background: `radial-gradient(
-                      ellipse 100% 80% at 50% 50%,
-                      hsla(200, 100%, 70%, ${0.15 * (1 - Math.abs(bar.progress - mousePos.x) * 1.5)}) 0%,
-                      transparent 70%
+                      ellipse 100% 70% at 50% 50%,
+                      hsla(195, 100%, 72%, ${0.2 * (1 - Math.abs(bar.progress - mousePos.x) * 1.2)}) 0%,
+                      transparent 65%
                     )`,
                   }}
                 />
