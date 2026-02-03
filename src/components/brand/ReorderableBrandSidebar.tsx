@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SortableSectionItem } from './SortableSectionItem';
-import type { EntityType } from '@/types/competitiveAnalysis';
+
 
 const CompetitiveReportCard = lazy(() =>
   import('@/components/brand/CompetitiveReportCard').then((m) => ({ default: m.CompetitiveReportCard }))
