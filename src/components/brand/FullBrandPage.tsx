@@ -135,7 +135,7 @@ interface FullBrandPageProps {
   brand: BaseGuide;
   brandId: string;
   organizationId?: string;
-  onBrandUpdate: (updates: Partial<BaseGuide>) => void;
+  onBrandUpdate?: (updates: Partial<BaseGuide>) => void;
   scrollToSection?: SectionId | null;
   onSectionVisible?: (sectionId: SectionId) => void;
   sectionOrder?: SectionId[];

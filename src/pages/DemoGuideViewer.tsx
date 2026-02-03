@@ -40,7 +40,7 @@ export default function DemoGuideViewer() {
     return undefined;
   }, [type, slug]);
 
-  // Local state for demo guide data (allows editing without persistence)
+  // Local state for demo guide data
   const [demoGuideData, setDemoGuideData] = useState<typeof initialDemoGuide>(initialDemoGuide);
 
   // Reset data when switching demos
@@ -53,15 +53,6 @@ export default function DemoGuideViewer() {
 
   const sectionOrder = (demoGuide?.sectionOrder || []) as SectionId[];
   const isEvent = type === 'event';
-
-  // Handle updates to the demo guide (local only, not persisted)
-  const handleBrandUpdate = useCallback((updates: Partial<BrandGuide | ProductGuide>) => {
-    setDemoGuideData(prev => prev ? { ...prev, ...updates } as typeof prev : prev);
-  }, []);
-
-  const handleEventUpdate = useCallback((updates: Partial<EventGuide>) => {
-    setDemoGuideData(prev => prev ? { ...prev, ...updates } as typeof prev : prev);
-  }, []);
 
   const handleSectionSelect = useCallback((sectionId: SectionId) => {
     setScrollToSection(sectionId);
@@ -183,12 +174,11 @@ export default function DemoGuideViewer() {
           <FullEventPage
             event={fullGuide as EventGuide}
             eventId={demoGuide.id}
-            onEventUpdate={handleEventUpdate}
             sectionOrder={(demoGuide.sectionOrder || []) as EventSectionId[]}
             hiddenSections={[]}
-            isAdmin={true}
+            isAdmin={false}
             heroFullWidth={true}
-            canEdit={true}
+            canEdit={false}
             scrollToSection={scrollToEventSection}
             onSectionVisible={handleEventSectionVisible}
           />
@@ -196,14 +186,13 @@ export default function DemoGuideViewer() {
           <FullBrandPage
             brand={fullGuide as BrandGuide | ProductGuide}
             brandId={demoGuide.id}
-            onBrandUpdate={handleBrandUpdate}
             sectionOrder={sectionOrder}
             scrollToSection={scrollToSection}
             onSectionVisible={handleSectionVisible}
             hiddenSections={[]}
-            isAdmin={true}
+            isAdmin={false}
             heroFullWidth={true}
-            canEdit={true}
+            canEdit={false}
           />
         )}
       </div>
