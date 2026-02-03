@@ -7,7 +7,7 @@ import { SectionHeader } from './SectionHeader';
 
 interface WebsiteSectionProps {
   websites: BrandWebsiteLink[];
-  onWebsitesChange: (websites: BrandWebsiteLink[]) => void;
+  onWebsitesChange?: (websites: BrandWebsiteLink[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
 }
@@ -18,7 +18,11 @@ export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onS
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingUploadId, setPendingUploadId] = useState<string | null>(null);
 
+  // Determine if editing is allowed
+  const canEdit = !!onWebsitesChange;
+
   const addLink = () => {
+    if (!onWebsitesChange) return;
     const newLink: BrandWebsiteLink = {
       id: crypto.randomUUID(),
       label: 'Main Website',
@@ -29,15 +33,18 @@ export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onS
   };
 
   const updateLink = (id: string, updates: Partial<BrandWebsiteLink>) => {
+    if (!onWebsitesChange) return;
     onWebsitesChange(websites.map((w) => (w.id === id ? { ...w, ...updates } : w)));
   };
 
   const deleteLink = (id: string) => {
+    if (!onWebsitesChange) return;
     onWebsitesChange(websites.filter((w) => w.id !== id));
     if (editingId === id) setEditingId(null);
   };
 
   const triggerScreenshotUpload = (id: string) => {
+    if (!canEdit) return;
     setPendingUploadId(id);
     fileInputRef.current?.click();
   };
@@ -82,10 +89,12 @@ export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onS
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button onClick={addLink} size="sm" className="gap-2 shrink-0">
-          <Plus className="h-4 w-4" />
-          Add Link
-        </Button>
+        {canEdit && (
+          <Button onClick={addLink} size="sm" className="gap-2 shrink-0">
+            <Plus className="h-4 w-4" />
+            Add Link
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -97,8 +106,8 @@ export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onS
           >
             {/* Screenshot Preview Area */}
             <div 
-              className="relative aspect-video bg-muted/50 cursor-pointer overflow-hidden"
-              onClick={() => triggerScreenshotUpload(link.id)}
+              className={`relative aspect-video bg-muted/50 overflow-hidden ${canEdit ? 'cursor-pointer' : ''}`}
+              onClick={canEdit ? () => triggerScreenshotUpload(link.id) : undefined}
             >
               {link.screenshotUrl ? (
                 <img 
@@ -106,14 +115,19 @@ export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onS
                   alt={`${link.label} screenshot`}
                   className="w-full h-full object-cover object-top"
                 />
-              ) : (
+              ) : canEdit ? (
                 <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-accent transition-colors">
                   <Image className="h-8 w-8" />
                   <span className="text-xs font-medium">Add Screenshot</span>
                 </div>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                  <Image className="h-8 w-8" />
+                  <span className="text-xs font-medium">No Screenshot</span>
+                </div>
               )}
               {/* Hover overlay for existing screenshots */}
-              {link.screenshotUrl && (
+              {canEdit && link.screenshotUrl && (
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <Upload className="h-6 w-6 text-white" />
                 </div>
@@ -122,7 +136,7 @@ export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onS
 
             {/* Link Details */}
             <div className="p-4">
-              {editingId === link.id ? (
+              {canEdit && editingId === link.id ? (
                 <div className="space-y-3">
                   <Input
                     value={link.label}
@@ -158,29 +172,31 @@ export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onS
                       {link.url} <ExternalLink className="h-3 w-3 shrink-0" />
                     </a>
                   </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => setEditingId(link.id)}
-                      className="p-1.5 rounded-md hover:bg-secondary transition-colors"
-                      aria-label="Edit website link"
-                    >
-                      <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
-                    <button
-                      onClick={() => deleteLink(link.id)}
-                      className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                      aria-label="Delete website link"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
+                  {canEdit && (
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => setEditingId(link.id)}
+                        className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+                        aria-label="Edit website link"
+                      >
+                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                      </button>
+                      <button
+                        onClick={() => deleteLink(link.id)}
+                        className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                        aria-label="Delete website link"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
         ))}
 
-        {websites.length === 0 && (
+        {websites.length === 0 && canEdit && (
           <button
             onClick={addLink}
             className="h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors"
@@ -188,6 +204,12 @@ export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onS
             <Plus className="h-6 w-6" />
             <span className="text-sm font-medium">Add website link</span>
           </button>
+        )}
+        {websites.length === 0 && !canEdit && (
+          <div className="h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground">
+            <ExternalLink className="h-6 w-6" />
+            <span className="text-sm font-medium">No website links</span>
+          </div>
         )}
       </div>
     </section>

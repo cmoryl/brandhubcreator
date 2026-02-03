@@ -33,7 +33,7 @@ import { CSS } from '@dnd-kit/utilities';
 
 interface DigitalCollateralSectionProps {
   collateral: BrandBrochure[];
-  onCollateralChange: (collateral: BrandBrochure[]) => void;
+  onCollateralChange?: (collateral: BrandBrochure[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   layout?: LayoutPreset;
@@ -287,6 +287,9 @@ export const DigitalCollateralSection = ({
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   
   const { gridClass } = useLayoutClasses(layout);
+  
+  // Determine if editing is allowed
+  const canEdit = !!onCollateralChange;
 
   // DnD sensors
   const sensors = useSensors(
@@ -302,7 +305,7 @@ export const DigitalCollateralSection = ({
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !onCollateralChange) return;
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -358,10 +361,12 @@ export const DigitalCollateralSection = ({
   };
 
   const updateItem = (id: string, updates: Partial<BrandBrochure>) => {
+    if (!onCollateralChange) return;
     onCollateralChange(collateral.map(item => item.id === id ? { ...item, ...updates } : item));
   };
 
   const deleteItem = (id: string) => {
+    if (!onCollateralChange) return;
     onCollateralChange(collateral.filter(item => item.id !== id));
     if (editingId === id) setEditingId(null);
   };
@@ -460,42 +465,48 @@ export const DigitalCollateralSection = ({
               size="sm"
             />
           )}
-          <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0">
-            <Upload className="h-4 w-4" />
-            Upload
-          </Button>
+          {canEdit && (
+            <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0">
+              <Upload className="h-4 w-4" />
+              Upload
+            </Button>
+          )}
         </div>
       </div>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".pdf,image/*"
-        onChange={handleFileUpload}
-        className="hidden"
-      />
-      <input
-        ref={thumbnailInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleThumbnailUpload}
-        className="hidden"
-      />
+      {canEdit && (
+        <>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,image/*"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+          <input
+            ref={thumbnailInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleThumbnailUpload}
+            className="hidden"
+          />
 
-      {/* Category Quick-Add Chips */}
-      <div className="flex flex-wrap gap-2">
-        {CATEGORY_OPTIONS.slice(0, 6).map(cat => (
-          <button
-            key={cat.value}
-            onClick={() => triggerUploadForCategory(cat.value)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            <span>{cat.icon}</span>
-            <span>{cat.label}</span>
-            <Plus className="h-3 w-3 opacity-50" />
-          </button>
-        ))}
-      </div>
+          {/* Category Quick-Add Chips */}
+          <div className="flex flex-wrap gap-2">
+            {CATEGORY_OPTIONS.slice(0, 6).map(cat => (
+              <button
+                key={cat.value}
+                onClick={() => triggerUploadForCategory(cat.value)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-colors"
+              >
+                <span>{cat.icon}</span>
+                <span>{cat.label}</span>
+                <Plus className="h-3 w-3 opacity-50" />
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       {sortedCategories.length > 0 ? (
         <DndContext

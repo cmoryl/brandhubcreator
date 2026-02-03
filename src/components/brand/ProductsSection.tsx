@@ -409,110 +409,112 @@ export const ProductsSection = ({
           />
         </div>
         
-        {/* Controls - stack on mobile, inline on desktop */}
-        <div className="flex flex-wrap items-center gap-2">
-          {onLayoutChange && (
-            <LayoutSelector
-              value={layout}
-              onChange={onLayoutChange}
-              availableLayouts={['grid-2', 'grid-3', 'grid-4', 'large-cards']}
-              size="sm"
-            />
-          )}
-          {availableGuides.length > 0 && (
-            <Select onValueChange={linkGuide}>
-              <SelectTrigger className="w-[220px]">
-                <SelectValue placeholder="Link existing guide..." />
-              </SelectTrigger>
-              <SelectContent>
-                {availableBrands.length > 0 && (
-                  <SelectGroup>
-                    <SelectLabel className="flex items-center gap-2">
-                      <Layers className="h-3 w-3" />
-                      Brand Guides
-                    </SelectLabel>
-                    {availableBrands.map((guide) => (
-                      <SelectItem key={guide.id} value={guide.id}>
-                        <span className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs px-1.5 py-0">Brand</Badge>
-                          {guide.name}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                )}
-                {availableProductsList.length > 0 && (
-                  <SelectGroup>
-                    <SelectLabel className="flex items-center gap-2">
-                      <Package className="h-3 w-3" />
-                      Product Guides
-                    </SelectLabel>
-                    {availableProductsList.map((guide) => (
-                      <SelectItem key={guide.id} value={guide.id}>
-                        <span className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-xs px-1.5 py-0">Product</Badge>
-                          {guide.name}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                )}
-                {availableEventsList.length > 0 && (
-                  <SelectGroup>
-                    <SelectLabel className="flex items-center gap-2">
-                      <Calendar className="h-3 w-3" />
-                      Event Guides
-                    </SelectLabel>
-                    {availableEventsList.map((guide) => (
-                      <SelectItem key={guide.id} value={guide.id}>
-                        <span className="flex items-center gap-2">
-                          <Badge className="text-xs px-1.5 py-0 bg-primary/90">Event</Badge>
-                          {guide.name}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                )}
-              </SelectContent>
-            </Select>
-          )}
-          
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2 w-full sm:w-auto">
-                <Plus className="h-4 w-4" />
-                <span className="sm:inline">New Product Guide</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Product Guide</DialogTitle>
-                <DialogDescription>
-                  Create a new product brand guide that will be automatically linked to this brand.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="py-4">
-                <Input
-                  placeholder="Enter product guide name..."
-                  value={newProductName}
-                  onChange={(e) => setNewProductName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleCreateProduct()}
-                />
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                  Cancel
+        {/* Controls - stack on mobile, inline on desktop - only show for admins */}
+        {onLinkedGuidesChange && (
+          <div className="flex flex-wrap items-center gap-2">
+            {onLayoutChange && (
+              <LayoutSelector
+                value={layout}
+                onChange={onLayoutChange}
+                availableLayouts={['grid-2', 'grid-3', 'grid-4', 'large-cards']}
+                size="sm"
+              />
+            )}
+            {availableGuides.length > 0 && (
+              <Select onValueChange={linkGuide}>
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="Link existing guide..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableBrands.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel className="flex items-center gap-2">
+                        <Layers className="h-3 w-3" />
+                        Brand Guides
+                      </SelectLabel>
+                      {availableBrands.map((guide) => (
+                        <SelectItem key={guide.id} value={guide.id}>
+                          <span className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs px-1.5 py-0">Brand</Badge>
+                            {guide.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
+                  {availableProductsList.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel className="flex items-center gap-2">
+                        <Package className="h-3 w-3" />
+                        Product Guides
+                      </SelectLabel>
+                      {availableProductsList.map((guide) => (
+                        <SelectItem key={guide.id} value={guide.id}>
+                          <span className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-xs px-1.5 py-0">Product</Badge>
+                            {guide.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
+                  {availableEventsList.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel className="flex items-center gap-2">
+                        <Calendar className="h-3 w-3" />
+                        Event Guides
+                      </SelectLabel>
+                      {availableEventsList.map((guide) => (
+                        <SelectItem key={guide.id} value={guide.id}>
+                          <span className="flex items-center gap-2">
+                            <Badge className="text-xs px-1.5 py-0 bg-primary/90">Event</Badge>
+                            {guide.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+            
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2 w-full sm:w-auto">
+                  <Plus className="h-4 w-4" />
+                  <span className="sm:inline">New Product Guide</span>
                 </Button>
-                <Button 
-                  onClick={handleCreateProduct} 
-                  disabled={!newProductName.trim() || isCreating}
-                >
-                  {isCreating ? 'Creating...' : 'Create Guide'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Product Guide</DialogTitle>
+                  <DialogDescription>
+                    Create a new product brand guide that will be automatically linked to this brand.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <Input
+                    placeholder="Enter product guide name..."
+                    value={newProductName}
+                    onChange={(e) => setNewProductName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleCreateProduct()}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleCreateProduct} 
+                    disabled={!newProductName.trim() || isCreating}
+                  >
+                    {isCreating ? 'Creating...' : 'Create Guide'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
       </div>
 
       {isLoading ? (
@@ -549,15 +551,19 @@ export const ProductsSection = ({
           <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">No guides linked</h3>
           <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-            Link existing brand, product, or event guides, or create a new product guide.
+            {onLinkedGuidesChange 
+              ? "Link existing brand, product, or event guides, or create a new product guide."
+              : "No brand, product, or event guides are currently linked."}
           </p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Create Product Guide
-            </Button>
-          </div>
-          {availableGuides.length > 0 && (
+          {onLinkedGuidesChange && (
+            <div className="flex flex-wrap gap-3 justify-center">
+              <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Create Product Guide
+              </Button>
+            </div>
+          )}
+          {onLinkedGuidesChange && availableGuides.length > 0 && (
             <p className="text-sm text-muted-foreground mt-4">
               Or use the dropdown above to link existing guides.
             </p>
