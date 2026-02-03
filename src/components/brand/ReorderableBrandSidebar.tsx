@@ -36,6 +36,7 @@ interface ReorderableBrandSidebarProps {
   brandName: string;
   brandId?: string;
   organizationId?: string | null;
+  entityType?: 'brand' | 'product';
   sectionOrder: SectionId[];
   onSectionOrderChange: (newOrder: SectionId[]) => void;
   hiddenSections?: SectionId[];
@@ -90,6 +91,7 @@ export const ReorderableBrandSidebar = ({
   brandName,
   brandId,
   organizationId,
+  entityType = 'brand',
   sectionOrder,
   onSectionOrderChange,
   hiddenSections = [],
@@ -187,7 +189,7 @@ export const ReorderableBrandSidebar = ({
         <div className="p-3 border-t border-sidebar-border animate-fade-in" style={{ animationDelay: '0.5s' }}>
           <Suspense fallback={<Skeleton className="h-[120px] w-full rounded-lg" />}>
             <CompetitiveReportCard
-              entityType="brand"
+              entityType={entityType}
               entityId={brandId}
               entityName={brandName}
               organizationId={organizationId}
