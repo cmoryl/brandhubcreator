@@ -113,7 +113,7 @@ const Index = () => {
       </header>
 
       {/* Hero Section with Orbit */}
-      <section className="relative pt-16 min-h-[85vh] flex items-center overflow-hidden">
+      <section className="relative pt-16 min-h-[calc(100vh-4rem)] flex items-center overflow-hidden">
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         
