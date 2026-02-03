@@ -169,7 +169,7 @@ export default function DemoGuideViewer() {
       </div>
 
       {/* Page Content - Use different component for events */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-0 pb-6 sm:pb-8">
+      <div className="pb-6 sm:pb-8">
         {isEvent ? (
           <FullEventPage
             event={fullGuide as EventGuide}
