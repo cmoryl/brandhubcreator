@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Check, X, Image as ImageIcon, Mail, Globe, Share2, Download, Eye } from 'lucide-react';
+import { Plus, Trash2, Image as ImageIcon, Mail, Globe, Share2, Download, Eye, Maximize2 } from 'lucide-react';
 import { EventBanner } from '@/types/event';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -9,9 +9,101 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { RichTextDisplay } from '@/components/ui/rich-text-editor';
+
+const SIZE_PRESETS = [
+  { label: 'Original', scale: 1 },
+  { label: '75%', scale: 0.75 },
+  { label: '50%', scale: 0.5 },
+  { label: '125%', scale: 1.25 },
+  { label: '150%', scale: 1.5 },
+];
+
+interface BannerSizePreviewProps {
+  banner: EventBanner;
+  onFullPreview: () => void;
+}
+
+const BannerSizePreview = ({ banner, onFullPreview }: BannerSizePreviewProps) => {
+  const [selectedScale, setSelectedScale] = useState(1);
+  
+  // Parse dimensions from banner
+  const parseDimensions = (dimensions: string) => {
+    const match = dimensions?.match(/(\d+)\s*x\s*(\d+)/i);
+    if (!match) return { width: 600, height: 200 };
+    return { width: parseInt(match[1]), height: parseInt(match[2]) };
+  };
+  
+  const { width, height } = parseDimensions(banner.dimensions || '');
+  const scaledWidth = Math.round(width * selectedScale);
+  const scaledHeight = Math.round(height * selectedScale);
+  
+  return (
+    <PopoverContent className="w-80 p-3" align="start">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-medium">Size Preview</h4>
+          <Button variant="ghost" size="sm" onClick={onFullPreview} className="h-7 text-xs">
+            <Eye className="h-3 w-3 mr-1" />
+            Full Preview
+          </Button>
+        </div>
+        
+        {/* Size presets */}
+        <div className="flex flex-wrap gap-1">
+          {SIZE_PRESETS.map((preset) => (
+            <Button
+              key={preset.label}
+              variant={selectedScale === preset.scale ? "default" : "outline"}
+              size="sm"
+              className="h-7 text-xs px-2"
+              onClick={() => setSelectedScale(preset.scale)}
+            >
+              {preset.label}
+            </Button>
+          ))}
+        </div>
+        
+        {/* Dimensions display */}
+        <div className="text-xs text-muted-foreground text-center">
+          {scaledWidth} × {scaledHeight} px
+        </div>
+        
+        {/* Preview area */}
+        <div className="bg-muted/50 rounded-lg p-2 overflow-auto max-h-48">
+          {banner.previewUrl ? (
+            <img
+              src={banner.previewUrl}
+              alt={banner.name}
+              className="mx-auto rounded transition-all duration-200"
+              style={{ 
+                width: Math.min(scaledWidth, 260),
+                height: 'auto',
+                aspectRatio: `${width}/${height}`
+              }}
+            />
+          ) : (
+            <div 
+              className="bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center rounded mx-auto"
+              style={{ 
+                width: Math.min(scaledWidth, 260),
+                height: Math.min(scaledHeight, 150),
+              }}
+            >
+              <div className="text-center">
+                <ImageIcon className="h-6 w-6 text-muted-foreground/30 mx-auto" />
+                <p className="text-xs text-muted-foreground mt-1">{scaledWidth}×{scaledHeight}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </PopoverContent>
+  );
+};
 
 interface EventBannersSectionProps {
   banners: EventBanner[];
@@ -312,6 +404,17 @@ export const EventBannersSection = ({
                 
                 {/* Action Buttons */}
                 <div className="flex gap-2 mt-3">
+                  {banner.previewUrl && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="flex-1 text-xs h-8">
+                          <Maximize2 className="h-3 w-3 mr-1.5" />
+                          Sizes
+                        </Button>
+                      </PopoverTrigger>
+                      <BannerSizePreview banner={banner} onFullPreview={() => openPreview(banner)} />
+                    </Popover>
+                  )}
                   {banner.previewUrl && (
                     <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => openPreview(banner)}>
                       <Eye className="h-3 w-3 mr-1.5" />
