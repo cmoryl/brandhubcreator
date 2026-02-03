@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SectionHeader } from './SectionHeader';
+import { InsightEditorModal } from './InsightEditorModal';
 import { cn } from '@/lib/utils';
 import type { InsightItem, InsightsLayout } from '@/types/brand';
 
@@ -267,23 +268,37 @@ export const InsightsSection = ({
 }: InsightsSectionProps) => {
   const canEdit = Boolean(onInsightsChange);
   const [isEditing, setIsEditing] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingInsight, setEditingInsight] = useState<InsightItem | null>(null);
 
   const handleDelete = (id: string) => {
     if (!onInsightsChange) return;
     onInsightsChange(insights.filter(i => i.id !== id));
   };
 
-  const handleAddSample = () => {
+  const handleEdit = (insight: InsightItem) => {
+    setEditingInsight(insight);
+    setEditorOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setEditingInsight(null);
+    setEditorOpen(true);
+  };
+
+  const handleSaveInsight = (insight: InsightItem) => {
     if (!onInsightsChange) return;
-    const newInsight: InsightItem = {
-      id: `insight-${Date.now()}`,
-      type: 'update',
-      title: 'New Update',
-      summary: 'Add your insight summary here...',
-      date: new Date().toISOString(),
-      priority: 'medium',
-    };
-    onInsightsChange([...insights, newInsight]);
+    
+    const existingIndex = insights.findIndex(i => i.id === insight.id);
+    if (existingIndex >= 0) {
+      // Update existing
+      const updated = [...insights];
+      updated[existingIndex] = insight;
+      onInsightsChange(updated);
+    } else {
+      // Add new
+      onInsightsChange([...insights, insight]);
+    }
   };
 
   if (insights.length === 0 && !canEdit) {
@@ -321,12 +336,20 @@ export const InsightsSection = ({
               </Button>
             ))}
           </div>
-          <Button variant="outline" size="sm" onClick={handleAddSample} className="ml-auto gap-1.5">
+          <Button variant="outline" size="sm" onClick={handleAddNew} className="ml-auto gap-1.5">
             <Plus className="h-3.5 w-3.5" />
             Add Insight
           </Button>
         </div>
       )}
+
+      {/* Editor Modal */}
+      <InsightEditorModal
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        insight={editingInsight}
+        onSave={handleSaveInsight}
+      />
 
       {/* Empty state */}
       {insights.length === 0 && canEdit && (
@@ -338,7 +361,7 @@ export const InsightsSection = ({
           <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
             Share reports, analytics, and important updates with your team and stakeholders.
           </p>
-          <Button onClick={handleAddSample} className="gap-2">
+          <Button onClick={handleAddNew} className="gap-2">
             <Plus className="h-4 w-4" />
             Add First Insight
           </Button>
@@ -357,6 +380,7 @@ export const InsightsSection = ({
                   key={insight.id}
                   insight={insight}
                   canEdit={canEdit && isEditing}
+                  onEdit={() => handleEdit(insight)}
                   onDelete={() => handleDelete(insight.id)}
                 />
               ))}
