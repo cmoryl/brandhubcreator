@@ -138,6 +138,14 @@ export interface BrandTextStyle {
   sampleText?: string; // Custom sample text for preview
 }
 
+// Admin Custom Style - Special style preserved across presets
+export interface AdminCustomStyle {
+  id: string;
+  name: string;
+  css: string;
+  description?: string;
+}
+
 // ICONOGRAPHY - Neural Vectors
 export interface BrandIconography {
   id: string;
@@ -663,6 +671,8 @@ export interface BaseGuide {
   typography: BrandTypography[];
   // Text Styles (CSS Hierarchies)
   textStyles: BrandTextStyle[];
+  // Admin Custom Style (preserved across presets)
+  adminCustomStyle?: AdminCustomStyle;
   // Iconography (Neural Vectors)
   iconography: BrandIconography[];
   // Default icon color for iconography display
