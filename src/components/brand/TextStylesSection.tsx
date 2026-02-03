@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Plus, X, Pencil, Copy, Check, Wand2, GripVertical, LayoutGrid, List } from 'lucide-react';
-import { BrandTextStyle } from '@/types/brand';
+import { Plus, X, Pencil, Copy, Check, Wand2, GripVertical, LayoutGrid, List, Shield, Sparkles } from 'lucide-react';
+import { BrandTextStyle, AdminCustomStyle } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,9 +20,13 @@ import { cn } from '@/lib/utils';
 
 interface TextStylesSectionProps {
   textStyles: BrandTextStyle[];
-  onTextStylesChange: (textStyles: BrandTextStyle[]) => void;
+  onTextStylesChange?: (textStyles: BrandTextStyle[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  // Admin-only custom style
+  adminCustomStyle?: AdminCustomStyle;
+  onAdminCustomStyleChange?: (style: AdminCustomStyle | undefined) => void;
+  canEdit?: boolean;
 }
 
 const tagOptions = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'p.lead', 'p.small', 'p.caption', 'blockquote', 'span', 'small'];
@@ -116,13 +120,27 @@ const presetCollections = [
 
 type ViewMode = 'column' | 'list';
 
-export const TextStylesSection = ({ textStyles, onTextStylesChange, customSubtitle, onSubtitleChange }: TextStylesSectionProps) => {
+export const TextStylesSection = ({ 
+  textStyles, 
+  onTextStylesChange, 
+  customSubtitle, 
+  onSubtitleChange,
+  adminCustomStyle,
+  onAdminCustomStyleChange,
+  canEdit = true,
+}: TextStylesSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('column');
+  const [isEditingAdminStyle, setIsEditingAdminStyle] = useState(false);
+  const [adminStyleDraft, setAdminStyleDraft] = useState<Partial<AdminCustomStyle>>({});
+
+  // Check if admin features are available (has the callback)
+  const isAdmin = !!onAdminCustomStyleChange;
 
   const addTextStyle = () => {
+    if (!onTextStylesChange) return;
     const newStyle: BrandTextStyle = {
       id: crypto.randomUUID(),
       tag: 'p',
@@ -136,6 +154,7 @@ export const TextStylesSection = ({ textStyles, onTextStylesChange, customSubtit
   };
 
   const addPresetStyle = (preset: typeof stylePresets.heading[0]) => {
+    if (!onTextStylesChange) return;
     const newStyle: BrandTextStyle = {
       id: crypto.randomUUID(),
       tag: preset.tag,
@@ -148,6 +167,7 @@ export const TextStylesSection = ({ textStyles, onTextStylesChange, customSubtit
   };
 
   const applyPresetCollection = (collection: typeof presetCollections[0]) => {
+    if (!onTextStylesChange) return;
     const newStyles: BrandTextStyle[] = collection.styles.map((style) => ({
       id: crypto.randomUUID(),
       tag: style.tag,
@@ -160,12 +180,46 @@ export const TextStylesSection = ({ textStyles, onTextStylesChange, customSubtit
   };
 
   const updateTextStyle = (id: string, updates: Partial<BrandTextStyle>) => {
+    if (!onTextStylesChange) return;
     onTextStylesChange(textStyles.map(s => s.id === id ? { ...s, ...updates } : s));
   };
 
   const deleteTextStyle = (id: string) => {
+    if (!onTextStylesChange) return;
     onTextStylesChange(textStyles.filter(s => s.id !== id));
     if (editingId === id) setEditingId(null);
+  };
+
+  // Admin Custom Style Handlers
+  const handleStartEditAdminStyle = () => {
+    setAdminStyleDraft(adminCustomStyle || { name: '', css: '', description: '' });
+    setIsEditingAdminStyle(true);
+  };
+
+  const handleSaveAdminStyle = () => {
+    if (!onAdminCustomStyleChange) return;
+    if (adminStyleDraft.name && adminStyleDraft.css) {
+      onAdminCustomStyleChange({
+        id: adminCustomStyle?.id || crypto.randomUUID(),
+        name: adminStyleDraft.name,
+        css: adminStyleDraft.css,
+        description: adminStyleDraft.description,
+      });
+      setIsEditingAdminStyle(false);
+    }
+  };
+
+  const handleRemoveAdminStyle = () => {
+    if (!onAdminCustomStyleChange) return;
+    onAdminCustomStyleChange(undefined);
+    setIsEditingAdminStyle(false);
+  };
+
+  const copyAdminCSS = async () => {
+    if (!adminCustomStyle?.css) return;
+    await navigator.clipboard.writeText(adminCustomStyle.css);
+    setCopiedId('admin');
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const generateCSS = (style: BrandTextStyle) => {
@@ -597,12 +651,116 @@ export const TextStylesSection = ({ textStyles, onTextStylesChange, customSubtit
             </Button>
           )}
           
-          <Button onClick={addTextStyle} size="sm" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Style
-          </Button>
+          {canEdit && onTextStylesChange && (
+            <Button onClick={addTextStyle} size="sm" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Style
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Admin Custom Style Section - Shows at top, independent of presets */}
+      {(adminCustomStyle || isAdmin) && (
+        <div className="p-4 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5">
+          <div className="flex items-center gap-2 mb-3">
+            <Shield className="h-4 w-4 text-primary" />
+            <h3 className="font-semibold text-sm text-primary">Admin Custom Style</h3>
+            <span className="text-xs text-muted-foreground">(preserved across presets)</span>
+          </div>
+
+          {isEditingAdminStyle ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Style Name</Label>
+                  <Input
+                    value={adminStyleDraft.name || ''}
+                    onChange={(e) => setAdminStyleDraft({ ...adminStyleDraft, name: e.target.value })}
+                    placeholder="e.g., Brand Accent Text"
+                    className="h-9"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Description (optional)</Label>
+                  <Input
+                    value={adminStyleDraft.description || ''}
+                    onChange={(e) => setAdminStyleDraft({ ...adminStyleDraft, description: e.target.value })}
+                    placeholder="e.g., Used for special callouts"
+                    className="h-9"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Custom CSS</Label>
+                <Textarea
+                  value={adminStyleDraft.css || ''}
+                  onChange={(e) => setAdminStyleDraft({ ...adminStyleDraft, css: e.target.value })}
+                  placeholder={`.brand-accent {\n  font-size: 18px;\n  font-weight: 600;\n  color: var(--primary);\n  letter-spacing: 0.02em;\n}`}
+                  rows={6}
+                  className="font-mono text-xs"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Button size="sm" onClick={handleSaveAdminStyle} disabled={!adminStyleDraft.name || !adminStyleDraft.css}>
+                  <Check className="h-4 w-4 mr-1" />
+                  Save Custom Style
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setIsEditingAdminStyle(false)}>
+                  Cancel
+                </Button>
+                {adminCustomStyle && (
+                  <Button size="sm" variant="destructive" onClick={handleRemoveAdminStyle}>
+                    <X className="h-4 w-4 mr-1" />
+                    Remove
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : adminCustomStyle ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-amber-500" />
+                  <span className="font-medium">{adminCustomStyle.name}</span>
+                  {adminCustomStyle.description && (
+                    <span className="text-xs text-muted-foreground">— {adminCustomStyle.description}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={copyAdminCSS}
+                    className="h-8 gap-1.5"
+                  >
+                    {copiedId === 'admin' ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    <span className="text-xs">{copiedId === 'admin' ? 'Copied' : 'CSS'}</span>
+                  </Button>
+                  {isAdmin && (
+                    <Button variant="ghost" size="sm" onClick={handleStartEditAdminStyle}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <pre className="p-3 rounded-lg bg-card border text-xs font-mono overflow-x-auto">
+                <code>{adminCustomStyle.css}</code>
+              </pre>
+            </div>
+          ) : isAdmin ? (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleStartEditAdminStyle}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Admin Custom Style
+            </Button>
+          ) : null}
+        </div>
+      )}
 
       {/* Main Content */}
       {textStyles.length === 0 ? (
