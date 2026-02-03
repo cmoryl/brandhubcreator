@@ -133,16 +133,16 @@ const Index = () => {
         </div>
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          {/* Stacked layout - Text on top, Orbit below */}
-          <div className="flex flex-col items-center">
-            {/* Text content - First/Top */}
-            <div className="text-center max-w-3xl mx-auto mb-8">
+          {/* Two-column layout - Text left, Orbit right */}
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Text content - Left side */}
+            <div className="text-center lg:text-left order-2 lg:order-1">
               <Badge variant="secondary" className="mb-4 gap-1.5">
                 <Sparkles className="h-3 w-3" />
                 Interactive Brand Guidelines Platform
               </Badge>
               
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight mb-6">
+              <h1 className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-bold tracking-tight mb-6">
                 <span className="text-foreground">Create </span>
                 <GlitchText text="Living" glowColor="hsl(199 89% 48%)" />
                 <br />
@@ -150,12 +150,12 @@ const Index = () => {
                 <span className="text-foreground"> Guides</span>
               </h1>
               
-              <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-xl mx-auto">
+              <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
                 Transform static brand guidelines into dynamic, interactive experiences. 
                 Manage brands, products, and events in one unified platform.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Button size="lg" onClick={handleSignInClick} className="gap-2">
                   Start Building
                   <ArrowRight className="h-4 w-4" />
@@ -165,36 +165,38 @@ const Index = () => {
                   View Demo
                 </Button>
               </div>
+
+              {/* Stats - below CTA on left */}
+              <div className="mt-10 grid grid-cols-3 gap-6 max-w-sm mx-auto lg:mx-0">
+                <div className="text-center lg:text-left">
+                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{orbitBrands.length}</div>
+                  <div className="text-sm text-muted-foreground">Demo Brands</div>
+                </div>
+                <div className="text-center lg:text-left">
+                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{orbitProducts.length}</div>
+                  <div className="text-sm text-muted-foreground">Products</div>
+                </div>
+                <div className="text-center lg:text-left">
+                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{orbitEvents.length}</div>
+                  <div className="text-sm text-muted-foreground">Events</div>
+                </div>
+              </div>
             </div>
 
-            {/* Orbit Visualization - Below text */}
-            <div className="w-full max-w-[500px] mx-auto">
-              <HeroOrbit
-                className="w-full aspect-square"
-                primaryColor="#6366f1"
-                centerLogo={brandhubLogo}
-                brands={orbitBrands}
-                products={orbitProducts}
-                events={orbitEvents}
-              />
-              <p className="text-center text-sm text-muted-foreground mt-4">
-                Click entities to explore demo guides • Hover to see details
-              </p>
-            </div>
-
-            {/* Stats */}
-            <div className="mt-8 grid grid-cols-3 gap-6 max-w-md mx-auto">
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-foreground">{orbitBrands.length}</div>
-                <div className="text-sm text-muted-foreground">Demo Brands</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-foreground">{orbitProducts.length}</div>
-                <div className="text-sm text-muted-foreground">Products</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-foreground">{orbitEvents.length}</div>
-                <div className="text-sm text-muted-foreground">Events</div>
+            {/* Orbit Visualization - Right side */}
+            <div className="order-1 lg:order-2 flex justify-center lg:justify-end">
+              <div className="w-full max-w-[450px] lg:max-w-[520px]">
+                <HeroOrbit
+                  className="w-full aspect-square"
+                  primaryColor="#6366f1"
+                  centerLogo={brandhubLogo}
+                  brands={orbitBrands}
+                  products={orbitProducts}
+                  events={orbitEvents}
+                />
+                <p className="text-center text-xs text-muted-foreground mt-3 opacity-70">
+                  Click entities to explore • Hover for details
+                </p>
               </div>
             </div>
           </div>
