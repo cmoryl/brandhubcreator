@@ -18,10 +18,25 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
     setMounted(true);
   }, []);
   
+  // Glitch animation - always runs but only affects dark mode rendering
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (Math.random() > 0.7) {
+        setGlitchOffset({
+          x: (Math.random() - 0.5) * 4,
+          y: (Math.random() - 0.5) * 2,
+        });
+        setTimeout(() => setGlitchOffset({ x: 0, y: 0 }), 100);
+      }
+    }, 150);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
   // Default to dark during SSR/initial render, then use actual theme
   const isDark = !mounted || resolvedTheme === 'dark';
 
-  // Light mode: no glitch/TV effect — render clean accent text only.
+  // Light mode: render clean accent text only (no glitch effects)
   if (mounted && !isDark) {
     return (
       <span ref={ref} className={`text-accent ${className}`}>
@@ -29,24 +44,8 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
       </span>
     );
   }
-  
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Random glitch every 2-4 seconds
-      if (Math.random() > 0.7) {
-        setGlitchOffset({
-          x: (Math.random() - 0.5) * 4,
-          y: (Math.random() - 0.5) * 2,
-        });
-        // Reset after short duration
-        setTimeout(() => setGlitchOffset({ x: 0, y: 0 }), 100);
-      }
-    }, 150);
-    
-    return () => clearInterval(interval);
-  }, []);
 
-  // Dark mode: restore the original “scratch/scanlines” effect.
+  // Dark mode: full "scratch/scanlines" effect
   const scanlineColor = 'rgba(0, 0, 0, 0.15)';
   const chromaticBlendMode: React.CSSProperties['mixBlendMode'] = 'screen';
   const chromaticOpacity = 0.7;
@@ -141,7 +140,7 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
         {text}
       </span>
       
-      {/* CSS Keyframes injected via style tag */}
+      {/* CSS Keyframes */}
       <style>{`
         @keyframes scanlines {
           0% { transform: translateY(0); }
@@ -150,9 +149,9 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
         
         @keyframes glitch-bars {
           0%, 90% { opacity: 0; }
-          91% { opacity: ${isDark ? 0.3 : 0.08}; transform: translateX(-2px); }
+          91% { opacity: 0.3; transform: translateX(-2px); }
           92% { opacity: 0; }
-          93% { opacity: ${isDark ? 0.2 : 0.05}; transform: translateX(2px); }
+          93% { opacity: 0.2; transform: translateX(2px); }
           94%, 100% { opacity: 0; transform: translateX(0); }
         }
         
@@ -163,20 +162,20 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
           background: linear-gradient(
             90deg,
             transparent 0%,
-            ${glowColor}${isDark ? '10' : '05'} 10%,
-            ${glowColor}${isDark ? '05' : '02'} 50%,
-            ${glowColor}${isDark ? '10' : '05'} 90%,
+            ${glowColor}10 10%,
+            ${glowColor}05 50%,
+            ${glowColor}10 90%,
             transparent 100%
           );
           filter: blur(8px);
-          opacity: ${isDark ? 0.5 : 0.2};
+          opacity: 0.5;
           animation: glow-pulse 2s ease-in-out infinite;
           pointer-events: none;
         }
         
         @keyframes glow-pulse {
-          0%, 100% { opacity: ${isDark ? 0.3 : 0.15}; }
-          50% { opacity: ${isDark ? 0.6 : 0.25}; }
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 0.6; }
         }
       `}</style>
     </span>
