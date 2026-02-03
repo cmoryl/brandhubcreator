@@ -51,11 +51,11 @@ interface GlobalAssetOrbitProps {
   demoMode?: boolean;
 }
 
-// Distinct colors for each entity type - teal for brands, light blue for products, amber for events
+// Distinct colors for each entity type - teal for brands, light blue for products, purple for events
 const TYPE_COLORS = {
   brand: '#14b8a6',    // Teal
   product: '#38bdf8',  // Light blue (sky-400)
-  event: '#f59e0b',    // Amber
+  event: '#a855f7',    // Purple (violet-500)
 };
 
 // Circular icon wrappers for each type
