@@ -50,7 +50,7 @@ export interface BrandHero {
   /** Whether to apply Ken Burns (slow pan/zoom) effect to hero image */
   kenBurnsEffect?: boolean;
   /** Active hero background effect type */
-  heroEffect?: 'none' | 'gradient-bars' | 'horizon-glow' | 'floating-orbs' | 'gradient-spheres' | 'image-orbs';
+  heroEffect?: 'none' | 'gradient-bars' | 'horizon-glow' | 'floating-orbs' | 'gradient-spheres' | 'image-orbs' | 'image-panels';
   /** Intensity of the hero effect */
   heroEffectIntensity?: 'subtle' | 'medium' | 'bold';
   /** Color scheme for hero effect */

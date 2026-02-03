@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
-export type HeroEffectType = 'none' | 'gradient-bars' | 'horizon-glow' | 'floating-orbs' | 'gradient-spheres' | 'image-orbs';
+export type HeroEffectType = 'none' | 'gradient-bars' | 'horizon-glow' | 'floating-orbs' | 'gradient-spheres' | 'image-orbs' | 'image-panels';
 
 interface HeroEditToolbarProps {
   useVideo: boolean;
@@ -135,6 +135,13 @@ const HERO_EFFECTS: Array<{
     label: 'Image Orbs',
     description: 'Real PNG orbs with parallax',
     preview: 'radial-gradient(circle at 30% 40%, #00d4ff 0%, transparent 40%), radial-gradient(circle at 70% 60%, #6366f1 0%, transparent 40%), linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%)',
+    colorSchemes: [], // Uses actual PNG images - no color schemes
+  },
+  {
+    id: 'image-panels',
+    label: 'Image Panels',
+    description: 'Real PNG panels with parallax',
+    preview: 'repeating-linear-gradient(90deg, #1a1a40 0%, #3b3b80 8%, #00d4ff 10%, #1a1a40 12%, #1a1a40 20%)',
     colorSchemes: [], // Uses actual PNG images - no color schemes
   },
 ];
