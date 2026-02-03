@@ -3,6 +3,8 @@ import { cn } from '@/lib/utils';
 
 export type FloatingOrbsColorScheme = 'blue-purple' | 'cyan-teal' | 'purple-pink' | 'teal-green' | 'custom';
 export type FloatingOrbsMode = 'dark' | 'light';
+export type FloatingOrbsDensity = 'few' | 'normal' | 'many' | 'dense';
+export type FloatingOrbsSpeed = 'slow' | 'normal' | 'fast' | 'very-fast';
 
 interface FloatingOrbsHeroProps {
   className?: string;
@@ -10,6 +12,8 @@ interface FloatingOrbsHeroProps {
   mode?: FloatingOrbsMode;
   brightness?: number;
   orbCount?: number;
+  density?: FloatingOrbsDensity;
+  speed?: FloatingOrbsSpeed;
 }
 
 interface Orb {
@@ -29,12 +33,28 @@ const COLOR_SCHEMES: Record<Exclude<FloatingOrbsColorScheme, 'custom'>, { primar
   'teal-green': { primary: 170, secondary: 140 },
 };
 
+const DENSITY_COUNTS: Record<FloatingOrbsDensity, number> = {
+  'few': 3,
+  'normal': 5,
+  'many': 8,
+  'dense': 12,
+};
+
+const SPEED_MULTIPLIERS: Record<FloatingOrbsSpeed, number> = {
+  'slow': 0.4,
+  'normal': 1,
+  'fast': 2,
+  'very-fast': 3.5,
+};
+
 export const FloatingOrbsHero = memo(function FloatingOrbsHero({
   className = '',
   colorScheme = 'blue-purple',
   mode = 'dark',
   brightness = 50,
-  orbCount = 5,
+  orbCount,
+  density = 'normal',
+  speed = 'normal',
 }: FloatingOrbsHeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5, isActive: false });
@@ -44,23 +64,25 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
 
   const colors = COLOR_SCHEMES[colorScheme === 'custom' ? 'blue-purple' : colorScheme];
   const brightnessMultiplier = 0.4 + (brightness / 100) * 1.2;
+  const speedMultiplier = SPEED_MULTIPLIERS[speed];
+  const actualOrbCount = orbCount ?? DENSITY_COUNTS[density];
 
   const bgColors = mode === 'dark'
     ? { base: 'hsl(230, 25%, 5%)', mid: 'hsl(230, 30%, 8%)' }
     : { base: 'hsl(220, 20%, 96%)', mid: 'hsl(220, 25%, 94%)' };
 
   // Generate stable orb configurations - spread around the container
-  const orbs: Orb[] = Array.from({ length: orbCount }, (_, i) => {
-    const angle = (i / orbCount) * Math.PI * 2;
-    const radius = 25 + (i % 2) * 10;
+  const orbs: Orb[] = Array.from({ length: actualOrbCount }, (_, i) => {
+    const angle = (i / actualOrbCount) * Math.PI * 2;
+    const radius = 20 + (i % 3) * 12;
     return {
       id: i,
       baseX: 50 + Math.cos(angle) * radius,
       baseY: 50 + Math.sin(angle) * radius,
-      size: 180 + (i * 50) + (i % 2 === 0 ? 40 : 0),
+      size: 140 + (i * 35) + (i % 2 === 0 ? 40 : 0),
       hue: i % 2 === 0 ? colors.primary : colors.secondary,
-      speed: 0.4 + (i * 0.1),
-      phase: (i * Math.PI * 2) / orbCount,
+      speed: (0.3 + (i * 0.08)) * speedMultiplier,
+      phase: (i * Math.PI * 2) / actualOrbCount,
     };
   });
 
@@ -70,10 +92,10 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
 
     const animate = (timestamp: number) => {
       if (timestamp - lastTimestamp > 16) {
-        setTime(timestamp * 0.0003);
+        setTime(timestamp * 0.0003 * speedMultiplier);
         setSmoothedMouse(prev => ({
-          x: prev.x + (mousePos.x - prev.x) * 0.06,
-          y: prev.y + (mousePos.y - prev.y) * 0.06,
+          x: prev.x + (mousePos.x - prev.x) * 0.08,
+          y: prev.y + (mousePos.y - prev.y) * 0.08,
         }));
         lastTimestamp = timestamp;
       }
@@ -82,7 +104,7 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
 
     animationRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationRef.current);
-  }, [mousePos.x, mousePos.y]);
+  }, [mousePos.x, mousePos.y, speedMultiplier]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -98,6 +120,10 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
     setMousePos(prev => ({ ...prev, isActive: false }));
   }, []);
 
+  // Dynamic mouse-following background gradient position
+  const bgGradientX = 30 + smoothedMouse.x * 40;
+  const bgGradientY = 30 + smoothedMouse.y * 40;
+
   return (
     <div
       ref={containerRef}
@@ -106,11 +132,23 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
       onMouseLeave={handleMouseLeave}
       aria-hidden="true"
     >
-      {/* Base background */}
+      {/* Animated mouse-following base background */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 transition-all duration-700 ease-out"
         style={{
-          background: `radial-gradient(ellipse at center, ${bgColors.mid} 0%, ${bgColors.base} 100%)`,
+          background: `radial-gradient(ellipse at ${bgGradientX}% ${bgGradientY}%, ${bgColors.mid} 0%, ${bgColors.base} 100%)`,
+        }}
+      />
+
+      {/* Secondary animated glow layer following mouse */}
+      <div
+        className="absolute inset-0 pointer-events-none transition-opacity duration-500"
+        style={{
+          background: `radial-gradient(circle at ${smoothedMouse.x * 100}% ${smoothedMouse.y * 100}%, 
+            hsla(${colors.primary}, 60%, 50%, ${mousePos.isActive ? 0.15 : 0.05}) 0%,
+            transparent 50%
+          )`,
+          opacity: mousePos.isActive ? 1 : 0.5,
         }}
       />
 
@@ -130,21 +168,16 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
         
         // SPREAD/GATHER EFFECT: Orbs move away from mouse when it's near, gather when far
         const spreadStrength = mousePos.isActive ? 120 : 0;
-        const spreadThreshold = 0.4; // How close mouse needs to be to trigger spread
+        const spreadThreshold = 0.4;
         
         let spreadX = 0;
         let spreadY = 0;
         
         if (distToMouse < spreadThreshold && mousePos.isActive) {
-          // Push orb away from mouse
           const pushFactor = (1 - distToMouse / spreadThreshold) * spreadStrength;
           const angle = Math.atan2(orbCenterY - smoothedMouse.y, orbCenterX - smoothedMouse.x);
           spreadX = Math.cos(angle) * pushFactor;
           spreadY = Math.sin(angle) * pushFactor;
-        } else if (!mousePos.isActive) {
-          // Slowly return to base position (handled by smoothing)
-          spreadX = 0;
-          spreadY = 0;
         }
 
         // Pulse scale - more dramatic when mouse is active
@@ -153,6 +186,9 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
           ? 1.15 + (1 - distToMouse / 0.3) * 0.2 
           : 1;
         const pulseScale = basePulse * mouseProximityScale;
+
+        // Rotation based on time for more dynamic feel
+        const rotation = (time * 10 * orb.speed) % 360;
 
         return (
           <div
@@ -163,10 +199,10 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
               top: `${orb.baseY}%`,
               width: orb.size,
               height: orb.size,
-              transform: `translate(-50%, -50%) translate(${floatX + spreadX}px, ${floatY + spreadY}px) scale(${pulseScale})`,
+              transform: `translate(-50%, -50%) translate(${floatX + spreadX}px, ${floatY + spreadY}px) scale(${pulseScale}) rotate(${rotation}deg)`,
               transition: mousePos.isActive 
-                ? 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)' 
-                : 'transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                ? 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)' 
+                : 'transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
             }}
           >
             {/* Inner bright core */}
@@ -202,7 +238,7 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
         );
       })}
 
-      {/* Connection lines between nearby orbs - adds visual interest */}
+      {/* Connection lines between nearby orbs */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.15 }}>
         {orbs.map((orb, i) => 
           orbs.slice(i + 1).map((other, j) => {
@@ -228,6 +264,26 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
           })
         )}
       </svg>
+
+      {/* Mouse trail effect */}
+      {mousePos.isActive && (
+        <div
+          className="absolute pointer-events-none rounded-full transition-all duration-300"
+          style={{
+            left: `${smoothedMouse.x * 100}%`,
+            top: `${smoothedMouse.y * 100}%`,
+            width: 200,
+            height: 200,
+            transform: 'translate(-50%, -50%)',
+            background: `radial-gradient(circle, 
+              hsla(${colors.primary}, 80%, 60%, 0.2) 0%,
+              hsla(${colors.secondary}, 60%, 50%, 0.1) 40%,
+              transparent 70%
+            )`,
+            filter: 'blur(20px)',
+          }}
+        />
+      )}
 
       {/* Subtle vignette */}
       <div
