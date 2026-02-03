@@ -9,11 +9,11 @@ import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { ArrowRight, Sparkles, Rocket } from 'lucide-react';
 import { GetStartedSurveyModal } from './GetStartedSurveyModal';
 
-// Matching HeroOrbit type colors
+// TransPerfect light blue accent theme
 const TYPE_COLORS = {
   brand: '#14b8a6',    // Teal
-  product: '#38bdf8',  // Light blue  
-  event: '#f59e0b',    // Amber
+  product: '#139cd8',  // TransPerfect light blue  
+  event: '#0ea5e9',    // Sky blue
 };
 
 // Orbit ring configuration
