@@ -18,12 +18,16 @@ import { ParticleEmbers } from '@/components/ParticleEmbers';
 import { InteractiveCTA } from '@/components/landing/InteractiveCTA';
 import { BrandHubLogo } from '@/components/BrandHubLogo';
 import { GetStartedSurveyModal } from '@/components/landing/GetStartedSurveyModal';
+import { DemoFirstTimeModal, useFirstTimeDemoPrompt } from '@/components/landing/DemoFirstTimeModal';
 import brandhubLogo from '@/assets/brandhub-logo.svg';
 
 const Index = () => {
   const navigate = useNavigate();
   const { user, isAdmin, isApproved, accessStatus, isLoading } = useAuth();
   const [showSurveyModal, setShowSurveyModal] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
+  const [pendingDemo, setPendingDemo] = useState<{ path: string; name: string } | null>(null);
+  const { shouldShowPrompt } = useFirstTimeDemoPrompt();
 
   // Auto-redirect authenticated users to dashboard
   useEffect(() => {
@@ -93,6 +97,16 @@ const Index = () => {
     const hasAccess = !!user && accessStatus === 'ready' && (isAdmin || isApproved);
     navigate(hasAccess ? '/dashboard' : '/auth');
   }, [user, accessStatus, isAdmin, isApproved, navigate]);
+
+  // Handle demo click - show first-time modal or navigate directly
+  const handleDemoClick = useCallback((path: string, name: string) => {
+    if (shouldShowPrompt) {
+      setPendingDemo({ path, name });
+      setShowDemoModal(true);
+    } else {
+      navigate(path);
+    }
+  }, [shouldShowPrompt, navigate]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -193,6 +207,11 @@ const Index = () => {
                   brands={orbitBrands}
                   products={orbitProducts}
                   events={orbitEvents}
+                  onEntityClick={(entity) => {
+                    const pathPrefix = entity.type === 'brand' ? '/demo/brand' : entity.type === 'product' ? '/demo/product' : '/demo/event';
+                    const path = `${pathPrefix}/${entity.slug || entity.id}`;
+                    handleDemoClick(path, entity.name);
+                  }}
                 />
                 <p className="text-center text-xs text-muted-foreground mt-3 opacity-70">
                   Click entities to explore • Hover for details
@@ -234,7 +253,7 @@ const Index = () => {
               return (
                 <ParallaxCard
                   key={demo.id}
-                  onClick={() => navigate(demo.path)}
+                  onClick={() => handleDemoClick(demo.path, demo.name)}
                   imageSrc={demo.cardImage}
                   imageAlt={demo.name}
                   fallbackGradient={demo.gradient}
@@ -391,6 +410,16 @@ const Index = () => {
 
       {/* Get Started Survey Modal */}
       <GetStartedSurveyModal open={showSurveyModal} onOpenChange={setShowSurveyModal} />
+
+      {/* Demo First Time Modal */}
+      {pendingDemo && (
+        <DemoFirstTimeModal
+          open={showDemoModal}
+          onOpenChange={setShowDemoModal}
+          targetPath={pendingDemo.path}
+          demoName={pendingDemo.name}
+        />
+      )}
     </div>
   );
 };
