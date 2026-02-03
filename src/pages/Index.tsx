@@ -159,7 +159,7 @@ const Index = () => {
                   Start Building
                   <ArrowRight className="h-4 w-4" />
                 </Button>
-                <Button size="lg" variant="outline" onClick={() => navigate('/demo/brand/brandhub')} className="gap-2">
+                <Button size="lg" variant="outline" onClick={() => navigate('/demo/brand/brandhub')} className="gap-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground">
                   <Play className="h-4 w-4" />
                   View Demo
                 </Button>
