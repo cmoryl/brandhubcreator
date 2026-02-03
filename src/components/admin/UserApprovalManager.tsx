@@ -202,8 +202,8 @@ export function UserApprovalManager() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-500/10 rounded-lg">
-                <Clock className="h-5 w-5 text-amber-500" />
+              <div className="p-2 bg-accent/10 rounded-lg">
+                <Clock className="h-5 w-5 text-accent" />
               </div>
               <div>
                 <CardTitle>Pending Approvals</CardTitle>
