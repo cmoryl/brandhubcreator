@@ -359,6 +359,7 @@ export const HeroSection = ({
         {hero.heroEffect === 'image-panels' && !hero.useVideo && (
           <div className={`absolute inset-0 ${heroHeight} z-0`}>
             <ImagePanelsHero 
+              colorScheme={(hero.heroEffectColorScheme || 'purple-cyan') as any}
               mode={hero.heroEffectMode || 'dark'}
               brightness={hero.heroEffectBrightness ?? 50}
               panelCount={5}

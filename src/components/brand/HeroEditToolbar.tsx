@@ -142,7 +142,14 @@ const HERO_EFFECTS: Array<{
     label: 'Image Panels',
     description: 'Real PNG panels with parallax',
     preview: 'repeating-linear-gradient(90deg, #1a1a40 0%, #3b3b80 8%, #00d4ff 10%, #1a1a40 12%, #1a1a40 20%)',
-    colorSchemes: [], // Uses actual PNG images - no color schemes
+    colorSchemes: [
+      { id: 'purple-cyan', label: 'Purple/Cyan', colors: ['#a855f7', '#00d4ff'] },
+      { id: 'cyan-blue', label: 'Cyan/Blue', colors: ['#00d4ff', '#3b82f6'] },
+      { id: 'pink-purple', label: 'Pink/Purple', colors: ['#ec4899', '#a855f7'] },
+      { id: 'green-teal', label: 'Green/Teal', colors: ['#22c55e', '#14b8a6'] },
+      { id: 'amber-orange', label: 'Amber/Orange', colors: ['#f59e0b', '#f97316'] },
+      { id: 'rose-pink', label: 'Rose/Pink', colors: ['#f43f5e', '#ec4899'] },
+    ],
   },
 ];
 
