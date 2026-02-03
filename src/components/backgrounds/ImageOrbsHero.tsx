@@ -3,10 +3,22 @@ import { cn } from '@/lib/utils';
 import orb1Image from '@/assets/orbs/orb1.png';
 import orb2Image from '@/assets/orbs/orb2.png';
 
+export type ImageOrbsColorScheme = 'cyan-purple' | 'blue-cyan' | 'pink-magenta' | 'green-teal' | 'amber-orange' | 'rose-coral';
 export type ImageOrbsMode = 'dark' | 'light';
+
+// Base hue rotation for each color scheme
+const COLOR_SCHEME_HUE: Record<ImageOrbsColorScheme, number> = {
+  'cyan-purple': 0,       // Original colors
+  'blue-cyan': -20,       // Shift toward blue
+  'pink-magenta': 80,     // Shift toward pink/magenta
+  'green-teal': -100,     // Shift toward green
+  'amber-orange': 160,    // Shift toward orange
+  'rose-coral': 100,      // Shift toward rose
+};
 
 interface ImageOrbsHeroProps {
   className?: string;
+  colorScheme?: ImageOrbsColorScheme;
   mode?: ImageOrbsMode;
   brightness?: number;
   orbCount?: number;
@@ -22,10 +34,12 @@ interface OrbConfig {
   phase: number;
   rotation: number;
   depth: number;
+  hueOffset: number;
 }
 
 export const ImageOrbsHero = memo(function ImageOrbsHero({
   className = '',
+  colorScheme = 'cyan-purple',
   mode = 'dark',
   brightness = 50,
   orbCount = 3,
@@ -42,6 +56,9 @@ export const ImageOrbsHero = memo(function ImageOrbsHero({
     ? { base: 'hsl(230, 25%, 5%)', mid: 'hsl(230, 30%, 8%)' }
     : { base: 'hsl(220, 20%, 96%)', mid: 'hsl(220, 25%, 94%)' };
 
+  // Base hue from color scheme
+  const baseHue = COLOR_SCHEME_HUE[colorScheme] || 0;
+
   // Alternate between orb images
   const orbImages = [orb1Image, orb2Image];
 
@@ -56,6 +73,7 @@ export const ImageOrbsHero = memo(function ImageOrbsHero({
     phase: (i * Math.PI * 0.6),
     rotation: i * 45,
     depth: 0.5 + (i * 0.2),
+    hueOffset: i * 10, // Slight hue variation per orb
   }));
 
   // Smooth animation loop
@@ -129,7 +147,6 @@ export const ImageOrbsHero = memo(function ImageOrbsHero({
               height: orb.size,
               transform: `translate(-50%, -50%) translate(${floatX + parallaxX}px, ${floatY + parallaxY}px) scale(${pulseScale}) rotate(${rotationAngle}deg)`,
               transition: 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-              filter: `brightness(${brightnessMultiplier})`,
               opacity: 0.9,
             }}
           >
@@ -138,7 +155,7 @@ export const ImageOrbsHero = memo(function ImageOrbsHero({
               alt=""
               className="w-full h-full object-contain"
               style={{
-                filter: 'blur(0px)',
+                filter: `brightness(${brightnessMultiplier}) hue-rotate(${baseHue + orb.hueOffset}deg)`,
               }}
             />
           </div>

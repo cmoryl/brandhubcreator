@@ -350,6 +350,7 @@ export const HeroSection = ({
         {hero.heroEffect === 'image-orbs' && !hero.useVideo && (
           <div className={`absolute inset-0 ${heroHeight} z-0`}>
             <ImageOrbsHero 
+              colorScheme={(hero.heroEffectColorScheme || 'cyan-purple') as any}
               mode={hero.heroEffectMode || 'dark'}
               brightness={hero.heroEffectBrightness ?? 50}
               orbCount={4}
