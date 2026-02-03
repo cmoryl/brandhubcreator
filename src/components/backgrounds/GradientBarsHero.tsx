@@ -25,9 +25,9 @@ export const GradientBarsHero = memo(function GradientBarsHero({
 
   // Intensity configurations
   const intensityConfig = {
-    subtle: { parallaxStrength: 8, glowOpacity: 0.3, animationSpeed: 0.0008 },
-    medium: { parallaxStrength: 15, glowOpacity: 0.5, animationSpeed: 0.001 },
-    bold: { parallaxStrength: 25, glowOpacity: 0.7, animationSpeed: 0.0015 },
+    subtle: { parallaxStrength: 5, glowOpacity: 0.5, animationSpeed: 0.0005 },
+    medium: { parallaxStrength: 10, glowOpacity: 0.7, animationSpeed: 0.0008 },
+    bold: { parallaxStrength: 18, glowOpacity: 0.9, animationSpeed: 0.001 },
   };
 
   const config = intensityConfig[intensity];
@@ -54,31 +54,24 @@ export const GradientBarsHero = memo(function GradientBarsHero({
     setMousePos(prev => ({ ...prev, isActive: false }));
   }, []);
 
-  // Generate bars with gradient colors
+  // Generate overlapping accordion bars
   const bars = Array.from({ length: barCount }, (_, i) => {
     const progress = i / (barCount - 1);
-    const baseHue = 200 + progress * 60; // Cyan to purple range
     
-    // Calculate parallax offset based on mouse position
+    // Calculate parallax offset based on mouse position - bars move in opposite directions
+    const depthFactor = (i - barCount / 2) / (barCount / 2); // -1 to 1
     const parallaxX = mousePos.isActive 
-      ? (mousePos.x - 0.5) * config.parallaxStrength * (1 - Math.abs(progress - 0.5))
-      : 0;
-    const parallaxY = mousePos.isActive 
-      ? (mousePos.y - 0.5) * config.parallaxStrength * 0.3
+      ? (mousePos.x - 0.5) * config.parallaxStrength * depthFactor * -1
       : 0;
 
-    // Animated glow intensity
-    const glowPhase = Math.sin(time + i * 0.8) * 0.3 + 0.7;
-    const edgeGlow = Math.sin(time * 1.5 + i * 0.5) * 0.2 + 0.8;
+    // Subtle breathing animation
+    const breathe = Math.sin(time + i * 0.5) * 2;
 
     return {
       id: i,
-      baseHue,
-      parallaxX,
-      parallaxY,
-      glowPhase,
-      edgeGlow,
+      parallaxX: parallaxX + breathe,
       progress,
+      zIndex: barCount - Math.abs(i - Math.floor(barCount / 2)), // Center bars on top
     };
   });
 
@@ -93,115 +86,120 @@ export const GradientBarsHero = memo(function GradientBarsHero({
       onMouseLeave={handleMouseLeave}
       aria-hidden="true"
     >
-      {/* Dark base layer */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950" />
+      {/* Dark base background */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(180deg, hsl(230, 40%, 8%) 0%, hsl(240, 35%, 12%) 50%, hsl(230, 40%, 8%) 100%)'
+        }}
+      />
 
-      {/* Animated gradient bars */}
+      {/* Accordion bars container */}
       <div className="absolute inset-0 flex justify-center items-stretch">
-        {bars.map((bar) => {
+        {bars.map((bar, index) => {
           const barWidth = 100 / barCount;
-          const gap = barWidth * 0.15;
+          const overlap = barWidth * 0.08; // Slight overlap for depth
           
           return (
             <div
               key={bar.id}
-              className="relative h-full transition-transform duration-300 ease-out"
+              className="relative h-full transition-transform duration-200 ease-out"
               style={{
-                width: `${barWidth}%`,
-                transform: `translate(${bar.parallaxX}px, ${bar.parallaxY}px)`,
+                width: `${barWidth + overlap}%`,
+                marginLeft: index === 0 ? 0 : `-${overlap / 2}%`,
+                transform: `translateX(${bar.parallaxX}px)`,
+                zIndex: bar.zIndex,
               }}
             >
-              {/* Main gradient bar */}
+              {/* Main bar panel with 3D gradient */}
               <div
-                className="absolute inset-x-2 inset-y-0 rounded-lg overflow-hidden"
+                className="absolute inset-0 overflow-hidden"
                 style={{
                   background: `linear-gradient(
-                    180deg,
-                    hsla(${bar.baseHue + 20}, 80%, 60%, ${0.1 * bar.glowPhase}) 0%,
-                    hsla(${bar.baseHue}, 70%, 50%, ${0.4 * bar.glowPhase}) 20%,
-                    hsla(${bar.baseHue - 20}, 60%, 40%, ${0.5 * bar.glowPhase}) 50%,
-                    hsla(${bar.baseHue + 40}, 70%, 50%, ${0.4 * bar.glowPhase}) 80%,
-                    hsla(${bar.baseHue + 20}, 80%, 60%, ${0.1 * bar.glowPhase}) 100%
+                    90deg,
+                    hsla(200, 90%, 60%, ${0.9 * config.glowOpacity}) 0%,
+                    hsla(220, 80%, 55%, 0.8) 8%,
+                    hsla(250, 60%, 45%, 0.9) 30%,
+                    hsla(260, 55%, 40%, 0.95) 50%,
+                    hsla(250, 60%, 45%, 0.9) 70%,
+                    hsla(220, 80%, 55%, 0.8) 92%,
+                    hsla(200, 90%, 60%, ${0.9 * config.glowOpacity}) 100%
                   )`,
                   boxShadow: `
-                    inset 0 0 60px hsla(${bar.baseHue}, 80%, 60%, ${0.15 * bar.edgeGlow}),
-                    0 0 40px hsla(${bar.baseHue}, 70%, 50%, ${0.1 * config.glowOpacity})
+                    inset 8px 0 40px hsla(200, 100%, 70%, ${0.3 * config.glowOpacity}),
+                    inset -8px 0 30px hsla(260, 60%, 30%, 0.4)
                   `,
                 }}
-              />
+              >
+                {/* Vertical gradient overlay for depth */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: `linear-gradient(
+                      180deg,
+                      hsla(200, 90%, 70%, 0.3) 0%,
+                      transparent 15%,
+                      transparent 50%,
+                      hsla(260, 50%, 35%, 0.2) 85%,
+                      hsla(200, 90%, 70%, 0.25) 100%
+                    )`,
+                  }}
+                />
 
-              {/* Edge glow effect - left */}
-              <div
-                className="absolute left-1 top-0 bottom-0 w-1 rounded-full"
-                style={{
-                  background: `linear-gradient(
-                    180deg,
-                    transparent 0%,
-                    hsla(${bar.baseHue + 30}, 90%, 70%, ${0.6 * bar.edgeGlow}) 30%,
-                    hsla(${bar.baseHue + 30}, 90%, 75%, ${0.8 * bar.edgeGlow}) 50%,
-                    hsla(${bar.baseHue + 30}, 90%, 70%, ${0.6 * bar.edgeGlow}) 70%,
-                    transparent 100%
-                  )`,
-                  filter: `blur(2px)`,
-                }}
-              />
+                {/* Left edge glow - the bright cyan edge */}
+                <div
+                  className="absolute left-0 top-0 bottom-0 w-3"
+                  style={{
+                    background: `linear-gradient(
+                      90deg,
+                      hsla(195, 100%, 65%, ${config.glowOpacity}) 0%,
+                      hsla(200, 90%, 60%, ${0.6 * config.glowOpacity}) 40%,
+                      transparent 100%
+                    )`,
+                  }}
+                />
 
-              {/* Edge glow effect - right */}
-              <div
-                className="absolute right-1 top-0 bottom-0 w-1 rounded-full"
-                style={{
-                  background: `linear-gradient(
-                    180deg,
-                    transparent 0%,
-                    hsla(${bar.baseHue + 30}, 90%, 70%, ${0.4 * bar.edgeGlow}) 30%,
-                    hsla(${bar.baseHue + 30}, 90%, 75%, ${0.6 * bar.edgeGlow}) 50%,
-                    hsla(${bar.baseHue + 30}, 90%, 70%, ${0.4 * bar.edgeGlow}) 70%,
-                    transparent 100%
-                  )`,
-                  filter: `blur(2px)`,
-                }}
-              />
+                {/* Left edge highlight line */}
+                <div
+                  className="absolute left-0 top-0 bottom-0 w-[2px]"
+                  style={{
+                    background: `linear-gradient(
+                      180deg,
+                      hsla(195, 100%, 80%, 0.2) 0%,
+                      hsla(195, 100%, 75%, ${0.9 * config.glowOpacity}) 20%,
+                      hsla(195, 100%, 80%, ${config.glowOpacity}) 50%,
+                      hsla(195, 100%, 75%, ${0.9 * config.glowOpacity}) 80%,
+                      hsla(195, 100%, 80%, 0.2) 100%
+                    )`,
+                    boxShadow: `0 0 12px hsla(195, 100%, 70%, ${0.8 * config.glowOpacity})`,
+                  }}
+                />
 
-              {/* Top glow accent */}
-              <div
-                className="absolute inset-x-3 top-0 h-32 rounded-b-full"
-                style={{
-                  background: `radial-gradient(
-                    ellipse at center top,
-                    hsla(${bar.baseHue + 40}, 100%, 80%, ${0.4 * bar.edgeGlow}) 0%,
-                    hsla(${bar.baseHue + 30}, 90%, 70%, ${0.2 * bar.edgeGlow}) 30%,
-                    transparent 70%
-                  )`,
-                  filter: 'blur(8px)',
-                }}
-              />
+                {/* Right shadow edge for depth between bars */}
+                <div
+                  className="absolute right-0 top-0 bottom-0 w-6"
+                  style={{
+                    background: `linear-gradient(
+                      90deg,
+                      transparent 0%,
+                      hsla(240, 50%, 10%, 0.6) 70%,
+                      hsla(240, 50%, 5%, 0.8) 100%
+                    )`,
+                  }}
+                />
+              </div>
 
-              {/* Bottom glow accent */}
-              <div
-                className="absolute inset-x-3 bottom-0 h-32 rounded-t-full"
-                style={{
-                  background: `radial-gradient(
-                    ellipse at center bottom,
-                    hsla(${bar.baseHue + 40}, 100%, 80%, ${0.3 * bar.edgeGlow}) 0%,
-                    hsla(${bar.baseHue + 30}, 90%, 70%, ${0.15 * bar.edgeGlow}) 30%,
-                    transparent 70%
-                  )`,
-                  filter: 'blur(8px)',
-                }}
-              />
-
-              {/* Interactive highlight following mouse Y */}
+              {/* Interactive mouse highlight */}
               {mousePos.isActive && (
                 <div
-                  className="absolute inset-x-2 h-40 rounded-full pointer-events-none transition-all duration-200"
+                  className="absolute inset-x-0 h-48 pointer-events-none transition-all duration-150"
                   style={{
-                    top: `${mousePos.y * 100 - 10}%`,
+                    top: `${mousePos.y * 100 - 12}%`,
                     background: `radial-gradient(
-                      ellipse at center,
-                      hsla(${bar.baseHue + 30}, 100%, 80%, ${0.25 * (1 - Math.abs(bar.progress - mousePos.x) * 2)}) 0%,
+                      ellipse 100% 80% at 50% 50%,
+                      hsla(200, 100%, 70%, ${0.15 * (1 - Math.abs(bar.progress - mousePos.x) * 1.5)}) 0%,
                       transparent 70%
                     )`,
-                    filter: 'blur(20px)',
                   }}
                 />
               )}
@@ -210,37 +208,27 @@ export const GradientBarsHero = memo(function GradientBarsHero({
         })}
       </div>
 
-      {/* Ambient particle dots */}
-      <div className="absolute inset-0 pointer-events-none">
-        {Array.from({ length: 12 }, (_, i) => {
-          const x = 10 + (i % 4) * 25 + Math.sin(time + i) * 3;
-          const y = 15 + Math.floor(i / 4) * 30 + Math.cos(time * 0.7 + i) * 5;
-          const opacity = 0.3 + Math.sin(time * 2 + i * 0.5) * 0.2;
-          
-          return (
-            <div
-              key={i}
-              className="absolute w-1.5 h-1.5 rounded-full"
-              style={{
-                left: `${x}%`,
-                top: `${y}%`,
-                background: `hsla(200, 90%, 70%, ${opacity})`,
-                boxShadow: `0 0 8px hsla(200, 90%, 70%, ${opacity * 0.8})`,
-              }}
-            />
-          );
-        })}
-      </div>
+      {/* Top edge ambient glow */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-32 pointer-events-none"
+        style={{
+          background: 'linear-gradient(180deg, hsla(200, 80%, 60%, 0.15) 0%, transparent 100%)',
+        }}
+      />
 
-      {/* Vignette overlay */}
+      {/* Bottom edge ambient glow */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
+        style={{
+          background: 'linear-gradient(0deg, hsla(200, 80%, 60%, 0.12) 0%, transparent 100%)',
+        }}
+      />
+
+      {/* Subtle vignette */}
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: `radial-gradient(
-            ellipse at center,
-            transparent 30%,
-            rgba(0, 0, 0, 0.3) 100%
-          )`,
+          background: 'radial-gradient(ellipse at center, transparent 40%, hsla(230, 40%, 5%, 0.4) 100%)',
         }}
       />
     </div>
