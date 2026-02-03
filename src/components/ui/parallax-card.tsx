@@ -12,6 +12,8 @@ interface ParallaxCardProps {
   scaleOnHover?: number;
   onClick?: () => void;
   style?: React.CSSProperties;
+  /** Mark image as high priority for LCP optimization */
+  priority?: boolean;
 }
 
 export function ParallaxCard({
@@ -25,6 +27,7 @@ export function ParallaxCard({
   scaleOnHover = 1.1,
   onClick,
   style: externalStyle,
+  priority = false,
 }: ParallaxCardProps) {
   const cardRef = useRef<HTMLButtonElement>(null);
   const [transform, setTransform] = useState({ rotateX: 0, rotateY: 0, translateX: 0, translateY: 0 });
@@ -91,6 +94,11 @@ export function ParallaxCard({
             <img
               src={imageSrc}
               alt={imageAlt}
+              width={896}
+              height={417}
+              loading={priority ? 'eager' : 'lazy'}
+              fetchPriority={priority ? 'high' : 'auto'}
+              decoding={priority ? 'sync' : 'async'}
               className="absolute inset-0 w-full h-full object-cover"
               style={{
                 transform: isHovering

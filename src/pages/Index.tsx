@@ -240,6 +240,7 @@ const Index = () => {
                   fallbackGradient={demo.gradient}
                   parallaxIntensity={15}
                   scaleOnHover={1.15}
+                  priority={index === 0}
                   className="group rounded-3xl bg-card/80 backdrop-blur-sm border border-border/50 hover:border-accent/60 shadow-lg hover:shadow-2xl hover:shadow-accent/10"
                   imageClassName="h-44 sm:h-48"
                   style={{
