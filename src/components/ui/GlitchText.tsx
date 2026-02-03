@@ -37,21 +37,18 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
     return () => clearInterval(interval);
   }, []);
 
-  // Theme-aware styling - more subtle scanlines in light mode
-  const scanlineColor = isDark 
-    ? 'rgba(0, 0, 0, 0.12)' 
-    : 'rgba(0, 80, 120, 0.04)';
-  
-  // In light mode, use softer blend and lower opacity for chromatic effect
-  const chromaticBlendMode = isDark ? 'screen' : 'multiply';
-  const chromaticOpacity = isDark ? 0.6 : 0.08;
-  
-  // Use theme-appropriate colors for chromatic aberration
-  const redColor = isDark ? '#ff0040' : 'hsl(199 60% 40%)';
-  const cyanColor = isDark ? '#00ffff' : 'hsl(199 80% 50%)';
+  // Keep the full “TV/glitch” treatment for dark mode only.
+  // In light mode, we render a cleaner accent treatment so it doesn't look like solid blocks.
+  const enableTvOverlays = isDark;
+
+  const scanlineColor = 'rgba(0, 0, 0, 0.12)';
+  const chromaticBlendMode = 'screen';
+  const chromaticOpacity = 0.6;
+  const redColor = '#ff0040';
+  const cyanColor = '#00ffff';
 
   return (
-    <span ref={ref} className={`glitch-text-wrapper relative inline-block ${className}`}>
+    <span ref={ref} className={`glitch-text-wrapper relative inline-block overflow-hidden ${className}`}>
       {/* Blue glow layer - more subtle in light mode */}
       <span 
         className="absolute inset-0 pointer-events-none"
@@ -69,66 +66,73 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
       </span>
       
       {/* Chromatic aberration layers - very subtle in light mode */}
-      <span 
-        className="absolute inset-0 pointer-events-none"
-        style={{ 
-          color: redColor,
-          transform: `translate(${glitchOffset.x - 1}px, ${glitchOffset.y}px)`,
-          mixBlendMode: chromaticBlendMode,
-          opacity: chromaticOpacity,
-          clipPath: 'polygon(0 0, 100% 0, 100% 45%, 0 45%)',
-        }}
-        aria-hidden="true"
-      >
-        {text}
-      </span>
-      <span 
-        className="absolute inset-0 pointer-events-none"
-        style={{ 
-          color: cyanColor,
-          transform: `translate(${glitchOffset.x + 1}px, ${glitchOffset.y}px)`,
-          mixBlendMode: chromaticBlendMode,
-          opacity: chromaticOpacity,
-          clipPath: 'polygon(0 55%, 100% 55%, 100% 100%, 0 100%)',
-        }}
-        aria-hidden="true"
-      >
-        {text}
-      </span>
+      {enableTvOverlays && (
+        <>
+          <span 
+            className="absolute inset-0 pointer-events-none"
+            style={{ 
+              color: redColor,
+              transform: `translate(${glitchOffset.x - 1}px, ${glitchOffset.y}px)`,
+              mixBlendMode: chromaticBlendMode as any,
+              opacity: chromaticOpacity,
+              clipPath: 'polygon(0 0, 100% 0, 100% 45%, 0 45%)',
+            }}
+            aria-hidden="true"
+          >
+            {text}
+          </span>
+          <span 
+            className="absolute inset-0 pointer-events-none"
+            style={{ 
+              color: cyanColor,
+              transform: `translate(${glitchOffset.x + 1}px, ${glitchOffset.y}px)`,
+              mixBlendMode: chromaticBlendMode as any,
+              opacity: chromaticOpacity,
+              clipPath: 'polygon(0 55%, 100% 55%, 100% 100%, 0 100%)',
+            }}
+            aria-hidden="true"
+          >
+            {text}
+          </span>
+        </>
+      )}
       
       {/* Scanlines overlay - very subtle in light mode */}
-      <span 
-        className="absolute inset-0 pointer-events-none overflow-hidden"
-        style={{
-          background: `repeating-linear-gradient(0deg, transparent, transparent 2px, ${scanlineColor} 2px, ${scanlineColor} 4px)`,
-          animation: 'scanlines 8s linear infinite',
-          opacity: isDark ? 1 : 0.5,
-        }}
-        aria-hidden="true"
-      />
+      {enableTvOverlays && (
+        <span 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `repeating-linear-gradient(0deg, transparent, transparent 2px, ${scanlineColor} 2px, ${scanlineColor} 4px)`,
+            animation: 'scanlines 8s linear infinite',
+          }}
+          aria-hidden="true"
+        />
+      )}
       
       {/* Random horizontal glitch bars - very subtle in light mode */}
-      <span 
-        className="absolute inset-0 pointer-events-none overflow-hidden"
-        style={{
-          background: `linear-gradient(
-            to bottom,
-            transparent 0%,
-            transparent ${20 + Math.random() * 10}%,
-            ${glowColor} ${20 + Math.random() * 10}%,
-            ${glowColor} ${22 + Math.random() * 10}%,
-            transparent ${22 + Math.random() * 10}%,
-            transparent ${60 + Math.random() * 10}%,
-            ${glowColor} ${60 + Math.random() * 10}%,
-            ${glowColor} ${61 + Math.random() * 10}%,
-            transparent ${61 + Math.random() * 10}%,
-            transparent 100%
-          )`,
-          animation: 'glitch-bars 3s steps(1) infinite',
-          opacity: isDark ? 0.3 : 0.08,
-        }}
-        aria-hidden="true"
-      />
+      {enableTvOverlays && (
+        <span 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `linear-gradient(
+              to bottom,
+              transparent 0%,
+              transparent ${20 + Math.random() * 10}%,
+              ${glowColor} ${20 + Math.random() * 10}%,
+              ${glowColor} ${22 + Math.random() * 10}%,
+              transparent ${22 + Math.random() * 10}%,
+              transparent ${60 + Math.random() * 10}%,
+              ${glowColor} ${60 + Math.random() * 10}%,
+              ${glowColor} ${61 + Math.random() * 10}%,
+              transparent ${61 + Math.random() * 10}%,
+              transparent 100%
+            )`,
+            animation: 'glitch-bars 3s steps(1) infinite',
+            opacity: 0.3,
+          }}
+          aria-hidden="true"
+        />
+      )}
       
       {/* Main text with gradient */}
       <span 
@@ -137,7 +141,6 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
           background: isDark 
             ? `linear-gradient(90deg, ${glowColor}, hsl(198 84% 60%), ${glowColor})`
             : `linear-gradient(90deg, hsl(199 85% 40%), hsl(199 90% 48%), hsl(199 85% 40%))`,
-          backgroundClip: 'text',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           textShadow: isDark 
