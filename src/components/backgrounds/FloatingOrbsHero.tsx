@@ -14,8 +14,8 @@ interface FloatingOrbsHeroProps {
 
 interface Orb {
   id: number;
-  x: number;
-  y: number;
+  baseX: number;
+  baseY: number;
   size: number;
   hue: number;
   speed: number;
@@ -34,10 +34,10 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
   colorScheme = 'blue-purple',
   mode = 'dark',
   brightness = 50,
-  orbCount = 3,
+  orbCount = 5,
 }: FloatingOrbsHeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
+  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5, isActive: false });
   const [smoothedMouse, setSmoothedMouse] = useState({ x: 0.5, y: 0.5 });
   const [time, setTime] = useState(0);
   const animationRef = useRef<number>(0);
@@ -49,16 +49,20 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
     ? { base: 'hsl(230, 25%, 5%)', mid: 'hsl(230, 30%, 8%)' }
     : { base: 'hsl(220, 20%, 96%)', mid: 'hsl(220, 25%, 94%)' };
 
-  // Generate stable orb configurations
-  const orbs: Orb[] = Array.from({ length: orbCount }, (_, i) => ({
-    id: i,
-    x: 20 + (i * 30) + (i % 2 === 0 ? 10 : -10),
-    y: 30 + (i * 15),
-    size: 250 + (i * 80) - (i % 2 === 0 ? 50 : 0),
-    hue: i % 2 === 0 ? colors.primary : colors.secondary,
-    speed: 0.3 + (i * 0.15),
-    phase: (i * Math.PI) / orbCount,
-  }));
+  // Generate stable orb configurations - spread around the container
+  const orbs: Orb[] = Array.from({ length: orbCount }, (_, i) => {
+    const angle = (i / orbCount) * Math.PI * 2;
+    const radius = 25 + (i % 2) * 10;
+    return {
+      id: i,
+      baseX: 50 + Math.cos(angle) * radius,
+      baseY: 50 + Math.sin(angle) * radius,
+      size: 180 + (i * 50) + (i % 2 === 0 ? 40 : 0),
+      hue: i % 2 === 0 ? colors.primary : colors.secondary,
+      speed: 0.4 + (i * 0.1),
+      phase: (i * Math.PI * 2) / orbCount,
+    };
+  });
 
   // Smooth animation loop
   useEffect(() => {
@@ -66,10 +70,10 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
 
     const animate = (timestamp: number) => {
       if (timestamp - lastTimestamp > 16) {
-        setTime(timestamp * 0.0002);
+        setTime(timestamp * 0.0003);
         setSmoothedMouse(prev => ({
-          x: prev.x + (mousePos.x - prev.x) * 0.03,
-          y: prev.y + (mousePos.y - prev.y) * 0.03,
+          x: prev.x + (mousePos.x - prev.x) * 0.06,
+          y: prev.y + (mousePos.y - prev.y) * 0.06,
         }));
         lastTimestamp = timestamp;
       }
@@ -86,14 +90,20 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
     setMousePos({
       x: (e.clientX - rect.left) / rect.width,
       y: (e.clientY - rect.top) / rect.height,
+      isActive: true,
     });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setMousePos(prev => ({ ...prev, isActive: false }));
   }, []);
 
   return (
     <div
       ref={containerRef}
-      className={cn('absolute inset-0 overflow-hidden z-0', className)}
+      className={cn('absolute inset-0 overflow-hidden z-0 pointer-events-auto', className)}
       onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       aria-hidden="true"
     >
       {/* Base background */}
@@ -106,27 +116,57 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
 
       {/* Floating orbs */}
       {orbs.map((orb) => {
-        // Calculate animated position
-        const floatX = Math.sin(time * orb.speed + orb.phase) * 20;
-        const floatY = Math.cos(time * orb.speed * 0.7 + orb.phase) * 15;
+        // Base floating animation
+        const floatX = Math.sin(time * orb.speed + orb.phase) * 30;
+        const floatY = Math.cos(time * orb.speed * 0.8 + orb.phase) * 25;
         
-        // Mouse parallax effect
-        const parallaxX = (smoothedMouse.x - 0.5) * 40 * ((orb.id + 1) / orbCount);
-        const parallaxY = (smoothedMouse.y - 0.5) * 25 * ((orb.id + 1) / orbCount);
+        // Calculate distance from mouse to orb center
+        const orbCenterX = orb.baseX / 100;
+        const orbCenterY = orb.baseY / 100;
+        const distToMouse = Math.sqrt(
+          Math.pow(smoothedMouse.x - orbCenterX, 2) + 
+          Math.pow(smoothedMouse.y - orbCenterY, 2)
+        );
+        
+        // SPREAD/GATHER EFFECT: Orbs move away from mouse when it's near, gather when far
+        const spreadStrength = mousePos.isActive ? 120 : 0;
+        const spreadThreshold = 0.4; // How close mouse needs to be to trigger spread
+        
+        let spreadX = 0;
+        let spreadY = 0;
+        
+        if (distToMouse < spreadThreshold && mousePos.isActive) {
+          // Push orb away from mouse
+          const pushFactor = (1 - distToMouse / spreadThreshold) * spreadStrength;
+          const angle = Math.atan2(orbCenterY - smoothedMouse.y, orbCenterX - smoothedMouse.x);
+          spreadX = Math.cos(angle) * pushFactor;
+          spreadY = Math.sin(angle) * pushFactor;
+        } else if (!mousePos.isActive) {
+          // Slowly return to base position (handled by smoothing)
+          spreadX = 0;
+          spreadY = 0;
+        }
 
-        const pulseScale = 1 + Math.sin(time * 0.8 + orb.phase) * 0.08;
+        // Pulse scale - more dramatic when mouse is active
+        const basePulse = 1 + Math.sin(time * 1.2 + orb.phase) * 0.1;
+        const mouseProximityScale = mousePos.isActive && distToMouse < 0.3 
+          ? 1.15 + (1 - distToMouse / 0.3) * 0.2 
+          : 1;
+        const pulseScale = basePulse * mouseProximityScale;
 
         return (
           <div
             key={orb.id}
             className="absolute rounded-full pointer-events-none"
             style={{
-              left: `${orb.x}%`,
-              top: `${orb.y}%`,
+              left: `${orb.baseX}%`,
+              top: `${orb.baseY}%`,
               width: orb.size,
               height: orb.size,
-              transform: `translate(${floatX + parallaxX}px, ${floatY + parallaxY}px) scale(${pulseScale})`,
-              transition: 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              transform: `translate(-50%, -50%) translate(${floatX + spreadX}px, ${floatY + spreadY}px) scale(${pulseScale})`,
+              transition: mousePos.isActive 
+                ? 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)' 
+                : 'transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
             }}
           >
             {/* Inner bright core */}
@@ -135,32 +175,59 @@ export const FloatingOrbsHero = memo(function FloatingOrbsHero({
               style={{
                 background: `radial-gradient(
                   circle at 35% 35%,
-                  hsla(${orb.hue}, 80%, ${90 * brightnessMultiplier}%, 0.9) 0%,
-                  hsla(${orb.hue}, 85%, ${70 * brightnessMultiplier}%, 0.7) 25%,
-                  hsla(${orb.hue + 20}, 75%, ${55 * brightnessMultiplier}%, 0.4) 50%,
-                  hsla(${orb.hue + 40}, 60%, ${40 * brightnessMultiplier}%, 0.15) 75%,
+                  hsla(${orb.hue}, 85%, ${95 * brightnessMultiplier}%, 0.95) 0%,
+                  hsla(${orb.hue}, 90%, ${75 * brightnessMultiplier}%, 0.75) 20%,
+                  hsla(${orb.hue + 20}, 80%, ${60 * brightnessMultiplier}%, 0.45) 45%,
+                  hsla(${orb.hue + 40}, 65%, ${45 * brightnessMultiplier}%, 0.2) 70%,
                   transparent 100%
                 )`,
-                filter: 'blur(40px)',
+                filter: 'blur(35px)',
               }}
             />
 
             {/* Outer glow halo */}
             <div
-              className="absolute -inset-1/4 rounded-full"
+              className="absolute -inset-1/3 rounded-full"
               style={{
                 background: `radial-gradient(
                   circle at 40% 40%,
-                  hsla(${orb.hue}, 70%, ${60 * brightnessMultiplier}%, 0.3) 0%,
-                  hsla(${orb.hue + 30}, 50%, ${45 * brightnessMultiplier}%, 0.1) 50%,
-                  transparent 80%
+                  hsla(${orb.hue}, 75%, ${65 * brightnessMultiplier}%, 0.35) 0%,
+                  hsla(${orb.hue + 30}, 55%, ${50 * brightnessMultiplier}%, 0.15) 45%,
+                  transparent 75%
                 )`,
-                filter: 'blur(60px)',
+                filter: 'blur(50px)',
               }}
             />
           </div>
         );
       })}
+
+      {/* Connection lines between nearby orbs - adds visual interest */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.15 }}>
+        {orbs.map((orb, i) => 
+          orbs.slice(i + 1).map((other, j) => {
+            const x1 = orb.baseX;
+            const y1 = orb.baseY;
+            const x2 = other.baseX;
+            const y2 = other.baseY;
+            const dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            if (dist > 50) return null;
+            
+            return (
+              <line
+                key={`${i}-${j}`}
+                x1={`${x1}%`}
+                y1={`${y1}%`}
+                x2={`${x2}%`}
+                y2={`${y2}%`}
+                stroke={`hsl(${colors.primary}, 70%, 60%)`}
+                strokeWidth="1"
+                style={{ opacity: 1 - dist / 50 }}
+              />
+            );
+          })
+        )}
+      </svg>
 
       {/* Subtle vignette */}
       <div

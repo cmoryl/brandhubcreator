@@ -10,10 +10,10 @@ interface GradientBarsHeroProps {
   intensity?: 'subtle' | 'medium' | 'bold';
   colorScheme?: GradientBarsColorScheme;
   mode?: GradientBarsMode;
-  brightness?: number; // 0-100, default 50
+  brightness?: number;
   customColors?: {
-    primary: string; // HSL hue value (0-360)
-    secondary: string; // HSL hue value (0-360)
+    primary: string;
+    secondary: string;
   };
 }
 
@@ -23,13 +23,11 @@ interface MousePosition {
   isActive: boolean;
 }
 
-// Smoothed mouse position for fluid animation
 interface SmoothedPosition {
   x: number;
   y: number;
 }
 
-// Color scheme definitions (primary hue, secondary hue)
 const COLOR_SCHEMES: Record<Exclude<GradientBarsColorScheme, 'custom'>, { primary: number; secondary: number }> = {
   'cyan-purple': { primary: 195, secondary: 260 },
   'blue-teal': { primary: 210, secondary: 180 },
@@ -53,43 +51,35 @@ export const GradientBarsHero = memo(function GradientBarsHero({
   const [time, setTime] = useState(0);
   const animationRef = useRef<number>(0);
 
-  // Get color values based on scheme
   const colors = colorScheme === 'custom' && customColors 
     ? { primary: parseInt(customColors.primary), secondary: parseInt(customColors.secondary) }
     : COLOR_SCHEMES[colorScheme === 'custom' ? 'cyan-purple' : colorScheme];
 
-  // Brightness adjustment (0-100 maps to 0.3-1.5)
   const brightnessMultiplier = 0.3 + (brightness / 100) * 1.2;
 
-  // Mode-based background colors
   const bgColors = mode === 'dark' 
     ? { base: 'hsl(230, 40%, 8%)', mid: 'hsl(240, 35%, 12%)', shadow: 0.9 }
     : { base: 'hsl(220, 20%, 92%)', mid: 'hsl(220, 25%, 96%)', shadow: 0.3 };
 
-  // Intensity configurations with smoother animation
   const intensityConfig = {
-    subtle: { parallaxStrength: 4, glowOpacity: 0.4, animationSpeed: 0.0003, smoothing: 0.03 },
-    medium: { parallaxStrength: 8, glowOpacity: 0.6, animationSpeed: 0.0005, smoothing: 0.05 },
-    bold: { parallaxStrength: 14, glowOpacity: 0.85, animationSpeed: 0.0007, smoothing: 0.08 },
+    subtle: { parallaxStrength: 6, glowOpacity: 0.45, animationSpeed: 0.0004, smoothing: 0.04, expandStrength: 25 },
+    medium: { parallaxStrength: 12, glowOpacity: 0.65, animationSpeed: 0.0006, smoothing: 0.06, expandStrength: 45 },
+    bold: { parallaxStrength: 20, glowOpacity: 0.9, animationSpeed: 0.0008, smoothing: 0.1, expandStrength: 70 },
   };
 
   const config = intensityConfig[intensity];
 
-  // Smooth animation loop with interpolated mouse following
+  // Smooth animation loop
   useEffect(() => {
     let lastTimestamp = 0;
     
     const animate = (timestamp: number) => {
-      // Throttle to ~30fps for smoother performance
       if (timestamp - lastTimestamp > 16) {
         setTime(timestamp * config.animationSpeed);
-        
-        // Smooth interpolation of mouse position
         setSmoothedPos(prev => ({
           x: prev.x + (mousePos.x - prev.x) * config.smoothing,
           y: prev.y + (mousePos.y - prev.y) * config.smoothing,
         }));
-        
         lastTimestamp = timestamp;
       }
       animationRef.current = requestAnimationFrame(animate);
@@ -111,32 +101,50 @@ export const GradientBarsHero = memo(function GradientBarsHero({
     setMousePos(prev => ({ ...prev, isActive: false }));
   }, []);
 
-  // Generate overlapping accordion bars with smooth wave motion
+  // Generate bars with CONTRACT/EXPAND effect
   const bars = Array.from({ length: barCount }, (_, i) => {
     const progress = i / (barCount - 1);
+    const centerIndex = (barCount - 1) / 2;
+    const distFromCenter = i - centerIndex;
+    const normalizedDist = distFromCenter / centerIndex; // -1 to 1
     
-    // Calculate parallax offset based on smoothed mouse position
-    const depthFactor = (i - barCount / 2) / (barCount / 2);
+    // Calculate mouse proximity to this bar's horizontal position
+    const barXPos = progress;
+    const mouseDistToBar = Math.abs(smoothedPos.x - barXPos);
+    
+    // CONTRACT/EXPAND: Bars spread apart when mouse is near, contract when far
+    const expandFactor = mousePos.isActive 
+      ? (1 - Math.min(mouseDistToBar * 2, 1)) * config.expandStrength * normalizedDist
+      : 0;
+
+    // Base parallax from mouse position
+    const depthFactor = normalizedDist;
     const parallaxX = mousePos.isActive 
       ? (smoothedPos.x - 0.5) * config.parallaxStrength * depthFactor * -1
       : 0;
 
-    // Smooth sine wave animation with phase offset per bar
-    const wavePhase = time + i * 0.4;
-    const primaryWave = Math.sin(wavePhase) * 3;
-    const secondaryWave = Math.sin(wavePhase * 0.7 + Math.PI / 3) * 2;
+    // Smooth wave animation
+    const wavePhase = time + i * 0.5;
+    const primaryWave = Math.sin(wavePhase) * 4;
+    const secondaryWave = Math.sin(wavePhase * 0.6 + Math.PI / 4) * 3;
     const combinedWave = primaryWave + secondaryWave;
+
+    // Scale effect - bars near mouse get slightly taller
+    const scaleY = mousePos.isActive && mouseDistToBar < 0.25
+      ? 1 + (1 - mouseDistToBar / 0.25) * 0.08
+      : 1;
 
     return {
       id: i,
-      parallaxX: parallaxX + combinedWave,
+      parallaxX: parallaxX + expandFactor + combinedWave,
       progress,
       zIndex: barCount - Math.abs(i - Math.floor(barCount / 2)),
       waveOffset: combinedWave,
+      scaleY,
+      glowIntensity: mousePos.isActive && mouseDistToBar < 0.2 ? 1.5 : 1,
     };
   });
 
-  // Calculate bar gradient based on color scheme and mode
   const getBarGradient = (index: number) => {
     const { primary, secondary } = colors;
     const lightness = mode === 'dark' ? 55 : 45;
@@ -154,10 +162,10 @@ export const GradientBarsHero = memo(function GradientBarsHero({
     )`;
   };
 
-  const getEdgeGlow = () => {
+  const getEdgeGlow = (glowIntensity: number) => {
     const { primary } = colors;
     const lightness = mode === 'dark' ? 65 : 50;
-    return `hsla(${primary - 5}, 100%, ${lightness}%, ${config.glowOpacity})`;
+    return `hsla(${primary - 5}, 100%, ${lightness}%, ${config.glowOpacity * glowIntensity})`;
   };
 
   return (
@@ -171,7 +179,7 @@ export const GradientBarsHero = memo(function GradientBarsHero({
       onMouseLeave={handleMouseLeave}
       aria-hidden="true"
     >
-      {/* Base background with mode support */}
+      {/* Base background */}
       <div 
         className="absolute inset-0"
         style={{
@@ -179,7 +187,7 @@ export const GradientBarsHero = memo(function GradientBarsHero({
         }}
       />
 
-      {/* Accordion bars container - z-0 to stay behind content */}
+      {/* Accordion bars container */}
       <div className="absolute inset-0 flex justify-center items-stretch z-0">
         {bars.map((bar, index) => {
           const barWidth = 100 / (barCount * 0.4);
@@ -188,29 +196,31 @@ export const GradientBarsHero = memo(function GradientBarsHero({
           return (
             <div
               key={bar.id}
-              className="relative h-full"
+              className="relative h-full origin-center"
               style={{
                 width: `${barWidth}%`,
                 marginLeft: index === 0 ? 0 : `-${overlap}%`,
-                transform: `translateX(${bar.parallaxX}px)`,
+                transform: `translateX(${bar.parallaxX}px) scaleY(${bar.scaleY})`,
                 zIndex: bar.zIndex,
-                transition: 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                transition: mousePos.isActive 
+                  ? 'transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                  : 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
               }}
             >
-              {/* Main bar panel with dynamic gradient */}
+              {/* Main bar panel */}
               <div
                 className="absolute inset-0 overflow-hidden rounded-sm"
                 style={{
                   background: getBarGradient(index),
                   boxShadow: `
-                    inset 10px 0 45px hsla(${colors.primary}, 100%, 70%, ${0.35 * config.glowOpacity}),
+                    inset 10px 0 45px hsla(${colors.primary}, 100%, 70%, ${0.35 * config.glowOpacity * bar.glowIntensity}),
                     inset -8px 0 35px hsla(${colors.secondary}, 60%, 28%, ${0.45 * bgColors.shadow}),
                     -5px 0 20px hsla(${colors.secondary - 20}, 50%, 15%, ${0.4 * bgColors.shadow})
                   `,
-                  filter: `brightness(${brightnessMultiplier})`,
+                  filter: `brightness(${brightnessMultiplier * (bar.glowIntensity > 1 ? 1.1 : 1)})`,
                 }}
               >
-                {/* Vertical gradient overlay for depth */}
+                {/* Vertical gradient overlay */}
                 <div
                   className="absolute inset-0"
                   style={{
@@ -225,14 +235,14 @@ export const GradientBarsHero = memo(function GradientBarsHero({
                   }}
                 />
 
-                {/* Left edge glow - smooth animated highlight */}
+                {/* Left edge glow */}
                 <div
-                  className="absolute left-0 top-0 bottom-0 w-3"
+                  className="absolute left-0 top-0 bottom-0 w-4"
                   style={{
                     background: `linear-gradient(
                       90deg,
-                      ${getEdgeGlow()} 0%,
-                      hsla(${colors.primary}, 95%, 58%, ${0.7 * config.glowOpacity}) 35%,
+                      ${getEdgeGlow(bar.glowIntensity)} 0%,
+                      hsla(${colors.primary}, 95%, 58%, ${0.7 * config.glowOpacity * bar.glowIntensity}) 35%,
                       transparent 100%
                     )`,
                   }}
@@ -245,16 +255,16 @@ export const GradientBarsHero = memo(function GradientBarsHero({
                     background: `linear-gradient(
                       180deg,
                       hsla(${colors.primary - 5}, 100%, 85%, 0.15) 0%,
-                      hsla(${colors.primary - 5}, 100%, 80%, ${config.glowOpacity * 0.95}) 15%,
-                      hsla(${colors.primary - 5}, 100%, 85%, ${config.glowOpacity}) 50%,
-                      hsla(${colors.primary - 5}, 100%, 80%, ${config.glowOpacity * 0.95}) 85%,
+                      hsla(${colors.primary - 5}, 100%, 80%, ${config.glowOpacity * 0.95 * bar.glowIntensity}) 15%,
+                      hsla(${colors.primary - 5}, 100%, 85%, ${config.glowOpacity * bar.glowIntensity}) 50%,
+                      hsla(${colors.primary - 5}, 100%, 80%, ${config.glowOpacity * 0.95 * bar.glowIntensity}) 85%,
                       hsla(${colors.primary - 5}, 100%, 85%, 0.15) 100%
                     )`,
-                    boxShadow: `0 0 14px hsla(${colors.primary - 5}, 100%, 70%, ${0.85 * config.glowOpacity})`,
+                    boxShadow: `0 0 ${14 * bar.glowIntensity}px hsla(${colors.primary - 5}, 100%, 70%, ${0.85 * config.glowOpacity * bar.glowIntensity})`,
                   }}
                 />
 
-                {/* Right shadow edge for depth between bars */}
+                {/* Right shadow edge */}
                 <div
                   className="absolute right-0 top-0 bottom-0 w-10"
                   style={{
@@ -265,18 +275,18 @@ export const GradientBarsHero = memo(function GradientBarsHero({
                 />
               </div>
 
-              {/* Smooth mouse-following highlight */}
+              {/* Mouse-following highlight */}
               {mousePos.isActive && (
                 <div
-                  className="absolute inset-x-0 h-64 pointer-events-none"
+                  className="absolute inset-x-0 h-72 pointer-events-none"
                   style={{
-                    top: `${smoothedPos.y * 100 - 16}%`,
+                    top: `${smoothedPos.y * 100 - 18}%`,
                     background: `radial-gradient(
-                      ellipse 100% 60% at 50% 50%,
-                      hsla(${colors.primary}, 100%, 72%, ${0.15 * (1 - Math.abs(bar.progress - smoothedPos.x) * 1.2)}) 0%,
-                      transparent 70%
+                      ellipse 120% 70% at 50% 50%,
+                      hsla(${colors.primary}, 100%, 75%, ${0.2 * (1 - Math.abs(bar.progress - smoothedPos.x) * 1.5)}) 0%,
+                      transparent 65%
                     )`,
-                    transition: 'opacity 0.3s ease',
+                    transition: 'opacity 0.25s ease',
                   }}
                 />
               )}
@@ -285,7 +295,7 @@ export const GradientBarsHero = memo(function GradientBarsHero({
         })}
       </div>
 
-      {/* Top edge ambient glow */}
+      {/* Top ambient glow */}
       <div 
         className="absolute top-0 left-0 right-0 h-32 pointer-events-none z-0"
         style={{
@@ -293,7 +303,7 @@ export const GradientBarsHero = memo(function GradientBarsHero({
         }}
       />
 
-      {/* Bottom edge ambient glow */}
+      {/* Bottom ambient glow */}
       <div 
         className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-0"
         style={{
@@ -301,7 +311,7 @@ export const GradientBarsHero = memo(function GradientBarsHero({
         }}
       />
 
-      {/* Subtle vignette */}
+      {/* Vignette */}
       <div 
         className="absolute inset-0 pointer-events-none z-0"
         style={{
