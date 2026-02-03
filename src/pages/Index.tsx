@@ -384,7 +384,7 @@ const Index = () => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => navigate('/faq')}
+                onClick={() => navigate('/knowledge')}
                 className="text-muted-foreground hover:text-foreground gap-1.5"
               >
                 <HelpCircle className="h-4 w-4" />
