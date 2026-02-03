@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ChevronLeft, ChevronRight, Play, Keyboard, SkipForward } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Play, Keyboard, SkipForward, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { TourCategory, TOUR_CATEGORIES } from '@/data/demoTourSteps';
 import { Progress } from '@/components/ui/progress';
-
+import { GlitchText } from '@/components/ui/GlitchText';
 export interface TourStep {
   target: string; // CSS selector
   title: string;
@@ -357,65 +357,99 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
         </div>
       )}
 
-      {/* Enhanced Tooltip - More prominent styling */}
+      {/* Enhanced Tooltip - Cyberpunk-inspired design */}
       <div
         className={cn(
-          "absolute z-10 w-[420px] max-w-[calc(100vw-32px)] rounded-2xl transition-all duration-300",
-          "bg-gradient-to-br from-card via-card to-accent/5",
-          "border-2 border-accent/40 shadow-[0_8px_40px_-8px_rgba(0,0,0,0.3),0_0_0_1px_rgba(var(--accent),0.1)]",
-          "ring-2 ring-accent/20 ring-offset-2 ring-offset-background",
-          isAnimating ? "opacity-0 scale-95" : "opacity-100 scale-100"
+          "absolute z-10 w-[440px] max-w-[calc(100vw-32px)] rounded-xl transition-all duration-300",
+          "bg-gradient-to-br from-background/98 via-card/95 to-background/98",
+          "backdrop-blur-xl",
+          "border border-accent/30",
+          "shadow-[0_0_60px_-15px_hsl(var(--accent)),0_25px_50px_-12px_rgba(0,0,0,0.5)]",
+          isAnimating ? "opacity-0 scale-95 translate-y-2" : "opacity-100 scale-100 translate-y-0"
         )}
         style={tooltipStyle}
       >
-        {/* Accent header bar */}
-        <div className="h-1.5 bg-gradient-to-r from-accent via-primary to-accent rounded-t-2xl" />
-        
-        {/* Progress bar at top */}
-        <div className="px-6 pt-4">
-          <Progress value={progress} className="h-1.5" />
+        {/* Animated top border with scanning effect */}
+        <div className="relative h-1 rounded-t-xl overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent to-transparent animate-[shimmer_2s_infinite]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-accent/50 via-primary/50 to-accent/50" />
         </div>
+        
+        {/* Corner accents */}
+        <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-accent/60 rounded-tl-xl" />
+        <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-accent/60 rounded-tr-xl" />
+        <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-accent/40 rounded-bl-xl" />
+        <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-accent/40 rounded-br-xl" />
 
-        <div className="p-6 pt-4">
-          {/* Category navigation */}
+        <div className="p-5 space-y-4">
+          {/* Category navigation pills */}
           <CategoryNav 
             steps={availableSteps} 
             currentStep={safeCurrentStep} 
             onJumpToCategory={handleJumpToCategory}
           />
 
-          {/* Header with category badge and close */}
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="space-y-1.5">
+          {/* Sleek progress bar */}
+          <div className="relative">
+            <div className="h-0.5 bg-muted/30 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-accent via-primary to-accent transition-all duration-500 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Header section with glitch title */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-2 flex-1 min-w-0">
               <CategoryBadge category={step?.category} />
-              <h3 className="text-xl font-bold text-foreground leading-tight">{step?.title}</h3>
+              <h3 className="text-2xl font-bold leading-tight tracking-tight">
+                <GlitchText text={step?.title || ''} className="text-2xl font-bold" />
+              </h3>
             </div>
             <button
               onClick={onClose}
-              className="text-muted-foreground hover:text-foreground transition-colors p-1.5 hover:bg-muted rounded-lg flex-shrink-0"
+              className={cn(
+                "p-2 rounded-lg transition-all duration-200 flex-shrink-0",
+                "text-muted-foreground hover:text-foreground",
+                "hover:bg-accent/10 hover:shadow-[0_0_10px_hsl(var(--accent)/0.3)]",
+                "border border-transparent hover:border-accent/30"
+              )}
               aria-label="Close tour"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Description */}
-          <p className="text-sm text-muted-foreground mb-5 leading-relaxed">{step?.description}</p>
+          {/* Description with subtle styling */}
+          <div className="relative pl-3 border-l-2 border-accent/30">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {step?.description}
+            </p>
+          </div>
 
           {/* Navigation footer */}
-          <div className="flex items-center justify-between pt-2 border-t border-border/50">
+          <div className="flex items-center justify-between pt-3 border-t border-border/30">
             <div className="flex items-center gap-3">
-              <span className="text-xs font-medium text-muted-foreground tabular-nums">
-                {safeCurrentStep + 1} / {availableSteps.length}
-              </span>
+              <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/30 rounded-md">
+                <Sparkles className="h-3 w-3 text-accent" />
+                <span className="text-xs font-mono text-muted-foreground">
+                  {String(safeCurrentStep + 1).padStart(2, '0')}/{String(availableSteps.length).padStart(2, '0')}
+                </span>
+              </div>
               <KeyboardHint />
             </div>
             
             <div className="flex items-center gap-2">
               {safeCurrentStep > 0 && (
-                <Button variant="ghost" size="sm" onClick={handlePrev} className="gap-1 h-8">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handlePrev} 
+                  className="gap-1 h-8 hover:bg-accent/10"
+                >
                   <ChevronLeft className="h-4 w-4" />
-                  <span className="hidden sm:inline">Back</span>
+                  <span className="hidden sm:inline text-xs">Back</span>
                 </Button>
               )}
               
@@ -424,20 +458,39 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
                   variant="ghost" 
                   size="sm" 
                   onClick={handleSkipToEnd} 
-                  className="h-8 px-2"
+                  className="h-8 px-2 hover:bg-accent/10"
                   title="Skip tour"
                 >
                   <SkipForward className="h-4 w-4" />
                 </Button>
               )}
               
-              <Button size="sm" onClick={handleNext} className="gap-1 h-8 px-4">
-                {safeCurrentStep === availableSteps.length - 1 ? 'Complete' : 'Next'}
-                {safeCurrentStep < availableSteps.length - 1 && <ChevronRight className="h-4 w-4" />}
+              <Button 
+                size="sm" 
+                onClick={handleNext} 
+                className={cn(
+                  "gap-1 h-8 px-4",
+                  "bg-gradient-to-r from-accent to-primary hover:from-accent/90 hover:to-primary/90",
+                  "shadow-[0_0_20px_-5px_hsl(var(--accent))]",
+                  "transition-all duration-200 hover:shadow-[0_0_25px_-3px_hsl(var(--accent))]"
+                )}
+              >
+                <span className="text-xs font-medium">
+                  {safeCurrentStep === availableSteps.length - 1 ? 'Complete' : 'Next'}
+                </span>
+                {safeCurrentStep < availableSteps.length - 1 && <ChevronRight className="h-3.5 w-3.5" />}
               </Button>
             </div>
           </div>
         </div>
+        
+        {/* Subtle scanline overlay */}
+        <div 
+          className="absolute inset-0 pointer-events-none rounded-xl opacity-[0.03]"
+          style={{
+            background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)',
+          }}
+        />
       </div>
     </div>,
     document.body
