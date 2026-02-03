@@ -52,8 +52,8 @@ const PendingApprovalPage = () => {
       <div className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md text-center">
           <CardHeader className="pb-4">
-            <div className="mx-auto p-4 bg-accent/10 rounded-full w-fit mb-4">
-              <Clock className="h-12 w-12 text-accent" />
+            <div className="mx-auto p-4 bg-amber-500/10 rounded-full w-fit mb-4">
+              <Clock className="h-12 w-12 text-amber-500" />
             </div>
             <CardTitle className="text-2xl">
               {accessStatus === 'error' ? 'Unable to Verify Access' : 'Account Pending Approval'}
