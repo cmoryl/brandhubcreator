@@ -201,6 +201,9 @@ export interface BrandSignature {
   website?: string;
   address?: string;
   logoUrl?: string;
+  // Logo dimensions (with aspect ratio lock)
+  logoWidth?: number;
+  logoHeight?: number;
   variant?: 'full' | 'reply' | 'minimal';
   confidentialityNotice?: string;
   // Custom accent color (overrides default TransPerfect Blue)
@@ -218,7 +221,7 @@ export interface BrandEmailBanner {
   description?: string;
 }
 
-// QR - Access Ports
+// QR - QR Codes
 export interface BrandQR {
   defaultUrl: string;
   fgColor: string;
@@ -659,7 +662,7 @@ export interface BaseGuide {
   logos: BrandLogo[];
   // Brand Icons (Symbol Standards)
   brandIcons: BrandIcon[];
-  // Colors (Prismatic Lab)
+  // Colors (Color Palette)
   colors: BrandColor[];
   // Color Combinations (A/B Testing)
   colorCombinations: ColorCombination[];
@@ -689,7 +692,7 @@ export interface BaseGuide {
   signatures: BrandSignature[];
   // Email Banners (Promotional banners below signatures)
   emailBanners?: BrandEmailBanner[];
-  // QR (Access Ports)
+  // QR (QR Codes)
   qr: BrandQR;
   // Videos (Video Resources)
   videos: BrandVideo[];
