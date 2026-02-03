@@ -394,12 +394,16 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
                         key={effect.id}
                         type="button"
                         onClick={(e) => {
-                          e.stopPropagation();
-                          // Disable Ken Burns when selecting an effect
-                          if (effect.id !== 'none' && kenBurnsEffect) {
-                            onKenBurnsToggle();
+                          try {
+                            e.stopPropagation();
+                            // Disable Ken Burns when selecting an effect
+                            if (effect.id !== 'none' && kenBurnsEffect) {
+                              onKenBurnsToggle();
+                            }
+                            onHeroEffectChange?.(effect.id);
+                          } catch (error) {
+                            console.error('Error changing hero effect:', error);
                           }
-                          onHeroEffectChange(effect.id);
                         }}
                         className={cn(
                           "relative h-20 rounded-xl border-2 overflow-hidden transition-all text-left p-2 flex flex-col justify-end",
@@ -442,8 +446,12 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
                                 key={preset.id}
                                 type="button"
                                 onClick={(e) => {
-                                  e.stopPropagation();
-                                  onHeroEffectIntensityChange(preset.id);
+                                  try {
+                                    e.stopPropagation();
+                                    onHeroEffectIntensityChange?.(preset.id);
+                                  } catch (error) {
+                                    console.error('Error changing effect intensity:', error);
+                                  }
                                 }}
                                 className={cn(
                                   "flex-1 py-2 rounded-lg border text-xs font-medium transition-all",
@@ -469,8 +477,12 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
                                 key={scheme.id}
                                 type="button"
                                 onClick={(e) => {
-                                  e.stopPropagation();
-                                  onHeroEffectColorSchemeChange(scheme.id);
+                                  try {
+                                    e.stopPropagation();
+                                    onHeroEffectColorSchemeChange?.(scheme.id);
+                                  } catch (error) {
+                                    console.error('Error changing color scheme:', error);
+                                  }
                                 }}
                                 className={cn(
                                   "relative h-8 rounded-lg border-2 overflow-hidden transition-all",
@@ -505,8 +517,12 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
                             <button
                               type="button"
                               onClick={(e) => {
-                                e.stopPropagation();
-                                onHeroEffectModeChange('dark');
+                                try {
+                                  e.stopPropagation();
+                                  onHeroEffectModeChange?.('dark');
+                                } catch (error) {
+                                  console.error('Error changing mode:', error);
+                                }
                               }}
                               className={cn(
                                 "flex-1 py-2 rounded-lg border text-xs font-medium transition-all flex items-center justify-center gap-1.5",
@@ -521,8 +537,12 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
                             <button
                               type="button"
                               onClick={(e) => {
-                                e.stopPropagation();
-                                onHeroEffectModeChange('light');
+                                try {
+                                  e.stopPropagation();
+                                  onHeroEffectModeChange?.('light');
+                                } catch (error) {
+                                  console.error('Error changing mode:', error);
+                                }
                               }}
                               className={cn(
                                 "flex-1 py-2 rounded-lg border text-xs font-medium transition-all flex items-center justify-center gap-1.5",
@@ -547,7 +567,13 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
                           </div>
                           <Slider
                             value={[heroEffectBrightness]}
-                            onValueChange={([val]) => onHeroEffectBrightnessChange(val)}
+                            onValueChange={([val]) => {
+                              try {
+                                onHeroEffectBrightnessChange?.(val);
+                              } catch (error) {
+                                console.error('Error changing brightness:', error);
+                              }
+                            }}
                             min={10}
                             max={100}
                             step={5}
