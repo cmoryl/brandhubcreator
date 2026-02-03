@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Star, Building2, Package, Calendar, ExternalLink, Shield, Settings, FileText, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -42,6 +42,7 @@ const pageTransition = {
 // Admins can edit demo content (session-only changes)
 export default function DemoGuideViewer() {
   const { type, slug } = useParams<{ type: 'brand' | 'product' | 'event'; slug: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [activeSection, setActiveSection] = useState<SectionId | null>(null);
@@ -77,6 +78,26 @@ export default function DemoGuideViewer() {
 
   const sectionOrder = (demoGuide?.sectionOrder || []) as SectionId[];
   const isEvent = type === 'event';
+
+  // Handle start=true query param to scroll to first section
+  useEffect(() => {
+    if (searchParams.get('start') === 'true' && demoGuide) {
+      // Remove the query param
+      setSearchParams({}, { replace: true });
+      
+      // Scroll to first section after a short delay for page render
+      setTimeout(() => {
+        const firstSection = sectionOrder[0] || (isEvent ? 'hero' : 'hero');
+        if (isEvent) {
+          setScrollToEventSection(firstSection as EventSectionId);
+          setTimeout(() => setScrollToEventSection(null), 100);
+        } else {
+          setScrollToSection(firstSection as SectionId);
+          setTimeout(() => setScrollToSection(null), 100);
+        }
+      }, 500);
+    }
+  }, [searchParams, setSearchParams, demoGuide, sectionOrder, isEvent]);
 
   // Admin update handlers - modify local state (session-only)
   const handleBrandUpdate = useCallback((updates: Partial<BrandGuide | ProductGuide>) => {
