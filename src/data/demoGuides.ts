@@ -128,7 +128,7 @@ import cardHorizonInvest from '@/assets/demos/card-horizon-invest.jpg';
 import cardFinanceSummit from '@/assets/demos/card-finance-summit.jpg';
 import cardBloomRetreat from '@/assets/demos/card-bloom-retreat.jpg';
 
-// Default demo page settings with animated backgrounds and full-width hero
+// Default demo page settings with animated backgrounds - heroFullWidth controlled by admin
 const DEMO_PAGE_SETTINGS_TECH: BrandPageSettings = {
   backgroundType: 'animated-data-particles',
   backgroundImage: '',
@@ -140,7 +140,7 @@ const DEMO_PAGE_SETTINGS_TECH: BrandPageSettings = {
   headerStyle: 'transparent',
   contentWidth: 'full',
   sectionSpacing: 'spacious',
-  heroFullWidth: true,
+  heroFullWidth: false,
   defaultTheme: 'dark',
   customPrimaryColor: '#0066FF',
   customSecondaryColor: '#00D4FF',
@@ -157,7 +157,7 @@ const DEMO_PAGE_SETTINGS_WELLNESS: BrandPageSettings = {
   headerStyle: 'transparent',
   contentWidth: 'full',
   sectionSpacing: 'spacious',
-  heroFullWidth: true,
+  heroFullWidth: false,
   defaultTheme: 'light',
   customPrimaryColor: '#22C55E',
   customSecondaryColor: '#10B981',
@@ -174,7 +174,7 @@ const DEMO_PAGE_SETTINGS_EVENT: BrandPageSettings = {
   headerStyle: 'transparent',
   contentWidth: 'full',
   sectionSpacing: 'spacious',
-  heroFullWidth: true,
+  heroFullWidth: false,
   defaultTheme: 'dark',
   customPrimaryColor: '#8B5CF6',
   customSecondaryColor: '#A855F7',

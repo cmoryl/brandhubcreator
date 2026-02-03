@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Star, Building2, Package, Calendar, ExternalLink, Shield } from 'lucide-react';
+import { ArrowLeft, Star, Building2, Package, Calendar, ExternalLink, Shield, Settings, FileText, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -12,6 +12,7 @@ import { MobileEventSectionNav } from '@/components/event/MobileEventSectionNav'
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { DemoTour, StartTourButton } from '@/components/demo/DemoTour';
+import { AdminToolbar } from '@/components/admin/AdminToolbar';
 import { getTourSteps } from '@/data/demoTourSteps';
 import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
 import { useAuth } from '@/contexts/AuthContext';
@@ -224,6 +225,31 @@ export default function DemoGuideViewer() {
         />
       </div>
 
+      {/* Admin Toolbar for demo editing */}
+      {isAdmin && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <AdminToolbar
+            isVisible={true}
+            guideType={isEvent ? 'event' : 'brand'}
+            actions={[
+              {
+                id: 'page-settings',
+                label: 'Page Settings',
+                icon: Settings,
+                onClick: () => toast.info('Page settings available in hero edit mode'),
+              },
+              {
+                id: 'session-notice',
+                label: 'Session Only',
+                icon: History,
+                variant: 'outline',
+                onClick: () => toast.info('Demo changes are session-only and will reset on page reload'),
+              },
+            ]}
+          />
+        </div>
+      )}
+
       {/* Page Content - Use different component for events */}
       <div className="pb-6 sm:pb-8">
         {isEvent ? (
@@ -233,7 +259,7 @@ export default function DemoGuideViewer() {
             sectionOrder={(demoGuide.sectionOrder || []) as EventSectionId[]}
             hiddenSections={[]}
             isAdmin={isAdmin}
-            heroFullWidth={true}
+            heroFullWidth={(fullGuide as EventGuide).pageSettings?.heroFullWidth ?? false}
             canEdit={isAdmin}
             scrollToSection={scrollToEventSection}
             onSectionVisible={handleEventSectionVisible}
@@ -248,7 +274,7 @@ export default function DemoGuideViewer() {
             onSectionVisible={handleSectionVisible}
             hiddenSections={[]}
             isAdmin={isAdmin}
-            heroFullWidth={true}
+            heroFullWidth={(fullGuide as BrandGuide | ProductGuide).pageSettings?.heroFullWidth ?? false}
             canEdit={isAdmin}
             onBrandUpdate={isAdmin ? handleBrandUpdate : undefined}
           />
