@@ -30,7 +30,12 @@ export const GradientSpheresHero = memo(function GradientSpheresHero({
   const [time, setTime] = useState(0);
   const animationRef = useRef<number>(0);
 
-  const colors = COLOR_SCHEMES[colorScheme === 'custom' ? 'purple-blue' : colorScheme];
+  const schemeKey =
+    colorScheme !== 'custom' && Object.prototype.hasOwnProperty.call(COLOR_SCHEMES, colorScheme)
+      ? colorScheme
+      : 'purple-blue';
+
+  const colors = COLOR_SCHEMES[schemeKey];
   const brightnessMultiplier = 0.4 + (brightness / 100) * 1.2;
 
   const bgColors = mode === 'dark'
