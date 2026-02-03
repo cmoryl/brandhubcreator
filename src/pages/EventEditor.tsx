@@ -718,6 +718,8 @@ const EventEditor = () => {
             activeSection={activeSection} 
             onSectionChange={handleSectionChange} 
             eventName={event.hero.name}
+            eventId={event.id}
+            organizationId={event.organizationId}
             sectionOrder={sectionOrder}
             onSectionOrderChange={handleSectionOrderChange}
             hiddenSections={hiddenSections}
@@ -736,6 +738,8 @@ const EventEditor = () => {
               activeSection={activeSection} 
               onSectionChange={(section) => { handleSectionChange(section); setSidebarOpen(false); }} 
               eventName={event.hero.name}
+              eventId={event.id}
+              organizationId={event.organizationId}
               sectionOrder={sectionOrder}
               onSectionOrderChange={handleSectionOrderChange}
               hiddenSections={hiddenSections}

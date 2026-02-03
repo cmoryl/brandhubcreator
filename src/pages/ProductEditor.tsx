@@ -550,6 +550,9 @@ const ProductEditor = () => {
             activeSection={activeSection} 
             onSectionChange={handleSectionChange} 
             brandName={currentProduct.hero.name}
+            brandId={currentProduct.id}
+            organizationId={currentProduct.organizationId}
+            entityType="product"
             sectionOrder={sectionOrder}
             onSectionOrderChange={handleSectionOrderChange}
             hiddenSections={hiddenSections}
@@ -568,6 +571,9 @@ const ProductEditor = () => {
               activeSection={activeSection} 
               onSectionChange={(section) => { handleSectionChange(section); setSidebarOpen(false); }} 
               brandName={currentProduct.hero.name}
+              brandId={currentProduct.id}
+              organizationId={currentProduct.organizationId}
+              entityType="product"
               sectionOrder={sectionOrder}
               onSectionOrderChange={handleSectionOrderChange}
               hiddenSections={hiddenSections}
