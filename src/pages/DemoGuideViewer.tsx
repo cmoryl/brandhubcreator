@@ -79,7 +79,7 @@ export default function DemoGuideViewer() {
   const sectionOrder = (demoGuide?.sectionOrder || []) as SectionId[];
   const isEvent = type === 'event';
 
-  // Handle start=true query param to scroll to first section
+  // Handle start=true query param to scroll to first section with smooth animation
   useEffect(() => {
     if (searchParams.get('start') === 'true' && demoGuide) {
       // Remove the query param
@@ -87,15 +87,33 @@ export default function DemoGuideViewer() {
       
       // Scroll to first section after a short delay for page render
       setTimeout(() => {
-        const firstSection = sectionOrder[0] || (isEvent ? 'hero' : 'hero');
-        if (isEvent) {
-          setScrollToEventSection(firstSection as EventSectionId);
-          setTimeout(() => setScrollToEventSection(null), 100);
+        // Find the first non-hero section to scroll to (or hero if that's the only one)
+        const targetSection = sectionOrder.find(s => s !== 'hero') || sectionOrder[0] || 'tagline';
+        
+        // Try to find the section element and scroll smoothly
+        const sectionElement = document.getElementById(`section-${targetSection}`);
+        if (sectionElement) {
+          sectionElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start',
+          });
+          
+          // Add a highlight flash effect
+          sectionElement.classList.add('section-highlight-flash');
+          setTimeout(() => {
+            sectionElement.classList.remove('section-highlight-flash');
+          }, 1500);
         } else {
-          setScrollToSection(firstSection as SectionId);
-          setTimeout(() => setScrollToSection(null), 100);
+          // Fallback to the section scroll state
+          if (isEvent) {
+            setScrollToEventSection(targetSection as EventSectionId);
+            setTimeout(() => setScrollToEventSection(null), 100);
+          } else {
+            setScrollToSection(targetSection as SectionId);
+            setTimeout(() => setScrollToSection(null), 100);
+          }
         }
-      }, 500);
+      }, 600);
     }
   }, [searchParams, setSearchParams, demoGuide, sectionOrder, isEvent]);
 
