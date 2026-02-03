@@ -20,6 +20,15 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
   
   // Default to dark during SSR/initial render, then use actual theme
   const isDark = !mounted || resolvedTheme === 'dark';
+
+  // Light mode: no glitch/TV effect — render clean accent text only.
+  if (mounted && !isDark) {
+    return (
+      <span ref={ref} className={`text-accent ${className}`}>
+        {text}
+      </span>
+    );
+  }
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -37,115 +46,95 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
     return () => clearInterval(interval);
   }, []);
 
-  // Keep the full “TV/glitch” treatment for dark mode only.
-  // In light mode, we render a cleaner accent treatment so it doesn't look like solid blocks.
-  const enableTvOverlays = isDark;
-
-  const scanlineColor = 'rgba(0, 0, 0, 0.12)';
-  const chromaticBlendMode = 'screen';
-  const chromaticOpacity = 0.6;
+  // Dark mode: restore the original “scratch/scanlines” effect.
+  const scanlineColor = 'rgba(0, 0, 0, 0.15)';
+  const chromaticBlendMode: React.CSSProperties['mixBlendMode'] = 'screen';
+  const chromaticOpacity = 0.7;
   const redColor = '#ff0040';
   const cyanColor = '#00ffff';
 
   return (
-    <span ref={ref} className={`glitch-text-wrapper relative inline-block overflow-hidden ${className}`}>
-      {/* Blue glow layer - more subtle in light mode */}
+    <span ref={ref} className={`glitch-text-wrapper relative inline-block ${className}`}>
+      {/* Blue glow layer */}
       <span 
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 blur-lg opacity-60 pointer-events-none"
         style={{ 
           color: glowColor,
-          filter: isDark ? 'blur(16px)' : 'blur(10px)',
-          opacity: isDark ? 0.6 : 0.2,
-          textShadow: isDark 
-            ? `0 0 20px ${glowColor}, 0 0 40px ${glowColor}, 0 0 60px ${glowColor}`
-            : `0 0 10px ${glowColor}`,
+          textShadow: `0 0 20px ${glowColor}, 0 0 40px ${glowColor}, 0 0 60px ${glowColor}`,
         }}
         aria-hidden="true"
       >
         {text}
       </span>
       
-      {/* Chromatic aberration layers - very subtle in light mode */}
-      {enableTvOverlays && (
-        <>
-          <span 
-            className="absolute inset-0 pointer-events-none"
-            style={{ 
-              color: redColor,
-              transform: `translate(${glitchOffset.x - 1}px, ${glitchOffset.y}px)`,
-              mixBlendMode: chromaticBlendMode as any,
-              opacity: chromaticOpacity,
-              clipPath: 'polygon(0 0, 100% 0, 100% 45%, 0 45%)',
-            }}
-            aria-hidden="true"
-          >
-            {text}
-          </span>
-          <span 
-            className="absolute inset-0 pointer-events-none"
-            style={{ 
-              color: cyanColor,
-              transform: `translate(${glitchOffset.x + 1}px, ${glitchOffset.y}px)`,
-              mixBlendMode: chromaticBlendMode as any,
-              opacity: chromaticOpacity,
-              clipPath: 'polygon(0 55%, 100% 55%, 100% 100%, 0 100%)',
-            }}
-            aria-hidden="true"
-          >
-            {text}
-          </span>
-        </>
-      )}
+      {/* Chromatic aberration layers */}
+      <span 
+        className="absolute inset-0 pointer-events-none opacity-70"
+        style={{ 
+          color: redColor,
+          transform: `translate(${glitchOffset.x - 1}px, ${glitchOffset.y}px)`,
+          mixBlendMode: chromaticBlendMode,
+          opacity: chromaticOpacity,
+          clipPath: 'polygon(0 0, 100% 0, 100% 45%, 0 45%)',
+        }}
+        aria-hidden="true"
+      >
+        {text}
+      </span>
+      <span 
+        className="absolute inset-0 pointer-events-none opacity-70"
+        style={{ 
+          color: cyanColor,
+          transform: `translate(${glitchOffset.x + 1}px, ${glitchOffset.y}px)`,
+          mixBlendMode: chromaticBlendMode,
+          opacity: chromaticOpacity,
+          clipPath: 'polygon(0 55%, 100% 55%, 100% 100%, 0 100%)',
+        }}
+        aria-hidden="true"
+      >
+        {text}
+      </span>
       
-      {/* Scanlines overlay - very subtle in light mode */}
-      {enableTvOverlays && (
-        <span 
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `repeating-linear-gradient(0deg, transparent, transparent 2px, ${scanlineColor} 2px, ${scanlineColor} 4px)`,
-            animation: 'scanlines 8s linear infinite',
-          }}
-          aria-hidden="true"
-        />
-      )}
+      {/* Scanlines overlay */}
+      <span 
+        className="absolute inset-0 pointer-events-none overflow-hidden"
+        style={{
+          background: `repeating-linear-gradient(0deg, transparent, transparent 2px, ${scanlineColor} 2px, ${scanlineColor} 4px)`,
+          animation: 'scanlines 8s linear infinite',
+        }}
+        aria-hidden="true"
+      />
       
-      {/* Random horizontal glitch bars - very subtle in light mode */}
-      {enableTvOverlays && (
-        <span 
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `linear-gradient(
-              to bottom,
-              transparent 0%,
-              transparent ${20 + Math.random() * 10}%,
-              ${glowColor} ${20 + Math.random() * 10}%,
-              ${glowColor} ${22 + Math.random() * 10}%,
-              transparent ${22 + Math.random() * 10}%,
-              transparent ${60 + Math.random() * 10}%,
-              ${glowColor} ${60 + Math.random() * 10}%,
-              ${glowColor} ${61 + Math.random() * 10}%,
-              transparent ${61 + Math.random() * 10}%,
-              transparent 100%
-            )`,
-            animation: 'glitch-bars 3s steps(1) infinite',
-            opacity: 0.3,
-          }}
-          aria-hidden="true"
-        />
-      )}
+      {/* Random horizontal glitch bars */}
+      <span 
+        className="absolute inset-0 pointer-events-none overflow-hidden opacity-30"
+        style={{
+          background: `linear-gradient(
+            to bottom,
+            transparent 0%,
+            transparent ${20 + Math.random() * 10}%,
+            ${glowColor} ${20 + Math.random() * 10}%,
+            ${glowColor} ${22 + Math.random() * 10}%,
+            transparent ${22 + Math.random() * 10}%,
+            transparent ${60 + Math.random() * 10}%,
+            ${glowColor} ${60 + Math.random() * 10}%,
+            ${glowColor} ${61 + Math.random() * 10}%,
+            transparent ${61 + Math.random() * 10}%,
+            transparent 100%
+          )`,
+          animation: 'glitch-bars 3s steps(1) infinite',
+        }}
+        aria-hidden="true"
+      />
       
       {/* Main text with gradient */}
       <span 
         className="relative z-10"
         style={{
-          background: isDark 
-            ? `linear-gradient(90deg, ${glowColor}, hsl(198 84% 60%), ${glowColor})`
-            : `linear-gradient(90deg, hsl(199 85% 40%), hsl(199 90% 48%), hsl(199 85% 40%))`,
+          background: `linear-gradient(90deg, ${glowColor}, hsl(198 84% 60%), ${glowColor})`,
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
-          textShadow: isDark 
-            ? `0 0 10px ${glowColor}40, 0 0 20px ${glowColor}30`
-            : 'none',
+          textShadow: `0 0 10px ${glowColor}40, 0 0 20px ${glowColor}30, 0 0 30px ${glowColor}20`,
           transform: `translate(${glitchOffset.x * 0.5}px, ${glitchOffset.y * 0.5}px)`,
         }}
       >
