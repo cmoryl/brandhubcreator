@@ -376,7 +376,8 @@ export const GlobalAssetOrbit = ({
   return (
     <div 
       ref={containerRef}
-      className={cn('relative pointer-events-auto', className)}
+      className={cn('relative pointer-events-none', className)}
+      style={{ touchAction: 'pan-x pan-y' }}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => {
         setIsHovering(false);
