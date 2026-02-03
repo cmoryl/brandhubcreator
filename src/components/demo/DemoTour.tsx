@@ -248,8 +248,8 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
     if (!targetRect) return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
 
     const padding = 16;
-    const tooltipHeight = 280;
-    const tooltipWidth = 360;
+    const tooltipHeight = 320;
+    const tooltipWidth = 420;
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
     
@@ -357,21 +357,26 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
         </div>
       )}
 
-      {/* Enhanced Tooltip */}
+      {/* Enhanced Tooltip - More prominent styling */}
       <div
         className={cn(
-          "absolute z-10 w-[360px] rounded-2xl shadow-2xl transition-all duration-300",
-          "bg-card/95 backdrop-blur-xl border border-border/50",
+          "absolute z-10 w-[420px] max-w-[calc(100vw-32px)] rounded-2xl transition-all duration-300",
+          "bg-gradient-to-br from-card via-card to-accent/5",
+          "border-2 border-accent/40 shadow-[0_8px_40px_-8px_rgba(0,0,0,0.3),0_0_0_1px_rgba(var(--accent),0.1)]",
+          "ring-2 ring-accent/20 ring-offset-2 ring-offset-background",
           isAnimating ? "opacity-0 scale-95" : "opacity-100 scale-100"
         )}
         style={tooltipStyle}
       >
+        {/* Accent header bar */}
+        <div className="h-1.5 bg-gradient-to-r from-accent via-primary to-accent rounded-t-2xl" />
+        
         {/* Progress bar at top */}
-        <div className="px-5 pt-4">
-          <Progress value={progress} className="h-1" />
+        <div className="px-6 pt-4">
+          <Progress value={progress} className="h-1.5" />
         </div>
 
-        <div className="p-5 pt-3">
+        <div className="p-6 pt-4">
           {/* Category navigation */}
           <CategoryNav 
             steps={availableSteps} 
@@ -380,22 +385,22 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
           />
 
           {/* Header with category badge and close */}
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <div className="space-y-1">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="space-y-1.5">
               <CategoryBadge category={step?.category} />
-              <h3 className="text-lg font-semibold text-foreground leading-tight">{step?.title}</h3>
+              <h3 className="text-xl font-bold text-foreground leading-tight">{step?.title}</h3>
             </div>
             <button
               onClick={onClose}
-              className="text-muted-foreground hover:text-foreground transition-colors p-1 hover:bg-muted rounded-lg"
+              className="text-muted-foreground hover:text-foreground transition-colors p-1.5 hover:bg-muted rounded-lg flex-shrink-0"
               aria-label="Close tour"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
           {/* Description */}
-          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{step?.description}</p>
+          <p className="text-sm text-muted-foreground mb-5 leading-relaxed">{step?.description}</p>
 
           {/* Navigation footer */}
           <div className="flex items-center justify-between pt-2 border-t border-border/50">
