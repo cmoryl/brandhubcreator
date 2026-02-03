@@ -222,7 +222,7 @@ export const FullBrandPage = ({
   const sectionLayouts = brand.sectionLayouts || {};
 
   const handleSubtitleChange = useCallback((sectionId: SectionId) => (subtitle: string) => {
-    onBrandUpdate({
+    onBrandUpdate?.({
       sectionSubtitles: {
         ...sectionSubtitles,
         [sectionId]: subtitle,
@@ -231,7 +231,7 @@ export const FullBrandPage = ({
   }, [onBrandUpdate, sectionSubtitles]);
 
   const handleLayoutChange = useCallback((sectionId: SectionId) => (layout: LayoutPreset) => {
-    onBrandUpdate({
+    onBrandUpdate?.({
       sectionLayouts: {
         ...sectionLayouts,
         [sectionId]: layout,
