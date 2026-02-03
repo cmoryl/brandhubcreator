@@ -135,7 +135,14 @@ const HERO_EFFECTS: Array<{
     label: 'Image Orbs',
     description: 'Real PNG orbs with parallax',
     preview: 'radial-gradient(circle at 30% 40%, #00d4ff 0%, transparent 40%), radial-gradient(circle at 70% 60%, #6366f1 0%, transparent 40%), linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%)',
-    colorSchemes: [], // Uses actual PNG images - no color schemes
+    colorSchemes: [
+      { id: 'cyan-purple', label: 'Cyan/Purple', colors: ['#00d4ff', '#a855f7'] },
+      { id: 'blue-cyan', label: 'Blue/Cyan', colors: ['#3b82f6', '#00d4ff'] },
+      { id: 'pink-magenta', label: 'Pink/Magenta', colors: ['#ec4899', '#d946ef'] },
+      { id: 'green-teal', label: 'Green/Teal', colors: ['#22c55e', '#14b8a6'] },
+      { id: 'amber-orange', label: 'Amber/Orange', colors: ['#f59e0b', '#f97316'] },
+      { id: 'rose-coral', label: 'Rose/Coral', colors: ['#f43f5e', '#fb7185'] },
+    ],
   },
   {
     id: 'image-panels',
