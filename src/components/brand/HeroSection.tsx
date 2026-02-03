@@ -335,6 +335,8 @@ export const HeroSection = ({
               colorScheme={(hero.heroEffectColorScheme || 'blue-purple') as any}
               mode={hero.heroEffectMode || 'dark'}
               brightness={hero.heroEffectBrightness ?? 50}
+              density={hero.heroEffectDensity || 'normal'}
+              speed={hero.heroEffectSpeed || 'normal'}
             />
           </div>
         )}
@@ -344,8 +346,8 @@ export const HeroSection = ({
               colorScheme={(hero.heroEffectColorScheme || 'purple-blue') as any}
               mode={hero.heroEffectMode || 'dark'}
               brightness={hero.heroEffectBrightness ?? 50}
-              density="normal"
-              speed="normal"
+              density={hero.heroEffectDensity || 'normal'}
+              speed={hero.heroEffectSpeed || 'normal'}
             />
           </div>
         )}
@@ -355,7 +357,11 @@ export const HeroSection = ({
               colorScheme={(hero.heroEffectColorScheme || 'cyan-purple') as any}
               mode={hero.heroEffectMode || 'dark'}
               brightness={hero.heroEffectBrightness ?? 50}
-              orbCount={4}
+              orbCount={
+                hero.heroEffectDensity === 'few' ? 3 :
+                hero.heroEffectDensity === 'many' ? 8 :
+                hero.heroEffectDensity === 'dense' ? 12 : 5
+              }
             />
           </div>
         )}
@@ -475,6 +481,8 @@ export const HeroSection = ({
             heroEffectColorScheme={hero.heroEffectColorScheme || hero.gradientBarsColorScheme || 'cyan-purple'}
             heroEffectMode={hero.heroEffectMode || hero.gradientBarsMode || 'dark'}
             heroEffectBrightness={hero.heroEffectBrightness ?? hero.gradientBarsBrightness ?? 50}
+            heroEffectDensity={hero.heroEffectDensity || 'normal'}
+            heroEffectSpeed={hero.heroEffectSpeed || 'normal'}
             isUploading={isUploading}
             overlayIntensity={hero.overlayIntensity ?? 50}
             overlayGradient={hero.overlayGradient || 'default'}
@@ -520,6 +528,16 @@ export const HeroSection = ({
             onHeroEffectBrightnessChange={(value) => {
               if (onHeroChange) {
                 onHeroChange({ ...hero, heroEffectBrightness: value });
+              }
+            }}
+            onHeroEffectDensityChange={(value) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, heroEffectDensity: value });
+              }
+            }}
+            onHeroEffectSpeedChange={(value) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, heroEffectSpeed: value });
               }
             }}
             onUploadClick={() => {
