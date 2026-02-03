@@ -843,6 +843,10 @@ export const SocialAssetsSection = ({
   const [selectedBanner, setSelectedBanner] = useState<BrandDisplayBannerSpec | null>(null);
   const [bannerTab, setBannerTab] = useState('desktop');
   const { gridClass } = useLayoutClasses(layout);
+  
+  // Determine if editing is allowed
+  const canEditSocial = !!onSocialAssetsChange;
+  const canEditBanners = !!onDisplayBannersChange;
 
   const hasSocialInitialized = useRef(false);
   const hasBannerInitialized = useRef(false);
@@ -948,29 +952,31 @@ export const SocialAssetsSection = ({
             Social Platforms
             <Badge variant="secondary" className="text-[10px]">{socialAssets.length}</Badge>
           </h3>
-          <div className="flex gap-2">
-            <Select onValueChange={(platform) => {
-              const preset = platformPresets.find(p => p.platform === platform);
-              if (preset) addSocialAsset(preset);
-            }}>
-              <SelectTrigger className="w-[140px] h-8 text-xs">
-                <SelectValue placeholder="Add platform..." />
-              </SelectTrigger>
-              <SelectContent>
-                {platformPresets.filter(p => !socialAssets.some(a => a.platform === p.platform)).map((preset) => {
-                  const Icon = platformIcons[preset.platform] || Monitor;
-                  return (
-                    <SelectItem key={preset.platform} value={preset.platform}>
-                      <div className="flex items-center gap-2"><Icon className="h-3.5 w-3.5" />{preset.platform}</div>
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            <Button onClick={() => addSocialAsset()} size="sm" variant="outline" className="h-8 text-xs">
-              <Plus className="h-3.5 w-3.5 mr-1" />Custom
-            </Button>
-          </div>
+          {canEditSocial && (
+            <div className="flex gap-2">
+              <Select onValueChange={(platform) => {
+                const preset = platformPresets.find(p => p.platform === platform);
+                if (preset) addSocialAsset(preset);
+              }}>
+                <SelectTrigger className="w-[140px] h-8 text-xs">
+                  <SelectValue placeholder="Add platform..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {platformPresets.filter(p => !socialAssets.some(a => a.platform === p.platform)).map((preset) => {
+                    const Icon = platformIcons[preset.platform] || Monitor;
+                    return (
+                      <SelectItem key={preset.platform} value={preset.platform}>
+                        <div className="flex items-center gap-2"><Icon className="h-3.5 w-3.5" />{preset.platform}</div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              <Button onClick={() => addSocialAsset()} size="sm" variant="outline" className="h-8 text-xs">
+                <Plus className="h-3.5 w-3.5 mr-1" />Custom
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className={gridClass}>
@@ -994,9 +1000,11 @@ export const SocialAssetsSection = ({
             Display Banner Specs
             <Badge variant="secondary" className="text-[10px]">{displayBanners.length}</Badge>
           </h3>
-          <Button onClick={() => addDisplayBanner()} size="sm" variant="outline" className="h-8 text-xs">
-            <Plus className="h-3.5 w-3.5 mr-1" />Custom Banner
-          </Button>
+          {canEditBanners && (
+            <Button onClick={() => addDisplayBanner()} size="sm" variant="outline" className="h-8 text-xs">
+              <Plus className="h-3.5 w-3.5 mr-1" />Custom Banner
+            </Button>
+          )}
         </div>
 
         <Tabs value={bannerTab} onValueChange={setBannerTab} className="w-full">

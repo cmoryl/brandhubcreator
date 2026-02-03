@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 
 interface SignaturesSectionProps {
   signatures: BrandSignature[];
-  onSignaturesChange: (signatures: BrandSignature[]) => void;
+  onSignaturesChange?: (signatures: BrandSignature[]) => void;
   emailBanners?: BrandEmailBanner[];
   onEmailBannersChange?: (banners: BrandEmailBanner[]) => void;
   customSubtitle?: string;
@@ -128,7 +128,11 @@ export const SignaturesSection = ({
   const [logoInputMode, setLogoInputMode] = useState<'url' | 'upload'>('url');
   const logoFileInputRef = useRef<HTMLInputElement>(null);
 
+  // Determine if editing is allowed
+  const canEdit = !!onSignaturesChange;
+
   const addSignature = (templateKey: keyof typeof signatureTemplates = 'full') => {
+    if (!onSignaturesChange) return;
     const template = signatureTemplates[templateKey];
     const newSignature: BrandSignature = {
       id: crypto.randomUUID(),
@@ -150,10 +154,12 @@ export const SignaturesSection = ({
   };
 
   const updateSignature = (id: string, updates: Partial<BrandSignature>) => {
+    if (!onSignaturesChange) return;
     onSignaturesChange(signatures.map(s => s.id === id ? { ...s, ...updates } : s));
   };
 
   const deleteSignature = (id: string) => {
+    if (!onSignaturesChange) return;
     onSignaturesChange(signatures.filter(s => s.id !== id));
     if (editingId === id) setEditingId(null);
   };
@@ -377,7 +383,7 @@ export const SignaturesSection = ({
             </TabsTrigger>
           </TabsList>
           
-          {activeTab === 'signatures' && (
+          {activeTab === 'signatures' && canEdit && (
             <div className="flex gap-2">
               <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
                 <DialogTrigger asChild>

@@ -36,7 +36,7 @@ const ICON_COLORS = [
 
 interface IconographySectionProps {
   iconography: BrandIconography[];
-  onIconographyChange: (iconography: BrandIconography[]) => void;
+  onIconographyChange?: (iconography: BrandIconography[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   defaultIconColor?: string;
@@ -103,7 +103,11 @@ export const IconographySection = ({
     onDefaultIconColorChange?.(color);
   };
 
+  // Determine if editing is allowed
+  const canEdit = !!onIconographyChange;
+
   const addIcon = () => {
+    if (!onIconographyChange) return;
     const newIcon: BrandIconography = {
       id: crypto.randomUUID(),
       name: 'New Icon',
@@ -181,10 +185,12 @@ export const IconographySection = ({
   };
 
   const updateIcon = (id: string, updates: Partial<BrandIconography>) => {
+    if (!onIconographyChange) return;
     onIconographyChange(iconography.map(i => i.id === id ? { ...i, ...updates } : i));
   };
 
   const deleteIcon = (id: string) => {
+    if (!onIconographyChange) return;
     onIconographyChange(iconography.filter(i => i.id !== id));
     if (editingId === id) setEditingId(null);
   };
@@ -474,38 +480,42 @@ ${innerContent}
               Download All
             </Button>
           )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".svg"
-            multiple
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="gap-2"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload className="h-4 w-4" />
-            Upload SVG
-          </Button>
-          <Button onClick={addIcon} size="sm" className="gap-2" variant="outline">
-            <Plus className="h-4 w-4" />
-            Add Icon
-          </Button>
-          <Button 
-            onClick={() => {
-              setIconStudioInitialTab('library');
-              setShowIconStudio(true);
-            }} 
-            size="sm" 
-            className="gap-2"
-          >
-            <Sparkles className="h-4 w-4" />
-            Icon Studio
-          </Button>
+          {canEdit && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".svg"
+                multiple
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="h-4 w-4" />
+                Upload SVG
+              </Button>
+              <Button onClick={addIcon} size="sm" className="gap-2" variant="outline">
+                <Plus className="h-4 w-4" />
+                Add Icon
+              </Button>
+              <Button 
+                onClick={() => {
+                  setIconStudioInitialTab('library');
+                  setShowIconStudio(true);
+                }} 
+                size="sm" 
+                className="gap-2"
+              >
+                <Sparkles className="h-4 w-4" />
+                Icon Studio
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -550,20 +560,22 @@ ${innerContent}
                       )}
                     </div>
 
-                    <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setEditingId(icon.id); }}
-                        className="p-1 rounded bg-background/80"
-                      >
-                        <Pencil className="h-2.5 w-2.5" />
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); deleteIcon(icon.id); }}
-                        className="p-1 rounded bg-background/80 hover:bg-destructive hover:text-destructive-foreground"
-                      >
-                        <X className="h-2.5 w-2.5" />
-                      </button>
-                    </div>
+                    {canEdit && (
+                      <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setEditingId(icon.id); }}
+                          className="p-1 rounded bg-background/80"
+                        >
+                          <Pencil className="h-2.5 w-2.5" />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); deleteIcon(icon.id); }}
+                          className="p-1 rounded bg-background/80 hover:bg-destructive hover:text-destructive-foreground"
+                        >
+                          <X className="h-2.5 w-2.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -591,7 +603,7 @@ ${innerContent}
           );
         })}
 
-        {iconography.length === 0 && (
+        {iconography.length === 0 && canEdit && (
           <button
             onClick={addIcon}
             className="w-full h-32 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors"
@@ -599,6 +611,12 @@ ${innerContent}
             <Plus className="h-6 w-6" />
             <span className="text-sm font-medium">Add your first custom icon</span>
           </button>
+        )}
+        {iconography.length === 0 && !canEdit && (
+          <div className="w-full h-32 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground">
+            <Grid2X2 className="h-6 w-6" />
+            <span className="text-sm font-medium">No custom icons</span>
+          </div>
         )}
       </div>
 
