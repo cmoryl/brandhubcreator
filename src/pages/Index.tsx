@@ -5,7 +5,7 @@
 
 import { useMemo, useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap } from 'lucide-react';
+import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap, HelpCircle } from 'lucide-react';
 import { GlitchText } from '@/components/ui/GlitchText';
 import { HeroOrbit } from '@/components/landing/HeroOrbit';
 import { Button } from '@/components/ui/button';
@@ -366,6 +366,29 @@ const Index = () => {
               />
               <span className="font-serif font-semibold text-foreground">BrandHub</span>
             </div>
+            
+            {/* Footer Links */}
+            <div className="flex items-center gap-6">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/faq')}
+                className="text-muted-foreground hover:text-foreground gap-1.5"
+              >
+                <HelpCircle className="h-4 w-4" />
+                FAQ
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/demo/brand/brandhub')}
+                className="text-muted-foreground hover:text-foreground gap-1.5"
+              >
+                <Play className="h-4 w-4" />
+                Demos
+              </Button>
+            </div>
+            
             <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} BrandHub. All rights reserved.
             </p>
