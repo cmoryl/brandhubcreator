@@ -1,4 +1,5 @@
 import { useRef, useEffect, memo, useMemo, useCallback } from 'react';
+import { motion, useInView } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { BaseGuide, SectionId, DEFAULT_SECTION_ORDER, LayoutPreset, InfographicLayout } from '@/types/brand';
 import { HeroSection } from './HeroSection';
@@ -37,46 +38,37 @@ import AwardsSection from './AwardsSection';
 import { GlobalLinkUniverseSection } from './GlobalLinkUniverseSection';
 import { InsightsSection } from './InsightsSection';
 import { Separator } from '@/components/ui/separator';
-import { ScrollAnimate, AnimationType } from '@/components/ui/scroll-animate';
 
-// Animation patterns for different section types
-const sectionAnimations: Record<string, AnimationType> = {
-  hero: 'fade-up',
-  tagline: 'blur-in',
-  identity: 'fade-left',
-  values: 'fade-up',
-  bythenumbers: 'zoom-in',
-  services: 'fade-right',
-  revenue: 'fade-up',
-  awards: 'fade-up',
-  logos: 'zoom-in',
-  brandicon: 'zoom-in',
-  colors: 'fade-up',
-  gradients: 'fade-left',
-  patterns: 'fade-right',
-  typography: 'flip-up',
-  textstyles: 'fade-up',
-  iconography: 'zoom-in',
-  socialicons: 'fade-up',
-  imagery: 'blur-in',
-  social: 'fade-left',
-  socialassets: 'fade-up',
-  website: 'fade-right',
-  signatures: 'fade-up',
-  qr: 'zoom-in',
-  videos: 'blur-in',
-  assets: 'fade-up',
-  imageassets: 'fade-up',
-  misuse: 'fade-left',
-  casestudies: 'fade-right',
-  brochures: 'fade-up',
-  templates: 'zoom-in',
-  templatespecs: 'fade-up',
-  products: 'fade-up',
-  events: 'fade-up',
-  universe: 'zoom-in',
-  insights: 'fade-up',
-  sponsorlogos: 'fade-up',
+// Framer motion variants for smooth section animations
+const sectionVariants = {
+  hidden: { 
+    opacity: 0, 
+    y: 30,
+  },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+  },
+};
+
+const sectionTransition = {
+  type: 'spring' as const,
+  stiffness: 80,
+  damping: 20,
+  mass: 0.8,
+};
+
+const separatorVariants = {
+  hidden: { scaleX: 0, opacity: 0 },
+  visible: { 
+    scaleX: 1, 
+    opacity: 1,
+  },
+};
+
+const separatorTransition = {
+  duration: 0.6,
+  ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
 };
 
 // Memoized section wrapper with scroll animations
@@ -99,10 +91,17 @@ const SectionWrapper = memo(({
   isLast,
   setRef 
 }: SectionWrapperProps) => {
-  const animation = sectionAnimations[sectionId] || 'fade-up';
+  const localRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(localRef, { once: true, margin: '-60px' as any });
   
   // Hero section should be full-width, other sections get content container
   const isHeroSection = sectionId === 'hero';
+  
+  // Combine refs
+  const handleRef = useCallback((el: HTMLDivElement | null) => {
+    (localRef as any).current = el;
+    setRef(el);
+  }, [setRef]);
   
   return (
     <div 
@@ -114,27 +113,31 @@ const SectionWrapper = memo(({
           Hidden from viewers
         </div>
       )}
-      <ScrollAnimate 
-        animation={animation} 
-        delay={index * 50} 
-        duration={700}
-        threshold={0.15}
+      <motion.div
+        ref={handleRef}
+        data-section={sectionId}
+        className={cn(
+          "scroll-mt-24 rounded-xl will-change-transform",
+          !isHeroSection && "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        )}
+        initial="hidden"
+        animate={isInView ? 'visible' : 'hidden'}
+        variants={sectionVariants}
+        transition={{ ...sectionTransition, delay: index * 0.05 }}
       >
-        <div 
-          ref={setRef} 
-          data-section={sectionId} 
-          className={cn(
-            "scroll-mt-24 rounded-xl transition-all duration-300",
-            !isHeroSection && "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
-          )}
-        >
-          {children}
-        </div>
-      </ScrollAnimate>
+        {children}
+      </motion.div>
       {!isLast && (
-        <ScrollAnimate animation="fade-up" delay={100} duration={400}>
-          <Separator className="my-8 sm:my-12 max-w-7xl mx-auto" />
-        </ScrollAnimate>
+        <motion.div
+          className="my-8 sm:my-12 max-w-7xl mx-auto"
+          initial="hidden"
+          animate={isInView ? 'visible' : 'hidden'}
+          variants={separatorVariants}
+          transition={separatorTransition}
+          style={{ originX: 0 }}
+        >
+          <Separator />
+        </motion.div>
       )}
     </div>
   );

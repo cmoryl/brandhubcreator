@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { ArrowLeft, Star, Building2, Package, Calendar, ExternalLink, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +18,24 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import type { BrandGuide, ProductGuide, SectionId } from '@/types/brand';
 import type { EventGuide, EventSectionId } from '@/types/event';
+
+// Page transition animation
+const pageTransition = {
+  initial: { opacity: 0, y: 20 },
+  animate: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+    },
+  },
+  exit: { 
+    opacity: 0, 
+    y: -10,
+    transition: { duration: 0.2 },
+  },
+};
 
 // Demo guide viewer page - renders static demo data for brands, products, and events
 // Admins can edit demo content (session-only changes)
@@ -147,7 +166,11 @@ export default function DemoGuideViewer() {
   };
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <motion.div 
+      className="min-h-screen bg-background overflow-x-hidden"
+      initial={pageTransition.initial}
+      animate={pageTransition.animate}
+    >
       {/* Demo Header Banner - Compact on mobile */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-b border-border backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between gap-2">
@@ -283,6 +306,6 @@ export default function DemoGuideViewer() {
         isOpen={isTourOpen}
         onClose={() => setIsTourOpen(false)}
       />
-    </div>
+    </motion.div>
   );
 }
