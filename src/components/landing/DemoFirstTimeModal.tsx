@@ -32,7 +32,8 @@ export function DemoFirstTimeModal({
     // Mark as shown so it doesn't appear again
     localStorage.setItem(STORAGE_KEY, 'true');
     onOpenChange(false);
-    navigate(targetPath);
+    // Navigate with query param to trigger scroll to first section
+    navigate(`${targetPath}?start=true`);
   };
 
   const handleSkip = () => {
