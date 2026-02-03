@@ -344,6 +344,8 @@ export const HeroSection = ({
               colorScheme={(hero.heroEffectColorScheme || 'purple-blue') as any}
               mode={hero.heroEffectMode || 'dark'}
               brightness={hero.heroEffectBrightness ?? 50}
+              density="normal"
+              speed="normal"
             />
           </div>
         )}

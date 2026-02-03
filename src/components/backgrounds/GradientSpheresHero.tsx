@@ -3,12 +3,27 @@ import { cn } from '@/lib/utils';
 
 export type GradientSpheresColorScheme = 'purple-blue' | 'cyan-purple' | 'blue-teal' | 'pink-purple' | 'custom';
 export type GradientSpheresMode = 'dark' | 'light';
+export type GradientSpheresDensity = 'few' | 'normal' | 'many' | 'dense';
+export type GradientSpheresSpeed = 'slow' | 'normal' | 'fast' | 'very-fast';
 
 interface GradientSpheresHeroProps {
   className?: string;
   colorScheme?: GradientSpheresColorScheme;
   mode?: GradientSpheresMode;
   brightness?: number;
+  sphereCount?: number;
+  density?: GradientSpheresDensity;
+  speed?: GradientSpheresSpeed;
+}
+
+interface Sphere {
+  id: number;
+  baseX: number;
+  baseY: number;
+  size: number;
+  hue: number;
+  depth: number;
+  phase: number;
 }
 
 const COLOR_SCHEMES: Record<Exclude<GradientSpheresColorScheme, 'custom'>, { primary: number; secondary: number; accent: number }> = {
@@ -18,40 +33,80 @@ const COLOR_SCHEMES: Record<Exclude<GradientSpheresColorScheme, 'custom'>, { pri
   'pink-purple': { primary: 330, secondary: 280, accent: 300 },
 };
 
+const DENSITY_COUNTS: Record<GradientSpheresDensity, number> = {
+  'few': 3,
+  'normal': 5,
+  'many': 8,
+  'dense': 12,
+};
+
+const SPEED_MULTIPLIERS: Record<GradientSpheresSpeed, number> = {
+  'slow': 0.4,
+  'normal': 1,
+  'fast': 2,
+  'very-fast': 3.5,
+};
+
 export const GradientSpheresHero = memo(function GradientSpheresHero({
   className = '',
   colorScheme = 'purple-blue',
   mode = 'dark',
   brightness = 50,
+  sphereCount,
+  density = 'normal',
+  speed = 'normal',
 }: GradientSpheresHeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
+  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5, isActive: false });
   const [smoothedMouse, setSmoothedMouse] = useState({ x: 0.5, y: 0.5 });
   const [time, setTime] = useState(0);
   const animationRef = useRef<number>(0);
 
+  // Defensive fallback: hero editor can temporarily pass a colorScheme from another effect.
   const schemeKey =
     colorScheme !== 'custom' && Object.prototype.hasOwnProperty.call(COLOR_SCHEMES, colorScheme)
       ? colorScheme
       : 'purple-blue';
 
+  if (colorScheme !== 'custom' && schemeKey !== colorScheme) {
+    console.warn('[GradientSpheresHero] Invalid colorScheme, falling back:', { colorScheme, schemeKey });
+  }
+
   const colors = COLOR_SCHEMES[schemeKey];
   const brightnessMultiplier = 0.4 + (brightness / 100) * 1.2;
+  const speedMultiplier = SPEED_MULTIPLIERS[speed];
+  const actualSphereCount = sphereCount ?? DENSITY_COUNTS[density];
 
   const bgColors = mode === 'dark'
     ? { base: 'hsl(240, 30%, 8%)', mid: 'hsl(250, 35%, 12%)' }
     : { base: 'hsl(230, 20%, 96%)', mid: 'hsl(230, 25%, 94%)' };
 
-  // Smooth animation
+  // Generate stable sphere configurations - spread around the container
+  const spheres: Sphere[] = Array.from({ length: actualSphereCount }, (_, i) => {
+    const angle = (i / actualSphereCount) * Math.PI * 2;
+    const radius = 15 + (i % 3) * 10;
+    const hueOptions = [colors.primary, colors.secondary, colors.accent];
+    return {
+      id: i,
+      baseX: 50 + Math.cos(angle) * radius,
+      baseY: 50 + Math.sin(angle) * radius,
+      size: 180 + (i * 50) + (i % 2 === 0 ? 80 : 0),
+      hue: hueOptions[i % 3],
+      depth: 0.5 + (i % 3) * 0.25,
+      phase: (i * Math.PI * 2) / actualSphereCount,
+    };
+  });
+
+  // Smooth animation loop
   useEffect(() => {
     let lastTimestamp = 0;
 
     const animate = (timestamp: number) => {
       if (timestamp - lastTimestamp > 16) {
-        setTime(timestamp * 0.00015);
+        setTime(timestamp * 0.00015 * speedMultiplier);
         setSmoothedMouse(prev => ({
-          x: prev.x + (mousePos.x - prev.x) * 0.025,
-          y: prev.y + (mousePos.y - prev.y) * 0.025,
+          x: prev.x + (mousePos.x - prev.x) * 0.03,
+          y: prev.y + (mousePos.y - prev.y) * 0.03,
         }));
         lastTimestamp = timestamp;
       }
@@ -60,7 +115,7 @@ export const GradientSpheresHero = memo(function GradientSpheresHero({
 
     animationRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationRef.current);
-  }, [mousePos.x, mousePos.y]);
+  }, [mousePos.x, mousePos.y, speedMultiplier]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -68,21 +123,20 @@ export const GradientSpheresHero = memo(function GradientSpheresHero({
     setMousePos({
       x: (e.clientX - rect.left) / rect.width,
       y: (e.clientY - rect.top) / rect.height,
+      isActive: true,
     });
   }, []);
 
-  // Sphere configurations for overlapping effect (like the Figma illustrative style)
-  const spheres = [
-    { id: 1, x: 25, y: 45, size: 400, hue: colors.primary, depth: 0.8 },
-    { id: 2, x: 65, y: 50, size: 350, hue: colors.secondary, depth: 1 },
-    { id: 3, x: 45, y: 35, size: 180, hue: colors.accent, depth: 0.5 },
-  ];
+  const handleMouseLeave = useCallback(() => {
+    setMousePos(prev => ({ ...prev, isActive: false }));
+  }, []);
 
   return (
     <div
       ref={containerRef}
       className={cn('absolute inset-0 overflow-hidden z-0', className)}
       onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       aria-hidden="true"
     >
       {/* Base gradient background */}
@@ -93,30 +147,48 @@ export const GradientSpheresHero = memo(function GradientSpheresHero({
         }}
       />
 
-      {/* Overlapping gradient spheres */}
+      {/* Overlapping gradient spheres with interactive spread/gather */}
       {spheres.map((sphere) => {
         // Smooth floating animation
-        const floatX = Math.sin(time + sphere.id) * 12 * sphere.depth;
-        const floatY = Math.cos(time * 0.8 + sphere.id * 0.5) * 10 * sphere.depth;
+        const floatX = Math.sin(time + sphere.phase) * 12 * sphere.depth;
+        const floatY = Math.cos(time * 0.8 + sphere.phase * 0.5) * 10 * sphere.depth;
         
-        // Mouse parallax
-        const parallaxX = (smoothedMouse.x - 0.5) * 50 * sphere.depth;
-        const parallaxY = (smoothedMouse.y - 0.5) * 35 * sphere.depth;
+        // Calculate vector from mouse to sphere center for spread/gather effect
+        const sphereCenterX = sphere.baseX / 100;
+        const sphereCenterY = sphere.baseY / 100;
+        const dx = sphereCenterX - smoothedMouse.x;
+        const dy = sphereCenterY - smoothedMouse.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Spread effect: spheres move away from cursor
+        const spreadStrength = mousePos.isActive ? 60 * sphere.depth : 0;
+        const normalizedDx = distance > 0.01 ? dx / distance : 0;
+        const normalizedDy = distance > 0.01 ? dy / distance : 0;
+        const spreadFalloff = Math.max(0, 1 - distance * 2);
+        const spreadX = normalizedDx * spreadStrength * spreadFalloff;
+        const spreadY = normalizedDy * spreadStrength * spreadFalloff;
+
+        // Mouse parallax (subtle, in addition to spread)
+        const parallaxX = (smoothedMouse.x - 0.5) * 30 * sphere.depth;
+        const parallaxY = (smoothedMouse.y - 0.5) * 20 * sphere.depth;
 
         // Subtle pulse
         const pulse = 1 + Math.sin(time * 1.2 + sphere.id * 0.7) * 0.05;
+
+        // Glow intensifies when cursor is near
+        const glowIntensity = mousePos.isActive ? 0.25 + spreadFalloff * 0.15 : 0.25;
 
         return (
           <div
             key={sphere.id}
             className="absolute rounded-full pointer-events-none mix-blend-screen"
             style={{
-              left: `${sphere.x}%`,
-              top: `${sphere.y}%`,
+              left: `${sphere.baseX}%`,
+              top: `${sphere.baseY}%`,
               width: sphere.size,
               height: sphere.size,
-              transform: `translate(-50%, -50%) translate(${floatX + parallaxX}px, ${floatY + parallaxY}px) scale(${pulse})`,
-              transition: 'transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              transform: `translate(-50%, -50%) translate(${floatX + parallaxX + spreadX}px, ${floatY + parallaxY + spreadY}px) scale(${pulse})`,
+              transition: 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
             }}
           >
             {/* Main sphere gradient - soft edge */}
@@ -153,13 +225,13 @@ export const GradientSpheresHero = memo(function GradientSpheresHero({
               }}
             />
 
-            {/* Outer glow */}
+            {/* Outer glow - intensifies on hover */}
             <div
-              className="absolute -inset-1/4 rounded-full"
+              className="absolute -inset-1/4 rounded-full transition-opacity duration-500"
               style={{
                 background: `radial-gradient(
                   circle,
-                  hsla(${sphere.hue}, 70%, ${55 * brightnessMultiplier}%, 0.25) 0%,
+                  hsla(${sphere.hue}, 70%, ${55 * brightnessMultiplier}%, ${glowIntensity}) 0%,
                   transparent 70%
                 )`,
                 filter: 'blur(40px)',
@@ -168,6 +240,22 @@ export const GradientSpheresHero = memo(function GradientSpheresHero({
           </div>
         );
       })}
+
+      {/* Mouse-following glow trail */}
+      {mousePos.isActive && (
+        <div
+          className="absolute pointer-events-none transition-opacity duration-300"
+          style={{
+            left: `${smoothedMouse.x * 100}%`,
+            top: `${smoothedMouse.y * 100}%`,
+            width: 200,
+            height: 200,
+            transform: 'translate(-50%, -50%)',
+            background: `radial-gradient(circle, hsla(${colors.primary}, 60%, 60%, 0.15) 0%, transparent 70%)`,
+            filter: 'blur(30px)',
+          }}
+        />
+      )}
 
       {/* Subtle noise/grain overlay for texture */}
       <div
