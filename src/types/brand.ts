@@ -723,6 +723,10 @@ export interface BaseGuide {
   awards?: BrandAward[];
   // Sponsor Logos (Partner/Sponsor Logo Placement)
   sponsorLogos?: SponsorLogo[];
+  // Insights & Updates (Reports, Analytics, News for stakeholders)
+  insights?: InsightItem[];
+  // Insights section layout preference
+  insightsLayout?: InsightsLayout;
   // Metadata
   createdAt: Date;
   updatedAt: Date;
@@ -730,7 +734,7 @@ export interface BaseGuide {
 
 // Default section order
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
-  'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
+  'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'insights', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
   'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'imageassets', 'misuse',
   'brochures', 'templates', 'templatespecs', 'sponsorlogos', 'universe', 'products', 'events'
@@ -785,7 +789,36 @@ export type SectionId =
   | 'products'
   | 'events'
   | 'universe'
-  | 'sponsorlogos';
+  | 'sponsorlogos'
+  | 'insights';
+
+// Insight item for the Insights & Updates section
+export interface InsightItem {
+  id: string;
+  type: 'report' | 'analytics' | 'news' | 'update' | 'alert';
+  title: string;
+  summary: string;
+  content?: string; // Rich text content
+  value?: string; // Key metric value
+  valueLabel?: string; // Label for the metric
+  trend?: 'up' | 'down' | 'neutral';
+  trendValue?: string; // e.g., "+12%"
+  icon?: string; // Lucide icon name
+  imageUrl?: string;
+  linkUrl?: string;
+  linkLabel?: string;
+  date: string; // ISO date string
+  priority?: 'low' | 'medium' | 'high';
+  category?: string;
+}
+
+// Layout options for Insights section
+export type InsightsLayout = 
+  | 'cards'           // Standard card grid
+  | 'infographic'     // Visual infographic with metrics
+  | 'timeline'        // Chronological timeline
+  | 'dashboard'       // Dashboard-style with metrics
+  | 'featured';       // Featured item + supporting cards
 
 // Statistic item for By the Numbers section
 export interface StatisticItem {
