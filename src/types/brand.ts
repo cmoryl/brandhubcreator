@@ -49,6 +49,10 @@ export interface BrandHero {
   useVideo?: boolean;
   /** Whether to apply Ken Burns (slow pan/zoom) effect to hero image */
   kenBurnsEffect?: boolean;
+  /** Whether to use the animated gradient bars effect */
+  gradientBarsEffect?: boolean;
+  /** Intensity of the gradient bars effect */
+  gradientBarsIntensity?: 'subtle' | 'medium' | 'bold';
   logoUrl: string;
   /** Tagline animation effect on load */
   taglineAnimation?: 'typewriter' | 'fade-slide' | 'blur-reveal' | 'split-chars' | 'wave-glow';

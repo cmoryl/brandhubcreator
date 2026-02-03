@@ -9,6 +9,7 @@ import { BackgroundImage } from '@/components/ui/optimized-image';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { VideoUploadDialog } from '@/components/ui/video-upload-dialog';
 import { HeroEditToolbar } from '@/components/brand/HeroEditToolbar';
+import { GradientBarsHero } from '@/components/backgrounds/GradientBarsHero';
 import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { cn } from '@/lib/utils';
@@ -245,7 +246,12 @@ export const HeroSection = ({
 
   const toggleKenBurns = () => {
     if (!onHeroChange) return;
-    onHeroChange({ ...hero, kenBurnsEffect: !hero.kenBurnsEffect });
+    onHeroChange({ ...hero, kenBurnsEffect: !hero.kenBurnsEffect, gradientBarsEffect: false });
+  };
+
+  const toggleGradientBars = () => {
+    if (!onHeroChange) return;
+    onHeroChange({ ...hero, gradientBarsEffect: !hero.gradientBarsEffect, kenBurnsEffect: false });
   };
 
   // Helper to get overlay CSS based on gradient preset
@@ -302,76 +308,94 @@ export const HeroSection = ({
         ref={heroRef}
         className={`relative overflow-hidden ${fullWidth ? '-mx-4 sm:-mx-6 lg:-mx-8 xl:-mx-12 2xl:-mx-16' : '-mx-4 sm:-mx-6 lg:-mx-8'}`}
       >
-        {/* Cover Image/Video - Enhanced Height with Parallax/Ken Burns and optimized loading */}
-        <BackgroundImage
-          src={hero.coverImage || ''}
-          videoSrc={hero.useVideo ? hero.coverVideo : undefined}
-          preferVideo={hero.useVideo === true}
-          kenBurnsEffect={hero.useVideo !== true && (hero.kenBurnsEffect === true || kenBurnsPreview)}
-          fallbackSrc=""
-          className={`relative ${heroHeight} group`}
-          priority={true}
-          parallax={hero.kenBurnsEffect !== true && !kenBurnsPreview}
-          parallaxOffset={parallaxOffset}
-        >
-          {/* Fallback gradient when no image */}
-          {!hero.coverImage && (
-            <div 
-              className="absolute inset-0 -z-10"
-              style={{
-                background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 50%, hsl(var(--accent)) 100%)'
-              }}
+        {/* Gradient Bars Effect - rendered when enabled */}
+        {hero.gradientBarsEffect === true && !hero.useVideo && (
+          <div className={`absolute inset-0 ${heroHeight}`}>
+            <GradientBarsHero 
+              intensity={hero.gradientBarsIntensity || 'medium'} 
+              barCount={6}
             />
-          )}
-          
-          {/* Dynamic overlay based on settings */}
-          {hero.overlayGradient !== 'none' && (
-            <>
-              {/* Primary overlay - intensity controlled */}
+          </div>
+        )}
+
+        {/* Cover Image/Video - Enhanced Height with Parallax/Ken Burns and optimized loading */}
+        {/* Hide when gradient bars effect is active */}
+        {hero.gradientBarsEffect !== true && (
+          <BackgroundImage
+            src={hero.coverImage || ''}
+            videoSrc={hero.useVideo ? hero.coverVideo : undefined}
+            preferVideo={hero.useVideo === true}
+            kenBurnsEffect={hero.useVideo !== true && (hero.kenBurnsEffect === true || kenBurnsPreview)}
+            fallbackSrc=""
+            className={`relative ${heroHeight} group`}
+            priority={true}
+            parallax={hero.kenBurnsEffect !== true && !kenBurnsPreview}
+            parallaxOffset={parallaxOffset}
+          >
+            {/* Fallback gradient when no image */}
+            {!hero.coverImage && (
               <div 
-                className="absolute inset-0 z-10 transition-opacity duration-300 pointer-events-none"
+                className="absolute inset-0 -z-10"
                 style={{
-                  background: getOverlayStyle(hero.overlayGradient || 'default'),
-                  opacity: (hero.overlayIntensity ?? 50) / 100
+                  background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 50%, hsl(var(--accent)) 100%)'
                 }}
               />
-              {/* Side vignette */}
-              <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/40 via-transparent to-black/40 pointer-events-none" style={{ opacity: (hero.overlayIntensity ?? 50) / 100 }} />
-              {/* Brand tint accent */}
-              <div className="absolute inset-0 z-10 bg-gradient-to-b from-primary/10 via-transparent to-accent/10 mix-blend-overlay pointer-events-none" />
-            </>
-          )}
-          
-          {/* Animated ambient glow - hidden on mobile for performance */}
-          {enhancedMode && (
-            <>
-              <div className="hidden sm:block absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] animate-pulse pointer-events-none" />
-              <div className="hidden sm:block absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/20 rounded-full blur-[100px] animate-pulse pointer-events-none" style={{ animationDelay: '1s' }} />
-            </>
-          )}
-          
-          {/* Decorative elements */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
-          
-          {/* Floating particles effect - hidden on mobile */}
-          {enhancedMode && (
-            <div className="hidden sm:block absolute inset-0 overflow-hidden pointer-events-none">
-              {[...Array(6)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute w-2 h-2 bg-white/20 rounded-full animate-float"
+            )}
+            
+            {/* Dynamic overlay based on settings */}
+            {hero.overlayGradient !== 'none' && (
+              <>
+                {/* Primary overlay - intensity controlled */}
+                <div 
+                  className="absolute inset-0 z-10 transition-opacity duration-300 pointer-events-none"
                   style={{
-                    left: `${15 + i * 15}%`,
-                    top: `${20 + (i % 3) * 25}%`,
-                    animationDelay: `${i * 0.5}s`,
-                    animationDuration: `${3 + i * 0.5}s`,
+                    background: getOverlayStyle(hero.overlayGradient || 'default'),
+                    opacity: (hero.overlayIntensity ?? 50) / 100
                   }}
                 />
-              ))}
-            </div>
-          )}
-        </BackgroundImage>
+                {/* Side vignette */}
+                <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/40 via-transparent to-black/40 pointer-events-none" style={{ opacity: (hero.overlayIntensity ?? 50) / 100 }} />
+                {/* Brand tint accent */}
+                <div className="absolute inset-0 z-10 bg-gradient-to-b from-primary/10 via-transparent to-accent/10 mix-blend-overlay pointer-events-none" />
+              </>
+            )}
+            
+            {/* Animated ambient glow - hidden on mobile for performance */}
+            {enhancedMode && (
+              <>
+                <div className="hidden sm:block absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] animate-pulse pointer-events-none" />
+                <div className="hidden sm:block absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/20 rounded-full blur-[100px] animate-pulse pointer-events-none" style={{ animationDelay: '1s' }} />
+              </>
+            )}
+            
+            {/* Decorative elements */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+            
+            {/* Floating particles effect - hidden on mobile */}
+            {enhancedMode && (
+              <div className="hidden sm:block absolute inset-0 overflow-hidden pointer-events-none">
+                {[...Array(6)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute w-2 h-2 bg-white/20 rounded-full animate-float"
+                    style={{
+                      left: `${15 + i * 15}%`,
+                      top: `${20 + (i % 3) * 25}%`,
+                      animationDelay: `${i * 0.5}s`,
+                      animationDuration: `${3 + i * 0.5}s`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </BackgroundImage>
+        )}
+
+        {/* Height placeholder when gradient bars is active (since it uses absolute positioning) */}
+        {hero.gradientBarsEffect === true && !hero.useVideo && (
+          <div className={heroHeight} />
+        )}
 
         {/* Edit button - OUTSIDE BackgroundImage for reliable click handling */}
         {canEdit && (
@@ -395,13 +419,15 @@ export const HeroSection = ({
             useVideo={hero.useVideo === true}
             kenBurnsEffect={hero.kenBurnsEffect === true}
             kenBurnsPreview={kenBurnsPreview}
+            gradientBarsEffect={hero.gradientBarsEffect === true}
+            gradientBarsIntensity={hero.gradientBarsIntensity || 'medium'}
             isUploading={isUploading}
             overlayIntensity={hero.overlayIntensity ?? 50}
             overlayGradient={hero.overlayGradient || 'default'}
             parallaxIntensity={hero.parallaxIntensity ?? 1}
             onMediaTypeChange={(type) => {
               if (onHeroChange) {
-                onHeroChange({ ...hero, useVideo: type === 'video' });
+                onHeroChange({ ...hero, useVideo: type === 'video', gradientBarsEffect: false });
               }
             }}
             onKenBurnsToggle={() => {
@@ -414,6 +440,12 @@ export const HeroSection = ({
               }
             }}
             onKenBurnsPreviewEnd={() => setKenBurnsPreview(false)}
+            onGradientBarsToggle={toggleGradientBars}
+            onGradientBarsIntensityChange={(value) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, gradientBarsIntensity: value });
+              }
+            }}
             onUploadClick={() => {
               if (hero.useVideo) {
                 videoInputRef.current?.click();
