@@ -310,9 +310,12 @@ export const HeroSection = ({
       >
         {/* Gradient Bars Effect - rendered when enabled */}
         {hero.gradientBarsEffect === true && !hero.useVideo && (
-          <div className={`absolute inset-0 ${heroHeight}`}>
+          <div className={`absolute inset-0 ${heroHeight} z-0`}>
             <GradientBarsHero 
-              intensity={hero.gradientBarsIntensity || 'medium'} 
+              intensity={hero.gradientBarsIntensity || 'medium'}
+              colorScheme={hero.gradientBarsColorScheme || 'cyan-purple'}
+              mode={hero.gradientBarsMode || 'dark'}
+              brightness={hero.gradientBarsBrightness ?? 50}
               barCount={6}
             />
           </div>
@@ -421,6 +424,9 @@ export const HeroSection = ({
             kenBurnsPreview={kenBurnsPreview}
             gradientBarsEffect={hero.gradientBarsEffect === true}
             gradientBarsIntensity={hero.gradientBarsIntensity || 'medium'}
+            gradientBarsColorScheme={hero.gradientBarsColorScheme || 'cyan-purple'}
+            gradientBarsMode={hero.gradientBarsMode || 'dark'}
+            gradientBarsBrightness={hero.gradientBarsBrightness ?? 50}
             isUploading={isUploading}
             overlayIntensity={hero.overlayIntensity ?? 50}
             overlayGradient={hero.overlayGradient || 'default'}
@@ -447,6 +453,21 @@ export const HeroSection = ({
             onGradientBarsIntensityChange={(value) => {
               if (onHeroChange) {
                 onHeroChange({ ...hero, gradientBarsIntensity: value });
+              }
+            }}
+            onGradientBarsColorSchemeChange={(value) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, gradientBarsColorScheme: value });
+              }
+            }}
+            onGradientBarsModeChange={(value) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, gradientBarsMode: value });
+              }
+            }}
+            onGradientBarsBrightnessChange={(value) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, gradientBarsBrightness: value });
               }
             }}
             onUploadClick={() => {

@@ -14,6 +14,9 @@ interface HeroEditToolbarProps {
   kenBurnsPreview: boolean;
   gradientBarsEffect?: boolean;
   gradientBarsIntensity?: 'subtle' | 'medium' | 'bold';
+  gradientBarsColorScheme?: 'cyan-purple' | 'blue-teal' | 'purple-pink' | 'green-cyan' | 'amber-orange' | 'custom';
+  gradientBarsMode?: 'dark' | 'light';
+  gradientBarsBrightness?: number;
   isUploading: boolean;
   overlayIntensity?: number;
   overlayGradient?: 'default' | 'radial-dark' | 'top-fade' | 'vignette' | 'brand-tint' | 'none';
@@ -28,6 +31,9 @@ interface HeroEditToolbarProps {
   onKenBurnsPreviewEnd: () => void;
   onGradientBarsToggle?: () => void;
   onGradientBarsIntensityChange?: (value: 'subtle' | 'medium' | 'bold') => void;
+  onGradientBarsColorSchemeChange?: (value: 'cyan-purple' | 'blue-teal' | 'purple-pink' | 'green-cyan' | 'amber-orange') => void;
+  onGradientBarsModeChange?: (value: 'dark' | 'light') => void;
+  onGradientBarsBrightnessChange?: (value: number) => void;
   onUploadClick: () => void;
   onVideoUrlClick: () => void;
   onLibrarySelect: (url: string) => void;
@@ -55,6 +61,14 @@ const GRADIENT_BARS_INTENSITIES = [
   { id: 'bold', label: 'Bold' },
 ] as const;
 
+const GRADIENT_BARS_COLOR_SCHEMES = [
+  { id: 'cyan-purple', label: 'Cyan/Purple', colors: ['#00d4ff', '#a855f7'] },
+  { id: 'blue-teal', label: 'Blue/Teal', colors: ['#3b82f6', '#14b8a6'] },
+  { id: 'purple-pink', label: 'Purple/Pink', colors: ['#a855f7', '#ec4899'] },
+  { id: 'green-cyan', label: 'Green/Cyan', colors: ['#22c55e', '#06b6d4'] },
+  { id: 'amber-orange', label: 'Amber/Orange', colors: ['#f59e0b', '#f97316'] },
+] as const;
+
 const TEXT_COLOR_PRESETS = [
   { id: '#ffffff', label: 'White' },
   { id: '#f0f0f0', label: 'Off-White' },
@@ -73,6 +87,9 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
     kenBurnsPreview,
     gradientBarsEffect = false,
     gradientBarsIntensity = 'medium',
+    gradientBarsColorScheme = 'cyan-purple',
+    gradientBarsMode = 'dark',
+    gradientBarsBrightness = 50,
     isUploading,
     overlayIntensity = 50,
     overlayGradient = 'default',
@@ -86,6 +103,9 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
     onKenBurnsPreviewEnd,
     onGradientBarsToggle,
     onGradientBarsIntensityChange,
+    onGradientBarsColorSchemeChange,
+    onGradientBarsModeChange,
+    onGradientBarsBrightnessChange,
     onUploadClick,
     onVideoUrlClick,
     onLibrarySelect,
@@ -291,32 +311,130 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
                       </button>
                       <p className="text-white/40 text-xs text-center">Interactive vertical gradient bars with mouse parallax</p>
 
-                      {/* Intensity controls when gradient bars is active */}
-                      {gradientBarsEffect && onGradientBarsIntensityChange && (
-                        <div className="pt-2 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-white/60 text-xs">Intensity</span>
-                          </div>
-                          <div className="flex gap-2">
-                            {GRADIENT_BARS_INTENSITIES.map((preset) => (
-                              <button
-                                key={preset.id}
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onGradientBarsIntensityChange(preset.id);
-                                }}
-                                className={cn(
-                                  "flex-1 py-2 rounded-lg border text-xs font-medium transition-all",
-                                  gradientBarsIntensity === preset.id
-                                    ? "bg-white/20 border-white/40 text-white"
-                                    : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
-                                )}
-                              >
-                                {preset.label}
-                              </button>
-                            ))}
-                          </div>
+                      {/* Gradient Bars controls when active */}
+                      {gradientBarsEffect && (
+                        <div className="pt-2 space-y-4">
+                          {/* Intensity */}
+                          {onGradientBarsIntensityChange && (
+                            <div className="space-y-2">
+                              <span className="text-white/60 text-xs">Intensity</span>
+                              <div className="flex gap-2">
+                                {GRADIENT_BARS_INTENSITIES.map((preset) => (
+                                  <button
+                                    key={preset.id}
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onGradientBarsIntensityChange(preset.id);
+                                    }}
+                                    className={cn(
+                                      "flex-1 py-2 rounded-lg border text-xs font-medium transition-all",
+                                      gradientBarsIntensity === preset.id
+                                        ? "bg-white/20 border-white/40 text-white"
+                                        : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
+                                    )}
+                                  >
+                                    {preset.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Color Scheme */}
+                          {onGradientBarsColorSchemeChange && (
+                            <div className="space-y-2">
+                              <span className="text-white/60 text-xs">Color Scheme</span>
+                              <div className="grid grid-cols-5 gap-1.5">
+                                {GRADIENT_BARS_COLOR_SCHEMES.map((scheme) => (
+                                  <button
+                                    key={scheme.id}
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onGradientBarsColorSchemeChange(scheme.id as 'cyan-purple' | 'blue-teal' | 'purple-pink' | 'green-cyan' | 'amber-orange');
+                                    }}
+                                    className={cn(
+                                      "relative h-8 rounded-lg border-2 overflow-hidden transition-all",
+                                      gradientBarsColorScheme === scheme.id
+                                        ? "border-white ring-1 ring-white/50"
+                                        : "border-white/20 hover:border-white/40"
+                                    )}
+                                    title={scheme.label}
+                                  >
+                                    <div 
+                                      className="absolute inset-0"
+                                      style={{
+                                        background: `linear-gradient(135deg, ${scheme.colors[0]}, ${scheme.colors[1]})`
+                                      }}
+                                    />
+                                    {gradientBarsColorScheme === scheme.id && (
+                                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                        <Check className="h-3 w-3 text-white" />
+                                      </div>
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Dark/Light Mode Toggle */}
+                          {onGradientBarsModeChange && (
+                            <div className="space-y-2">
+                              <span className="text-white/60 text-xs">Mode</span>
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onGradientBarsModeChange('dark');
+                                  }}
+                                  className={cn(
+                                    "flex-1 py-2 rounded-lg border text-xs font-medium transition-all",
+                                    gradientBarsMode === 'dark'
+                                      ? "bg-white/20 border-white/40 text-white"
+                                      : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
+                                  )}
+                                >
+                                  Dark
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onGradientBarsModeChange('light');
+                                  }}
+                                  className={cn(
+                                    "flex-1 py-2 rounded-lg border text-xs font-medium transition-all",
+                                    gradientBarsMode === 'light'
+                                      ? "bg-white/20 border-white/40 text-white"
+                                      : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
+                                  )}
+                                >
+                                  Light
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Brightness Slider */}
+                          {onGradientBarsBrightnessChange && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-white/60 text-xs">Brightness</span>
+                                <span className="text-white/80 text-xs font-mono">{gradientBarsBrightness}%</span>
+                              </div>
+                              <Slider
+                                value={[gradientBarsBrightness]}
+                                onValueChange={([val]) => onGradientBarsBrightnessChange(val)}
+                                min={10}
+                                max={100}
+                                step={5}
+                                className="w-full"
+                              />
+                            </div>
+                          )}
                         </div>
                       )}
                     </>
