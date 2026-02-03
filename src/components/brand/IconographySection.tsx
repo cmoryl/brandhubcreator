@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { useState, useRef, useMemo } from 'react';
+import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp, Sparkles, Building2, Layers } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { IconStudio, IconUsageGuidelines, HierarchicalIconDisplay } from './icon
 import type { IconStudioTab } from './iconography';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
+import { useIconLibraries } from '@/hooks/useIconLibraries';
 import JSZip from 'jszip';
 
 // SVG sanitization config - used at upload time for defense-in-depth
@@ -84,6 +85,27 @@ export const IconographySection = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const ICONS_PREVIEW_LIMIT = 8;
+
+  // Fetch inherited icon libraries
+  const { coreLibraries, productLineLibraries, isLoading: librariesLoading } = useIconLibraries(organizationId);
+
+  // Calculate inherited icons summary
+  const inheritedSummary = useMemo(() => {
+    const coreIconCount = coreLibraries.reduce((sum, lib) => sum + lib.icons.length, 0);
+    const productLineIconCount = productLineLibraries
+      .filter(lib => !productLineId || lib.id === productLineId)
+      .reduce((sum, lib) => sum + lib.icons.length, 0);
+    
+    return {
+      coreCount: coreIconCount,
+      productLineCount: productLineIconCount,
+      totalInherited: coreIconCount + productLineIconCount,
+      coreLibraryNames: coreLibraries.map(l => l.name),
+      productLineLibraryNames: productLineLibraries
+        .filter(lib => !productLineId || lib.id === productLineId)
+        .map(l => l.name),
+    };
+  }, [coreLibraries, productLineLibraries, productLineId]);
   
   const toggleCategoryExpanded = (category: string) => {
     setExpandedCategories(prev => {
@@ -518,6 +540,60 @@ ${innerContent}
           )}
         </div>
       </div>
+
+      {/* Inherited Icons Summary Banner */}
+      {organizationId && inheritedSummary.totalInherited > 0 && (
+        <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/40 border border-border/50">
+          <div className="flex items-center gap-3 flex-1 flex-wrap">
+            {inheritedSummary.coreCount > 0 && (
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-blue-500/10">
+                  <Building2 className="h-4 w-4 text-blue-500" />
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">{inheritedSummary.coreCount}</span>
+                  <span className="text-muted-foreground ml-1">Core Icons</span>
+                  {inheritedSummary.coreLibraryNames.length > 0 && (
+                    <span className="text-xs text-muted-foreground/70 ml-1">
+                      ({inheritedSummary.coreLibraryNames.join(', ')})
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+            {inheritedSummary.productLineCount > 0 && (
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-purple-500/10">
+                  <Package className="h-4 w-4 text-purple-500" />
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">{inheritedSummary.productLineCount}</span>
+                  <span className="text-muted-foreground ml-1">Product Line Icons</span>
+                  {inheritedSummary.productLineLibraryNames.length > 0 && (
+                    <span className="text-xs text-muted-foreground/70 ml-1">
+                      ({inheritedSummary.productLineLibraryNames.join(', ')})
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+            {iconography.length > 0 && (
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-orange-500/10">
+                  <Layers className="h-4 w-4 text-orange-500" />
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">{iconography.length}</span>
+                  <span className="text-muted-foreground ml-1">Brand Icons</span>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            <span className="font-medium">{inheritedSummary.totalInherited + iconography.length}</span> total available
+          </div>
+        </div>
+      )}
 
       <div className="space-y-6">
         {Object.entries(groupedIcons).map(([category, icons]) => {
