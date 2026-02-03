@@ -1,4 +1,5 @@
 import { useMemo, useCallback, useEffect, useRef } from 'react';
+import { cn } from '@/lib/utils';
 import { EventSectionId, DEFAULT_EVENT_SECTION_ORDER, EventGuide } from '@/types/event';
 import { HeroSection } from '@/components/brand/HeroSection';
 import { TaglineSection } from '@/components/brand/TaglineSection';
@@ -432,11 +433,18 @@ export const FullEventPage = ({
         const isHidden = hiddenSections.includes(sectionId);
         const isLast = index >= visibleSections.length - 1;
 
+        // Hero section should be full-width, other sections get content container
+        const isHeroSection = sectionId === 'hero';
+
         return (
           <div key={sectionId}>
             <div
               id={sectionId}
-              className={`scroll-mt-24 ${isHidden && isAdmin ? 'opacity-50 relative' : ''}`}
+              className={cn(
+                'scroll-mt-24',
+                isHidden && isAdmin && 'opacity-50 relative',
+                !isHeroSection && 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'
+              )}
             >
               {isHidden && isAdmin && (
                 <div className="absolute -top-2 right-0 text-xs bg-muted px-2 py-1 rounded text-muted-foreground z-10">
@@ -445,7 +453,7 @@ export const FullEventPage = ({
               )}
               {content}
             </div>
-            {!isLast && <Separator className="my-8 sm:my-12" />}
+            {!isLast && <Separator className="my-8 sm:my-12 max-w-7xl mx-auto" />}
           </div>
         );
       })}
