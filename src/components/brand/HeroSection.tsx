@@ -441,8 +441,8 @@ export const HeroSection = ({
           </BackgroundImage>
         )}
 
-        {/* Height placeholder when gradient bars is active (since it uses absolute positioning) */}
-        {hero.gradientBarsEffect === true && !hero.useVideo && (
+        {/* Height placeholder when hero effects are active (since they use absolute positioning) */}
+        {((hero.heroEffect && hero.heroEffect !== 'none') || hero.gradientBarsEffect === true) && !hero.useVideo && (
           <div className={heroHeight} />
         )}
 
