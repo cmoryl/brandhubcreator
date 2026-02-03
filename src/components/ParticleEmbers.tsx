@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
+import { useMemo, useCallback, useEffect, useRef } from 'react';
 
 interface ParticleEmbersProps {
   count?: number;
@@ -16,19 +16,20 @@ interface Particle {
   driftDuration: number;
   glowDuration: number;
   opacity: number;
-  offsetX: number;
-  offsetY: number;
 }
 
 export function ParticleEmbers({ 
   count = 30, 
   color = 'hsl(199 89% 48%)',
   className = '',
-  interactive = true
+  interactive = false // Disabled by default to prevent scroll blocking
 }: ParticleEmbersProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
+  const particleRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const mousePosRef = useRef({ x: 0, y: 0 });
+  const isHoveringRef = useRef(false);
+  const lastUpdateRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
 
   const particles = useMemo(() => {
     return Array.from({ length: count }, (_, i): Particle => {
@@ -49,94 +50,105 @@ export function ParticleEmbers({
         driftDuration,
         glowDuration,
         opacity,
-        offsetX: 0,
-        offsetY: 0,
       };
     });
   }, [count]);
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
+  // Direct DOM updates instead of React state - throttled to 20fps
+  const updateParticles = useCallback(() => {
     if (!containerRef.current || !interactive) return;
     
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-    
-    setMousePos({ x, y });
-  }, [interactive]);
+    const now = performance.now();
+    if (now - lastUpdateRef.current < 50) return; // 20fps throttle
+    lastUpdateRef.current = now;
 
-  const handleMouseEnter = useCallback(() => {
-    if (interactive) setIsHovering(true);
-  }, [interactive]);
+    particles.forEach((particle, index) => {
+      const el = particleRefs.current[index];
+      if (!el) return;
 
-  const handleMouseLeave = useCallback(() => {
-    setIsHovering(false);
-    setMousePos({ x: 0, y: 0 });
-  }, []);
+      if (!isHoveringRef.current) {
+        el.style.transform = 'translate(0px, 0px)';
+        el.style.transition = 'transform 0.5s ease-out';
+        return;
+      }
+
+      const particleX = (particle.left / 100) * 2 - 1;
+      const distX = mousePosRef.current.x - particleX;
+      const distY = mousePosRef.current.y;
+      const distance = Math.sqrt(distX * distX + distY * distY);
+      
+      const maxInfluence = 0.8;
+      const influence = Math.max(0, 1 - distance / maxInfluence);
+      
+      const repelStrength = 60 + (particle.id % 20);
+      const offsetX = -distX * influence * repelStrength;
+      const offsetY = -distY * influence * repelStrength * 0.5;
+      
+      el.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+      el.style.transition = 'transform 0.15s ease-out';
+    });
+  }, [particles, interactive]);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container || !interactive) return;
 
-    container.addEventListener('mousemove', handleMouseMove);
-    container.addEventListener('mouseenter', handleMouseEnter);
-    container.addEventListener('mouseleave', handleMouseLeave);
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      mousePosRef.current = {
+        x: ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        y: ((e.clientY - rect.top) / rect.height) * 2 - 1,
+      };
+      
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(updateParticles);
+    };
+
+    const handleMouseEnter = () => {
+      isHoveringRef.current = true;
+    };
+
+    const handleMouseLeave = () => {
+      isHoveringRef.current = false;
+      mousePosRef.current = { x: 0, y: 0 };
+      updateParticles();
+    };
+
+    container.addEventListener('mousemove', handleMouseMove, { passive: true });
+    container.addEventListener('mouseenter', handleMouseEnter, { passive: true });
+    container.addEventListener('mouseleave', handleMouseLeave, { passive: true });
 
     return () => {
       container.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mouseenter', handleMouseEnter);
       container.removeEventListener('mouseleave', handleMouseLeave);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [handleMouseMove, handleMouseEnter, handleMouseLeave, interactive]);
-
-  const calculateOffset = useCallback((particleLeft: number, particleId: number) => {
-    if (!isHovering) return { x: 0, y: 0 };
-    
-    const particleX = (particleLeft / 100) * 2 - 1;
-    const distX = mousePos.x - particleX;
-    const distY = mousePos.y;
-    const distance = Math.sqrt(distX * distX + distY * distY);
-    
-    const maxInfluence = 0.8;
-    const influence = Math.max(0, 1 - distance / maxInfluence);
-    
-    const repelStrength = 60 + (particleId % 20);
-    const offsetX = -distX * influence * repelStrength;
-    const offsetY = -distY * influence * repelStrength * 0.5;
-    
-    return { x: offsetX, y: offsetY };
-  }, [mousePos, isHovering]);
+  }, [updateParticles, interactive]);
 
   return (
     <div 
       ref={containerRef}
-      className={`absolute inset-0 overflow-hidden ${interactive ? 'pointer-events-auto' : 'pointer-events-none'} ${className}`}
+      className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}
     >
-      {particles.map((particle) => {
-        const offset = calculateOffset(particle.left, particle.id);
-        
-        return (
-          <div
-            key={particle.id}
-            className="particle-ember"
-            style={{
-              width: `${particle.size}px`,
-              height: `${particle.size}px`,
-              left: `${particle.left}%`,
-              bottom: '-20px',
-              backgroundColor: color,
-              opacity: isHovering ? Math.min(particle.opacity * 1.3, 1) : particle.opacity,
-              animationDuration: `${particle.duration}s, ${particle.driftDuration}s, ${particle.glowDuration}s`,
-              animationDelay: `${particle.delay}s, ${particle.delay}s, ${particle.delay}s`,
-              transform: `translate(${offset.x}px, ${offset.y}px)`,
-              transition: isHovering ? 'transform 0.15s ease-out, opacity 0.3s ease' : 'transform 0.5s ease-out, opacity 0.3s ease',
-              boxShadow: isHovering 
-                ? `0 0 ${particle.size * 3}px ${color}, 0 0 ${particle.size * 5}px ${color}`
-                : `0 0 ${particle.size * 2}px ${color}`,
-            }}
-          />
-        );
-      })}
+      {particles.map((particle, index) => (
+        <div
+          key={particle.id}
+          ref={(el) => { particleRefs.current[index] = el; }}
+          className="particle-ember"
+          style={{
+            width: `${particle.size}px`,
+            height: `${particle.size}px`,
+            left: `${particle.left}%`,
+            bottom: '-20px',
+            backgroundColor: color,
+            opacity: particle.opacity,
+            animationDuration: `${particle.duration}s, ${particle.driftDuration}s, ${particle.glowDuration}s`,
+            animationDelay: `${particle.delay}s, ${particle.delay}s, ${particle.delay}s`,
+            boxShadow: `0 0 ${particle.size * 2}px ${color}`,
+          }}
+        />
+      ))}
     </div>
   );
 }
