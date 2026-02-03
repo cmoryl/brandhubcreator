@@ -1,5 +1,5 @@
 import { forwardRef, useState } from 'react';
-import { ImageIcon, Video, Move, Upload, Loader2, Check, FolderOpen, Layers, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { ImageIcon, Video, Move, Upload, Loader2, Check, FolderOpen, Layers, Sparkles, SlidersHorizontal, LayoutPanelLeft } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
@@ -10,6 +10,8 @@ interface HeroEditToolbarProps {
   useVideo: boolean;
   kenBurnsEffect: boolean;
   kenBurnsPreview: boolean;
+  gradientBarsEffect?: boolean;
+  gradientBarsIntensity?: 'subtle' | 'medium' | 'bold';
   isUploading: boolean;
   overlayIntensity?: number;
   overlayGradient?: 'default' | 'radial-dark' | 'top-fade' | 'vignette' | 'brand-tint' | 'none';
@@ -18,6 +20,8 @@ interface HeroEditToolbarProps {
   onKenBurnsToggle: () => void;
   onKenBurnsPreviewStart: () => void;
   onKenBurnsPreviewEnd: () => void;
+  onGradientBarsToggle?: () => void;
+  onGradientBarsIntensityChange?: (value: 'subtle' | 'medium' | 'bold') => void;
   onUploadClick: () => void;
   onVideoUrlClick: () => void;
   onLibrarySelect: (url: string) => void;
@@ -35,11 +39,19 @@ const OVERLAY_PRESETS = [
   { id: 'none', label: 'None', preview: 'transparent' },
 ] as const;
 
+const GRADIENT_BARS_INTENSITIES = [
+  { id: 'subtle', label: 'Subtle' },
+  { id: 'medium', label: 'Medium' },
+  { id: 'bold', label: 'Bold' },
+] as const;
+
 export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
   function HeroEditToolbar({
     useVideo,
     kenBurnsEffect,
     kenBurnsPreview,
+    gradientBarsEffect = false,
+    gradientBarsIntensity = 'medium',
     isUploading,
     overlayIntensity = 50,
     overlayGradient = 'default',
@@ -48,6 +60,8 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
     onKenBurnsToggle,
     onKenBurnsPreviewStart,
     onKenBurnsPreviewEnd,
+    onGradientBarsToggle,
+    onGradientBarsIntensityChange,
     onUploadClick,
     onVideoUrlClick,
     onLibrarySelect,
@@ -184,14 +198,20 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
 
             {/* Effects Tab */}
             <TabsContent value="effects" className="p-4 space-y-4 mt-0">
-              {/* Ken Burns Effect */}
+              {/* Motion Effects Section */}
               {!useVideo && (
                 <div className="space-y-3">
                   <label className="text-white/60 text-xs font-medium uppercase tracking-wider">Motion Effect</label>
+                  
+                  {/* Ken Burns Effect Button */}
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
+                      // Disable gradient bars if enabling Ken Burns
+                      if (!kenBurnsEffect && gradientBarsEffect && onGradientBarsToggle) {
+                        onGradientBarsToggle();
+                      }
                       onKenBurnsToggle();
                     }}
                     onMouseEnter={onKenBurnsPreviewStart}
@@ -210,11 +230,68 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
                     {kenBurnsEffect && <Check className="h-4 w-4 text-accent" />}
                   </button>
                   <p className="text-white/40 text-xs text-center">Slow cinematic pan & zoom animation</p>
+
+                  {/* Gradient Bars Effect Button */}
+                  {onGradientBarsToggle && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Disable Ken Burns if enabling gradient bars
+                          if (!gradientBarsEffect && kenBurnsEffect) {
+                            onKenBurnsToggle();
+                          }
+                          onGradientBarsToggle();
+                        }}
+                        className={cn(
+                          "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-all text-sm font-medium",
+                          gradientBarsEffect
+                            ? "bg-accent/30 border-accent/50 text-white" 
+                            : "bg-white/10 border-white/20 text-white/80 hover:bg-white/15 hover:text-white"
+                        )}
+                      >
+                        <LayoutPanelLeft className="h-4 w-4" />
+                        <span>Gradient Bars Effect</span>
+                        {gradientBarsEffect && <Check className="h-4 w-4 text-accent" />}
+                      </button>
+                      <p className="text-white/40 text-xs text-center">Interactive vertical gradient bars with mouse parallax</p>
+
+                      {/* Intensity controls when gradient bars is active */}
+                      {gradientBarsEffect && onGradientBarsIntensityChange && (
+                        <div className="pt-2 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-white/60 text-xs">Intensity</span>
+                          </div>
+                          <div className="flex gap-2">
+                            {GRADIENT_BARS_INTENSITIES.map((preset) => (
+                              <button
+                                key={preset.id}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onGradientBarsIntensityChange(preset.id);
+                                }}
+                                className={cn(
+                                  "flex-1 py-2 rounded-lg border text-xs font-medium transition-all",
+                                  gradientBarsIntensity === preset.id
+                                    ? "bg-white/20 border-white/40 text-white"
+                                    : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
+                                )}
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
 
-              {/* Parallax Intensity */}
-              {!useVideo && !kenBurnsEffect && onParallaxIntensityChange && (
+              {/* Parallax Intensity - only show when neither Ken Burns nor Gradient Bars is active */}
+              {!useVideo && !kenBurnsEffect && !gradientBarsEffect && onParallaxIntensityChange && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="text-white/60 text-xs font-medium uppercase tracking-wider">Parallax Depth</label>
