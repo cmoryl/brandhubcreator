@@ -65,7 +65,7 @@ export const AdminToolbar = ({
   hiddenSectionCount = 0,
   className,
 }: AdminToolbarProps) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   if (!isVisible) return null;
 
