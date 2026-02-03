@@ -10,6 +10,7 @@ import { GlitchText } from '@/components/ui/GlitchText';
 import { HeroOrbit } from '@/components/landing/HeroOrbit';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ParallaxCard } from '@/components/ui/parallax-card';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
 import { DEMO_GRADIENTS, DEMO_INDUSTRIES, DEMO_CARD_IMAGES, getOrbitBrands, getOrbitProducts, getOrbitEvents } from '@/data/demoGuides';
@@ -229,43 +230,35 @@ const Index = () => {
             {featuredDemos.map((demo, index) => {
               const Icon = demo.icon;
               return (
-                <button
+                <ParallaxCard
                   key={demo.id}
                   onClick={() => navigate(demo.path)}
-                  className="group relative overflow-hidden rounded-3xl bg-card/80 backdrop-blur-sm border border-border/50 hover:border-accent/60 text-left shadow-lg hover:shadow-2xl hover:shadow-accent/10 transition-all duration-500 ease-out hover:-translate-y-2"
+                  imageSrc={demo.cardImage}
+                  imageAlt={demo.name}
+                  fallbackGradient={demo.gradient}
+                  parallaxIntensity={15}
+                  scaleOnHover={1.15}
+                  className="group rounded-3xl bg-card/80 backdrop-blur-sm border border-border/50 hover:border-accent/60 shadow-lg hover:shadow-2xl hover:shadow-accent/10"
+                  imageClassName="h-44 sm:h-48"
                   style={{
                     animationDelay: `${index * 100}ms`,
                     animation: 'fadeInUp 0.6s ease-out backwards',
                   }}
                 >
-                  {/* Card image or gradient fallback */}
-                  <div className="h-44 sm:h-48 relative overflow-hidden">
-                    {demo.cardImage ? (
-                      <img 
-                        src={demo.cardImage} 
-                        alt={demo.name}
-                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                      />
-                    ) : (
-                      <div className={`absolute inset-0 bg-gradient-to-br ${demo.gradient}`} />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent group-hover:from-black/60 transition-colors duration-500" />
-                    
-                    {/* Icon with glow effect */}
-                    <div className="absolute bottom-4 right-4 p-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 group-hover:bg-accent/20 group-hover:border-accent/40 transition-all duration-500">
-                      <Icon className="h-6 w-6 text-white drop-shadow-lg" />
-                    </div>
-                    
-                    {/* Industry badge overlay */}
-                    <div className="absolute top-4 left-4">
-                      <Badge className="bg-black/40 backdrop-blur-md text-white border-white/20 text-xs font-medium">
-                        {demo.industry}
-                      </Badge>
-                    </div>
+                  {/* Icon with glow effect */}
+                  <div className="absolute top-44 sm:top-48 -mt-14 right-4 z-10 p-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 group-hover:bg-accent/20 group-hover:border-accent/40 transition-all duration-500">
+                    <Icon className="h-6 w-6 text-white drop-shadow-lg" />
+                  </div>
+                  
+                  {/* Industry badge overlay */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <Badge className="bg-black/40 backdrop-blur-md text-white border-white/20 text-xs font-medium">
+                      {demo.industry}
+                    </Badge>
                   </div>
                   
                   {/* Content */}
-                  <div className="p-6">
+                  <div className="p-6 pt-4">
                     <h3 className="font-bold text-xl mb-3 group-hover:text-accent transition-colors duration-300">
                       {demo.name}
                     </h3>
@@ -281,7 +274,7 @@ const Index = () => {
 
                   {/* Hover glow effect */}
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-3xl ring-1 ring-accent/30" />
-                </button>
+                </ParallaxCard>
               );
             })}
           </div>
