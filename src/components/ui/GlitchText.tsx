@@ -99,8 +99,12 @@ export const GlitchText = ({ text, className = '', glowColor = 'hsl(199 89% 48%)
       
       {/* Main text with glow */}
       <span 
-        className="relative z-10 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent"
+        className="relative z-10"
         style={{
+          background: `linear-gradient(90deg, ${glowColor}, hsl(198 84% 60%), ${glowColor})`,
+          backgroundClip: 'text',
+          WebkitBackgroundClip: 'text',
+          color: 'transparent',
           textShadow: `0 0 10px ${glowColor}40, 0 0 20px ${glowColor}30, 0 0 30px ${glowColor}20`,
           transform: `translate(${glitchOffset.x * 0.5}px, ${glitchOffset.y * 0.5}px)`,
         }}
