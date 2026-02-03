@@ -208,6 +208,98 @@ const LogoSizeControls = ({ width, height, onChange }: LogoSizeControlsProps) =>
   );
 };
 
+// Banner Size Controls Component with Aspect Ratio Lock
+interface BannerSizeControlsProps {
+  width: number;
+  height: number;
+  onChange: (width: number, height: number) => void;
+}
+
+const BannerSizeControls = ({ width, height, onChange }: BannerSizeControlsProps) => {
+  const [aspectLocked, setAspectLocked] = useState(true);
+  const aspectRatio = width / height || 4;
+
+  const handleWidthChange = (newWidth: number) => {
+    if (aspectLocked) {
+      onChange(newWidth, Math.round(newWidth / aspectRatio));
+    } else {
+      onChange(newWidth, height);
+    }
+  };
+
+  const handleHeightChange = (newHeight: number) => {
+    if (aspectLocked) {
+      onChange(Math.round(newHeight * aspectRatio), newHeight);
+    } else {
+      onChange(width, newHeight);
+    }
+  };
+
+  return (
+    <div className="space-y-3 p-3 bg-muted/30 rounded-lg border border-border">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Maximize2 className="h-4 w-4 text-muted-foreground" />
+          <span className="text-xs font-medium">Banner Size</span>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setAspectLocked(!aspectLocked)}
+          className="h-7 gap-1.5 text-xs"
+        >
+          {aspectLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
+          {aspectLocked ? 'Locked' : 'Unlocked'}
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <label className="text-xs text-muted-foreground">Width (px)</label>
+          <Input
+            type="number"
+            value={width}
+            onChange={(e) => handleWidthChange(parseInt(e.target.value) || 600)}
+            min={100}
+            max={1200}
+            className="h-8 text-sm"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-xs text-muted-foreground">Height (px)</label>
+          <Input
+            type="number"
+            value={height}
+            onChange={(e) => handleHeightChange(parseInt(e.target.value) || 150)}
+            min={50}
+            max={600}
+            className="h-8 text-sm"
+          />
+        </div>
+      </div>
+      
+      <div className="flex flex-wrap gap-1.5">
+        {bannerSizePresets.map((preset) => (
+          <Button
+            key={preset.name}
+            variant={width === preset.width && height === preset.height ? "default" : "outline"}
+            size="sm"
+            className="h-7 text-xs"
+            onClick={() => onChange(preset.width, preset.height)}
+            title={preset.description}
+          >
+            {preset.name}
+          </Button>
+        ))}
+      </div>
+      
+      <p className="text-xs text-muted-foreground">
+        {aspectLocked ? 'Aspect ratio locked - dimensions scale proportionally' : 'Aspect ratio unlocked - set custom dimensions'}
+      </p>
+    </div>
+  );
+};
+
 export const SignaturesSection = ({ 
   signatures, 
   onSignaturesChange, 
@@ -1012,26 +1104,11 @@ export const SignaturesSection = ({
                   <div className="px-4 pb-4 space-y-3">
                     {isEditing ? (
                       <>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Width (px)</label>
-                            <Input
-                              type="number"
-                              value={banner.width}
-                              onChange={(e) => updateEmailBanner(banner.id, { width: parseInt(e.target.value) || 600 })}
-                              className="h-8 text-xs"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Height (px)</label>
-                            <Input
-                              type="number"
-                              value={banner.height}
-                              onChange={(e) => updateEmailBanner(banner.id, { height: parseInt(e.target.value) || 150 })}
-                              className="h-8 text-xs"
-                            />
-                          </div>
-                        </div>
+                        <BannerSizeControls
+                          width={banner.width}
+                          height={banner.height}
+                          onChange={(width, height) => updateEmailBanner(banner.id, { width, height })}
+                        />
                         <div className="space-y-2">
                           <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Banner Image</label>
                           <div className="flex gap-2">
