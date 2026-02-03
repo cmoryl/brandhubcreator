@@ -1,4 +1,5 @@
 import { useRef, useEffect, memo, useMemo, useCallback } from 'react';
+import { cn } from '@/lib/utils';
 import { BaseGuide, SectionId, DEFAULT_SECTION_ORDER, LayoutPreset, InfographicLayout } from '@/types/brand';
 import { HeroSection } from './HeroSection';
 import { TaglineSection } from './TaglineSection';
@@ -97,6 +98,9 @@ const SectionWrapper = memo(({
 }: SectionWrapperProps) => {
   const animation = sectionAnimations[sectionId] || 'fade-up';
   
+  // Hero section should be full-width, other sections get content container
+  const isHeroSection = sectionId === 'hero';
+  
   return (
     <div 
       key={sectionId} 
@@ -116,14 +120,17 @@ const SectionWrapper = memo(({
         <div 
           ref={setRef} 
           data-section={sectionId} 
-          className="scroll-mt-24 rounded-xl transition-all duration-300"
+          className={cn(
+            "scroll-mt-24 rounded-xl transition-all duration-300",
+            !isHeroSection && "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+          )}
         >
           {children}
         </div>
       </ScrollAnimate>
       {!isLast && (
         <ScrollAnimate animation="fade-up" delay={100} duration={400}>
-          <Separator className="my-8 sm:my-12" />
+          <Separator className="my-8 sm:my-12 max-w-7xl mx-auto" />
         </ScrollAnimate>
       )}
     </div>
