@@ -572,17 +572,17 @@ export const HeroOrbit = forwardRef<HTMLDivElement, HeroOrbitProps>(({
                       y={pos.y + 10}
                       textAnchor="middle"
                       fill="white"
-                      fontSize="2.8"
+                      fontSize="2.2"
                       fontWeight="500"
                     >
                       {entity.name.length > 14 ? entity.name.slice(0, 14) + '...' : entity.name}
                     </text>
                     <text
                       x={pos.x}
-                      y={pos.y + 13}
+                      y={pos.y + 12.5}
                       textAnchor="middle"
                       fill={color}
-                      fontSize="2"
+                      fontSize="1.6"
                       fontWeight="600"
                       style={{ textTransform: 'uppercase' }}
                     >
