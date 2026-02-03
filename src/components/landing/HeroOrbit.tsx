@@ -29,11 +29,11 @@ interface HeroOrbitProps {
   onEntityClick?: (entity: OrbitEntity) => void;
 }
 
-// Type colors matching GlobalAssetOrbit
+// Type colors - TransPerfect light blue accent theme
 const TYPE_COLORS = {
   brand: '#14b8a6',    // Teal
-  product: '#38bdf8',  // Light blue
-  event: '#f59e0b',    // Amber
+  product: '#139cd8',  // TransPerfect light blue
+  event: '#0ea5e9',    // Sky blue (variation)
 };
 
 // Seeded random for consistent patterns
