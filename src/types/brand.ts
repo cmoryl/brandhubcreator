@@ -49,15 +49,25 @@ export interface BrandHero {
   useVideo?: boolean;
   /** Whether to apply Ken Burns (slow pan/zoom) effect to hero image */
   kenBurnsEffect?: boolean;
-  /** Whether to use the animated gradient bars effect */
+  /** Active hero background effect type */
+  heroEffect?: 'none' | 'gradient-bars' | 'horizon-glow' | 'floating-orbs' | 'gradient-spheres';
+  /** Intensity of the hero effect */
+  heroEffectIntensity?: 'subtle' | 'medium' | 'bold';
+  /** Color scheme for hero effect */
+  heroEffectColorScheme?: string;
+  /** Dark or light mode for hero effect */
+  heroEffectMode?: 'dark' | 'light';
+  /** Brightness level for hero effect (0-100) */
+  heroEffectBrightness?: number;
+  /** @deprecated Use heroEffect instead */
   gradientBarsEffect?: boolean;
-  /** Intensity of the gradient bars effect */
+  /** @deprecated Use heroEffectIntensity instead */
   gradientBarsIntensity?: 'subtle' | 'medium' | 'bold';
-  /** Color scheme for gradient bars */
+  /** @deprecated Use heroEffectColorScheme instead */
   gradientBarsColorScheme?: 'cyan-purple' | 'blue-teal' | 'purple-pink' | 'green-cyan' | 'amber-orange' | 'custom';
-  /** Dark or light mode for gradient bars */
+  /** @deprecated Use heroEffectMode instead */
   gradientBarsMode?: 'dark' | 'light';
-  /** Brightness level for gradient bars (0-100) */
+  /** @deprecated Use heroEffectBrightness instead */
   gradientBarsBrightness?: number;
   logoUrl: string;
   /** Tagline animation effect on load */
