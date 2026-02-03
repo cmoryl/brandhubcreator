@@ -357,39 +357,43 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
         </div>
       )}
 
-      {/* Enhanced Tour Card - Modern glassmorphism design */}
+      {/* Enhanced Tour Card - Premium liquid glass design */}
       <div
         className={cn(
           "absolute z-10 w-[520px] max-w-[calc(100vw-40px)] transition-all duration-400 ease-out",
+          "font-['Poppins',sans-serif]",
           isAnimating ? "opacity-0 scale-95 translate-y-3" : "opacity-100 scale-100 translate-y-0"
         )}
         style={tooltipStyle}
       >
         {/* Outer glow ring */}
-        <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-accent/40 via-primary/20 to-accent/40 blur-sm" />
+        <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-br from-accent/30 via-white/10 to-accent/30 blur-md opacity-60" />
         
-        {/* Main card container */}
-        <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-card via-background to-card border border-white/10">
+        {/* Main card container with liquid glass effect */}
+        <div className="relative rounded-2xl overflow-hidden bg-black/40 backdrop-blur-2xl backdrop-saturate-150 border border-white/15 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]">
+          
+          {/* Inner glass shine layer */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-white/[0.02] pointer-events-none" />
           
           {/* Animated header strip */}
-          <div className="relative h-12 bg-gradient-to-r from-accent/20 via-primary/10 to-accent/20 border-b border-white/5">
+          <div className="relative h-12 bg-gradient-to-r from-accent/10 via-white/5 to-accent/10 border-b border-white/10">
             {/* Scanning line animation */}
             <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute inset-y-0 w-20 bg-gradient-to-r from-transparent via-accent/30 to-transparent animate-[shimmer_3s_infinite]" />
+              <div className="absolute inset-y-0 w-20 bg-gradient-to-r from-transparent via-accent/20 to-transparent animate-[shimmer_3s_infinite]" />
             </div>
             
             {/* Header content */}
             <div className="relative h-full px-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_hsl(var(--accent))]" />
-                <span className="text-xs font-mono text-accent uppercase tracking-widest">Interactive Tour</span>
+                <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_12px_hsl(var(--accent))]" />
+                <span className="text-xs font-medium text-accent uppercase tracking-[0.15em]">Interactive Tour</span>
               </div>
               <button
                 onClick={onClose}
                 className={cn(
                   "p-1.5 rounded-lg transition-all duration-200",
-                  "text-muted-foreground hover:text-foreground",
-                  "hover:bg-white/10"
+                  "text-white/50 hover:text-white",
+                  "hover:bg-white/10 backdrop-blur-sm"
                 )}
                 aria-label="Close tour"
               >
@@ -399,7 +403,7 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
           </div>
 
           {/* Card body */}
-          <div className="p-6 space-y-5">
+          <div className="relative p-6 space-y-5">
             {/* Category navigation pills */}
             <CategoryNav 
               steps={availableSteps} 
@@ -409,13 +413,13 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
 
             {/* Progress indicator */}
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-1 bg-muted/20 rounded-full overflow-hidden">
+              <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden backdrop-blur-sm">
                 <div 
-                  className="h-full bg-gradient-to-r from-accent to-primary transition-all duration-500 ease-out rounded-full"
+                  className="h-full bg-gradient-to-r from-accent via-accent to-accent/80 transition-all duration-500 ease-out rounded-full shadow-[0_0_10px_hsl(var(--accent)/0.5)]"
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <span className="text-[10px] font-mono text-muted-foreground tabular-nums">
+              <span className="text-[11px] font-medium text-white/60 tabular-nums tracking-wider">
                 {String(safeCurrentStep + 1).padStart(2, '0')}/{String(availableSteps.length).padStart(2, '0')}
               </span>
             </div>
@@ -424,24 +428,24 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
             <div className="space-y-4">
               <div className="space-y-2">
                 <CategoryBadge category={step?.category} />
-                <h3 className="text-2xl font-bold leading-tight tracking-tight">
-                  <GlitchText text={step?.title || ''} className="text-2xl font-bold" />
+                <h3 className="text-2xl font-semibold leading-tight tracking-tight text-white">
+                  <GlitchText text={step?.title || ''} className="text-2xl font-semibold" />
                 </h3>
               </div>
 
-              {/* Description card */}
-              <div className="relative p-4 rounded-xl bg-muted/10 border border-white/5">
-                <div className="absolute top-0 left-4 w-8 h-[2px] bg-gradient-to-r from-accent to-transparent" />
-                <p className="text-sm text-muted-foreground leading-relaxed">
+              {/* Description card with glass effect */}
+              <div className="relative p-4 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-sm">
+                <div className="absolute top-0 left-4 w-10 h-[2px] bg-gradient-to-r from-accent to-transparent rounded-full" />
+                <p className="text-sm text-white/70 leading-relaxed">
                   {step?.description}
                 </p>
               </div>
             </div>
 
             {/* Navigation footer */}
-            <div className="flex items-center justify-between pt-4 border-t border-white/5">
+            <div className="flex items-center justify-between pt-4 border-t border-white/10">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-3.5 w-3.5 text-accent/60" />
+                <Sparkles className="h-3.5 w-3.5 text-accent/50" />
                 <KeyboardHint />
               </div>
               
@@ -451,10 +455,10 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
                     variant="ghost" 
                     size="sm" 
                     onClick={handlePrev} 
-                    className="gap-1.5 h-9 px-3 hover:bg-white/5 border border-transparent hover:border-white/10"
+                    className="gap-1.5 h-9 px-3 text-white/70 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/15 font-['Poppins',sans-serif]"
                   >
                     <ChevronLeft className="h-4 w-4" />
-                    <span className="text-xs">Back</span>
+                    <span className="text-xs font-medium">Back</span>
                   </Button>
                 )}
                 
@@ -463,37 +467,41 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
                     variant="ghost" 
                     size="sm" 
                     onClick={handleSkipToEnd} 
-                    className="h-9 px-2 hover:bg-white/5"
+                    className="h-9 px-2 text-white/50 hover:text-white hover:bg-white/10"
                     title="Skip tour"
                   >
                     <SkipForward className="h-4 w-4" />
                   </Button>
                 )}
                 
-                <Button 
-                  size="sm" 
+                <button 
                   onClick={handleNext} 
                   className={cn(
-                    "gap-1.5 h-9 px-5 font-medium",
-                    "bg-gradient-to-r from-accent to-primary",
-                    "hover:from-accent/90 hover:to-primary/90",
-                    "shadow-[0_0_20px_-5px_hsl(var(--accent)),inset_0_1px_0_rgba(255,255,255,0.1)]",
-                    "hover:shadow-[0_0_30px_-5px_hsl(var(--accent))]",
-                    "border border-white/10",
+                    "inline-flex items-center gap-1.5 h-9 px-5",
+                    "font-['Poppins',sans-serif] text-xs font-medium text-white",
+                    "rounded-xl",
+                    // Glass gradient background
+                    "bg-gradient-to-r from-accent to-accent/80",
+                    "hover:from-accent/90 hover:to-accent/70",
+                    // Multi-layer shadows for depth
+                    "shadow-[0_0_20px_-5px_hsl(var(--accent)),0_4px_12px_-2px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)]",
+                    "hover:shadow-[0_0_30px_-3px_hsl(var(--accent)),0_6px_16px_-2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.25)]",
+                    // Border for glass edge
+                    "border border-white/20",
                     "transition-all duration-200"
                   )}
                 >
-                  <span className="text-xs">
+                  <span>
                     {safeCurrentStep === availableSteps.length - 1 ? 'Complete' : 'Next'}
                   </span>
                   {safeCurrentStep < availableSteps.length - 1 && <ChevronRight className="h-3.5 w-3.5" />}
-                </Button>
+                </button>
               </div>
             </div>
           </div>
           
-          {/* Bottom accent line */}
-          <div className="h-[2px] bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+          {/* Bottom accent line with glow */}
+          <div className="h-[2px] bg-gradient-to-r from-transparent via-accent/40 to-transparent shadow-[0_0_8px_hsl(var(--accent)/0.3)]" />
         </div>
       </div>
     </div>,
@@ -501,7 +509,7 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
   );
 };
 
-// Enhanced Start Tour Button component
+// Enhanced Start Tour Button component with liquid glass aesthetic
 interface StartTourButtonProps {
   onClick: () => void;
   className?: string;
@@ -510,20 +518,46 @@ interface StartTourButtonProps {
 
 export const StartTourButton = ({ onClick, className, stepCount }: StartTourButtonProps) => {
   return (
-    <Button
-      variant="outline"
-      size="sm"
+    <button
       onClick={onClick}
-      className={cn("gap-2 group", className)}
+      className={cn(
+        "group relative inline-flex items-center gap-2 h-9 px-4 rounded-xl",
+        "font-['Poppins',sans-serif] text-sm font-medium",
+        // Liquid glass background
+        "bg-white/[0.08] hover:bg-white/[0.14]",
+        "backdrop-blur-xl backdrop-saturate-150",
+        // Multi-layer border for glass depth
+        "border border-white/20 hover:border-white/30",
+        "shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_4px_24px_-4px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)]",
+        "hover:shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_8px_32px_-4px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.15),0_0_20px_-5px_hsl(var(--accent)/0.3)]",
+        // Text styling
+        "text-foreground/90 hover:text-foreground",
+        // Smooth transitions
+        "transition-all duration-300 ease-out",
+        className
+      )}
     >
-      <Play className="h-4 w-4 group-hover:scale-110 transition-transform" />
-      <span className="hidden sm:inline">Start Tour</span>
-      <span className="sm:hidden">Tour</span>
+      {/* Inner glow effect */}
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-60" />
+      
+      {/* Accent shimmer on hover */}
+      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-transparent via-accent/10 to-transparent" />
+      
+      {/* Play icon with glow */}
+      <span className="relative flex items-center justify-center w-5 h-5 rounded-full bg-accent/20 group-hover:bg-accent/30 transition-colors">
+        <Play className="h-3 w-3 text-accent fill-accent/30 group-hover:scale-110 transition-transform" />
+      </span>
+      
+      {/* Text */}
+      <span className="relative hidden sm:inline tracking-wide">Start Tour</span>
+      <span className="relative sm:hidden tracking-wide">Tour</span>
+      
+      {/* Step count badge */}
       {stepCount && (
-        <span className="hidden sm:inline text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
-          {stepCount} steps
+        <span className="relative hidden sm:inline text-[10px] text-accent/80 bg-accent/10 px-2 py-0.5 rounded-full border border-accent/20 font-medium tabular-nums">
+          {stepCount}
         </span>
       )}
-    </Button>
+    </button>
   );
 };
