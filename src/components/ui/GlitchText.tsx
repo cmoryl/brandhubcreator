@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, forwardRef } from 'react';
 
 interface GlitchTextProps {
   text: string;
@@ -6,7 +6,8 @@ interface GlitchTextProps {
   glowColor?: string;
 }
 
-export const GlitchText = ({ text, className = '', glowColor = 'hsl(199 89% 48%)' }: GlitchTextProps) => {
+export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
+  ({ text, className = '', glowColor = 'hsl(199 89% 48%)' }, ref) => {
   const [glitchOffset, setGlitchOffset] = useState({ x: 0, y: 0 });
   
   useEffect(() => {
@@ -26,7 +27,7 @@ export const GlitchText = ({ text, className = '', glowColor = 'hsl(199 89% 48%)
   }, []);
 
   return (
-    <span className={`glitch-text-wrapper relative inline-block ${className}`}>
+    <span ref={ref} className={`glitch-text-wrapper relative inline-block ${className}`}>
       {/* Blue glow layer */}
       <span 
         className="absolute inset-0 blur-lg opacity-60 pointer-events-none"
@@ -152,4 +153,6 @@ export const GlitchText = ({ text, className = '', glowColor = 'hsl(199 89% 48%)
       `}</style>
     </span>
   );
-};
+});
+
+GlitchText.displayName = 'GlitchText';

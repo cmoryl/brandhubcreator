@@ -247,9 +247,9 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
   const getTooltipPosition = () => {
     if (!targetRect) return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
 
-    const padding = 16;
-    const tooltipHeight = 320;
-    const tooltipWidth = 420;
+    const padding = 20;
+    const tooltipHeight = 380;
+    const tooltipWidth = 520;
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
     
@@ -357,140 +357,144 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
         </div>
       )}
 
-      {/* Enhanced Tooltip - Cyberpunk-inspired design */}
+      {/* Enhanced Tour Card - Modern glassmorphism design */}
       <div
         className={cn(
-          "absolute z-10 w-[440px] max-w-[calc(100vw-32px)] rounded-xl transition-all duration-300",
-          "bg-gradient-to-br from-background/98 via-card/95 to-background/98",
-          "backdrop-blur-xl",
-          "border border-accent/30",
-          "shadow-[0_0_60px_-15px_hsl(var(--accent)),0_25px_50px_-12px_rgba(0,0,0,0.5)]",
-          isAnimating ? "opacity-0 scale-95 translate-y-2" : "opacity-100 scale-100 translate-y-0"
+          "absolute z-10 w-[520px] max-w-[calc(100vw-40px)] transition-all duration-400 ease-out",
+          isAnimating ? "opacity-0 scale-95 translate-y-3" : "opacity-100 scale-100 translate-y-0"
         )}
         style={tooltipStyle}
       >
-        {/* Animated top border with scanning effect */}
-        <div className="relative h-1 rounded-t-xl overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent to-transparent animate-[shimmer_2s_infinite]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-accent/50 via-primary/50 to-accent/50" />
-        </div>
+        {/* Outer glow ring */}
+        <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-accent/40 via-primary/20 to-accent/40 blur-sm" />
         
-        {/* Corner accents */}
-        <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-accent/60 rounded-tl-xl" />
-        <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-accent/60 rounded-tr-xl" />
-        <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-accent/40 rounded-bl-xl" />
-        <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-accent/40 rounded-br-xl" />
-
-        <div className="p-5 space-y-4">
-          {/* Category navigation pills */}
-          <CategoryNav 
-            steps={availableSteps} 
-            currentStep={safeCurrentStep} 
-            onJumpToCategory={handleJumpToCategory}
-          />
-
-          {/* Sleek progress bar */}
-          <div className="relative">
-            <div className="h-0.5 bg-muted/30 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-accent via-primary to-accent transition-all duration-500 ease-out"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Header section with glitch title */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-2 flex-1 min-w-0">
-              <CategoryBadge category={step?.category} />
-              <h3 className="text-2xl font-bold leading-tight tracking-tight">
-                <GlitchText text={step?.title || ''} className="text-2xl font-bold" />
-              </h3>
-            </div>
-            <button
-              onClick={onClose}
-              className={cn(
-                "p-2 rounded-lg transition-all duration-200 flex-shrink-0",
-                "text-muted-foreground hover:text-foreground",
-                "hover:bg-accent/10 hover:shadow-[0_0_10px_hsl(var(--accent)/0.3)]",
-                "border border-transparent hover:border-accent/30"
-              )}
-              aria-label="Close tour"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          {/* Description with subtle styling */}
-          <div className="relative pl-3 border-l-2 border-accent/30">
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {step?.description}
-            </p>
-          </div>
-
-          {/* Navigation footer */}
-          <div className="flex items-center justify-between pt-3 border-t border-border/30">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/30 rounded-md">
-                <Sparkles className="h-3 w-3 text-accent" />
-                <span className="text-xs font-mono text-muted-foreground">
-                  {String(safeCurrentStep + 1).padStart(2, '0')}/{String(availableSteps.length).padStart(2, '0')}
-                </span>
-              </div>
-              <KeyboardHint />
+        {/* Main card container */}
+        <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-card via-background to-card border border-white/10">
+          
+          {/* Animated header strip */}
+          <div className="relative h-12 bg-gradient-to-r from-accent/20 via-primary/10 to-accent/20 border-b border-white/5">
+            {/* Scanning line animation */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute inset-y-0 w-20 bg-gradient-to-r from-transparent via-accent/30 to-transparent animate-[shimmer_3s_infinite]" />
             </div>
             
-            <div className="flex items-center gap-2">
-              {safeCurrentStep > 0 && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={handlePrev} 
-                  className="gap-1 h-8 hover:bg-accent/10"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span className="hidden sm:inline text-xs">Back</span>
-                </Button>
-              )}
-              
-              {safeCurrentStep < availableSteps.length - 1 && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={handleSkipToEnd} 
-                  className="h-8 px-2 hover:bg-accent/10"
-                  title="Skip tour"
-                >
-                  <SkipForward className="h-4 w-4" />
-                </Button>
-              )}
-              
-              <Button 
-                size="sm" 
-                onClick={handleNext} 
+            {/* Header content */}
+            <div className="relative h-full px-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_hsl(var(--accent))]" />
+                <span className="text-xs font-mono text-accent uppercase tracking-widest">Interactive Tour</span>
+              </div>
+              <button
+                onClick={onClose}
                 className={cn(
-                  "gap-1 h-8 px-4",
-                  "bg-gradient-to-r from-accent to-primary hover:from-accent/90 hover:to-primary/90",
-                  "shadow-[0_0_20px_-5px_hsl(var(--accent))]",
-                  "transition-all duration-200 hover:shadow-[0_0_25px_-3px_hsl(var(--accent))]"
+                  "p-1.5 rounded-lg transition-all duration-200",
+                  "text-muted-foreground hover:text-foreground",
+                  "hover:bg-white/10"
                 )}
+                aria-label="Close tour"
               >
-                <span className="text-xs font-medium">
-                  {safeCurrentStep === availableSteps.length - 1 ? 'Complete' : 'Next'}
-                </span>
-                {safeCurrentStep < availableSteps.length - 1 && <ChevronRight className="h-3.5 w-3.5" />}
-              </Button>
+                <X className="h-4 w-4" />
+              </button>
             </div>
           </div>
+
+          {/* Card body */}
+          <div className="p-6 space-y-5">
+            {/* Category navigation pills */}
+            <CategoryNav 
+              steps={availableSteps} 
+              currentStep={safeCurrentStep} 
+              onJumpToCategory={handleJumpToCategory}
+            />
+
+            {/* Progress indicator */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-1 bg-muted/20 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-accent to-primary transition-all duration-500 ease-out rounded-full"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <span className="text-[10px] font-mono text-muted-foreground tabular-nums">
+                {String(safeCurrentStep + 1).padStart(2, '0')}/{String(availableSteps.length).padStart(2, '0')}
+              </span>
+            </div>
+
+            {/* Content section */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <CategoryBadge category={step?.category} />
+                <h3 className="text-2xl font-bold leading-tight tracking-tight">
+                  <GlitchText text={step?.title || ''} className="text-2xl font-bold" />
+                </h3>
+              </div>
+
+              {/* Description card */}
+              <div className="relative p-4 rounded-xl bg-muted/10 border border-white/5">
+                <div className="absolute top-0 left-4 w-8 h-[2px] bg-gradient-to-r from-accent to-transparent" />
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {step?.description}
+                </p>
+              </div>
+            </div>
+
+            {/* Navigation footer */}
+            <div className="flex items-center justify-between pt-4 border-t border-white/5">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-3.5 w-3.5 text-accent/60" />
+                <KeyboardHint />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {safeCurrentStep > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handlePrev} 
+                    className="gap-1.5 h-9 px-3 hover:bg-white/5 border border-transparent hover:border-white/10"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span className="text-xs">Back</span>
+                  </Button>
+                )}
+                
+                {safeCurrentStep < availableSteps.length - 1 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleSkipToEnd} 
+                    className="h-9 px-2 hover:bg-white/5"
+                    title="Skip tour"
+                  >
+                    <SkipForward className="h-4 w-4" />
+                  </Button>
+                )}
+                
+                <Button 
+                  size="sm" 
+                  onClick={handleNext} 
+                  className={cn(
+                    "gap-1.5 h-9 px-5 font-medium",
+                    "bg-gradient-to-r from-accent to-primary",
+                    "hover:from-accent/90 hover:to-primary/90",
+                    "shadow-[0_0_20px_-5px_hsl(var(--accent)),inset_0_1px_0_rgba(255,255,255,0.1)]",
+                    "hover:shadow-[0_0_30px_-5px_hsl(var(--accent))]",
+                    "border border-white/10",
+                    "transition-all duration-200"
+                  )}
+                >
+                  <span className="text-xs">
+                    {safeCurrentStep === availableSteps.length - 1 ? 'Complete' : 'Next'}
+                  </span>
+                  {safeCurrentStep < availableSteps.length - 1 && <ChevronRight className="h-3.5 w-3.5" />}
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Bottom accent line */}
+          <div className="h-[2px] bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
         </div>
-        
-        {/* Subtle scanline overlay */}
-        <div 
-          className="absolute inset-0 pointer-events-none rounded-xl opacity-[0.03]"
-          style={{
-            background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)',
-          }}
-        />
       </div>
     </div>,
     document.body
