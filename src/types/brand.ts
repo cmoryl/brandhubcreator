@@ -59,6 +59,10 @@ export interface BrandHero {
   heroEffectMode?: 'dark' | 'light';
   /** Brightness level for hero effect (0-100) */
   heroEffectBrightness?: number;
+  /** Density/count of orbs/spheres for orb-based effects */
+  heroEffectDensity?: 'few' | 'normal' | 'many' | 'dense';
+  /** Animation speed for hero effects */
+  heroEffectSpeed?: 'slow' | 'normal' | 'fast' | 'very-fast';
   /** @deprecated Use heroEffect instead */
   gradientBarsEffect?: boolean;
   /** @deprecated Use heroEffectIntensity instead */

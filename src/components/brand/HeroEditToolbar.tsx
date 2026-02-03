@@ -20,6 +20,8 @@ interface HeroEditToolbarProps {
   heroEffectColorScheme?: string;
   heroEffectMode?: 'dark' | 'light';
   heroEffectBrightness?: number;
+  heroEffectDensity?: 'few' | 'normal' | 'many' | 'dense';
+  heroEffectSpeed?: 'slow' | 'normal' | 'fast' | 'very-fast';
   isUploading: boolean;
   overlayIntensity?: number;
   overlayGradient?: 'default' | 'radial-dark' | 'top-fade' | 'vignette' | 'brand-tint' | 'none';
@@ -38,6 +40,8 @@ interface HeroEditToolbarProps {
   onHeroEffectColorSchemeChange?: (value: string) => void;
   onHeroEffectModeChange?: (value: 'dark' | 'light') => void;
   onHeroEffectBrightnessChange?: (value: number) => void;
+  onHeroEffectDensityChange?: (value: 'few' | 'normal' | 'many' | 'dense') => void;
+  onHeroEffectSpeedChange?: (value: 'slow' | 'normal' | 'fast' | 'very-fast') => void;
   onUploadClick: () => void;
   onVideoUrlClick: () => void;
   onLibrarySelect: (url: string) => void;
@@ -64,6 +68,23 @@ const EFFECT_INTENSITIES = [
   { id: 'medium', label: 'Medium' },
   { id: 'bold', label: 'Bold' },
 ] as const;
+
+const EFFECT_DENSITIES = [
+  { id: 'few', label: 'Few', count: 3 },
+  { id: 'normal', label: 'Normal', count: 5 },
+  { id: 'many', label: 'Many', count: 8 },
+  { id: 'dense', label: 'Dense', count: 12 },
+] as const;
+
+const EFFECT_SPEEDS = [
+  { id: 'slow', label: 'Slow' },
+  { id: 'normal', label: 'Normal' },
+  { id: 'fast', label: 'Fast' },
+  { id: 'very-fast', label: 'Very Fast' },
+] as const;
+
+// Effects that support density and speed controls
+const ORB_BASED_EFFECTS: HeroEffectType[] = ['floating-orbs', 'gradient-spheres', 'image-orbs'];
 
 // Hero effect presets with visual previews
 const HERO_EFFECTS: Array<{
@@ -182,6 +203,8 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
     heroEffectColorScheme = 'cyan-purple',
     heroEffectMode = 'dark',
     heroEffectBrightness = 50,
+    heroEffectDensity = 'normal',
+    heroEffectSpeed = 'normal',
     isUploading,
     overlayIntensity = 50,
     overlayGradient = 'default',
@@ -198,6 +221,8 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
     onHeroEffectColorSchemeChange,
     onHeroEffectModeChange,
     onHeroEffectBrightnessChange,
+    onHeroEffectDensityChange,
+    onHeroEffectSpeedChange,
     onUploadClick,
     onVideoUrlClick,
     onLibrarySelect,
@@ -212,6 +237,9 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
 
     // Get current effect config
     const currentEffectConfig = HERO_EFFECTS.find(e => e.id === heroEffect) || HERO_EFFECTS[0];
+    
+    // Check if current effect supports density/speed controls
+    const supportsOrbControls = ORB_BASED_EFFECTS.includes(heroEffect);
 
     return (
       <div 
@@ -587,6 +615,75 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
                             step={5}
                             className="w-full"
                           />
+                        </div>
+                      )}
+
+                      {/* Density control - only for orb-based effects */}
+                      {supportsOrbControls && onHeroEffectDensityChange && (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-white/60 text-xs">Density</span>
+                            <span className="text-white/80 text-xs font-mono capitalize">{heroEffectDensity}</span>
+                          </div>
+                          <div className="grid grid-cols-4 gap-1.5">
+                            {EFFECT_DENSITIES.map((preset) => (
+                              <button
+                                key={preset.id}
+                                type="button"
+                                onClick={(e) => {
+                                  try {
+                                    e.stopPropagation();
+                                    onHeroEffectDensityChange?.(preset.id);
+                                  } catch (error) {
+                                    console.error('Error changing density:', error);
+                                  }
+                                }}
+                                className={cn(
+                                  "py-1.5 rounded-lg border text-[10px] font-medium transition-all flex flex-col items-center gap-0.5",
+                                  heroEffectDensity === preset.id
+                                    ? "bg-white/20 border-white/40 text-white"
+                                    : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
+                                )}
+                              >
+                                <span>{preset.label}</span>
+                                <span className="text-white/40 text-[8px]">{preset.count}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Speed control - only for orb-based effects */}
+                      {supportsOrbControls && onHeroEffectSpeedChange && (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-white/60 text-xs">Speed</span>
+                            <span className="text-white/80 text-xs font-mono capitalize">{heroEffectSpeed?.replace('-', ' ')}</span>
+                          </div>
+                          <div className="grid grid-cols-4 gap-1.5">
+                            {EFFECT_SPEEDS.map((preset) => (
+                              <button
+                                key={preset.id}
+                                type="button"
+                                onClick={(e) => {
+                                  try {
+                                    e.stopPropagation();
+                                    onHeroEffectSpeedChange?.(preset.id);
+                                  } catch (error) {
+                                    console.error('Error changing speed:', error);
+                                  }
+                                }}
+                                className={cn(
+                                  "py-1.5 rounded-lg border text-[10px] font-medium transition-all",
+                                  heroEffectSpeed === preset.id
+                                    ? "bg-white/20 border-white/40 text-white"
+                                    : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
+                                )}
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
