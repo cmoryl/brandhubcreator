@@ -1,5 +1,5 @@
 import { forwardRef, useState } from 'react';
-import { ImageIcon, Video, Move, Upload, Loader2, Check, FolderOpen, Layers, Sparkles, SlidersHorizontal, LayoutPanelLeft, Type, Palette } from 'lucide-react';
+import { ImageIcon, Video, Move, Upload, Loader2, Check, FolderOpen, Layers, Sparkles, SlidersHorizontal, Type, Sun, Moon, Circle } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
@@ -8,15 +8,18 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
+export type HeroEffectType = 'none' | 'gradient-bars' | 'horizon-glow' | 'floating-orbs' | 'gradient-spheres';
+
 interface HeroEditToolbarProps {
   useVideo: boolean;
   kenBurnsEffect: boolean;
   kenBurnsPreview: boolean;
-  gradientBarsEffect?: boolean;
-  gradientBarsIntensity?: 'subtle' | 'medium' | 'bold';
-  gradientBarsColorScheme?: 'cyan-purple' | 'blue-teal' | 'purple-pink' | 'green-cyan' | 'amber-orange' | 'custom';
-  gradientBarsMode?: 'dark' | 'light';
-  gradientBarsBrightness?: number;
+  // Unified hero effect props
+  heroEffect?: HeroEffectType;
+  heroEffectIntensity?: 'subtle' | 'medium' | 'bold';
+  heroEffectColorScheme?: string;
+  heroEffectMode?: 'dark' | 'light';
+  heroEffectBrightness?: number;
   isUploading: boolean;
   overlayIntensity?: number;
   overlayGradient?: 'default' | 'radial-dark' | 'top-fade' | 'vignette' | 'brand-tint' | 'none';
@@ -29,11 +32,12 @@ interface HeroEditToolbarProps {
   onKenBurnsToggle: () => void;
   onKenBurnsPreviewStart: () => void;
   onKenBurnsPreviewEnd: () => void;
-  onGradientBarsToggle?: () => void;
-  onGradientBarsIntensityChange?: (value: 'subtle' | 'medium' | 'bold') => void;
-  onGradientBarsColorSchemeChange?: (value: 'cyan-purple' | 'blue-teal' | 'purple-pink' | 'green-cyan' | 'amber-orange') => void;
-  onGradientBarsModeChange?: (value: 'dark' | 'light') => void;
-  onGradientBarsBrightnessChange?: (value: number) => void;
+  // Unified hero effect callbacks
+  onHeroEffectChange?: (effect: HeroEffectType) => void;
+  onHeroEffectIntensityChange?: (value: 'subtle' | 'medium' | 'bold') => void;
+  onHeroEffectColorSchemeChange?: (value: string) => void;
+  onHeroEffectModeChange?: (value: 'dark' | 'light') => void;
+  onHeroEffectBrightnessChange?: (value: number) => void;
   onUploadClick: () => void;
   onVideoUrlClick: () => void;
   onLibrarySelect: (url: string) => void;
@@ -55,19 +59,78 @@ const OVERLAY_PRESETS = [
   { id: 'none', label: 'None', preview: 'transparent' },
 ] as const;
 
-const GRADIENT_BARS_INTENSITIES = [
+const EFFECT_INTENSITIES = [
   { id: 'subtle', label: 'Subtle' },
   { id: 'medium', label: 'Medium' },
   { id: 'bold', label: 'Bold' },
 ] as const;
 
-const GRADIENT_BARS_COLOR_SCHEMES = [
-  { id: 'cyan-purple', label: 'Cyan/Purple', colors: ['#00d4ff', '#a855f7'] },
-  { id: 'blue-teal', label: 'Blue/Teal', colors: ['#3b82f6', '#14b8a6'] },
-  { id: 'purple-pink', label: 'Purple/Pink', colors: ['#a855f7', '#ec4899'] },
-  { id: 'green-cyan', label: 'Green/Cyan', colors: ['#22c55e', '#06b6d4'] },
-  { id: 'amber-orange', label: 'Amber/Orange', colors: ['#f59e0b', '#f97316'] },
-] as const;
+// Hero effect presets with visual previews
+const HERO_EFFECTS: Array<{
+  id: HeroEffectType;
+  label: string;
+  description: string;
+  preview: string; // CSS gradient for preview thumbnail
+  colorSchemes: Array<{ id: string; label: string; colors: string[] }>;
+}> = [
+  {
+    id: 'none',
+    label: 'None',
+    description: 'Use image/video only',
+    preview: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+    colorSchemes: [],
+  },
+  {
+    id: 'gradient-bars',
+    label: 'Gradient Bars',
+    description: 'Overlapping vertical panels',
+    preview: 'repeating-linear-gradient(90deg, #00d4ff 0%, #6366f1 15%, #a855f7 30%, #6366f1 45%, #00d4ff 60%)',
+    colorSchemes: [
+      { id: 'cyan-purple', label: 'Cyan/Purple', colors: ['#00d4ff', '#a855f7'] },
+      { id: 'blue-teal', label: 'Blue/Teal', colors: ['#3b82f6', '#14b8a6'] },
+      { id: 'purple-pink', label: 'Purple/Pink', colors: ['#a855f7', '#ec4899'] },
+      { id: 'green-cyan', label: 'Green/Cyan', colors: ['#22c55e', '#06b6d4'] },
+      { id: 'amber-orange', label: 'Amber/Orange', colors: ['#f59e0b', '#f97316'] },
+    ],
+  },
+  {
+    id: 'horizon-glow',
+    label: 'Horizon Glow',
+    description: 'Glowing arc rising from bottom',
+    preview: 'radial-gradient(ellipse 80% 50% at 50% 100%, #00d4ff 0%, #6366f1 30%, transparent 70%)',
+    colorSchemes: [
+      { id: 'cyan', label: 'Cyan', colors: ['#00d4ff', '#06b6d4'] },
+      { id: 'purple', label: 'Purple', colors: ['#a855f7', '#8b5cf6'] },
+      { id: 'blue', label: 'Blue', colors: ['#3b82f6', '#2563eb'] },
+      { id: 'teal', label: 'Teal', colors: ['#14b8a6', '#0d9488'] },
+      { id: 'rose', label: 'Rose', colors: ['#f43f5e', '#e11d48'] },
+    ],
+  },
+  {
+    id: 'floating-orbs',
+    label: 'Floating Orbs',
+    description: 'Animated gradient spheres',
+    preview: 'radial-gradient(circle at 30% 50%, #3b82f6 0%, transparent 50%), radial-gradient(circle at 70% 50%, #a855f7 0%, transparent 50%)',
+    colorSchemes: [
+      { id: 'blue-purple', label: 'Blue/Purple', colors: ['#3b82f6', '#a855f7'] },
+      { id: 'cyan-teal', label: 'Cyan/Teal', colors: ['#00d4ff', '#14b8a6'] },
+      { id: 'purple-pink', label: 'Purple/Pink', colors: ['#a855f7', '#ec4899'] },
+      { id: 'teal-green', label: 'Teal/Green', colors: ['#14b8a6', '#22c55e'] },
+    ],
+  },
+  {
+    id: 'gradient-spheres',
+    label: 'Gradient Spheres',
+    description: 'Overlapping translucent orbs',
+    preview: 'radial-gradient(circle at 35% 45%, #a855f7 0%, transparent 45%), radial-gradient(circle at 65% 55%, #3b82f6 0%, transparent 45%)',
+    colorSchemes: [
+      { id: 'purple-blue', label: 'Purple/Blue', colors: ['#a855f7', '#3b82f6'] },
+      { id: 'cyan-purple', label: 'Cyan/Purple', colors: ['#00d4ff', '#a855f7'] },
+      { id: 'blue-teal', label: 'Blue/Teal', colors: ['#3b82f6', '#14b8a6'] },
+      { id: 'pink-purple', label: 'Pink/Purple', colors: ['#ec4899', '#a855f7'] },
+    ],
+  },
+];
 
 const TEXT_COLOR_PRESETS = [
   { id: '#ffffff', label: 'White' },
@@ -80,16 +143,17 @@ const TEXT_COLOR_PRESETS = [
   { id: '#f43f5e', label: 'Rose' },
 ] as const;
 
+
 export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
   function HeroEditToolbar({
     useVideo,
     kenBurnsEffect,
     kenBurnsPreview,
-    gradientBarsEffect = false,
-    gradientBarsIntensity = 'medium',
-    gradientBarsColorScheme = 'cyan-purple',
-    gradientBarsMode = 'dark',
-    gradientBarsBrightness = 50,
+    heroEffect = 'none',
+    heroEffectIntensity = 'medium',
+    heroEffectColorScheme = 'cyan-purple',
+    heroEffectMode = 'dark',
+    heroEffectBrightness = 50,
     isUploading,
     overlayIntensity = 50,
     overlayGradient = 'default',
@@ -101,11 +165,11 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
     onKenBurnsToggle,
     onKenBurnsPreviewStart,
     onKenBurnsPreviewEnd,
-    onGradientBarsToggle,
-    onGradientBarsIntensityChange,
-    onGradientBarsColorSchemeChange,
-    onGradientBarsModeChange,
-    onGradientBarsBrightnessChange,
+    onHeroEffectChange,
+    onHeroEffectIntensityChange,
+    onHeroEffectColorSchemeChange,
+    onHeroEffectModeChange,
+    onHeroEffectBrightnessChange,
     onUploadClick,
     onVideoUrlClick,
     onLibrarySelect,
@@ -117,6 +181,9 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
     onTaglineGlowChange,
   }, ref) {
     const [activeTab, setActiveTab] = useState('media');
+
+    // Get current effect config
+    const currentEffectConfig = HERO_EFFECTS.find(e => e.id === heroEffect) || HERO_EFFECTS[0];
 
     return (
       <div 
@@ -251,7 +318,7 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
             </TabsContent>
 
             {/* Effects Tab */}
-            <TabsContent value="effects" className="p-4 space-y-4 mt-0">
+            <TabsContent value="effects" className="p-4 space-y-4 mt-0 max-h-[400px] overflow-y-auto">
               {/* Motion Effects Section */}
               {!useVideo && (
                 <div className="space-y-3">
@@ -262,9 +329,9 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Disable gradient bars if enabling Ken Burns
-                      if (!kenBurnsEffect && gradientBarsEffect && onGradientBarsToggle) {
-                        onGradientBarsToggle();
+                      // Disable hero effects if enabling Ken Burns
+                      if (!kenBurnsEffect && heroEffect !== 'none' && onHeroEffectChange) {
+                        onHeroEffectChange('none');
                       }
                       onKenBurnsToggle();
                     }}
@@ -284,166 +351,189 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
                     {kenBurnsEffect && <Check className="h-4 w-4 text-accent" />}
                   </button>
                   <p className="text-white/40 text-xs text-center">Slow cinematic pan & zoom animation</p>
+                </div>
+              )}
 
-                  {/* Gradient Bars Effect Button */}
-                  {onGradientBarsToggle && (
-                    <>
+              {/* Background Effect Selection */}
+              {!useVideo && onHeroEffectChange && (
+                <div className="space-y-3">
+                  <label className="text-white/60 text-xs font-medium uppercase tracking-wider">Background Effect</label>
+                  
+                  {/* Effect grid with visual previews */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {HERO_EFFECTS.map((effect) => (
                       <button
+                        key={effect.id}
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          // Disable Ken Burns if enabling gradient bars
-                          if (!gradientBarsEffect && kenBurnsEffect) {
+                          // Disable Ken Burns when selecting an effect
+                          if (effect.id !== 'none' && kenBurnsEffect) {
                             onKenBurnsToggle();
                           }
-                          onGradientBarsToggle();
+                          onHeroEffectChange(effect.id);
                         }}
                         className={cn(
-                          "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-all text-sm font-medium",
-                          gradientBarsEffect
-                            ? "bg-accent/30 border-accent/50 text-white" 
-                            : "bg-white/10 border-white/20 text-white/80 hover:bg-white/15 hover:text-white"
+                          "relative h-20 rounded-xl border-2 overflow-hidden transition-all text-left p-2 flex flex-col justify-end",
+                          heroEffect === effect.id
+                            ? "border-accent ring-2 ring-accent/30"
+                            : "border-white/20 hover:border-white/40"
                         )}
                       >
-                        <LayoutPanelLeft className="h-4 w-4" />
-                        <span>Gradient Bars Effect</span>
-                        {gradientBarsEffect && <Check className="h-4 w-4 text-accent" />}
+                        {/* Preview background */}
+                        <div 
+                          className="absolute inset-0 opacity-80"
+                          style={{ background: effect.preview }}
+                        />
+                        
+                        {/* Label overlay */}
+                        <div className="relative z-10">
+                          <span className="text-white text-xs font-medium drop-shadow-lg">{effect.label}</span>
+                          <p className="text-white/60 text-[10px] line-clamp-1">{effect.description}</p>
+                        </div>
+
+                        {heroEffect === effect.id && (
+                          <div className="absolute top-2 right-2 z-10">
+                            <Check className="h-4 w-4 text-accent drop-shadow-lg" />
+                          </div>
+                        )}
                       </button>
-                      <p className="text-white/40 text-xs text-center">Interactive vertical gradient bars with mouse parallax</p>
+                    ))}
+                  </div>
 
-                      {/* Gradient Bars controls when active */}
-                      {gradientBarsEffect && (
-                        <div className="pt-2 space-y-4">
-                          {/* Intensity */}
-                          {onGradientBarsIntensityChange && (
-                            <div className="space-y-2">
-                              <span className="text-white/60 text-xs">Intensity</span>
-                              <div className="flex gap-2">
-                                {GRADIENT_BARS_INTENSITIES.map((preset) => (
-                                  <button
-                                    key={preset.id}
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onGradientBarsIntensityChange(preset.id);
-                                    }}
-                                    className={cn(
-                                      "flex-1 py-2 rounded-lg border text-xs font-medium transition-all",
-                                      gradientBarsIntensity === preset.id
-                                        ? "bg-white/20 border-white/40 text-white"
-                                        : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
-                                    )}
-                                  >
-                                    {preset.label}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Color Scheme */}
-                          {onGradientBarsColorSchemeChange && (
-                            <div className="space-y-2">
-                              <span className="text-white/60 text-xs">Color Scheme</span>
-                              <div className="grid grid-cols-5 gap-1.5">
-                                {GRADIENT_BARS_COLOR_SCHEMES.map((scheme) => (
-                                  <button
-                                    key={scheme.id}
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onGradientBarsColorSchemeChange(scheme.id as 'cyan-purple' | 'blue-teal' | 'purple-pink' | 'green-cyan' | 'amber-orange');
-                                    }}
-                                    className={cn(
-                                      "relative h-8 rounded-lg border-2 overflow-hidden transition-all",
-                                      gradientBarsColorScheme === scheme.id
-                                        ? "border-white ring-1 ring-white/50"
-                                        : "border-white/20 hover:border-white/40"
-                                    )}
-                                    title={scheme.label}
-                                  >
-                                    <div 
-                                      className="absolute inset-0"
-                                      style={{
-                                        background: `linear-gradient(135deg, ${scheme.colors[0]}, ${scheme.colors[1]})`
-                                      }}
-                                    />
-                                    {gradientBarsColorScheme === scheme.id && (
-                                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                                        <Check className="h-3 w-3 text-white" />
-                                      </div>
-                                    )}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Dark/Light Mode Toggle */}
-                          {onGradientBarsModeChange && (
-                            <div className="space-y-2">
-                              <span className="text-white/60 text-xs">Mode</span>
-                              <div className="flex gap-2">
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onGradientBarsModeChange('dark');
-                                  }}
-                                  className={cn(
-                                    "flex-1 py-2 rounded-lg border text-xs font-medium transition-all",
-                                    gradientBarsMode === 'dark'
-                                      ? "bg-white/20 border-white/40 text-white"
-                                      : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
-                                  )}
-                                >
-                                  Dark
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onGradientBarsModeChange('light');
-                                  }}
-                                  className={cn(
-                                    "flex-1 py-2 rounded-lg border text-xs font-medium transition-all",
-                                    gradientBarsMode === 'light'
-                                      ? "bg-white/20 border-white/40 text-white"
-                                      : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
-                                  )}
-                                >
-                                  Light
-                                </button>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Brightness Slider */}
-                          {onGradientBarsBrightnessChange && (
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-white/60 text-xs">Brightness</span>
-                                <span className="text-white/80 text-xs font-mono">{gradientBarsBrightness}%</span>
-                              </div>
-                              <Slider
-                                value={[gradientBarsBrightness]}
-                                onValueChange={([val]) => onGradientBarsBrightnessChange(val)}
-                                min={10}
-                                max={100}
-                                step={5}
-                                className="w-full"
-                              />
-                            </div>
-                          )}
+                  {/* Effect customization when an effect is active */}
+                  {heroEffect !== 'none' && (
+                    <div className="pt-3 space-y-4 border-t border-white/10">
+                      {/* Intensity */}
+                      {onHeroEffectIntensityChange && (
+                        <div className="space-y-2">
+                          <span className="text-white/60 text-xs">Intensity</span>
+                          <div className="flex gap-2">
+                            {EFFECT_INTENSITIES.map((preset) => (
+                              <button
+                                key={preset.id}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onHeroEffectIntensityChange(preset.id);
+                                }}
+                                className={cn(
+                                  "flex-1 py-2 rounded-lg border text-xs font-medium transition-all",
+                                  heroEffectIntensity === preset.id
+                                    ? "bg-white/20 border-white/40 text-white"
+                                    : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
+                                )}
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       )}
-                    </>
+
+                      {/* Color Scheme - dynamic based on selected effect */}
+                      {onHeroEffectColorSchemeChange && currentEffectConfig.colorSchemes.length > 0 && (
+                        <div className="space-y-2">
+                          <span className="text-white/60 text-xs">Color Scheme</span>
+                          <div className="grid grid-cols-5 gap-1.5">
+                            {currentEffectConfig.colorSchemes.map((scheme) => (
+                              <button
+                                key={scheme.id}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onHeroEffectColorSchemeChange(scheme.id);
+                                }}
+                                className={cn(
+                                  "relative h-8 rounded-lg border-2 overflow-hidden transition-all",
+                                  heroEffectColorScheme === scheme.id
+                                    ? "border-white ring-1 ring-white/50"
+                                    : "border-white/20 hover:border-white/40"
+                                )}
+                                title={scheme.label}
+                              >
+                                <div 
+                                  className="absolute inset-0"
+                                  style={{
+                                    background: `linear-gradient(135deg, ${scheme.colors[0]}, ${scheme.colors[1]})`
+                                  }}
+                                />
+                                {heroEffectColorScheme === scheme.id && (
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                    <Check className="h-3 w-3 text-white" />
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Dark/Light Mode Toggle */}
+                      {onHeroEffectModeChange && (
+                        <div className="space-y-2">
+                          <span className="text-white/60 text-xs">Mode</span>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onHeroEffectModeChange('dark');
+                              }}
+                              className={cn(
+                                "flex-1 py-2 rounded-lg border text-xs font-medium transition-all flex items-center justify-center gap-1.5",
+                                heroEffectMode === 'dark'
+                                  ? "bg-white/20 border-white/40 text-white"
+                                  : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
+                              )}
+                            >
+                              <Moon className="h-3 w-3" />
+                              Dark
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onHeroEffectModeChange('light');
+                              }}
+                              className={cn(
+                                "flex-1 py-2 rounded-lg border text-xs font-medium transition-all flex items-center justify-center gap-1.5",
+                                heroEffectMode === 'light'
+                                  ? "bg-white/20 border-white/40 text-white"
+                                  : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
+                              )}
+                            >
+                              <Sun className="h-3 w-3" />
+                              Light
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Brightness Slider */}
+                      {onHeroEffectBrightnessChange && (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-white/60 text-xs">Brightness</span>
+                            <span className="text-white/80 text-xs font-mono">{heroEffectBrightness}%</span>
+                          </div>
+                          <Slider
+                            value={[heroEffectBrightness]}
+                            onValueChange={([val]) => onHeroEffectBrightnessChange(val)}
+                            min={10}
+                            max={100}
+                            step={5}
+                            className="w-full"
+                          />
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
 
-              {/* Parallax Intensity - only show when neither Ken Burns nor Gradient Bars is active */}
-              {!useVideo && !kenBurnsEffect && !gradientBarsEffect && onParallaxIntensityChange && (
+              {/* Parallax Intensity - only show when no effects are active */}
+              {!useVideo && !kenBurnsEffect && heroEffect === 'none' && onParallaxIntensityChange && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="text-white/60 text-xs font-medium uppercase tracking-wider">Parallax Depth</label>

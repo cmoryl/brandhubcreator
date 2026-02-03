@@ -10,6 +10,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { VideoUploadDialog } from '@/components/ui/video-upload-dialog';
 import { HeroEditToolbar } from '@/components/brand/HeroEditToolbar';
 import { GradientBarsHero } from '@/components/backgrounds/GradientBarsHero';
+import { HorizonGlowHero } from '@/components/backgrounds/HorizonGlowHero';
+import { FloatingOrbsHero } from '@/components/backgrounds/FloatingOrbsHero';
+import { GradientSpheresHero } from '@/components/backgrounds/GradientSpheresHero';
 import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { cn } from '@/lib/utils';
@@ -246,12 +249,7 @@ export const HeroSection = ({
 
   const toggleKenBurns = () => {
     if (!onHeroChange) return;
-    onHeroChange({ ...hero, kenBurnsEffect: !hero.kenBurnsEffect, gradientBarsEffect: false });
-  };
-
-  const toggleGradientBars = () => {
-    if (!onHeroChange) return;
-    onHeroChange({ ...hero, gradientBarsEffect: !hero.gradientBarsEffect, kenBurnsEffect: false });
+    onHeroChange({ ...hero, kenBurnsEffect: !hero.kenBurnsEffect, heroEffect: 'none' });
   };
 
   // Helper to get overlay CSS based on gradient preset
@@ -308,22 +306,50 @@ export const HeroSection = ({
         ref={heroRef}
         className={`relative overflow-hidden ${fullWidth ? '-mx-4 sm:-mx-6 lg:-mx-8 xl:-mx-12 2xl:-mx-16' : '-mx-4 sm:-mx-6 lg:-mx-8'}`}
       >
-        {/* Gradient Bars Effect - rendered when enabled */}
-        {hero.gradientBarsEffect === true && !hero.useVideo && (
+        {/* Hero Background Effects - rendered when enabled */}
+        {(hero.heroEffect === 'gradient-bars' || hero.gradientBarsEffect) && !hero.useVideo && (
           <div className={`absolute inset-0 ${heroHeight} z-0`}>
             <GradientBarsHero 
-              intensity={hero.gradientBarsIntensity || 'medium'}
-              colorScheme={hero.gradientBarsColorScheme || 'cyan-purple'}
-              mode={hero.gradientBarsMode || 'dark'}
-              brightness={hero.gradientBarsBrightness ?? 50}
+              intensity={hero.heroEffectIntensity || hero.gradientBarsIntensity || 'medium'}
+              colorScheme={(hero.heroEffectColorScheme || hero.gradientBarsColorScheme || 'cyan-purple') as any}
+              mode={hero.heroEffectMode || hero.gradientBarsMode || 'dark'}
+              brightness={hero.heroEffectBrightness ?? hero.gradientBarsBrightness ?? 50}
               barCount={6}
+            />
+          </div>
+        )}
+        {hero.heroEffect === 'horizon-glow' && !hero.useVideo && (
+          <div className={`absolute inset-0 ${heroHeight} z-0`}>
+            <HorizonGlowHero 
+              colorScheme={(hero.heroEffectColorScheme || 'cyan') as any}
+              mode={hero.heroEffectMode || 'dark'}
+              brightness={hero.heroEffectBrightness ?? 50}
+            />
+          </div>
+        )}
+        {hero.heroEffect === 'floating-orbs' && !hero.useVideo && (
+          <div className={`absolute inset-0 ${heroHeight} z-0`}>
+            <FloatingOrbsHero 
+              colorScheme={(hero.heroEffectColorScheme || 'blue-purple') as any}
+              mode={hero.heroEffectMode || 'dark'}
+              brightness={hero.heroEffectBrightness ?? 50}
+            />
+          </div>
+        )}
+        {hero.heroEffect === 'gradient-spheres' && !hero.useVideo && (
+          <div className={`absolute inset-0 ${heroHeight} z-0`}>
+            <GradientSpheresHero 
+              colorScheme={(hero.heroEffectColorScheme || 'purple-blue') as any}
+              mode={hero.heroEffectMode || 'dark'}
+              brightness={hero.heroEffectBrightness ?? 50}
             />
           </div>
         )}
 
         {/* Cover Image/Video - Enhanced Height with Parallax/Ken Burns and optimized loading */}
-        {/* Hide when gradient bars effect is active */}
-        {hero.gradientBarsEffect !== true && (
+        {/* Hide when hero effects are active */}
+        {!hero.heroEffect || hero.heroEffect === 'none' ? (
+          hero.gradientBarsEffect !== true && (
           <BackgroundImage
             src={hero.coverImage || ''}
             videoSrc={hero.useVideo ? hero.coverVideo : undefined}
@@ -422,11 +448,11 @@ export const HeroSection = ({
             useVideo={hero.useVideo === true}
             kenBurnsEffect={hero.kenBurnsEffect === true}
             kenBurnsPreview={kenBurnsPreview}
-            gradientBarsEffect={hero.gradientBarsEffect === true}
-            gradientBarsIntensity={hero.gradientBarsIntensity || 'medium'}
-            gradientBarsColorScheme={hero.gradientBarsColorScheme || 'cyan-purple'}
-            gradientBarsMode={hero.gradientBarsMode || 'dark'}
-            gradientBarsBrightness={hero.gradientBarsBrightness ?? 50}
+            heroEffect={hero.heroEffect || (hero.gradientBarsEffect ? 'gradient-bars' : 'none')}
+            heroEffectIntensity={hero.heroEffectIntensity || hero.gradientBarsIntensity || 'medium'}
+            heroEffectColorScheme={hero.heroEffectColorScheme || hero.gradientBarsColorScheme || 'cyan-purple'}
+            heroEffectMode={hero.heroEffectMode || hero.gradientBarsMode || 'dark'}
+            heroEffectBrightness={hero.heroEffectBrightness ?? hero.gradientBarsBrightness ?? 50}
             isUploading={isUploading}
             overlayIntensity={hero.overlayIntensity ?? 50}
             overlayGradient={hero.overlayGradient || 'default'}
@@ -436,7 +462,7 @@ export const HeroSection = ({
             taglineGlow={hero.taglineGlow ?? false}
             onMediaTypeChange={(type) => {
               if (onHeroChange) {
-                onHeroChange({ ...hero, useVideo: type === 'video', gradientBarsEffect: false });
+                onHeroChange({ ...hero, useVideo: type === 'video', heroEffect: 'none' });
               }
             }}
             onKenBurnsToggle={() => {
@@ -449,25 +475,29 @@ export const HeroSection = ({
               }
             }}
             onKenBurnsPreviewEnd={() => setKenBurnsPreview(false)}
-            onGradientBarsToggle={toggleGradientBars}
-            onGradientBarsIntensityChange={(value) => {
+            onHeroEffectChange={(effect) => {
               if (onHeroChange) {
-                onHeroChange({ ...hero, gradientBarsIntensity: value });
+                onHeroChange({ ...hero, heroEffect: effect, gradientBarsEffect: effect === 'gradient-bars' });
               }
             }}
-            onGradientBarsColorSchemeChange={(value) => {
+            onHeroEffectIntensityChange={(value) => {
               if (onHeroChange) {
-                onHeroChange({ ...hero, gradientBarsColorScheme: value });
+                onHeroChange({ ...hero, heroEffectIntensity: value });
               }
             }}
-            onGradientBarsModeChange={(value) => {
+            onHeroEffectColorSchemeChange={(value) => {
               if (onHeroChange) {
-                onHeroChange({ ...hero, gradientBarsMode: value });
+                onHeroChange({ ...hero, heroEffectColorScheme: value });
               }
             }}
-            onGradientBarsBrightnessChange={(value) => {
+            onHeroEffectModeChange={(value) => {
               if (onHeroChange) {
-                onHeroChange({ ...hero, gradientBarsBrightness: value });
+                onHeroChange({ ...hero, heroEffectMode: value });
+              }
+            }}
+            onHeroEffectBrightnessChange={(value) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, heroEffectBrightness: value });
               }
             }}
             onUploadClick={() => {
