@@ -75,6 +75,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   events: { label: 'Events', icon: Calendar, category: 'Collateral' },
   universe: { label: 'Product Universe', icon: Globe, category: 'Collateral' },
   sponsorlogos: { label: 'Sponsor Logos', icon: Crown, category: 'Collateral' },
+  locations: { label: 'Global Locations', icon: Globe, category: 'Identity' },
   insights: { label: 'Insights & Updates', icon: TrendingUp, category: 'Resources' },
 };
 

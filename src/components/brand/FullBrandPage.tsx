@@ -37,6 +37,7 @@ import { WebinarSeriesSection } from './WebinarSeriesSection';
 import AwardsSection from './AwardsSection';
 import { GlobalLinkUniverseSection } from './GlobalLinkUniverseSection';
 import { InsightsSection } from './InsightsSection';
+import { LocationsSection } from './LocationsSection';
 import { Separator } from '@/components/ui/separator';
 
 // Framer motion variants for smooth section animations
@@ -322,6 +323,20 @@ export const FullBrandPage = ({
           onLayoutChange={canEdit ? (insightsLayout) => onBrandUpdate({ insightsLayout }) : undefined}
           customSubtitle={customSubtitle} 
           onSubtitleChange={onSubtitleChange} 
+        />;
+      case 'locations':
+        return <LocationsSection 
+          locations={brand.locations || []} 
+          locationStats={brand.locationStats || []}
+          onLocationsChange={editHandler((locations) => onBrandUpdate({ locations }))}
+          onLocationStatsChange={editHandler((locationStats) => onBrandUpdate({ locationStats }))}
+          customSubtitle={customSubtitle} 
+          onSubtitleChange={onSubtitleChange}
+          accentColor={brand.colors?.[0]?.hex}
+          sectionTitle={brand.locationsSectionTitle}
+          sectionDescription={brand.locationsSectionDescription}
+          onSectionTitleChange={canEdit ? (locationsSectionTitle) => onBrandUpdate({ locationsSectionTitle }) : undefined}
+          onSectionDescriptionChange={canEdit ? (locationsSectionDescription) => onBrandUpdate({ locationsSectionDescription }) : undefined}
         />;
       default: return null;
     }
