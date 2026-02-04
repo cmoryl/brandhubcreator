@@ -535,6 +535,34 @@ export interface BrandWebinar {
   attendees?: number;
 }
 
+// LOCATIONS - Global Presence Map
+export type LocationCategory = 'studio' | 'office' | 'headquarters' | 'datacenter' | 'partner';
+
+export interface BrandLocation {
+  id: string;
+  name: string;
+  city: string;
+  country: string;
+  category: LocationCategory;
+  description?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+  address?: string;
+  phone?: string;
+  email?: string;
+  timezone?: string;
+  imageUrl?: string;
+}
+
+export interface LocationStat {
+  id: string;
+  value: string;
+  suffix?: string;
+  label: string;
+}
+
 // SPONSOR LOGOS - Partner/Sponsor Logo Placement
 export interface SponsorLogo {
   id: string;
@@ -770,6 +798,13 @@ export interface BaseGuide {
   insights?: InsightItem[];
   // Insights section layout preference
   insightsLayout?: InsightsLayout;
+  // Locations (Global Presence Map)
+  locations?: BrandLocation[];
+  // Location Stats (for locations section infographic)
+  locationStats?: LocationStat[];
+  // Locations section settings
+  locationsSectionTitle?: string;
+  locationsSectionDescription?: string;
   // Metadata
   createdAt: Date;
   updatedAt: Date;
@@ -777,7 +812,7 @@ export interface BaseGuide {
 
 // Default section order
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
-  'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'insights', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
+  'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'insights', 'locations', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
   'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'imageassets', 'misuse',
   'brochures', 'templates', 'templatespecs', 'sponsorlogos', 'universe', 'products', 'events'
@@ -833,6 +868,7 @@ export type SectionId =
   | 'events'
   | 'universe'
   | 'sponsorlogos'
+  | 'locations'
   | 'insights';
 
 // Insight item for the Insights & Updates section
