@@ -1,7 +1,7 @@
 import { useRef, useEffect, memo, useMemo, useCallback } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { BaseGuide, SectionId, DEFAULT_SECTION_ORDER, LayoutPreset, InfographicLayout } from '@/types/brand';
+import { BaseGuide, SectionId, DEFAULT_SECTION_ORDER, LayoutPreset, InfographicLayout, BrandLocation, LocationStat } from '@/types/brand';
 import { HeroSection } from './HeroSection';
 import { TaglineSection } from './TaglineSection';
 import { IdentitySection } from './IdentitySection';
@@ -37,7 +37,7 @@ import { WebinarSeriesSection } from './WebinarSeriesSection';
 import AwardsSection from './AwardsSection';
 import { GlobalLinkUniverseSection } from './GlobalLinkUniverseSection';
 import { InsightsSection } from './InsightsSection';
-import { LocationsSection } from './LocationsSection';
+import { GoogleMapsLocationsSection } from './GoogleMapsLocationsSection';
 import { Separator } from '@/components/ui/separator';
 
 // Framer motion variants for smooth section animations
@@ -325,18 +325,18 @@ export const FullBrandPage = ({
           onSubtitleChange={onSubtitleChange} 
         />;
       case 'locations':
-        return <LocationsSection 
+        return <GoogleMapsLocationsSection 
           locations={brand.locations || []} 
           locationStats={brand.locationStats || []}
-          onLocationsChange={editHandler((locations) => onBrandUpdate({ locations }))}
-          onLocationStatsChange={editHandler((locationStats) => onBrandUpdate({ locationStats }))}
+          onLocationsChange={editHandler((locations: BrandLocation[]) => onBrandUpdate({ locations }))}
+          onLocationStatsChange={editHandler((locationStats: LocationStat[]) => onBrandUpdate({ locationStats }))}
           customSubtitle={customSubtitle} 
           onSubtitleChange={onSubtitleChange}
           accentColor={brand.colors?.[0]?.hex}
           sectionTitle={brand.locationsSectionTitle}
           sectionDescription={brand.locationsSectionDescription}
-          onSectionTitleChange={canEdit ? (locationsSectionTitle) => onBrandUpdate({ locationsSectionTitle }) : undefined}
-          onSectionDescriptionChange={canEdit ? (locationsSectionDescription) => onBrandUpdate({ locationsSectionDescription }) : undefined}
+          onSectionTitleChange={canEdit ? (locationsSectionTitle: string) => onBrandUpdate({ locationsSectionTitle }) : undefined}
+          onSectionDescriptionChange={canEdit ? (locationsSectionDescription: string) => onBrandUpdate({ locationsSectionDescription }) : undefined}
         />;
       default: return null;
     }
