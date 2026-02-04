@@ -1191,6 +1191,11 @@ export default function AdminDashboard() {
           <TabsContent value="leads" className="space-y-6">
             <LeadSubmissionsPanel />
           </TabsContent>
+
+          {/* Demo Pages Tab */}
+          <TabsContent value="demo-pages" className="space-y-6">
+            <DemoGuidesManager />
+          </TabsContent>
         </Tabs>
           </div>
         </main>
