@@ -1,6 +1,6 @@
 /**
  * LeafletLocationsSection - Interactive Map with OpenStreetMap (No API Key Required)
- * Features: Custom styled map, animated markers, popups, category filtering
+ * Features: Custom styled map, animated markers, popups, category filtering, region navigation
  * Uses Leaflet.js with free OpenStreetMap tiles
  */
 
@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { MapRegionFilter, RegionKey, getLocationRegion, REGION_BOUNDS } from './MapRegionFilter';
 
 // Available icons for location stats
 const STAT_ICONS = [
@@ -235,6 +236,7 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
   onSectionDescriptionChange,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<LocationCategory | 'all'>('all');
+  const [selectedRegion, setSelectedRegion] = useState<RegionKey>('all');
   const [editingLocation, setEditingLocation] = useState<BrandLocation | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -253,11 +255,6 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
     description: '',
   });
 
-  const filteredLocations = useMemo(() => {
-    if (selectedCategory === 'all') return locations;
-    return locations.filter(loc => loc.category === selectedCategory);
-  }, [locations, selectedCategory]);
-
   // Get coordinates for a location
   const getCoordinates = (location: BrandLocation): { lat: number; lng: number } => {
     if (location.coordinates) {
@@ -265,6 +262,35 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
     }
     return CITY_COORDINATES[location.city] || { lat: 0, lng: 0 };
   };
+
+  const filteredLocations = useMemo(() => {
+    let filtered = locations;
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(loc => loc.category === selectedCategory);
+    }
+    return filtered;
+  }, [locations, selectedCategory]);
+
+  // Count locations by region
+  const regionCounts = useMemo(() => {
+    const counts: Record<RegionKey, number> = {
+      all: locations.length,
+      americas: 0,
+      europe: 0,
+      asiaPacific: 0,
+      africa: 0,
+    };
+    
+    locations.forEach(loc => {
+      const coords = getCoordinates(loc);
+      if (coords.lat !== 0 || coords.lng !== 0) {
+        const region = getLocationRegion(coords.lat, coords.lng);
+        counts[region]++;
+      }
+    });
+    
+    return counts;
+  }, [locations]);
 
   const markerPositions = useMemo(() => 
     filteredLocations.map(loc => getCoordinates(loc)),
@@ -501,10 +527,18 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
               url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             />
             
-            {/* Fit bounds to markers */}
-            {markerPositions.length > 0 && (
+            {/* Fit bounds to markers - only on initial load, not when using region filter */}
+            {markerPositions.length > 0 && selectedRegion === 'all' && (
               <FitBounds locations={markerPositions} />
             )}
+            
+            {/* Region navigation control */}
+            <MapRegionFilter
+              selectedRegion={selectedRegion}
+              onRegionChange={setSelectedRegion}
+              locationCounts={regionCounts}
+              accentColor={accentColor}
+            />
             
             {/* Location markers */}
             {filteredLocations.map((location) => {
