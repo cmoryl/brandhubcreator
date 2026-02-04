@@ -4,7 +4,7 @@
  * Uses Leaflet.js with free OpenStreetMap tiles
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -13,15 +13,53 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
-  Plus, Edit2, Trash2, Building2, Mic, Monitor, Globe
+  Plus, Edit2, Trash2, Building2, Mic, Monitor, Globe,
+  Film, Music, Headphones, Radio, Video, Camera, Tv,
+  Speaker, Volume2, Disc, Play, Clapperboard, Award,
+  Users, MapPin, Briefcase, Star, Zap, LucideProps
 } from 'lucide-react';
+import dynamicIconImports from 'lucide-react/dynamicIconImports';
 import { BrandLocation, LocationCategory, LocationStat } from '@/types/brand';
 import { SectionHeader } from './SectionHeader';
 import { useToast } from '@/hooks/use-toast';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+// Available icons for location stats
+const STAT_ICONS = [
+  { name: 'Mic', label: 'Microphone', Icon: Mic },
+  { name: 'Film', label: 'Film', Icon: Film },
+  { name: 'Music', label: 'Music', Icon: Music },
+  { name: 'Headphones', label: 'Headphones', Icon: Headphones },
+  { name: 'Radio', label: 'Radio', Icon: Radio },
+  { name: 'Video', label: 'Video', Icon: Video },
+  { name: 'Camera', label: 'Camera', Icon: Camera },
+  { name: 'Tv', label: 'TV', Icon: Tv },
+  { name: 'Speaker', label: 'Speaker', Icon: Speaker },
+  { name: 'Volume2', label: 'Volume', Icon: Volume2 },
+  { name: 'Disc', label: 'Disc', Icon: Disc },
+  { name: 'Play', label: 'Play', Icon: Play },
+  { name: 'Clapperboard', label: 'Clapperboard', Icon: Clapperboard },
+  { name: 'Award', label: 'Award', Icon: Award },
+  { name: 'Users', label: 'Users', Icon: Users },
+  { name: 'MapPin', label: 'Location', Icon: MapPin },
+  { name: 'Briefcase', label: 'Briefcase', Icon: Briefcase },
+  { name: 'Building2', label: 'Building', Icon: Building2 },
+  { name: 'Globe', label: 'Globe', Icon: Globe },
+  { name: 'Star', label: 'Star', Icon: Star },
+  { name: 'Zap', label: 'Zap', Icon: Zap },
+  { name: 'Monitor', label: 'Monitor', Icon: Monitor },
+] as const;
+
+// Get icon component by name
+const getStatIcon = (iconName?: string) => {
+  if (!iconName) return null;
+  const iconConfig = STAT_ICONS.find(i => i.name === iconName);
+  return iconConfig?.Icon || null;
+};
 
 // Fix for default marker icons in Leaflet with Vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -271,9 +309,10 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
       id: crypto.randomUUID(),
       label: statFormData.label,
       value: statFormData.value,
+      icon: statFormData.icon,
     };
     onLocationStatsChange?.([...locationStats, newStat]);
-    setStatFormData({ label: '', value: '' });
+    setStatFormData({ label: '', value: '', icon: undefined });
     setIsAddStatDialogOpen(false);
   };
 
@@ -283,7 +322,7 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
     updated[editingStatIndex] = { ...updated[editingStatIndex], ...statFormData } as LocationStat;
     onLocationStatsChange?.(updated);
     setEditingStatIndex(null);
-    setStatFormData({ label: '', value: '' });
+    setStatFormData({ label: '', value: '', icon: undefined });
   };
 
   const handleDeleteStat = (index: number) => {
@@ -485,56 +524,67 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
         {(locationStats.length > 0 || canEdit) && (
           <div className="p-6 border-t border-white/10">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {locationStats.map((stat, index) => (
-                <motion.div
-                  key={stat.id || index}
-                  className="relative group"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <div 
-                    className="text-center p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20 hover:border-cyan-500/40 transition-all"
-                    style={{
-                      boxShadow: '0 0 20px rgba(0, 212, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.05)',
-                    }}
+              {locationStats.map((stat, index) => {
+                const StatIcon = getStatIcon(stat.icon);
+                return (
+                  <motion.div
+                    key={stat.id || index}
+                    className="relative group"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
                   >
-                    <p 
-                      className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent"
-                      style={{ 
-                        textShadow: '0 0 30px rgba(0, 212, 255, 0.5)',
-                        filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.3))'
+                    <div 
+                      className="text-center p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20 hover:border-cyan-500/40 transition-all"
+                      style={{
+                        boxShadow: '0 0 20px rgba(0, 212, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.05)',
                       }}
                     >
-                      {stat.value}
-                    </p>
-                    <p className="text-sm text-gray-400 mt-1 font-medium">{stat.label}</p>
-                  </div>
-                  {canEdit && (
-                    <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity z-10">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6 bg-white/10 hover:bg-white/20"
-                        onClick={() => {
-                          setEditingStatIndex(index);
-                          setStatFormData(stat);
+                      {StatIcon && (
+                        <div className="flex justify-center mb-2">
+                          <StatIcon 
+                            className="h-6 w-6 text-cyan-400" 
+                            style={{ filter: 'drop-shadow(0 0 6px rgba(0, 212, 255, 0.5))' }}
+                          />
+                        </div>
+                      )}
+                      <p 
+                        className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent"
+                        style={{ 
+                          textShadow: '0 0 30px rgba(0, 212, 255, 0.5)',
+                          filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.3))'
                         }}
                       >
-                        <Edit2 className="h-3 w-3 text-white" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6 bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                        onClick={() => handleDeleteStat(index)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                        {stat.value}
+                      </p>
+                      <p className="text-sm text-gray-400 mt-1 font-medium">{stat.label}</p>
                     </div>
-                  )}
-                </motion.div>
-              ))}
+                    {canEdit && (
+                      <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity z-10">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6 bg-white/10 hover:bg-white/20"
+                          onClick={() => {
+                            setEditingStatIndex(index);
+                            setStatFormData(stat);
+                          }}
+                        >
+                          <Edit2 className="h-3 w-3 text-white" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6 bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                          onClick={() => handleDeleteStat(index)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
               {canEdit && (
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -779,23 +829,60 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
             <DialogTitle className="text-white">Add Statistic</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-gray-300">Value *</Label>
-              <Input
-                value={statFormData.value}
-                onChange={(e) => setStatFormData({ ...statFormData, value: e.target.value })}
-                placeholder="130+"
-                className="bg-white/5 border-white/10 text-white"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-gray-300">Value *</Label>
+                <Input
+                  value={statFormData.value}
+                  onChange={(e) => setStatFormData({ ...statFormData, value: e.target.value })}
+                  placeholder="130+"
+                  className="bg-white/5 border-white/10 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-300">Label *</Label>
+                <Input
+                  value={statFormData.label}
+                  onChange={(e) => setStatFormData({ ...statFormData, label: e.target.value })}
+                  placeholder="Recording Rooms"
+                  className="bg-white/5 border-white/10 text-white"
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-gray-300">Label *</Label>
-              <Input
-                value={statFormData.label}
-                onChange={(e) => setStatFormData({ ...statFormData, label: e.target.value })}
-                placeholder="Recording Rooms"
-                className="bg-white/5 border-white/10 text-white"
-              />
+              <Label className="text-gray-300">Icon (optional)</Label>
+              <ScrollArea className="h-[120px] rounded-lg border border-white/10 bg-white/5 p-2">
+                <div className="grid grid-cols-7 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setStatFormData({ ...statFormData, icon: undefined })}
+                    className={cn(
+                      "p-2 rounded-lg transition-all flex items-center justify-center",
+                      !statFormData.icon 
+                        ? "bg-cyan-500/30 border border-cyan-500/50" 
+                        : "bg-white/5 border border-transparent hover:bg-white/10"
+                    )}
+                  >
+                    <span className="text-xs text-gray-400">None</span>
+                  </button>
+                  {STAT_ICONS.map(({ name, label, Icon }) => (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => setStatFormData({ ...statFormData, icon: name })}
+                      className={cn(
+                        "p-2 rounded-lg transition-all",
+                        statFormData.icon === name 
+                          ? "bg-cyan-500/30 border border-cyan-500/50" 
+                          : "bg-white/5 border border-transparent hover:bg-white/10"
+                      )}
+                      title={label}
+                    >
+                      <Icon className="h-5 w-5 text-gray-300" />
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsAddStatDialogOpen(false)}>
@@ -816,21 +903,58 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
             <DialogTitle className="text-white">Edit Statistic</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-gray-300">Value *</Label>
-              <Input
-                value={statFormData.value}
-                onChange={(e) => setStatFormData({ ...statFormData, value: e.target.value })}
-                className="bg-white/5 border-white/10 text-white"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-gray-300">Value *</Label>
+                <Input
+                  value={statFormData.value}
+                  onChange={(e) => setStatFormData({ ...statFormData, value: e.target.value })}
+                  className="bg-white/5 border-white/10 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-300">Label *</Label>
+                <Input
+                  value={statFormData.label}
+                  onChange={(e) => setStatFormData({ ...statFormData, label: e.target.value })}
+                  className="bg-white/5 border-white/10 text-white"
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-gray-300">Label *</Label>
-              <Input
-                value={statFormData.label}
-                onChange={(e) => setStatFormData({ ...statFormData, label: e.target.value })}
-                className="bg-white/5 border-white/10 text-white"
-              />
+              <Label className="text-gray-300">Icon (optional)</Label>
+              <ScrollArea className="h-[120px] rounded-lg border border-white/10 bg-white/5 p-2">
+                <div className="grid grid-cols-7 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setStatFormData({ ...statFormData, icon: undefined })}
+                    className={cn(
+                      "p-2 rounded-lg transition-all flex items-center justify-center",
+                      !statFormData.icon 
+                        ? "bg-cyan-500/30 border border-cyan-500/50" 
+                        : "bg-white/5 border border-transparent hover:bg-white/10"
+                    )}
+                  >
+                    <span className="text-xs text-gray-400">None</span>
+                  </button>
+                  {STAT_ICONS.map(({ name, label, Icon }) => (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => setStatFormData({ ...statFormData, icon: name })}
+                      className={cn(
+                        "p-2 rounded-lg transition-all",
+                        statFormData.icon === name 
+                          ? "bg-cyan-500/30 border border-cyan-500/50" 
+                          : "bg-white/5 border border-transparent hover:bg-white/10"
+                      )}
+                      title={label}
+                    >
+                      <Icon className="h-5 w-5 text-gray-300" />
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setEditingStatIndex(null)}>

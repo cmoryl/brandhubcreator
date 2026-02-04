@@ -561,6 +561,7 @@ export interface LocationStat {
   value: string;
   suffix?: string;
   label: string;
+  icon?: string; // Lucide icon name (e.g., 'Mic', 'Film', 'Music')
 }
 
 // SPONSOR LOGOS - Partner/Sponsor Logo Placement
