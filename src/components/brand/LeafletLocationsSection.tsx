@@ -1,11 +1,10 @@
 /**
- * GoogleMapsLocationsSection - Interactive Google Maps with GlobalLink Universe styling
- * Features: Custom styled map, animated markers, info windows, category filtering
+ * LeafletLocationsSection - Interactive Map with OpenStreetMap (No API Key Required)
+ * Features: Custom styled map, animated markers, popups, category filtering
+ * Uses Leaflet.js with free OpenStreetMap tiles
  */
 
-/// <reference types="@types/google.maps" />
-
-import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -15,77 +14,142 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { 
-  MapPin, Plus, Edit2, Trash2, Building2, Mic, Monitor, 
-  Globe, Loader2, AlertCircle
+  Plus, Edit2, Trash2, Building2, Mic, Monitor, Globe
 } from 'lucide-react';
 import { BrandLocation, LocationCategory, LocationStat } from '@/types/brand';
 import { SectionHeader } from './SectionHeader';
 import { useToast } from '@/hooks/use-toast';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
-// Google Maps API key - publishable key for client-side use
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+// Fix for default marker icons in Leaflet with Vite
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
 
 const CATEGORY_CONFIG: Record<LocationCategory, { 
   color: string; 
   bgColor: string; 
   icon: React.ElementType;
   label: string;
-  markerColor: string;
 }> = {
-  studio: { color: '#ec4899', bgColor: 'rgba(236, 72, 153, 0.15)', icon: Mic, label: 'Studios', markerColor: '#ec4899' },
-  office: { color: '#6b7280', bgColor: 'rgba(107, 114, 128, 0.15)', icon: Building2, label: 'Client Service & Production', markerColor: '#6b7280' },
-  headquarters: { color: '#f59e0b', bgColor: 'rgba(245, 158, 11, 0.15)', icon: Building2, label: 'Headquarters', markerColor: '#f59e0b' },
-  datacenter: { color: '#22c55e', bgColor: 'rgba(34, 197, 94, 0.15)', icon: Monitor, label: 'Data Centers', markerColor: '#22c55e' },
-  partner: { color: '#8b5cf6', bgColor: 'rgba(139, 92, 246, 0.15)', icon: Globe, label: 'Partners', markerColor: '#8b5cf6' },
+  studio: { color: '#ec4899', bgColor: 'rgba(236, 72, 153, 0.15)', icon: Mic, label: 'Studios' },
+  office: { color: '#6b7280', bgColor: 'rgba(107, 114, 128, 0.15)', icon: Building2, label: 'Client Service & Production' },
+  headquarters: { color: '#f59e0b', bgColor: 'rgba(245, 158, 11, 0.15)', icon: Building2, label: 'Headquarters' },
+  datacenter: { color: '#22c55e', bgColor: 'rgba(34, 197, 94, 0.15)', icon: Monitor, label: 'Data Centers' },
+  partner: { color: '#8b5cf6', bgColor: 'rgba(139, 92, 246, 0.15)', icon: Globe, label: 'Partners' },
 };
-
-// Dark mode map styling for GlobalLink Universe aesthetic
-const DARK_MAP_STYLES = [
-  { elementType: 'geometry', stylers: [{ color: '#0a1628' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#0a1628' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#4a90a4' }] },
-  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#6dd5ed' }] },
-  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#4a90a4' }] },
-  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#0d2137' }] },
-  { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#3a7ca5' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#1e3a5f' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#0d2137' }] },
-  { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#5a9ab8' }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#2a4a6b' }] },
-  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1a3a5a' }] },
-  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#6dd5ed' }] },
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#1a3a5a' }] },
-  { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#6dd5ed' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0d1e36' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#3a6a8a' }] },
-  { featureType: 'water', elementType: 'labels.text.stroke', stylers: [{ color: '#0a1628' }] },
-];
 
 // City coordinates for geocoding fallback
 const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   'New York': { lat: 40.7128, lng: -74.0060 },
   'Los Angeles': { lat: 34.0522, lng: -118.2437 },
+  'San Francisco': { lat: 37.7749, lng: -122.4194 },
+  'Chicago': { lat: 41.8781, lng: -87.6298 },
+  'Miami': { lat: 25.7617, lng: -80.1918 },
   'London': { lat: 51.5074, lng: -0.1278 },
   'Paris': { lat: 48.8566, lng: 2.3522 },
   'Berlin': { lat: 52.5200, lng: 13.4050 },
-  'Tokyo': { lat: 35.6762, lng: 139.6503 },
-  'Singapore': { lat: 1.3521, lng: 103.8198 },
-  'Sydney': { lat: -33.8688, lng: 151.2093 },
-  'Dubai': { lat: 25.2048, lng: 55.2708 },
-  'Mumbai': { lat: 19.0760, lng: 72.8777 },
+  'Munich': { lat: 48.1351, lng: 11.5820 },
+  'Frankfurt': { lat: 50.1109, lng: 8.6821 },
   'Amsterdam': { lat: 52.3676, lng: 4.9041 },
   'Barcelona': { lat: 41.3851, lng: 2.1734 },
+  'Madrid': { lat: 40.4168, lng: -3.7038 },
   'Milan': { lat: 45.4642, lng: 9.1900 },
-  'Toronto': { lat: 43.6532, lng: -79.3832 },
+  'Rome': { lat: 41.9028, lng: 12.4964 },
+  'Stockholm': { lat: 59.3293, lng: 18.0686 },
+  'Copenhagen': { lat: 55.6761, lng: 12.5683 },
+  'Dublin': { lat: 53.3498, lng: -6.2603 },
+  'Tokyo': { lat: 35.6762, lng: 139.6503 },
+  'Singapore': { lat: 1.3521, lng: 103.8198 },
   'Hong Kong': { lat: 22.3193, lng: 114.1694 },
   'Shanghai': { lat: 31.2304, lng: 121.4737 },
+  'Beijing': { lat: 39.9042, lng: 116.4074 },
   'Seoul': { lat: 37.5665, lng: 126.9780 },
+  'Sydney': { lat: -33.8688, lng: 151.2093 },
+  'Melbourne': { lat: -37.8136, lng: 144.9631 },
+  'Dubai': { lat: 25.2048, lng: 55.2708 },
+  'Mumbai': { lat: 19.0760, lng: 72.8777 },
+  'Delhi': { lat: 28.6139, lng: 77.2090 },
+  'Toronto': { lat: 43.6532, lng: -79.3832 },
+  'Vancouver': { lat: 49.2827, lng: -123.1207 },
   'São Paulo': { lat: -23.5505, lng: -46.6333 },
   'Mexico City': { lat: 19.4326, lng: -99.1332 },
+  'Buenos Aires': { lat: -34.6037, lng: -58.3816 },
   'Cape Town': { lat: -33.9249, lng: 18.4241 },
+  'Johannesburg': { lat: -26.2041, lng: 28.0473 },
+  'Cairo': { lat: 30.0444, lng: 31.2357 },
+  'Lagos': { lat: 6.5244, lng: 3.3792 },
+  'Nairobi': { lat: -1.2921, lng: 36.8219 },
+  'Bangkok': { lat: 13.7563, lng: 100.5018 },
+  'Jakarta': { lat: -6.2088, lng: 106.8456 },
+  'Manila': { lat: 14.5995, lng: 120.9842 },
+  'Kuala Lumpur': { lat: 3.1390, lng: 101.6869 },
+  'Ho Chi Minh City': { lat: 10.8231, lng: 106.6297 },
+  'Bangalore': { lat: 12.9716, lng: 77.5946 },
+  'Chennai': { lat: 13.0827, lng: 80.2707 },
+  'Pune': { lat: 18.5204, lng: 73.8567 },
+  'Warsaw': { lat: 52.2297, lng: 21.0122 },
+  'Prague': { lat: 50.0755, lng: 14.4378 },
+  'Vienna': { lat: 48.2082, lng: 16.3738 },
+  'Zurich': { lat: 47.3769, lng: 8.5417 },
+  'Geneva': { lat: 46.2044, lng: 6.1432 },
+  'Brussels': { lat: 50.8503, lng: 4.3517 },
+  'Lisbon': { lat: 38.7223, lng: -9.1393 },
+  'Athens': { lat: 37.9838, lng: 23.7275 },
+  'Istanbul': { lat: 41.0082, lng: 28.9784 },
+  'Moscow': { lat: 55.7558, lng: 37.6173 },
 };
 
-interface GoogleMapsLocationsSectionProps {
+// Create custom colored marker icons
+const createColoredIcon = (color: string) => {
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `
+      <div style="
+        width: 24px;
+        height: 24px;
+        background: ${color};
+        border: 3px solid white;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 12px ${color}60;
+        position: relative;
+      ">
+        <div style="
+          position: absolute;
+          inset: -4px;
+          border-radius: 50%;
+          background: ${color};
+          opacity: 0.3;
+          animation: pulse 2s infinite;
+        "></div>
+      </div>
+    `,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -12],
+  });
+};
+
+// Component to fit bounds to markers
+const FitBounds: React.FC<{ locations: { lat: number; lng: number }[] }> = ({ locations }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (locations.length > 0) {
+      const bounds = L.latLngBounds(locations.map(loc => [loc.lat, loc.lng]));
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 6 });
+    }
+  }, [map, locations]);
+  
+  return null;
+};
+
+interface LeafletLocationsSectionProps {
   locations?: BrandLocation[];
   locationStats?: LocationStat[];
   onLocationsChange?: (locations: BrandLocation[]) => void;
@@ -99,36 +163,7 @@ interface GoogleMapsLocationsSectionProps {
   onSectionDescriptionChange?: (description: string) => void;
 }
 
-// Load Google Maps script dynamically
-const loadGoogleMapsScript = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    if (window.google?.maps) {
-      resolve();
-      return;
-    }
-
-    if (!GOOGLE_MAPS_API_KEY) {
-      reject(new Error('Google Maps API key not configured'));
-      return;
-    }
-
-    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
-    if (existingScript) {
-      existingScript.addEventListener('load', () => resolve());
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load Google Maps'));
-    document.head.appendChild(script);
-  });
-};
-
-export const GoogleMapsLocationsSection: React.FC<GoogleMapsLocationsSectionProps> = ({
+export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = ({
   locations = [],
   locationStats = [],
   onLocationsChange,
@@ -141,13 +176,6 @@ export const GoogleMapsLocationsSection: React.FC<GoogleMapsLocationsSectionProp
   onSectionTitleChange,
   onSectionDescriptionChange,
 }) => {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const googleMapRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
-  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
-
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [mapError, setMapError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<LocationCategory | 'all'>('all');
   const [editingLocation, setEditingLocation] = useState<BrandLocation | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -173,134 +201,17 @@ export const GoogleMapsLocationsSection: React.FC<GoogleMapsLocationsSectionProp
   }, [locations, selectedCategory]);
 
   // Get coordinates for a location
-  const getCoordinates = useCallback((location: BrandLocation): { lat: number; lng: number } => {
+  const getCoordinates = (location: BrandLocation): { lat: number; lng: number } => {
     if (location.coordinates) {
       return { lat: location.coordinates.lat, lng: location.coordinates.lng };
     }
     return CITY_COORDINATES[location.city] || { lat: 0, lng: 0 };
-  }, []);
+  };
 
-  // Initialize Google Maps
-  useEffect(() => {
-    if (!GOOGLE_MAPS_API_KEY) {
-      setMapError('Google Maps API key not configured. Add VITE_GOOGLE_MAPS_API_KEY to use this feature.');
-      return;
-    }
-
-    loadGoogleMapsScript()
-      .then(() => {
-        if (mapRef.current && !googleMapRef.current) {
-          googleMapRef.current = new google.maps.Map(mapRef.current, {
-            center: { lat: 30, lng: 0 },
-            zoom: 2,
-            styles: DARK_MAP_STYLES,
-            disableDefaultUI: false,
-            zoomControl: true,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: true,
-            backgroundColor: '#0a1628',
-          });
-          
-          infoWindowRef.current = new google.maps.InfoWindow();
-          setIsMapLoaded(true);
-        }
-      })
-      .catch((error) => {
-        console.error('Google Maps load error:', error);
-        setMapError(error.message);
-      });
-
-    return () => {
-      markersRef.current.forEach(marker => marker.setMap(null));
-      markersRef.current = [];
-    };
-  }, []);
-
-  // Update markers when locations change
-  useEffect(() => {
-    if (!isMapLoaded || !googleMapRef.current) return;
-
-    // Clear existing markers
-    markersRef.current.forEach(marker => marker.setMap(null));
-    markersRef.current = [];
-
-    // Create new markers for filtered locations
-    filteredLocations.forEach((location) => {
-      const coords = getCoordinates(location);
-      const categoryConfig = CATEGORY_CONFIG[location.category];
-
-      // Create custom marker icon
-      const markerIcon = {
-        path: google.maps.SymbolPath.CIRCLE,
-        fillColor: categoryConfig.markerColor,
-        fillOpacity: 1,
-        strokeColor: '#ffffff',
-        strokeWeight: 2,
-        scale: 10,
-      };
-
-      const marker = new google.maps.Marker({
-        position: coords,
-        map: googleMapRef.current!,
-        icon: markerIcon,
-        title: location.name,
-        animation: google.maps.Animation.DROP,
-      });
-
-      // Add click listener for info window
-      marker.addListener('click', () => {
-        if (infoWindowRef.current) {
-          const content = `
-            <div style="padding: 8px; min-width: 180px; color: #000;">
-              <h3 style="margin: 0 0 4px; font-weight: 600; font-size: 14px;">${location.name}</h3>
-              <p style="margin: 0 0 4px; font-size: 12px; color: #666;">${location.city}, ${location.country}</p>
-              ${location.description ? `<p style="margin: 0; font-size: 11px; color: #888;">${location.description}</p>` : ''}
-              <div style="margin-top: 6px; display: flex; align-items: center; gap: 4px;">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${categoryConfig.markerColor};"></span>
-                <span style="font-size: 10px; color: #666;">${categoryConfig.label}</span>
-              </div>
-            </div>
-          `;
-          infoWindowRef.current.setContent(content);
-          infoWindowRef.current.open(googleMapRef.current!, marker);
-        }
-      });
-
-      // Add hover effect
-      marker.addListener('mouseover', () => {
-        marker.setIcon({
-          ...markerIcon,
-          scale: 14,
-        });
-      });
-
-      marker.addListener('mouseout', () => {
-        marker.setIcon(markerIcon);
-      });
-
-      markersRef.current.push(marker);
-    });
-
-    // Fit bounds to show all markers
-    if (filteredLocations.length > 0) {
-      const bounds = new google.maps.LatLngBounds();
-      filteredLocations.forEach(location => {
-        const coords = getCoordinates(location);
-        bounds.extend(coords);
-      });
-      googleMapRef.current.fitBounds(bounds, 50);
-      
-      // Limit zoom level
-      const listener = google.maps.event.addListener(googleMapRef.current, 'idle', () => {
-        const currentZoom = googleMapRef.current?.getZoom();
-        if (currentZoom && currentZoom > 6) {
-          googleMapRef.current?.setZoom(6);
-        }
-        google.maps.event.removeListener(listener);
-      });
-    }
-  }, [isMapLoaded, filteredLocations, getCoordinates]);
+  const markerPositions = useMemo(() => 
+    filteredLocations.map(loc => getCoordinates(loc)),
+    [filteredLocations]
+  );
 
   const handleAddLocation = () => {
     if (!formData.city || !formData.country) return;
@@ -402,6 +313,21 @@ export const GoogleMapsLocationsSection: React.FC<GoogleMapsLocationsSectionProp
         onEditToggle={() => setIsEditing(!isEditing)}
       />
 
+      {/* Add CSS for marker pulse animation */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 0.3; }
+          50% { transform: scale(1.5); opacity: 0; }
+        }
+        .leaflet-container {
+          background: #0a1628 !important;
+        }
+        .custom-marker {
+          background: transparent !important;
+          border: none !important;
+        }
+      `}</style>
+
       <div 
         className="relative overflow-hidden rounded-2xl"
         style={{ 
@@ -500,26 +426,59 @@ export const GoogleMapsLocationsSection: React.FC<GoogleMapsLocationsSectionProp
           </div>
         </div>
 
-        {/* Google Map */}
-        <div className="relative h-[500px]">
-          {mapError ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-slate-900/50">
-              <div className="text-center p-6">
-                <AlertCircle className="h-12 w-12 text-amber-400 mx-auto mb-4" />
-                <p className="text-white font-medium mb-2">Map Unavailable</p>
-                <p className="text-gray-400 text-sm max-w-md">{mapError}</p>
-              </div>
-            </div>
-          ) : !isMapLoaded ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-slate-900/50">
-              <Loader2 className="h-8 w-8 text-cyan-400 animate-spin" />
-            </div>
-          ) : null}
-          <div 
-            ref={mapRef} 
-            className="w-full h-full"
-            style={{ opacity: isMapLoaded && !mapError ? 1 : 0 }}
-          />
+        {/* Leaflet Map */}
+        <div className="h-[500px] relative">
+          <MapContainer
+            center={[20, 0]}
+            zoom={2}
+            className="h-full w-full"
+            style={{ background: '#0a1628' }}
+            zoomControl={true}
+            scrollWheelZoom={true}
+          >
+            {/* Dark themed tile layer - CartoDB Dark Matter (free, no API key) */}
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            />
+            
+            {/* Fit bounds to markers */}
+            {markerPositions.length > 0 && (
+              <FitBounds locations={markerPositions} />
+            )}
+            
+            {/* Location markers */}
+            {filteredLocations.map((location) => {
+              const coords = getCoordinates(location);
+              const categoryConfig = CATEGORY_CONFIG[location.category];
+              const icon = createColoredIcon(categoryConfig.color);
+              
+              return (
+                <Marker
+                  key={location.id}
+                  position={[coords.lat, coords.lng]}
+                  icon={icon}
+                >
+                  <Popup>
+                    <div className="min-w-[180px]">
+                      <h3 className="font-semibold text-sm mb-1">{location.name}</h3>
+                      <p className="text-xs text-gray-600 mb-1">{location.city}, {location.country}</p>
+                      {location.description && (
+                        <p className="text-xs text-gray-500">{location.description}</p>
+                      )}
+                      <div className="mt-2 flex items-center gap-1.5">
+                        <span 
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: categoryConfig.color }}
+                        />
+                        <span className="text-xs text-gray-500">{categoryConfig.label}</span>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+          </MapContainer>
         </div>
 
         {/* Stats section */}
@@ -644,7 +603,13 @@ export const GoogleMapsLocationsSection: React.FC<GoogleMapsLocationsSectionProp
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                   placeholder="New York"
                   className="bg-white/5 border-white/10 text-white"
+                  list="city-suggestions"
                 />
+                <datalist id="city-suggestions">
+                  {Object.keys(CITY_COORDINATES).map(city => (
+                    <option key={city} value={city} />
+                  ))}
+                </datalist>
               </div>
               <div className="space-y-2">
                 <Label className="text-gray-300">Country *</Label>
@@ -722,7 +687,13 @@ export const GoogleMapsLocationsSection: React.FC<GoogleMapsLocationsSectionProp
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                   className="bg-white/5 border-white/10 text-white"
+                  list="city-suggestions-edit"
                 />
+                <datalist id="city-suggestions-edit">
+                  {Object.keys(CITY_COORDINATES).map(city => (
+                    <option key={city} value={city} />
+                  ))}
+                </datalist>
               </div>
               <div className="space-y-2">
                 <Label className="text-gray-300">Country *</Label>

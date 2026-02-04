@@ -37,7 +37,7 @@ import { WebinarSeriesSection } from './WebinarSeriesSection';
 import AwardsSection from './AwardsSection';
 import { GlobalLinkUniverseSection } from './GlobalLinkUniverseSection';
 import { InsightsSection } from './InsightsSection';
-import { GoogleMapsLocationsSection } from './GoogleMapsLocationsSection';
+import { LeafletLocationsSection } from './LeafletLocationsSection';
 import { Separator } from '@/components/ui/separator';
 
 // Framer motion variants for smooth section animations
@@ -325,7 +325,7 @@ export const FullBrandPage = ({
           onSubtitleChange={onSubtitleChange} 
         />;
       case 'locations':
-        return <GoogleMapsLocationsSection 
+        return <LeafletLocationsSection 
           locations={brand.locations || []} 
           locationStats={brand.locationStats || []}
           onLocationsChange={editHandler((locations: BrandLocation[]) => onBrandUpdate({ locations }))}
