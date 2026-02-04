@@ -481,10 +481,10 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
           </MapContainer>
         </div>
 
-        {/* Stats section */}
+        {/* Stats section - prominent display with glow effects */}
         {(locationStats.length > 0 || canEdit) && (
           <div className="p-6 border-t border-white/10">
-            <div className="flex flex-wrap gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {locationStats.map((stat, index) => (
                 <motion.div
                   key={stat.id || index}
@@ -493,27 +493,40 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <div className="text-center">
-                    <p className="text-3xl font-bold text-cyan-400">{stat.value}</p>
-                    <p className="text-sm text-gray-400">{stat.label}</p>
+                  <div 
+                    className="text-center p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20 hover:border-cyan-500/40 transition-all"
+                    style={{
+                      boxShadow: '0 0 20px rgba(0, 212, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.05)',
+                    }}
+                  >
+                    <p 
+                      className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent"
+                      style={{ 
+                        textShadow: '0 0 30px rgba(0, 212, 255, 0.5)',
+                        filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.3))'
+                      }}
+                    >
+                      {stat.value}
+                    </p>
+                    <p className="text-sm text-gray-400 mt-1 font-medium">{stat.label}</p>
                   </div>
                   {canEdit && (
-                    <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">
+                    <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity z-10">
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-6 w-6 bg-white/10"
+                        className="h-6 w-6 bg-white/10 hover:bg-white/20"
                         onClick={() => {
                           setEditingStatIndex(index);
                           setStatFormData(stat);
                         }}
                       >
-                        <Edit2 className="h-3 w-3" />
+                        <Edit2 className="h-3 w-3 text-white" />
                       </Button>
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-6 w-6 bg-red-500/20 text-red-400"
+                        className="h-6 w-6 bg-red-500/20 text-red-400 hover:bg-red-500/30"
                         onClick={() => handleDeleteStat(index)}
                       >
                         <Trash2 className="h-3 w-3" />
@@ -523,15 +536,20 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
                 </motion.div>
               ))}
               {canEdit && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAddStatDialogOpen(true)}
-                  className="bg-transparent border-dashed border-white/20 text-gray-400 hover:bg-white/5"
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: locationStats.length * 0.1 }}
                 >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Stat
-                </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsAddStatDialogOpen(true)}
+                    className="w-full h-full min-h-[88px] bg-transparent border-dashed border-white/20 text-gray-400 hover:bg-white/5 hover:border-cyan-500/30 hover:text-cyan-400 transition-all"
+                  >
+                    <Plus className="h-5 w-5 mr-2" />
+                    Add Stat
+                  </Button>
+                </motion.div>
               )}
             </div>
           </div>
