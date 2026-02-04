@@ -19,61 +19,106 @@ import {
 import { BrandLocation, LocationCategory, LocationStat } from '@/types/brand';
 import { SectionHeader } from './SectionHeader';
 
-// World map coordinates (simplified for major cities)
+// World map coordinates (percentage-based for 2:1 aspect ratio map)
+// These correspond to the detailed SVG world map with viewBox 0 0 2000 1000
 const CITY_COORDINATES: Record<string, { x: number; y: number }> = {
   // North America
-  'New York': { x: 28, y: 35 },
-  'Los Angeles': { x: 12, y: 38 },
-  'San Francisco': { x: 10, y: 36 },
-  'Chicago': { x: 22, y: 34 },
+  'New York': { x: 26, y: 32 },
+  'Los Angeles': { x: 14, y: 36 },
+  'San Francisco': { x: 12, y: 34 },
+  'Chicago': { x: 22, y: 32 },
   'Miami': { x: 24, y: 42 },
-  'Toronto': { x: 24, y: 32 },
-  'Vancouver': { x: 10, y: 30 },
-  'Mexico City': { x: 18, y: 46 },
-  'Buenos Aires': { x: 30, y: 76 },
+  'Toronto': { x: 24, y: 30 },
+  'Vancouver': { x: 12, y: 28 },
+  'Seattle': { x: 13, y: 28 },
+  'Denver': { x: 18, y: 34 },
+  'Dallas': { x: 20, y: 38 },
+  'Atlanta': { x: 24, y: 36 },
+  'Boston': { x: 27, y: 30 },
+  'Washington DC': { x: 26, y: 34 },
+  'Montreal': { x: 26, y: 28 },
+  'Mexico City': { x: 19, y: 48 },
+  'Buenos Aires': { x: 31, y: 82 },
+  'São Paulo': { x: 34, y: 74 },
+  'Rio de Janeiro': { x: 36, y: 72 },
+  'Lima': { x: 26, y: 68 },
+  'Bogotá': { x: 26, y: 58 },
+  'Santiago': { x: 28, y: 80 },
   // Europe
-  'London': { x: 48, y: 28 },
-  'Paris': { x: 50, y: 30 },
-  'Berlin': { x: 54, y: 28 },
-  'Munich': { x: 53, y: 30 },
-  'Amsterdam': { x: 51, y: 27 },
-  'Brussels': { x: 51, y: 29 },
-  'Madrid': { x: 47, y: 34 },
-  'Barcelona': { x: 50, y: 34 },
-  'Milan': { x: 52, y: 32 },
-  'Rome': { x: 54, y: 34 },
-  'Stockholm': { x: 56, y: 22 },
-  'Copenhagen': { x: 53, y: 25 },
-  'Warsaw': { x: 58, y: 27 },
-  'Vienna': { x: 55, y: 30 },
-  'Zurich': { x: 52, y: 31 },
-  'Dublin': { x: 45, y: 27 },
-  'Lisbon': { x: 44, y: 36 },
-  'Valencia': { x: 48, y: 36 },
-  'Rennes': { x: 48, y: 30 },
-  'Tourcoing': { x: 50, y: 28 },
-  'Angoulême': { x: 48, y: 32 },
+  'London': { x: 45, y: 26 },
+  'Paris': { x: 47, y: 28 },
+  'Berlin': { x: 51, y: 26 },
+  'Munich': { x: 50, y: 28 },
+  'Frankfurt': { x: 49, y: 27 },
+  'Amsterdam': { x: 48, y: 25 },
+  'Brussels': { x: 48, y: 26 },
+  'Madrid': { x: 44, y: 34 },
+  'Barcelona': { x: 47, y: 33 },
+  'Milan': { x: 50, y: 30 },
+  'Rome': { x: 51, y: 33 },
+  'Stockholm': { x: 53, y: 20 },
+  'Oslo': { x: 50, y: 19 },
+  'Copenhagen': { x: 51, y: 23 },
+  'Warsaw': { x: 55, y: 25 },
+  'Prague': { x: 52, y: 27 },
+  'Vienna': { x: 53, y: 28 },
+  'Zurich': { x: 49, y: 29 },
+  'Geneva': { x: 48, y: 30 },
+  'Dublin': { x: 43, y: 24 },
+  'Edinburgh': { x: 44, y: 22 },
+  'Lisbon': { x: 42, y: 35 },
+  'Valencia': { x: 45, y: 35 },
+  'Rennes': { x: 45, y: 28 },
+  'Lyon': { x: 48, y: 30 },
+  'Tourcoing': { x: 47, y: 26 },
+  'Angoulême': { x: 46, y: 30 },
+  'Athens': { x: 56, y: 35 },
+  'Istanbul': { x: 58, y: 33 },
+  'Moscow': { x: 60, y: 22 },
+  'St. Petersburg': { x: 58, y: 19 },
+  'Kiev': { x: 58, y: 26 },
   // Africa
-  'Cape Town': { x: 56, y: 78 },
-  'Nairobi': { x: 62, y: 54 },
-  'Lagos': { x: 50, y: 52 },
-  'Casablanca': { x: 45, y: 38 },
+  'Cape Town': { x: 54, y: 82 },
+  'Johannesburg': { x: 56, y: 76 },
+  'Nairobi': { x: 60, y: 55 },
+  'Lagos': { x: 48, y: 52 },
+  'Cairo': { x: 58, y: 40 },
+  'Casablanca': { x: 43, y: 38 },
+  'Accra': { x: 46, y: 52 },
+  // Middle East
+  'Dubai': { x: 66, y: 42 },
+  'Tel Aviv': { x: 59, y: 38 },
+  'Riyadh': { x: 64, y: 44 },
+  'Doha': { x: 66, y: 44 },
+  'Abu Dhabi': { x: 66, y: 44 },
   // Asia
-  'Tokyo': { x: 88, y: 36 },
-  'Singapore': { x: 78, y: 54 },
+  'Tokyo': { x: 88, y: 34 },
+  'Osaka': { x: 87, y: 36 },
+  'Singapore': { x: 77, y: 55 },
   'Hong Kong': { x: 80, y: 42 },
   'Shanghai': { x: 82, y: 38 },
-  'Beijing': { x: 80, y: 34 },
-  'Seoul': { x: 84, y: 36 },
-  'Mumbai': { x: 70, y: 46 },
-  'Pune': { x: 71, y: 47 },
-  'Delhi': { x: 71, y: 42 },
-  'Ho Chi Minh City': { x: 78, y: 50 },
-  'Bangkok': { x: 76, y: 48 },
+  'Beijing': { x: 80, y: 32 },
+  'Seoul': { x: 84, y: 34 },
+  'Taipei': { x: 82, y: 42 },
+  'Mumbai': { x: 68, y: 48 },
+  'Pune': { x: 69, y: 49 },
+  'Delhi': { x: 70, y: 42 },
+  'Bangalore': { x: 70, y: 54 },
+  'Chennai': { x: 71, y: 54 },
+  'Kolkata': { x: 73, y: 46 },
+  'Ho Chi Minh City': { x: 78, y: 52 },
+  'Hanoi': { x: 78, y: 46 },
+  'Bangkok': { x: 76, y: 50 },
+  'Jakarta': { x: 78, y: 60 },
+  'Kuala Lumpur': { x: 77, y: 54 },
+  'Manila': { x: 82, y: 50 },
   // Oceania
-  'Sydney': { x: 90, y: 74 },
-  'Melbourne': { x: 88, y: 76 },
-  'Auckland': { x: 96, y: 76 },
+  'Sydney': { x: 90, y: 80 },
+  'Melbourne': { x: 88, y: 82 },
+  'Brisbane': { x: 91, y: 76 },
+  'Perth': { x: 80, y: 78 },
+  'Auckland': { x: 96, y: 82 },
+  'Wellington': { x: 97, y: 85 },
 };
 
 const CATEGORY_CONFIG: Record<LocationCategory, { 
@@ -137,9 +182,9 @@ const LocationsMap: React.FC<LocationsMapProps> = ({
         </svg>
       </div>
 
-      {/* World Map SVG */}
+      {/* World Map SVG - Detailed Geographic Outline */}
       <svg
-        viewBox="0 0 100 50"
+        viewBox="0 0 2000 1000"
         className="absolute inset-0 w-full h-full"
         preserveAspectRatio="xMidYMid slice"
       >
@@ -148,29 +193,75 @@ const LocationsMap: React.FC<LocationsMapProps> = ({
             <stop offset="0%" stopColor="#1e3a5f" />
             <stop offset="100%" stopColor="#0d2137" />
           </linearGradient>
+          <linearGradient id="mapStrokeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor={accentColor} stopOpacity="0.4" />
+            <stop offset="50%" stopColor={accentColor} stopOpacity="0.8" />
+            <stop offset="100%" stopColor={accentColor} stopOpacity="0.4" />
+          </linearGradient>
           <filter id="glow">
-            <feGaussianBlur stdDeviation="0.5" result="coloredBlur"/>
+            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
             <feMerge>
               <feMergeNode in="coloredBlur"/>
               <feMergeNode in="SourceGraphic"/>
             </feMerge>
           </filter>
+          <filter id="mapGlow">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feFlood floodColor={accentColor} floodOpacity="0.3"/>
+            <feComposite in2="blur" operator="in"/>
+            <feMerge>
+              <feMergeNode/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
         </defs>
         
-        {/* Simplified world map paths */}
-        <g fill="url(#mapGradient)" stroke={accentColor} strokeWidth="0.1" opacity="0.8">
+        {/* Detailed world map paths - realistic continental outlines */}
+        <g fill="url(#mapGradient)" stroke="url(#mapStrokeGradient)" strokeWidth="1.5" opacity="0.85" filter="url(#mapGlow)">
           {/* North America */}
-          <path d="M5,15 L35,12 L38,25 L35,35 L25,45 L15,42 L8,35 L3,25 Z" />
+          <path d="M170,130 L195,115 L245,100 L290,95 L340,85 L385,90 L420,100 L455,115 L485,135 L510,160 L525,185 L535,215 L540,250 L535,285 L525,320 L510,350 L490,380 L465,405 L435,425 L400,440 L360,450 L320,455 L280,455 L245,450 L215,440 L190,425 L170,400 L155,370 L145,335 L140,295 L140,255 L145,215 L155,175 L170,145 Z" />
+          {/* Greenland */}
+          <path d="M580,70 L620,65 L660,70 L695,85 L720,110 L735,145 L740,185 L730,225 L710,260 L680,285 L645,295 L605,290 L575,270 L555,240 L545,200 L545,160 L555,125 L575,95 Z" />
+          {/* Central America & Caribbean */}
+          <path d="M310,455 L340,465 L365,480 L385,500 L400,525 L410,550 L415,575 L410,595 L395,610 L375,620 L350,625 L325,620 L305,610 L290,595 L280,575 L275,550 L280,525 L290,505 L305,485 Z" />
           {/* South America */}
-          <path d="M20,48 L32,45 L35,55 L32,70 L25,80 L18,75 L16,60 Z" />
+          <path d="M400,620 L435,630 L465,650 L490,680 L510,720 L525,765 L535,815 L540,870 L535,920 L520,965 L495,1000 L460,1020 L420,1030 L375,1025 L335,1010 L300,985 L275,950 L255,905 L245,855 L245,800 L255,750 L275,705 L305,665 L345,635 L380,620 Z" />
           {/* Europe */}
-          <path d="M42,18 L62,15 L65,28 L58,35 L45,38 L40,30 Z" />
+          <path d="M900,185 L935,175 L975,170 L1015,175 L1050,190 L1080,215 L1100,250 L1110,290 L1105,330 L1090,365 L1065,395 L1030,420 L990,435 L945,440 L900,430 L860,410 L830,380 L810,345 L800,305 L805,265 L820,230 L845,200 L875,185 Z" />
+          {/* Scandinavia */}
+          <path d="M975,85 L1010,80 L1040,90 L1065,110 L1080,140 L1085,175 L1075,205 L1055,230 L1025,245 L990,250 L955,240 L925,220 L905,190 L895,155 L900,120 L920,95 L950,85 Z" />
+          {/* UK & Ireland */}
+          <path d="M830,220 L850,210 L875,215 L895,230 L905,255 L900,280 L885,300 L860,315 L830,320 L805,310 L790,290 L785,265 L795,240 L815,225 Z" />
+          <path d="M795,245 L815,240 L830,250 L835,270 L825,290 L805,300 L785,295 L775,275 L780,255 Z" />
           {/* Africa */}
-          <path d="M42,38 L60,35 L68,50 L62,72 L48,75 L40,60 L38,45 Z" />
-          {/* Asia */}
-          <path d="M62,12 L95,10 L98,25 L92,42 L75,50 L65,45 L60,30 Z" />
+          <path d="M890,440 L940,435 L990,445 L1035,470 L1075,505 L1105,550 L1125,605 L1135,665 L1135,730 L1125,795 L1105,855 L1075,905 L1035,945 L985,975 L930,990 L870,985 L815,965 L770,930 L735,880 L715,820 L705,755 L710,690 L725,630 L755,575 L795,530 L840,495 L880,465 Z" />
+          {/* Middle East */}
+          <path d="M1100,350 L1145,340 L1190,345 L1230,365 L1260,395 L1280,435 L1285,480 L1275,525 L1250,565 L1210,595 L1165,610 L1115,605 L1075,585 L1050,550 L1040,505 L1045,460 L1065,420 L1095,385 Z" />
+          {/* Russia / Northern Asia */}
+          <path d="M1080,80 L1180,65 L1290,55 L1400,50 L1510,55 L1610,70 L1700,95 L1770,130 L1820,175 L1850,230 L1860,290 L1850,350 L1820,400 L1770,440 L1700,470 L1620,485 L1530,490 L1440,480 L1350,460 L1270,430 L1200,390 L1145,340 L1105,285 L1080,225 L1070,165 L1075,110 Z" />
+          {/* India & Southeast Asia */}
+          <path d="M1280,440 L1325,430 L1375,435 L1420,455 L1460,490 L1490,535 L1510,590 L1520,650 L1515,710 L1495,765 L1460,810 L1410,840 L1355,855 L1295,850 L1245,825 L1205,785 L1180,735 L1165,680 L1165,620 L1180,565 L1210,515 L1250,475 Z" />
+          {/* China & East Asia */}
+          <path d="M1440,280 L1510,265 L1585,265 L1655,280 L1715,310 L1765,355 L1800,410 L1820,475 L1820,545 L1800,610 L1760,665 L1705,710 L1640,740 L1565,755 L1490,750 L1420,730 L1360,695 L1315,645 L1285,585 L1275,520 L1280,455 L1305,395 L1350,345 L1405,305 Z" />
+          {/* Japan */}
+          <path d="M1790,340 L1820,330 L1855,335 L1885,355 L1905,385 L1915,425 L1910,465 L1890,500 L1860,525 L1820,540 L1780,535 L1745,515 L1725,485 L1720,445 L1730,405 L1755,370 Z" />
+          {/* Southeast Asian Islands */}
+          <path d="M1520,700 L1570,690 L1625,695 L1675,720 L1720,760 L1755,815 L1775,880 L1770,945 L1740,1000 L1690,1040 L1625,1060 L1555,1055 L1490,1030 L1440,985 L1410,925 L1400,860 L1415,795 L1450,740 L1500,700 Z" />
           {/* Australia */}
-          <path d="M80,55 L95,52 L98,65 L92,75 L78,72 L75,62 Z" />
+          <path d="M1580,780 L1650,760 L1725,765 L1795,790 L1855,835 L1900,895 L1925,965 L1930,1040 L1910,1110 L1865,1170 L1805,1215 L1730,1240 L1650,1245 L1575,1225 L1510,1185 L1465,1125 L1440,1055 L1445,980 L1475,910 L1525,850 L1585,805 Z" />
+          {/* New Zealand */}
+          <path d="M1915,1000 L1940,990 L1965,1000 L1985,1025 L1995,1060 L1990,1100 L1975,1135 L1950,1160 L1920,1170 L1890,1165 L1865,1145 L1850,1115 L1850,1080 L1865,1045 L1890,1020 Z" />
+        </g>
+        
+        {/* Additional detail lines for depth */}
+        <g fill="none" stroke={accentColor} strokeWidth="0.5" opacity="0.25">
+          {/* Continental shelf/coastline details */}
+          <path d="M175,140 C220,125 280,110 340,100 S450,120 510,170" />
+          <path d="M540,270 C530,320 500,380 440,430" />
+          <path d="M410,600 C450,640 490,700 520,790" />
+          <path d="M905,195 C950,185 1000,185 1050,205" />
+          <path d="M1090,95 C1200,75 1400,65 1600,85" />
+          <path d="M1600,800 C1700,790 1800,820 1870,880" />
         </g>
       </svg>
 
