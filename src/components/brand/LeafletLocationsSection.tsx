@@ -61,6 +61,26 @@ const getStatIcon = (iconName?: string) => {
   return iconConfig?.Icon || null;
 };
 
+// Convert hex to rgba
+const hexToRgba = (hex: string, alpha: number): string => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return `rgba(0, 212, 255, ${alpha})`;
+  const r = parseInt(result[1], 16);
+  const g = parseInt(result[2], 16);
+  const b = parseInt(result[3], 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+// Lighten a hex color
+const lightenHex = (hex: string, percent: number): string => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return hex;
+  const r = Math.min(255, Math.floor(parseInt(result[1], 16) + (255 - parseInt(result[1], 16)) * percent));
+  const g = Math.min(255, Math.floor(parseInt(result[2], 16) + (255 - parseInt(result[2], 16)) * percent));
+  const b = Math.min(255, Math.floor(parseInt(result[3], 16) + (255 - parseInt(result[3], 16)) * percent));
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+};
+
 // Fix for default marker icons in Leaflet with Vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -526,6 +546,7 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {locationStats.map((stat, index) => {
                 const StatIcon = getStatIcon(stat.icon);
+                const lighterAccent = lightenHex(accentColor, 0.2);
                 return (
                   <motion.div
                     key={stat.id || index}
@@ -535,24 +556,36 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
                     transition={{ delay: index * 0.1 }}
                   >
                     <div 
-                      className="text-center p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20 hover:border-cyan-500/40 transition-all"
+                      className="text-center p-4 rounded-xl transition-all"
                       style={{
-                        boxShadow: '0 0 20px rgba(0, 212, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.05)',
+                        background: `linear-gradient(to bottom right, ${hexToRgba(accentColor, 0.1)}, transparent)`,
+                        border: `1px solid ${hexToRgba(accentColor, 0.2)}`,
+                        boxShadow: `0 0 20px ${hexToRgba(accentColor, 0.1)}, inset 0 1px 0 rgba(255,255,255,0.05)`,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = hexToRgba(accentColor, 0.4);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = hexToRgba(accentColor, 0.2);
                       }}
                     >
                       {StatIcon && (
                         <div className="flex justify-center mb-2">
                           <StatIcon 
-                            className="h-6 w-6 text-cyan-400" 
-                            style={{ filter: 'drop-shadow(0 0 6px rgba(0, 212, 255, 0.5))' }}
+                            className="h-6 w-6" 
+                            style={{ 
+                              color: accentColor,
+                              filter: `drop-shadow(0 0 6px ${hexToRgba(accentColor, 0.5)})` 
+                            }}
                           />
                         </div>
                       )}
                       <p 
-                        className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent"
+                        className="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent"
                         style={{ 
-                          textShadow: '0 0 30px rgba(0, 212, 255, 0.5)',
-                          filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.3))'
+                          backgroundImage: `linear-gradient(to right, ${accentColor}, ${lighterAccent})`,
+                          textShadow: `0 0 30px ${hexToRgba(accentColor, 0.5)}`,
+                          filter: `drop-shadow(0 0 8px ${hexToRgba(accentColor, 0.3)})`
                         }}
                       >
                         {stat.value}
@@ -594,7 +627,19 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
                   <Button
                     variant="outline"
                     onClick={() => setIsAddStatDialogOpen(true)}
-                    className="w-full h-full min-h-[88px] bg-transparent border-dashed border-white/20 text-gray-400 hover:bg-white/5 hover:border-cyan-500/30 hover:text-cyan-400 transition-all"
+                    className="w-full h-full min-h-[88px] bg-transparent border-dashed border-white/20 text-gray-400 hover:bg-white/5 transition-all"
+                    style={{
+                      '--hover-border': hexToRgba(accentColor, 0.3),
+                      '--hover-text': accentColor,
+                    } as React.CSSProperties}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = hexToRgba(accentColor, 0.3);
+                      e.currentTarget.style.color = accentColor;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '';
+                      e.currentTarget.style.color = '';
+                    }}
                   >
                     <Plus className="h-5 w-5 mr-2" />
                     Add Stat
