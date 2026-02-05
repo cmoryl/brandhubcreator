@@ -48,6 +48,7 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  Download,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -246,6 +247,32 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
     }
   };
 
+  const handleDownloadImage = async (img: OrganizationImage, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const response = await fetch(img.public_url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      // Get extension from mime type or default to png
+      const ext = img.mime_type?.split('/')[1] || 'png';
+      link.download = `${img.name}.${ext}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download image:', err);
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
   const categoryCounts = IMAGE_CATEGORIES.reduce((acc, cat) => {
     acc[cat] = images.filter((img) => img.category === cat).length;
     return acc;
@@ -377,12 +404,23 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
                           {img.category}
                         </Badge>
                       </div>
-                      <button
-                        onClick={(e) => handleDeleteImage(img, e)}
-                        className="absolute top-1 right-1 p-1 bg-destructive/80 text-destructive-foreground rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
+                      {/* Action buttons on hover */}
+                      <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => handleDownloadImage(img, e)}
+                          className="p-1 bg-secondary/90 text-secondary-foreground rounded hover:bg-secondary"
+                          title="Download"
+                        >
+                          <Download className="h-3 w-3" />
+                        </button>
+                        <button
+                          onClick={(e) => handleDeleteImage(img, e)}
+                          className="p-1 bg-destructive/80 text-destructive-foreground rounded hover:bg-destructive"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -399,14 +437,40 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
                 />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{selectedImage.name}</p>
-                  <Badge variant="outline" className="text-xs">
-                    {selectedImage.category}
-                  </Badge>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="outline" className="text-xs">
+                      {selectedImage.category}
+                    </Badge>
+                    {selectedImage.file_size_bytes && (
+                      <span className="text-xs text-muted-foreground">
+                        {formatFileSize(selectedImage.file_size_bytes)}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <Button onClick={handleConfirmSelection}>
-                  <Check className="h-4 w-4 mr-2" />
-                  Use This Image
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={(e) => handleDownloadImage(selectedImage, e)}
+                    title="Download"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={(e) => handleDeleteImage(selectedImage, e)}
+                    title="Delete"
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                  <Button onClick={handleConfirmSelection}>
+                    <Check className="h-4 w-4 mr-2" />
+                    Use This Image
+                  </Button>
+                </div>
               </div>
             )}
           </TabsContent>
