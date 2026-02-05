@@ -37,9 +37,11 @@ import {
 import { toast } from 'sonner';
 import { 
   MapPin, Plus, Search, MoreHorizontal, Edit, Trash2, 
-  Globe, Building2, Phone, Mail, RefreshCw, Check, X
+  Globe, Building2, Phone, Mail, RefreshCw, Check, X,
+  Loader2, MapPinned
 } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
+import { useGeocode } from '@/hooks/useGeocode';
 
 type CompanyLocation = Tables<'company_locations'>;
 
@@ -95,6 +97,9 @@ export function CompanyLocationsManager() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<CompanyLocation | null>(null);
   const [formData, setFormData] = useState<LocationFormData>(emptyFormData);
+  
+  // Geocoding hook
+  const { geocode, buildQuery, isLoading: isGeocoding } = useGeocode();
 
   // Fetch all locations
   const { data: locations = [], isLoading, refetch } = useQuery({
@@ -245,6 +250,26 @@ export function CompanyLocationsManager() {
     setIsDeleteDialogOpen(true);
   };
 
+  // Handle geocoding
+  const handleGeocode = async () => {
+    if (!formData.city && !formData.address) {
+      toast.error('Please enter a city or address first');
+      return;
+    }
+
+    const query = buildQuery(formData.city, formData.country, formData.address);
+    const result = await geocode(query);
+
+    if (result) {
+      setFormData(prev => ({
+        ...prev,
+        latitude: result.lat.toFixed(6),
+        longitude: result.lng.toFixed(6),
+      }));
+      toast.success(`Coordinates found: ${result.lat.toFixed(4)}, ${result.lng.toFixed(4)}`);
+    }
+  };
+
   const LocationForm = ({ isEdit = false }: { isEdit?: boolean }) => (
     <div className="grid gap-4 py-4">
       <div className="grid grid-cols-2 gap-4">
@@ -325,38 +350,67 @@ export function CompanyLocationsManager() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="latitude">Latitude</Label>
-          <Input
-            id="latitude"
-            value={formData.latitude}
-            onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
-            placeholder="51.5074"
-          />
+      {/* Coordinates section with geocoding button */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label>Coordinates</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleGeocode}
+            disabled={isGeocoding || (!formData.city && !formData.address)}
+            className="h-7 text-xs"
+          >
+            {isGeocoding ? (
+              <>
+                <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
+                Looking up...
+              </>
+            ) : (
+              <>
+                <MapPinned className="h-3 w-3 mr-1.5" />
+                Auto-fill from address
+              </>
+            )}
+          </Button>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="longitude">Longitude</Label>
-          <Input
-            id="longitude"
-            value={formData.longitude}
-            onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
-            placeholder="-0.1278"
-          />
+        <div className="grid grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="latitude" className="text-xs text-muted-foreground">Latitude</Label>
+            <Input
+              id="latitude"
+              value={formData.latitude}
+              onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+              placeholder="51.5074"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="longitude" className="text-xs text-muted-foreground">Longitude</Label>
+            <Input
+              id="longitude"
+              value={formData.longitude}
+              onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+              placeholder="-0.1278"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="category" className="text-xs text-muted-foreground">Category</Label>
+            <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
-          <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {CATEGORIES.map((c) => (
-                <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <p className="text-xs text-muted-foreground">
+          Enter city/address above and click "Auto-fill" to lookup coordinates, or enter manually.
+        </p>
       </div>
 
       <div className="flex items-center space-x-2">
