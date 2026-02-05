@@ -38,6 +38,7 @@ import AwardsSection from './AwardsSection';
 import { GlobalLinkUniverseSection } from './GlobalLinkUniverseSection';
 import { InsightsSection } from './InsightsSection';
 import { LeafletLocationsSection } from './LeafletLocationsSection';
+import { BrandEventSignageSection } from './BrandEventSignageSection';
 import { Separator } from '@/components/ui/separator';
 
 // Framer motion variants for smooth section animations
@@ -341,6 +342,15 @@ export const FullBrandPage = ({
           onUseSharedLocationsChange={canEdit ? (useSharedLocations: boolean) => onBrandUpdate({ useSharedLocations }) : undefined}
           mapTheme={brand.mapTheme}
           onMapThemeChange={canEdit ? (mapTheme) => onBrandUpdate({ mapTheme }) : undefined}
+        />;
+      case 'eventsignage':
+        return <BrandEventSignageSection 
+          eventSignage={brand.eventSignage || []} 
+          onEventSignageChange={editHandler((eventSignage) => onBrandUpdate({ eventSignage }))} 
+          customSubtitle={customSubtitle} 
+          onSubtitleChange={onSubtitleChange}
+          layout={layout}
+          onLayoutChange={onLayoutChange}
         />;
       default: return null;
     }
