@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Star, Building2, Package, Calendar, ExternalLink, Shield, Settings, FileText, History } from 'lucide-react';
+import { ArrowLeft, Star, Building2, Package, Calendar, ExternalLink, Shield, Settings, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -16,9 +16,11 @@ import { AdminToolbar } from '@/components/admin/AdminToolbar';
 import { getTourSteps } from '@/data/demoTourSteps';
 import { DEMO_BRANDS, DEMO_PRODUCTS, DEMO_EVENTS, DEMO_INDUSTRIES } from '@/data/demoGuides';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { BrandGuide, ProductGuide, SectionId } from '@/types/brand';
 import type { EventGuide, EventSectionId } from '@/types/event';
+import type { Json } from '@/integrations/supabase/types';
 
 // Page transition animation
 const pageTransition = {
@@ -38,8 +40,20 @@ const pageTransition = {
   },
 };
 
-// Demo guide viewer page - renders static demo data for brands, products, and events
-// Admins can edit demo content (session-only changes)
+interface DbDemoBrand {
+  id: string;
+  name: string;
+  slug: string;
+  type: string;
+  industry_label: string | null;
+  guide_data: Json;
+  section_order: string[] | null;
+  hidden_sections: string[] | null;
+  page_settings: Json | null;
+}
+
+// Demo guide viewer page - renders demo data for brands, products, and events
+// Prioritizes database data, falls back to static data
 export default function DemoGuideViewer() {
   const { type, slug } = useParams<{ type: 'brand' | 'product' | 'event'; slug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -50,11 +64,59 @@ export default function DemoGuideViewer() {
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
   const [scrollToEventSection, setScrollToEventSection] = useState<EventSectionId | null>(null);
   const [isTourOpen, setIsTourOpen] = useState(false);
+  const [dbDemoBrand, setDbDemoBrand] = useState<DbDemoBrand | null>(null);
+  const [isLoadingDb, setIsLoadingDb] = useState(true);
 
   const tourSteps = getTourSteps(type || 'brand');
 
-  // Find the initial demo guide based on type
-  const initialDemoGuide = useMemo(() => {
+  // Try to load from database first
+  useEffect(() => {
+    const loadFromDatabase = async () => {
+      if (!slug) {
+        setIsLoadingDb(false);
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('demo_brands')
+          .select('id, name, slug, type, industry_label, guide_data, section_order, hidden_sections, page_settings')
+          .eq('slug', slug)
+          .eq('is_active', true)
+          .single();
+
+        if (!error && data) {
+          setDbDemoBrand(data);
+        }
+      } catch (error) {
+        // Silently fall back to static data
+        console.log('[DemoGuideViewer] No database entry, using static data');
+      } finally {
+        setIsLoadingDb(false);
+      }
+    };
+
+    loadFromDatabase();
+  }, [slug]);
+
+  // Use database data if available, otherwise fall back to static data
+  const demoGuideSource = useMemo(() => {
+    // If we have database data, use it
+    if (dbDemoBrand) {
+      const guideData = dbDemoBrand.guide_data as Record<string, unknown>;
+      return {
+        ...guideData,
+        id: dbDemoBrand.id,
+        slug: dbDemoBrand.slug,
+        type: dbDemoBrand.type,
+        sectionOrder: dbDemoBrand.section_order,
+        hiddenSections: dbDemoBrand.hidden_sections,
+        pageSettings: dbDemoBrand.page_settings,
+        hero: guideData.hero || { name: dbDemoBrand.name },
+      };
+    }
+    
+    // Fall back to static data
     if (type === 'brand') {
       return DEMO_BRANDS.find(b => b.slug === slug);
     } else if (type === 'product') {
@@ -63,15 +125,15 @@ export default function DemoGuideViewer() {
       return DEMO_EVENTS.find(e => e.slug === slug);
     }
     return undefined;
-  }, [type, slug]);
+  }, [dbDemoBrand, type, slug]);
 
   // Local state for demo guide data - admins can edit this in-session
-  const [demoGuideData, setDemoGuideData] = useState<typeof initialDemoGuide>(initialDemoGuide);
+  const [demoGuideData, setDemoGuideData] = useState<typeof demoGuideSource>(demoGuideSource);
 
-  // Reset data when switching demos
+  // Reset data when switching demos or when database data loads
   useEffect(() => {
-    setDemoGuideData(initialDemoGuide);
-  }, [initialDemoGuide]);
+    setDemoGuideData(demoGuideSource);
+  }, [demoGuideSource]);
 
   // Use demoGuideData for rendering (aliased as demoGuide for compatibility)
   const demoGuide = demoGuideData;
@@ -181,7 +243,9 @@ export default function DemoGuideViewer() {
     updatedAt: new Date(),
   } as BrandGuide | ProductGuide | EventGuide;
 
-  const industry = DEMO_INDUSTRIES[demoGuide.id] || (
+  const heroName = fullGuide.hero?.name || dbDemoBrand?.name || 'Demo Guide';
+  
+  const industry = DEMO_INDUSTRIES[demoGuide.id as string] || dbDemoBrand?.industry_label || (
     type === 'brand' ? 'Brand Guide' : 
     type === 'product' ? 'Product Guide' : 
     'Event Kit'
@@ -260,7 +324,7 @@ export default function DemoGuideViewer() {
             { label: 'Demo Guides', icon: Star, href: '/' },
             { label: getTypeLabel(), icon: type === 'brand' ? Building2 : type === 'product' ? Package : Calendar, href: '/' },
           ]}
-          currentPage={demoGuide.hero.name}
+          currentPage={heroName}
         />
       </div>
 
@@ -327,7 +391,7 @@ export default function DemoGuideViewer() {
           hiddenSections={[]}
           activeSection={activeEventSection || undefined}
           onSectionSelect={handleEventSectionSelect}
-          eventName={demoGuide.hero.name}
+          eventName={heroName}
         />
       ) : (
         <MobileSectionNav
@@ -335,7 +399,7 @@ export default function DemoGuideViewer() {
           hiddenSections={[]}
           activeSection={activeSection || undefined}
           onSectionSelect={handleSectionSelect}
-          brandName={demoGuide.hero.name}
+          brandName={heroName}
         />
       )}
 

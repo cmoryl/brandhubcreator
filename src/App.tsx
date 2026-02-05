@@ -49,6 +49,7 @@ const ContactUs = lazy(() => import("./pages/ContactUs"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const DemoBrandPreview = lazy(() => import("./pages/DemoBrandPreview"));
 const DemoGuideViewer = lazy(() => import("./pages/DemoGuideViewer"));
+const DemoBrandEditor = lazy(() => import("./pages/DemoBrandEditor"));
 const EventEditor = lazy(() => import("./pages/EventEditor"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const GlobalLinkUniversePage = lazy(() => import("./pages/GlobalLinkUniversePage"));
@@ -235,6 +236,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<BrandEditorSkeleton />}>
                           <DemoGuideViewer />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="admin/demo-pages/edit/:slug"
+                      element={
+                        <Suspense fallback={<BrandEditorSkeleton />}>
+                          <DemoBrandEditor />
                         </Suspense>
                       }
                     />
