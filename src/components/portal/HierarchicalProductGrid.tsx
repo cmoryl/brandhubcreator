@@ -157,19 +157,19 @@ interface MasterProductSectionProps {
 }
 
 // Memoized master product section
-const MasterProductSection = memo(({ 
+const MasterProductSection = memo(forwardRef<HTMLDivElement, MasterProductSectionProps>(({ 
   product, 
   subProducts, 
   fallbackGradient, 
   isExpanded, 
   onToggle,
   onNavigate 
-}: MasterProductSectionProps) => {
+}, ref) => {
   const hero = product.hero || { name: product.name, tagline: '' };
   const colors = product.colors;
 
   return (
-    <div className="space-y-3">
+    <div ref={ref} className="space-y-3">
       {/* Master product card - full width with gradient accent */}
       <Card 
         className="group hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg relative ring-2 ring-accent/30"
@@ -315,7 +315,7 @@ const MasterProductSection = memo(({
       )}
     </div>
   );
-});
+}));
 MasterProductSection.displayName = 'MasterProductSection';
 
 interface HierarchicalProductGridProps {
