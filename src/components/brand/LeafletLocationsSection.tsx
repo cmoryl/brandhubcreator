@@ -24,7 +24,7 @@ import dynamicIconImports from 'lucide-react/dynamicIconImports';
 import { BrandLocation, LocationCategory, LocationStat } from '@/types/brand';
 import { SectionHeader } from './SectionHeader';
 import { useToast } from '@/hooks/use-toast';
-import { RegionKey, getLocationRegion, REGION_BOUNDS } from './MapRegionFilter';
+import { RegionKey, getLocationRegion, REGION_BOUNDS } from './mapRegionTypes';
 
 // Lazy load the map wrapper to ensure client-side only rendering
 const LeafletMapWrapper = lazy(() => import('./LeafletMapWrapper'));
