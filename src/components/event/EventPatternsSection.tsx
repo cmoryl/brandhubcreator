@@ -8,6 +8,7 @@ import { useDropZone } from '@/components/ui/drop-zone';
 import { supabase } from '@/integrations/supabase/client';
 import { PatternPreviewModal } from '@/components/brand/PatternPreviewModal';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { useSaveToLibrary } from '@/hooks/useSaveToLibrary';
 import {
   Select,
   SelectContent,
@@ -48,6 +49,7 @@ export const EventPatternsSection = ({
   const [downloadResolution, setDownloadResolution] = useState('1024');
   const [isGenerating, setIsGenerating] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('panel');
+  const { saveToLibrary } = useSaveToLibrary();
 
   const generateAIPatterns = async () => {
     if (!eventColors || eventColors.length === 0) {
@@ -74,13 +76,33 @@ export const EventPatternsSection = ({
       if (error) throw error;
 
       if (data?.patterns && data.patterns.length > 0 && onPatternsChange) {
-        const newPatterns: BrandPattern[] = data.patterns.map((p: { name: string; url: string }) => ({
-          id: crypto.randomUUID(),
-          name: p.name,
-          url: p.url
-        }));
+        const newPatterns: BrandPattern[] = [];
+        
+        // Save each generated pattern to the library and use the stored URL
+        for (const p of data.patterns as Array<{ name: string; url: string }>) {
+          const patternName = `${eventName || 'Event'} - ${p.name}`;
+          
+          // Save to organization image library
+          const savedResult = await saveToLibrary(p.url, patternName, 'Backgrounds');
+          
+          if (savedResult) {
+            newPatterns.push({
+              id: crypto.randomUUID(),
+              name: p.name,
+              url: savedResult.publicUrl
+            });
+          } else {
+            // Fallback to base64 if storage fails
+            newPatterns.push({
+              id: crypto.randomUUID(),
+              name: p.name,
+              url: p.url
+            });
+          }
+        }
+        
         onPatternsChange([...patterns, ...newPatterns]);
-        toast.success(`Generated ${newPatterns.length} event-specific patterns!`);
+        toast.success(`Generated ${newPatterns.length} patterns and saved to Image Library!`);
       } else {
         toast.error('No patterns were generated');
       }
@@ -92,20 +114,29 @@ export const EventPatternsSection = ({
     }
   };
 
-  const handleFileDrop = useCallback((file: File) => {
+  const handleFileDrop = useCallback(async (file: File) => {
     if (!onPatternsChange) return;
     const reader = new FileReader();
-    reader.onload = (event) => {
-      const url = event.target?.result as string;
+    reader.onload = async (event) => {
+      const dataUrl = event.target?.result as string;
+      const fileName = file.name.replace(/\.[^/.]+$/, '');
+      
+      // Save to library first
+      const savedResult = await saveToLibrary(dataUrl, `${eventName || 'Event'} - ${fileName}`, 'Backgrounds');
+      
       const newPattern: BrandPattern = {
         id: crypto.randomUUID(),
-        name: file.name.replace(/\.[^/.]+$/, ''),
-        url,
+        name: fileName,
+        url: savedResult?.publicUrl || dataUrl,
       };
       onPatternsChange([...patterns, newPattern]);
+      
+      if (savedResult) {
+        toast.success(`"${fileName}" saved to Image Library`);
+      }
     };
     reader.readAsDataURL(file);
-  }, [patterns, onPatternsChange]);
+  }, [patterns, onPatternsChange, saveToLibrary, eventName]);
 
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: handleFileDrop,

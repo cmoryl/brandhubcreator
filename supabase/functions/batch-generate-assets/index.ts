@@ -80,7 +80,91 @@ function adjustColor(hex: string, percent: number): string {
   return `#${Math.round(r).toString(16).padStart(2, '0')}${Math.round(g).toString(16).padStart(2, '0')}${Math.round(b).toString(16).padStart(2, '0')}`;
 }
 
-async function generatePatternImages(brandName: string, colors: BrandColor[], archetype?: string, maxPatterns: number = 2): Promise<GeneratedPattern[]> {
+async function saveImageToLibrary(
+  supabase: ReturnType<typeof createClient>,
+  imageDataUrl: string,
+  name: string,
+  organizationId: string,
+  category: string = 'Backgrounds'
+): Promise<string | null> {
+  try {
+    // Extract base64 data
+    const parts = imageDataUrl.split(',');
+    if (parts.length !== 2) return null;
+    
+    const mimeMatch = parts[0].match(/:(.*?);/);
+    const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+    const base64Data = parts[1];
+    
+    // Convert to Uint8Array
+    const binaryString = atob(base64Data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    
+    // Generate file path
+    const fileExt = mimeType.split('/')[1] || 'png';
+    const fileName = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${fileExt}`;
+    const categoryFolder = category.toLowerCase().replace(/\s+/g, '-');
+    const filePath = `${organizationId}/${categoryFolder}/${fileName}`;
+    
+    // Upload to storage
+    const { error: uploadError } = await supabase.storage
+      .from('org-image-library')
+      .upload(filePath, bytes, {
+        contentType: mimeType,
+        cacheControl: '3600',
+        upsert: false,
+      });
+    
+    if (uploadError) {
+      console.error('Storage upload error:', uploadError);
+      return null;
+    }
+    
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('org-image-library')
+      .getPublicUrl(filePath);
+    
+    const publicUrl = urlData.publicUrl;
+    
+    // Insert record into organization_images table
+    const { error: insertError } = await supabase
+      .from('organization_images')
+      .insert({
+        organization_id: organizationId,
+        name: name,
+        file_path: filePath,
+        public_url: publicUrl,
+        category,
+        file_size_bytes: bytes.length,
+        mime_type: mimeType,
+      });
+    
+    if (insertError) {
+      console.error('DB insert error:', insertError);
+      // Clean up storage if DB insert failed
+      await supabase.storage.from('org-image-library').remove([filePath]);
+      return null;
+    }
+    
+    return publicUrl;
+  } catch (err) {
+    console.error('Error saving to library:', err);
+    return null;
+  }
+}
+
+async function generatePatternImages(
+  brandName: string,
+  colors: BrandColor[],
+  archetype?: string,
+  maxPatterns: number = 2,
+  supabase?: ReturnType<typeof createClient>,
+  organizationId?: string
+): Promise<GeneratedPattern[]> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) {
     console.error("LOVABLE_API_KEY not configured, skipping pattern generation");
@@ -131,10 +215,22 @@ async function generatePatternImages(brandName: string, colors: BrandColor[], ar
       const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
       
       if (imageUrl) {
+        let finalUrl = imageUrl;
+        
+        // If we have supabase client and org ID, save to library
+        if (supabase && organizationId && imageUrl.startsWith('data:')) {
+          const patternName = `${brandName} - ${promptsToUse[i].name}`;
+          const savedUrl = await saveImageToLibrary(supabase, imageUrl, patternName, organizationId, 'Backgrounds');
+          if (savedUrl) {
+            finalUrl = savedUrl;
+            console.log(`Saved pattern "${patternName}" to Image Library`);
+          }
+        }
+        
         patterns.push({
           id: crypto.randomUUID(),
           name: promptsToUse[i].name,
-          url: imageUrl
+          url: finalUrl
         });
       }
       
@@ -226,7 +322,7 @@ serve(async (req) => {
         const brandName = hero?.name || brand.name;
         const archetype = identity?.archetype;
         const patternsNeeded = Math.min(2, 4 - existingPatterns.length);
-        const newPatterns = await generatePatternImages(brandName, colors, archetype, patternsNeeded);
+        const newPatterns = await generatePatternImages(brandName, colors, archetype, patternsNeeded, supabase, organizationId);
         updates.patterns = [...existingPatterns, ...newPatterns];
         results.brands.patternsAdded += newPatterns.length;
       }
@@ -299,7 +395,7 @@ serve(async (req) => {
           const identity = guideData.identity as { archetype?: string } | undefined;
           const brandName = hero?.name || brand.name;
           const archetype = identity?.archetype;
-          const newPatterns = await generatePatternImages(brandName, colors, archetype);
+          const newPatterns = await generatePatternImages(brandName, colors, archetype, 2, supabase, organizationId);
           updates.patterns = [...existingPatterns, ...newPatterns];
           results.brands.patternsAdded += newPatterns.length;
         }
@@ -356,7 +452,7 @@ serve(async (req) => {
           const identity = guideData.identity as { archetype?: string } | undefined;
           const productName = hero?.name || product.name;
           const archetype = identity?.archetype;
-          const newPatterns = await generatePatternImages(productName, colors, archetype);
+          const newPatterns = await generatePatternImages(productName, colors, archetype, 2, supabase, organizationId);
           updates.patterns = [...existingPatterns, ...newPatterns];
           results.products.patternsAdded += newPatterns.length;
         }
