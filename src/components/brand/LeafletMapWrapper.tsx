@@ -3,6 +3,8 @@
  * 
  * Uses vanilla Leaflet API directly to avoid react-leaflet's context issues
  * that cause "render2 is not a function" errors.
+ * 
+ * Supports full theme customization: tile styles, marker colors, and UI overlays.
  */
 
 import React, { useEffect, useRef, useState, memo } from 'react';
@@ -12,6 +14,7 @@ import { BrandLocation, LocationCategory } from '@/types/brand';
 import { REGION_BOUNDS, RegionKey, hexToRgba } from './mapRegionTypes';
 import { cn } from '@/lib/utils';
 import { Compass } from 'lucide-react';
+import { MapThemeConfig, MAP_TILE_CONFIGS, DEFAULT_MAP_THEME } from '@/types/mapTheme';
 
 // Fix default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -36,6 +39,8 @@ interface LeafletMapWrapperProps {
   accentColor: string;
   getCoordinates: (location: BrandLocation) => { lat: number; lng: number };
   categoryConfig: Record<LocationCategory, CategoryConfig>;
+  /** Optional map theme configuration */
+  mapTheme?: MapThemeConfig;
 }
 
 // Create custom colored marker icons
@@ -81,20 +86,31 @@ const RegionFilter: React.FC<{
   onRegionChange: (region: RegionKey) => void;
   locationCounts: Record<RegionKey, number>;
   accentColor: string;
-}> = memo(({ selectedRegion, onRegionChange, locationCounts, accentColor }) => {
+  panelBackground?: string;
+  panelText?: string;
+  borderColor?: string;
+}> = memo(({ 
+  selectedRegion, 
+  onRegionChange, 
+  locationCounts, 
+  accentColor,
+  panelBackground = 'rgba(10, 22, 40, 0.9)',
+  panelText = 'rgba(255,255,255,0.7)',
+  borderColor = 'rgba(255,255,255,0.1)',
+}) => {
   return (
     <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-1">
       <div 
         className="rounded-lg p-1.5 backdrop-blur-md"
         style={{
-          background: 'rgba(10, 22, 40, 0.9)',
-          border: '1px solid rgba(255,255,255,0.1)',
+          background: panelBackground,
+          border: `1px solid ${borderColor}`,
           boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
         }}
       >
-        <div className="flex items-center gap-1 px-2 py-1 mb-1 border-b border-white/10">
-          <Compass className="h-3 w-3 text-muted-foreground" />
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Region</span>
+        <div className="flex items-center gap-1 px-2 py-1 mb-1" style={{ borderBottom: `1px solid ${borderColor}` }}>
+          <Compass className="h-3 w-3" style={{ color: panelText }} />
+          <span className="text-[10px] uppercase tracking-wider font-medium" style={{ color: panelText }}>Region</span>
         </div>
         
         {Object.entries(REGION_BOUNDS).map(([key, region]) => {
@@ -106,13 +122,12 @@ const RegionFilter: React.FC<{
               key={key}
               onClick={() => onRegionChange(key as RegionKey)}
               className={cn(
-                "w-full flex items-center gap-2 px-3 py-1.5 rounded text-left transition-all",
-                "hover:bg-white/10 text-xs",
-                isSelected && "bg-white/10"
+                "w-full flex items-center gap-2 px-3 py-1.5 rounded text-left transition-all text-xs",
               )}
               style={{
-                color: isSelected ? accentColor : 'rgba(255,255,255,0.7)',
+                color: isSelected ? accentColor : panelText,
                 borderLeft: isSelected ? `2px solid ${accentColor}` : '2px solid transparent',
+                background: isSelected ? hexToRgba(accentColor, 0.1) : 'transparent',
               }}
             >
               <span className="text-sm">{region.icon}</span>
@@ -121,8 +136,8 @@ const RegionFilter: React.FC<{
                 <span 
                   className="text-[10px] px-1.5 py-0.5 rounded-full"
                   style={{
-                    background: isSelected ? hexToRgba(accentColor, 0.2) : 'rgba(255,255,255,0.1)',
-                    color: isSelected ? accentColor : 'rgba(255,255,255,0.5)',
+                    background: isSelected ? hexToRgba(accentColor, 0.2) : hexToRgba(panelText, 0.1),
+                    color: isSelected ? accentColor : panelText,
                   }}
                 >
                   {count}
@@ -147,7 +162,10 @@ export const LeafletMapWrapper: React.FC<LeafletMapWrapperProps> = ({
   accentColor,
   getCoordinates,
   categoryConfig,
+  mapTheme = DEFAULT_MAP_THEME,
 }) => {
+  const theme = mapTheme || DEFAULT_MAP_THEME;
+  const tileConfig = MAP_TILE_CONFIGS[theme.tileStyle];
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -182,6 +200,9 @@ export const LeafletMapWrapper: React.FC<LeafletMapWrapperProps> = ({
     };
   }, []);
 
+  // Tile layer ref to allow updates
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
+
   // Create map when ready
   useEffect(() => {
     if (!isReady || !mapContainerRef.current || mapRef.current) return;
@@ -194,10 +215,11 @@ export const LeafletMapWrapper: React.FC<LeafletMapWrapperProps> = ({
         scrollWheelZoom: true,
       });
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      const layer = L.tileLayer(tileConfig.url, {
+        attribution: tileConfig.attribution,
       }).addTo(map);
-
+      
+      tileLayerRef.current = layer;
       mapRef.current = map;
     } catch (error) {
       console.error('Failed to initialize map:', error);
@@ -207,9 +229,22 @@ export const LeafletMapWrapper: React.FC<LeafletMapWrapperProps> = ({
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
+        tileLayerRef.current = null;
       }
     };
   }, [isReady]);
+
+  // Update tile layer when theme changes
+  useEffect(() => {
+    if (!mapRef.current || !tileLayerRef.current) return;
+    
+    // Remove old tile layer and add new one
+    tileLayerRef.current.remove();
+    const newLayer = L.tileLayer(tileConfig.url, {
+      attribution: tileConfig.attribution,
+    }).addTo(mapRef.current);
+    tileLayerRef.current = newLayer;
+  }, [theme.tileStyle, tileConfig.url, tileConfig.attribution]);
 
   // Update markers when locations change
   useEffect(() => {
@@ -219,11 +254,12 @@ export const LeafletMapWrapper: React.FC<LeafletMapWrapperProps> = ({
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
-    // Add new markers
+    // Add new markers with theme colors
     filteredLocations.forEach(location => {
       const coords = getCoordinates(location);
-      const config = categoryConfig[location.category];
-      const icon = createColoredIcon(config.color);
+      // Use theme marker colors if available, fallback to categoryConfig
+      const markerColor = theme.markerColors[location.category] || categoryConfig[location.category].color;
+      const icon = createColoredIcon(markerColor);
       
       const marker = L.marker([coords.lat, coords.lng], { icon })
         .bindPopup(`
@@ -232,8 +268,8 @@ export const LeafletMapWrapper: React.FC<LeafletMapWrapperProps> = ({
             <p style="font-size: 12px; color: #666; margin-bottom: 4px;">${location.city}, ${location.country}</p>
             ${location.description ? `<p style="font-size: 12px; color: #888;">${location.description}</p>` : ''}
             <div style="margin-top: 8px; display: flex; align-items: center; gap: 6px;">
-              <span style="width: 8px; height: 8px; border-radius: 50%; background: ${config.color};"></span>
-              <span style="font-size: 12px; color: #888;">${config.label}</span>
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: ${markerColor};"></span>
+              <span style="font-size: 12px; color: #888;">${categoryConfig[location.category].label}</span>
             </div>
           </div>
         `)
@@ -251,7 +287,7 @@ export const LeafletMapWrapper: React.FC<LeafletMapWrapperProps> = ({
         console.warn('FitBounds error:', e);
       }
     }
-  }, [filteredLocations, markerPositions, selectedRegion, getCoordinates, categoryConfig]);
+  }, [filteredLocations, markerPositions, selectedRegion, getCoordinates, categoryConfig, theme.markerColors]);
 
   // Handle region changes
   useEffect(() => {
@@ -267,6 +303,10 @@ export const LeafletMapWrapper: React.FC<LeafletMapWrapperProps> = ({
     }
   }, [selectedRegion]);
 
+  // Determine map background based on tile style
+  const mapBackground = theme.tileStyle === 'light' ? '#e5e7eb' : 
+                        theme.tileStyle === 'satellite' ? '#1a2e1a' : '#0a1628';
+
   if (!isReady) {
     return <MapLoadingState />;
   }
@@ -276,13 +316,16 @@ export const LeafletMapWrapper: React.FC<LeafletMapWrapperProps> = ({
       <div 
         ref={mapContainerRef} 
         className="h-full w-full"
-        style={{ background: '#0a1628' }}
+        style={{ background: mapBackground }}
       />
       <RegionFilter
         selectedRegion={selectedRegion}
         onRegionChange={onRegionChange}
         locationCounts={regionCounts}
-        accentColor={accentColor}
+        accentColor={theme.uiTheme.accentColor || accentColor}
+        panelBackground={theme.uiTheme.panelBackground}
+        panelText={theme.uiTheme.panelText}
+        borderColor={theme.uiTheme.borderColor}
       />
     </div>
   );
