@@ -248,10 +248,11 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
     if (!targetRect) return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
 
     const padding = 20;
-    const tooltipHeight = 380;
-    const tooltipWidth = 520;
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
+    const isMobile = viewportWidth < 640;
+    const tooltipHeight = isMobile ? 340 : 380;
+    const tooltipWidth = isMobile ? Math.min(viewportWidth - 32, 360) : 520;
     
     let targetY: number;
     if (targetRect.height > viewportHeight * 0.6) {
@@ -360,7 +361,7 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
       {/* Enhanced Tour Card - Premium liquid glass design */}
       <div
         className={cn(
-          "absolute z-10 w-[520px] max-w-[calc(100vw-40px)] transition-all duration-400 ease-out",
+          "absolute z-10 w-full sm:w-[520px] max-w-[calc(100vw-16px)] sm:max-w-[calc(100vw-40px)] transition-all duration-400 ease-out",
           "font-['Poppins',sans-serif]",
           isAnimating ? "opacity-0 scale-95 translate-y-3" : "opacity-100 scale-100 translate-y-0"
         )}
@@ -376,17 +377,17 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
           <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-white/[0.02] pointer-events-none" />
           
           {/* Animated header strip */}
-          <div className="relative h-12 bg-gradient-to-r from-accent/10 via-white/5 to-accent/10 border-b border-white/10">
+          <div className="relative h-10 sm:h-12 bg-gradient-to-r from-accent/10 via-white/5 to-accent/10 border-b border-white/10">
             {/* Scanning line animation */}
             <div className="absolute inset-0 overflow-hidden">
               <div className="absolute inset-y-0 w-20 bg-gradient-to-r from-transparent via-accent/20 to-transparent animate-[shimmer_3s_infinite]" />
             </div>
             
             {/* Header content */}
-            <div className="relative h-full px-6 flex items-center justify-between">
+            <div className="relative h-full px-3 sm:px-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_12px_hsl(var(--accent))]" />
-                <span className="text-xs font-medium text-accent uppercase tracking-[0.15em]">Interactive Tour</span>
+                <span className="text-[10px] sm:text-xs font-medium text-accent uppercase tracking-[0.1em] sm:tracking-[0.15em]">Interactive Tour</span>
               </div>
               <button
                 onClick={onClose}
@@ -403,7 +404,7 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
           </div>
 
           {/* Card body */}
-          <div className="relative p-6 space-y-5">
+          <div className="relative p-3 sm:p-6 space-y-3 sm:space-y-5">
             {/* Category navigation pills */}
             <CategoryNav 
               steps={availableSteps} 
@@ -412,53 +413,53 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
             />
 
             {/* Progress indicator */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden backdrop-blur-sm">
                 <div 
                   className="h-full bg-gradient-to-r from-accent via-accent to-accent/80 transition-all duration-500 ease-out rounded-full shadow-[0_0_10px_hsl(var(--accent)/0.5)]"
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <span className="text-[11px] font-medium text-white/60 tabular-nums tracking-wider">
+              <span className="text-[10px] sm:text-[11px] font-medium text-white/60 tabular-nums tracking-wider">
                 {String(safeCurrentStep + 1).padStart(2, '0')}/{String(availableSteps.length).padStart(2, '0')}
               </span>
             </div>
 
             {/* Content section */}
-            <div className="space-y-4">
-              <div className="space-y-2">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="space-y-1.5 sm:space-y-2">
                 <CategoryBadge category={step?.category} />
-                <h3 className="text-2xl font-semibold leading-tight tracking-tight text-white">
-                  <GlitchText text={step?.title || ''} className="text-2xl font-semibold" />
+                <h3 className="text-lg sm:text-2xl font-semibold leading-tight tracking-tight text-white">
+                  <GlitchText text={step?.title || ''} className="text-lg sm:text-2xl font-semibold" />
                 </h3>
               </div>
 
               {/* Description card with glass effect */}
-              <div className="relative p-4 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-sm">
+              <div className="relative p-3 sm:p-4 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-sm">
                 <div className="absolute top-0 left-4 w-10 h-[2px] bg-gradient-to-r from-accent to-transparent rounded-full" />
-                <p className="text-sm text-white/70 leading-relaxed">
+                <p className="text-xs sm:text-sm text-white/70 leading-relaxed">
                   {step?.description}
                 </p>
               </div>
             </div>
 
             {/* Navigation footer */}
-            <div className="flex items-center justify-between pt-4 border-t border-white/10">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-white/10">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <Sparkles className="h-3.5 w-3.5 text-accent/50" />
                 <KeyboardHint />
               </div>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 {safeCurrentStep > 0 && (
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={handlePrev} 
-                    className="gap-1.5 h-9 px-3 text-white/70 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/15 font-['Poppins',sans-serif]"
+                    className="gap-1 sm:gap-1.5 h-8 sm:h-9 px-2 sm:px-3 text-white/70 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/15 font-['Poppins',sans-serif]"
                   >
-                    <ChevronLeft className="h-4 w-4" />
-                    <span className="text-xs font-medium">Back</span>
+                    <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="text-[10px] sm:text-xs font-medium hidden xs:inline">Back</span>
                   </Button>
                 )}
                 
@@ -467,18 +468,18 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
                     variant="ghost" 
                     size="sm" 
                     onClick={handleSkipToEnd} 
-                    className="h-9 px-2 text-white/50 hover:text-white hover:bg-white/10"
+                    className="h-8 sm:h-9 px-2 text-white/50 hover:text-white hover:bg-white/10"
                     title="Skip tour"
                   >
-                    <SkipForward className="h-4 w-4" />
+                    <SkipForward className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </Button>
                 )}
                 
                 <button 
                   onClick={handleNext} 
                   className={cn(
-                    "inline-flex items-center gap-1.5 h-9 px-5",
-                    "font-['Poppins',sans-serif] text-xs font-medium text-white",
+                    "inline-flex items-center gap-1 sm:gap-1.5 h-8 sm:h-9 px-3 sm:px-5",
+                    "font-['Poppins',sans-serif] text-[11px] sm:text-xs font-medium text-white",
                     "rounded-xl",
                     // Glass gradient background
                     "bg-gradient-to-r from-accent to-accent/80",
@@ -494,7 +495,7 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
                   <span>
                     {safeCurrentStep === availableSteps.length - 1 ? 'Complete' : 'Next'}
                   </span>
-                  {safeCurrentStep < availableSteps.length - 1 && <ChevronRight className="h-3.5 w-3.5" />}
+                  {safeCurrentStep < availableSteps.length - 1 && <ChevronRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}
                 </button>
               </div>
             </div>
