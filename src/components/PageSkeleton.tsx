@@ -45,7 +45,7 @@ export function PageSkeleton() {
             </div>
           </div>
         </div>
-        <p className="text-lg font-medium text-foreground mb-2">Loading TransPerfect Portal</p>
+        <p className="text-lg font-medium text-foreground mb-2">Loading Portal</p>
         <p className="text-muted-foreground text-sm">Preparing your experience...</p>
         <div className="w-48 mt-6">
           <div className="h-1 bg-muted rounded-full overflow-hidden">
@@ -93,7 +93,7 @@ export function BrandEditorSkeleton() {
               </div>
             </div>
           </div>
-          <p className="text-lg font-medium text-foreground mb-2">Loading TransPerfect Brand Guide</p>
+          <p className="text-lg font-medium text-foreground mb-2">Loading Brand Guide</p>
           <p className="text-muted-foreground text-sm">Preparing your brand guidelines...</p>
           <div className="w-48 mt-6 mx-auto">
             <div className="h-1 bg-muted rounded-full overflow-hidden">
@@ -126,7 +126,7 @@ export function AuthPageSkeleton() {
             </div>
           </div>
         </div>
-        <p className="text-lg font-medium text-foreground mb-2">Loading TransPerfect Portal</p>
+        <p className="text-lg font-medium text-foreground mb-2">Loading Portal</p>
         <p className="text-muted-foreground text-sm">Preparing authentication...</p>
         <div className="w-48 mt-6 mx-auto">
           <div className="h-1 bg-muted rounded-full overflow-hidden">
