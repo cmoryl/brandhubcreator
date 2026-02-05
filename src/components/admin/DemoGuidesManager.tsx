@@ -202,13 +202,13 @@ export function DemoGuidesManager() {
   };
 
   const openDemoEditor = (slug: string) => {
-    // Navigate to demo brand editor
-    navigate(`/demo/${slug}`);
+    // Navigate to database-backed demo brand editor
+    navigate(`/admin/demo-pages/edit/${slug}`);
   };
 
-  const previewDemoBrand = (slug: string) => {
-    // Open the demo brand page in a new tab
-    window.open(`/demo/${slug}`, '_blank');
+  const previewDemoBrand = (slug: string, type: string) => {
+    // Open the demo brand page in a new tab (uses type-aware route)
+    window.open(`/demo/${type}/${slug}`, '_blank');
   };
 
   // Import existing demo guides from static data into database
@@ -617,7 +617,7 @@ export function DemoGuidesManager() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => previewDemoBrand(brand.slug)}
+                      onClick={() => previewDemoBrand(brand.slug, brand.type)}
                       title="Preview in new tab"
                     >
                       <ExternalLink className="h-4 w-4" />
