@@ -52,6 +52,7 @@ import { AdminImageLibrary } from '@/components/admin/AdminImageLibrary';
 import { AdminSidebar, AdminMobileNav } from '@/components/admin/AdminSidebar';
 import { LeadSubmissionsPanel } from '@/components/admin/LeadSubmissionsPanel';
 import { CompanyLocationsManager } from '@/components/admin/CompanyLocationsManager';
+import { GlobalMapThemeEditor } from '@/components/admin/GlobalMapThemeEditor';
 import { AdminOverview } from '@/components/admin/AdminOverview';
 interface DashboardStats {
   totalUsers: number;
@@ -1033,6 +1034,7 @@ export default function AdminDashboard() {
 
           {/* Company Locations Tab */}
           <TabsContent value="locations" className="space-y-6">
+            <GlobalMapThemeEditor />
             <CompanyLocationsManager />
           </TabsContent>
         </Tabs>

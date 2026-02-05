@@ -32,6 +32,7 @@ import { MapErrorBoundary } from './MapErrorBoundary';
 import { useCompanyLocations, useCompanyLocationStats } from '@/hooks/useCompanyLocations';
 import { MapThemeConfig, DEFAULT_MAP_THEME } from '@/types/mapTheme';
 import { MapThemeEditor } from './MapThemeEditor';
+import { useGlobalMapTheme } from '@/hooks/usePlatformSettings';
 
 // Lazy load the map wrapper to ensure client-side only rendering
 const LeafletMapWrapper = lazy(() => import('./LeafletMapWrapper'));
@@ -202,9 +203,18 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
   mapTheme,
   onMapThemeChange,
 }) => {
+  // Fetch global map theme for shared locations
+  const { globalMapTheme } = useGlobalMapTheme();
+  
   // Local map theme state (use prop if provided, otherwise local state)
   const [localMapTheme, setLocalMapTheme] = useState<MapThemeConfig>(mapTheme || DEFAULT_MAP_THEME);
-  const currentTheme = mapTheme || localMapTheme;
+  
+  // When using shared locations and no custom theme is set, use global theme
+  const currentTheme = useMemo(() => {
+    if (mapTheme) return mapTheme; // Custom theme takes priority
+    if (useSharedLocations && globalMapTheme) return globalMapTheme; // Use global for shared
+    return localMapTheme; // Fallback to local
+  }, [mapTheme, useSharedLocations, globalMapTheme, localMapTheme]);
   
   const handleThemeChange = (newTheme: MapThemeConfig) => {
     if (onMapThemeChange) {
