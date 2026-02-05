@@ -378,6 +378,36 @@ export const useImageLibrary = () => {
     }
   }, []);
 
+  const renameImage = useCallback(async (
+    imageId: string,
+    newName: string
+  ): Promise<boolean> => {
+    const trimmedName = newName.trim();
+    if (!trimmedName) {
+      toast.error('Name cannot be empty');
+      return false;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('organization_images')
+        .update({ name: trimmedName })
+        .eq('id', imageId);
+
+      if (error) throw error;
+
+      setImages(prev => prev.map(img => 
+        img.id === imageId ? { ...img, name: trimmedName } : img
+      ));
+      toast.success('Image renamed');
+      return true;
+    } catch (err) {
+      console.error('Error renaming image:', err);
+      toast.error('Failed to rename image');
+      return false;
+    }
+  }, []);
+
   const getImagesByCategory = useCallback((category: ImageCategory): OrganizationImage[] => {
     return images.filter(img => img.category === category);
   }, [images]);
@@ -391,6 +421,7 @@ export const useImageLibrary = () => {
     uploadBatch,
     deleteImage,
     updateImageCategory,
+    renameImage,
     getImagesByCategory,
   };
 };
