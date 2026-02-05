@@ -115,6 +115,9 @@ export const ProductsSection = ({
     }
     try {
       // Fetch products, brands, and events in parallel
+      // Include guide_data for card images and colors
+      const selectFields = 'id, name, slug, guide_data';
+      
       const [
         { data: linkedByParent, error: linkedError },
         { data: availableProducts, error: availableError },
@@ -123,19 +126,19 @@ export const ProductsSection = ({
       ] = await Promise.all([
         // Only fetch by parent_brand_id if we're on a brand
         entityType === 'brand' 
-          ? supabase.from('products').select('id, name, slug').eq('parent_brand_id', entityId)
+          ? supabase.from('products').select(selectFields).eq('parent_brand_id', entityId)
           : Promise.resolve({ data: [], error: null }),
         supabase
           .from('products')
-          .select('id, name, slug')
+          .select(selectFields)
           .neq('id', entityId),
         supabase
           .from('brands')
-          .select('id, name, slug')
+          .select(selectFields)
           .neq('id', entityId),
         supabase
           .from('events')
-          .select('id, name, slug'),
+          .select(selectFields),
       ]);
 
       if (linkedError) throw linkedError;
