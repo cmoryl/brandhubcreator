@@ -2,6 +2,7 @@
  * LeafletLocationsSection - Interactive Map with OpenStreetMap (No API Key Required)
  * Features: Custom styled map, animated markers, popups, category filtering, region navigation
  * Uses Leaflet.js with free OpenStreetMap tiles
+ * Supports both brand-specific locations and shared company locations database
  */
 
 import React, { useState, useMemo, lazy, Suspense } from 'react';
@@ -14,11 +15,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
 import { 
   Plus, Edit2, Trash2, Building2, Mic, Monitor, Globe,
   Film, Music, Headphones, Radio, Video, Camera, Tv,
   Speaker, Volume2, Disc, Play, Clapperboard, Award,
-  Users, MapPin, Briefcase, Star, Zap, LucideProps
+  Users, MapPin, Briefcase, Star, Zap, LucideProps,
+  Database, FileText
 } from 'lucide-react';
 import dynamicIconImports from 'lucide-react/dynamicIconImports';
 import { BrandLocation, LocationCategory, LocationStat } from '@/types/brand';
@@ -26,6 +29,7 @@ import { SectionHeader } from './SectionHeader';
 import { useToast } from '@/hooks/use-toast';
 import { RegionKey, getLocationRegion, REGION_BOUNDS } from './mapRegionTypes';
 import { MapErrorBoundary } from './MapErrorBoundary';
+import { useCompanyLocations, useCompanyLocationStats } from '@/hooks/useCompanyLocations';
 
 // Lazy load the map wrapper to ensure client-side only rendering
 const LeafletMapWrapper = lazy(() => import('./LeafletMapWrapper'));
@@ -169,6 +173,10 @@ interface LeafletLocationsSectionProps {
   sectionDescription?: string;
   onSectionTitleChange?: (title: string) => void;
   onSectionDescriptionChange?: (description: string) => void;
+  /** Whether to use the shared company locations database */
+  useSharedLocations?: boolean;
+  /** Callback when toggling between shared and brand-specific locations */
+  onUseSharedLocationsChange?: (useShared: boolean) => void;
 }
 
 export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = ({
@@ -183,7 +191,16 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
   sectionDescription = 'We have multiple owned and operated facilities in different locations across the globe.',
   onSectionTitleChange,
   onSectionDescriptionChange,
+  useSharedLocations = false,
+  onUseSharedLocationsChange,
 }) => {
+  // Fetch shared company locations from database
+  const { data: companyLocations = [], isLoading: isLoadingCompanyLocations } = useCompanyLocations();
+  const { data: companyStats = [] } = useCompanyLocationStats();
+
+  // Determine which locations to display
+  const displayLocations = useSharedLocations ? companyLocations : locations;
+  const displayStats = useSharedLocations ? companyStats : locationStats;
   const [selectedCategory, setSelectedCategory] = useState<LocationCategory | 'all'>('all');
   const [selectedRegion, setSelectedRegion] = useState<RegionKey>('all');
   const [editingLocation, setEditingLocation] = useState<BrandLocation | null>(null);
@@ -213,24 +230,24 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
   };
 
   const filteredLocations = useMemo(() => {
-    let filtered = locations;
+    let filtered = displayLocations;
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(loc => loc.category === selectedCategory);
     }
     return filtered;
-  }, [locations, selectedCategory]);
+  }, [displayLocations, selectedCategory]);
 
   // Count locations by region
   const regionCounts = useMemo(() => {
     const counts: Record<RegionKey, number> = {
-      all: locations.length,
+      all: displayLocations.length,
       americas: 0,
       europe: 0,
       asiaPacific: 0,
       africa: 0,
     };
     
-    locations.forEach(loc => {
+    displayLocations.forEach(loc => {
       const coords = getCoordinates(loc);
       if (coords.lat !== 0 || coords.lng !== 0) {
         const region = getLocationRegion(coords.lat, coords.lng);
@@ -239,7 +256,7 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
     });
     
     return counts;
-  }, [locations]);
+  }, [displayLocations]);
 
   const markerPositions = useMemo(() => 
     filteredLocations.map(loc => getCoordinates(loc)),
@@ -325,16 +342,17 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
     onLocationStatsChange?.(updated);
   };
 
-  const canEdit = !!onLocationsChange;
+  const canEdit = !!onLocationsChange && !useSharedLocations;
+  const canToggleDataSource = !!onUseSharedLocationsChange;
 
   // Count locations by category
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: locations.length };
-    locations.forEach(loc => {
+    const counts: Record<string, number> = { all: displayLocations.length };
+    displayLocations.forEach(loc => {
       counts[loc.category] = (counts[loc.category] || 0) + 1;
     });
     return counts;
-  }, [locations]);
+  }, [displayLocations]);
 
   return (
     <div className="space-y-8">
@@ -415,15 +433,39 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
               )}
             </div>
             
-            {canEdit && (
-              <Button 
-                onClick={() => setIsAddDialogOpen(true)}
-                className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/30"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Location
-              </Button>
-            )}
+            <div className="flex items-center gap-4">
+              {/* Data source toggle */}
+              {canToggleDataSource && (
+                <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/5 border border-white/10">
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <FileText className="h-3.5 w-3.5" />
+                    <span>Brand</span>
+                  </div>
+                  <Switch
+                    checked={useSharedLocations}
+                    onCheckedChange={onUseSharedLocationsChange}
+                    className="data-[state=checked]:bg-cyan-500"
+                  />
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <Database className="h-3.5 w-3.5" />
+                    <span>Company</span>
+                  </div>
+                  {isLoadingCompanyLocations && useSharedLocations && (
+                    <span className="text-xs text-cyan-400 animate-pulse">Loading...</span>
+                  )}
+                </div>
+              )}
+
+              {canEdit && (
+                <Button 
+                  onClick={() => setIsAddDialogOpen(true)}
+                  className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/30"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Location
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Category filters */}
@@ -483,10 +525,10 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
         </div>
 
         {/* Stats section - prominent display with glow effects */}
-        {(locationStats.length > 0 || canEdit) && (
+        {(displayStats.length > 0 || canEdit) && (
           <div className="p-6 border-t border-white/10">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {locationStats.map((stat, index) => {
+              {displayStats.map((stat, index) => {
                 const StatIcon = getStatIcon(stat.icon);
                 const lighterAccent = lightenHex(accentColor, 0.2);
                 return (
@@ -564,7 +606,7 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: locationStats.length * 0.1 }}
+                  transition={{ delay: displayStats.length * 0.1 }}
                 >
                   <Button
                     variant="outline"
@@ -593,7 +635,7 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
         )}
 
         {/* Locations list */}
-        {locations.length > 0 && (
+        {displayLocations.length > 0 && (
           <div className="p-6 border-t border-white/10">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {filteredLocations.map((location) => {
