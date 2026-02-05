@@ -152,9 +152,7 @@ const MapRegionControlInner: React.FC<MapRegionControlProps> = ({
   );
 };
 
-// Wrapper component that doesn't require map context
-export const MapRegionFilter: React.FC<MapRegionControlProps> = (props) => {
-  return <MapRegionControlInner {...props} />;
-};
+ // Export the inner component directly - it must be used inside MapContainer
+ export const MapRegionFilter = MapRegionControlInner;
 
 export default MapRegionFilter;
