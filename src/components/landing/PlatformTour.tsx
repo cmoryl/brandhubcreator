@@ -50,9 +50,9 @@ export const PlatformTour: React.FC<PlatformTourProps> = ({ onDemoClick }) => {
           </p>
         </div>
 
-        {/* Feature Cards - Horizontal scroll on mobile */}
-        <div className="mb-12 sm:mb-16">
-          <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 sm:pb-0 sm:grid sm:grid-cols-4 snap-x snap-mandatory scrollbar-hide">
+        {/* Feature Cards - Horizontal scroll on mobile, grid on desktop */}
+        <div className="mb-12 sm:mb-16 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 sm:pb-0 sm:grid sm:grid-cols-4 snap-x snap-mandatory scrollbar-hide touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
             {PLATFORM_FEATURES.map((feature) => {
               const Icon = ICON_MAP[feature.icon] || Zap;
               const isActive = activeFeature === feature.id;
@@ -62,20 +62,20 @@ export const PlatformTour: React.FC<PlatformTourProps> = ({ onDemoClick }) => {
                   key={feature.id}
                   onClick={() => setActiveFeature(feature.id)}
                   className={cn(
-                    'flex-shrink-0 w-[200px] sm:w-auto snap-start p-4 sm:p-6 rounded-xl border-2 transition-all duration-300 text-left',
+                    'flex-shrink-0 w-[180px] sm:w-auto snap-start p-3 sm:p-6 rounded-xl border-2 transition-all duration-300 text-left touch-manipulation',
                     isActive 
                       ? 'border-accent bg-accent/10 shadow-lg shadow-accent/10' 
                       : 'border-border bg-card hover:border-accent/50'
                   )}
                 >
                   <div 
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3"
+                    className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-3"
                     style={{ backgroundColor: `${feature.color}20` }}
                   >
-                    <Icon className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: feature.color }} />
+                    <Icon className="h-4 w-4 sm:h-6 sm:w-6" style={{ color: feature.color }} />
                   </div>
-                  <h3 className="font-semibold text-foreground mb-1">{feature.title}</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
+                  <h3 className="font-semibold text-foreground mb-1 text-sm sm:text-base">{feature.title}</h3>
+                  <p className="text-[11px] sm:text-sm text-muted-foreground line-clamp-2">
                     {feature.description}
                   </p>
                 </button>
@@ -86,38 +86,38 @@ export const PlatformTour: React.FC<PlatformTourProps> = ({ onDemoClick }) => {
 
         {/* Active Feature Details */}
         {activeFeatureData && (
-          <Card className="mb-12 sm:mb-16 border-2 border-accent/20 bg-gradient-to-br from-card to-muted/30 overflow-hidden">
-            <CardContent className="p-6 sm:p-8">
-              <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
+          <Card className="mb-12 sm:mb-16 border-2 border-accent/20 bg-gradient-to-br from-card to-muted/30 overflow-hidden mx-0">
+            <CardContent className="p-4 sm:p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8">
                 {/* Feature Info */}
                 <div>
                   <div 
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4"
+                    className="inline-flex items-center gap-2 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full mb-3 sm:mb-4"
                     style={{ backgroundColor: `${activeFeatureData.color}20` }}
                   >
                     {(() => {
                       const Icon = ICON_MAP[activeFeatureData.icon] || Zap;
                       return <Icon className="h-4 w-4" style={{ color: activeFeatureData.color }} />;
                     })()}
-                    <span className="text-sm font-medium" style={{ color: activeFeatureData.color }}>
+                    <span className="text-xs sm:text-sm font-medium" style={{ color: activeFeatureData.color }}>
                       {activeFeatureData.title}
                     </span>
                   </div>
-                  <h3 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
+                  <h3 className="text-xl sm:text-3xl font-semibold text-foreground mb-3">
                     {activeFeatureData.description}
                   </h3>
-                  <ul className="space-y-3">
+                  <ul className="space-y-2 sm:space-y-3">
                     {activeFeatureData.details.map((detail, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <CheckCircle className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
-                        <span className="text-muted-foreground">{detail}</span>
+                      <li key={idx} className="flex items-start gap-2 sm:gap-3">
+                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-accent flex-shrink-0 mt-0.5" />
+                        <span className="text-sm sm:text-base text-muted-foreground">{detail}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                {/* Feature Visual */}
-                <div className="relative">
+                {/* Feature Visual - Hidden on mobile for cleaner layout */}
+                <div className="relative hidden md:block">
                   <div 
                     className="aspect-video rounded-xl flex items-center justify-center"
                     style={{ 
@@ -154,11 +154,11 @@ export const PlatformTour: React.FC<PlatformTourProps> = ({ onDemoClick }) => {
 
           {/* Toggle */}
           <div className="flex justify-center mb-8">
-            <div className="inline-flex bg-muted rounded-lg p-1">
+            <div className="inline-flex bg-muted rounded-lg p-1 w-full sm:w-auto max-w-xs sm:max-w-none">
               <button
                 onClick={() => setViewMode('users')}
                 className={cn(
-                  'px-4 sm:px-6 py-2 rounded-md text-sm font-medium transition-all',
+                  'flex-1 sm:flex-none px-3 sm:px-6 py-2.5 sm:py-2 rounded-md text-sm font-medium transition-all touch-manipulation',
                   viewMode === 'users' 
                     ? 'bg-accent text-accent-foreground shadow' 
                     : 'text-muted-foreground hover:text-foreground'
@@ -170,7 +170,7 @@ export const PlatformTour: React.FC<PlatformTourProps> = ({ onDemoClick }) => {
               <button
                 onClick={() => setViewMode('viewers')}
                 className={cn(
-                  'px-4 sm:px-6 py-2 rounded-md text-sm font-medium transition-all',
+                  'flex-1 sm:flex-none px-3 sm:px-6 py-2.5 sm:py-2 rounded-md text-sm font-medium transition-all touch-manipulation',
                   viewMode === 'viewers' 
                     ? 'bg-accent text-accent-foreground shadow' 
                     : 'text-muted-foreground hover:text-foreground'
@@ -183,20 +183,20 @@ export const PlatformTour: React.FC<PlatformTourProps> = ({ onDemoClick }) => {
           </div>
 
           {/* Comparison Content */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
             {USER_VIEWER_COMPARISON[viewMode].capabilities.map((cap, idx) => {
               const Icon = ICON_MAP[cap.icon] || CheckCircle;
               return (
                 <Card 
                   key={idx} 
-                  className="border bg-card hover:border-accent/50 transition-colors"
+                  className="border bg-card hover:border-accent/50 transition-colors touch-manipulation"
                   style={{ animationDelay: `${idx * 0.05}s` }}
                 >
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
-                      <Icon className="h-5 w-5 text-accent" />
+                  <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                      <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
                     </div>
-                    <span className="text-sm font-medium text-foreground">{cap.label}</span>
+                    <span className="text-xs sm:text-sm font-medium text-foreground leading-tight">{cap.label}</span>
                   </CardContent>
                 </Card>
               );
@@ -205,7 +205,7 @@ export const PlatformTour: React.FC<PlatformTourProps> = ({ onDemoClick }) => {
 
           {/* Role Description */}
           <div className="mt-6 text-center">
-            <p className="text-lg font-medium text-foreground">
+            <p className="text-base sm:text-lg font-medium text-foreground">
               {USER_VIEWER_COMPARISON[viewMode].title}
             </p>
             <p className="text-sm text-muted-foreground">
