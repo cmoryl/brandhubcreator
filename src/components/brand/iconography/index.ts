@@ -23,6 +23,7 @@ export type { IconStudioTab } from './IconStudio';
 export { IconLibraryManager } from './IconLibraryManager';
 export { HierarchicalIconDisplay } from './HierarchicalIconDisplay';
 export { IconUsageGuidelines } from './IconUsageGuidelines';
+export { IconLibraryPicker } from './IconLibraryPicker';
 
 // ============================================
 // INTERNAL COMPONENTS (used by IconStudio)

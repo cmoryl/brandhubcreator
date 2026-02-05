@@ -1,10 +1,12 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Upload, Star, StarOff, Layers } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Star, StarOff, Layers, Library } from 'lucide-react';
 import { BrandIcon } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SectionHeader } from './SectionHeader';
 import { Badge } from '@/components/ui/badge';
+import { IconLibraryPicker } from './iconography';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 interface BrandIconsSectionProps {
   brandIcons: BrandIcon[];
@@ -16,12 +18,19 @@ interface BrandIconsSectionProps {
 export const BrandIconsSection = ({ brandIcons, onBrandIconsChange, customSubtitle, onSubtitleChange }: BrandIconsSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const [showLibraryPicker, setShowLibraryPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const variationInputRef = useRef<HTMLInputElement>(null);
+  
+  const { organization } = useOrganization();
 
   const primarySymbol = brandIcons.find(icon => icon.isPrimary);
   const variations = brandIcons.filter(icon => icon.isVariation && !icon.isPrimary);
   const otherIcons = brandIcons.filter(icon => !icon.isPrimary && !icon.isVariation);
+  
+  const handleLibraryIconsSelected = (icons: BrandIcon[]) => {
+    onBrandIconsChange([...brandIcons, ...icons]);
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, asPrimary: boolean = false, asVariation: boolean = false) => {
     const file = e.target.files?.[0];
@@ -208,11 +217,33 @@ export const BrandIconsSection = ({ brandIcons, onBrandIconsChange, customSubtit
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0">
-          <Upload className="h-4 w-4" />
-          Upload Icon
-        </Button>
+        <div className="flex gap-2 shrink-0">
+          {organization?.id && (
+            <Button 
+              onClick={() => setShowLibraryPicker(true)} 
+              size="sm" 
+              variant="outline"
+              className="gap-2"
+            >
+              <Library className="h-4 w-4" />
+              From Library
+            </Button>
+          )}
+          <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2">
+            <Upload className="h-4 w-4" />
+            Upload Icon
+          </Button>
+        </div>
       </div>
+
+      {/* Icon Library Picker Dialog */}
+      <IconLibraryPicker
+        organizationId={organization?.id}
+        open={showLibraryPicker}
+        onOpenChange={setShowLibraryPicker}
+        onIconsSelected={handleLibraryIconsSelected}
+        existingIconIds={brandIcons.map(i => i.id)}
+      />
 
       <input
         ref={fileInputRef}
