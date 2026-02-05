@@ -277,6 +277,18 @@ export interface BrandAsset {
   size: string;
 }
 
+// EVENT SIGNAGE - Booths & Banners for brand events
+export interface BrandEventSignage {
+  id: string;
+  name: string;
+  type: 'booth-backdrop' | 'pull-up-banner' | 'table-banner' | 'hanging-sign' | 'floor-graphic' | 'directional' | 'podium-sign' | 'stage-backdrop' | 'outdoor-banner' | 'other';
+  dimensions: string; // e.g., "10ft x 8ft"
+  previewUrl?: string;
+  templateUrl?: string;
+  notes?: string;
+  specifications?: string;
+}
+
 // IMAGE ASSETS - Downloadable Image Library
 export interface ImageAsset {
   id: string;
@@ -810,6 +822,8 @@ export interface BaseGuide {
   useSharedLocations?: boolean;
   // Map theme configuration for the Locations section
   mapTheme?: import('@/types/mapTheme').MapThemeConfig;
+  // Event Signage (Booths, Banners for brand events)
+  eventSignage?: BrandEventSignage[];
   // Metadata
   createdAt: Date;
   updatedAt: Date;
@@ -820,7 +834,7 @@ export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'insights', 'locations', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
   'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'imageassets', 'misuse',
-  'brochures', 'templates', 'templatespecs', 'sponsorlogos', 'universe', 'products', 'events'
+  'brochures', 'templates', 'templatespecs', 'sponsorlogos', 'universe', 'products', 'events', 'eventsignage'
 ];
 
 // Main Brand Guide interface (extends base)
@@ -874,7 +888,8 @@ export type SectionId =
   | 'universe'
   | 'sponsorlogos'
   | 'locations'
-  | 'insights';
+  | 'insights'
+  | 'eventsignage';
 
 // Insight item for the Insights & Updates section
 export interface InsightItem {
