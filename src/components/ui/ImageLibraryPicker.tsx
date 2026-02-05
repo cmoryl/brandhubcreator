@@ -49,6 +49,7 @@ import {
   XCircle,
   Clock,
   Download,
+  Pencil,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -85,6 +86,7 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
     uploadImage,
     uploadBatch,
     deleteImage,
+    renameImage,
   } = useImageLibrary();
 
   const [open, setOpen] = useState(false);
@@ -93,6 +95,8 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
   const [selectedImage, setSelectedImage] = useState<OrganizationImage | null>(null);
   const [uploadCategory, setUploadCategory] = useState<ImageCategory>(defaultCategory);
   const [isDragging, setIsDragging] = useState(false);
+  const [editingImageId, setEditingImageId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
   const [batchState, setBatchState] = useState<BatchUploadState>({
     files: [],
     progress: 0,
@@ -273,6 +277,42 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
+  const startRenaming = (img: OrganizationImage, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setEditingImageId(img.id);
+    setEditingName(img.name);
+  };
+
+  const cancelRenaming = () => {
+    setEditingImageId(null);
+    setEditingName('');
+  };
+
+  const handleRename = async () => {
+    if (!editingImageId || !editingName.trim()) {
+      cancelRenaming();
+      return;
+    }
+    
+    const success = await renameImage(editingImageId, editingName);
+    if (success) {
+      // Update selected image if it was renamed
+      if (selectedImage?.id === editingImageId) {
+        setSelectedImage(prev => prev ? { ...prev, name: editingName.trim() } : null);
+      }
+    }
+    cancelRenaming();
+  };
+
+  const handleRenameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleRename();
+    } else if (e.key === 'Escape') {
+      cancelRenaming();
+    }
+  };
+
   const categoryCounts = IMAGE_CATEGORIES.reduce((acc, cat) => {
     acc[cat] = images.filter((img) => img.category === cat).length;
     return acc;
@@ -436,7 +476,32 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
                   className="h-16 w-16 rounded object-cover border"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{selectedImage.name}</p>
+                  {editingImageId === selectedImage.id ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onKeyDown={handleRenameKeyDown}
+                        onBlur={handleRename}
+                        className="h-8 text-sm"
+                        autoFocus
+                      />
+                      <Button size="sm" variant="ghost" onClick={cancelRenaming}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 group/name">
+                      <p className="font-medium truncate">{selectedImage.name}</p>
+                      <button
+                        onClick={(e) => startRenaming(selectedImage, e)}
+                        className="p-1 rounded opacity-0 group-hover/name:opacity-100 hover:bg-muted transition-opacity"
+                        title="Rename"
+                      >
+                        <Pencil className="h-3 w-3 text-muted-foreground" />
+                      </button>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="outline" className="text-xs">
                       {selectedImage.category}
@@ -449,6 +514,14 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={(e) => startRenaming(selectedImage, e)}
+                    title="Rename"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                   <Button
                     variant="outline"
                     size="icon"
