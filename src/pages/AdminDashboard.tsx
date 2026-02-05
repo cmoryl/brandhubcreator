@@ -51,6 +51,7 @@ import { ProductSuiteBackupManager } from '@/components/admin/ProductSuiteBackup
 import { AdminImageLibrary } from '@/components/admin/AdminImageLibrary';
 import { AdminSidebar, AdminMobileNav } from '@/components/admin/AdminSidebar';
 import { LeadSubmissionsPanel } from '@/components/admin/LeadSubmissionsPanel';
+import { CompanyLocationsManager } from '@/components/admin/CompanyLocationsManager';
 
 interface DashboardStats {
   totalUsers: number;
@@ -1195,6 +1196,11 @@ export default function AdminDashboard() {
           {/* Demo Pages Tab */}
           <TabsContent value="demo-pages" className="space-y-6">
             <DemoGuidesManager />
+          </TabsContent>
+
+          {/* Company Locations Tab */}
+          <TabsContent value="locations" className="space-y-6">
+            <CompanyLocationsManager />
           </TabsContent>
         </Tabs>
           </div>
