@@ -74,7 +74,7 @@ const CategoryNav = ({
   }, [steps]);
   
   return (
-    <div className="flex flex-wrap gap-1 mb-3">
+    <div className="flex flex-wrap gap-0.5 sm:gap-1 mb-2 sm:mb-3">
       {availableCategories.map(cat => {
         const startIndex = categoryIndices.get(cat.id);
         if (startIndex === undefined) return null;
@@ -88,7 +88,7 @@ const CategoryNav = ({
             onClick={() => onJumpToCategory(startIndex)}
             title={`Jump to ${cat.label} section`}
             className={cn(
-              "px-2 py-0.5 rounded-full text-[10px] font-medium transition-all",
+              "px-1.5 sm:px-2 py-0.5 rounded-full text-[8px] sm:text-[10px] font-medium transition-all",
               isActive 
                 ? `bg-gradient-to-r ${cat.color} text-white shadow-md scale-105` 
                 : isPast
@@ -283,12 +283,12 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
   const getTooltipPosition = () => {
     if (!targetRect) return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
 
-    const padding = 20;
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
     const isMobile = viewportWidth < 640;
-    const tooltipHeight = isMobile ? 340 : 380;
-    const tooltipWidth = isMobile ? Math.min(viewportWidth - 32, 360) : 520;
+    const padding = isMobile ? 8 : 20;
+    const tooltipHeight = isMobile ? 260 : 380;
+    const tooltipWidth = isMobile ? viewportWidth - 16 : 520;
     
     let targetY: number;
     if (targetRect.height > viewportHeight * 0.6) {
@@ -416,34 +416,34 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
           <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-white/[0.02] pointer-events-none" />
           
           {/* Animated header strip */}
-          <div className="relative h-10 sm:h-12 bg-gradient-to-r from-accent/10 via-white/5 to-accent/10 border-b border-white/10">
+          <div className="relative h-8 sm:h-12 bg-gradient-to-r from-accent/10 via-white/5 to-accent/10 border-b border-white/10">
             {/* Scanning line animation */}
             <div className="absolute inset-0 overflow-hidden">
               <div className="absolute inset-y-0 w-20 bg-gradient-to-r from-transparent via-accent/20 to-transparent animate-[shimmer_3s_infinite]" />
             </div>
             
             {/* Header content */}
-            <div className="relative h-full px-3 sm:px-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_12px_hsl(var(--accent))]" />
-                <span className="text-[10px] sm:text-xs font-medium text-accent uppercase tracking-[0.1em] sm:tracking-[0.15em]">Interactive Tour</span>
+            <div className="relative h-full px-2 sm:px-6 flex items-center justify-between">
+              <div className="flex items-center gap-1.5 sm:gap-3">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-accent animate-pulse shadow-[0_0_12px_hsl(var(--accent))]" />
+                <span className="text-[9px] sm:text-xs font-medium text-accent uppercase tracking-wide sm:tracking-[0.15em]">Tour</span>
               </div>
               <button
                 onClick={onClose}
                 className={cn(
-                  "p-1.5 rounded-lg transition-all duration-200",
+                  "p-1 sm:p-1.5 rounded-lg transition-all duration-200",
                   "text-white/50 hover:text-white",
                   "hover:bg-white/10 backdrop-blur-sm"
                 )}
                 aria-label="Close tour"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </button>
             </div>
           </div>
 
           {/* Card body */}
-          <div className="relative p-3 sm:p-6 space-y-3 sm:space-y-5">
+          <div className="relative p-2 sm:p-6 space-y-1.5 sm:space-y-5">
             {/* Category navigation pills */}
             <CategoryNav 
               steps={availableSteps} 
@@ -452,42 +452,44 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
             />
 
             {/* Progress indicator */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden backdrop-blur-sm">
+            <div className="flex items-center gap-1.5 sm:gap-3">
+              <div className="flex-1 h-1 sm:h-1.5 bg-white/10 rounded-full overflow-hidden backdrop-blur-sm">
                 <div 
                   className="h-full bg-gradient-to-r from-accent via-accent to-accent/80 transition-all duration-500 ease-out rounded-full shadow-[0_0_10px_hsl(var(--accent)/0.5)]"
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <span className="text-[10px] sm:text-[11px] font-medium text-white/60 tabular-nums tracking-wider">
+              <span className="text-[9px] sm:text-[11px] font-medium text-white/60 tabular-nums">
                 {String(safeCurrentStep + 1).padStart(2, '0')}/{String(availableSteps.length).padStart(2, '0')}
               </span>
             </div>
 
             {/* Content section */}
-            <div className="space-y-3 sm:space-y-4">
-              <div className="space-y-1.5 sm:space-y-2">
+            <div className="space-y-1.5 sm:space-y-4">
+              <div className="space-y-0.5 sm:space-y-2">
                 <CategoryBadge category={step?.category} />
-                <h3 className="text-lg sm:text-2xl font-semibold leading-tight tracking-tight text-white">
-                  <GlitchText text={step?.title || ''} className="text-lg sm:text-2xl font-semibold" />
+                <h3 className="text-sm sm:text-2xl font-semibold leading-snug tracking-tight text-white">
+                  <GlitchText text={step?.title || ''} className="text-sm sm:text-2xl font-semibold" />
                 </h3>
               </div>
 
               {/* Description card with glass effect */}
-              <div className="relative p-3 sm:p-4 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-sm">
-                <div className="absolute top-0 left-4 w-10 h-[2px] bg-gradient-to-r from-accent to-transparent rounded-full" />
-                <p className="text-xs sm:text-sm text-white/70 leading-relaxed">
+              <div className="relative p-1.5 sm:p-4 rounded-lg sm:rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-sm">
+                <div className="absolute top-0 left-3 w-8 sm:w-10 h-[1px] sm:h-[2px] bg-gradient-to-r from-accent to-transparent rounded-full" />
+                <p className="text-[10px] sm:text-sm text-white/70 leading-snug sm:leading-relaxed line-clamp-2 sm:line-clamp-none">
                   {step?.description}
                 </p>
               </div>
             </div>
 
             {/* Navigation footer */}
-            <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-white/10">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <Sparkles className="h-3.5 w-3.5 text-accent/50" />
+            <div className="flex items-center justify-between pt-1.5 sm:pt-4 border-t border-white/10">
+              <div className="hidden sm:flex items-center gap-2">
+                <Sparkles className="h-3.5 w-3.5 text-accent/50 hidden sm:block" />
                 <KeyboardHint />
               </div>
+              {/* Mobile swipe hint */}
+              <span className="text-[8px] text-white/40 sm:hidden">← Swipe →</span>
               
               <div className="flex items-center gap-1.5 sm:gap-2">
                 {safeCurrentStep > 0 && (
@@ -495,10 +497,10 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
                     variant="ghost" 
                     size="sm" 
                     onClick={handlePrev} 
-                    className="gap-1 sm:gap-1.5 h-8 sm:h-9 px-2 sm:px-3 text-white/70 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/15 font-['Poppins',sans-serif]"
+                    className="gap-0.5 sm:gap-1.5 h-6 sm:h-9 px-1.5 sm:px-3 text-white/70 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/15 font-['Poppins',sans-serif]"
                   >
-                    <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    <span className="text-[10px] sm:text-xs font-medium hidden xs:inline">Back</span>
+                    <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="text-[9px] sm:text-xs font-medium hidden sm:inline">Back</span>
                   </Button>
                 )}
                 
@@ -507,7 +509,7 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
                     variant="ghost" 
                     size="sm" 
                     onClick={handleSkipToEnd} 
-                    className="h-8 sm:h-9 px-2 text-white/50 hover:text-white hover:bg-white/10"
+                    className="h-6 sm:h-9 px-1 sm:px-2 text-white/50 hover:text-white hover:bg-white/10 hidden sm:flex"
                     title="Skip tour"
                   >
                     <SkipForward className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -517,9 +519,9 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
                 <button 
                   onClick={handleNext} 
                   className={cn(
-                    "inline-flex items-center gap-1 sm:gap-1.5 h-8 sm:h-9 px-3 sm:px-5",
+                    "inline-flex items-center gap-0.5 sm:gap-1.5 h-6 sm:h-9 px-2 sm:px-5",
                     "font-['Poppins',sans-serif] text-[11px] sm:text-xs font-medium text-white",
-                    "rounded-xl",
+                    "rounded-lg sm:rounded-xl",
                     // Glass gradient background
                     "bg-gradient-to-r from-accent to-accent/80",
                     "hover:from-accent/90 hover:to-accent/70",
