@@ -351,6 +351,8 @@ export const FullBrandPage = ({
           onSubtitleChange={onSubtitleChange}
           layout={layout}
           onLayoutChange={onLayoutChange}
+          brandName={brand.hero.name}
+          brandColors={brand.colors}
         />;
       default: return null;
     }
