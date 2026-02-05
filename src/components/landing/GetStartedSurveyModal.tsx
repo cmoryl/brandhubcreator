@@ -3,7 +3,7 @@
  * Multi-step wizard with visual card selections
  */
 
-import { useState } from 'react';
+ import React, { useState, forwardRef } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,10 +29,12 @@ const contactSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactSchema>;
 
-interface GetStartedSurveyModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+ interface GetStartedSurveyModalProps {
+   open: boolean;
+   onOpenChange: (open: boolean) => void;
+ }
+ 
+ // Wrap component with forwardRef to prevent ref warnings when used with parent components
 
 // Adventure paths
 const GOALS = [
