@@ -319,6 +319,63 @@ export type Database = {
           },
         ]
       }
+      company_locations: {
+        Row: {
+          address: string | null
+          category: string | null
+          city: string
+          country: string
+          created_at: string
+          display_order: number
+          email: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          latitude: number | null
+          longitude: number | null
+          name: string
+          phone: string | null
+          region: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          category?: string | null
+          city: string
+          country: string
+          created_at?: string
+          display_order?: number
+          email?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          phone?: string | null
+          region: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          category?: string | null
+          city?: string
+          country?: string
+          created_at?: string
+          display_order?: number
+          email?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          phone?: string | null
+          region?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       competitive_analysis_reports: {
         Row: {
           competitors: Json | null
