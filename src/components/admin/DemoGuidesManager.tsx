@@ -49,44 +49,64 @@ export function DemoGuidesManager() {
   const [selectedBrandId, setSelectedBrandId] = useState<string>('');
 
   useEffect(() => {
-    fetchData();
+    let mounted = true;
+    
+    const loadData = async () => {
+      if (!mounted) return;
+      setIsLoading(true);
+      
+      try {
+        // Fetch demo guides with their associated brands
+        const { data: guides, error: guidesError } = await supabase
+          .from('demo_guides')
+          .select('*')
+          .order('display_order');
+
+        if (guidesError) {
+          console.error('[DemoGuidesManager] Guides fetch error:', guidesError);
+          throw guidesError;
+        }
+
+        // Fetch all public brands
+        const { data: brands, error: brandsError } = await supabase
+          .from('brands')
+          .select('id, name, is_public, guide_data')
+          .eq('is_public', true)
+          .order('name');
+
+        if (brandsError) {
+          console.error('[DemoGuidesManager] Brands fetch error:', brandsError);
+          throw brandsError;
+        }
+
+        if (!mounted) return;
+
+        // Enrich guides with brand data
+        const enrichedGuides = (guides || []).map(guide => ({
+          ...guide,
+          brand: brands?.find(b => b.id === guide.brand_id),
+        }));
+
+        setDemoGuides(enrichedGuides);
+        setPublicBrands(brands || []);
+      } catch (error) {
+        console.error('[DemoGuidesManager] Error fetching demo guides:', error);
+        if (mounted) {
+          toast.error('Failed to load demo guides');
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+    
+    loadData();
+    
+    return () => {
+      mounted = false;
+    };
   }, []);
-
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      // Fetch demo guides with their associated brands
-      const { data: guides, error: guidesError } = await supabase
-        .from('demo_guides')
-        .select('*')
-        .order('display_order');
-
-      if (guidesError) throw guidesError;
-
-      // Fetch all public brands
-      const { data: brands, error: brandsError } = await supabase
-        .from('brands')
-        .select('id, name, is_public, guide_data')
-        .eq('is_public', true)
-        .order('name');
-
-      if (brandsError) throw brandsError;
-
-      // Enrich guides with brand data
-      const enrichedGuides = (guides || []).map(guide => ({
-        ...guide,
-        brand: brands?.find(b => b.id === guide.brand_id),
-      }));
-
-      setDemoGuides(enrichedGuides);
-      setPublicBrands(brands || []);
-    } catch (error) {
-      console.error('Error fetching demo guides:', error);
-      toast.error('Failed to load demo guides');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const addDemoGuide = async () => {
     if (!selectedBrandId) {
