@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,9 +16,23 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { PageTracker } from "@/components/PageTracker";
 import { PageSkeleton, BrandEditorSkeleton, AuthPageSkeleton } from "@/components/PageSkeleton";
 import { checkAndClearExpiredCaches } from "@/lib/cacheManager";
+import { toast } from "sonner";
 
 // Check and clear expired caches on app initialization
 checkAndClearExpiredCaches();
+
+// Global handler for unhandled promise rejections to prevent white-screen crashes
+const setupGlobalErrorHandler = () => {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
+      console.error('[App] Unhandled rejection:', event.reason);
+      toast.error("An unexpected error occurred. Please refresh the page.");
+      event.preventDefault(); // Prevent crash
+    });
+  }
+};
+
+setupGlobalErrorHandler();
 
 // Lazy load pages for faster initial load
 const Index = lazy(() => import("./pages/Index"));
