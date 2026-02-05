@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, GripVertical, Star, Eye, RefreshCw, Edit, ExternalLink, Power } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Star, Eye, RefreshCw, Edit, ExternalLink, Power, Download, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,15 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { 
+  DEMO_BRANDS, 
+  DEMO_PRODUCTS, 
+  DEMO_EVENTS, 
+  DEMO_GRADIENTS, 
+  DEMO_INDUSTRIES,
+  DEMO_CARD_IMAGES,
+} from '@/data/demoGuides';
 
 import type { Json } from '@/integrations/supabase/types';
 
@@ -54,7 +63,9 @@ export function DemoGuidesManager() {
   const [demoBrands, setDemoBrands] = useState<DemoBrand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   
   // New demo brand form state
   const [newName, setNewName] = useState('');
@@ -200,6 +211,128 @@ export function DemoGuidesManager() {
     window.open(`/demo/${slug}`, '_blank');
   };
 
+  // Import existing demo guides from static data into database
+  const importDemoGuides = async () => {
+    setIsImporting(true);
+    
+    try {
+      const existingSlugs = new Set(demoBrands.map(b => b.slug));
+      const toImport: Array<{
+        name: string;
+        slug: string;
+        type: string;
+        industry_label: string | null;
+        gradient_class: string | null;
+        card_image_url: string | null;
+        display_order: number;
+        is_featured: boolean;
+        is_active: boolean;
+        guide_data: Json;
+        section_order: string[] | null;
+        hidden_sections: string[] | null;
+        page_settings: Json | null;
+      }> = [];
+
+      let order = demoBrands.length;
+
+      // Import Brands
+      for (const brand of DEMO_BRANDS) {
+        if (existingSlugs.has(brand.slug)) continue;
+        
+        toImport.push({
+          name: brand.hero?.name || brand.slug,
+          slug: brand.slug,
+          type: 'brand',
+          industry_label: DEMO_INDUSTRIES[brand.slug] || null,
+          gradient_class: DEMO_GRADIENTS[brand.slug] || 'from-blue-500 via-cyan-500 to-blue-600',
+          card_image_url: DEMO_CARD_IMAGES[brand.slug] || null,
+          display_order: order++,
+          is_featured: brand.slug === 'brandhub',
+          is_active: true,
+          guide_data: brand as unknown as Json,
+          section_order: brand.sectionOrder as string[] || null,
+          hidden_sections: brand.hiddenSections as string[] || null,
+          page_settings: brand.pageSettings as unknown as Json || null,
+        });
+      }
+
+      // Import Products
+      for (const product of DEMO_PRODUCTS) {
+        if (existingSlugs.has(product.slug)) continue;
+        
+        toImport.push({
+          name: product.hero?.name || product.slug,
+          slug: product.slug,
+          type: 'product',
+          industry_label: DEMO_INDUSTRIES[product.slug] || null,
+          gradient_class: DEMO_GRADIENTS[product.slug] || 'from-teal-500 via-cyan-500 to-blue-500',
+          card_image_url: DEMO_CARD_IMAGES[product.slug] || null,
+          display_order: order++,
+          is_featured: false,
+          is_active: true,
+          guide_data: product as unknown as Json,
+          section_order: product.sectionOrder as string[] || null,
+          hidden_sections: product.hiddenSections as string[] || null,
+          page_settings: product.pageSettings as unknown as Json || null,
+        });
+      }
+
+      // Import Events
+      for (const event of DEMO_EVENTS) {
+        if (existingSlugs.has(event.slug)) continue;
+        
+        toImport.push({
+          name: event.hero?.name || event.slug,
+          slug: event.slug,
+          type: 'event',
+          industry_label: DEMO_INDUSTRIES[event.slug] || null,
+          gradient_class: DEMO_GRADIENTS[event.slug] || 'from-violet-500 via-purple-500 to-fuchsia-500',
+          card_image_url: DEMO_CARD_IMAGES[event.slug] || null,
+          display_order: order++,
+          is_featured: false,
+          is_active: true,
+          guide_data: event as unknown as Json,
+          section_order: event.sectionOrder as string[] || null,
+          hidden_sections: event.hiddenSections as string[] || null,
+          page_settings: event.pageSettings as unknown as Json || null,
+        });
+      }
+
+      if (toImport.length === 0) {
+        toast.info('All demo guides are already imported');
+        setImportDialogOpen(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('demo_brands')
+        .insert(toImport)
+        .select();
+
+      if (error) throw error;
+
+      setDemoBrands([...demoBrands, ...(data || [])]);
+      toast.success(`Imported ${toImport.length} demo guide${toImport.length > 1 ? 's' : ''}`);
+      setImportDialogOpen(false);
+    } catch (error) {
+      console.error('Error importing demo guides:', error);
+      toast.error('Failed to import demo guides');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  // Count how many can be imported
+  const getImportableCount = () => {
+    const existingSlugs = new Set(demoBrands.map(b => b.slug));
+    const allSlugs = [
+      ...DEMO_BRANDS.map(b => b.slug),
+      ...DEMO_PRODUCTS.map(p => p.slug),
+      ...DEMO_EVENTS.map(e => e.slug),
+    ];
+    return allSlugs.filter(slug => !existingSlugs.has(slug)).length;
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -223,78 +356,161 @@ export function DemoGuidesManager() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Create New Demo Brand */}
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Create Demo Brand
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Demo Brand</DialogTitle>
-              <DialogDescription>
-                Create a new demo brand to showcase on the landing page.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={newName}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  placeholder="Enter brand name..."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="slug">Slug</Label>
-                <Input
-                  id="slug"
-                  value={newSlug}
-                  onChange={(e) => setNewSlug(e.target.value)}
-                  placeholder="brand-slug"
-                />
-                <p className="text-xs text-muted-foreground">
-                  URL will be: /demo/{newSlug || 'brand-slug'}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
-                <Select value={newType} onValueChange={setNewType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TYPE_OPTIONS.map(opt => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="industry">Industry Label</Label>
-                <Input
-                  id="industry"
-                  value={newIndustryLabel}
-                  onChange={(e) => setNewIndustryLabel(e.target.value)}
-                  placeholder="e.g., Technology, Fashion..."
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                Cancel
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-3">
+          {/* Create New Demo Brand */}
+          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Create Demo Brand
               </Button>
-              <Button onClick={createDemoBrand} disabled={isCreating}>
-                {isCreating ? 'Creating...' : 'Create'}
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Demo Brand</DialogTitle>
+                <DialogDescription>
+                  Create a new demo brand to showcase on the landing page.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    value={newName}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    placeholder="Enter brand name..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="slug">Slug</Label>
+                  <Input
+                    id="slug"
+                    value={newSlug}
+                    onChange={(e) => setNewSlug(e.target.value)}
+                    placeholder="brand-slug"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    URL will be: /demo/{newSlug || 'brand-slug'}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="type">Type</Label>
+                  <Select value={newType} onValueChange={setNewType}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TYPE_OPTIONS.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="industry">Industry Label</Label>
+                  <Input
+                    id="industry"
+                    value={newIndustryLabel}
+                    onChange={(e) => setNewIndustryLabel(e.target.value)}
+                    placeholder="e.g., Technology, Fashion..."
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={createDemoBrand} disabled={isCreating}>
+                  {isCreating ? 'Creating...' : 'Create'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Import From Static Data */}
+          <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Download className="h-4 w-4" />
+                Import Existing Demos
+                {getImportableCount() > 0 && (
+                  <Badge variant="secondary" className="ml-1">
+                    {getImportableCount()}
+                  </Badge>
+                )}
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Import Existing Demo Guides</DialogTitle>
+                <DialogDescription>
+                  Import pre-built demo brands, products, and events from the landing page showcase into the database for full editing capabilities.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    This will import all demo guide data including logos, colors, typography, services, and all other sections. You can then edit them directly in the admin panel.
+                  </AlertDescription>
+                </Alert>
+                
+                <div className="space-y-2">
+                  <h4 className="font-medium">Available to import:</h4>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div className="p-3 border rounded-lg">
+                      <p className="font-medium text-primary">Brands</p>
+                      <p className="text-muted-foreground">{DEMO_BRANDS.length} total</p>
+                    </div>
+                    <div className="p-3 border rounded-lg">
+                      <p className="font-medium text-primary">Products</p>
+                      <p className="text-muted-foreground">{DEMO_PRODUCTS.length} total</p>
+                    </div>
+                    <div className="p-3 border rounded-lg">
+                      <p className="font-medium text-primary">Events</p>
+                      <p className="text-muted-foreground">{DEMO_EVENTS.length} total</p>
+                    </div>
+                  </div>
+                </div>
+
+                {getImportableCount() === 0 && (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      All demo guides have already been imported.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setImportDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={importDemoGuides} 
+                  disabled={isImporting || getImportableCount() === 0}
+                  className="gap-2"
+                >
+                  {isImporting ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4" />
+                      Import {getImportableCount()} Guide{getImportableCount() !== 1 ? 's' : ''}
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
 
         {/* Demo Brands List */}
         <div className="space-y-4">
