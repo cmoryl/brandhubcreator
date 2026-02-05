@@ -217,6 +217,113 @@ export const useImageLibrary = () => {
     }
   }, [organization?.id, user?.id, fetchImages]);
 
+  /**
+   * Upload multiple images in batch with progress tracking
+   */
+  const uploadBatch = useCallback(async (
+    files: File[],
+    category: ImageCategory = 'General',
+    onProgress?: (completed: number, total: number, currentFile: string) => void,
+    orgId?: string
+  ): Promise<{ successful: OrganizationImage[]; failed: string[] }> => {
+    const targetOrgId = orgId || organization?.id;
+    if (!targetOrgId) {
+      toast.error('No organization selected');
+      return { successful: [], failed: files.map(f => f.name) };
+    }
+
+    setIsUploading(true);
+    const successful: OrganizationImage[] = [];
+    const failed: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      onProgress?.(i, files.length, file.name);
+
+      try {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          failed.push(file.name);
+          continue;
+        }
+
+        // Generate unique file path
+        const fileExt = file.name.split('.').pop() || 'png';
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `${targetOrgId}/${category.toLowerCase().replace(/\s+/g, '-')}/${fileName}`;
+
+        // Upload to storage
+        const { error: uploadError } = await supabase.storage
+          .from('org-image-library')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false,
+          });
+
+        if (uploadError) {
+          console.error(`Failed to upload ${file.name}:`, uploadError);
+          failed.push(file.name);
+          continue;
+        }
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('org-image-library')
+          .getPublicUrl(filePath);
+
+        const publicUrl = urlData.publicUrl;
+        const imageName = file.name.replace(/\.[^.]+$/, '');
+
+        // Insert record into database
+        const { data: imageRecord, error: insertError } = await supabase
+          .from('organization_images')
+          .insert({
+            organization_id: targetOrgId,
+            name: imageName,
+            file_path: filePath,
+            public_url: publicUrl,
+            category,
+            file_size_bytes: file.size,
+            mime_type: file.type,
+            uploaded_by: user?.id,
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error(`Failed to save ${file.name} to database:`, insertError);
+          // Clean up storage if DB insert failed
+          await supabase.storage.from('org-image-library').remove([filePath]);
+          failed.push(file.name);
+          continue;
+        }
+
+        successful.push(imageRecord as unknown as OrganizationImage);
+      } catch (err) {
+        console.error(`Error uploading ${file.name}:`, err);
+        failed.push(file.name);
+      }
+    }
+
+    // Final progress update
+    onProgress?.(files.length, files.length, '');
+
+    // Refresh the list
+    await fetchImages(targetOrgId);
+
+    // Show summary toast
+    if (successful.length > 0 && failed.length === 0) {
+      toast.success(`${successful.length} image${successful.length > 1 ? 's' : ''} uploaded successfully`);
+    } else if (successful.length > 0 && failed.length > 0) {
+      toast.warning(`${successful.length} uploaded, ${failed.length} failed`);
+    } else if (failed.length > 0) {
+      toast.error(`Failed to upload ${failed.length} image${failed.length > 1 ? 's' : ''}`);
+    }
+
+    setIsUploading(false);
+    return { successful, failed };
+  }, [organization?.id, user?.id, fetchImages]);
+
   const deleteImage = useCallback(async (image: OrganizationImage): Promise<boolean> => {
     try {
       // Delete from storage
@@ -281,6 +388,7 @@ export const useImageLibrary = () => {
     isUploading,
     fetchImages,
     uploadImage,
+    uploadBatch,
     deleteImage,
     updateImageCategory,
     getImagesByCategory,

@@ -1,10 +1,10 @@
 /**
  * ImageLibraryPicker Component
  * Modal dialog to browse and select images from the organization image library
- * Can also upload new images directly
+ * Can also upload new images directly, including batch uploads
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -43,6 +44,9 @@ import {
   FolderOpen,
   X,
   Trash2,
+  Files,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -52,6 +56,15 @@ interface ImageLibraryPickerProps {
   defaultCategory?: ImageCategory;
   allowUpload?: boolean;
   className?: string;
+}
+
+interface BatchUploadState {
+  files: File[];
+  progress: number;
+  total: number;
+  currentFile: string;
+  isUploading: boolean;
+  results: { successful: string[]; failed: string[] };
 }
 
 export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
@@ -68,6 +81,7 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
     isUploading,
     fetchImages,
     uploadImage,
+    uploadBatch,
     deleteImage,
   } = useImageLibrary();
 
@@ -76,7 +90,17 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<ImageCategory | 'All'>('All');
   const [selectedImage, setSelectedImage] = useState<OrganizationImage | null>(null);
   const [uploadCategory, setUploadCategory] = useState<ImageCategory>(defaultCategory);
+  const [isDragging, setIsDragging] = useState(false);
+  const [batchState, setBatchState] = useState<BatchUploadState>({
+    files: [],
+    progress: 0,
+    total: 0,
+    currentFile: '',
+    isUploading: false,
+    results: { successful: [], failed: [] },
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const batchInputRef = useRef<HTMLInputElement>(null);
 
   const projectImages = useProjectImages(searchTerm);
 
@@ -96,7 +120,6 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       return;
     }
@@ -106,11 +129,88 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
       setSelectedImage(result);
     }
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
+
+  const handleBatchSelect = useCallback((files: FileList | File[]) => {
+    const fileArray = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (fileArray.length === 0) return;
+    
+    setBatchState(prev => ({
+      ...prev,
+      files: fileArray,
+      results: { successful: [], failed: [] },
+    }));
+  }, []);
+
+  const handleBatchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      handleBatchSelect(e.target.files);
+    }
+    if (batchInputRef.current) {
+      batchInputRef.current.value = '';
+    }
+  };
+
+  const handleBatchUpload = async () => {
+    if (batchState.files.length === 0) return;
+
+    setBatchState(prev => ({ ...prev, isUploading: true, progress: 0 }));
+
+    const result = await uploadBatch(
+      batchState.files,
+      uploadCategory,
+      (completed, total, currentFile) => {
+        setBatchState(prev => ({
+          ...prev,
+          progress: completed,
+          total,
+          currentFile,
+        }));
+      }
+    );
+
+    setBatchState(prev => ({
+      ...prev,
+      isUploading: false,
+      files: [],
+      results: {
+        successful: result.successful.map(img => img.name),
+        failed: result.failed,
+      },
+    }));
+  };
+
+  const clearBatchFiles = () => {
+    setBatchState({
+      files: [],
+      progress: 0,
+      total: 0,
+      currentFile: '',
+      isUploading: false,
+      results: { successful: [], failed: [] },
+    });
+  };
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files) {
+      handleBatchSelect(e.dataTransfer.files);
+    }
+  }, [handleBatchSelect]);
 
   const handleConfirmSelection = () => {
     if (selectedImage) {
@@ -371,12 +471,138 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
                   </Select>
                 </div>
 
+                {/* Batch Upload Zone */}
                 <div className="space-y-2">
-                  <Label>Image File</Label>
+                  <Label className="flex items-center gap-2">
+                    <Files className="h-4 w-4" />
+                    Batch Upload
+                  </Label>
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => batchInputRef.current?.click()}
+                    className={cn(
+                      'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all',
+                      isDragging
+                        ? 'border-primary bg-primary/10'
+                        : 'hover:border-primary/50 hover:bg-primary/5',
+                      batchState.isUploading && 'pointer-events-none opacity-50'
+                    )}
+                  >
+                    <input
+                      ref={batchInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleBatchInputChange}
+                      className="hidden"
+                    />
+                    {batchState.isUploading ? (
+                      <div className="flex flex-col items-center gap-3">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <div className="w-full max-w-xs space-y-2">
+                          <Progress value={(batchState.progress / batchState.total) * 100} />
+                          <p className="text-sm text-muted-foreground">
+                            Uploading {batchState.progress + 1} of {batchState.total}...
+                          </p>
+                          {batchState.currentFile && (
+                            <p className="text-xs text-muted-foreground truncate">
+                              {batchState.currentFile}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          {isDragging ? 'Drop images here' : 'Click or drag to select multiple images'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          PNG, JPG, WEBP up to 10MB each
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Selected Files Preview */}
+                {batchState.files.length > 0 && !batchState.isUploading && (
+                  <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">
+                        {batchState.files.length} image{batchState.files.length > 1 ? 's' : ''} selected
+                      </p>
+                      <Button variant="ghost" size="sm" onClick={clearBatchFiles}>
+                        <X className="h-4 w-4 mr-1" />
+                        Clear
+                      </Button>
+                    </div>
+                    <ScrollArea className="h-24">
+                      <div className="flex gap-2 flex-wrap">
+                        {batchState.files.map((file, idx) => (
+                          <Badge key={idx} variant="secondary" className="text-xs">
+                            {file.name.length > 20 ? file.name.slice(0, 17) + '...' : file.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                    <Button onClick={handleBatchUpload} className="w-full gap-2">
+                      <Upload className="h-4 w-4" />
+                      Upload {batchState.files.length} Image{batchState.files.length > 1 ? 's' : ''}
+                    </Button>
+                  </div>
+                )}
+
+                {/* Upload Results */}
+                {(batchState.results.successful.length > 0 || batchState.results.failed.length > 0) && (
+                  <div className="space-y-2 p-4 border rounded-lg">
+                    {batchState.results.successful.length > 0 && (
+                      <div className="flex items-start gap-2 text-sm">
+                        <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <div>
+                          <p className="font-medium text-primary">
+                            {batchState.results.successful.length} uploaded successfully
+                          </p>
+                          <p className="text-muted-foreground text-xs">
+                            {batchState.results.successful.slice(0, 3).join(', ')}
+                            {batchState.results.successful.length > 3 && ` +${batchState.results.successful.length - 3} more`}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {batchState.results.failed.length > 0 && (
+                      <div className="flex items-start gap-2 text-sm">
+                        <XCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                        <div>
+                          <p className="font-medium text-destructive">
+                            {batchState.results.failed.length} failed
+                          </p>
+                          <p className="text-muted-foreground text-xs">
+                            {batchState.results.failed.join(', ')}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearBatchFiles}
+                      className="mt-2"
+                    >
+                      Clear Results
+                    </Button>
+                  </div>
+                )}
+
+                {/* Single File Upload (legacy) */}
+                <div className="pt-4 border-t">
+                  <Label className="text-muted-foreground text-xs mb-2 block">Or upload a single image</Label>
                   <div
                     onClick={() => fileInputRef.current?.click()}
                     className={cn(
-                      'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors',
+                      'border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors',
                       'hover:border-primary/50 hover:bg-primary/5',
                       isUploading && 'pointer-events-none opacity-50'
                     )}
@@ -389,20 +615,14 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
                       className="hidden"
                     />
                     {isUploading ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
                         <p className="text-sm text-muted-foreground">Uploading...</p>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center gap-2">
-                        <Upload className="h-8 w-8 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">
-                          Click to upload or drag and drop
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          PNG, JPG, WEBP up to 10MB
-                        </p>
-                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Click to upload single image
+                      </p>
                     )}
                   </div>
                 </div>
