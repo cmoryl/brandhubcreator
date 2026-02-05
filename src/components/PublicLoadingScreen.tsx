@@ -266,7 +266,7 @@ export function PublicLoadingInline({ type }: { type: 'brand' | 'product' }) {
           </div>
         </div>
       </div>
-      <p className="text-muted-foreground text-sm">Loading TransPerfect {type === 'brand' ? 'Brand Guide' : 'Product Guide'}...</p>
+      <p className="text-muted-foreground text-sm">Loading {type === 'brand' ? 'Brand Guide' : 'Product Guide'}...</p>
     </div>
   );
 }
