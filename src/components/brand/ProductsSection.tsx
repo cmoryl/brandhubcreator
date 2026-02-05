@@ -49,7 +49,7 @@ export interface GuideItem {
   id: string;
   name: string;
   slug?: string | null;
-  guide_data: unknown;
+  guide_data?: unknown;
   type: 'brand' | 'product' | 'event';
 }
 
@@ -123,19 +123,19 @@ export const ProductsSection = ({
       ] = await Promise.all([
         // Only fetch by parent_brand_id if we're on a brand
         entityType === 'brand' 
-          ? supabase.from('products').select('id, name, slug, guide_data').eq('parent_brand_id', entityId)
+          ? supabase.from('products').select('id, name, slug').eq('parent_brand_id', entityId)
           : Promise.resolve({ data: [], error: null }),
         supabase
           .from('products')
-          .select('id, name, slug, guide_data')
+          .select('id, name, slug')
           .neq('id', entityId),
         supabase
           .from('brands')
-          .select('id, name, slug, guide_data')
+          .select('id, name, slug')
           .neq('id', entityId),
         supabase
           .from('events')
-          .select('id, name, slug, guide_data'),
+          .select('id, name, slug'),
       ]);
 
       if (linkedError) throw linkedError;

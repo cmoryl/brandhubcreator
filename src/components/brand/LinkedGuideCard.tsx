@@ -19,7 +19,7 @@ import {
 export interface GuideItem {
   id: string;
   name: string;
-  guide_data: unknown;
+  guide_data?: unknown;
   type: 'brand' | 'product' | 'event';
 }
 
