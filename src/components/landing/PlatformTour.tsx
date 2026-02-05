@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRight, Eye, Users, Plus, Upload, Palette, Type, Brain, Settings, 
   FileText, Download, Copy, Bookmark, Smartphone, Lock, Search, QrCode,
@@ -183,25 +184,68 @@ export const PlatformTour: React.FC<PlatformTourProps> = ({ onDemoClick }) => {
           </div>
 
           {/* Comparison Content */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-            {USER_VIEWER_COMPARISON[viewMode].capabilities.map((cap, idx) => {
-              const Icon = ICON_MAP[cap.icon] || CheckCircle;
-              return (
-                <Card 
-                  key={idx} 
-                  className="border bg-card hover:border-accent/50 transition-colors touch-manipulation"
-                  style={{ animationDelay: `${idx * 0.05}s` }}
-                >
-                  <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
-                      <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
-                    </div>
-                    <span className="text-xs sm:text-sm font-medium text-foreground leading-tight">{cap.label}</span>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={viewMode}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: { 
+                  opacity: 1,
+                  transition: { staggerChildren: 0.05, delayChildren: 0.1 }
+                },
+                exit: { 
+                  opacity: 0,
+                  transition: { duration: 0.15 }
+                }
+              }}
+              className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4"
+            >
+              {USER_VIEWER_COMPARISON[viewMode].capabilities.map((cap, idx) => {
+                const Icon = ICON_MAP[cap.icon] || CheckCircle;
+                return (
+                  <motion.div
+                    key={`${viewMode}-${idx}`}
+                    variants={{
+                      hidden: { 
+                        opacity: 0, 
+                        y: 20,
+                        scale: 0.95
+                      },
+                      visible: { 
+                        opacity: 1, 
+                        y: 0,
+                        scale: 1,
+                        transition: {
+                          type: "spring",
+                          stiffness: 100,
+                          damping: 15
+                        }
+                      },
+                      exit: {
+                        opacity: 0,
+                        scale: 0.95,
+                        transition: { duration: 0.1 }
+                      }
+                    }}
+                  >
+                    <Card 
+                      className="border bg-card hover:border-accent/50 transition-colors touch-manipulation h-full"
+                    >
+                      <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                          <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
+                        </div>
+                        <span className="text-xs sm:text-sm font-medium text-foreground leading-tight">{cap.label}</span>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </AnimatePresence>
 
           {/* Role Description */}
           <div className="mt-6 text-center">
