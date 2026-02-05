@@ -808,6 +808,8 @@ export interface BaseGuide {
   locationsSectionDescription?: string;
   // Whether to use shared company locations database instead of brand-specific locations
   useSharedLocations?: boolean;
+  // Map theme configuration for the Locations section
+  mapTheme?: import('@/types/mapTheme').MapThemeConfig;
   // Metadata
   createdAt: Date;
   updatedAt: Date;

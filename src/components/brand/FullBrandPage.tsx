@@ -339,6 +339,8 @@ export const FullBrandPage = ({
           onSectionDescriptionChange={canEdit ? (locationsSectionDescription: string) => onBrandUpdate({ locationsSectionDescription }) : undefined}
           useSharedLocations={brand.useSharedLocations ?? false}
           onUseSharedLocationsChange={canEdit ? (useSharedLocations: boolean) => onBrandUpdate({ useSharedLocations }) : undefined}
+          mapTheme={brand.mapTheme}
+          onMapThemeChange={canEdit ? (mapTheme) => onBrandUpdate({ mapTheme }) : undefined}
         />;
       default: return null;
     }
