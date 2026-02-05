@@ -806,6 +806,8 @@ export interface BaseGuide {
   // Locations section settings
   locationsSectionTitle?: string;
   locationsSectionDescription?: string;
+  // Whether to use shared company locations database instead of brand-specific locations
+  useSharedLocations?: boolean;
   // Metadata
   createdAt: Date;
   updatedAt: Date;

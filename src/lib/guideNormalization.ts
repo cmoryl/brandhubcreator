@@ -237,6 +237,9 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     
     // Product-specific
     parentBrandId: g.parentBrandId ?? g.parent_brand_id ?? undefined,
+    
+    // Locations settings
+    useSharedLocations: g.useSharedLocations ?? false,
   } as BaseGuide;
 }
 

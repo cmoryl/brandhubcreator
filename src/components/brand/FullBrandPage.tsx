@@ -337,6 +337,8 @@ export const FullBrandPage = ({
           sectionDescription={brand.locationsSectionDescription}
           onSectionTitleChange={canEdit ? (locationsSectionTitle: string) => onBrandUpdate({ locationsSectionTitle }) : undefined}
           onSectionDescriptionChange={canEdit ? (locationsSectionDescription: string) => onBrandUpdate({ locationsSectionDescription }) : undefined}
+          useSharedLocations={brand.useSharedLocations ?? false}
+          onUseSharedLocationsChange={canEdit ? (useSharedLocations: boolean) => onBrandUpdate({ useSharedLocations }) : undefined}
         />;
       default: return null;
     }
