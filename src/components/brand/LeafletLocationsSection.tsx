@@ -24,10 +24,10 @@ import dynamicIconImports from 'lucide-react/dynamicIconImports';
 import { BrandLocation, LocationCategory, LocationStat } from '@/types/brand';
 import { SectionHeader } from './SectionHeader';
 import { useToast } from '@/hooks/use-toast';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { MapRegionFilter, RegionKey, getLocationRegion, REGION_BOUNDS } from './MapRegionFilter';
+import { RegionKey, getLocationRegion, REGION_BOUNDS } from './MapRegionFilter';
+
+// Lazy load the map wrapper to ensure client-side only rendering
+const LeafletMapWrapper = lazy(() => import('./LeafletMapWrapper'));
 
 // Available icons for location stats
 const STAT_ICONS = [
@@ -81,14 +81,6 @@ const lightenHex = (hex: string, percent: number): string => {
   const b = Math.min(255, Math.floor(parseInt(result[3], 16) + (255 - parseInt(result[3], 16)) * percent));
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 };
-
-// Fix for default marker icons in Leaflet with Vite
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
 
 const CATEGORY_CONFIG: Record<LocationCategory, { 
   color: string; 
@@ -162,50 +154,6 @@ const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   'Athens': { lat: 37.9838, lng: 23.7275 },
   'Istanbul': { lat: 41.0082, lng: 28.9784 },
   'Moscow': { lat: 55.7558, lng: 37.6173 },
-};
-
-// Create custom colored marker icons
-const createColoredIcon = (color: string) => {
-  return L.divIcon({
-    className: 'custom-marker',
-    html: `
-      <div style="
-        width: 24px;
-        height: 24px;
-        background: ${color};
-        border: 3px solid white;
-        border-radius: 50%;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 12px ${color}60;
-        position: relative;
-      ">
-        <div style="
-          position: absolute;
-          inset: -4px;
-          border-radius: 50%;
-          background: ${color};
-          opacity: 0.3;
-          animation: pulse 2s infinite;
-        "></div>
-      </div>
-    `,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-    popupAnchor: [0, -12],
-  });
-};
-
-// Component to fit bounds to markers
-const FitBounds: React.FC<{ locations: { lat: number; lng: number }[] }> = ({ locations }) => {
-  const map = useMap();
-  
-  useEffect(() => {
-    if (locations.length > 0) {
-      const bounds = L.latLngBounds(locations.map(loc => [loc.lat, loc.lng]));
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 6 });
-    }
-  }, [map, locations]);
-  
-  return null;
 };
 
 interface LeafletLocationsSectionProps {
@@ -513,65 +461,22 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
 
         {/* Leaflet Map */}
         <div className="h-[500px] relative">
-          <MapContainer
-            center={[20, 0]}
-            zoom={2}
-            className="h-full w-full"
-            style={{ background: '#0a1628' }}
-            zoomControl={true}
-            scrollWheelZoom={true}
-          >
-            {/* Dark themed tile layer - CartoDB Dark Matter (free, no API key) */}
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            />
-            
-            {/* Fit bounds to markers - only on initial load, not when using region filter */}
-            {markerPositions.length > 0 && selectedRegion === 'all' && (
-              <FitBounds locations={markerPositions} />
-            )}
-            
-            {/* Region navigation control */}
-            <MapRegionFilter
+          <Suspense fallback={
+            <div className="h-full w-full flex items-center justify-center" style={{ background: '#0a1628' }}>
+              <div className="text-white/50 text-sm">Loading map...</div>
+            </div>
+          }>
+            <LeafletMapWrapper
+              filteredLocations={filteredLocations}
+              markerPositions={markerPositions}
               selectedRegion={selectedRegion}
               onRegionChange={setSelectedRegion}
-              locationCounts={regionCounts}
+              regionCounts={regionCounts}
               accentColor={accentColor}
+              getCoordinates={getCoordinates}
+              categoryConfig={CATEGORY_CONFIG}
             />
-            
-            {/* Location markers */}
-            {filteredLocations.map((location) => {
-              const coords = getCoordinates(location);
-              const categoryConfig = CATEGORY_CONFIG[location.category];
-              const icon = createColoredIcon(categoryConfig.color);
-              
-              return (
-                <Marker
-                  key={location.id}
-                  position={[coords.lat, coords.lng]}
-                  icon={icon}
-                >
-                  <Popup>
-                    <div className="min-w-[180px]">
-                      <h3 className="font-semibold text-sm mb-1">{location.name}</h3>
-                      <p className="text-xs text-gray-600 mb-1">{location.city}, {location.country}</p>
-                      {location.description && (
-                        <p className="text-xs text-gray-500">{location.description}</p>
-                      )}
-                      <div className="mt-2 flex items-center gap-1.5">
-                        <span 
-                          className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: categoryConfig.color }}
-                        />
-                        <span className="text-xs text-gray-500">{categoryConfig.label}</span>
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              );
-            })}
-          </MapContainer>
+          </Suspense>
         </div>
 
         {/* Stats section - prominent display with glow effects */}

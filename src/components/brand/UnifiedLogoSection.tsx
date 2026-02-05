@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, forwardRef } from 'react';
 import { Trash2, Download, Package, Upload, Image as ImageIcon, Link2, Maximize2, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,7 +76,7 @@ interface UnifiedLogoSectionProps {
   gridLayout?: 'grouped' | 'flat';
 }
 
-export const UnifiedLogoSection = ({
+export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProps>(({
   logos,
   onLogosChange,
   variants = BRAND_LOGO_VARIANTS,
@@ -87,7 +87,7 @@ export const UnifiedLogoSection = ({
   isEditable = true,
   showGroupedByVariant = true,
   gridLayout = 'grouped',
-}: UnifiedLogoSectionProps) => {
+}, ref) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [pendingVariant, setPendingVariant] = useState<string>(variants[0]?.value || 'primary');
@@ -547,7 +547,7 @@ export const UnifiedLogoSection = ({
   );
 
   return (
-    <section className="space-y-4 sm:space-y-6">
+    <section ref={ref} className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <SectionHeader
@@ -708,4 +708,6 @@ export const UnifiedLogoSection = ({
       </Dialog>
     </section>
   );
-};
+});
+
+UnifiedLogoSection.displayName = 'UnifiedLogoSection';
