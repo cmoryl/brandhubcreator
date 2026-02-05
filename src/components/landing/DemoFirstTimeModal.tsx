@@ -44,7 +44,13 @@ export function DemoFirstTimeModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-card border-border">
+      <DialogContent 
+        className="sm:max-w-md bg-card border-border 
+          data-[state=open]:animate-[fade-in_200ms_ease-out,scale-in_200ms_ease-out] 
+          data-[state=closed]:animate-[fade-out_150ms_ease-in,scale-out_150ms_ease-in]
+          data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[50%]
+          data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[50%]"
+      >
         <DialogHeader className="text-center">
           <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-3">
             <Sparkles className="h-6 w-6 text-accent" />
