@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ChevronLeft, ChevronRight, Play, Keyboard, SkipForward, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -118,6 +119,10 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  
+  // Swipe gesture state
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   // Filter steps to only include those with existing elements on the page
   const availableSteps = useMemo(() => {
@@ -242,6 +247,37 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  // Swipe gesture handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    
+    // Only register as swipe if horizontal movement is greater than vertical
+    // and exceeds minimum threshold (50px)
+    const minSwipeDistance = 50;
+    const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
+    
+    if (isHorizontalSwipe && Math.abs(deltaX) > minSwipeDistance) {
+      if (deltaX < 0) {
+        // Swipe left = next
+        handleNext();
+      } else {
+        // Swipe right = previous
+        handlePrev();
+      }
+    }
+    
+    touchStartRef.current = null;
+  }, [handleNext, handlePrev]);
+
   if (!isOpen || availableSteps.length === 0) return null;
 
   const getTooltipPosition = () => {
@@ -360,12 +396,15 @@ export const DemoTour = ({ steps, isOpen, onClose, onComplete }: DemoTourProps) 
 
       {/* Enhanced Tour Card - Premium liquid glass design */}
       <div
+        ref={cardRef}
         className={cn(
           "absolute z-10 w-full sm:w-[520px] max-w-[calc(100vw-16px)] sm:max-w-[calc(100vw-40px)] transition-all duration-400 ease-out",
           "font-['Poppins',sans-serif]",
           isAnimating ? "opacity-0 scale-95 translate-y-3" : "opacity-100 scale-100 translate-y-0"
         )}
         style={tooltipStyle}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Outer glow ring */}
         <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-br from-accent/30 via-white/10 to-accent/30 blur-md opacity-60" />
