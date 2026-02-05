@@ -28,12 +28,13 @@ interface SubProductCardProps {
 }
 
 // Memoized sub-product mini card - defined outside to prevent recreation
-const SubProductCard = memo(({ product, fallbackGradient, onNavigate }: SubProductCardProps) => {
+const SubProductCard = memo(forwardRef<HTMLDivElement, SubProductCardProps>(({ product, fallbackGradient, onNavigate }, ref) => {
   const hero = product.hero || { name: product.name, tagline: '' };
   const colors = product.colors;
 
   return (
     <Card 
+      ref={ref}
       className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden border border-border/50 bg-card/80 backdrop-blur-sm"
       onClick={(e) => {
         e.stopPropagation();
@@ -77,7 +78,7 @@ const SubProductCard = memo(({ product, fallbackGradient, onNavigate }: SubProdu
       </CardContent>
     </Card>
   );
-});
+}));
 SubProductCard.displayName = 'SubProductCard';
 
 interface StandaloneProductCardProps {
@@ -87,12 +88,13 @@ interface StandaloneProductCardProps {
 }
 
 // Memoized standalone product card
-const StandaloneProductCard = memo(({ product, fallbackGradient, onNavigate }: StandaloneProductCardProps) => {
+const StandaloneProductCard = memo(forwardRef<HTMLDivElement, StandaloneProductCardProps>(({ product, fallbackGradient, onNavigate }, ref) => {
   const hero = product.hero || { name: product.name, tagline: '' };
   const colors = product.colors;
 
   return (
     <Card 
+      ref={ref}
       className="group cursor-pointer hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-md"
       onClick={() => onNavigate(product.slug || product.id)}
     >
@@ -142,7 +144,7 @@ const StandaloneProductCard = memo(({ product, fallbackGradient, onNavigate }: S
       </CardContent>
     </Card>
   );
-});
+}));
 StandaloneProductCard.displayName = 'StandaloneProductCard';
 
 interface MasterProductSectionProps {
