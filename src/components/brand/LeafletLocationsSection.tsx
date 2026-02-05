@@ -4,7 +4,7 @@
  * Uses Leaflet.js with free OpenStreetMap tiles
  */
 
-import React, { useState, useMemo, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useMemo, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ import { BrandLocation, LocationCategory, LocationStat } from '@/types/brand';
 import { SectionHeader } from './SectionHeader';
 import { useToast } from '@/hooks/use-toast';
 import { RegionKey, getLocationRegion, REGION_BOUNDS } from './mapRegionTypes';
+import { MapErrorBoundary } from './MapErrorBoundary';
 
 // Lazy load the map wrapper to ensure client-side only rendering
 const LeafletMapWrapper = lazy(() => import('./LeafletMapWrapper'));
@@ -459,24 +460,26 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
           </div>
         </div>
 
-        {/* Leaflet Map */}
+        {/* Leaflet Map with Error Boundary */}
         <div className="h-[500px] relative">
-          <Suspense fallback={
-            <div className="h-full w-full flex items-center justify-center" style={{ background: '#0a1628' }}>
-              <div className="text-white/50 text-sm">Loading map...</div>
-            </div>
-          }>
-            <LeafletMapWrapper
-              filteredLocations={filteredLocations}
-              markerPositions={markerPositions}
-              selectedRegion={selectedRegion}
-              onRegionChange={setSelectedRegion}
-              regionCounts={regionCounts}
-              accentColor={accentColor}
-              getCoordinates={getCoordinates}
-              categoryConfig={CATEGORY_CONFIG}
-            />
-          </Suspense>
+          <MapErrorBoundary fallbackHeight="500px">
+            <Suspense fallback={
+              <div className="h-full w-full flex items-center justify-center bg-muted/20">
+                <div className="text-muted-foreground text-sm">Loading map...</div>
+              </div>
+            }>
+              <LeafletMapWrapper
+                filteredLocations={filteredLocations}
+                markerPositions={markerPositions}
+                selectedRegion={selectedRegion}
+                onRegionChange={setSelectedRegion}
+                regionCounts={regionCounts}
+                accentColor={accentColor}
+                getCoordinates={getCoordinates}
+                categoryConfig={CATEGORY_CONFIG}
+              />
+            </Suspense>
+          </MapErrorBoundary>
         </div>
 
         {/* Stats section - prominent display with glow effects */}
