@@ -372,6 +372,63 @@ export type Database = {
           },
         ]
       }
+      demo_brands: {
+        Row: {
+          card_image_url: string | null
+          created_at: string
+          display_order: number
+          gradient_class: string | null
+          guide_data: Json
+          hidden_sections: string[] | null
+          id: string
+          industry_label: string | null
+          is_active: boolean
+          is_featured: boolean
+          name: string
+          page_settings: Json | null
+          section_order: string[] | null
+          slug: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          card_image_url?: string | null
+          created_at?: string
+          display_order?: number
+          gradient_class?: string | null
+          guide_data?: Json
+          hidden_sections?: string[] | null
+          id?: string
+          industry_label?: string | null
+          is_active?: boolean
+          is_featured?: boolean
+          name: string
+          page_settings?: Json | null
+          section_order?: string[] | null
+          slug: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          card_image_url?: string | null
+          created_at?: string
+          display_order?: number
+          gradient_class?: string | null
+          guide_data?: Json
+          hidden_sections?: string[] | null
+          id?: string
+          industry_label?: string | null
+          is_active?: boolean
+          is_featured?: boolean
+          name?: string
+          page_settings?: Json | null
+          section_order?: string[] | null
+          slug?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       demo_guides: {
         Row: {
           brand_id: string | null
