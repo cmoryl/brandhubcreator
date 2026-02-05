@@ -30,6 +30,8 @@ import { useToast } from '@/hooks/use-toast';
 import { RegionKey, getLocationRegion, REGION_BOUNDS } from './mapRegionTypes';
 import { MapErrorBoundary } from './MapErrorBoundary';
 import { useCompanyLocations, useCompanyLocationStats } from '@/hooks/useCompanyLocations';
+import { MapThemeConfig, DEFAULT_MAP_THEME } from '@/types/mapTheme';
+import { MapThemeEditor } from './MapThemeEditor';
 
 // Lazy load the map wrapper to ensure client-side only rendering
 const LeafletMapWrapper = lazy(() => import('./LeafletMapWrapper'));
@@ -177,6 +179,10 @@ interface LeafletLocationsSectionProps {
   useSharedLocations?: boolean;
   /** Callback when toggling between shared and brand-specific locations */
   onUseSharedLocationsChange?: (useShared: boolean) => void;
+  /** Map theme configuration */
+  mapTheme?: MapThemeConfig;
+  /** Callback when map theme changes */
+  onMapThemeChange?: (theme: MapThemeConfig) => void;
 }
 
 export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = ({
@@ -193,7 +199,20 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
   onSectionDescriptionChange,
   useSharedLocations = false,
   onUseSharedLocationsChange,
+  mapTheme,
+  onMapThemeChange,
 }) => {
+  // Local map theme state (use prop if provided, otherwise local state)
+  const [localMapTheme, setLocalMapTheme] = useState<MapThemeConfig>(mapTheme || DEFAULT_MAP_THEME);
+  const currentTheme = mapTheme || localMapTheme;
+  
+  const handleThemeChange = (newTheme: MapThemeConfig) => {
+    if (onMapThemeChange) {
+      onMapThemeChange(newTheme);
+    } else {
+      setLocalMapTheme(newTheme);
+    }
+  };
   // Fetch shared company locations from database
   const { data: companyLocations = [], isLoading: isLoadingCompanyLocations } = useCompanyLocations();
   const { data: companyStats = [] } = useCompanyLocationStats();
@@ -456,6 +475,15 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
                 </div>
               )}
 
+              {/* Map Theme Editor */}
+              {isEditing && (
+                <MapThemeEditor
+                  theme={currentTheme}
+                  onChange={handleThemeChange}
+                  accentColor={accentColor}
+                />
+              )}
+
               {canEdit && (
                 <Button 
                   onClick={() => setIsAddDialogOpen(true)}
@@ -519,6 +547,7 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
                 accentColor={accentColor}
                 getCoordinates={getCoordinates}
                 categoryConfig={CATEGORY_CONFIG}
+                mapTheme={currentTheme}
               />
             </Suspense>
           </MapErrorBoundary>
