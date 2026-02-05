@@ -103,19 +103,39 @@ const CATEGORY_SECTIONS: Record<string, { name: string; count: number }[]> = {
   ],
 };
 
-// 10 Style Presets from the specification
+// Sample icon path for style previews (simple star icon)
+const SAMPLE_ICON_PATH = 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z';
+
+// 10 Style Presets from the specification with visual preview paths
 const STYLE_PRESETS = [
-  { id: 'outlined', name: 'Outlined', strokeWidth: 2, fill: false, corner: 'rounded' as const, description: 'Standard stroke-based icons' },
-  { id: 'minimalist', name: 'Minimalist', strokeWidth: 1.25, fill: false, corner: 'rounded' as const, description: 'Ultra-clean thin lines' },
-  { id: 'brutalist', name: 'Brutalist', strokeWidth: 2, fill: false, corner: 'sharp' as const, description: 'Strict 0°, 45°, 90° angles' },
-  { id: 'hand-drawn', name: 'Hand-Drawn', strokeWidth: 1.75, fill: false, corner: 'rounded' as const, description: 'Subtle human imperfections' },
-  { id: 'glassmorphic', name: 'Glassmorphic', strokeWidth: 1.5, fill: false, corner: 'rounded' as const, description: 'Layered background/foreground' },
-  { id: 'duotone', name: 'Duotone', strokeWidth: 1.5, fill: true, corner: 'rounded' as const, description: 'Stroke with secondary fill' },
-  { id: 'filled', name: 'Filled', strokeWidth: 0, fill: true, corner: 'rounded' as const, description: 'Solid filled icons' },
-  { id: 'sharp', name: 'Sharp', strokeWidth: 2, fill: false, corner: 'sharp' as const, description: 'Square terminals and miter joins' },
-  { id: 'soft', name: 'Soft Rounded', strokeWidth: 2, fill: false, corner: 'rounded' as const, description: 'Round terminals and joins' },
-  { id: 'thick', name: 'Thick Stroke', strokeWidth: 3, fill: false, corner: 'rounded' as const, description: 'Heavy stroke weight' },
+  { id: 'outlined', name: 'Outlined', strokeWidth: 2, fill: false, corner: 'rounded' as const, description: 'Standard stroke-based icons', emoji: '○' },
+  { id: 'minimalist', name: 'Minimalist', strokeWidth: 1.25, fill: false, corner: 'rounded' as const, description: 'Ultra-clean thin lines', emoji: '◦' },
+  { id: 'brutalist', name: 'Brutalist', strokeWidth: 2, fill: false, corner: 'sharp' as const, description: 'Strict 0°, 45°, 90° angles', emoji: '▢' },
+  { id: 'hand-drawn', name: 'Hand-Drawn', strokeWidth: 1.75, fill: false, corner: 'rounded' as const, description: 'Subtle human imperfections', emoji: '✎' },
+  { id: 'glassmorphic', name: 'Glassmorphic', strokeWidth: 1.5, fill: false, corner: 'rounded' as const, description: 'Layered background/foreground', emoji: '◎' },
+  { id: 'duotone', name: 'Duotone', strokeWidth: 1.5, fill: true, corner: 'rounded' as const, description: 'Stroke with secondary fill', emoji: '◐' },
+  { id: 'filled', name: 'Filled', strokeWidth: 0, fill: true, corner: 'rounded' as const, description: 'Solid filled icons', emoji: '●' },
+  { id: 'sharp', name: 'Sharp', strokeWidth: 2, fill: false, corner: 'sharp' as const, description: 'Square terminals and miter joins', emoji: '⬡' },
+  { id: 'soft', name: 'Soft Rounded', strokeWidth: 2, fill: false, corner: 'rounded' as const, description: 'Round terminals and joins', emoji: '⬮' },
+  { id: 'thick', name: 'Thick Stroke', strokeWidth: 3, fill: false, corner: 'rounded' as const, description: 'Heavy stroke weight', emoji: '◉' },
 ];
+
+// Render style preview icon
+const renderStylePreview = (preset: typeof STYLE_PRESETS[0], size: number = 16) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill={preset.fill ? 'currentColor' : 'none'}
+    stroke={!preset.fill ? 'currentColor' : 'none'}
+    strokeWidth={preset.strokeWidth}
+    strokeLinecap={preset.corner === 'rounded' ? 'round' : 'square'}
+    strokeLinejoin={preset.corner === 'rounded' ? 'round' : 'miter'}
+    className="flex-shrink-0"
+  >
+    <path d={SAMPLE_ICON_PATH} />
+  </svg>
+);
 
 const INDUSTRIES = [
   'Technology', 'Healthcare', 'Finance', 'Education', 'E-commerce', 
@@ -476,35 +496,54 @@ export const IconStudioAIGenerator = ({
             </div>
           </div>
 
-          {/* Style Preset Selection */}
-          <div className="space-y-2">
+          {/* Style Preset Selection - Enhanced with visual previews */}
+          <div className="space-y-3">
             <Label className="text-sm font-medium flex items-center gap-1">
               Style Preset
               <IconKitTooltip sectionId="style-presets" inline size="sm" />
             </Label>
-            <ScrollArea className="w-full">
-              <div className="flex gap-2 pb-2">
-                {STYLE_PRESETS.map((preset) => (
-                  <button
-                    key={preset.id}
-                    onClick={() => applyPreset(preset.id)}
-                    disabled={isGenerating}
-                    className={cn(
-                      'flex-shrink-0 px-3 py-2 rounded-lg border text-xs transition-all whitespace-nowrap',
-                      selectedPreset === preset.id
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-card hover:bg-accent border-border'
-                    )}
-                    title={preset.description}
-                  >
-                    {preset.name}
-                  </button>
-                ))}
-              </div>
-            </ScrollArea>
-            <p className="text-[10px] text-muted-foreground">
-              {STYLE_PRESETS.find(p => p.id === selectedPreset)?.description}
-            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {STYLE_PRESETS.map((preset) => (
+                <Tooltip key={preset.id}>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => applyPreset(preset.id)}
+                      disabled={isGenerating}
+                      className={cn(
+                        'flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-left transition-all',
+                        selectedPreset === preset.id
+                          ? 'bg-primary/10 border-primary ring-1 ring-primary/30'
+                          : 'bg-card hover:bg-accent border-border hover:border-primary/40'
+                      )}
+                    >
+                      <div className={cn(
+                        'w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0',
+                        selectedPreset === preset.id 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-muted text-foreground'
+                      )}>
+                        {renderStylePreview(preset, 16)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className={cn(
+                          'text-xs font-medium block truncate',
+                          selectedPreset === preset.id && 'text-primary'
+                        )}>
+                          {preset.name}
+                        </span>
+                        <span className="text-[9px] text-muted-foreground truncate block">
+                          {preset.strokeWidth > 0 ? `${preset.strokeWidth}px` : 'Solid'} • {preset.corner}
+                        </span>
+                      </div>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[200px]">
+                    <p className="font-medium text-xs">{preset.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{preset.description}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
           </div>
 
           {/* Fine-tune Style */}
