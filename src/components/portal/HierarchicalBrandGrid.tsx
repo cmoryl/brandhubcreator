@@ -28,12 +28,13 @@ interface SubBrandCardProps {
 }
 
 // Memoized sub-brand mini card - defined outside to prevent recreation
-const SubBrandCard = memo(({ brand, fallbackGradient, onNavigate }: SubBrandCardProps) => {
+const SubBrandCard = memo(forwardRef<HTMLDivElement, SubBrandCardProps>(({ brand, fallbackGradient, onNavigate }, ref) => {
   const hero = brand.hero || { name: brand.name, tagline: '' };
   const colors = brand.colors;
 
   return (
     <Card 
+      ref={ref}
       className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden border border-border/50 bg-card/80 backdrop-blur-sm"
       onClick={(e) => {
         e.stopPropagation();
@@ -77,7 +78,7 @@ const SubBrandCard = memo(({ brand, fallbackGradient, onNavigate }: SubBrandCard
       </CardContent>
     </Card>
   );
-});
+}));
 SubBrandCard.displayName = 'SubBrandCard';
 
 interface StandaloneBrandCardProps {
@@ -87,12 +88,13 @@ interface StandaloneBrandCardProps {
 }
 
 // Memoized standalone brand card
-const StandaloneBrandCard = memo(({ brand, fallbackGradient, onNavigate }: StandaloneBrandCardProps) => {
+const StandaloneBrandCard = memo(forwardRef<HTMLDivElement, StandaloneBrandCardProps>(({ brand, fallbackGradient, onNavigate }, ref) => {
   const hero = brand.hero || { name: brand.name, tagline: '' };
   const colors = brand.colors;
 
   return (
     <Card 
+      ref={ref}
       className="group cursor-pointer hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-md"
       onClick={() => onNavigate(brand.slug || brand.id)}
     >
@@ -142,7 +144,7 @@ const StandaloneBrandCard = memo(({ brand, fallbackGradient, onNavigate }: Stand
       </CardContent>
     </Card>
   );
-});
+}));
 StandaloneBrandCard.displayName = 'StandaloneBrandCard';
 
 interface MasterBrandSectionProps {
