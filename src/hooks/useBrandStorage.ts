@@ -943,6 +943,7 @@ export const useBrandStorage = () => {
   const updateBrand = useCallback((id: string, updates: Partial<BrandGuide>) => {
     try {
       if (!user) {
+        console.warn('[SYNC] updateBrand: No user, skipping save');
         toast.error('Please sign in to save changes');
         return;
       }
@@ -957,7 +958,7 @@ export const useBrandStorage = () => {
         return;
       }
 
-      console.log('[SYNC] updateBrand: Scheduling update for', id);
+      console.log('[SYNC] updateBrand: Scheduling update for', id, 'keys:', Object.keys(updates));
 
       // Get current brand state using ref to avoid stale closure issues
       const currentBrand = brandsRef.current.find(b => b.id === id);
@@ -965,15 +966,20 @@ export const useBrandStorage = () => {
         console.warn('[SYNC] updateBrand: Brand not found in local state, attempting update anyway:', id);
       }
 
-      // Merge with any pending updates
+      // Merge with any pending updates using functional approach
+      // This ensures we always work with the latest pending state
       const existingPending = pendingBrandUpdates.current.get(id) || {};
       const allUpdates = { ...existingPending, ...updates };
       pendingBrandUpdates.current.set(id, allUpdates);
 
-      // Optimistic update - update UI immediately
+      // Optimistic update - update UI immediately using functional setState
+      // to ensure we're working with the latest state
       setBrands(prev => prev.map(brand =>
         brand.id === id ? { ...brand, ...updates, updatedAt: new Date() } : brand
       ));
+
+      // Indicate sync in progress
+      setSyncStatus('syncing');
 
       // Clear existing timeout for this brand
       const existingTimeout = brandSyncTimeouts.current.get(id);
@@ -984,8 +990,13 @@ export const useBrandStorage = () => {
       // Set new debounced sync
       const timeout = setTimeout(async () => {
         try {
+          console.log('[SYNC] updateBrand: Debounce timer fired for', id);
+          
+          // Get the LATEST brand state and pending updates at sync time
           const latestBrand = brandsRef.current.find(b => b.id === id);
           const finalUpdates = pendingBrandUpdates.current.get(id) || {};
+          
+          console.log('[SYNC] updateBrand: latestBrand exists:', !!latestBrand, 'finalUpdates keys:', Object.keys(finalUpdates));
           
           // If brand not in local state, fetch current data from DB first
           let baseData = latestBrand || currentBrand;
@@ -1002,6 +1013,7 @@ export const useBrandStorage = () => {
               console.error('[SYNC] updateBrand: Failed to fetch brand from DB:', error);
               pendingBrandUpdates.current.delete(id);
               brandSyncTimeouts.current.delete(id);
+              setSyncStatus('error');
               return;
             }
             
@@ -1009,25 +1021,31 @@ export const useBrandStorage = () => {
             baseData = dbToBrandGuide(dbBrand as DbBrand);
           }
           
-          const merged = { ...baseData, ...finalUpdates };
-          syncBrandToDb(id, merged as BrandGuide);
+          // The baseData (latestBrand) already has the optimistic updates applied
+          // So we should use it directly rather than re-merging with finalUpdates
+          // which would be redundant and could cause issues
+          console.log('[SYNC] updateBrand: Syncing to DB for', id);
+          await syncBrandToDb(id, baseData as BrandGuide);
           
           brandSyncTimeouts.current.delete(id);
         } catch (err) {
           console.error('[SYNC] updateBrand: Error in debounced sync', err);
           brandSyncTimeouts.current.delete(id);
+          setSyncStatus('error');
         }
       }, SYNC_DEBOUNCE_MS);
       
       brandSyncTimeouts.current.set(id, timeout);
     } catch (err) {
       console.error('[SYNC] updateBrand: Critical error', err);
+      setSyncStatus('error');
     }
   }, [user, syncBrandToDb]);
 
   const updateProduct = useCallback((id: string, updates: Partial<ProductGuide>) => {
     try {
       if (!user) {
+        console.warn('[SYNC] updateProduct: No user, skipping save');
         toast.error('Please sign in to save changes');
         return;
       }
@@ -1042,7 +1060,7 @@ export const useBrandStorage = () => {
         return;
       }
 
-      console.log('[SYNC] updateProduct: Scheduling update for', id);
+      console.log('[SYNC] updateProduct: Scheduling update for', id, 'keys:', Object.keys(updates));
 
       // Get current product state using ref to avoid stale closure issues
       const currentProduct = productsRef.current.find(p => p.id === id);
@@ -1050,15 +1068,18 @@ export const useBrandStorage = () => {
         console.warn('[SYNC] updateProduct: Product not found in local state, attempting update anyway:', id);
       }
 
-      // Merge with any pending updates
+      // Merge with any pending updates using functional approach
       const existingPending = pendingProductUpdates.current.get(id) || {};
       const allUpdates = { ...existingPending, ...updates };
       pendingProductUpdates.current.set(id, allUpdates);
 
-      // Optimistic update - update UI immediately
+      // Optimistic update - update UI immediately using functional setState
       setProducts(prev => prev.map(product =>
         product.id === id ? { ...product, ...updates, updatedAt: new Date() } : product
       ));
+
+      // Indicate sync in progress
+      setSyncStatus('syncing');
 
       // Clear existing timeout for this product
       const existingTimeout = productSyncTimeouts.current.get(id);
@@ -1069,8 +1090,13 @@ export const useBrandStorage = () => {
       // Set new debounced sync
       const timeout = setTimeout(async () => {
         try {
+          console.log('[SYNC] updateProduct: Debounce timer fired for', id);
+          
+          // Get the LATEST product state at sync time
           const latestProduct = productsRef.current.find(p => p.id === id);
           const finalUpdates = pendingProductUpdates.current.get(id) || {};
+          
+          console.log('[SYNC] updateProduct: latestProduct exists:', !!latestProduct, 'finalUpdates keys:', Object.keys(finalUpdates));
           
           // If product not in local state, fetch current data from DB first
           let baseData = latestProduct || currentProduct;
@@ -1087,6 +1113,7 @@ export const useBrandStorage = () => {
               console.error('[SYNC] updateProduct: Failed to fetch product from DB:', error);
               pendingProductUpdates.current.delete(id);
               productSyncTimeouts.current.delete(id);
+              setSyncStatus('error');
               return;
             }
             
@@ -1094,19 +1121,22 @@ export const useBrandStorage = () => {
             baseData = dbToProductGuide(dbProduct as DbProduct);
           }
           
-          const merged = { ...baseData, ...finalUpdates };
-          syncProductToDb(id, merged as ProductGuide);
+          // The baseData (latestProduct) already has the optimistic updates applied
+          console.log('[SYNC] updateProduct: Syncing to DB for', id);
+          await syncProductToDb(id, baseData as ProductGuide);
           
           productSyncTimeouts.current.delete(id);
         } catch (err) {
           console.error('[SYNC] updateProduct: Error in debounced sync', err);
           productSyncTimeouts.current.delete(id);
+          setSyncStatus('error');
         }
       }, SYNC_DEBOUNCE_MS);
       
       productSyncTimeouts.current.set(id, timeout);
     } catch (err) {
       console.error('[SYNC] updateProduct: Critical error', err);
+      setSyncStatus('error');
     }
   }, [user, syncProductToDb]);
 
