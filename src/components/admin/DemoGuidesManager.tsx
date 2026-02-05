@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, GripVertical, Star, Eye, RefreshCw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Trash2, GripVertical, Star, Eye, RefreshCw, Edit, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +21,7 @@ interface DemoGuide {
   brand?: {
     id: string;
     name: string;
+    slug: string | null;
     is_public: boolean;
     guide_data: unknown;
   };
@@ -28,6 +30,7 @@ interface DemoGuide {
 interface PublicBrand {
   id: string;
   name: string;
+  slug: string | null;
   is_public: boolean;
   guide_data: unknown;
 }
@@ -43,6 +46,7 @@ const GRADIENT_OPTIONS = [
 ];
 
 export function DemoGuidesManager() {
+  const navigate = useNavigate();
   const [demoGuides, setDemoGuides] = useState<DemoGuide[]>([]);
   const [publicBrands, setPublicBrands] = useState<PublicBrand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,7 +74,7 @@ export function DemoGuidesManager() {
         // Fetch all public brands
         const { data: brands, error: brandsError } = await supabase
           .from('brands')
-          .select('id, name, is_public, guide_data')
+          .select('id, name, slug, is_public, guide_data')
           .eq('is_public', true)
           .order('name');
 
@@ -186,6 +190,18 @@ export function DemoGuidesManager() {
     }
   };
 
+  const openBrandEditor = (brandId: string, slug: string | null) => {
+    // Navigate to the brand editor page
+    const path = slug ? `/brand/${slug}` : `/brand/${brandId}`;
+    navigate(path);
+  };
+
+  const previewBrand = (slug: string | null, brandId: string) => {
+    // Open the public brand page in a new tab
+    const path = slug ? `/brand/${slug}` : `/brand/${brandId}`;
+    window.open(path, '_blank');
+  };
+
   const availableBrands = publicBrands.filter(
     b => !demoGuides.some(g => g.brand_id === b.id)
   );
@@ -210,7 +226,7 @@ export function DemoGuidesManager() {
         </CardTitle>
         <CardDescription>
           Select up to 3 public brand guides to showcase on the landing page. 
-          These will be fully viewable by visitors as examples.
+          Click "Edit" to modify the brand guide content directly.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -259,7 +275,7 @@ export function DemoGuidesManager() {
             </div>
           ) : (
             <div className="space-y-3">
-              {demoGuides.map((guide, index) => (
+              {demoGuides.map((guide) => (
                 <div 
                   key={guide.id}
                   className="flex items-center gap-4 p-4 border rounded-lg bg-card"
@@ -310,14 +326,37 @@ export function DemoGuidesManager() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mr-2">
                       <Switch
                         checked={guide.is_featured}
                         onCheckedChange={(checked) => updateDemoGuide(guide.id, { is_featured: checked })}
                       />
                       <Label className="text-sm">Featured</Label>
                     </div>
+                    
+                    {/* Edit Brand Button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openBrandEditor(guide.brand_id, guide.brand?.slug || null)}
+                      className="gap-1"
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit
+                    </Button>
+                    
+                    {/* Preview Button */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => previewBrand(guide.brand?.slug || null, guide.brand_id)}
+                      title="Preview in new tab"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                    
+                    {/* Delete Button */}
                     <Button
                       variant="ghost"
                       size="icon"
@@ -336,8 +375,8 @@ export function DemoGuidesManager() {
         {/* Info */}
         <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-4">
           <p><strong>Note:</strong> Only public brands can be added as demo guides. 
-          Make sure the brand has all sections filled in for the best showcase experience.
-          Visitors will be able to view the full brand guide without logging in.</p>
+          Click "Edit" to open the full brand editor where you can modify all guide sections.
+          Changes made in the editor are saved directly to the database.</p>
         </div>
       </CardContent>
     </Card>
