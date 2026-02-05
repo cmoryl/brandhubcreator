@@ -106,61 +106,64 @@ export function DemoGuidesManager() {
       return;
     }
 
-    const selectedBrand = publicBrands.find(b => b.id === selectedBrandId);
-    
-    const { data, error } = await supabase
-      .from('demo_guides')
-      .insert({
-        brand_id: selectedBrandId,
-        display_order: demoGuides.length,
-        industry_label: 'Brand',
-        gradient_class: GRADIENT_OPTIONS[demoGuides.length % GRADIENT_OPTIONS.length].value,
-      })
-      .select()
-      .single();
+    try {
+      const selectedBrand = publicBrands.find(b => b.id === selectedBrandId);
+      
+      const { data, error } = await supabase
+        .from('demo_guides')
+        .insert({
+          brand_id: selectedBrandId,
+          display_order: demoGuides.length,
+          industry_label: 'Brand',
+          gradient_class: GRADIENT_OPTIONS[demoGuides.length % GRADIENT_OPTIONS.length].value,
+        })
+        .select()
+        .single();
 
-    if (error) {
+      if (error) throw error;
+
+      setDemoGuides([...demoGuides, { ...data, brand: selectedBrand }]);
+      setSelectedBrandId('');
+      toast.success('Demo guide added');
+    } catch (error) {
       console.error('Error adding demo guide:', error);
       toast.error('Failed to add demo guide');
-      return;
     }
-
-    setDemoGuides([...demoGuides, { ...data, brand: selectedBrand }]);
-    setSelectedBrandId('');
-    toast.success('Demo guide added');
   };
 
   const removeDemoGuide = async (id: string) => {
-    const { error } = await supabase
-      .from('demo_guides')
-      .delete()
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('demo_guides')
+        .delete()
+        .eq('id', id);
 
-    if (error) {
+      if (error) throw error;
+
+      setDemoGuides(demoGuides.filter(g => g.id !== id));
+      toast.success('Demo guide removed');
+    } catch (error) {
       console.error('Error removing demo guide:', error);
       toast.error('Failed to remove demo guide');
-      return;
     }
-
-    setDemoGuides(demoGuides.filter(g => g.id !== id));
-    toast.success('Demo guide removed');
   };
 
   const updateDemoGuide = async (id: string, updates: Partial<DemoGuide>) => {
-    const { error } = await supabase
-      .from('demo_guides')
-      .update(updates)
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('demo_guides')
+        .update(updates)
+        .eq('id', id);
 
-    if (error) {
+      if (error) throw error;
+
+      setDemoGuides(demoGuides.map(g => 
+        g.id === id ? { ...g, ...updates } : g
+      ));
+    } catch (error) {
       console.error('Error updating demo guide:', error);
       toast.error('Failed to update demo guide');
-      return;
     }
-
-    setDemoGuides(demoGuides.map(g => 
-      g.id === id ? { ...g, ...updates } : g
-    ));
   };
 
   const availableBrands = publicBrands.filter(
