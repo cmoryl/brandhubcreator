@@ -1335,6 +1335,26 @@ export type Database = {
           view_date: string
         }[]
       }
+      get_guide_card_data: {
+        Args: { p_exclude_id?: string; p_table_name: string }
+        Returns: {
+          colors_data: Json
+          hero_data: Json
+          id: string
+          name: string
+          slug: string
+        }[]
+      }
+      get_linked_products_card_data: {
+        Args: { p_parent_brand_id: string }
+        Returns: {
+          colors_data: Json
+          hero_data: Json
+          id: string
+          name: string
+          slug: string
+        }[]
+      }
       get_organization_members_safe: {
         Args: { p_org_id: string }
         Returns: {

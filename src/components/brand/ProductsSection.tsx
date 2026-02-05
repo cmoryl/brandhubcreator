@@ -45,6 +45,20 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
+// Card data interface - optimized subset of guide_data
+interface GuideCardData {
+  id: string;
+  name: string;
+  slug?: string | null;
+  hero_data?: {
+    cardImage?: string;
+    coverImage?: string;
+    logoUrl?: string;
+    tagline?: string;
+  } | null;
+  colors_data?: Array<{ hex: string; name?: string }> | null;
+}
+
 export interface GuideItem {
   id: string;
   name: string;
@@ -114,10 +128,8 @@ export const ProductsSection = ({
       setIsRefreshing(true);
     }
     try {
-      // Fetch products, brands, and events in parallel
-      // Include guide_data for card images and colors
-      const selectFields = 'id, name, slug, guide_data';
-      
+      // Use RPC functions to fetch only card-relevant data (hero + colors)
+      // This avoids timeouts from fetching massive guide_data JSONB fields
       const [
         { data: linkedByParent, error: linkedError },
         { data: availableProducts, error: availableError },
@@ -126,19 +138,11 @@ export const ProductsSection = ({
       ] = await Promise.all([
         // Only fetch by parent_brand_id if we're on a brand
         entityType === 'brand' 
-          ? supabase.from('products').select(selectFields).eq('parent_brand_id', entityId)
+          ? supabase.rpc('get_linked_products_card_data', { p_parent_brand_id: entityId })
           : Promise.resolve({ data: [], error: null }),
-        supabase
-          .from('products')
-          .select(selectFields)
-          .neq('id', entityId),
-        supabase
-          .from('brands')
-          .select(selectFields)
-          .neq('id', entityId),
-        supabase
-          .from('events')
-          .select(selectFields),
+        supabase.rpc('get_guide_card_data', { p_table_name: 'products', p_exclude_id: entityId }),
+        supabase.rpc('get_guide_card_data', { p_table_name: 'brands', p_exclude_id: entityId }),
+        supabase.rpc('get_guide_card_data', { p_table_name: 'events' }),
       ]);
 
       if (linkedError) throw linkedError;
@@ -146,30 +150,41 @@ export const ProductsSection = ({
       if (brandsError) throw brandsError;
       if (eventsError) throw eventsError;
 
+      // Transform RPC results to GuideItem format
+      const transformToGuideItem = (item: GuideCardData, type: 'brand' | 'product' | 'event'): GuideItem => ({
+        id: item.id,
+        name: item.name,
+        slug: item.slug,
+        guide_data: {
+          hero: item.hero_data,
+          colors: item.colors_data,
+        },
+        type,
+      });
+
       // Combine linked products with manually linked guides
-      const linkedProductItems: GuideItem[] = (linkedByParent || []).map(p => ({
-        ...p,
-        type: 'product' as const
-      }));
+      const linkedProductItems: GuideItem[] = ((linkedByParent as GuideCardData[]) || []).map(p => 
+        transformToGuideItem(p, 'product')
+      );
 
       // Get manually linked guides from linkedGuides prop
       // Handle both formats: legacy {id, name, type} and new {id, guideId, guideType}
       const manuallyLinkedIds = linkedGuides.map(lg => lg.guideId || lg.id);
       
       // Fetch manually linked brands
-      const manuallyLinkedBrands = (allBrands || [])
+      const manuallyLinkedBrands = ((allBrands as GuideCardData[]) || [])
         .filter(b => manuallyLinkedIds.includes(b.id))
-        .map(b => ({ ...b, type: 'brand' as const }));
+        .map(b => transformToGuideItem(b, 'brand'));
 
       // Fetch manually linked products (that aren't already linked via parent_brand_id)
-      const manuallyLinkedProducts = (availableProducts || [])
+      const manuallyLinkedProducts = ((availableProducts as GuideCardData[]) || [])
         .filter(p => manuallyLinkedIds.includes(p.id))
-        .map(p => ({ ...p, type: 'product' as const }));
+        .map(p => transformToGuideItem(p, 'product'));
 
       // Fetch manually linked events
-      const manuallyLinkedEvents = (allEvents || [])
+      const manuallyLinkedEvents = ((allEvents as GuideCardData[]) || [])
         .filter(e => manuallyLinkedIds.includes(e.id))
-        .map(e => ({ ...e, type: 'event' as const }));
+        .map(e => transformToGuideItem(e, 'event'));
 
       // Combine all linked items
       const allLinked = [
@@ -188,17 +203,17 @@ export const ProductsSection = ({
 
       // Available guides = all brands + unlinked products + unlinked events, minus what's already linked
       const linkedIds = uniqueLinked.map(l => l.id);
-      const availableBrandItems: GuideItem[] = (allBrands || [])
+      const availableBrandItems: GuideItem[] = ((allBrands as GuideCardData[]) || [])
         .filter(b => !linkedIds.includes(b.id))
-        .map(b => ({ ...b, type: 'brand' as const }));
+        .map(b => transformToGuideItem(b, 'brand'));
       
-      const availableProductItems: GuideItem[] = (availableProducts || [])
+      const availableProductItems: GuideItem[] = ((availableProducts as GuideCardData[]) || [])
         .filter(p => !linkedIds.includes(p.id))
-        .map(p => ({ ...p, type: 'product' as const }));
+        .map(p => transformToGuideItem(p, 'product'));
 
-      const availableEventItems: GuideItem[] = (allEvents || [])
+      const availableEventItems: GuideItem[] = ((allEvents as GuideCardData[]) || [])
         .filter(e => !linkedIds.includes(e.id))
-        .map(e => ({ ...e, type: 'event' as const }));
+        .map(e => transformToGuideItem(e, 'event'));
 
       setAvailableGuides([...availableBrandItems, ...availableProductItems, ...availableEventItems]);
       setAllGuides([...availableBrandItems, ...availableProductItems, ...availableEventItems]);
