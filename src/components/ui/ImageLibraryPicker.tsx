@@ -47,6 +47,7 @@ import {
   Files,
   CheckCircle2,
   XCircle,
+  Clock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -87,7 +88,7 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
 
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<ImageCategory | 'All'>('All');
+  const [selectedCategory, setSelectedCategory] = useState<ImageCategory | 'All' | 'Recent'>('All');
   const [selectedImage, setSelectedImage] = useState<OrganizationImage | null>(null);
   const [uploadCategory, setUploadCategory] = useState<ImageCategory>(defaultCategory);
   const [isDragging, setIsDragging] = useState(false);
@@ -110,8 +111,23 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
     }
   }, [open, organization?.id, fetchImages]);
 
+  // Get images from last 7 days for "Recent" filter
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const recentImages = images.filter((img) => {
+    const uploadDate = new Date(img.created_at);
+    return uploadDate >= sevenDaysAgo;
+  });
+
   const filteredImages = images.filter((img) => {
     const matchesSearch = img.name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (selectedCategory === 'Recent') {
+      const uploadDate = new Date(img.created_at);
+      return matchesSearch && uploadDate >= sevenDaysAgo;
+    }
+    
     const matchesCategory = selectedCategory === 'All' || img.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -282,13 +298,19 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
               </div>
               <Select
                 value={selectedCategory}
-                onValueChange={(v) => setSelectedCategory(v as ImageCategory | 'All')}
+                onValueChange={(v) => setSelectedCategory(v as ImageCategory | 'All' | 'Recent')}
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All">All Categories</SelectItem>
+                  <SelectItem value="Recent">
+                    <span className="flex items-center gap-2">
+                      <Clock className="h-3 w-3" />
+                      Recently Added ({recentImages.length})
+                    </span>
+                  </SelectItem>
                   {IMAGE_CATEGORIES.map((cat) => (
                     <SelectItem key={cat} value={cat}>
                       {cat} ({categoryCounts[cat]})
