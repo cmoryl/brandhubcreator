@@ -23,11 +23,18 @@ export default defineConfig(({ mode }) => {
         output: {
           // Reduce chunk fragmentation by grouping small modules
           manualChunks: (id) => {
-            // Core React libraries - loaded first
+            // Core React libraries - loaded first, must be in same chunk
             if (id.includes('node_modules/react') || 
                 id.includes('node_modules/react-dom') || 
-                id.includes('node_modules/react-router')) {
+                id.includes('node_modules/react-router') ||
+                id.includes('node_modules/scheduler')) {
               return 'vendor-react';
+            }
+            // Leaflet map libraries - isolated chunk to prevent React conflicts
+            if (id.includes('node_modules/leaflet') || 
+                id.includes('node_modules/react-leaflet') ||
+                id.includes('node_modules/@react-leaflet')) {
+              return 'vendor-leaflet';
             }
             // Supabase - defer loading
             if (id.includes('node_modules/@supabase')) {
@@ -58,7 +65,17 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
       // Prevent duplicate React instances that cause "render2 is not a function" errors
-      dedupe: ["react", "react-dom", "react/jsx-runtime"],
+      // Including @react-leaflet/core is critical for react-leaflet compatibility
+      dedupe: [
+        "react", 
+        "react-dom", 
+        "react/jsx-runtime",
+        "@react-leaflet/core"
+      ],
+    },
+    // Pre-bundle leaflet dependencies to prevent duplicate React instances
+    optimizeDeps: {
+      include: ['leaflet', 'react-leaflet', '@react-leaflet/core'],
     },
     define: {
       // Ensure env variables are available
