@@ -133,10 +133,10 @@ const HeroEffectsShowcase = () => {
           {renderEffect(selectedEffect, { colorScheme, mode, brightness, density, speed, intensity })}
         </div>
 
-        {/* Overlay Content */}
-        <div className="relative z-10 min-h-screen flex flex-col">
+        {/* Overlay Content - pointer-events-none so effect is interactive */}
+        <div className="relative z-10 min-h-screen flex flex-col pointer-events-none">
           {/* Header */}
-          <header className="p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
+          <header className="p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent pointer-events-auto">
             <Button variant="ghost" onClick={() => setSelectedEffect(null)} className="text-white gap-2 hover:bg-white/10">
               <ArrowLeft className="h-4 w-4" />
               Back to Gallery
@@ -164,7 +164,7 @@ const HeroEffectsShowcase = () => {
           </div>
 
           {/* Controls Panel */}
-          <div className="p-4">
+          <div className="p-4 pointer-events-auto">
             <Card className="max-w-4xl mx-auto bg-black/60 backdrop-blur-xl border-white/10">
               <CardHeader className="pb-3">
                 <CardTitle className="text-white flex items-center gap-2 text-lg">
