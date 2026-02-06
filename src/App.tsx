@@ -57,6 +57,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 const SharedBrandPage = lazy(() => import("./pages/SharedBrandPage"));
 const BrandExportSchema = lazy(() => import("./pages/BrandExportSchema"));
+const HeroEffectsShowcase = lazy(() => import("./pages/HeroEffectsShowcase"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -268,6 +269,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <BrandExportSchema />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="hero-effects"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <HeroEffectsShowcase />
                         </Suspense>
                       }
                     />
