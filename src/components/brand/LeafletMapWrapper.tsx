@@ -278,26 +278,31 @@ export const LeafletMapWrapper: React.FC<LeafletMapWrapperProps> = ({
       markersRef.current.push(marker);
     });
 
-    // Fit bounds if showing all and has markers
+    // Always fit to show all markers when in 'all' view and has data
     if (selectedRegion === 'all' && markerPositions.length > 0) {
       try {
         const bounds = L.latLngBounds(markerPositions.map(p => [p.lat, p.lng]));
-        mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 6 });
+        // Use flyToBounds for smoother animation when data loads
+        mapRef.current.flyToBounds(bounds, { 
+          padding: [50, 50], 
+          maxZoom: 4,
+          duration: 1.2,
+        });
       } catch (e) {
         console.warn('FitBounds error:', e);
       }
     }
   }, [filteredLocations, markerPositions, selectedRegion, getCoordinates, categoryConfig, theme.markerColors]);
 
-  // Handle region changes
+  // Handle region changes (only for non-'all' regions, 'all' is handled in markers effect)
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || selectedRegion === 'all') return;
     
     const region = REGION_BOUNDS[selectedRegion];
     if (region) {
       mapRef.current.flyToBounds(region.bounds as L.LatLngBoundsExpression, {
         padding: [50, 50],
-        maxZoom: selectedRegion === 'all' ? 2 : 4,
+        maxZoom: 4,
         duration: 1.5,
       });
     }
