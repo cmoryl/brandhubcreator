@@ -54,6 +54,7 @@ import { LeadSubmissionsPanel } from '@/components/admin/LeadSubmissionsPanel';
 import { CompanyLocationsManager } from '@/components/admin/CompanyLocationsManager';
 import { GlobalMapThemeEditor } from '@/components/admin/GlobalMapThemeEditor';
 import { AdminOverview } from '@/components/admin/AdminOverview';
+import { DownloadsReportPanel } from '@/components/admin/DownloadsReportPanel';
 interface DashboardStats {
   totalUsers: number;
   totalOrganizations: number;
@@ -901,6 +902,11 @@ export default function AdminDashboard() {
           {/* User Analytics Tab */}
           <TabsContent value="user-analytics" className="space-y-6">
             <UserAnalyticsTab />
+          </TabsContent>
+
+          {/* Downloads Report Tab */}
+          <TabsContent value="downloads" className="space-y-6">
+            <DownloadsReportPanel />
           </TabsContent>
 
           {/* AI Analysis Tab */}

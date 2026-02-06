@@ -246,6 +246,26 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
         await exportToPdf(exportRef.current, guide, pdfTheme, paperSize, (status) => {
           console.log(status);
         });
+        
+        // Log the export to audit_logs for tracking
+        try {
+          await supabase.rpc('insert_audit_log', {
+            p_brand_id: guide.id || null,
+            p_entity_type: 'pdf',
+            p_action_type: 'export',
+            p_entity_name: guide.hero?.name || 'Brand Guide',
+            p_details: {
+              download_type: 'pdf',
+              format: 'pdf',
+              paper_size: paperSize,
+              theme: pdfTheme,
+              sections_count: selectedSections.size,
+            },
+          });
+        } catch (logError) {
+          console.warn('Failed to log export:', logError);
+        }
+        
         toast.success('PDF exported successfully!');
         setShowPreview(false);
       } catch (error) {
