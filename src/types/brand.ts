@@ -106,10 +106,17 @@ export interface TaglineFontSettings {
   fontStyle: 'normal' | 'italic';
 }
 
+export interface TaglineVariation {
+  text: string;
+  style?: 'gradient' | 'accent-bar' | 'floating-card' | 'glass' | 'outlined';
+}
+
 export interface BrandTagline {
   primary: string;
   secondary?: string;
   variations?: string[];
+  /** Enhanced variations with style metadata */
+  variationsV2?: TaglineVariation[];
   fontSettings?: TaglineFontSettings;
   /** Tagline animation effect on load */
   taglineAnimation?: 'typewriter' | 'fade-slide' | 'blur-reveal' | 'split-chars' | 'wave-glow';

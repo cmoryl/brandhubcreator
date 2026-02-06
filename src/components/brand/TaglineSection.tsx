@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Plus, X, Quote, Sparkles, Palette, Type, Pencil, Check } from 'lucide-react';
-import { BrandTagline, TaglineFontSettings } from '@/types/brand';
+import { useState, useEffect, useMemo } from 'react';
+import { Plus, X, Quote, Sparkles, Palette, Type, Pencil, Check, ChevronDown } from 'lucide-react';
+import { BrandTagline, TaglineFontSettings, TaglineVariation } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,13 +9,22 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GoogleFontPicker, DEFAULT_FONT_SETTINGS, FontSettings } from '@/components/ui/google-font-picker';
 import { AnimatedTagline, TaglineAnimation, TaglineHoverEffect, TaglineEnvironment } from '@/components/ui/animated-tagline';
 import { TaglineAnimationSettings } from './TaglineAnimationSettings';
 import { TypographyPairingPreview, POPULAR_FONT_PAIRINGS } from './settings/TypographyPairingPreview';
+import { cn } from '@/lib/utils';
+
 type TaglineBackgroundStyle = 'floating' | 'gradient' | 'solid' | 'glass';
+type VariationStyle = TaglineVariation['style'];
 
 interface TaglineSectionProps {
   tagline: BrandTagline;
@@ -82,22 +91,67 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
     onTaglineChange({ ...tagline, fontSettings: newFontSettings });
   };
 
+  // Normalize variations to V2 format for internal use
+  const normalizedVariations: TaglineVariation[] = useMemo(() => {
+    // Prefer variationsV2 if available
+    if (tagline.variationsV2 && tagline.variationsV2.length > 0) {
+      return tagline.variationsV2;
+    }
+    // Migrate legacy variations array
+    if (tagline.variations && tagline.variations.length > 0) {
+      return tagline.variations.map((text, index) => ({
+        text,
+        style: (['gradient', 'accent-bar', 'floating-card', 'glass', 'outlined'] as const)[index % 5],
+      }));
+    }
+    return [];
+  }, [tagline.variationsV2, tagline.variations]);
+
+  const styleLabels: Record<NonNullable<VariationStyle>, { label: string; icon: string }> = {
+    'gradient': { label: 'Gradient', icon: '🎨' },
+    'accent-bar': { label: 'Accent Bar', icon: '▌' },
+    'floating-card': { label: 'Card', icon: '📄' },
+    'glass': { label: 'Glass', icon: '🔮' },
+    'outlined': { label: 'Outlined', icon: '○' },
+  };
+
   const addVariation = () => {
     if (!onTaglineChange) return;
-    if (newVariation.trim() && !tagline.variations?.includes(newVariation.trim())) {
-      onTaglineChange({ 
-        ...tagline, 
-        variations: [...(tagline.variations || []), newVariation.trim()] 
-      });
-      setNewVariation('');
+    if (newVariation.trim()) {
+      const alreadyExists = normalizedVariations.some(v => v.text === newVariation.trim());
+      if (!alreadyExists) {
+        const newVar: TaglineVariation = {
+          text: newVariation.trim(),
+          style: 'gradient', // Default style
+        };
+        onTaglineChange({ 
+          ...tagline, 
+          variationsV2: [...normalizedVariations, newVar],
+          // Keep legacy array in sync for backwards compatibility
+          variations: [...(tagline.variations || []), newVariation.trim()],
+        });
+        setNewVariation('');
+      }
     }
   };
 
-  const removeVariation = (variation: string) => {
+  const removeVariation = (text: string) => {
     if (!onTaglineChange) return;
     onTaglineChange({ 
       ...tagline, 
-      variations: tagline.variations?.filter(v => v !== variation) || [] 
+      variationsV2: normalizedVariations.filter(v => v.text !== text),
+      variations: tagline.variations?.filter(v => v !== text) || [],
+    });
+  };
+
+  const updateVariationStyle = (text: string, style: NonNullable<VariationStyle>) => {
+    if (!onTaglineChange) return;
+    const updated = normalizedVariations.map(v => 
+      v.text === text ? { ...v, style } : v
+    );
+    onTaglineChange({ 
+      ...tagline, 
+      variationsV2: updated,
     });
   };
 
@@ -452,67 +506,93 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                 </div>
               </div>
               <div className="flex-1 h-px bg-gradient-to-r from-border via-primary/20 to-transparent" />
-              {tagline.variations && tagline.variations.length > 0 && (
+              {normalizedVariations.length > 0 && (
                 <Badge variant="outline" className="text-[10px] font-medium">
-                  {tagline.variations.length} variation{tagline.variations.length !== 1 ? 's' : ''}
+                  {normalizedVariations.length} variation{normalizedVariations.length !== 1 ? 's' : ''}
                 </Badge>
               )}
             </div>
             
             {/* Variations display */}
-            {tagline.variations && tagline.variations.length > 0 ? (
+            {normalizedVariations.length > 0 ? (
               <div className="space-y-3">
-                {tagline.variations.map((variation, index) => {
-                  // Cycle through different visual styles
-                  const styleIndex = index % 5;
-                  const styles = [
-                    // Style 1: Gradient border with quote marks
-                    'relative group pl-8 pr-6 py-4 rounded-xl bg-gradient-to-r from-primary/5 via-transparent to-accent/5 border border-primary/20 hover:border-primary/40 hover:from-primary/10 hover:to-accent/10',
-                    // Style 2: Left accent bar
-                    'relative group pl-6 pr-6 py-4 rounded-xl bg-muted/50 border-l-4 border-l-accent border border-transparent hover:border-accent/30 hover:bg-muted/80',
-                    // Style 3: Floating card with shadow
-                    'relative group px-6 py-4 rounded-xl bg-card shadow-md hover:shadow-lg border border-border/50 hover:border-primary/30 hover:-translate-y-0.5 transition-all duration-300',
-                    // Style 4: Glass morphism
-                    'relative group px-6 py-4 rounded-xl bg-background/60 backdrop-blur-sm border border-border/50 hover:border-primary/40 hover:bg-background/80',
-                    // Style 5: Outlined with dot indicator
-                    'relative group pl-8 pr-6 py-4 rounded-xl border-2 border-dashed border-muted-foreground/20 hover:border-primary/40 bg-transparent hover:bg-primary/5',
-                  ];
+                {normalizedVariations.map((variation, index) => {
+                  const currentStyle = variation.style || 'gradient';
                   
-                  const decorations = [
-                    // Decoration 1: Large quote mark
-                    <span key="deco" className="absolute left-3 top-1/2 -translate-y-1/2 text-3xl font-serif text-primary/30 group-hover:text-primary/50 transition-colors">"</span>,
-                    // Decoration 2: Nothing (accent bar is the decoration)
-                    null,
-                    // Decoration 3: Sparkle icon
-                    <Sparkles key="deco" className="absolute -top-2 -right-2 h-5 w-5 text-primary/40 group-hover:text-primary/60 transition-colors" />,
-                    // Decoration 4: Gradient orb
-                    <div key="deco" className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-gradient-to-br from-primary to-accent opacity-60 group-hover:opacity-100 transition-opacity" />,
-                    // Decoration 5: Dot indicator
-                    <div key="deco" className="absolute left-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary/40 group-hover:bg-primary transition-colors" />,
-                  ];
+                  const styleClasses: Record<NonNullable<VariationStyle>, string> = {
+                    'gradient': 'relative group pl-8 pr-6 py-4 rounded-xl bg-gradient-to-r from-primary/5 via-transparent to-accent/5 border border-primary/20 hover:border-primary/40 hover:from-primary/10 hover:to-accent/10',
+                    'accent-bar': 'relative group pl-6 pr-6 py-4 rounded-xl bg-muted/50 border-l-4 border-l-accent border border-transparent hover:border-accent/30 hover:bg-muted/80',
+                    'floating-card': 'relative group px-6 py-4 rounded-xl bg-card shadow-md hover:shadow-lg border border-border/50 hover:border-primary/30 hover:-translate-y-0.5',
+                    'glass': 'relative group px-6 py-4 rounded-xl bg-background/60 backdrop-blur-sm border border-border/50 hover:border-primary/40 hover:bg-background/80',
+                    'outlined': 'relative group pl-8 pr-6 py-4 rounded-xl border-2 border-dashed border-muted-foreground/20 hover:border-primary/40 bg-transparent hover:bg-primary/5',
+                  };
+                  
+                  const decorations: Record<NonNullable<VariationStyle>, React.ReactNode> = {
+                    'gradient': <span className="absolute left-3 top-1/2 -translate-y-1/2 text-3xl font-serif text-primary/30 group-hover:text-primary/50 transition-colors">"</span>,
+                    'accent-bar': null,
+                    'floating-card': <Sparkles className="absolute -top-2 -right-2 h-5 w-5 text-primary/40 group-hover:text-primary/60 transition-colors" />,
+                    'glass': <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-gradient-to-br from-primary to-accent opacity-60 group-hover:opacity-100 transition-opacity" />,
+                    'outlined': <div className="absolute left-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary/40 group-hover:bg-primary transition-colors" />,
+                  };
                   
                   return (
                     <div
-                      key={variation}
-                      className={`${styles[styleIndex]} transition-all duration-300`}
+                      key={variation.text}
+                      className={cn(styleClasses[currentStyle], 'transition-all duration-300')}
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
-                      {decorations[styleIndex]}
+                      {decorations[currentStyle]}
                       <div className="flex items-center justify-between gap-4">
                         <p className="text-base md:text-lg font-medium text-foreground/90 group-hover:text-foreground transition-colors italic">
-                          {variation}
+                          {variation.text}
                         </p>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-                            #{index + 1}
-                          </span>
-                          {isEditing && (
-                            <button
-                              onClick={() => removeVariation(variation)}
-                              className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
+                          {isEditing ? (
+                            <>
+                              {/* Style selector dropdown */}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 px-2 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                                  >
+                                    <span>{styleLabels[currentStyle].icon}</span>
+                                    <span className="hidden sm:inline">{styleLabels[currentStyle].label}</span>
+                                    <ChevronDown className="h-3 w-3" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-40">
+                                  {(Object.keys(styleLabels) as NonNullable<VariationStyle>[]).map((styleKey) => (
+                                    <DropdownMenuItem
+                                      key={styleKey}
+                                      onClick={() => updateVariationStyle(variation.text, styleKey)}
+                                      className={cn(
+                                        "gap-2 cursor-pointer",
+                                        currentStyle === styleKey && "bg-accent"
+                                      )}
+                                    >
+                                      <span>{styleLabels[styleKey].icon}</span>
+                                      <span>{styleLabels[styleKey].label}</span>
+                                      {currentStyle === styleKey && (
+                                        <Check className="h-3 w-3 ml-auto" />
+                                      )}
+                                    </DropdownMenuItem>
+                                  ))}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                              
+                              <button
+                                onClick={() => removeVariation(variation.text)}
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+                              #{index + 1}
+                            </span>
                           )}
                         </div>
                       </div>
