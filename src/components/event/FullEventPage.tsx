@@ -311,6 +311,8 @@ export const FullEventPage = ({
             imageAssets={event.imageAssets || []}
             onImageAssetsChange={editHandler((imageAssets) => updateEvent({ imageAssets }))}
             canEdit={canEdit}
+            entityId={eventId}
+            entityType="event"
           />
         );
       case 'misuse':

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { X, Download, Upload, Image as ImageIcon, Eye, ZoomIn, Expand, FolderOpen } from 'lucide-react';
+import { X, Download, Upload, Image as ImageIcon, Expand, FolderOpen, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
@@ -7,6 +7,8 @@ import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { cn } from '@/lib/utils';
 import { safeUUID } from '@/lib/safeUUID';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { toast } from 'sonner';
 
 // Image Asset type
 export interface ImageAsset {
@@ -25,6 +27,10 @@ interface ImageAssetsSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   /** Controls whether editing is allowed */
   canEdit?: boolean;
+  /** Entity ID for storage uploads */
+  entityId?: string;
+  /** Entity type for storage uploads */
+  entityType?: 'brand' | 'event' | 'product';
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -39,33 +45,78 @@ export const ImageAssetsSection = ({
   customSubtitle, 
   onSubtitleChange,
   canEdit = false,
+  entityId,
+  entityType = 'brand',
 }: ImageAssetsSectionProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [previewAsset, setPreviewAsset] = useState<ImageAsset | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  const handleFileDrop = useCallback((file: File) => {
+  // Use storage upload hook for proper blob storage (avoids base64 database storage issues)
+  const { uploadFile, isUploading } = useStorageUpload({ 
+    entityType, 
+    entityId 
+  });
+
+  const handleFileDrop = useCallback(async (file: File) => {
     // Only accept image files
     if (!file.type.startsWith('image/')) {
-      console.error('Only image files (PNG, JPG, WEBP) are allowed');
+      toast.error('Only image files (PNG, JPG, WEBP) are allowed');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const url = event.target?.result as string;
-      const newAsset: ImageAsset = {
-        id: safeUUID(),
-        name: file.name,
-        type: file.type,
-        url,
-        size: formatFileSize(file.size),
-        uploadedAt: new Date().toISOString(),
-      };
-      onImageAssetsChange?.([...imageAssets, newAsset]);
+    const assetId = safeUUID();
+    
+    // Try to upload to storage first (preferred for large files)
+    if (entityId) {
+      const result = await uploadFile(file, 'asset', `asset-${assetId}`);
+      if (result) {
+        const newAsset: ImageAsset = {
+          id: assetId,
+          name: file.name.split('.')[0] || 'Image',
+          type: file.type,
+          url: result.url,
+          size: formatFileSize(file.size),
+          uploadedAt: new Date().toISOString(),
+        };
+        onImageAssetsChange?.([...imageAssets, newAsset]);
+        return;
+      }
+    }
+
+    // Fallback to base64 for small files or when storage isn't available
+    // Use chunked conversion to avoid stack overflow with large files
+    const arrayBuffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    
+    // Check if file is too large for base64 storage (> 2MB)
+    if (bytes.length > 2 * 1024 * 1024) {
+      toast.error('File too large. Please save the entity first to enable large file uploads.');
+      return;
+    }
+    
+    // Chunked base64 conversion to avoid stack overflow
+    const chunkSize = 8192;
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+      for (let j = 0; j < chunk.length; j++) {
+        binary += String.fromCharCode(chunk[j]);
+      }
+    }
+    const base64 = btoa(binary);
+    const dataUrl = `data:${file.type};base64,${base64}`;
+    
+    const newAsset: ImageAsset = {
+      id: assetId,
+      name: file.name.split('.')[0] || 'Image',
+      type: file.type,
+      url: dataUrl,
+      size: formatFileSize(file.size),
+      uploadedAt: new Date().toISOString(),
     };
-    reader.readAsDataURL(file);
-  }, [imageAssets, onImageAssetsChange]);
+    onImageAssetsChange?.([...imageAssets, newAsset]);
+  }, [imageAssets, onImageAssetsChange, entityId, uploadFile]);
 
   const handleLibrarySelect = useCallback((url: string) => {
     const urlParts = url.split('/');
@@ -85,13 +136,12 @@ export const ImageAssetsSection = ({
     onFileDrop: handleFileDrop,
     accept: 'image/png,image/jpeg,image/jpg,image/webp',
     maxSize: 10 * 1024 * 1024, // 10MB for images
-    disabled: !canEdit,
+    disabled: !canEdit || isUploading,
   });
 
   const deleteAsset = (id: string) => {
     onImageAssetsChange?.(imageAssets.filter(a => a.id !== id));
   };
-
   const downloadAsset = (asset: ImageAsset) => {
     const link = document.createElement('a');
     link.href = asset.url;
@@ -129,9 +179,13 @@ export const ImageAssetsSection = ({
               }
               defaultCategory="Product Images"
             />
-            <Button onClick={openFilePicker} size="sm" className="gap-2">
-              <Upload className="h-4 w-4" />
-              Upload
+            <Button onClick={openFilePicker} size="sm" className="gap-2" disabled={isUploading}>
+              {isUploading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+              {isUploading ? 'Uploading...' : 'Upload'}
             </Button>
           </div>
         )}
