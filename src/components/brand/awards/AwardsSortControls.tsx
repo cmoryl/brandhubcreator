@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUpDown, Calendar, Building2, Trophy, LayoutGrid, List } from 'lucide-react';
+import { ArrowUpDown, Calendar, Building2, Trophy, LayoutGrid, List, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
-export type SortOption = 'year-desc' | 'year-asc' | 'organization' | 'title';
+export type SortOption = 'year-desc' | 'year-asc' | 'organization' | 'title' | 'category';
 export type ViewMode = 'timeline' | 'grid';
 
 interface AwardsSortControlsProps {
@@ -24,6 +24,7 @@ interface AwardsSortControlsProps {
 const sortLabels: Record<SortOption, { label: string; icon: React.ReactNode }> = {
   'year-desc': { label: 'Newest First', icon: <Calendar className="h-3.5 w-3.5" /> },
   'year-asc': { label: 'Oldest First', icon: <Calendar className="h-3.5 w-3.5" /> },
+  'category': { label: 'Category', icon: <Tag className="h-3.5 w-3.5" /> },
   'organization': { label: 'Organization', icon: <Building2 className="h-3.5 w-3.5" /> },
   'title': { label: 'Title', icon: <Trophy className="h-3.5 w-3.5" /> },
 };

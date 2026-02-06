@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
-import { Award, Plus, Upload, X, Loader2 } from 'lucide-react';
+import { Award, Plus, Upload, X, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,12 +28,17 @@ interface AwardsSectionProps {
   entityId?: string;
 }
 
+const ITEMS_PER_ROW = 6; // Based on xl:grid-cols-6
+const INITIAL_ROWS = 2;
+const INITIAL_VISIBLE_COUNT = ITEMS_PER_ROW * INITIAL_ROWS;
+
 const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, entityType = 'product', entityId }: AwardsSectionProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingAward, setEditingAward] = useState<BrandAward | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>('year-desc');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [isExpanded, setIsExpanded] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -137,10 +142,23 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, ent
         return sorted.sort((a, b) => a.organization.localeCompare(b.organization));
       case 'title':
         return sorted.sort((a, b) => a.title.localeCompare(b.title));
+      case 'category':
+        return sorted.sort((a, b) => (a.category || '').localeCompare(b.category || ''));
       default:
         return sorted;
     }
   }, [awards, sortOption]);
+
+  // Determine visible awards based on expanded state
+  const visibleAwards = useMemo(() => {
+    if (isExpanded || viewMode === 'timeline') {
+      return sortedAwards;
+    }
+    return sortedAwards.slice(0, INITIAL_VISIBLE_COUNT);
+  }, [sortedAwards, isExpanded, viewMode]);
+
+  const hasMoreAwards = sortedAwards.length > INITIAL_VISIBLE_COUNT;
+  const hiddenCount = sortedAwards.length - INITIAL_VISIBLE_COUNT;
 
   // Group awards by year for timeline view
   const { awardsByYear, sortedYears } = useMemo(() => {
@@ -354,7 +372,7 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, ent
             />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-              {sortedAwards.map((award, index) => (
+              {visibleAwards.map((award, index) => (
                 <AwardCard
                   key={award.id}
                   award={award}
@@ -365,6 +383,30 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, ent
                   animationDelay={index * 30}
                 />
               ))}
+            </div>
+          )}
+
+          {/* Show More / Show Less Button */}
+          {viewMode === 'grid' && hasMoreAwards && (
+            <div className="flex justify-center pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="gap-2"
+              >
+                {isExpanded ? (
+                  <>
+                    <ChevronUp className="h-4 w-4" />
+                    Show Less
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-4 w-4" />
+                    View {hiddenCount} More Awards
+                  </>
+                )}
+              </Button>
             </div>
           )}
         </div>
