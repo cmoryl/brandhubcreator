@@ -39,6 +39,7 @@ import { GlobalLinkUniverseSection } from './GlobalLinkUniverseSection';
 import { InsightsSection } from './InsightsSection';
 import { LeafletLocationsSection } from './LeafletLocationsSection';
 import { BrandEventSignageSection } from './BrandEventSignageSection';
+import { ClientLogosSection } from './ClientLogosSection';
 import { Separator } from '@/components/ui/separator';
 
 // Framer motion variants for smooth section animations
@@ -353,6 +354,13 @@ export const FullBrandPage = ({
           onLayoutChange={onLayoutChange}
           brandName={brand.hero.name}
           brandColors={brand.colors}
+        />;
+      case 'clientlogos':
+        return <ClientLogosSection 
+          clientLogos={brand.clientLogos || []} 
+          onClientLogosChange={editHandler((clientLogos) => onBrandUpdate({ clientLogos }))} 
+          customSubtitle={customSubtitle} 
+          onSubtitleChange={onSubtitleChange}
         />;
       default: return null;
     }

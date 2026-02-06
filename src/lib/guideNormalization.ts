@@ -26,6 +26,7 @@ import {
   BrandWebinar,
   BrandAward,
   ImageAsset,
+  ClientLogo,
 } from '@/types/brand';
 import { 
   EventGuide, 
@@ -222,6 +223,7 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     statistics: safeArray<StatisticItem>(g.statistics),
     webinars: safeArray<BrandWebinar>(g.webinars),
     awards: safeArray<BrandAward>(g.awards),
+    clientLogos: safeArray<ClientLogo>(g.clientLogos),
     
     // Objects
     qr: safeObject(g.qr, DEFAULT_QR),

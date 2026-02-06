@@ -51,6 +51,7 @@ import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { ProductsSection } from '@/components/brand/ProductsSection';
 import { WebinarSeriesSection } from '@/components/brand/WebinarSeriesSection';
 import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
+import { ClientLogosSection } from '@/components/brand/ClientLogosSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
@@ -688,6 +689,7 @@ const BrandEditor = () => {
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={brand.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateBrand({ templateSpecs }))} brandColors={brand.colors || []} />;
       case 'products': return <ProductsSection brandId={brand.id} />;
       case 'sponsorlogos': return <SponsorLogosSection sponsors={brand.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => updateBrand({ sponsorLogos }))} />;
+      case 'clientlogos': return <ClientLogosSection clientLogos={brand.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => updateBrand({ clientLogos }))} />;
       default: return null;
     }
   };
