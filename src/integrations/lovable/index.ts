@@ -2,9 +2,6 @@
 
 import { createLovableAuth } from "@lovable.dev/cloud-auth-js";
 import { supabase } from "../supabase/client";
-
-// @lovable.dev/cloud-auth-js currently requires a config object argument.
-// Passing an empty config uses the library defaults.
 const lovableAuth = createLovableAuth({});
 
 type SignInOptions = {
