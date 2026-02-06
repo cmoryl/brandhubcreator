@@ -53,7 +53,7 @@ export const ImageAssetsSection = ({
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   // Use storage upload hook for proper blob storage (avoids base64 database storage issues)
-  const { uploadFile, isUploading } = useStorageUpload({ 
+  const { uploadFile, isUploading, uploadProgress } = useStorageUpload({ 
     entityType, 
     entityId 
   });
@@ -199,6 +199,25 @@ export const ImageAssetsSection = ({
         onChange={handleInputChange}
         className="hidden"
       />
+
+      {/* Upload Progress Bar */}
+      {isUploading && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Uploading image...
+            </span>
+            <span className="font-medium">{uploadProgress}%</span>
+          </div>
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-primary rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {imageAssets.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
