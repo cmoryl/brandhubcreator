@@ -20,6 +20,7 @@ import {
   MAP_TILE_CONFIGS, 
   MAP_THEME_PRESETS,
   DEFAULT_MAP_THEME,
+  TILE_CONFIGS_BY_CATEGORY,
 } from '@/types/mapTheme';
 
 export function GlobalMapThemeEditor() {
@@ -181,24 +182,74 @@ export function GlobalMapThemeEditor() {
           </TabsContent>
 
           {/* Tiles Tab */}
-          <TabsContent value="tiles" className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {Object.values(MAP_TILE_CONFIGS).map((config) => (
-                <button
-                  key={config.id}
-                  onClick={() => handleTileStyleChange(config.id)}
-                  className={cn(
-                    "p-4 rounded-lg border-2 transition-all",
-                    "hover:border-primary/50 hover:shadow-md",
-                    localTheme.tileStyle === config.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border"
-                  )}
-                >
-                  <span className="text-2xl">{config.preview}</span>
-                  <p className="mt-2 font-medium">{config.label}</p>
-                </button>
-              ))}
+          <TabsContent value="tiles" className="space-y-6">
+            {/* Basic Styles */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Basic Styles</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {TILE_CONFIGS_BY_CATEGORY.basic.map((config) => (
+                  <button
+                    key={config.id}
+                    onClick={() => handleTileStyleChange(config.id)}
+                    className={cn(
+                      "p-4 rounded-lg border-2 transition-all",
+                      "hover:border-primary/50 hover:shadow-md",
+                      localTheme.tileStyle === config.id
+                        ? "border-primary bg-primary/5"
+                        : "border-border"
+                    )}
+                  >
+                    <span className="text-2xl">{config.preview}</span>
+                    <p className="mt-2 font-medium text-sm">{config.label}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Professional Styles */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Professional Styles</Label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {TILE_CONFIGS_BY_CATEGORY.professional.map((config) => (
+                  <button
+                    key={config.id}
+                    onClick={() => handleTileStyleChange(config.id)}
+                    className={cn(
+                      "p-4 rounded-lg border-2 transition-all",
+                      "hover:border-primary/50 hover:shadow-md",
+                      localTheme.tileStyle === config.id
+                        ? "border-primary bg-primary/5"
+                        : "border-border"
+                    )}
+                  >
+                    <span className="text-2xl">{config.preview}</span>
+                    <p className="mt-2 font-medium text-sm">{config.label}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Artistic Styles */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Artistic Styles</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {TILE_CONFIGS_BY_CATEGORY.artistic.map((config) => (
+                  <button
+                    key={config.id}
+                    onClick={() => handleTileStyleChange(config.id)}
+                    className={cn(
+                      "p-4 rounded-lg border-2 transition-all",
+                      "hover:border-primary/50 hover:shadow-md",
+                      localTheme.tileStyle === config.id
+                        ? "border-primary bg-primary/5"
+                        : "border-border"
+                    )}
+                  >
+                    <span className="text-2xl">{config.preview}</span>
+                    <p className="mt-2 font-medium text-sm">{config.label}</p>
+                  </button>
+                ))}
+              </div>
             </div>
           </TabsContent>
 
