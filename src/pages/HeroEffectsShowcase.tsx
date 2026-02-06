@@ -314,7 +314,11 @@ const HeroEffectsShowcase = () => {
           {EFFECTS.map((effect) => (
             <Card 
               key={effect.id}
-              className="group overflow-hidden transition-all duration-300 hover:shadow-xl"
+              className="group overflow-hidden transition-all duration-300 hover:shadow-xl cursor-pointer"
+              onClick={() => {
+                setSelectedEffect(effect.id);
+                setColorScheme(effect.defaultColorScheme);
+              }}
             >
               {/* Effect Preview - Large interactive area */}
               <div className="relative h-72 md:h-80 overflow-hidden">
