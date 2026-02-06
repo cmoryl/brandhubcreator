@@ -33,7 +33,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { SectionHeader } from './SectionHeader';
 import { SyncValuesButton } from './SyncValuesButton';
 import type { LucideIcon } from 'lucide-react';
-import { getPillarImage, getRandomPillarImage } from '@/assets/pillars';
+import { getPillarImage, getStablePillarImage } from '@/assets/pillars';
 
 interface ValuesSectionProps {
   values: BrandValue[];
@@ -231,14 +231,12 @@ export const ValuesSection = ({
 
   const addValue = () => {
     if (!onValuesChange) return;
-    const randomImage = getRandomPillarImage();
     const newValue: ExtendedBrandValue = {
       id: crypto.randomUUID(),
       text: 'New Value',
       description: 'Describe what this value means to your organization',
       icon: 'heart',
       useImage: true,
-      imageUrl: randomImage,
     };
     onValuesChange([...values, newValue]);
     setEditingId(newValue.id);
@@ -451,22 +449,29 @@ export const ValuesSection = ({
                 </div>
               ) : (
               <>
-                  {/* Full-width image at top for image mode */}
-                  {extValue.useImage && extValue.imageUrl && (
-                    <div className="absolute inset-x-0 top-0 h-32 rounded-t-xl overflow-hidden">
-                      <img 
-                        src={extValue.imageUrl} 
-                        alt={value.text} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-card" />
-                    </div>
-                  )}
+                  {/* Full-width image at top for image mode - resolve from assets based on text */}
+                  {(() => {
+                    const resolvedImage = extValue.useImage 
+                      ? (getPillarImage(value.text) || getStablePillarImage(value.text))
+                      : null;
+                    
+                    return resolvedImage && (
+                      <div className="absolute inset-x-0 top-0 h-32 rounded-t-xl overflow-hidden">
+                        <img 
+                          src={resolvedImage} 
+                          alt={value.text} 
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-card" />
+                      </div>
+                    );
+                  })()}
                   
-                  <div className={`flex items-start justify-between ${extValue.useImage && extValue.imageUrl ? 'mt-24' : ''} mb-4`}>
-                    {!extValue.useImage || !extValue.imageUrl ? (
+                  {/* Adjust margin and show icon only if not in image mode */}
+                  <div className={`flex items-start justify-between ${extValue.useImage ? 'mt-24' : ''} mb-4`}>
+                    {!extValue.useImage ? (
                       <div className="p-3 bg-accent/10 rounded-xl transition-all duration-300 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg group-hover:shadow-accent/20">
                         {IconComponent ? (
                           <IconComponent className="h-6 w-6 text-accent transition-transform duration-300 group-hover:scale-110" />
