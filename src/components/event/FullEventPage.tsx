@@ -15,6 +15,8 @@ import { MisuseSection } from '@/components/brand/MisuseSection';
 import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
+import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
+import { ClientLogosSection } from '@/components/brand/ClientLogosSection';
 import { EventDetailsSection } from './EventDetailsSection';
 import { EventLogosSection } from './EventLogosSection';
 import { EventSignageSection } from './EventSignageSection';
@@ -409,6 +411,20 @@ export const FullEventPage = ({
             eventName={event.hero?.name}
             eventColors={event.colors}
             eventTagline={event.tagline?.primary}
+          />
+        );
+      case 'sponsorlogos':
+        return (
+          <SponsorLogosSection
+            sponsors={event.sponsorLogos || []}
+            onSponsorsChange={editHandler((sponsorLogos) => updateEvent({ sponsorLogos }))}
+          />
+        );
+      case 'clientlogos':
+        return (
+          <ClientLogosSection
+            clientLogos={event.clientLogos || []}
+            onClientLogosChange={editHandler((clientLogos) => updateEvent({ clientLogos }))}
           />
         );
       default:

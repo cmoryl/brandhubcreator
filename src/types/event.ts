@@ -42,6 +42,8 @@ import {
   SectionId,
   SectionLayoutSettings,
   DEFAULT_PAGE_SETTINGS,
+  ClientLogo,
+  SponsorLogo,
 } from './brand';
 
 // Event-specific types
@@ -254,7 +256,9 @@ export type EventSectionId =
   | 'eventwebsites'     // Event website links
   | 'subevents'         // Sub-events / regional events
   | 'sharedassets'      // Shared asset library for inheritance
-  | 'eventpatterns';    // Event-specific patterns
+  | 'eventpatterns'     // Event-specific patterns
+  | 'sponsorlogos'      // Sponsor logos
+  | 'clientlogos';      // Client logos
 
 // Default Event Section Order
 export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
@@ -285,6 +289,8 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'templates',
   'brochures',
   'templatespecs',
+  'sponsorlogos',
+  'clientlogos',
   'assets',
   'imageassets',
   'misuse',
@@ -363,6 +369,10 @@ export interface EventGuide {
   revenueData?: RevenueDataPoint[];
   statistics?: StatisticItem[];
   infographicLayout?: InfographicLayout;
+  
+  // Partner assets
+  sponsorLogos?: SponsorLogo[];
+  clientLogos?: ClientLogo[];
   
   // Metadata
   createdAt: Date;
