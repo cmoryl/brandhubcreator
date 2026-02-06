@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { Mail, Lock, ArrowLeft, Loader2, Chrome, RotateCcw, Activity, AlertTriangle } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
@@ -24,6 +24,7 @@ const authSchema = z.object({
 
 const AuthPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { resolvedTheme } = useTheme();
   const { user, isAdmin, isApproved, accessStatus, accessError, isLoading: authLoading, signIn, signUp, signInWithGoogle } = useAuth();
   const { organization, isLoading: orgLoading } = useOrganization();
@@ -48,6 +49,37 @@ const AuthPage = () => {
       setShowSessionRecovery(false);
     }
   }, [authLoading]);
+
+  // If we were opened in a new tab specifically to run OAuth, auto-trigger Google sign-in once.
+  // This avoids Firefox COOP issues when trying OAuth inside the embedded Preview iframe.
+  useEffect(() => {
+    if (authLoading) return;
+    if (user) return;
+
+    const oauth = searchParams.get('oauth');
+    if (oauth !== 'google') return;
+
+    // Remove params so refresh/back doesn't keep re-triggering.
+    const url = new URL(window.location.href);
+    url.searchParams.delete('oauth');
+    url.searchParams.delete('fromPreview');
+    window.history.replaceState({}, '', url.toString());
+
+    (async () => {
+      setIsGoogleLoading(true);
+      const { error } = await signInWithGoogle();
+      if (error) {
+        console.error('[AUTH] Google sign-in failed:', error.message);
+        toast({
+          title: 'Sign-In Failed',
+          description: 'Unable to sign in with Google. Please try again.',
+          variant: 'destructive',
+        });
+        setIsGoogleLoading(false);
+      }
+      // On success, the normal redirect effect will handle navigation.
+    })();
+  }, [authLoading, user, searchParams, signInWithGoogle, toast]);
 
   const handleClearSession = async () => {
     try {
@@ -479,25 +511,53 @@ const AuthPage = () => {
                     className="w-full h-11 sm:h-10 text-base sm:text-sm touch-manipulation"
                     onClick={async () => {
                       setIsGoogleLoading(true);
-                      const { error } = await signInWithGoogle();
-                      if (error) {
-                        const message = error.message || 'Unable to sign in with Google.';
-                        const isNetwork = /failed to fetch|network error|timeout|unreachable/i.test(message);
-                        if (isNetwork) {
-                          setAuthNetworkIssue(message);
-                          setShowSessionRecovery(true);
+                      try {
+                        // Firefox can block OAuth popups inside the embedded Preview iframe due to COOP.
+                        // Workaround: open the app in a new tab and trigger redirect-based OAuth there.
+                        let isInIframe = false;
+                        try {
+                          isInIframe = window.self !== window.top;
+                        } catch {
+                          isInIframe = true;
                         }
-                        console.error('[AUTH] Google sign-in failed:', message);
-                        toast({
-                          title: 'Sign-In Failed',
-                          description: isNetwork
-                            ? 'Network error: the app cannot reach the backend right now. Run diagnostics and try disabling VPN/proxy/ad-blockers.'
-                            : 'Unable to sign in with Google. Please try again.',
-                          variant: 'destructive',
-                        });
+                        const isFirefox = /firefox/i.test(navigator.userAgent);
+
+                        if (isInIframe && isFirefox) {
+                          const url = new URL(window.location.href);
+                          url.pathname = '/auth';
+                          url.searchParams.set('oauth', 'google');
+                          url.searchParams.set('fromPreview', '1');
+
+                          window.open(url.toString(), '_blank', 'noopener,noreferrer');
+                          toast({
+                            title: 'Continue in a new tab',
+                            description: 'Google sign-in is blocked inside the embedded preview in Firefox. A new tab was opened—complete sign-in there.',
+                          });
+                          return;
+                        }
+
+                        const { error } = await signInWithGoogle();
+                        if (error) {
+                          const message = error.message || 'Unable to sign in with Google.';
+                          const isNetwork = /failed to fetch|network error|timeout|unreachable/i.test(message);
+                          if (isNetwork) {
+                            setAuthNetworkIssue(message);
+                            setShowSessionRecovery(true);
+                          }
+                          console.error('[AUTH] Google sign-in failed:', message);
+                          toast({
+                            title: 'Sign-In Failed',
+                            description: isNetwork
+                              ? 'Network error: the app cannot reach the backend right now. Run diagnostics and try disabling VPN/proxy/ad-blockers.'
+                              : 'Unable to sign in with Google. Please try again.',
+                            variant: 'destructive',
+                          });
+                        } else {
+                          setAuthNetworkIssue(null);
+                        }
+                      } finally {
+                        // If OAuth redirects away, this won't run; otherwise it prevents a stuck spinner.
                         setIsGoogleLoading(false);
-                      } else {
-                        setAuthNetworkIssue(null);
                       }
                     }}
                     disabled={isGoogleLoading}
