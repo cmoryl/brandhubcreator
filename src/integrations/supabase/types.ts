@@ -18,40 +18,75 @@ export type Database = {
         Row: {
           action_type: string
           brand_id: string
+          browser: string | null
           created_at: string
           details: Json | null
+          device_type: string | null
           entity_name: string | null
           entity_type: string
           id: string
           ip_address: string | null
+          new_value: Json | null
+          old_value: Json | null
+          organization_id: string | null
+          outcome: string | null
+          session_id: string | null
+          target_user_email: string | null
+          target_user_id: string | null
           user_email: string | null
           user_id: string
         }
         Insert: {
           action_type?: string
           brand_id: string
+          browser?: string | null
           created_at?: string
           details?: Json | null
+          device_type?: string | null
           entity_name?: string | null
           entity_type?: string
           id?: string
           ip_address?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
+          organization_id?: string | null
+          outcome?: string | null
+          session_id?: string | null
+          target_user_email?: string | null
+          target_user_id?: string | null
           user_email?: string | null
           user_id: string
         }
         Update: {
           action_type?: string
           brand_id?: string
+          browser?: string | null
           created_at?: string
           details?: Json | null
+          device_type?: string | null
           entity_name?: string | null
           entity_type?: string
           id?: string
           ip_address?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
+          organization_id?: string | null
+          outcome?: string | null
+          session_id?: string | null
+          target_user_email?: string | null
+          target_user_id?: string | null
           user_email?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       backup_history: {
         Row: {
@@ -1260,9 +1295,12 @@ export type Database = {
           brand_id: string | null
           created_at: string | null
           details: Json | null
+          device_type: string | null
           entity_name: string | null
           entity_type: string | null
           id: string | null
+          organization_id: string | null
+          outcome: string | null
           user_id: string | null
         }
         Insert: {
@@ -1270,9 +1308,12 @@ export type Database = {
           brand_id?: string | null
           created_at?: string | null
           details?: Json | null
+          device_type?: string | null
           entity_name?: string | null
           entity_type?: string | null
           id?: string | null
+          organization_id?: string | null
+          outcome?: string | null
           user_id?: string | null
         }
         Update: {
@@ -1280,12 +1321,23 @@ export type Database = {
           brand_id?: string | null
           created_at?: string | null
           details?: Json | null
+          device_type?: string | null
           entity_name?: string | null
           entity_type?: string | null
           id?: string | null
+          organization_id?: string | null
+          outcome?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
@@ -1482,16 +1534,36 @@ export type Database = {
         }
         Returns: boolean
       }
-      insert_audit_log: {
-        Args: {
-          p_action_type?: string
-          p_brand_id?: string
-          p_details?: Json
-          p_entity_name?: string
-          p_entity_type?: string
-        }
-        Returns: string
-      }
+      insert_audit_log:
+        | {
+            Args: {
+              p_action_type?: string
+              p_brand_id?: string
+              p_details?: Json
+              p_entity_name?: string
+              p_entity_type?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_action_type?: string
+              p_brand_id?: string
+              p_browser?: string
+              p_details?: Json
+              p_device_type?: string
+              p_entity_name?: string
+              p_entity_type?: string
+              p_new_value?: Json
+              p_old_value?: Json
+              p_organization_id?: string
+              p_outcome?: string
+              p_session_id?: string
+              p_target_user_email?: string
+              p_target_user_id?: string
+            }
+            Returns: string
+          }
       is_org_admin: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean

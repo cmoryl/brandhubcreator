@@ -35,6 +35,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminOrganizations } from '@/hooks/useAdminOrganizations';
+import { logUserApproved, logUserRejected, logActionFailed } from '@/lib/auditLog';
 
 interface PendingUser {
   id: string;
@@ -100,6 +101,7 @@ export function UserApprovalManager() {
   };
 
   const handleApprove = async (userId: string) => {
+    const userEmail = confirmDialog?.email || 'Unknown';
     try {
       // First, approve the user
       const { error } = await supabase
@@ -112,6 +114,9 @@ export function UserApprovalManager() {
         .eq('user_id', userId);
 
       if (error) throw error;
+
+      // Log the approval
+      await logUserApproved(userId, userEmail);
 
       // If an organization is selected, add user as a member
       if (selectedOrgId) {
@@ -139,12 +144,14 @@ export function UserApprovalManager() {
       fetchUsers();
     } catch (error) {
       console.error('Error approving user:', error);
+      await logActionFailed('user', 'approve', userEmail, String(error), userId);
       toast.error('Failed to approve user');
     }
     setConfirmDialog(null);
   };
 
   const handleReject = async (userId: string) => {
+    const userEmail = confirmDialog?.email || 'Unknown';
     try {
       // For rejection, we'll keep the user but mark them as rejected
       // Alternatively, you could delete the profile
@@ -155,10 +162,14 @@ export function UserApprovalManager() {
 
       if (error) throw error;
 
+      // Log the rejection
+      await logUserRejected(userId, userEmail, 'User registration rejected by admin');
+
       toast.success('User rejected and removed');
       fetchUsers();
     } catch (error) {
       console.error('Error rejecting user:', error);
+      await logActionFailed('user', 'reject', userEmail, String(error), userId);
       toast.error('Failed to reject user');
     }
     setConfirmDialog(null);
