@@ -279,7 +279,7 @@ export const GradientSpheresHero = memo(function GradientSpheresHero({
   return (
     <div
       ref={containerRef}
-      className={cn('absolute inset-0 overflow-hidden z-0', className)}
+      className={cn('absolute inset-0 overflow-hidden z-0 pointer-events-auto', className)}
       onMouseMove={handleMouseMove}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
