@@ -128,76 +128,71 @@ export const GradientBarsHero = memo(function GradientBarsHero({
     setMousePos(prev => ({ ...prev, isPressed: false }));
   }, []);
 
-  // Generate bars with enhanced interactivity
+  // Find which bar the mouse is hovering over (accordion logic)
+  const hoveredBarIndex = mousePos.isActive
+    ? Math.round(smoothedPos.x * (barCount - 1))
+    : -1;
+
+  // Generate bars with accordion effect
   const bars = Array.from({ length: barCount }, (_, i) => {
     const progress = i / (barCount - 1);
     const centerIndex = (barCount - 1) / 2;
     const distFromCenter = i - centerIndex;
     const normalizedDist = distFromCenter / centerIndex; // -1 to 1
     
-    // Calculate mouse proximity to this bar's horizontal position
+    // Calculate distance from hovered bar (for accordion)
+    const distFromHovered = hoveredBarIndex >= 0 ? Math.abs(i - hoveredBarIndex) : barCount;
+    
+    // Accordion width calculation
+    // Hovered bar = expanded (3x), adjacent = medium (1.5x), others = contracted (0.6x)
+    let widthMultiplier = 1;
+    if (mousePos.isActive && hoveredBarIndex >= 0) {
+      if (distFromHovered === 0) {
+        widthMultiplier = 3; // Hovered bar is 3x wider
+      } else if (distFromHovered === 1) {
+        widthMultiplier = 1.5; // Adjacent bars are 1.5x
+      } else if (distFromHovered === 2) {
+        widthMultiplier = 0.8; // Two away
+      } else {
+        widthMultiplier = 0.5; // Far bars contract
+      }
+    }
+    
+    // Mouse proximity for glow effects
     const barXPos = progress;
     const mouseDistToBar = Math.abs(smoothedPos.x - barXPos);
-    
-    // Magnetic attraction/repulsion based on mouse state
-    const magnetEffect = mousePos.isActive
-      ? mousePos.isPressed
-        ? (smoothedPos.x - barXPos) * config.magnetStrength * (1 - mouseDistToBar) // Attract when pressed
-        : (barXPos - smoothedPos.x) * config.magnetStrength * 0.3 * (1 - mouseDistToBar * 2) // Subtle repel on hover
-      : 0;
 
-    // CONTRACT/EXPAND: Bars spread apart when mouse is near, contract when far
-    const expandFactor = mousePos.isActive 
-      ? (1 - Math.min(mouseDistToBar * 2, 1)) * config.expandStrength * normalizedDist
-      : 0;
-
-    // Base parallax from mouse position
-    const depthFactor = normalizedDist;
-    const parallaxX = mousePos.isActive 
-      ? (smoothedPos.x - 0.5) * config.parallaxStrength * depthFactor * -1
-      : 0;
-
-    // Smooth wave animation with neighbor influence
-    const neighborWave = Math.sin(time * 1.2 + i * 0.3) * 2;
+    // Smooth wave animation
     const wavePhase = time + i * 0.5;
-    const primaryWave = Math.sin(wavePhase) * 4;
-    const secondaryWave = Math.sin(wavePhase * 0.6 + Math.PI / 4) * 3;
-    const combinedWave = primaryWave + secondaryWave + neighborWave;
+    const primaryWave = Math.sin(wavePhase) * 3;
+    const secondaryWave = Math.sin(wavePhase * 0.6 + Math.PI / 4) * 2;
+    const combinedWave = primaryWave + secondaryWave;
 
-    // Scale effect - bars near mouse get taller, pressed = compress
-    const baseScaleY = mousePos.isActive && mouseDistToBar < 0.25
-      ? 1 + (1 - mouseDistToBar / 0.25) * 0.12
-      : 1;
-    const scaleY = mousePos.isPressed && mouseDistToBar < 0.2
-      ? baseScaleY * 0.92 // Compress on click
-      : baseScaleY;
+    // Scale effect - hovered bar gets taller
+    const scaleY = hoveredBarIndex === i ? 1.02 : 1;
 
-    // Rotation tilt toward mouse
-    const rotateZ = mousePos.isActive
-      ? (smoothedPos.x - barXPos) * 3 * (1 - mouseDistToBar * 2)
+    // Rotation tilt toward mouse (subtle)
+    const rotateZ = mousePos.isActive && distFromHovered <= 2
+      ? (smoothedPos.x - barXPos) * 2
       : 0;
 
-    // Skew effect for 3D depth
-    const skewY = mousePos.isActive
-      ? (smoothedPos.y - 0.5) * 2 * (1 - mouseDistToBar)
-      : 0;
-
-    // Glow pulse when near mouse
-    const glowPulse = mousePos.isActive && mouseDistToBar < 0.15
-      ? 1 + Math.sin(time * 8) * 0.2
+    // Glow pulse when hovered
+    const glowPulse = hoveredBarIndex === i
+      ? 1 + Math.sin(time * 6) * 0.15
       : 1;
 
     return {
       id: i,
-      parallaxX: parallaxX + expandFactor + combinedWave + magnetEffect,
+      parallaxX: combinedWave,
       progress,
-      zIndex: barCount - Math.abs(i - Math.floor(barCount / 2)),
+      zIndex: hoveredBarIndex === i ? barCount + 1 : barCount - distFromHovered,
       waveOffset: combinedWave,
       scaleY,
       rotateZ,
-      skewY,
-      glowIntensity: mousePos.isActive && mouseDistToBar < 0.2 ? 1.5 * glowPulse : 1,
-      isNearMouse: mouseDistToBar < 0.15,
+      widthMultiplier,
+      glowIntensity: hoveredBarIndex === i ? 1.8 * glowPulse : distFromHovered <= 1 ? 1.2 : 1,
+      isHovered: hoveredBarIndex === i,
+      isNearHovered: distFromHovered <= 1,
       mouseProximity: 1 - Math.min(mouseDistToBar * 3, 1),
     };
   });
@@ -302,35 +297,34 @@ export const GradientBarsHero = memo(function GradientBarsHero({
       {/* Accordion bars container */}
       <div className="absolute inset-0 flex justify-center items-stretch z-0">
         {bars.map((bar, index) => {
-          const barWidth = 100 / (barCount * 0.4);
-          const overlap = barWidth * 0.65;
+          // Dynamic width based on accordion state
+          const baseWidth = 100 / barCount;
+          const accordionWidth = baseWidth * bar.widthMultiplier;
           
           return (
             <div
               key={bar.id}
               className="relative h-full origin-center"
               style={{
-                width: `${barWidth}%`,
-                marginLeft: index === 0 ? 0 : `-${overlap}%`,
-                transform: `translateX(${bar.parallaxX}px) scaleY(${bar.scaleY}) rotate(${bar.rotateZ}deg) skewY(${bar.skewY}deg)`,
+                width: `${accordionWidth}%`,
+                flex: `${bar.widthMultiplier} 1 0%`,
+                transform: `translateX(${bar.parallaxX}px) scaleY(${bar.scaleY}) rotate(${bar.rotateZ}deg)`,
                 zIndex: bar.zIndex,
-                transition: mousePos.isActive 
-                  ? 'transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-                  : 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
               }}
             >
               {/* Main bar panel */}
               <div
                 className="absolute inset-0 overflow-hidden rounded-sm"
                 style={{
-                  background: getBarGradient(index, bar.isNearMouse, bar.mouseProximity),
+                  background: getBarGradient(index, bar.isHovered, bar.mouseProximity),
                   boxShadow: `
                     inset 10px 0 45px hsla(${colors.primary}, 100%, 70%, ${0.35 * config.glowOpacity * bar.glowIntensity}),
                     inset -8px 0 35px hsla(${colors.secondary}, 60%, 28%, ${0.45 * bgColors.shadow}),
                     -5px 0 20px hsla(${colors.secondary - 20}, 50%, 15%, ${0.4 * bgColors.shadow}),
-                    ${bar.isNearMouse ? `0 0 30px hsla(${colors.primary}, 100%, 60%, ${0.3 * bar.mouseProximity})` : ''}
+                    ${bar.isHovered ? `0 0 40px hsla(${colors.primary}, 100%, 60%, 0.5)` : ''}
                   `,
-                  filter: `brightness(${brightnessMultiplier * (bar.glowIntensity > 1 ? 1.15 : 1)})`,
+                  filter: `brightness(${brightnessMultiplier * (bar.isHovered ? 1.2 : bar.isNearHovered ? 1.1 : 1)})`,
                 }}
               >
                 {/* Vertical gradient overlay */}
@@ -387,26 +381,26 @@ export const GradientBarsHero = memo(function GradientBarsHero({
                   }}
                 />
 
-                {/* Pulse ring when very close to mouse */}
-                {bar.isNearMouse && (
+                {/* Pulse ring when hovered */}
+                {bar.isHovered && (
                   <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
-                      background: `radial-gradient(ellipse at ${smoothedPos.x < bar.progress ? '0%' : '100%'} ${smoothedPos.y * 100}%, hsla(${colors.primary}, 100%, 75%, ${0.15 * bar.mouseProximity}) 0%, transparent 50%)`,
+                      background: `radial-gradient(ellipse at 50% ${smoothedPos.y * 100}%, hsla(${colors.primary}, 100%, 75%, 0.2) 0%, transparent 60%)`,
                     }}
                   />
                 )}
               </div>
 
               {/* Mouse-following highlight */}
-              {mousePos.isActive && (
+              {mousePos.isActive && bar.isHovered && (
                 <div
                   className="absolute inset-x-0 h-72 pointer-events-none"
                   style={{
                     top: `${smoothedPos.y * 100 - 18}%`,
                     background: `radial-gradient(
                       ellipse 120% 70% at 50% 50%,
-                      hsla(${colors.primary}, 100%, 75%, ${0.25 * (1 - Math.abs(bar.progress - smoothedPos.x) * 1.5)}) 0%,
+                      hsla(${colors.primary}, 100%, 75%, 0.35) 0%,
                       transparent 65%
                     )`,
                     transition: 'opacity 0.25s ease',
