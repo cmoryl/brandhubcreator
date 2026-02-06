@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect, memo } from 'react';
+import { useRef, useState, useCallback, useEffect, memo, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 
 export type HorizonGlowColorScheme = 'cyan' | 'purple' | 'blue' | 'teal' | 'rose' | 'custom';
@@ -12,6 +12,16 @@ interface HorizonGlowHeroProps {
   pulseAnimation?: boolean;
 }
 
+interface Ember {
+  id: number;
+  x: number;
+  size: number;
+  speed: number;
+  delay: number;
+  drift: number;
+  opacity: number;
+}
+
 const COLOR_SCHEMES: Record<Exclude<HorizonGlowColorScheme, 'custom'>, { primary: number; secondary: number }> = {
   'cyan': { primary: 185, secondary: 200 },
   'purple': { primary: 270, secondary: 290 },
@@ -19,6 +29,8 @@ const COLOR_SCHEMES: Record<Exclude<HorizonGlowColorScheme, 'custom'>, { primary
   'teal': { primary: 170, secondary: 190 },
   'rose': { primary: 340, secondary: 320 },
 };
+
+const EMBER_COUNT = 25;
 
 export const HorizonGlowHero = memo(function HorizonGlowHero({
   className = '',
@@ -38,6 +50,19 @@ export const HorizonGlowHero = memo(function HorizonGlowHero({
   const bgColors = mode === 'dark'
     ? { base: 'hsl(220, 30%, 6%)', gradient: 'hsl(220, 35%, 10%)' }
     : { base: 'hsl(210, 20%, 95%)', gradient: 'hsl(210, 25%, 90%)' };
+
+  // Generate ember configurations
+  const embers: Ember[] = useMemo(() => 
+    Array.from({ length: EMBER_COUNT }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      size: 2 + Math.random() * 4,
+      speed: 8 + Math.random() * 12, // Duration in seconds
+      delay: Math.random() * 8,
+      drift: (Math.random() - 0.5) * 40, // Horizontal drift
+      opacity: 0.3 + Math.random() * 0.5,
+    })),
+  []);
 
   // Smooth pulse animation
   useEffect(() => {
@@ -82,6 +107,27 @@ export const HorizonGlowHero = memo(function HorizonGlowHero({
           background: `linear-gradient(180deg, ${bgColors.base} 0%, ${bgColors.gradient} 100%)`,
         }}
       />
+
+      {/* Floating blue embers */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {embers.map((ember) => (
+          <div
+            key={ember.id}
+            className="absolute rounded-full"
+            style={{
+              left: `${ember.x}%`,
+              bottom: '-10px',
+              width: ember.size,
+              height: ember.size,
+              background: `radial-gradient(circle, hsla(${colors.primary}, 100%, 70%, ${ember.opacity * brightnessMultiplier}) 0%, hsla(${colors.primary}, 90%, 50%, 0) 70%)`,
+              boxShadow: `0 0 ${ember.size * 2}px hsla(${colors.primary}, 100%, 60%, ${ember.opacity * 0.5 * brightnessMultiplier})`,
+              animation: `emberFloat ${ember.speed}s ease-in-out infinite`,
+              animationDelay: `${ember.delay}s`,
+              '--drift': `${ember.drift}px`,
+            } as React.CSSProperties}
+          />
+        ))}
+      </div>
 
       {/* Main horizon glow arc */}
       <div
@@ -141,6 +187,26 @@ export const HorizonGlowHero = memo(function HorizonGlowHero({
             : 'radial-gradient(ellipse at center, transparent 40%, hsla(210, 20%, 90%, 0.3) 100%)',
         }}
       />
+
+      {/* Ember animation keyframes */}
+      <style>{`
+        @keyframes emberFloat {
+          0% {
+            transform: translateY(0) translateX(0) scale(1);
+            opacity: 0;
+          }
+          10% {
+            opacity: 1;
+          }
+          90% {
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(-100vh) translateX(var(--drift)) scale(0.5);
+            opacity: 0;
+          }
+        }
+      `}</style>
     </div>
   );
 });
