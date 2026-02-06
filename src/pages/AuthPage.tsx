@@ -32,6 +32,19 @@ const AuthPage = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showSessionRecovery, setShowSessionRecovery] = useState(false);
   const [authNetworkIssue, setAuthNetworkIssue] = useState<string | null>(null);
+  const [showFirefoxWarning, setShowFirefoxWarning] = useState(false);
+
+  // Detect Firefox + iframe once on mount
+  useEffect(() => {
+    let isInIframe = false;
+    try {
+      isInIframe = window.self !== window.top;
+    } catch {
+      isInIframe = true;
+    }
+    const isFirefox = /firefox/i.test(navigator.userAgent);
+    setShowFirefoxWarning(isInIframe && isFirefox);
+  }, []);
   // Detect stale session issues - if auth is loading for too long, offer recovery
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -505,70 +518,68 @@ const AuthPage = () => {
                     </div>
                   </div>
                   
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-11 sm:h-10 text-base sm:text-sm touch-manipulation"
-                    onClick={async () => {
-                      setIsGoogleLoading(true);
-                      try {
-                        // Firefox can block OAuth popups inside the embedded Preview iframe due to COOP.
-                        // Workaround: open the app in a new tab and trigger redirect-based OAuth there.
-                        let isInIframe = false;
+                  {/* Firefox iframe warning with direct link */}
+                  {showFirefoxWarning && (
+                    <div className="mb-4 p-3 bg-accent/10 border border-accent/30 rounded-lg text-sm">
+                      <p className="font-medium text-accent-foreground mb-2">
+                        Firefox Preview Limitation
+                      </p>
+                      <p className="text-muted-foreground mb-3">
+                        Google sign-in doesn't work inside the embedded preview in Firefox. Please open the app in a new tab:
+                      </p>
+                      <a
+                        href={`${window.location.origin}/auth?oauth=google`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center w-full h-10 px-4 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors"
+                      >
+                        <Chrome className="mr-2 h-4 w-4" />
+                        Open in New Tab to Sign In
+                      </a>
+                    </div>
+                  )}
+
+                  {!showFirefoxWarning && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full h-11 sm:h-10 text-base sm:text-sm touch-manipulation"
+                      onClick={async () => {
+                        setIsGoogleLoading(true);
                         try {
-                          isInIframe = window.self !== window.top;
-                        } catch {
-                          isInIframe = true;
-                        }
-                        const isFirefox = /firefox/i.test(navigator.userAgent);
-
-                        if (isInIframe && isFirefox) {
-                          const url = new URL(window.location.href);
-                          url.pathname = '/auth';
-                          url.searchParams.set('oauth', 'google');
-                          url.searchParams.set('fromPreview', '1');
-
-                          window.open(url.toString(), '_blank', 'noopener,noreferrer');
-                          toast({
-                            title: 'Continue in a new tab',
-                            description: 'Google sign-in is blocked inside the embedded preview in Firefox. A new tab was opened—complete sign-in there.',
-                          });
-                          return;
-                        }
-
-                        const { error } = await signInWithGoogle();
-                        if (error) {
-                          const message = error.message || 'Unable to sign in with Google.';
-                          const isNetwork = /failed to fetch|network error|timeout|unreachable/i.test(message);
-                          if (isNetwork) {
-                            setAuthNetworkIssue(message);
-                            setShowSessionRecovery(true);
+                          const { error } = await signInWithGoogle();
+                          if (error) {
+                            const message = error.message || 'Unable to sign in with Google.';
+                            const isNetwork = /failed to fetch|network error|timeout|unreachable/i.test(message);
+                            if (isNetwork) {
+                              setAuthNetworkIssue(message);
+                              setShowSessionRecovery(true);
+                            }
+                            console.error('[AUTH] Google sign-in failed:', message);
+                            toast({
+                              title: 'Sign-In Failed',
+                              description: isNetwork
+                                ? 'Network error: the app cannot reach the backend right now. Run diagnostics and try disabling VPN/proxy/ad-blockers.'
+                                : 'Unable to sign in with Google. Please try again.',
+                              variant: 'destructive',
+                            });
+                          } else {
+                            setAuthNetworkIssue(null);
                           }
-                          console.error('[AUTH] Google sign-in failed:', message);
-                          toast({
-                            title: 'Sign-In Failed',
-                            description: isNetwork
-                              ? 'Network error: the app cannot reach the backend right now. Run diagnostics and try disabling VPN/proxy/ad-blockers.'
-                              : 'Unable to sign in with Google. Please try again.',
-                            variant: 'destructive',
-                          });
-                        } else {
-                          setAuthNetworkIssue(null);
+                        } finally {
+                          setIsGoogleLoading(false);
                         }
-                      } finally {
-                        // If OAuth redirects away, this won't run; otherwise it prevents a stuck spinner.
-                        setIsGoogleLoading(false);
-                      }
-                    }}
-                    disabled={isGoogleLoading}
-                  >
-                    {isGoogleLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Chrome className="mr-2 h-4 w-4" />
-                    )}
-                    Continue with Google
-                  </Button>
+                      }}
+                      disabled={isGoogleLoading}
+                    >
+                      {isGoogleLoading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Chrome className="mr-2 h-4 w-4" />
+                      )}
+                      Continue with Google
+                    </Button>
+                  )}
                 </form>
                 
                 {/* Request Access & Back Options */}
