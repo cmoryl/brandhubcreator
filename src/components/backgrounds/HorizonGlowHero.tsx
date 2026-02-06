@@ -182,24 +182,30 @@ export const HorizonGlowHero = memo(function HorizonGlowHero({
         ))}
       </div>
 
-      {/* Mouse flare */}
+      {/* Mouse flare - circular gradient orb */}
       {mousePos.isActive && (
         <div
-          className="absolute pointer-events-none"
+          className="absolute pointer-events-none rounded-full"
           style={{
             left: `${mousePos.x * 100}%`,
             top: `${mousePos.y * 100}%`,
-            width: 120,
-            height: 120,
+            width: 180,
+            height: 180,
             transform: 'translate(-50%, -50%)',
-            background: `radial-gradient(circle, 
-              hsla(${colors.primary}, 100%, 80%, 0.6) 0%, 
-              hsla(${colors.primary}, 90%, 60%, 0.3) 30%,
-              hsla(${colors.secondary}, 80%, 50%, 0.1) 60%,
-              transparent 80%
+            background: `radial-gradient(circle at center, 
+              hsla(${colors.primary}, 100%, 85%, ${0.8 * brightnessMultiplier}) 0%, 
+              hsla(${colors.primary}, 95%, 70%, ${0.5 * brightnessMultiplier}) 20%,
+              hsla(${colors.primary + 10}, 85%, 55%, ${0.3 * brightnessMultiplier}) 40%,
+              hsla(${colors.secondary}, 75%, 45%, ${0.15 * brightnessMultiplier}) 60%,
+              hsla(${colors.secondary}, 60%, 35%, ${0.05 * brightnessMultiplier}) 80%,
+              transparent 100%
             )`,
-            boxShadow: `0 0 40px hsla(${colors.primary}, 100%, 70%, 0.5), 0 0 80px hsla(${colors.primary}, 90%, 60%, 0.3)`,
-            filter: 'blur(8px)',
+            boxShadow: `
+              0 0 30px hsla(${colors.primary}, 100%, 75%, ${0.6 * brightnessMultiplier}),
+              0 0 60px hsla(${colors.primary}, 95%, 65%, ${0.4 * brightnessMultiplier}),
+              0 0 100px hsla(${colors.secondary}, 80%, 55%, ${0.2 * brightnessMultiplier})
+            `,
+            filter: 'blur(12px)',
           }}
         />
       )}
