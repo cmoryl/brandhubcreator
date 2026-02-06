@@ -96,7 +96,7 @@ export const HorizonGlowHero = memo(function HorizonGlowHero({
   return (
     <div
       ref={containerRef}
-      className={cn('absolute inset-0 overflow-hidden z-0', className)}
+      className={cn('absolute inset-0 overflow-hidden z-0 pointer-events-auto', className)}
       onMouseMove={handleMouseMove}
       aria-hidden="true"
     >
