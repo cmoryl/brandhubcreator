@@ -23,12 +23,15 @@ global.ResizeObserver = class ResizeObserver {
 };
 
 // Mock IntersectionObserver
+// JSDOM doesn't implement it, but some component libs expect the full shape.
 global.IntersectionObserver = class IntersectionObserver {
   readonly root: Element | null = null;
   readonly rootMargin: string = '';
   readonly thresholds: ReadonlyArray<number> = [];
-  
-  constructor() {}
+  // Some TS DOM libs include this newer property.
+  readonly scrollMargin: string = '';
+
+  constructor(_callback: IntersectionObserverCallback, _options?: IntersectionObserverInit) {}
   observe() {}
   unobserve() {}
   disconnect() {}
