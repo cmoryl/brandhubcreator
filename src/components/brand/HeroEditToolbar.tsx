@@ -244,14 +244,14 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
     return (
       <div 
         ref={ref}
-        className="absolute inset-0 z-40 bg-black/40 flex items-center justify-center transition-opacity animate-fade-in"
+        className="absolute top-16 left-1/2 -translate-x-1/2 z-50 transition-opacity animate-fade-in"
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
       >
-        {/* Enhanced toolbar container with tabs */}
+        {/* Enhanced toolbar container with tabs - positioned at top, not blocking content */}
         <div 
-          className="bg-black/70 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl max-w-lg w-full mx-4 overflow-hidden"
+          className="bg-black/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl max-w-lg w-full overflow-hidden"
           onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
         >
