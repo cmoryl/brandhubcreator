@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, lazy, Suspense } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock, Download, Settings, HardDrive, ClipboardCheck, TrendingUp } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
@@ -100,6 +100,7 @@ const PRODUCT_SLUG_ALIASES: Record<string, string> = {
 const ProductEditor = () => {
   const { productSlug } = useParams<{ productSlug: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { theme } = useTheme();
   const { getProduct, getProductBySlug, updateProduct, toggleFavorite, isLoading } = useBrands();
   const { user, isAdmin, isApproved, isLoading: authLoading } = useAuth();
@@ -123,8 +124,10 @@ const ProductEditor = () => {
   const [publicProductLoading, setPublicProductLoading] = useState(false);
   // Track if fetch has been initiated to handle the "skip if context has data" case
   const fetchInitiatedRef = React.useRef(false);
-  // Parent product for hierarchical breadcrumbs
+  // Parent product for hierarchical breadcrumbs (when linked via linkedGuides in another product)
   const [parentProduct, setParentProduct] = useState<{ id: string; name: string; slug: string } | null>(null);
+  // Parent brand for hierarchical breadcrumbs (when linked via parent_brand_id)
+  const [parentBrand, setParentBrand] = useState<{ id: string; name: string; slug: string } | null>(null);
 
   // Redirect unapproved users to pending approval page (admins are always allowed)
   React.useEffect(() => {
@@ -133,10 +136,32 @@ const ProductEditor = () => {
     }
   }, [user, isApproved, isAdmin, authLoading, navigate]);
 
-  // Scroll to top when product changes
+  // Scroll to top when product changes (unless there's a hash anchor)
   React.useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [productSlug]);
+    if (!location.hash) {
+      window.scrollTo(0, 0);
+    }
+  }, [productSlug, location.hash]);
+
+  // Handle hash anchor scrolling on page load/navigation
+  React.useEffect(() => {
+    if (location.hash && viewMode === 'full') {
+      const sectionId = location.hash.replace('#', '') as SectionId;
+      // Small delay to ensure the page has rendered
+      const scrollTimeout = setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Add highlight flash
+          setTimeout(() => {
+            element.classList.add('section-highlight-flash');
+            setTimeout(() => element.classList.remove('section-highlight-flash'), 1300);
+          }, 400);
+        }
+      }, 100);
+      return () => clearTimeout(scrollTimeout);
+    }
+  }, [location.hash, viewMode]);
 
   // Scroll to section when sidebar nav is clicked, then flash highlight
   React.useEffect(() => {
@@ -337,6 +362,43 @@ const ProductEditor = () => {
     
     fetchParentProduct();
   }, [currentProduct?.id, currentProduct?.slug]);
+
+  // Fetch parent brand for products linked via parent_brand_id
+  React.useEffect(() => {
+    const fetchParentBrand = async () => {
+      const parentBrandId = currentProduct?.parentBrandId;
+      if (!parentBrandId) {
+        setParentBrand(null);
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('brands')
+          .select('id, name, slug')
+          .eq('id', parentBrandId)
+          .maybeSingle();
+        
+        if (error) throw error;
+        
+        if (data) {
+          setParentBrand({
+            id: data.id,
+            name: data.name,
+            slug: data.slug || data.id,
+          });
+        } else {
+          setParentBrand(null);
+        }
+      } catch (err) {
+        console.error('Error fetching parent brand:', err);
+        setParentBrand(null);
+      }
+    };
+    
+    fetchParentBrand();
+  }, [currentProduct?.parentBrandId]);
+
   // Forward-compat: older products may have persisted sectionOrder without newly-added sections (e.g., socialassets)
   const sectionOrder = useMemo(
     () => normalizeSectionOrder(currentProduct?.sectionOrder),
@@ -807,7 +869,14 @@ const ProductEditor = () => {
               <AppBreadcrumbs
                 items={[
                   { label: organization?.name || 'Products', icon: organization ? Building2 : Package, href: organization ? `/org/${organization.slug}` : '/' },
+                  // Parent brand (if linked via parent_brand_id)
+                  ...(parentBrand ? [{ label: parentBrand.name, icon: Building2, href: `/brand/${parentBrand.slug}` }] : []),
+                  // "Linked Guides" section link to parent's products section
+                  ...(parentBrand ? [{ label: 'Linked Guides', icon: Package, href: `/brand/${parentBrand.slug}#products` }] : []),
+                  // Parent product (if linked via linkedGuides in another product)
                   ...(parentProduct ? [{ label: parentProduct.name, icon: Package, href: `/product/${parentProduct.slug}` }] : []),
+                  // "Linked Guides" section link to parent product's products section
+                  ...(!parentBrand && parentProduct ? [{ label: 'Linked Guides', icon: Package, href: `/product/${parentProduct.slug}#products` }] : []),
                 ]}
                 currentPage={currentProduct.hero.name}
                 currentIcon={Package}

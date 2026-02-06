@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Brain, FileText, Building2, Download, Settings, HardDrive, ClipboardCheck, TrendingUp } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
@@ -97,6 +97,7 @@ const CompetitiveReportCardLazy = lazy(() =>
 const BrandEditor = () => {
   const { brandSlug } = useParams<{ brandSlug: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { theme, setTheme } = useTheme();
   const previousThemeRef = useRef<string | undefined>(undefined);
   const { getBrand, getBrandBySlug, updateBrand: updateBrandContext, toggleFavorite, isLoading, saveNow } = useBrands();
@@ -121,10 +122,32 @@ const BrandEditor = () => {
     }
   }, [user, isApproved, isAdmin, authLoading, navigate]);
 
-  // Scroll to top when brand changes
+  // Scroll to top when brand changes (unless there's a hash anchor)
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [brandSlug]);
+    if (!location.hash) {
+      window.scrollTo(0, 0);
+    }
+  }, [brandSlug, location.hash]);
+
+  // Handle hash anchor scrolling on page load/navigation
+  useEffect(() => {
+    if (location.hash && viewMode === 'full') {
+      const sectionId = location.hash.replace('#', '') as SectionId;
+      // Small delay to ensure the page has rendered
+      const scrollTimeout = setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Add highlight flash
+          setTimeout(() => {
+            element.classList.add('section-highlight-flash');
+            setTimeout(() => element.classList.remove('section-highlight-flash'), 1300);
+          }, 400);
+        }
+      }, 100);
+      return () => clearTimeout(scrollTimeout);
+    }
+  }, [location.hash, viewMode]);
 
   // Scroll to section when sidebar nav is clicked, then flash highlight
   useEffect(() => {
