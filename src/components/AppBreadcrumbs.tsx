@@ -79,17 +79,13 @@ export const AppBreadcrumbs = React.forwardRef<
             href: '/',
           });
         } else if (segment === 'brand' && pathSegments[index + 1]) {
-          breadcrumbItems.push({
-            label: 'Brand Guides',
-            icon: FileText,
-            href: '/',
-          });
+          // Skip auto-generation for brand routes
+          // The editor provides proper parent context via the items prop
+          // This prevents incorrect "Brand Guides -> Home" navigation
         } else if (segment === 'product' && pathSegments[index + 1]) {
-          breadcrumbItems.push({
-            label: 'Product Guides',
-            icon: Package,
-            href: '/',
-          });
+          // Skip auto-generation for product routes
+          // The editor provides proper parent context via the items prop
+          // This prevents incorrect "Product Guides -> Home" navigation
         } else if (segment === 'demo') {
           breadcrumbItems.push({
             label: 'Demo Guides',
