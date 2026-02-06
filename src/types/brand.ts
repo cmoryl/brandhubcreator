@@ -587,6 +587,24 @@ export interface SponsorLogo {
   placement?: string; // Where sponsor logo appears (e.g., "main stage", "lanyards")
 }
 
+// CLIENT LOGOS - Partner/Client Logo Downloads
+export type ClientLogoVariant = 'color' | 'white' | 'black';
+export type ClientLogoFormat = 'png' | 'svg' | 'eps';
+
+export interface ClientLogoFile {
+  variant: ClientLogoVariant;
+  format: ClientLogoFormat;
+  url: string;
+}
+
+export interface ClientLogo {
+  id: string;
+  name: string;
+  description?: string;
+  files: ClientLogoFile[];
+  websiteUrl?: string;
+}
+
 // SECTION LAYOUTS - Per-section layout preferences
 export type LayoutPreset = 
   | 'grid-2'      // 2 columns
@@ -807,6 +825,8 @@ export interface BaseGuide {
   awards?: BrandAward[];
   // Sponsor Logos (Partner/Sponsor Logo Placement)
   sponsorLogos?: SponsorLogo[];
+  // Client Logos (Partner/Client Logo Downloads)
+  clientLogos?: ClientLogo[];
   // Insights & Updates (Reports, Analytics, News for stakeholders)
   insights?: InsightItem[];
   // Insights section layout preference
@@ -834,10 +854,10 @@ export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'insights', 'locations', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
   'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'imageassets', 'misuse',
-  'brochures', 'templates', 'templatespecs', 'sponsorlogos', 'universe', 'products', 'events', 'eventsignage'
+  'brochures', 'templates', 'templatespecs', 'sponsorlogos', 'clientlogos', 'universe', 'products', 'events', 'eventsignage'
 ];
 
-// Main Brand Guide interface (extends base)
+// Section IDs for navigation
 export interface BrandGuide extends BaseGuide {
   type: 'brand';
 }
@@ -887,6 +907,7 @@ export type SectionId =
   | 'events'
   | 'universe'
   | 'sponsorlogos'
+  | 'clientlogos'
   | 'locations'
   | 'insights'
   | 'eventsignage';
