@@ -33,6 +33,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { SectionHeader } from './SectionHeader';
 import { SyncValuesButton } from './SyncValuesButton';
 import type { LucideIcon } from 'lucide-react';
+import { getPillarImage, getRandomPillarImage } from '@/assets/pillars';
 
 interface ValuesSectionProps {
   values: BrandValue[];
@@ -230,15 +231,28 @@ export const ValuesSection = ({
 
   const addValue = () => {
     if (!onValuesChange) return;
+    const randomImage = getRandomPillarImage();
     const newValue: ExtendedBrandValue = {
       id: crypto.randomUUID(),
       text: 'New Value',
       description: 'Describe what this value means to your organization',
       icon: 'heart',
-      useImage: false,
+      useImage: true,
+      imageUrl: randomImage,
     };
     onValuesChange([...values, newValue]);
     setEditingId(newValue.id);
+  };
+
+  // Auto-assign AI pillar image when text changes
+  const handleTextChange = (id: string, newText: string) => {
+    const matchingImage = getPillarImage(newText);
+    const updates: Partial<ExtendedBrandValue> = { text: newText };
+    if (matchingImage) {
+      updates.imageUrl = matchingImage;
+      updates.useImage = true;
+    }
+    updateValue(id, updates);
   };
 
   const updateValue = (id: string, updates: Partial<ExtendedBrandValue>) => {
@@ -422,7 +436,7 @@ export const ValuesSection = ({
 
                   <Input
                     value={value.text}
-                    onChange={(e) => updateValue(value.id, { text: e.target.value })}
+                    onChange={(e) => handleTextChange(value.id, e.target.value)}
                     placeholder="Value name"
                   />
                   <Textarea
