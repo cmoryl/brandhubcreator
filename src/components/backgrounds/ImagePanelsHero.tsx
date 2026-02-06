@@ -56,11 +56,11 @@ export const ImagePanelsHero = memo(function ImagePanelsHero({
   // Base hue from color scheme
   const baseHue = COLOR_SCHEME_HUE[colorScheme] || 0;
 
-  // Generate panel configurations - overlapping vertical bars
+  // Generate panel configurations - overlapping vertical bars with wider panels
   const panels: PanelConfig[] = Array.from({ length: Math.min(panelCount, 7) }, (_, i) => ({
     id: i,
-    x: 10 + (i * 15), // Spread across width with overlap
-    width: 180 + (i % 2 === 0 ? 20 : -10),
+    x: 5 + (i * 18), // Spread across width with overlap
+    width: 380 + (i % 2 === 0 ? 40 : -20), // Much wider panels (was 180)
     zIndex: i + 1,
     speed: 0.15 + (i * 0.05),
     phase: (i * Math.PI * 0.4),
