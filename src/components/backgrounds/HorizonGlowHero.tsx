@@ -22,6 +22,16 @@ interface Ember {
   opacity: number;
 }
 
+interface TrailParticle {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  opacity: number;
+  hue: number;
+  createdAt: number;
+}
+
 const COLOR_SCHEMES: Record<Exclude<HorizonGlowColorScheme, 'custom'>, { primary: number; secondary: number }> = {
   'cyan': { primary: 185, secondary: 200 },
   'purple': { primary: 270, secondary: 290 },
@@ -40,9 +50,12 @@ export const HorizonGlowHero = memo(function HorizonGlowHero({
   pulseAnimation = true,
 }: HorizonGlowHeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
+  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5, isActive: false });
   const [time, setTime] = useState(0);
+  const [trailParticles, setTrailParticles] = useState<TrailParticle[]>([]);
   const animationRef = useRef<number>(0);
+  const lastMousePos = useRef({ x: 0.5, y: 0.5 });
+  const particleIdRef = useRef(0);
 
   const colors = COLOR_SCHEMES[colorScheme === 'custom' ? 'cyan' : colorScheme];
   const brightnessMultiplier = 0.4 + (brightness / 100) * 1.2;
@@ -79,10 +92,40 @@ export const HorizonGlowHero = memo(function HorizonGlowHero({
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    setMousePos({
-      x: (e.clientX - rect.left) / rect.width,
-      y: (e.clientY - rect.top) / rect.height,
-    });
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    
+    // Calculate movement distance for particle spawning
+    const dx = x - lastMousePos.current.x;
+    const dy = y - lastMousePos.current.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Spawn trail particles based on movement
+    if (distance > 0.01) {
+      const particleCount = Math.min(Math.floor(distance * 30) + 1, 3);
+      const newParticles: TrailParticle[] = [];
+      
+      for (let i = 0; i < particleCount; i++) {
+        newParticles.push({
+          id: particleIdRef.current++,
+          x: x * 100 + (Math.random() - 0.5) * 3,
+          y: y * 100 + (Math.random() - 0.5) * 3,
+          size: 4 + Math.random() * 8,
+          opacity: 0.6 + Math.random() * 0.4,
+          hue: colors.primary + (Math.random() - 0.5) * 30,
+          createdAt: Date.now(),
+        });
+      }
+      
+      setTrailParticles(prev => [...prev, ...newParticles].slice(-50)); // Keep max 50 particles
+      lastMousePos.current = { x, y };
+    }
+    
+    setMousePos({ x, y, isActive: true });
+  }, [colors.primary]);
+
+  const handleMouseLeave = useCallback(() => {
+    setMousePos(prev => ({ ...prev, isActive: false }));
   }, []);
 
   // Pulse effect for the glow
@@ -93,11 +136,21 @@ export const HorizonGlowHero = memo(function HorizonGlowHero({
   const glowOffsetX = (mousePos.x - 0.5) * 30;
   const glowOffsetY = (mousePos.y - 0.5) * 15;
 
+  // Clean up old trail particles
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      setTrailParticles(prev => prev.filter(p => now - p.createdAt < 1200));
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div
       ref={containerRef}
       className={cn('absolute inset-0 overflow-hidden z-0 pointer-events-auto', className)}
       onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       aria-hidden="true"
     >
       {/* Base background */}
@@ -127,6 +180,59 @@ export const HorizonGlowHero = memo(function HorizonGlowHero({
             } as React.CSSProperties}
           />
         ))}
+      </div>
+
+      {/* Mouse flare */}
+      {mousePos.isActive && (
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            left: `${mousePos.x * 100}%`,
+            top: `${mousePos.y * 100}%`,
+            width: 120,
+            height: 120,
+            transform: 'translate(-50%, -50%)',
+            background: `radial-gradient(circle, 
+              hsla(${colors.primary}, 100%, 80%, 0.6) 0%, 
+              hsla(${colors.primary}, 90%, 60%, 0.3) 30%,
+              hsla(${colors.secondary}, 80%, 50%, 0.1) 60%,
+              transparent 80%
+            )`,
+            boxShadow: `0 0 40px hsla(${colors.primary}, 100%, 70%, 0.5), 0 0 80px hsla(${colors.primary}, 90%, 60%, 0.3)`,
+            filter: 'blur(8px)',
+          }}
+        />
+      )}
+
+      {/* Mouse trail cinder particles */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {trailParticles.map((particle) => {
+          const age = (Date.now() - particle.createdAt) / 1200; // 0 to 1 over lifetime
+          const fadeOut = 1 - age;
+          const rise = age * 30; // Float upward
+          const drift = (Math.random() - 0.5) * age * 20; // Slight horizontal drift
+          const shrink = 1 - age * 0.5;
+          
+          return (
+            <div
+              key={particle.id}
+              className="absolute rounded-full"
+              style={{
+                left: `${particle.x}%`,
+                top: `${particle.y - rise}%`,
+                width: particle.size * shrink,
+                height: particle.size * shrink,
+                background: `radial-gradient(circle, 
+                  hsla(${particle.hue}, 100%, 75%, ${particle.opacity * fadeOut * brightnessMultiplier}) 0%, 
+                  hsla(${particle.hue + 20}, 90%, 55%, ${particle.opacity * fadeOut * 0.5 * brightnessMultiplier}) 50%,
+                  transparent 100%
+                )`,
+                boxShadow: `0 0 ${particle.size}px hsla(${particle.hue}, 100%, 60%, ${particle.opacity * fadeOut * 0.7 * brightnessMultiplier})`,
+                transform: `translateX(${drift}px)`,
+              }}
+            />
+          );
+        })}
       </div>
 
       {/* Main horizon glow arc */}
