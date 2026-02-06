@@ -430,39 +430,135 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
           )}
         </div>
 
-        {/* Tagline Variations */}
-        <div className="bg-card rounded-xl p-6 border border-border">
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">Tagline Variations</h3>
-          <p className="text-sm text-muted-foreground mb-4">Campaign or context-specific tagline variations</p>
-          <div className="flex flex-wrap gap-2 mb-4">
-            {tagline.variations?.map((variation) => (
-              <Badge key={variation} variant="secondary" className="text-sm py-2 px-4 bg-primary/10 hover:bg-primary/20 transition-colors">
-                "{variation}"
-                {isEditing && (
-                  <button onClick={() => removeVariation(variation)} className="ml-2 hover:text-destructive">
-                    <X className="h-3 w-3" />
-                  </button>
-                )}
-              </Badge>
-            ))}
-            {(!tagline.variations || tagline.variations.length === 0) && !isEditing && (
-              <span className="text-muted-foreground">No variations added yet</span>
+        {/* Tagline Variations - Creative Display */}
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-card to-muted/30">
+          {/* Decorative background elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-primary/5 blur-3xl" />
+            <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full bg-accent/5 blur-3xl" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-gradient-to-br from-primary/3 to-accent/3 blur-3xl" />
+          </div>
+          
+          <div className="relative z-10 p-6 md:p-8">
+            {/* Header with decorative line */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/20">
+                  <Quote className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Tagline Variations</h3>
+                  <p className="text-xs text-muted-foreground">Campaign & context-specific messaging</p>
+                </div>
+              </div>
+              <div className="flex-1 h-px bg-gradient-to-r from-border via-primary/20 to-transparent" />
+              {tagline.variations && tagline.variations.length > 0 && (
+                <Badge variant="outline" className="text-[10px] font-medium">
+                  {tagline.variations.length} variation{tagline.variations.length !== 1 ? 's' : ''}
+                </Badge>
+              )}
+            </div>
+            
+            {/* Variations display */}
+            {tagline.variations && tagline.variations.length > 0 ? (
+              <div className="space-y-3">
+                {tagline.variations.map((variation, index) => {
+                  // Cycle through different visual styles
+                  const styleIndex = index % 5;
+                  const styles = [
+                    // Style 1: Gradient border with quote marks
+                    'relative group pl-8 pr-6 py-4 rounded-xl bg-gradient-to-r from-primary/5 via-transparent to-accent/5 border border-primary/20 hover:border-primary/40 hover:from-primary/10 hover:to-accent/10',
+                    // Style 2: Left accent bar
+                    'relative group pl-6 pr-6 py-4 rounded-xl bg-muted/50 border-l-4 border-l-accent border border-transparent hover:border-accent/30 hover:bg-muted/80',
+                    // Style 3: Floating card with shadow
+                    'relative group px-6 py-4 rounded-xl bg-card shadow-md hover:shadow-lg border border-border/50 hover:border-primary/30 hover:-translate-y-0.5 transition-all duration-300',
+                    // Style 4: Glass morphism
+                    'relative group px-6 py-4 rounded-xl bg-background/60 backdrop-blur-sm border border-border/50 hover:border-primary/40 hover:bg-background/80',
+                    // Style 5: Outlined with dot indicator
+                    'relative group pl-8 pr-6 py-4 rounded-xl border-2 border-dashed border-muted-foreground/20 hover:border-primary/40 bg-transparent hover:bg-primary/5',
+                  ];
+                  
+                  const decorations = [
+                    // Decoration 1: Large quote mark
+                    <span key="deco" className="absolute left-3 top-1/2 -translate-y-1/2 text-3xl font-serif text-primary/30 group-hover:text-primary/50 transition-colors">"</span>,
+                    // Decoration 2: Nothing (accent bar is the decoration)
+                    null,
+                    // Decoration 3: Sparkle icon
+                    <Sparkles key="deco" className="absolute -top-2 -right-2 h-5 w-5 text-primary/40 group-hover:text-primary/60 transition-colors" />,
+                    // Decoration 4: Gradient orb
+                    <div key="deco" className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-gradient-to-br from-primary to-accent opacity-60 group-hover:opacity-100 transition-opacity" />,
+                    // Decoration 5: Dot indicator
+                    <div key="deco" className="absolute left-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary/40 group-hover:bg-primary transition-colors" />,
+                  ];
+                  
+                  return (
+                    <div
+                      key={variation}
+                      className={`${styles[styleIndex]} transition-all duration-300`}
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      {decorations[styleIndex]}
+                      <div className="flex items-center justify-between gap-4">
+                        <p className="text-base md:text-lg font-medium text-foreground/90 group-hover:text-foreground transition-colors italic">
+                          {variation}
+                        </p>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+                            #{index + 1}
+                          </span>
+                          {isEditing && (
+                            <button
+                              onClick={() => removeVariation(variation)}
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              !isEditing && (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="p-4 rounded-2xl bg-muted/50 mb-4">
+                    <Quote className="h-8 w-8 text-muted-foreground/50" />
+                  </div>
+                  <p className="text-muted-foreground font-medium">No variations added yet</p>
+                  <p className="text-sm text-muted-foreground/70 mt-1">Add campaign-specific taglines to see them here</p>
+                </div>
+              )
+            )}
+            
+            {/* Add new variation input */}
+            {isEditing && (
+              <div className="mt-6 pt-6 border-t border-border/50">
+                <div className="flex gap-3">
+                  <div className="relative flex-1 max-w-lg">
+                    <Quote className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+                    <Input
+                      value={newVariation}
+                      onChange={(e) => setNewVariation(e.target.value)}
+                      placeholder="Add a new tagline variation..."
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addVariation())}
+                      className="pl-10 bg-background/50 border-border/50 focus:border-primary/50"
+                    />
+                  </div>
+                  <Button 
+                    variant="default" 
+                    onClick={addVariation}
+                    disabled={!newVariation.trim()}
+                    className="gap-2 px-4"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
-          {isEditing && (
-            <div className="flex gap-2">
-              <Input
-                value={newVariation}
-                onChange={(e) => setNewVariation(e.target.value)}
-                placeholder="e.g., Campaign-specific tagline..."
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addVariation())}
-                className="max-w-md"
-              />
-              <Button variant="outline" size="icon" onClick={addVariation}>
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
         </div>
       </div>
     </section>
