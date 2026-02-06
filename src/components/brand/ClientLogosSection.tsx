@@ -1,17 +1,16 @@
-import { useState, useRef, useCallback, forwardRef } from 'react';
-import { Download, Upload, Plus, Trash2, ExternalLink, Eye, X, Pencil, Package } from 'lucide-react';
+import { useState, useRef, forwardRef } from 'react';
+import { Download, Upload, Plus, Trash2, ExternalLink, Pencil, Package, FolderArchive } from 'lucide-react';
 import { ClientLogo, ClientLogoFile, ClientLogoVariant, ClientLogoFormat } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SectionHeader } from './SectionHeader';
 import { toast } from 'sonner';
-import { useDropZone } from '@/components/ui/drop-zone';
 import { cn } from '@/lib/utils';
+import JSZip from 'jszip';
 
 interface ClientLogosSectionProps {
   clientLogos: ClientLogo[];
@@ -136,6 +135,61 @@ export const ClientLogosSection = forwardRef<HTMLElement, ClientLogosSectionProp
       await new Promise(resolve => setTimeout(resolve, 300));
     }
     toast.success(`Downloaded all ${logo.name} files`);
+  };
+
+  const downloadAllAsZip = async () => {
+    const allFiles = clientLogos.flatMap(logo => logo.files);
+    if (allFiles.length === 0) {
+      toast.error('No files to download');
+      return;
+    }
+
+    toast.loading('Creating ZIP file...', { id: 'zip-download' });
+    
+    try {
+      const zip = new JSZip();
+      
+      for (const logo of clientLogos) {
+        if (logo.files.length === 0) continue;
+        
+        const folderName = logo.name.replace(/[^a-zA-Z0-9]/g, '_');
+        const folder = zip.folder(folderName);
+        
+        for (const file of logo.files) {
+          const fileName = `${file.variant}.${file.format}`;
+          
+          // Handle base64 data URLs
+          if (file.url.startsWith('data:')) {
+            const base64Data = file.url.split(',')[1];
+            folder?.file(fileName, base64Data, { base64: true });
+          } else {
+            // For remote URLs, fetch and add
+            try {
+              const response = await fetch(file.url);
+              const blob = await response.blob();
+              folder?.file(fileName, blob);
+            } catch (err) {
+              console.warn(`Failed to fetch ${file.url}`, err);
+            }
+          }
+        }
+      }
+      
+      const content = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(content);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'client-logos.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success('ZIP file downloaded!', { id: 'zip-download' });
+    } catch (error) {
+      console.error('Error creating ZIP:', error);
+      toast.error('Failed to create ZIP file', { id: 'zip-download' });
+    }
   };
 
   const getPreviewUrl = (logo: ClientLogo, variant: ClientLogoVariant): string | null => {
@@ -379,16 +433,23 @@ export const ClientLogosSection = forwardRef<HTMLElement, ClientLogosSectionProp
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        {canEdit && (
-          <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add Client Logo
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
+        <div className="flex items-center gap-2">
+          {clientLogos.length > 0 && clientLogos.some(l => l.files.length > 0) && (
+            <Button size="sm" variant="outline" className="gap-2" onClick={downloadAllAsZip}>
+              <FolderArchive className="h-4 w-4" />
+              Download All (ZIP)
+            </Button>
+          )}
+          {canEdit && (
+            <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Client Logo
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
                 <DialogTitle>Add Client Logo</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
@@ -455,7 +516,8 @@ export const ClientLogosSection = forwardRef<HTMLElement, ClientLogosSectionProp
               </div>
             </DialogContent>
           </Dialog>
-        )}
+          )}
+        </div>
       </div>
 
       {clientLogos.length > 0 ? (
