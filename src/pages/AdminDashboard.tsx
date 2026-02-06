@@ -55,6 +55,7 @@ import { CompanyLocationsManager } from '@/components/admin/CompanyLocationsMana
 import { GlobalMapThemeEditor } from '@/components/admin/GlobalMapThemeEditor';
 import { AdminOverview } from '@/components/admin/AdminOverview';
 import { DownloadsReportPanel } from '@/components/admin/DownloadsReportPanel';
+import { ActivityLogsPanel } from '@/components/admin/ActivityLogsPanel';
 interface DashboardStats {
   totalUsers: number;
   totalOrganizations: number;
@@ -916,73 +917,7 @@ export default function AdminDashboard() {
 
           {/* Activity Tab */}
           <TabsContent value="activity" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Activity Log</CardTitle>
-                    <CardDescription>Recent platform activity</CardDescription>
-                  </div>
-                  <Select value={dateRange} onValueChange={setDateRange}>
-                    <SelectTrigger className="w-[130px]">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="24h">Last 24h</SelectItem>
-                      <SelectItem value="7d">Last 7 days</SelectItem>
-                      <SelectItem value="30d">Last 30 days</SelectItem>
-                      <SelectItem value="all">All time</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[500px]">
-                  <div className="space-y-4">
-                    {activityLogs.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                        <Activity className="h-12 w-12 mb-4 opacity-50" />
-                        <p className="text-lg font-medium">No activity recorded yet</p>
-                        <p className="text-sm">Activity will appear here as users interact with the platform</p>
-                      </div>
-                    ) : (
-                      activityLogs.map((log) => (
-                        <div 
-                          key={log.id} 
-                          className="flex items-start gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-                        >
-                          <div className="p-2 bg-background rounded-full">
-                            {getActivityIcon(log.type, log.entityType)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium">{log.description}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <p className="text-sm text-muted-foreground">
-                                {format(new Date(log.timestamp), 'EEEE, MMMM d, yyyy \'at\' h:mm a')}
-                              </p>
-                              {log.user && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {log.user}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end gap-1 shrink-0">
-                            <Badge variant="outline">
-                              {log.type}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground capitalize">
-                              {log.entityType}
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+            <ActivityLogsPanel />
           </TabsContent>
 
           {/* Repair Tab */}
