@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Sparkles, Settings2, Eye } from 'lucide-react';
+import { ArrowLeft, Sparkles, Settings2, Eye, MousePointer2, Hand, Move, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { GradientBarsHero } from '@/components/backgrounds/GradientBarsHero';
 import { HorizonGlowHero } from '@/components/backgrounds/HorizonGlowHero';
 import { FloatingOrbsHero } from '@/components/backgrounds/FloatingOrbsHero';
@@ -26,6 +27,7 @@ interface EffectConfig {
   hasDensity?: boolean;
   hasSpeed?: boolean;
   hasIntensity?: boolean;
+  interactionHints: string[];
 }
 
 const EFFECTS: EffectConfig[] = [
@@ -36,6 +38,7 @@ const EFFECTS: EffectConfig[] = [
     colorSchemes: ['cyan-purple', 'blue-teal', 'purple-pink', 'green-cyan', 'amber-orange'],
     defaultColorScheme: 'cyan-purple',
     hasIntensity: true,
+    interactionHints: ['Move mouse to bend bars', 'Bars follow cursor position'],
   },
   {
     id: 'horizon-glow',
@@ -43,6 +46,7 @@ const EFFECTS: EffectConfig[] = [
     description: 'Atmospheric horizon glow with pulsing light rays and depth effect',
     colorSchemes: ['cyan', 'purple', 'blue', 'pink', 'green', 'amber'],
     defaultColorScheme: 'cyan',
+    interactionHints: ['Move mouse to shift glow', 'Light rays react to cursor'],
   },
   {
     id: 'floating-orbs',
@@ -52,6 +56,7 @@ const EFFECTS: EffectConfig[] = [
     defaultColorScheme: 'blue-purple',
     hasDensity: true,
     hasSpeed: true,
+    interactionHints: ['Hover to repel orbs', 'Click & hold to attract', 'Orbs collide with each other'],
   },
   {
     id: 'gradient-spheres',
@@ -61,6 +66,7 @@ const EFFECTS: EffectConfig[] = [
     defaultColorScheme: 'purple-blue',
     hasDensity: true,
     hasSpeed: true,
+    interactionHints: ['Hover to push spheres', 'Click & hold to pull', 'Watch sphere collisions'],
   },
   {
     id: 'image-orbs',
@@ -69,6 +75,7 @@ const EFFECTS: EffectConfig[] = [
     colorSchemes: ['cyan-purple', 'blue-cyan', 'pink-magenta', 'green-teal', 'amber-orange', 'rose-coral'],
     defaultColorScheme: 'cyan-purple',
     hasDensity: true,
+    interactionHints: ['Move mouse for parallax', 'Orbs shift with cursor'],
   },
   {
     id: 'image-panels',
@@ -77,6 +84,7 @@ const EFFECTS: EffectConfig[] = [
     colorSchemes: ['purple-cyan', 'cyan-blue', 'pink-purple', 'green-teal', 'amber-orange', 'rose-pink'],
     defaultColorScheme: 'purple-cyan',
     hasDensity: true,
+    interactionHints: ['Move mouse for depth effect', 'Panels shift at different rates'],
   },
 ];
 
@@ -295,22 +303,21 @@ const HeroEffectsShowcase = () => {
         <div className="mb-8 text-center max-w-2xl mx-auto">
           <p className="text-muted-foreground">
             Interactive hero background effects with mouse tracking, physics simulations, and customizable color schemes. 
-            Click any effect to view it full-screen with live controls.
+            <span className="block mt-2 text-sm text-accent">
+              <MousePointer2 className="inline h-4 w-4 mr-1" />
+              Move your mouse over each effect to interact!
+            </span>
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {EFFECTS.map((effect) => (
             <Card 
               key={effect.id}
-              className="group overflow-hidden cursor-pointer hover:ring-2 hover:ring-accent transition-all duration-300"
-              onClick={() => {
-                setSelectedEffect(effect.id);
-                setColorScheme(effect.defaultColorScheme);
-              }}
+              className="group overflow-hidden transition-all duration-300 hover:shadow-xl"
             >
-              {/* Effect Preview */}
-              <div className="relative h-48 overflow-hidden">
+              {/* Effect Preview - Large interactive area */}
+              <div className="relative h-72 md:h-80 overflow-hidden">
                 {renderEffect(effect.id, { 
                   colorScheme: effect.defaultColorScheme, 
                   mode: 'dark', 
@@ -319,47 +326,101 @@ const HeroEffectsShowcase = () => {
                   speed: 'normal',
                   intensity: 'medium'
                 })}
-                {/* Overlay on hover */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    className="opacity-0 group-hover:opacity-100 transition-opacity gap-2"
-                  >
-                    <Eye className="h-4 w-4" />
-                    View Full Screen
-                  </Button>
+                
+                {/* Title overlay */}
+                <div className="absolute top-4 left-4 right-4 flex items-start justify-between pointer-events-none">
+                  <div>
+                    <h3 className="text-xl font-bold text-white drop-shadow-lg">{effect.name}</h3>
+                    <p className="text-sm text-white/70 mt-1 max-w-xs">{effect.description}</p>
+                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="secondary" 
+                        size="icon"
+                        className="pointer-events-auto opacity-70 hover:opacity-100 h-8 w-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedEffect(effect.id);
+                          setColorScheme(effect.defaultColorScheme);
+                        }}
+                      >
+                        <Maximize2 className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>View Full Screen</TooltipContent>
+                  </Tooltip>
+                </div>
+
+                {/* Interaction hints - bottom overlay */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12">
+                  <div className="flex flex-wrap gap-2">
+                    {effect.interactionHints.map((hint, i) => (
+                      <Badge 
+                        key={i} 
+                        variant="outline" 
+                        className="bg-white/10 border-white/20 text-white/90 text-xs backdrop-blur-sm"
+                      >
+                        {i === 0 && <MousePointer2 className="h-3 w-3 mr-1" />}
+                        {i === 1 && hint.toLowerCase().includes('hold') && <Hand className="h-3 w-3 mr-1" />}
+                        {i === 1 && !hint.toLowerCase().includes('hold') && <Move className="h-3 w-3 mr-1" />}
+                        {i === 2 && <Sparkles className="h-3 w-3 mr-1" />}
+                        {hint}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Animated cursor indicator */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  <div className="relative">
+                    <MousePointer2 className="h-8 w-8 text-white/50 animate-bounce" />
+                    <div className="absolute inset-0 bg-white/20 rounded-full blur-xl animate-pulse" />
+                  </div>
                 </div>
               </div>
 
-              {/* Info */}
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-lg mb-1">{effect.name}</h3>
-                <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                  {effect.description}
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {effect.colorSchemes.slice(0, 3).map(scheme => (
-                    <Badge key={scheme} variant="secondary" className="text-xs">
-                      {scheme}
-                    </Badge>
-                  ))}
-                  {effect.colorSchemes.length > 3 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{effect.colorSchemes.length - 3} more
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex gap-2 mt-3">
-                  {effect.hasDensity && (
-                    <Badge variant="outline" className="text-xs text-muted-foreground">Density</Badge>
-                  )}
-                  {effect.hasSpeed && (
-                    <Badge variant="outline" className="text-xs text-muted-foreground">Speed</Badge>
-                  )}
-                  {effect.hasIntensity && (
-                    <Badge variant="outline" className="text-xs text-muted-foreground">Intensity</Badge>
-                  )}
+              {/* Footer with color schemes and controls */}
+              <CardContent className="p-4 bg-card/50 border-t">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap gap-1">
+                    {effect.colorSchemes.slice(0, 4).map(scheme => (
+                      <Badge key={scheme} variant="secondary" className="text-xs">
+                        {scheme}
+                      </Badge>
+                    ))}
+                    {effect.colorSchemes.length > 4 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{effect.colorSchemes.length - 4}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex gap-1">
+                    {effect.hasDensity && (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Badge variant="outline" className="text-xs text-muted-foreground">Density</Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>Adjust number of elements</TooltipContent>
+                      </Tooltip>
+                    )}
+                    {effect.hasSpeed && (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Badge variant="outline" className="text-xs text-muted-foreground">Speed</Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>Control animation speed</TooltipContent>
+                      </Tooltip>
+                    )}
+                    {effect.hasIntensity && (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Badge variant="outline" className="text-xs text-muted-foreground">Intensity</Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>Adjust effect strength</TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -369,5 +430,6 @@ const HeroEffectsShowcase = () => {
     </div>
   );
 };
+
 
 export default HeroEffectsShowcase;
