@@ -722,7 +722,7 @@ export const RevenueChartSection = ({
       <div className="bg-card/70 backdrop-blur-sm border border-border rounded-xl p-4 shadow-lg">
         <p className="text-xs text-muted-foreground mb-3 font-medium">Click any bar to view year details</p>
         <div className="h-[400px] md:h-[500px]">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" key={`chart-${activeColors.barColor}-${activeColors.hoverColor}-${activeColors.barColorEnd}`}>
             <BarChart
               data={filteredData}
               margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
