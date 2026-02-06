@@ -5,6 +5,7 @@ import { Mail, Lock, ArrowLeft, Loader2, Chrome, RotateCcw, Activity, AlertTrian
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,7 @@ const AuthPage = () => {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const { user, isAdmin, isApproved, accessStatus, accessError, isLoading: authLoading, signIn, signUp, signInWithGoogle } = useAuth();
+  const { organization, isLoading: orgLoading } = useOrganization();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showSessionRecovery, setShowSessionRecovery] = useState(false);
@@ -70,28 +72,50 @@ const AuthPage = () => {
     }
   };
 
-  // Redirect authenticated users
+  // Redirect authenticated users - wait for BOTH auth AND org to settle to prevent flash
   useEffect(() => {
-    if (!authLoading && user) {
-      // If we can't verify approval/admin right now, don't shove users into /pending-approval.
-      if (accessStatus === 'error') {
-        toast({
-          title: 'Signed in, but access could not be verified',
-          description: accessError || 'Please refresh and try again.',
-          variant: 'destructive',
-        });
-        // User is signed in; send them into the app instead of bouncing back to the marketing page.
-        navigate('/dashboard');
-        return;
-      }
+    // Wait for auth to finish loading
+    if (authLoading) return;
+    
+    // No user = stay on auth page
+    if (!user) return;
 
-      // Only route based on approval once the access checks are verified.
-      if (accessStatus === 'ready') {
-        if (isAdmin || isApproved) navigate('/dashboard');
-        else navigate('/pending-approval');
-      }
+    // Handle access verification error
+    if (accessStatus === 'error') {
+      toast({
+        title: 'Signed in, but access could not be verified',
+        description: accessError || 'Please refresh and try again.',
+        variant: 'destructive',
+      });
+      // Still redirect to dashboard on error - don't block user
+      navigate('/dashboard', { replace: true });
+      return;
     }
-  }, [user, isAdmin, isApproved, accessStatus, accessError, authLoading, navigate, toast]);
+
+    // Wait for access to be verified
+    if (accessStatus !== 'ready') return;
+
+    // Handle unapproved users
+    if (!isAdmin && !isApproved) {
+      navigate('/pending-approval', { replace: true });
+      return;
+    }
+
+    // Wait for org loading to complete to determine correct destination
+    if (orgLoading) return;
+
+    // Redirect directly to org portal if user has organization (prevents dashboard flash)
+    if (organization) {
+      sessionStorage.setItem('welcomeToast', JSON.stringify({
+        orgName: organization.name,
+        timestamp: Date.now()
+      }));
+      navigate(`/org/${organization.slug}`, { replace: true });
+    } else {
+      // No org - go to dashboard
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, isAdmin, isApproved, accessStatus, accessError, authLoading, orgLoading, organization, navigate, toast]);
   
   const [isLoading, setIsLoading] = useState(false);
   const [isResetLoading, setIsResetLoading] = useState(false);
