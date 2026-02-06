@@ -49,6 +49,8 @@ import { MisuseSection } from '@/components/brand/MisuseSection';
 import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { ProductsSection } from '@/components/brand/ProductsSection';
+import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
+import { ClientLogosSection } from '@/components/brand/ClientLogosSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
@@ -536,6 +538,8 @@ const ProductEditor = () => {
       case 'templates': return <TemplatesSection templates={currentProduct.templates} onTemplatesChange={editHandler((templates) => handleUpdateProduct({ templates }))} />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={currentProduct.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => handleUpdateProduct({ templateSpecs }))} brandColors={currentProduct.colors || []} />;
       case 'products': return <ProductsSection productId={currentProduct.id} linkedGuides={currentProduct.linkedGuides || []} onLinkedGuidesChange={editHandler((linkedGuides) => handleUpdateProduct({ linkedGuides }))} />;
+      case 'sponsorlogos': return <SponsorLogosSection sponsors={currentProduct.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => handleUpdateProduct({ sponsorLogos }))} />;
+      case 'clientlogos': return <ClientLogosSection clientLogos={currentProduct.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => handleUpdateProduct({ clientLogos }))} />;
       default: return null;
     }
   };

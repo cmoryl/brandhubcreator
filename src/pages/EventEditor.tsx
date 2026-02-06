@@ -47,6 +47,8 @@ import { MisuseSection } from '@/components/brand/MisuseSection';
 import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
+import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
+import { ClientLogosSection } from '@/components/brand/ClientLogosSection';
 import { ShareButton } from '@/components/brand/ShareButton';
 import { EventExportPdfButton } from '@/components/event/EventExportPdfButton';
 import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
@@ -618,6 +620,10 @@ const EventEditor = () => {
           />
         );
       }
+      case 'sponsorlogos':
+        return <SponsorLogosSection sponsors={event.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => updateEvent({ sponsorLogos }))} />;
+      case 'clientlogos':
+        return <ClientLogosSection clientLogos={event.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => updateEvent({ clientLogos }))} />;
       default:
         return null;
     }

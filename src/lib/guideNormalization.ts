@@ -27,6 +27,7 @@ import {
   BrandAward,
   ImageAsset,
   ClientLogo,
+  SponsorLogo,
 } from '@/types/brand';
 import { 
   EventGuide, 
@@ -303,6 +304,10 @@ export function normalizeEventGuide(rawGuide: unknown): EventGuide {
     eventHistory: safeArray(g.eventHistory),
     eventVideos: safeArray(g.eventVideos),
     eventLocation: safeObject(g.eventLocation, DEFAULT_EVENT_LOCATION),
+    
+    // Partner assets (shared with brand guides)
+    sponsorLogos: safeArray<SponsorLogo>(g.sponsorLogos),
+    clientLogos: safeArray<ClientLogo>(g.clientLogos),
     
     // Parent reference for sub-events
     parentBrandId: g.parentBrandId ?? g.parent_brand_id ?? undefined,
