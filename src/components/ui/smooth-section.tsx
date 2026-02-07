@@ -26,44 +26,44 @@ const easeTransition = {
 const getAnimationConfig = (type: SmoothAnimationType, isVisible: boolean) => {
   const configs = {
     'fade-up': {
-      initial: { opacity: 0, y: 40 },
+      initial: { opacity: 0, y: 16 },
       animate: { opacity: 1, y: 0 },
-      transition: springTransition,
+      transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
     },
     'fade-down': {
-      initial: { opacity: 0, y: -40 },
+      initial: { opacity: 0, y: -16 },
       animate: { opacity: 1, y: 0 },
-      transition: springTransition,
+      transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
     },
     'fade-left': {
-      initial: { opacity: 0, x: 40 },
+      initial: { opacity: 0, x: 16 },
       animate: { opacity: 1, x: 0 },
-      transition: springTransition,
+      transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
     },
     'fade-right': {
-      initial: { opacity: 0, x: -40 },
+      initial: { opacity: 0, x: -16 },
       animate: { opacity: 1, x: 0 },
-      transition: springTransition,
+      transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
     },
     'zoom-in': {
-      initial: { opacity: 0, scale: 0.9 },
+      initial: { opacity: 0, scale: 0.98 },
       animate: { opacity: 1, scale: 1 },
-      transition: { type: 'spring' as const, stiffness: 100, damping: 15 },
+      transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
     },
     'blur-in': {
-      initial: { opacity: 0, filter: 'blur(12px)' },
+      initial: { opacity: 0, filter: 'blur(8px)' },
       animate: { opacity: 1, filter: 'blur(0px)' },
-      transition: easeTransition,
+      transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
     },
     'slide-up': {
-      initial: { opacity: 0, y: 60 },
+      initial: { opacity: 0, y: 24 },
       animate: { opacity: 1, y: 0 },
       transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
     },
     'spring-up': {
-      initial: { opacity: 0, y: 50, scale: 0.95 },
+      initial: { opacity: 0, y: 20, scale: 0.98 },
       animate: { opacity: 1, y: 0, scale: 1 },
-      transition: { type: 'spring' as const, stiffness: 100, damping: 12, mass: 0.5 },
+      transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
     },
   };
 
