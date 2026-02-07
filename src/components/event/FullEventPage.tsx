@@ -180,6 +180,10 @@ export const FullEventPage = ({
           <EventDigitalSection
             materials={event.eventDigitalMaterials || []}
             onUpdate={canEdit ? (eventDigitalMaterials) => updateEvent({ eventDigitalMaterials }) : () => {}}
+            templates={event.templates || []}
+            onTemplatesChange={editHandler((templates) => updateEvent({ templates }))}
+            brochures={event.brochures || []}
+            onBrochuresChange={editHandler((brochures) => updateEvent({ brochures }))}
             isEditable={canEdit}
           />
         );
@@ -328,19 +332,11 @@ export const FullEventPage = ({
         );
       case 'casestudies':
       case 'brochures':
-        return (
-          <DigitalCollateralSection
-            collateral={event.brochures || []}
-            onCollateralChange={editHandler((brochures) => updateEvent({ brochures }))}
-          />
-        );
+        // Now handled in eventdigital section
+        return null;
       case 'templates':
-        return (
-          <TemplatesSection
-            templates={event.templates || []}
-            onTemplatesChange={editHandler((templates) => updateEvent({ templates }))}
-          />
-        );
+        // Now handled in eventdigital section
+        return null;
       case 'templatespecs':
         return (
           <TemplateSpecsSection

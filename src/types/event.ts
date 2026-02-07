@@ -271,6 +271,7 @@ export type EventSectionId =
 
 // Default Event Section Order
 // Note: eventsponsors now includes sponsor logos - sponsorlogos section is not used in events
+// Note: eventdigital is the unified digital collateral section - templates/brochures not used separately
 export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'hero',
   'eventdetails',
@@ -282,7 +283,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'eventlogos',
   'eventsignage',
   'eventbanners',
-  'eventdigital',
+  'eventdigital',        // Unified digital collateral (materials, templates, brochures)
   'eventvideos',
   'colors',
   'gradients',
@@ -296,8 +297,6 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'eventsponsors',       // Unified sponsors section with logos
   'eventhistory',
   'casestudies',
-  'templates',
-  'brochures',
   'templatespecs',
   'presentations',
   'clientlogos',
