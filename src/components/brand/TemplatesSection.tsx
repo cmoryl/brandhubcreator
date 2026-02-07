@@ -253,18 +253,18 @@ export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, 
 
   return (
     <section className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div className="flex-1 min-w-0">
-            <SectionHeader
-              title="Master Scaffolds"
-              defaultSubtitle="Presentation decks, document templates, design files, and external resources"
-              customSubtitle={customSubtitle}
-              onSubtitleChange={canEdit ? onSubtitleChange : undefined}
-              isEditing={isHeaderEditing}
-              onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
-            />
-          </div>
-          <div className="flex items-center gap-2">
+      {/* Section header - always full width on its own row */}
+      <SectionHeader
+        title="Master Scaffolds"
+        defaultSubtitle="Presentation decks, document templates, design files, and external resources"
+        customSubtitle={customSubtitle}
+        onSubtitleChange={canEdit ? onSubtitleChange : undefined}
+        isEditing={isHeaderEditing}
+        onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+      />
+      
+      {/* Controls row - separate from header */}
+      <div className="flex items-center gap-2 flex-wrap">
             {canEdit && onLayoutChange && (
             <LayoutSelector
               value={layout}
@@ -368,8 +368,7 @@ export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, 
                 Upload File
               </Button>
             )}
-          </div>
-        </div>
+      </div>
 
       <input
         ref={fileInputRef}

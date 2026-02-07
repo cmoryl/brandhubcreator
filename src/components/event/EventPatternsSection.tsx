@@ -242,16 +242,16 @@ export const EventPatternsSection = ({
 
   return (
     <section className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div className="flex-1 min-w-0">
-          <SectionHeader
-            title="Event Patterns"
-            defaultSubtitle="Geometric primitives for event visual identity"
-            isEditing={isHeaderEditing}
-            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
-          />
-        </div>
-        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+      {/* Section header - always full width on its own row */}
+      <SectionHeader
+        title="Event Patterns"
+        defaultSubtitle="Geometric primitives for event visual identity"
+        isEditing={isHeaderEditing}
+        onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+      />
+      
+      {/* Controls row - separate from header */}
+      <div className="flex items-center gap-2 flex-wrap">
           <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)}>
             <ToggleGroupItem value="panel" aria-label="Panel view" size="sm">
               <LayoutList className="h-4 w-4" />
@@ -298,7 +298,6 @@ export const EventPatternsSection = ({
               </Button>
             </>
           )}
-        </div>
       </div>
 
       <input

@@ -268,18 +268,18 @@ export const PatternsSection = ({
 
   return (
     <section className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div className="flex-1 min-w-0">
-          <SectionHeader
-            title="Geometric Primitives"
-            defaultSubtitle="Surface texture rules for visual continuity"
-            customSubtitle={customSubtitle}
-            onSubtitleChange={onSubtitleChange}
-            isEditing={isHeaderEditing}
-            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
-          />
-        </div>
-        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+      {/* Section header - always full width on its own row */}
+      <SectionHeader
+        title="Geometric Primitives"
+        defaultSubtitle="Surface texture rules for visual continuity"
+        customSubtitle={customSubtitle}
+        onSubtitleChange={onSubtitleChange}
+        isEditing={isHeaderEditing}
+        onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+      />
+      
+      {/* Controls row - separate from header */}
+      <div className="flex items-center gap-2 flex-wrap">
           {onLayoutChange && (
             <LayoutSelector
               value={layout}
@@ -332,7 +332,6 @@ export const PatternsSection = ({
             <Upload className="h-4 w-4" />
             Upload
           </Button>
-        </div>
       </div>
 
       <input

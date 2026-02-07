@@ -132,18 +132,18 @@ export const ColorPaletteSection = ({
     <section className="space-y-6 sm:space-y-8">
       {/* Color Palette */}
       <div className="space-y-4 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-          <div className="flex-1 min-w-0">
-            <SectionHeader
-              title="Color Palette"
-              defaultSubtitle="Define your brand's color system with all color formats"
-              customSubtitle={customSubtitle}
-              onSubtitleChange={canEdit ? onSubtitleChange : undefined}
-              isEditing={isHeaderEditing}
-              onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
-            />
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
+        {/* Section header - always full width on its own row */}
+        <SectionHeader
+          title="Color Palette"
+          defaultSubtitle="Define your brand's color system with all color formats"
+          customSubtitle={customSubtitle}
+          onSubtitleChange={canEdit ? onSubtitleChange : undefined}
+          isEditing={isHeaderEditing}
+          onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+        />
+        
+        {/* Controls row - separate from header */}
+        <div className="flex items-center gap-2 flex-wrap">
             {colors.length > 0 && canEdit && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -179,7 +179,6 @@ export const ColorPaletteSection = ({
                 Add Color
               </Button>
             )}
-          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">

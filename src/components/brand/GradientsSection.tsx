@@ -106,18 +106,18 @@ export const GradientsSection = ({
 
   return (
     <section className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div className="flex-1 min-w-0">
-          <SectionHeader
-            title="Gradients"
-            defaultSubtitle="Define atmospheric depth with CSS gradients"
-            customSubtitle={customSubtitle}
-            onSubtitleChange={onSubtitleChange}
-            isEditing={isHeaderEditing}
-            onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
-          />
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
+      {/* Section header - always full width on its own row */}
+      <SectionHeader
+        title="Gradients"
+        defaultSubtitle="Define atmospheric depth with CSS gradients"
+        customSubtitle={customSubtitle}
+        onSubtitleChange={onSubtitleChange}
+        isEditing={isHeaderEditing}
+        onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
+      />
+      
+      {/* Controls row - separate from header */}
+      <div className="flex items-center gap-2 flex-wrap">
           {onLayoutChange && (
             <LayoutSelector
               value={layout}
@@ -149,7 +149,6 @@ export const GradientsSection = ({
               </Button>
             </>
           )}
-        </div>
       </div>
 
       <div className={gridClass}>
