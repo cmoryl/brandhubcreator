@@ -4,7 +4,7 @@
  */
 
 import { useState, useRef } from 'react';
-import { Plus, Upload, Download, Trash2, FileText, Loader2, Eye, ChevronLeft, ChevronRight, Presentation, X } from 'lucide-react';
+import { Plus, Upload, Download, Trash2, FileText, Loader2, Eye, ChevronLeft, ChevronRight, Presentation, X, ExternalLink, Monitor } from 'lucide-react';
 import { PresentationTemplate, PresentationSlide } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,6 +50,61 @@ const getCategoryColor = (category?: string) => {
     other: 'bg-gray-100 text-gray-800',
   };
   return colors[category || 'other'] || colors.other;
+};
+
+// Generate Microsoft Office Online embed URL
+const getOfficeEmbedUrl = (fileUrl: string): string => {
+  // Office Online viewer requires a publicly accessible URL
+  const encodedUrl = encodeURIComponent(fileUrl);
+  return `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`;
+};
+
+// Office Online embed viewer component  
+const OfficeEmbed = ({ fileUrl, fileName }: { fileUrl: string; fileName: string }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const embedUrl = getOfficeEmbedUrl(fileUrl);
+
+  return (
+    <div className="relative w-full aspect-[4/3] bg-muted rounded-lg overflow-hidden">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted z-10">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">Loading presentation...</p>
+          </div>
+        </div>
+      )}
+      
+      {hasError ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/50 p-4 text-center">
+          <Presentation className="h-10 w-10 text-muted-foreground/50 mb-3" />
+          <p className="text-sm font-medium mb-1">Preview unavailable</p>
+          <p className="text-xs text-muted-foreground mb-3">
+            The live preview could not load. Try opening in Office Online directly.
+          </p>
+          <Button variant="outline" size="sm" asChild>
+            <a href={embedUrl.replace('/embed.aspx', '/view.aspx')} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+              Open in Office Online
+            </a>
+          </Button>
+        </div>
+      ) : (
+        <iframe
+          src={embedUrl}
+          className="w-full h-full border-0"
+          title={`Preview: ${fileName}`}
+          onLoad={() => setIsLoading(false)}
+          onError={() => {
+            setIsLoading(false);
+            setHasError(true);
+          }}
+          sandbox="allow-scripts allow-same-origin allow-popups"
+        />
+      )}
+    </div>
+  );
 };
 
 // Compact slide gallery component
@@ -515,25 +571,65 @@ export const PresentationTemplatesSection = ({
         </div>
       )}
 
-      {/* Compact slide preview dialog */}
+      {/* Slide preview dialog with tabs for thumbnail vs Office embed */}
       <Dialog open={!!previewPresentation} onOpenChange={() => setPreviewPresentation(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader className="pb-2">
-            <DialogTitle className="text-base">{previewPresentation?.name}</DialogTitle>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="pb-2 flex-shrink-0">
+            <DialogTitle className="text-base flex items-center gap-2">
+              <Presentation className="h-4 w-4" />
+              {previewPresentation?.name}
+            </DialogTitle>
             {previewPresentation?.description && (
               <DialogDescription className="text-sm">{previewPresentation.description}</DialogDescription>
             )}
           </DialogHeader>
           
           {previewPresentation && (
-            <div>
-              <SlideGallery slides={previewPresentation.slides} />
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <Tabs defaultValue="live" className="h-full flex flex-col">
+                <TabsList className="grid w-full grid-cols-2 mb-3 flex-shrink-0">
+                  <TabsTrigger value="live" className="text-xs">
+                    <Monitor className="h-3.5 w-3.5 mr-1.5" />
+                    Live Preview
+                  </TabsTrigger>
+                  <TabsTrigger value="thumbnails" className="text-xs">
+                    <Eye className="h-3.5 w-3.5 mr-1.5" />
+                    Thumbnails
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="live" className="flex-1 min-h-0 mt-0 data-[state=active]:flex data-[state=active]:flex-col">
+                  <div className="flex-1 min-h-0">
+                    <OfficeEmbed 
+                      fileUrl={previewPresentation.fileUrl} 
+                      fileName={previewPresentation.fileName} 
+                    />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground text-center mt-2">
+                    Powered by Microsoft Office Online
+                  </p>
+                </TabsContent>
+                
+                <TabsContent value="thumbnails" className="flex-1 min-h-0 mt-0 overflow-auto">
+                  <SlideGallery slides={previewPresentation.slides} />
+                </TabsContent>
+              </Tabs>
               
-              <div className="flex justify-end mt-3 pt-3 border-t">
+              <div className="flex items-center justify-between mt-3 pt-3 border-t flex-shrink-0">
+                <Button variant="outline" size="sm" asChild>
+                  <a 
+                    href={getOfficeEmbedUrl(previewPresentation.fileUrl).replace('/embed.aspx', '/view.aspx')} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                    Open in Office
+                  </a>
+                </Button>
                 <Button size="sm" asChild>
                   <a href={previewPresentation.fileUrl} download={previewPresentation.fileName}>
                     <Download className="h-3.5 w-3.5 mr-1.5" />
-                    Download PowerPoint
+                    Download
                   </a>
                 </Button>
               </div>
