@@ -33,7 +33,7 @@ import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, HierarchicalProductGrid, HierarchicalBrandGrid, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit, OrbitLegend, MobileStickyTabs } from '@/components/portal';
+import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, HierarchicalProductGrid, HierarchicalBrandGrid, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit, OrbitLegend, MobileStickyTabs, QuickFindLogo } from '@/components/portal';
 import { toast } from 'sonner';
 
 // Lazy load admin components
@@ -498,8 +498,33 @@ const OrganizationPortal = () => {
                 )}
               </div>
 
+              {/* QuickFind Logo Widget */}
+              <div className="mt-4 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                <QuickFindLogo
+                  brands={brands.map(b => ({
+                    id: b.id,
+                    name: b.hero?.name || b.name,
+                    slug: b.slug || undefined,
+                    logos: b.logos || [],
+                  }))}
+                  products={products.map(p => ({
+                    id: p.id,
+                    name: p.hero?.name || p.name,
+                    slug: p.slug || undefined,
+                    logos: p.logos || [],
+                  }))}
+                  events={events.map(e => ({
+                    id: e.id,
+                    name: e.hero?.name || e.name,
+                    slug: e.slug || undefined,
+                    logos: e.logos || [],
+                  }))}
+                  accentColor={organization.accentColor || orgColors.primary}
+                />
+              </div>
+
               {/* Orbit Legend - replaces stats, shown on md+ screens */}
-              <div className="hidden md:block mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+              <div className="hidden md:block mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.45s' }}>
                 <OrbitLegend
                   value={activeTab}
                   onValueChange={handleTabChange}

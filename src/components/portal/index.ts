@@ -13,3 +13,4 @@ export { CreateProductSuiteDialog } from './CreateProductSuiteDialog';
 export { GlobalAssetOrbit } from './GlobalAssetOrbit';
 export { OrbitLegend } from './OrbitLegend';
 export { MobileStickyTabs } from './MobileStickyTabs';
+export { QuickFindLogo } from './QuickFindLogo';
