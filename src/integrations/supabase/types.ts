@@ -1185,6 +1185,80 @@ export type Database = {
         }
         Relationships: []
       }
+      qr_codes: {
+        Row: {
+          bg_color: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          entity_id: string
+          entity_type: string
+          error_correction: string
+          fg_color: string
+          id: string
+          is_active: boolean
+          logo_type: string | null
+          logo_url: string | null
+          name: string
+          organization_id: string | null
+          scan_count: number
+          size: number
+          updated_at: string
+          url: string
+          use_case: string | null
+        }
+        Insert: {
+          bg_color?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          entity_id: string
+          entity_type?: string
+          error_correction?: string
+          fg_color?: string
+          id?: string
+          is_active?: boolean
+          logo_type?: string | null
+          logo_url?: string | null
+          name: string
+          organization_id?: string | null
+          scan_count?: number
+          size?: number
+          updated_at?: string
+          url: string
+          use_case?: string | null
+        }
+        Update: {
+          bg_color?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          entity_id?: string
+          entity_type?: string
+          error_correction?: string
+          fg_color?: string
+          id?: string
+          is_active?: boolean
+          logo_type?: string | null
+          logo_url?: string | null
+          name?: string
+          organization_id?: string | null
+          scan_count?: number
+          size?: number
+          updated_at?: string
+          url?: string
+          use_case?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_codes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_report_prompts: {
         Row: {
           category: string | null
