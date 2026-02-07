@@ -132,7 +132,7 @@ export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideC
           
           {/* Logo overlay if different from cover */}
           {logoUrl && heroImage !== logoUrl && (
-            <div className="absolute bottom-3 left-3 w-12 h-12 bg-background/90 backdrop-blur-sm rounded-xl p-2 shadow-lg z-20">
+            <div className="absolute bottom-3 left-3 w-12 h-12 bg-white backdrop-blur-sm rounded-xl p-2 shadow-lg z-20">
               <img 
                 src={logoUrl} 
                 alt="" 
