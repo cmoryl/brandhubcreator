@@ -548,24 +548,25 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
 
   return (
     <section ref={ref} className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div className="flex-1 min-w-0">
-          <SectionHeader
-            title={title}
-            defaultSubtitle={defaultSubtitle}
-            customSubtitle={customSubtitle}
-            onSubtitleChange={canEdit ? onSubtitleChange : undefined}
-            isEditing={isHeaderEditing}
-            onEditToggle={canEdit ? () => setIsHeaderEditing(!isHeaderEditing) : undefined}
-          />
-        </div>
-        {logos.length > 0 && (
-          <Button onClick={downloadAllLogos} variant="outline" size="sm" className="gap-2 shrink-0 w-full sm:w-auto">
+      {/* Section header - always full width on its own row */}
+      <SectionHeader
+        title={title}
+        defaultSubtitle={defaultSubtitle}
+        customSubtitle={customSubtitle}
+        onSubtitleChange={canEdit ? onSubtitleChange : undefined}
+        isEditing={isHeaderEditing}
+        onEditToggle={canEdit ? () => setIsHeaderEditing(!isHeaderEditing) : undefined}
+      />
+      
+      {/* Controls row - separate from header */}
+      {logos.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button onClick={downloadAllLogos} variant="outline" size="sm" className="gap-2">
             <Package className="h-4 w-4" />
-            <span className="sm:inline">Download All</span>
+            <span>Download All</span>
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       <input
         ref={fileInputRef}
