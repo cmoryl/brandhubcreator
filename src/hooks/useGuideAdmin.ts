@@ -38,20 +38,8 @@ export const useGuideAdmin = (options: UseGuideAdminOptions = {}): UseGuideAdmin
   const { userRole: orgRole, organization, isLoading: orgLoading } = useOrganization();
 
   const result = useMemo(() => {
-    // Debug logging
-    console.log('[useGuideAdmin] Checking permissions:', {
-      hasUser: !!user,
-      isGlobalAdmin,
-      authLoading,
-      orgRole,
-      orgId: organization?.id,
-      orgLoading,
-      entityOrgId,
-    });
-
     // No user = no admin access
     if (!user) {
-      console.log('[useGuideAdmin] No user - returning false');
       return {
         isGuideAdmin: false,
         isLoading: false,
@@ -61,7 +49,6 @@ export const useGuideAdmin = (options: UseGuideAdminOptions = {}): UseGuideAdmin
 
     // Global admins always have access regardless of loading state
     if (isGlobalAdmin) {
-      console.log('[useGuideAdmin] Global admin - returning true');
       return {
         isGuideAdmin: true,
         isLoading: false,
