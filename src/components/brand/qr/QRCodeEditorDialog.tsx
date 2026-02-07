@@ -430,34 +430,112 @@ export const QRCodeEditorDialog = ({
               </Tabs>
             </div>
 
-            {/* Right: Preview */}
-            <div className="flex flex-col items-center justify-center p-6 bg-muted/30 rounded-xl border">
-              <p className="text-xs font-medium text-muted-foreground mb-4">Preview</p>
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                {previewUrl ? (
-                  <div className="relative">
-                    <img src={previewUrl} alt="QR Preview" className="w-[180px] h-[180px]" />
-                    {form.logoUrl && form.logoType !== 'none' && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-1/4 h-1/4 bg-white rounded-sm flex items-center justify-center p-1 shadow-sm">
-                          <img 
-                            src={form.logoUrl} 
-                            alt="Logo" 
-                            className="max-w-full max-h-full object-contain"
-                          />
+            {/* Right: Live Preview */}
+            <div className="flex flex-col p-5 bg-muted/30 rounded-xl border">
+              <div className="text-center mb-4">
+                <p className="text-sm font-semibold">Live Preview</p>
+                <p className="text-xs text-muted-foreground">Updates as you configure</p>
+              </div>
+              
+              {/* QR Code Preview */}
+              <div className="flex justify-center mb-4">
+                <div 
+                  className="rounded-xl p-4 shadow-sm transition-colors"
+                  style={{ backgroundColor: form.bgColor }}
+                >
+                  {previewUrl ? (
+                    <div className="relative">
+                      <img src={previewUrl} alt="QR Preview" className="w-[160px] h-[160px]" />
+                      {form.logoUrl && form.logoType !== 'none' && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div 
+                            className="w-1/4 h-1/4 rounded-sm flex items-center justify-center p-1 shadow-sm"
+                            style={{ backgroundColor: form.bgColor }}
+                          >
+                            <img 
+                              src={form.logoUrl} 
+                              alt="Logo" 
+                              className="max-w-full max-h-full object-contain"
+                            />
+                          </div>
                         </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-[160px] h-[160px] bg-muted/50 rounded flex items-center justify-center border-2 border-dashed border-muted-foreground/20">
+                      <div className="text-center">
+                        <QrCodeIcon className="h-10 w-10 text-muted-foreground/30 mx-auto mb-1" />
+                        <p className="text-xs text-muted-foreground/50">Enter a URL</p>
                       </div>
-                    )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Live Configuration Summary */}
+              <div className="space-y-2 text-xs border-t pt-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Name</span>
+                  <span className="font-medium truncate max-w-[120px]">{form.name || '—'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">URL</span>
+                  <span className="font-mono text-[10px] truncate max-w-[120px]">
+                    {form.url && form.url !== 'https://' ? form.url : '—'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Size</span>
+                  <span className="font-medium">{form.size}px</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Error Correction</span>
+                  <span className="font-medium">{form.errorCorrection}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Colors</span>
+                  <div className="flex items-center gap-1">
+                    <div 
+                      className="w-4 h-4 rounded border"
+                      style={{ backgroundColor: form.fgColor }}
+                      title={`Foreground: ${form.fgColor}`}
+                    />
+                    <span className="text-muted-foreground/50">/</span>
+                    <div 
+                      className="w-4 h-4 rounded border"
+                      style={{ backgroundColor: form.bgColor }}
+                      title={`Background: ${form.bgColor}`}
+                    />
                   </div>
-                ) : (
-                  <div className="w-[180px] h-[180px] bg-muted rounded flex items-center justify-center">
-                    <QrCodeIcon className="h-12 w-12 text-muted-foreground/30" />
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Logo</span>
+                  <span className="font-medium capitalize">
+                    {form.logoType === 'none' ? 'None' : form.logoType}
+                  </span>
+                </div>
+                {form.useCase && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Use Case</span>
+                    <span className="font-medium capitalize">{form.useCase}</span>
                   </div>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mt-3 text-center">
-                {form.size}px • {ERROR_CORRECTIONS.find(e => e.value === form.errorCorrection)?.label}
-              </p>
+
+              {/* Readiness indicator */}
+              <div className="mt-4 pt-3 border-t">
+                {form.name.trim() && form.url.trim() && form.url !== 'https://' ? (
+                  <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    Ready to create
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
+                    {!form.name.trim() ? 'Enter a name' : 'Enter a valid URL'}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
