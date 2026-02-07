@@ -149,6 +149,7 @@ export const PresentationTemplatesSection = ({
   // Card image replace
   const cardImageInputRef = useRef<HTMLInputElement>(null);
   const [replacingImageForId, setReplacingImageForId] = useState<string | null>(null);
+  const replacingImageForIdRef = useRef<string | null>(null);
   const [isUploadingCardImage, setIsUploadingCardImage] = useState(false);
   
   // Use database presentations if available, fallback to props for backward compatibility
@@ -308,12 +309,15 @@ export const PresentationTemplatesSection = ({
     } finally {
       setIsUploadingCardImage(false);
       setReplacingImageForId(null);
+      replacingImageForIdRef.current = null;
     }
   };
 
   const onCardImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !replacingImageForId) return;
+    // Use the ref for immediate access to the ID (state may be stale due to async)
+    const targetId = replacingImageForIdRef.current;
+    if (!file || !targetId) return;
 
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file');
@@ -325,7 +329,7 @@ export const PresentationTemplatesSection = ({
       return;
     }
 
-    handleReplaceCardImage(file, replacingImageForId);
+    handleReplaceCardImage(file, targetId);
     e.target.value = '';
   };
 
@@ -534,6 +538,8 @@ export const PresentationTemplatesSection = ({
                         disabled={isUploadingCardImage}
                         onClick={(e) => {
                           e.stopPropagation();
+                          // Set both ref and state - ref is used immediately by the onChange handler
+                          replacingImageForIdRef.current = pres.id;
                           setReplacingImageForId(pres.id);
                           cardImageInputRef.current?.click();
                         }}
