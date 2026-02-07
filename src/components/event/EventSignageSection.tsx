@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Maximize, FileImage, Download, Eye } from 'lucide-react';
+import { Plus, Trash2, Maximize, FileImage, Download, Eye, Pencil } from 'lucide-react';
 import { EventSignage } from '@/types/event';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +9,7 @@ import { LayoutSelector, LayoutPreset, useLayoutClasses } from '@/components/bra
 import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { RichTextDisplay } from '@/components/ui/rich-text-editor';
 import { AddSignageDialog } from './AddSignageDialog';
+import { EditSignageDialog } from './EditSignageDialog';
 
 interface EventSignageSectionProps {
   signage: EventSignage[];
@@ -64,14 +65,25 @@ export const EventSignageSection = ({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<EventSignage | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<EventSignage | null>(null);
 
   const openPreview = (item: EventSignage) => {
     setPreviewItem(item);
     setPreviewOpen(true);
   };
 
+  const openEditDialog = (item: EventSignage) => {
+    setEditingItem(item);
+    setEditDialogOpen(true);
+  };
+
   const handleAddSignage = (item: EventSignage) => {
     onUpdate([...signage, item]);
+  };
+
+  const handleEditSignage = (updatedItem: EventSignage) => {
+    onUpdate(signage.map(s => s.id === updatedItem.id ? updatedItem : s));
   };
 
   const handleDelete = (id: string) => {
@@ -173,14 +185,24 @@ export const EventSignageSection = ({
                           <p className="text-sm text-muted-foreground">{item.dimensions}</p>
                         </div>
                         {isEditable && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => handleDelete(item.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => openEditDialog(item)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              onClick={() => handleDelete(item.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         )}
                       </div>
                       
@@ -204,8 +226,11 @@ export const EventSignageSection = ({
                             </a>
                           </Button>
                         )}
-                        {!item.previewUrl && !item.templateUrl && (
-                          <span className="text-xs text-muted-foreground italic">No files attached</span>
+                        {isEditable && !item.previewUrl && !item.templateUrl && (
+                          <Button variant="outline" size="sm" className="flex-1" onClick={() => openEditDialog(item)}>
+                            <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                            Edit
+                          </Button>
                         )}
                       </div>
                     </CardContent>
@@ -246,6 +271,19 @@ export const EventSignageSection = ({
         externalUrl={previewItem?.previewUrl}
         type="image"
       />
+
+      {/* Edit Dialog */}
+      {editingItem && (
+        <EditSignageDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          signage={editingItem}
+          onSave={handleEditSignage}
+          onDelete={handleDelete}
+          brandName={brandName}
+          brandColors={brandColors}
+        />
+      )}
     </section>
   );
 };
