@@ -66,19 +66,33 @@ const SlideGallery = ({ slides, onClose }: { slides: PresentationSlide[]; onClos
     );
   }
 
+  const currentSlide = slides[activeIndex];
+  
   return (
     <div className="space-y-4">
       {/* Main slide view */}
-      <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-        {slides[activeIndex]?.thumbnailUrl ? (
+      <div className="relative aspect-video bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden">
+        {currentSlide?.thumbnailUrl ? (
           <img
-            src={slides[activeIndex].thumbnailUrl}
-            alt={slides[activeIndex].title || `Slide ${activeIndex + 1}`}
+            src={currentSlide.thumbnailUrl}
+            alt={currentSlide.title || `Slide ${activeIndex + 1}`}
             className="w-full h-full object-contain"
+            crossOrigin="anonymous"
           />
         ) : (
-          <div className="flex items-center justify-center h-full text-white/50">
-            <Presentation className="h-16 w-16" />
+          <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+            <Presentation className="h-12 w-12 text-white/30 mb-3" />
+            <p className="text-lg font-medium text-white/70 mb-2">
+              {currentSlide?.title || `Slide ${activeIndex + 1}`}
+            </p>
+            {currentSlide?.textContent && (
+              <p className="text-sm text-white/50 max-w-md line-clamp-4">
+                {currentSlide.textContent}
+              </p>
+            )}
+            <p className="text-xs text-white/30 mt-4">
+              Preview not available – download to view full slide
+            </p>
           </div>
         )}
         
