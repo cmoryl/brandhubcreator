@@ -54,7 +54,7 @@ import { EventExportPdfButton } from '@/components/event/EventExportPdfButton';
 import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
 import { AdminToolbar } from '@/components/admin/AdminToolbar';
-import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
+import { StickyBreadcrumbs } from '@/components/StickyBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { HeroBackground } from '@/components/HeroBackground';
 import { BackToTopButton } from '@/components/BackToTopButton';
@@ -952,15 +952,14 @@ const EventEditor = () => {
           {/* Content */}
           <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
             <div className={`${getContentWidthClass()} mx-auto animate-fade-in-up ${getSectionSpacingClass()}`}>
-              {/* Breadcrumbs - show full hierarchy for sub-events */}
-              <AppBreadcrumbs
+              {/* Sticky Breadcrumbs - show full hierarchy for sub-events */}
+              <StickyBreadcrumbs
                 items={[
                   { label: organization?.name || 'Events', icon: organization ? Building2 : Calendar, href: organization ? `/org/${organization.slug}` : '/' },
                   ...(parentEvent ? [{ label: parentEvent.name, icon: Calendar, href: `/event/${parentEvent.slug}` }] : []),
                 ]}
                 currentPage={event.hero.name}
                 currentIcon={Calendar}
-                className="mb-6"
               />
 
               {/* Parent Event Banner for sub-events */}

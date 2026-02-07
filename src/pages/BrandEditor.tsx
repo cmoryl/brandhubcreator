@@ -59,7 +59,7 @@ import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePane
 import { BrandBackupManager } from '@/components/brand/BrandBackupManager';
 import { QuickBackupButton } from '@/components/brand/QuickBackupButton';
 import { AdminToolbar } from '@/components/admin/AdminToolbar';
-import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
+import { StickyBreadcrumbs } from '@/components/StickyBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { HeroBackground } from '@/components/HeroBackground';
 import { BackToTopButton } from '@/components/BackToTopButton';
@@ -999,8 +999,8 @@ const BrandEditor = () => {
           {/* Content */}
           <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
             <div className={`${getContentWidthClass()} mx-auto animate-fade-in-up ${getSectionSpacingClass()}`}>
-              {/* Breadcrumbs */}
-              <AppBreadcrumbs
+              {/* Sticky Breadcrumbs */}
+              <StickyBreadcrumbs
                 items={[
                   { label: organization?.name || 'Brands', icon: organization ? Building2 : FileText, href: organization ? `/org/${organization.slug}` : '/' },
                   // Only show parent brand breadcrumb if:
@@ -1013,7 +1013,6 @@ const BrandEditor = () => {
                 ]}
                 currentPage={brand.hero.name}
                 currentIcon={FileText}
-                className="mb-6"
               />
               
               {viewMode === 'sections' ? (

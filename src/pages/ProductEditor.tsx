@@ -58,7 +58,7 @@ import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePane
 import { BrandBackupManager } from '@/components/brand/BrandBackupManager';
 import { QuickBackupButton } from '@/components/brand/QuickBackupButton';
 import { AdminToolbar } from '@/components/admin/AdminToolbar';
-import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
+import { StickyBreadcrumbs } from '@/components/StickyBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
@@ -870,8 +870,8 @@ const ProductEditor = () => {
           {/* Content */}
           <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
             <div className={`${getContentWidthClass()} mx-auto animate-fade-in ${getSectionSpacingClass()}`}>
-              {/* Breadcrumbs */}
-              <AppBreadcrumbs
+              {/* Sticky Breadcrumbs */}
+              <StickyBreadcrumbs
                 items={[
                   { label: organization?.name || 'Products', icon: organization ? Building2 : Package, href: organization ? `/org/${organization.slug}` : '/' },
                   // Parent brand (if linked via parent_brand_id)
@@ -885,7 +885,6 @@ const ProductEditor = () => {
                 ]}
                 currentPage={currentProduct.hero.name}
                 currentIcon={Package}
-                className="mb-6"
               />
               
               {viewMode === 'sections' ? (
