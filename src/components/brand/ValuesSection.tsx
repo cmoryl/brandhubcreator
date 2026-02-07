@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { 
-  Plus, X, Pencil, Upload, Image as ImageIcon, RefreshCw, ChevronLeft, ChevronRight,
+  Plus, X, Pencil, Upload, Image as ImageIcon, RefreshCw, ChevronLeft, ChevronRight, Loader2,
   // Core values
   Heart, Star, Shield, Zap, Target, Users, Lightbulb, Award, Compass, Leaf,
   // Business & Growth
@@ -30,10 +30,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
 import { SectionHeader } from './SectionHeader';
 import { SyncValuesButton } from './SyncValuesButton';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { toast } from 'sonner';
 import type { LucideIcon } from 'lucide-react';
-import { getPillarImage, getStablePillarImage, pillarImagesList } from '@/assets/pillars';
+import { getPillarImage, getStablePillarImage, pillarImagesList, pillarImagesWithLabels } from '@/assets/pillars';
 
 interface ValuesSectionProps {
   values: BrandValue[];
@@ -224,6 +227,12 @@ export const ValuesSection = ({
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [presetImageIndex, setPresetImageIndex] = useState<Record<string, number>>({});
 
+  // Storage upload hook for persistent pillar images
+  const { uploadFile, isUploading, uploadProgress } = useStorageUpload({
+    entityType: 'brand',
+    entityId: brandId,
+  });
+
   // Get current preset index for a value
   const getPresetIndex = (valueId: string) => {
     if (presetImageIndex[valueId] !== undefined) {
@@ -287,21 +296,43 @@ export const ValuesSection = ({
     if (editingId === id) setEditingId(null);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !uploadingFor) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const url = event.target?.result as string;
-      updateValue(uploadingFor, { imageUrl: url, useImage: true });
+    // Validate file type and size
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+
+    try {
+      // Upload to persistent storage
+      const result = await uploadFile(file, 'asset', `pillar-${uploadingFor}`);
+      
+      if (result?.url) {
+        updateValue(uploadingFor, { imageUrl: result.url, useImage: true });
+        toast.success('Pillar image uploaded and saved');
+      }
+    } catch (err) {
+      console.error('Upload failed:', err);
+      toast.error('Failed to upload image');
+    } finally {
       setUploadingFor(null);
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
-  };
+      e.target.value = '';
+    }
+  }, [uploadingFor, uploadFile, updateValue]);
 
   const triggerImageUpload = (valueId: string) => {
+    if (!brandId) {
+      toast.error('Please save the brand first before uploading images');
+      return;
+    }
     setUploadingFor(valueId);
     fileInputRef.current?.click();
   };
@@ -437,12 +468,17 @@ export const ValuesSection = ({
                             >
                               <ChevronLeft className="h-4 w-4" />
                             </Button>
-                            <div className="flex-1 h-20 rounded-lg overflow-hidden">
+                            <div className="flex-1 h-20 rounded-lg overflow-hidden relative group/preset">
                               <img 
-                                src={value.imageUrl || pillarImagesList[getPresetIndex(value.id)]} 
+                                src={pillarImagesList[getPresetIndex(value.id)]} 
                                 alt="Preset" 
                                 className="w-full h-full object-cover"
                               />
+                              <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover/preset:opacity-100 transition-opacity">
+                                <span className="text-white text-xs font-medium px-2 text-center">
+                                  {pillarImagesWithLabels[getPresetIndex(value.id)]?.label || 'Preset'}
+                                </span>
+                              </div>
                             </div>
                             <Button
                               variant="outline"
@@ -454,20 +490,41 @@ export const ValuesSection = ({
                             </Button>
                           </div>
                           <p className="text-[10px] text-muted-foreground text-center">
-                            {getPresetIndex(value.id) + 1} of {pillarImagesList.length}
+                            {pillarImagesWithLabels[getPresetIndex(value.id)]?.label} ({getPresetIndex(value.id) + 1} of {pillarImagesList.length})
                           </p>
                         </div>
                         
                         {/* Custom Upload Option */}
                         <div className="pt-2 border-t border-border">
-                          <label className="text-xs font-medium text-muted-foreground mb-2 block">Or upload custom</label>
-                          <button
-                            onClick={() => triggerImageUpload(value.id)}
-                            className="w-full h-16 border-2 border-dashed border-border rounded-lg flex items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                          >
-                            <Upload className="h-4 w-4" />
-                            <span className="text-xs">Upload Image</span>
-                          </button>
+                          <label className="text-xs font-medium text-muted-foreground mb-2 block">Or upload custom image</label>
+                          {isUploading && uploadingFor === value.id ? (
+                            <div className="w-full h-16 border-2 border-primary/50 rounded-lg flex flex-col items-center justify-center gap-2 bg-primary/5">
+                              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                              <Progress value={uploadProgress} className="w-3/4 h-1" />
+                              <span className="text-xs text-muted-foreground">Uploading... {uploadProgress}%</span>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => triggerImageUpload(value.id)}
+                              disabled={!brandId}
+                              className="w-full h-16 border-2 border-dashed border-border rounded-lg flex items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <Upload className="h-4 w-4" />
+                              <span className="text-xs">
+                                {brandId ? 'Upload to Storage' : 'Save brand first'}
+                              </span>
+                            </button>
+                          )}
+                          {value.imageUrl && !value.imageUrl.includes('supabase.co') && (
+                            <p className="text-[10px] text-amber-600 mt-1 text-center">
+                              ⚠️ Current image is not in persistent storage
+                            </p>
+                          )}
+                          {value.imageUrl?.includes('supabase.co') && (
+                            <p className="text-[10px] text-emerald-600 mt-1 text-center">
+                              ✓ Saved to persistent storage
+                            </p>
+                          )}
                         </div>
                       </div>
                     </TabsContent>
