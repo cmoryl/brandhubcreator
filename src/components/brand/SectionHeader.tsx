@@ -33,10 +33,7 @@ export const SectionHeader = forwardRef<HTMLDivElement, SectionHeaderProps>(
     return (
       <div 
         ref={ref} 
-        className={cn(
-          "relative pb-4 mb-4",
-          fullWidth && "border-b border-border"
-        )}
+        className="relative pb-2 mb-2"
       >
         {/* Title row with edit button */}
         <div className="flex items-center justify-between gap-3 sm:gap-4 mb-1">
