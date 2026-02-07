@@ -5,8 +5,8 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Upload, Download, Trash2, FileText, Loader2, Eye, ChevronLeft, ChevronRight, Presentation, X, ExternalLink, Monitor, ImagePlus } from 'lucide-react';
-import { PresentationTemplate, PresentationSlide } from '@/types/brand';
+import { Plus, Upload, Download, Trash2, Loader2, Eye, Presentation, ExternalLink, ImagePlus, FileText, X } from 'lucide-react';
+import { PresentationTemplate } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,8 +14,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -122,114 +120,6 @@ const OfficeEmbed = ({ fileUrl, fileName }: { fileUrl: string; fileName: string 
   );
 };
 
-// Compact slide gallery component with scrollable slide deck
-const SlideGallery = ({ slides, onClose }: { slides: PresentationSlide[]; onClose?: () => void }) => {
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  if (slides.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-32 bg-muted/30 rounded-lg">
-        <div className="text-center text-muted-foreground">
-          <Presentation className="h-6 w-6 mx-auto mb-1 opacity-50" />
-          <p className="text-xs">No slide previews available</p>
-        </div>
-      </div>
-    );
-  }
-
-  const currentSlide = slides[activeIndex];
-  
-  return (
-    <div className="space-y-2">
-      {/* Main slide view - fixed height */}
-      <div className="relative h-[280px] bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden">
-        {currentSlide?.thumbnailUrl ? (
-          <img
-            src={currentSlide.thumbnailUrl}
-            alt={currentSlide.title || `Slide ${activeIndex + 1}`}
-            className="w-full h-full object-contain"
-            crossOrigin="anonymous"
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-            <Presentation className="h-8 w-8 text-white/30 mb-2" />
-            <p className="text-sm font-medium text-white/70 mb-1">
-              {currentSlide?.title || `Slide ${activeIndex + 1}`}
-            </p>
-            {currentSlide?.textContent && (
-              <p className="text-xs text-white/50 max-w-sm line-clamp-3">
-                {currentSlide.textContent}
-              </p>
-            )}
-          </div>
-        )}
-        
-        {/* Navigation arrows */}
-        {slides.length > 1 && (
-          <>
-            <button
-              onClick={() => setActiveIndex((i) => (i > 0 ? i - 1 : slides.length - 1))}
-              className="absolute left-1 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
-            >
-              <ChevronLeft className="h-4 w-4 text-white" />
-            </button>
-            <button
-              onClick={() => setActiveIndex((i) => (i < slides.length - 1 ? i + 1 : 0))}
-              className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
-            >
-              <ChevronRight className="h-4 w-4 text-white" />
-            </button>
-          </>
-        )}
-
-        {/* Slide counter */}
-        <div className="absolute bottom-1.5 right-1.5 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
-          {activeIndex + 1} / {slides.length}
-        </div>
-
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="absolute top-1.5 right-1.5 p-1 bg-black/60 rounded-full hover:bg-black/80 transition-colors"
-          >
-            <X className="h-3 w-3 text-white" />
-          </button>
-        )}
-      </div>
-
-      {/* Larger thumbnail strip for easier navigation */}
-      <ScrollArea className="w-full">
-        <div className="flex gap-1.5 pb-2">
-          {slides.map((slide, index) => (
-            <button
-              key={slide.id}
-              onClick={() => setActiveIndex(index)}
-              className={cn(
-                "flex-shrink-0 w-16 aspect-video rounded border overflow-hidden transition-all",
-                index === activeIndex
-                  ? "border-primary ring-1 ring-primary/50"
-                  : "border-border/50 hover:border-primary/50"
-              )}
-            >
-              {slide.thumbnailUrl ? (
-                <img
-                  src={slide.thumbnailUrl}
-                  alt={slide.title || `Slide ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <span className="text-[10px] text-muted-foreground">{index + 1}</span>
-                </div>
-              )}
-            </button>
-          ))}
-        </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
-    </div>
-  );
-};
 
 export const PresentationTemplatesSection = ({
   presentations: propPresentations,
@@ -707,34 +597,15 @@ export const PresentationTemplatesSection = ({
           
           {previewPresentation && (
             <div className="space-y-4">
-              <Tabs defaultValue="live" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-3">
-                  <TabsTrigger value="live" className="text-xs">
-                    <Monitor className="h-3.5 w-3.5 mr-1.5" />
-                    Live Preview
-                  </TabsTrigger>
-                  <TabsTrigger value="thumbnails" className="text-xs">
-                    <Eye className="h-3.5 w-3.5 mr-1.5" />
-                    Thumbnails
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="live" className="mt-0">
-                  <OfficeEmbed 
-                    fileUrl={previewPresentation.fileUrl} 
-                    fileName={previewPresentation.fileName} 
-                  />
-                  <p className="text-[10px] text-muted-foreground text-center mt-2">
-                    Powered by Microsoft Office Online
-                  </p>
-                </TabsContent>
-                
-                <TabsContent value="thumbnails" className="mt-0">
-                  <SlideGallery slides={previewPresentation.slides} />
-                </TabsContent>
-              </Tabs>
+              <OfficeEmbed 
+                fileUrl={previewPresentation.fileUrl} 
+                fileName={previewPresentation.fileName} 
+              />
+              <p className="text-[10px] text-muted-foreground text-center">
+                Powered by Microsoft Office Online
+              </p>
               
-              <div className="flex items-center justify-between mt-3 pt-3 border-t flex-shrink-0">
+              <div className="flex items-center justify-between pt-3 border-t flex-shrink-0">
                 <Button variant="outline" size="sm" asChild>
                   <a 
                     href={getOfficeEmbedUrl(previewPresentation.fileUrl).replace('/embed.aspx', '/view.aspx')} 
