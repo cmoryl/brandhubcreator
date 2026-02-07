@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Plus, X, Pencil } from 'lucide-react';
+import { Plus, X, Pencil, Download, ExternalLink } from 'lucide-react';
 import { BrandTypography } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SectionHeader } from './SectionHeader';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface TypographySectionProps {
   typography: BrandTypography[];
@@ -27,6 +28,20 @@ const fontOptions = [
 ];
 
 const weightOptions = ['100', '200', '300', '400', '500', '600', '700', '800', '900'];
+
+// Get Google Fonts download URL
+const getGoogleFontsUrl = (fontFamily: string): string | null => {
+  const fontName = fontFamily?.split(',')[0]?.trim();
+  if (!fontName) return null;
+  
+  // System fonts don't have Google Fonts pages
+  const systemFonts = ['Georgia', 'Arial', 'Helvetica', 'Times New Roman', 'Verdana'];
+  if (systemFonts.includes(fontName)) return null;
+  
+  // Format for Google Fonts URL (replace spaces with +)
+  const formattedName = fontName.replace(/\s+/g, '+');
+  return `https://fonts.google.com/specimen/${formattedName}`;
+};
 
 const DEFAULT_PREVIEW_TEXT = 'The quick brown fox jumps over the lazy dog';
 
@@ -162,6 +177,28 @@ export const TypographySection = ({ typography, onTypographyChange, customSubtit
                   </p>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span className="font-mono">{type.fontFamily?.split(',')[0] || 'Unknown'}</span>
+                    {getGoogleFontsUrl(type.fontFamily) && canEdit && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <a
+                              href={getGoogleFontsUrl(type.fontFamily)!}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Download className="h-3 w-3" />
+                              <span>Download Font</span>
+                              <ExternalLink className="h-2.5 w-2.5" />
+                            </a>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Download from Google Fonts</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                     <span>•</span>
                     <span>{type.usage || 'General'}</span>
                   </div>
