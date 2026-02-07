@@ -925,12 +925,15 @@ export interface BaseGuide {
   updatedAt: Date;
 }
 
-// Default section order
+// Default section order - canonical sections only (no deprecated aliases)
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
-  'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'insights', 'locations', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
-  'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
-  'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'imageassets', 'misuse',
-  'brochures', 'templates', 'templatespecs', 'presentations', 'sponsorlogos', 'clientlogos', 'universe', 'products', 'events', 'eventsignage'
+  'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'insights', 'locations', 'webinars', 
+  'logos', 'brandicon', 'colors', 'gradients', 'patterns', 
+  'typography', 'textstyles', 
+  'iconography', 'socialicons', 'imagery', 
+  'social', 'socialassets', 'website', 'signatures', 'qr', 
+  'videos', 'assets', 'imageassets', 'misuse',
+  'brochures', 'templatespecs', 'presentations', 'sponsorlogos', 'clientlogos', 'universe', 'products', 'events', 'eventsignage'
 ];
 
 // Section IDs for navigation
