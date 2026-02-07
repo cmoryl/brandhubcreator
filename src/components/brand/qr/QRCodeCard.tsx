@@ -17,6 +17,7 @@ interface QRCodeCardProps {
   canEdit: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  variant?: 'grid' | 'list';
 }
 
 const USE_CASE_LABELS: Record<string, { label: string; color: string }> = {
@@ -28,7 +29,7 @@ const USE_CASE_LABELS: Record<string, { label: string; color: string }> = {
   other: { label: 'Other', color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300' },
 };
 
-export const QRCodeCard = ({ qrCode, canEdit, onEdit, onDelete }: QRCodeCardProps) => {
+export const QRCodeCard = ({ qrCode, canEdit, onEdit, onDelete, variant = 'grid' }: QRCodeCardProps) => {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -112,6 +113,95 @@ export const QRCodeCard = ({ qrCode, canEdit, onEdit, onDelete }: QRCodeCardProp
 
   const useCaseConfig = qrCode.useCase ? USE_CASE_LABELS[qrCode.useCase] : null;
 
+  // List variant - horizontal compact layout
+  if (variant === 'list') {
+    return (
+      <Card className="group overflow-hidden hover:border-primary/50 transition-colors">
+        <div className="flex items-center gap-4 p-3">
+          {/* QR Preview Thumbnail */}
+          <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center shrink-0 border">
+            {qrDataUrl ? (
+              <img src={qrDataUrl} alt={qrCode.name} className="w-full h-full object-contain p-1" />
+            ) : (
+              <QrCodeIcon className="h-6 w-6 text-muted-foreground/30" />
+            )}
+          </div>
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h4 className="font-semibold text-sm truncate">{qrCode.name}</h4>
+              {useCaseConfig && (
+                <Badge className={cn("shrink-0", useCaseConfig.color)} variant="secondary">
+                  {useCaseConfig.label}
+                </Badge>
+              )}
+            </div>
+            <p className="text-xs font-mono text-muted-foreground truncate mt-0.5">{qrCode.url}</p>
+            {qrCode.description && (
+              <p className="text-xs text-muted-foreground/70 truncate mt-0.5">{qrCode.description}</p>
+            )}
+          </div>
+
+          {/* Color swatches */}
+          <div className="flex items-center gap-1 shrink-0">
+            <div 
+              className="w-5 h-5 rounded border border-border" 
+              style={{ backgroundColor: qrCode.fgColor }}
+              title={qrCode.fgColor}
+            />
+            <div 
+              className="w-5 h-5 rounded border border-border" 
+              style={{ backgroundColor: qrCode.bgColor }}
+              title={qrCode.bgColor}
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-1 shrink-0">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={copyUrl}>
+                  {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{copied ? 'Copied!' : 'Copy URL'}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={downloadPNG} disabled={isDownloading}>
+                  <Download className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Download PNG</TooltipContent>
+            </Tooltip>
+            {canEdit && (
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={onEdit}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Edit</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={onDelete}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete</TooltipContent>
+                </Tooltip>
+              </>
+            )}
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  // Grid variant - original card layout
   return (
     <Card className="group overflow-hidden hover:border-primary/50 transition-colors">
       {/* QR Code Preview */}
