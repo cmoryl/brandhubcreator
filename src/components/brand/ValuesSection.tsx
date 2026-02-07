@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { 
-  Plus, X, Pencil, Upload, Image as ImageIcon,
+  Plus, X, Pencil, Upload, Image as ImageIcon, RefreshCw, ChevronLeft, ChevronRight,
   // Core values
   Heart, Star, Shield, Zap, Target, Users, Lightbulb, Award, Compass, Leaf,
   // Business & Growth
@@ -33,7 +33,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { SectionHeader } from './SectionHeader';
 import { SyncValuesButton } from './SyncValuesButton';
 import type { LucideIcon } from 'lucide-react';
-import { getPillarImage, getStablePillarImage } from '@/assets/pillars';
+import { getPillarImage, getStablePillarImage, pillarImagesList } from '@/assets/pillars';
 
 interface ValuesSectionProps {
   values: BrandValue[];
@@ -207,12 +207,6 @@ const getIconComponent = (iconName: string): LucideIcon | null => {
   return option?.Icon || null;
 };
 
-// Extended BrandValue to support image mode
-interface ExtendedBrandValue extends BrandValue {
-  imageUrl?: string;
-  useImage?: boolean;
-}
-
 export const ValuesSection = ({ 
   values, 
   onValuesChange, 
@@ -228,10 +222,39 @@ export const ValuesSection = ({
   const [selectedCategory, setSelectedCategory] = useState('Core Values');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+  const [presetImageIndex, setPresetImageIndex] = useState<Record<string, number>>({});
+
+  // Get current preset index for a value
+  const getPresetIndex = (valueId: string) => {
+    if (presetImageIndex[valueId] !== undefined) {
+      return presetImageIndex[valueId];
+    }
+    // Try to find the current image in the preset list
+    const value = values.find(v => v.id === valueId);
+    if (value?.imageUrl) {
+      const idx = pillarImagesList.findIndex(img => img === value.imageUrl);
+      return idx >= 0 ? idx : 0;
+    }
+    return 0;
+  };
+
+  // Navigate through preset images
+  const selectPresetImage = (valueId: string, direction: 'prev' | 'next') => {
+    const currentIdx = getPresetIndex(valueId);
+    let newIdx: number;
+    if (direction === 'next') {
+      newIdx = (currentIdx + 1) % pillarImagesList.length;
+    } else {
+      newIdx = (currentIdx - 1 + pillarImagesList.length) % pillarImagesList.length;
+    }
+    setPresetImageIndex(prev => ({ ...prev, [valueId]: newIdx }));
+    updateValue(valueId, { imageUrl: pillarImagesList[newIdx], useImage: true });
+  };
+
 
   const addValue = () => {
     if (!onValuesChange) return;
-    const newValue: ExtendedBrandValue = {
+    const newValue: BrandValue = {
       id: crypto.randomUUID(),
       text: 'New Value',
       description: 'Describe what this value means to your organization',
@@ -245,7 +268,7 @@ export const ValuesSection = ({
   // Auto-assign AI pillar image when text changes
   const handleTextChange = (id: string, newText: string) => {
     const matchingImage = getPillarImage(newText);
-    const updates: Partial<ExtendedBrandValue> = { text: newText };
+    const updates: Partial<BrandValue> = { text: newText };
     if (matchingImage) {
       updates.imageUrl = matchingImage;
       updates.useImage = true;
@@ -253,7 +276,7 @@ export const ValuesSection = ({
     updateValue(id, updates);
   };
 
-  const updateValue = (id: string, updates: Partial<ExtendedBrandValue>) => {
+  const updateValue = (id: string, updates: Partial<BrandValue>) => {
     if (!onValuesChange) return;
     onValuesChange(values.map(v => v.id === id ? { ...v, ...updates } : v));
   };
@@ -324,7 +347,6 @@ export const ValuesSection = ({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {values.map((value, index) => {
-          const extValue = value as ExtendedBrandValue;
           const IconComponent = getIconComponent(value.icon);
           const isEditing = editingId === value.id;
 
@@ -346,7 +368,7 @@ export const ValuesSection = ({
                 <div className="space-y-4">
                   {/* Mode Toggle */}
                   <Tabs 
-                    value={extValue.useImage ? 'image' : 'icon'} 
+                    value={value.useImage ? 'image' : 'icon'} 
                     onValueChange={(v) => updateValue(value.id, { useImage: v === 'image' })}
                     className="w-full"
                   >
@@ -403,31 +425,50 @@ export const ValuesSection = ({
 
                     <TabsContent value="image" className="mt-4">
                       <div className="space-y-3">
-                        {extValue.imageUrl ? (
-                          <div className="relative group/img">
-                            <img 
-                              src={extValue.imageUrl} 
-                              alt="Value" 
-                              className="w-full h-24 object-cover rounded-lg"
-                              loading="lazy"
-                              decoding="async"
-                            />
-                            <button
-                              onClick={() => triggerImageUpload(value.id)}
-                              className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity rounded-lg"
+                        {/* Preset Image Selector */}
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-muted-foreground">Select from presets</label>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8 shrink-0"
+                              onClick={() => selectPresetImage(value.id, 'prev')}
                             >
-                              <Upload className="h-6 w-6 text-white" />
-                            </button>
+                              <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <div className="flex-1 h-20 rounded-lg overflow-hidden">
+                              <img 
+                                src={value.imageUrl || pillarImagesList[getPresetIndex(value.id)]} 
+                                alt="Preset" 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8 shrink-0"
+                              onClick={() => selectPresetImage(value.id, 'next')}
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
                           </div>
-                        ) : (
+                          <p className="text-[10px] text-muted-foreground text-center">
+                            {getPresetIndex(value.id) + 1} of {pillarImagesList.length}
+                          </p>
+                        </div>
+                        
+                        {/* Custom Upload Option */}
+                        <div className="pt-2 border-t border-border">
+                          <label className="text-xs font-medium text-muted-foreground mb-2 block">Or upload custom</label>
                           <button
                             onClick={() => triggerImageUpload(value.id)}
-                            className="w-full h-24 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                            className="w-full h-16 border-2 border-dashed border-border rounded-lg flex items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
                           >
-                            <Upload className="h-6 w-6" />
+                            <Upload className="h-4 w-4" />
                             <span className="text-xs">Upload Image</span>
                           </button>
-                        )}
+                        </div>
                       </div>
                     </TabsContent>
                   </Tabs>
@@ -449,10 +490,10 @@ export const ValuesSection = ({
                 </div>
               ) : (
               <>
-                  {/* Full-width image at top for image mode - resolve from assets based on text */}
+                  {/* Full-width image at top for image mode - use custom or resolve from assets */}
                   {(() => {
-                    const resolvedImage = extValue.useImage 
-                      ? (getPillarImage(value.text) || getStablePillarImage(value.text))
+                    const resolvedImage = value.useImage 
+                      ? (value.imageUrl || getPillarImage(value.text) || getStablePillarImage(value.text))
                       : null;
                     
                     return resolvedImage && (
@@ -470,8 +511,8 @@ export const ValuesSection = ({
                   })()}
                   
                   {/* Adjust margin and show icon only if not in image mode */}
-                  <div className={`flex items-start justify-between ${extValue.useImage ? 'mt-24' : ''} mb-4`}>
-                    {!extValue.useImage ? (
+                  <div className={`flex items-start justify-between ${value.useImage ? 'mt-24' : ''} mb-4`}>
+                    {!value.useImage ? (
                       <div className="p-3 bg-accent/10 rounded-xl transition-all duration-300 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg group-hover:shadow-accent/20">
                         {IconComponent ? (
                           <IconComponent className="h-6 w-6 text-accent transition-transform duration-300 group-hover:scale-110" />

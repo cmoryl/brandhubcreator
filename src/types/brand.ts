@@ -139,6 +139,8 @@ export interface BrandValue {
   text: string;
   description: string;
   icon: string;
+  imageUrl?: string; // Custom image URL (persisted to storage)
+  useImage?: boolean; // Whether to show image vs icon
 }
 
 // BRANDICON - Symbol Standards
