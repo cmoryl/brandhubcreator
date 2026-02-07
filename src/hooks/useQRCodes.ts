@@ -8,6 +8,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { toast } from 'sonner';
 
+export type QRDotStyle = 'square' | 'dots' | 'rounded' | 'extra-rounded' | 'classy' | 'classy-rounded';
+export type QRCornerStyle = 'square' | 'dot' | 'extra-rounded';
+
 export interface QRCode {
   id: string;
   name: string;
@@ -19,6 +22,8 @@ export interface QRCode {
   logoType: 'none' | 'brand' | 'custom';
   size: number;
   errorCorrection: 'L' | 'M' | 'Q' | 'H';
+  dotStyle: QRDotStyle;
+  cornerStyle: QRCornerStyle;
   useCase?: 'event' | 'product' | 'marketing' | 'contact' | 'wifi' | 'other';
   isActive: boolean;
   scanCount: number;
@@ -40,6 +45,8 @@ interface DatabaseQRCode {
   logo_type: string;
   size: number;
   error_correction: string;
+  dot_style: string | null;
+  corner_style: string | null;
   use_case: string | null;
   is_active: boolean;
   scan_count: number;
@@ -60,6 +67,8 @@ const toFrontendQR = (record: DatabaseQRCode): QRCode => ({
   logoType: (record.logo_type as QRCode['logoType']) || 'none',
   size: record.size,
   errorCorrection: (record.error_correction as QRCode['errorCorrection']) || 'M',
+  dotStyle: (record.dot_style as QRDotStyle) || 'square',
+  cornerStyle: (record.corner_style as QRCornerStyle) || 'square',
   useCase: record.use_case as QRCode['useCase'],
   isActive: record.is_active,
   scanCount: record.scan_count,
@@ -128,6 +137,8 @@ export function useQRCodes(
         logo_type: qrCode.logoType || 'none',
         size: qrCode.size || 256,
         error_correction: qrCode.errorCorrection || 'M',
+        dot_style: qrCode.dotStyle || 'square',
+        corner_style: qrCode.cornerStyle || 'square',
         use_case: qrCode.useCase || null,
         is_active: qrCode.isActive ?? true,
         created_by: session.session?.user?.id || null,
@@ -168,6 +179,8 @@ export function useQRCodes(
       if (updates.logoType !== undefined) updateData.logo_type = updates.logoType;
       if (updates.size !== undefined) updateData.size = updates.size;
       if (updates.errorCorrection !== undefined) updateData.error_correction = updates.errorCorrection;
+      if (updates.dotStyle !== undefined) updateData.dot_style = updates.dotStyle;
+      if (updates.cornerStyle !== undefined) updateData.corner_style = updates.cornerStyle;
       if (updates.useCase !== undefined) updateData.use_case = updates.useCase || null;
       if (updates.isActive !== undefined) updateData.is_active = updates.isActive;
 
