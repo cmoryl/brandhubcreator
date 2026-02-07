@@ -94,6 +94,16 @@ serve(async (req) => {
     }
     const referenceDescription = referenceContext.length > 0 ? referenceContext.join(' ') : '';
 
+    // CRITICAL RULE: Never generate text or logos in the output
+    const noTextRule = `
+CRITICAL RULE - DO NOT ADD TEXT OR LOGOS:
+- NEVER add any text, words, letters, numbers, or typography to the generated image
+- NEVER add any logos, brand marks, symbols, or icons
+- NEVER add any signage titles, labels, or captions
+- The booth/signage surfaces should show abstract patterns, colors, or gradients ONLY
+- If the reference image contains text/logos, render those surfaces as clean abstract visuals instead
+- This is a visualization of the physical booth structure, NOT the final branded design`;
+
     if (hasDesignImage) {
       // Image-to-image: enhance the uploaded booth photo
       prompt = `Transform this booth/signage design into a professional ${style} preview image.
@@ -103,6 +113,7 @@ ${stylePrompts[style]}
 The signage is "${signageName}" (${signageDesc}) with dimensions ${dimensions} ${brandContext} ${colorDescription}.
 ${templateContext}
 ${referenceDescription}
+${noTextRule}
 
 IMPORTANT: 
 - The first/main image is the design that should be rendered onto the booth/signage
@@ -118,6 +129,7 @@ The signage is named "${signageName}" with dimensions ${dimensions} ${colorDescr
 ${stylePrompts[style]}
 ${templateContext}
 ${referenceDescription}
+${noTextRule}
 Show the signage from a professional viewing angle, as if photographed at a real event or trade show.
 Make it look like a high-quality professional photograph, not an illustration.
 16:9 aspect ratio, 4K quality, commercial photography style.`;
