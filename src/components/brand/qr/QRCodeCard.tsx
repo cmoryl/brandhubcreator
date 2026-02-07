@@ -34,13 +34,24 @@ export const QRCodeCard = ({ qrCode, canEdit, onEdit, onDelete, variant = 'grid'
   const [isDownloading, setIsDownloading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Helper to check if URL is valid for QR generation
+  const isValidUrl = (url: string): boolean => {
+    if (!url || url.trim() === '' || url === 'https://' || url === 'http://') return false;
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return url.length > 5; // Allow non-URL text data
+    }
+  };
+
   // Create QRCodeStyling instance
   const createQRInstance = (size: number) => {
     return new QRCodeStyling({
       width: size,
       height: size,
       type: 'svg',
-      data: qrCode.url,
+      data: qrCode.url || 'https://example.com',
       dotsOptions: {
         color: qrCode.fgColor,
         type: (qrCode.dotStyle || 'square') as DotType,
@@ -72,9 +83,16 @@ export const QRCodeCard = ({ qrCode, canEdit, onEdit, onDelete, variant = 'grid'
     if (!containerRef.current) return;
     containerRef.current.innerHTML = '';
     
-    const size = variant === 'list' ? 56 : 200;
-    const qrInstance = createQRInstance(size);
-    qrInstance.append(containerRef.current);
+    // Skip rendering if URL is invalid
+    if (!isValidUrl(qrCode.url)) return;
+    
+    try {
+      const size = variant === 'list' ? 56 : 200;
+      const qrInstance = createQRInstance(size);
+      qrInstance.append(containerRef.current);
+    } catch (error) {
+      console.warn('[QRCodeCard] Failed to render QR code:', error);
+    }
   }, [qrCode.url, qrCode.fgColor, qrCode.bgColor, qrCode.errorCorrection, qrCode.dotStyle, qrCode.cornerStyle, qrCode.logoUrl, qrCode.logoType, variant]);
 
   const copyUrl = async () => {

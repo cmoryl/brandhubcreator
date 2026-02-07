@@ -142,6 +142,17 @@ export const QRCodeEditorDialog = ({
     setActiveTab('basic');
   }, [qrCode, open]);
 
+  // Helper to check if URL is valid for QR generation
+  const isValidUrl = (url: string): boolean => {
+    if (!url || url.trim() === '' || url === 'https://' || url === 'http://') return false;
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return url.length > 10; // Allow non-URL text data like vCard, WiFi
+    }
+  };
+
   // Generate styled QR preview using qr-code-styling
   useEffect(() => {
     if (!qrContainerRef.current) return;
@@ -149,42 +160,46 @@ export const QRCodeEditorDialog = ({
     // Clear container
     qrContainerRef.current.innerHTML = '';
     
-    if (!form.url || form.url === 'https://') {
+    if (!isValidUrl(form.url)) {
       return;
     }
+    
+    try {
+      const qrCodeInstance = new QRCodeStyling({
+        width: 160,
+        height: 160,
+        type: 'svg',
+        data: form.url,
+        dotsOptions: {
+          color: form.fgColor,
+          type: form.dotStyle as DotType,
+        },
+        cornersSquareOptions: {
+          color: form.fgColor,
+          type: form.cornerStyle === 'dot' ? 'dot' : form.cornerStyle as CornerSquareType,
+        },
+        cornersDotOptions: {
+          color: form.fgColor,
+          type: form.cornerStyle as CornerDotType,
+        },
+        backgroundOptions: {
+          color: form.bgColor,
+        },
+        imageOptions: form.logoUrl && form.logoType !== 'none' ? {
+          crossOrigin: 'anonymous',
+          margin: 4,
+        } : undefined,
+        image: form.logoUrl && form.logoType !== 'none' ? form.logoUrl : undefined,
+        qrOptions: {
+          errorCorrectionLevel: form.errorCorrection,
+        },
+      });
 
-    const qrCodeInstance = new QRCodeStyling({
-      width: 160,
-      height: 160,
-      type: 'svg',
-      data: form.url,
-      dotsOptions: {
-        color: form.fgColor,
-        type: form.dotStyle as DotType,
-      },
-      cornersSquareOptions: {
-        color: form.fgColor,
-        type: form.cornerStyle === 'dot' ? 'dot' : form.cornerStyle as CornerSquareType,
-      },
-      cornersDotOptions: {
-        color: form.fgColor,
-        type: form.cornerStyle as CornerDotType,
-      },
-      backgroundOptions: {
-        color: form.bgColor,
-      },
-      imageOptions: form.logoUrl && form.logoType !== 'none' ? {
-        crossOrigin: 'anonymous',
-        margin: 4,
-      } : undefined,
-      image: form.logoUrl && form.logoType !== 'none' ? form.logoUrl : undefined,
-      qrOptions: {
-        errorCorrectionLevel: form.errorCorrection,
-      },
-    });
-
-    qrCodeRef.current = qrCodeInstance;
-    qrCodeInstance.append(qrContainerRef.current);
+      qrCodeRef.current = qrCodeInstance;
+      qrCodeInstance.append(qrContainerRef.current);
+    } catch (error) {
+      console.warn('[QRCodeEditorDialog] Failed to generate QR preview:', error);
+    }
   }, [form.url, form.fgColor, form.bgColor, form.errorCorrection, form.dotStyle, form.cornerStyle, form.logoUrl, form.logoType]);
 
   const handleSubmit = async () => {
