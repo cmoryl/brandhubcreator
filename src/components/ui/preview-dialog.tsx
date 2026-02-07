@@ -72,17 +72,17 @@ export const PreviewDialog = ({
         </DialogHeader>
 
         <div className={cn(
-          "relative overflow-auto p-4 bg-muted/30",
-          getAspectClass() ? '' : 'min-h-[400px] max-h-[70vh]'
+          "relative p-4 bg-muted/30 flex-1 overflow-hidden",
+          type === 'iframe' ? 'h-[75vh]' : 'overflow-auto min-h-[400px] max-h-[70vh]'
         )}>
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
+            <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
               <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
             </div>
           )}
 
           {type === 'image' && previewUrl && (
-            <div className="flex items-center justify-center min-h-full">
+            <div className="flex items-center justify-center min-h-full overflow-auto">
               <img
                 src={previewUrl}
                 alt={title}
@@ -102,9 +102,10 @@ export const PreviewDialog = ({
               src={previewUrl}
               title={title}
               className={cn(
-                "w-full min-h-[500px] rounded-lg border border-border",
+                "w-full h-full rounded-lg border border-border",
                 getAspectClass()
               )}
+              style={{ minHeight: '100%' }}
               onLoad={() => setIsLoading(false)}
             />
           )}
