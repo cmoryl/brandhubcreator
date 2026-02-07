@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Menu } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Eye, EyeOff, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Drawer,
@@ -19,6 +19,10 @@ interface MobileSectionNavProps {
   activeSection?: SectionId;
   onSectionSelect: (sectionId: SectionId) => void;
   brandName?: string;
+  /** When true, show hidden sections + render hide/show eye toggles */
+  isAdmin?: boolean;
+  /** Persist hidden sections when toggling via the eye icon */
+  onHiddenSectionsChange?: (hiddenSections: SectionId[]) => void;
 }
 
 export const MobileSectionNav = ({
@@ -27,16 +31,30 @@ export const MobileSectionNav = ({
   activeSection,
   onSectionSelect,
   brandName = 'Brand Guide',
+  isAdmin = false,
+  onHiddenSectionsChange,
 }: MobileSectionNavProps) => {
   const [open, setOpen] = useState(false);
 
-  const visibleSections = sectionOrder.filter(
-    (id) => !hiddenSections.includes(id) && sectionMeta[id]
-  );
+  const sections = useMemo(() => {
+    const base = sectionOrder.filter((id) => sectionMeta[id]);
+    if (isAdmin) return base;
+    return base.filter((id) => !hiddenSections.includes(id));
+  }, [sectionOrder, hiddenSections, isAdmin]);
 
   const handleSelect = (sectionId: SectionId) => {
     onSectionSelect(sectionId);
     setOpen(false);
+  };
+
+  const toggleVisibility = (sectionId: SectionId) => {
+    if (!onHiddenSectionsChange) return;
+
+    const next = hiddenSections.includes(sectionId)
+      ? hiddenSections.filter((id) => id !== sectionId)
+      : [...hiddenSections, sectionId];
+
+    onHiddenSectionsChange(next);
   };
 
   return (
@@ -55,31 +73,64 @@ export const MobileSectionNav = ({
         <DrawerHeader className="pb-2">
           <DrawerTitle className="text-left text-fluid-lg">{brandName}</DrawerTitle>
           <p className="text-xs text-muted-foreground text-left">
-            {visibleSections.length} sections
+            {sections.length} sections
+            {isAdmin && onHiddenSectionsChange ? ' • Tap eye to hide' : ''}
           </p>
         </DrawerHeader>
+
         <ScrollArea className="flex-1 px-4 pb-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
-            {visibleSections.map((sectionId) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+            {sections.map((sectionId) => {
               const meta = sectionMeta[sectionId];
               if (!meta) return null;
+
               const Icon = meta.icon;
               const isActive = activeSection === sectionId;
+              const isHidden = hiddenSections.includes(sectionId);
+              const canToggle = isAdmin && !!onHiddenSectionsChange;
 
               return (
-                <button
-                  key={sectionId}
-                  onClick={() => handleSelect(sectionId)}
-                  className={cn(
-                    'flex items-center gap-2 p-3 sm:p-4 rounded-lg text-sm text-left transition-colors touch-manipulation touch-target-sm',
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted/50 text-foreground hover:bg-muted active:bg-muted/80'
+                <div key={sectionId} className="relative">
+                  <button
+                    onClick={() => handleSelect(sectionId)}
+                    className={cn(
+                      'w-full flex items-center gap-2 p-3 sm:p-4 rounded-lg text-sm text-left transition-colors touch-manipulation touch-target-sm pr-12',
+                      isActive
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted/50 text-foreground hover:bg-muted active:bg-muted/80',
+                      isHidden && canToggle && 'opacity-70'
+                    )}
+                  >
+                    <Icon className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+                    <span className={cn('truncate text-xs sm:text-sm', isHidden && canToggle && 'line-through')}>
+                      {meta.label}
+                    </span>
+                  </button>
+
+                  {canToggle && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleVisibility(sectionId);
+                      }}
+                      className={cn(
+                        'absolute right-2 top-1/2 -translate-y-1/2 shrink-0 p-2 rounded-md transition-colors',
+                        'border-2 border-primary/50 bg-primary/10 hover:bg-primary/20',
+                        'text-primary'
+                      )}
+                      aria-label={isHidden ? 'Show section' : 'Hide section'}
+                      title={isHidden ? 'Section hidden from viewers - tap to show' : 'Tap to hide from viewers'}
+                    >
+                      {isHidden ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
                   )}
-                >
-                  <Icon className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
-                  <span className="truncate text-xs sm:text-sm">{meta.label}</span>
-                </button>
+                </div>
               );
             })}
           </div>
@@ -88,3 +139,4 @@ export const MobileSectionNav = ({
     </Drawer>
   );
 };
+

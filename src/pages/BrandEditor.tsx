@@ -1040,6 +1040,8 @@ const BrandEditor = () => {
         activeSection={activeSection}
         onSectionSelect={handleSectionChange}
         brandName={brand.hero.name}
+        isAdmin={isGuideAdmin}
+        onHiddenSectionsChange={handleHiddenSectionsChange}
       />
       
       {/* Back to top button */}
