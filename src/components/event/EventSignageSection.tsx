@@ -1,18 +1,14 @@
 import { useState } from 'react';
-import { Plus, Trash2, Check, X, Maximize, FileImage, Download, ExternalLink, Edit2, Eye } from 'lucide-react';
+import { Plus, Trash2, Maximize, FileImage, Download, Eye } from 'lucide-react';
 import { EventSignage } from '@/types/event';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { LayoutSelector, LayoutPreset, useLayoutClasses } from '@/components/brand/LayoutSelector';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { RichTextDisplay } from '@/components/ui/rich-text-editor';
+import { AddSignageDialog } from './AddSignageDialog';
 
 interface EventSignageSectionProps {
   signage: EventSignage[];
@@ -21,6 +17,8 @@ interface EventSignageSectionProps {
   subtitle?: string;
   layout?: LayoutPreset;
   onLayoutChange?: (layout: LayoutPreset) => void;
+  brandName?: string;
+  brandColors?: string[];
 }
 
 const SIGNAGE_TYPES = [
@@ -59,40 +57,21 @@ export const EventSignageSection = ({
   subtitle,
   layout = 'grid-3',
   onLayoutChange,
+  brandName,
+  brandColors,
 }: EventSignageSectionProps) => {
   const { gridClass, cardClass, isListView } = useLayoutClasses(layout);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<EventSignage | null>(null);
-  const [newItem, setNewItem] = useState<Partial<EventSignage>>({
-    name: '',
-    type: 'booth-backdrop',
-    dimensions: '',
-    notes: '',
-  });
 
   const openPreview = (item: EventSignage) => {
     setPreviewItem(item);
     setPreviewOpen(true);
   };
 
-  const handleAdd = () => {
-    if (!newItem.name || !newItem.dimensions) return;
-    
-    const item: EventSignage = {
-      id: crypto.randomUUID(),
-      name: newItem.name,
-      type: newItem.type as EventSignage['type'],
-      dimensions: newItem.dimensions,
-      previewUrl: newItem.previewUrl,
-      templateUrl: newItem.templateUrl,
-      notes: newItem.notes,
-      specifications: newItem.specifications,
-    };
-    
+  const handleAddSignage = (item: EventSignage) => {
     onUpdate([...signage, item]);
-    setNewItem({ name: '', type: 'booth-backdrop', dimensions: '', notes: '' });
-    setIsDialogOpen(false);
   };
 
   const handleDelete = (id: string) => {
@@ -127,87 +106,13 @@ export const EventSignageSection = ({
             />
           )}
           {isEditable && (
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Signage
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Add Event Signage</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Name</Label>
-                    <Input
-                      value={newItem.name || ''}
-                      onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                      placeholder="Main Booth Backdrop"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Type</Label>
-                    <Select
-                      value={newItem.type}
-                      onValueChange={(value) => setNewItem({ ...newItem, type: value as EventSignage['type'] })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SIGNAGE_TYPES.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Dimensions</Label>
-                  <Input
-                    value={newItem.dimensions || ''}
-                    onChange={(e) => setNewItem({ ...newItem, dimensions: e.target.value })}
-                    placeholder="10ft x 8ft"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Preview URL (optional)</Label>
-                    <Input
-                      value={newItem.previewUrl || ''}
-                      onChange={(e) => setNewItem({ ...newItem, previewUrl: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Template URL (optional)</Label>
-                    <Input
-                      value={newItem.templateUrl || ''}
-                      onChange={(e) => setNewItem({ ...newItem, templateUrl: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Notes / Specifications (optional)</Label>
-                  <Textarea
-                    value={newItem.notes || ''}
-                    onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
-                    placeholder="Material, installation notes, vendor details..."
-                    rows={3}
-                  />
-                </div>
-                <Button onClick={handleAdd} className="w-full" disabled={!newItem.name || !newItem.dimensions}>
-                  Add Signage
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+            <AddSignageDialog
+              open={isDialogOpen}
+              onOpenChange={setIsDialogOpen}
+              onAdd={handleAddSignage}
+              brandName={brandName}
+              brandColors={brandColors}
+            />
           )}
         </div>
       </div>
