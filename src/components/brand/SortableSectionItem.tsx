@@ -49,6 +49,26 @@ export const SortableSectionItem = ({
         isHidden && "opacity-50"
       )}
     >
+      {isAdmin && onToggleVisibility && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleVisibility();
+          }}
+          className={cn(
+            "shrink-0 p-1.5 rounded-md transition-colors",
+            // Very high-contrast styling - can't miss it
+            "border-2 border-primary/50 bg-primary/10 hover:bg-primary/20",
+            "text-primary hover:text-primary"
+          )}
+          aria-label={isHidden ? "Show section" : "Hide section"}
+          title={isHidden ? "Section hidden from viewers - click to show" : "Click to hide from viewers"}
+        >
+          {isHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
+      )}
+
       <button
         {...attributes}
         {...listeners}
@@ -76,25 +96,6 @@ export const SortableSectionItem = ({
         />
         <span className="truncate flex-1 text-left">{label}</span>
       </button>
-
-      {isAdmin && onToggleVisibility && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleVisibility();
-          }}
-          className={cn(
-            "shrink-0 p-1.5 rounded-md transition-colors",
-            // Keep this away from the ScrollArea scrollbar overlay
-            "mr-1 border-2 border-primary/50 bg-primary/10 hover:bg-primary/20",
-            "text-primary hover:text-primary"
-          )}
-          aria-label={isHidden ? "Show section" : "Hide section"}
-          title={isHidden ? "Section hidden from viewers - click to show" : "Click to hide from viewers"}
-        >
-          {isHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-        </button>
-      )}
     </div>
   );
 };
