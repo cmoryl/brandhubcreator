@@ -252,36 +252,6 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, ent
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Award Image</label>
                 
-                {/* Image preview */}
-                {formData.imageUrl && (
-                  <div className="relative mb-2 p-2 bg-muted rounded-md">
-                    <div className="flex items-center gap-3">
-                      <div className="w-16 h-16 bg-white rounded flex items-center justify-center overflow-hidden">
-                        <img
-                          src={formData.imageUrl}
-                          alt="Award preview"
-                          className="max-w-full max-h-full object-contain"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground truncate">{formData.imageUrl}</p>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 shrink-0"
-                        onClick={handleClearImage}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                
                 {/* Upload and URL input */}
                 <div className="flex gap-2">
                   <Input
@@ -303,10 +273,7 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, ent
                     size="icon"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
-                    className={cn(
-                      "shrink-0",
-                      isUploading && "opacity-50 cursor-not-allowed"
-                    )}
+                    className="shrink-0"
                   >
                     {isUploading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -315,9 +282,43 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, ent
                     )}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Enter a URL or click the upload button to add an image
-                </p>
+                
+                {/* Image preview - shown below input when URL exists */}
+                {formData.imageUrl && (
+                  <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border">
+                    <div className="flex items-start gap-3">
+                      <div className="w-14 h-14 bg-white rounded-md flex items-center justify-center overflow-hidden shrink-0 border border-border">
+                        <img
+                          src={formData.imageUrl}
+                          alt="Award preview"
+                          className="max-w-full max-h-full object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0 pt-1">
+                        <p className="text-xs font-medium text-foreground mb-0.5">Image Preview</p>
+                        <p className="text-xs text-muted-foreground truncate">{formData.imageUrl.length > 50 ? formData.imageUrl.slice(0, 50) + '...' : formData.imageUrl}</p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
+                        onClick={handleClearImage}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                {!formData.imageUrl && (
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    Enter a URL or click the upload button to add an image
+                  </p>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Link URL</label>
