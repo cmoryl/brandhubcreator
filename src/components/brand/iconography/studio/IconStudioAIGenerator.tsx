@@ -103,8 +103,29 @@ const CATEGORY_SECTIONS: Record<string, { name: string; count: number }[]> = {
   ],
 };
 
-// Sample icon path for style previews (simple star icon)
-const SAMPLE_ICON_PATH = 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z';
+// Sample icon paths for style previews - diverse set showing different icon types
+const SAMPLE_ICON_PATHS = {
+  star: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
+  home: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10',
+  settings: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z',
+  user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+  bell: 'M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 0 1-3.46 0',
+  search: 'M11 17.25a6.25 6.25 0 1 1 0-12.5 6.25 6.25 0 0 1 0 12.5z M16 16l5 5',
+  heart: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z',
+  mail: 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6',
+};
+
+// Visual example icons with labels
+const EXAMPLE_ICONS = [
+  { id: 'home', label: 'Home', path: SAMPLE_ICON_PATHS.home },
+  { id: 'search', label: 'Search', path: SAMPLE_ICON_PATHS.search },
+  { id: 'bell', label: 'Bell', path: SAMPLE_ICON_PATHS.bell },
+  { id: 'user', label: 'User', path: SAMPLE_ICON_PATHS.user },
+  { id: 'heart', label: 'Heart', path: SAMPLE_ICON_PATHS.heart },
+  { id: 'settings', label: 'Settings', path: SAMPLE_ICON_PATHS.settings },
+  { id: 'mail', label: 'Mail', path: SAMPLE_ICON_PATHS.mail },
+  { id: 'star', label: 'Star', path: SAMPLE_ICON_PATHS.star },
+];
 
 // 10 Style Presets from the specification with visual preview paths
 const STYLE_PRESETS = [
@@ -120,7 +141,7 @@ const STYLE_PRESETS = [
   { id: 'thick', name: 'Thick Stroke', strokeWidth: 3, fill: false, corner: 'rounded' as const, description: 'Heavy stroke weight', emoji: '◉' },
 ];
 
-// Render style preview icon
+// Render style preview icon (small thumbnail for preset buttons)
 const renderStylePreview = (preset: typeof STYLE_PRESETS[0], size: number = 16) => (
   <svg
     viewBox="0 0 24 24"
@@ -133,7 +154,28 @@ const renderStylePreview = (preset: typeof STYLE_PRESETS[0], size: number = 16) 
     strokeLinejoin={preset.corner === 'rounded' ? 'round' : 'miter'}
     className="flex-shrink-0"
   >
-    <path d={SAMPLE_ICON_PATH} />
+    <path d={SAMPLE_ICON_PATHS.star} />
+  </svg>
+);
+
+// Render example icon with current style settings
+const renderExampleIcon = (
+  iconPath: string, 
+  style: { strokeWidth: number; fill: boolean; cornerRadius: 'sharp' | 'rounded' },
+  size: number = 32
+) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill={style.fill ? 'currentColor' : 'none'}
+    stroke={!style.fill ? 'currentColor' : 'none'}
+    strokeWidth={style.strokeWidth}
+    strokeLinecap={style.cornerRadius === 'rounded' ? 'round' : 'square'}
+    strokeLinejoin={style.cornerRadius === 'rounded' ? 'round' : 'miter'}
+    className="flex-shrink-0"
+  >
+    <path d={iconPath} />
   </svg>
 );
 
@@ -544,6 +586,36 @@ export const IconStudioAIGenerator = ({
                 </Tooltip>
               ))}
             </div>
+          </div>
+
+          {/* Visual Style Examples */}
+          <div className="space-y-3 rounded-lg border bg-muted/30 p-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-medium text-muted-foreground">Style Preview</Label>
+              <Badge variant="outline" className="text-[9px]">
+                {STYLE_PRESETS.find(p => p.id === selectedPreset)?.name || 'Custom'}
+              </Badge>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {EXAMPLE_ICONS.map((icon) => (
+                <Tooltip key={icon.id}>
+                  <TooltipTrigger asChild>
+                    <div className="flex flex-col items-center gap-1.5 p-2 rounded-md bg-background border hover:border-primary/40 transition-colors">
+                      <div className="text-foreground">
+                        {renderExampleIcon(icon.path, iconStyle, 24)}
+                      </div>
+                      <span className="text-[9px] text-muted-foreground truncate max-w-full">{icon.label}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    {icon.label} icon with {selectedPreset} style
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+            <p className="text-[10px] text-muted-foreground text-center">
+              Generated icons will match this visual style
+            </p>
           </div>
 
           {/* Fine-tune Style */}
