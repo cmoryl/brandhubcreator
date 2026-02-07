@@ -1381,6 +1381,48 @@ export type Database = {
           },
         ]
       }
+      user_logo_favorites: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_name: string | null
+          entity_slug: string | null
+          entity_type: string
+          id: string
+          logo_id: string
+          logo_name: string | null
+          logo_url: string | null
+          logo_variant: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_name?: string | null
+          entity_slug?: string | null
+          entity_type: string
+          id?: string
+          logo_id: string
+          logo_name?: string | null
+          logo_url?: string | null
+          logo_variant?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_name?: string | null
+          entity_slug?: string | null
+          entity_type?: string
+          id?: string
+          logo_id?: string
+          logo_name?: string | null
+          logo_url?: string | null
+          logo_variant?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
