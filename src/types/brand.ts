@@ -467,6 +467,28 @@ export interface PresentationTemplate {
   cardImageUrl?: string;
 }
 
+// PDF DOCUMENTS - PDF File Templates and Documents
+export interface PDFDocument {
+  id: string;
+  name: string;
+  description?: string;
+  fileUrl: string; // URL to the PDF file
+  fileName: string; // Original file name
+  fileSize?: string; // e.g., "2.4 MB"
+  pageCount: number; // Number of pages in the PDF
+  thumbnailUrl?: string; // First page thumbnail or custom image
+  category?: 'sales' | 'marketing' | 'corporate' | 'legal' | 'training' | 'other';
+  metadata?: {
+    title?: string;
+    author?: string;
+    subject?: string;
+    creator?: string;
+  };
+  createdAt?: string;
+  /** Optional admin-uploaded card thumbnail to override auto-extracted thumbnail */
+  cardImageUrl?: string;
+}
+
 // TEMPLATE SPECIFICATIONS - Visual Template Annotation System
 export interface TemplateSpecItem {
   id: string;
