@@ -33,8 +33,6 @@ export const SortableSectionItem = ({
     isDragging,
   } = useSortable({ id });
 
-  // Debug: Log props to verify isAdmin is coming through
-  console.log(`[SortableSectionItem] ${id}: isAdmin=${isAdmin}, onToggleVisibility=${!!onToggleVisibility}`);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -87,8 +85,8 @@ export const SortableSectionItem = ({
           }}
           className={cn(
             "shrink-0 p-1.5 rounded-md transition-colors",
-            // Very high-contrast styling - can't miss it
-            "border-2 border-primary/50 bg-primary/10 hover:bg-primary/20",
+            // Keep this away from the ScrollArea scrollbar overlay
+            "mr-1 border-2 border-primary/50 bg-primary/10 hover:bg-primary/20",
             "text-primary hover:text-primary"
           )}
           aria-label={isHidden ? "Show section" : "Hide section"}
