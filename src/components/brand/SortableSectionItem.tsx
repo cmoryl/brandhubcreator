@@ -33,6 +33,9 @@ export const SortableSectionItem = ({
     isDragging,
   } = useSortable({ id });
 
+  // Debug: Log props to verify isAdmin is coming through
+  console.log(`[SortableSectionItem] ${id}: isAdmin=${isAdmin}, onToggleVisibility=${!!onToggleVisibility}`);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -84,11 +87,9 @@ export const SortableSectionItem = ({
           }}
           className={cn(
             "shrink-0 p-1.5 rounded-md transition-colors",
-            // High-contrast, token-based styling so it can't visually disappear
-            "border border-sidebar-border bg-sidebar-accent/40 hover:bg-sidebar-accent",
-            isHidden
-              ? "text-primary"
-              : "text-primary/90 hover:text-primary"
+            // Very high-contrast styling - can't miss it
+            "border-2 border-primary/50 bg-primary/10 hover:bg-primary/20",
+            "text-primary hover:text-primary"
           )}
           aria-label={isHidden ? "Show section" : "Hide section"}
           title={isHidden ? "Section hidden from viewers - click to show" : "Click to hide from viewers"}
