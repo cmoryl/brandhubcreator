@@ -153,6 +153,9 @@ export const QRCodeEditorDialog = ({
     }
   };
 
+  // Sample URL for preview when user hasn't entered a valid URL yet
+  const SAMPLE_URL = 'https://example.com/preview';
+
   // Generate styled QR preview using qr-code-styling
   useEffect(() => {
     if (!qrContainerRef.current) return;
@@ -160,16 +163,15 @@ export const QRCodeEditorDialog = ({
     // Clear container
     qrContainerRef.current.innerHTML = '';
     
-    if (!isValidUrl(form.url)) {
-      return;
-    }
+    // Use sample URL if the current URL is invalid (shows preview while typing)
+    const previewUrl = isValidUrl(form.url) ? form.url : SAMPLE_URL;
     
     try {
       const qrCodeInstance = new QRCodeStyling({
         width: 160,
         height: 160,
         type: 'svg',
-        data: form.url,
+        data: previewUrl,
         dotsOptions: {
           color: form.fgColor,
           type: form.dotStyle as DotType,
@@ -541,26 +543,23 @@ export const QRCodeEditorDialog = ({
                 <p className="text-xs text-muted-foreground">Updates as you configure</p>
               </div>
               
-              {/* QR Code Preview - using qr-code-styling */}
-              <div className="flex justify-center mb-4">
+              {/* QR Code Preview - always shows (uses sample URL when needed) */}
+              <div className="flex flex-col items-center mb-4">
                 <div 
                   className="rounded-xl p-4 shadow-sm transition-colors"
                   style={{ backgroundColor: form.bgColor }}
                 >
-                  {form.url && form.url !== 'https://' ? (
-                    <div 
-                      ref={qrContainerRef}
-                      className="w-[160px] h-[160px] flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full"
-                    />
-                  ) : (
-                    <div className="w-[160px] h-[160px] bg-muted/50 rounded flex items-center justify-center border-2 border-dashed border-muted-foreground/20">
-                      <div className="text-center">
-                        <QrCodeIcon className="h-10 w-10 text-muted-foreground/30 mx-auto mb-1" />
-                        <p className="text-xs text-muted-foreground/50">Enter a URL</p>
-                      </div>
-                    </div>
-                  )}
+                  <div 
+                    ref={qrContainerRef}
+                    className="w-[160px] h-[160px] flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full"
+                  />
                 </div>
+                {/* Sample indicator when URL is not valid */}
+                {!isValidUrl(form.url) && (
+                  <p className="text-[10px] text-muted-foreground mt-2 italic">
+                    Sample preview — enter your URL to see the actual code
+                  </p>
+                )}
               </div>
 
               {/* Live Configuration Summary */}
