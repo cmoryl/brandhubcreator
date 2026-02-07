@@ -420,12 +420,8 @@ export const FullEventPage = ({
           />
         );
       case 'sponsorlogos':
-        return (
-          <SponsorLogosSection
-            sponsors={event.sponsorLogos || []}
-            onSponsorsChange={editHandler((sponsorLogos) => updateEvent({ sponsorLogos }))}
-          />
-        );
+        // Sponsor logos are now handled in eventsponsors section
+        return null;
       case 'clientlogos':
         return (
           <ClientLogosSection
