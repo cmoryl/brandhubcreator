@@ -238,20 +238,46 @@ const GlitchOverlay = () => {
   );
 };
 
+// Letter dance wrapper - applies hover animation to individual characters
+const LetterDanceText = ({ text, className }: { text: string; className?: string }) => {
+  return (
+    <span className={cn("inline-flex flex-wrap", className)}>
+      {text.split('').map((char, i) => (
+        <span
+          key={i}
+          className="inline-block transition-transform duration-300 hover:-translate-y-1 hover:scale-110"
+          style={{
+            transitionDelay: `${i * 20}ms`,
+          }}
+        >
+          {char === ' ' ? '\u00A0' : char}
+        </span>
+      ))}
+    </span>
+  );
+};
+
 // Hover effect wrapper
 const HoverEffectWrapper = ({ 
   children, 
   effect, 
+  text,
   className 
 }: { 
   children: React.ReactNode; 
-  effect: TaglineHoverEffect; 
+  effect: TaglineHoverEffect;
+  text?: string;
   className?: string;
 }) => {
+  // For letter-dance, we need to render individual characters
+  if (effect === 'letter-dance' && text) {
+    return <LetterDanceText text={text} className={className} />;
+  }
+
   const hoverClasses: Record<TaglineHoverEffect, string> = {
     'none': '',
     'glow-pulse': 'hover:drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)] transition-all duration-500',
-    'letter-dance': 'group',
+    'letter-dance': '', // Handled above
     'color-shift': 'hover:bg-clip-text hover:text-transparent hover:bg-gradient-to-r hover:from-primary hover:via-accent hover:to-primary transition-all duration-700',
     'underline-grow': 'relative after:absolute after:bottom-0 after:left-1/2 after:w-0 after:h-[2px] after:bg-current after:transition-all after:duration-500 hover:after:left-0 hover:after:w-full',
   };
@@ -328,8 +354,8 @@ export const AnimatedTagline = ({
   return (
     <div ref={ref} className={cn("relative inline-block", className)} style={style}>
       <EnvironmentOverlay effect={environment} color={effectColor} />
-      <HoverEffectWrapper effect={hoverEffect}>
-        {renderAnimatedText()}
+      <HoverEffectWrapper effect={hoverEffect} text={hoverEffect === 'letter-dance' ? text : undefined}>
+        {hoverEffect !== 'letter-dance' && renderAnimatedText()}
       </HoverEffectWrapper>
     </div>
   );

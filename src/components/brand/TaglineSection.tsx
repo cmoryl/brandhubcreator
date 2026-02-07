@@ -18,7 +18,8 @@ import {
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GoogleFontPicker, DEFAULT_FONT_SETTINGS, FontSettings } from '@/components/ui/google-font-picker';
-import { AnimatedTagline, TaglineAnimation, TaglineHoverEffect, TaglineEnvironment } from '@/components/ui/animated-tagline';
+import { AnimatedTagline, TaglineAnimation, TaglineHoverEffect, TaglineEnvironment, TAGLINE_ENVIRONMENT_OPTIONS } from '@/components/ui/animated-tagline';
+import { SectionEnvironmentOverlay } from './SectionEnvironmentOverlay';
 import { TaglineAnimationSettings } from './TaglineAnimationSettings';
 import { TypographyPairingPreview, POPULAR_FONT_PAIRINGS } from './settings/TypographyPairingPreview';
 import { cn } from '@/lib/utils';
@@ -367,6 +368,11 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
       <div className="grid gap-6">
         {/* Primary Tagline - Floating/Customizable Design */}
         <div className={`relative ${bgStyles.container}`}>
+          {/* Section-level environment effect */}
+          <SectionEnvironmentOverlay 
+            effect={tagline.taglineEnvironment || 'none'} 
+            className="z-[5]"
+          />
           {/* Background layer for gradient/solid */}
           {settings.backgroundStyle === 'gradient' && (
             <>
@@ -442,7 +448,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                   text={tagline.primary || 'Add your primary tagline'}
                   animation={tagline.taglineAnimation || 'fade-slide'}
                   hoverEffect={tagline.taglineHoverEffect || 'none'}
-                  environment={tagline.taglineEnvironment || 'none'}
+                  environment="none"
                   className={`${bgStyles.textColor} ${settings.backgroundStyle !== 'floating' ? 'drop-shadow-lg' : ''}`}
                   style={{
                     fontFamily: `"${fontSettings.fontFamily}", serif`,
