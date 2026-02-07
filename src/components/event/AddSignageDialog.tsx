@@ -495,7 +495,7 @@ export const AddSignageDialog = ({
 
             {/* AI Generate Mode */}
             {previewMode === 'generate' && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <p className="text-xs text-muted-foreground">
                   Generate a hyper-realistic preview image using AI
                 </p>
@@ -520,7 +520,66 @@ export const AddSignageDialog = ({
                   ))}
                 </div>
 
-                {/* Template Reference Upload */}
+                {/* Design Image Upload - Prominent Section */}
+                <div className="space-y-2 p-3 border rounded-lg bg-muted/30">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium">Your Design (optional)</Label>
+                    {uploadedImage && (
+                      <button
+                        type="button"
+                        onClick={clearUploadedImage}
+                        className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground">
+                    Upload your booth design and AI will render it in a realistic setting
+                  </p>
+
+                  {!uploadedImage ? (
+                    <label className="flex items-center gap-3 p-3 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-background">
+                      <div className="p-2 rounded-md bg-primary/10">
+                        <Upload className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">Upload your booth design</p>
+                        <p className="text-xs text-muted-foreground">
+                          Your artwork, mockup, or design file
+                        </p>
+                      </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                      />
+                    </label>
+                  ) : (
+                    <div className="relative">
+                      <img
+                        src={uploadedImage}
+                        alt="Your design"
+                        className="w-full h-28 object-contain rounded-lg border bg-white"
+                      />
+                      <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                        {uploadedFileName}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={clearUploadedImage}
+                        className="absolute top-2 right-2 p-1 bg-black/60 rounded-full hover:bg-black/80 transition-colors"
+                      >
+                        <X className="h-4 w-4 text-white" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Booth Template Reference Upload */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs">Booth Template Reference (optional)</Label>
@@ -653,20 +712,24 @@ export const AddSignageDialog = ({
                 {/* Generate Button */}
                 <Button
                   type="button"
-                  variant="outline"
+                  variant={uploadedImage ? "default" : "outline"}
                   className="w-full"
                   disabled={!canGenerate || isGenerating}
-                  onClick={() => generatePreview(false)}
+                  onClick={() => generatePreview(!!uploadedImage)}
                 >
                   {isGenerating ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Generating...
+                      {uploadedImage ? 'Rendering Your Design...' : 'Generating...'}
                     </>
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4 mr-2" />
-                      {templateFile ? 'Generate from Template' : 'Generate Preview'}
+                      {uploadedImage 
+                        ? 'Render Design in Scene' 
+                        : templateFile 
+                          ? 'Generate from Template' 
+                          : 'Generate Preview'}
                     </>
                   )}
                 </Button>
