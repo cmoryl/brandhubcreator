@@ -172,16 +172,16 @@ export const DEFAULT_UI_THEME: MapUITheme = {
   accentColor: '#00d4ff',
 };
 
-// Default complete theme
+// Default complete theme - Satellite with dark UI (as shown in design reference)
 export const DEFAULT_MAP_THEME: MapThemeConfig = {
-  tileStyle: 'dark',
+  tileStyle: 'satellite',
   markerColors: DEFAULT_MARKER_COLORS,
   uiTheme: DEFAULT_UI_THEME,
 };
 
 // Preset themes for quick selection
 export const MAP_THEME_PRESETS: Record<string, MapThemeConfig> = {
-  default: DEFAULT_MAP_THEME,
+  satellite: DEFAULT_MAP_THEME,
   corporate: {
     tileStyle: 'light',
     markerColors: {
