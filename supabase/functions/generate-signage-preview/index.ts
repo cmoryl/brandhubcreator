@@ -5,6 +5,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+interface TemplateReference {
+  data: string; // Base64 data
+  type: string; // MIME type
+  name: string;
+}
+
 interface SignagePreviewRequest {
   signageType: string;
   signageName: string;
@@ -13,6 +19,7 @@ interface SignagePreviewRequest {
   brandColors?: string[];
   style?: 'photorealistic' | 'mockup' | 'venue';
   referenceImage?: string; // Base64 image for image-to-image generation
+  templateReference?: TemplateReference; // PDF or image template reference
 }
 
 serve(async (req) => {
@@ -21,7 +28,7 @@ serve(async (req) => {
   }
 
   try {
-    const { signageType, signageName, dimensions, brandName, brandColors, style = 'photorealistic', referenceImage } = await req.json() as SignagePreviewRequest;
+    const { signageType, signageName, dimensions, brandName, brandColors, style = 'photorealistic', referenceImage, templateReference } = await req.json() as SignagePreviewRequest;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -56,9 +63,14 @@ serve(async (req) => {
       'venue': 'In realistic venue setting, convention center or event space, natural lighting, people blur in background, authentic trade show atmosphere',
     };
 
-    // Different prompt based on whether we have a reference image
+    // Build message content based on available inputs
     let prompt: string;
-    let messageContent: any;
+    const messageContent: any[] = [];
+    
+    // Template reference context
+    const templateContext = templateReference 
+      ? `Use the provided booth template/layout reference to ensure accurate proportions, structure, and placement of design elements. Match the template's booth configuration precisely.`
+      : '';
 
     if (referenceImage) {
       // Image-to-image: enhance the uploaded booth photo
@@ -67,36 +79,60 @@ Keep the core design and branding elements from the uploaded image, but enhance 
 ${stylePrompts[style]}
 
 The signage is "${signageName}" (${signageDesc}) with dimensions ${dimensions} ${brandContext} ${colorDescription}.
+${templateContext}
 
 Make it look polished, professional, and ready for marketing materials.
 Preserve the key design elements and branding from the original while making it look more professional.
 16:9 aspect ratio, 4K quality, commercial photography style.`;
-
-      messageContent = [
-        {
-          type: "text",
-          text: prompt,
-        },
-        {
-          type: "image_url",
-          image_url: {
-            url: referenceImage,
-          },
-        },
-      ];
     } else {
-      // Text-to-image: generate from scratch
+      // Text-to-image: generate from scratch (possibly with template reference)
       prompt = `Generate a hyper-realistic preview image of a ${signageDesc} ${brandContext}. 
 The signage is named "${signageName}" with dimensions ${dimensions} ${colorDescription}.
 ${stylePrompts[style]}
+${templateContext}
 Show the signage from a professional viewing angle, as if photographed at a real event or trade show.
 Make it look like a high-quality professional photograph, not an illustration.
 16:9 aspect ratio, 4K quality, commercial photography style.`;
-
-      messageContent = prompt;
     }
 
-    console.log('[generate-signage-preview] Generating for:', signageName, signageType, referenceImage ? '(with reference image)' : '(from scratch)');
+    // Add text prompt first
+    messageContent.push({
+      type: "text",
+      text: prompt,
+    });
+
+    // Add reference image if provided
+    if (referenceImage) {
+      messageContent.push({
+        type: "image_url",
+        image_url: {
+          url: referenceImage,
+        },
+      });
+    }
+
+    // Add template reference if provided (image only - PDFs need different handling)
+    if (templateReference && templateReference.type.startsWith('image/')) {
+      messageContent.push({
+        type: "image_url",
+        image_url: {
+          url: templateReference.data,
+        },
+      });
+    }
+
+    // For PDF templates, we include a note in the prompt since direct PDF input isn't supported
+    if (templateReference && templateReference.type === 'application/pdf') {
+      // Update prompt to note the PDF reference
+      messageContent[0] = {
+        type: "text",
+        text: prompt + `\n\nNote: A PDF template "${templateReference.name}" has been provided as reference. Generate based on typical booth configurations for this type of signage.`,
+      };
+    }
+
+    console.log('[generate-signage-preview] Generating for:', signageName, signageType, 
+      referenceImage ? '(with reference image)' : '(from scratch)',
+      templateReference ? `(with ${templateReference.type} template)` : '(no template)');
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

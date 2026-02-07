@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, Sparkles, Link2, Upload, Loader2, Image as ImageIcon, X } from 'lucide-react';
+import { Plus, Sparkles, Link2, Upload, Loader2, Image as ImageIcon, X, FileText, FileImage } from 'lucide-react';
 import { EventSignage } from '@/types/event';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -36,6 +36,12 @@ const SIGNAGE_TYPES = [
 type PreviewMode = 'generate' | 'upload' | 'url';
 type GenerationStyle = 'photorealistic' | 'venue' | 'mockup';
 
+interface UploadedFile {
+  data: string;
+  name: string;
+  type: string;
+}
+
 export const AddSignageDialog = ({
   open,
   onOpenChange,
@@ -44,12 +50,14 @@ export const AddSignageDialog = ({
   brandColors,
 }: AddSignageDialogProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const templateInputRef = useRef<HTMLInputElement>(null);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('generate');
   const [generationStyle, setGenerationStyle] = useState<GenerationStyle>('photorealistic');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPreview, setGeneratedPreview] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
+  const [templateFile, setTemplateFile] = useState<UploadedFile | null>(null);
   
   const [newItem, setNewItem] = useState<Partial<EventSignage>>({
     name: '',
@@ -65,6 +73,7 @@ export const AddSignageDialog = ({
     setGeneratedPreview(null);
     setUploadedImage(null);
     setUploadedFileName('');
+    setTemplateFile(null);
     setPreviewMode('generate');
   };
 
@@ -90,6 +99,43 @@ export const AddSignageDialog = ({
       setUploadedImage(base64);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleTemplateUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isImage = file.type.startsWith('image/');
+    const isPdf = file.type === 'application/pdf';
+    
+    if (!isImage && !isPdf) {
+      toast.error('Please upload an image or PDF file');
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error('Template must be under 15MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      setTemplateFile({
+        data: base64,
+        name: file.name,
+        type: file.type,
+      });
+      toast.success('Template reference added');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearTemplateFile = () => {
+    setTemplateFile(null);
+    if (templateInputRef.current) {
+      templateInputRef.current.value = '';
+    }
   };
 
   const clearUploadedImage = () => {
@@ -120,6 +166,15 @@ export const AddSignageDialog = ({
       // If generating from uploaded image, include base64
       if (fromUpload && uploadedImage) {
         payload.referenceImage = uploadedImage;
+      }
+
+      // Include template reference if available
+      if (templateFile) {
+        payload.templateReference = {
+          data: templateFile.data,
+          type: templateFile.type,
+          name: templateFile.name,
+        };
       }
 
       const { data, error } = await supabase.functions.invoke('generate-signage-preview', {
@@ -321,6 +376,69 @@ export const AddSignageDialog = ({
                   ))}
                 </div>
 
+                {/* Template Reference Upload */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Booth Template Reference (optional)</Label>
+                    {templateFile && (
+                      <button
+                        type="button"
+                        onClick={clearTemplateFile}
+                        className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  
+                  {!templateFile ? (
+                    <label className="flex items-center gap-3 p-3 border border-dashed rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                      <div className="p-2 rounded-md bg-muted">
+                        <FileImage className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">Upload template reference</p>
+                        <p className="text-xs text-muted-foreground">
+                          PDF or image of booth layout/design template
+                        </p>
+                      </div>
+                      <input
+                        ref={templateInputRef}
+                        type="file"
+                        className="hidden"
+                        accept="image/*,.pdf"
+                        onChange={handleTemplateUpload}
+                      />
+                    </label>
+                  ) : (
+                    <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
+                      <div className="p-2 rounded-md bg-primary/10">
+                        {templateFile.type === 'application/pdf' ? (
+                          <FileText className="h-5 w-5 text-primary" />
+                        ) : (
+                          <FileImage className="h-5 w-5 text-primary" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{templateFile.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {templateFile.type === 'application/pdf' ? 'PDF Template' : 'Image Template'}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={clearTemplateFile}
+                        className="p-1 hover:bg-destructive/10 rounded transition-colors"
+                      >
+                        <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                      </button>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground/70">
+                    AI will use this as reference for accurate booth proportions and layout
+                  </p>
+                </div>
+
                 {/* Generate Button */}
                 <Button
                   type="button"
@@ -337,7 +455,7 @@ export const AddSignageDialog = ({
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4 mr-2" />
-                      Generate Preview
+                      {templateFile ? 'Generate from Template' : 'Generate Preview'}
                     </>
                   )}
                 </Button>
