@@ -757,8 +757,60 @@
       background-position: 100% 50%;
     }
     100% {
+    background-position: 0% 50%;
+    }
+  }
+
+  /* Tagline animation keyframes */
+  @keyframes wave-glow {
+    0%, 100% {
+      transform: translateY(0);
+      text-shadow: 0 0 0 transparent;
+    }
+    25% {
+      transform: translateY(-4px);
+      text-shadow: 0 0 8px hsl(var(--primary) / 0.4);
+    }
+    50% {
+      transform: translateY(0);
+      text-shadow: 0 0 4px hsl(var(--primary) / 0.2);
+    }
+    75% {
+      transform: translateY(-2px);
+      text-shadow: 0 0 6px hsl(var(--primary) / 0.3);
+    }
+  }
+
+  @keyframes particle-float {
+    0%, 100% {
+      transform: translateY(0) translateX(0) scale(1);
+      opacity: 0.6;
+    }
+    25% {
+      transform: translateY(-8px) translateX(4px) scale(1.2);
+      opacity: 0.8;
+    }
+    50% {
+      transform: translateY(-4px) translateX(-4px) scale(0.9);
+      opacity: 0.4;
+    }
+    75% {
+      transform: translateY(-12px) translateX(2px) scale(1.1);
+      opacity: 0.7;
+    }
+  }
+
+  @keyframes aurora {
+    0%, 100% {
       background-position: 0% 50%;
     }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-wave-glow {
+    animation: wave-glow 2s ease-in-out infinite;
   }
 }
 
