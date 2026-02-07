@@ -32,6 +32,7 @@ import { SubEventsSection, LinkedEventGuide } from './SubEventsSection';
 import { SubEventsManager } from './SubEventsManager';
 import { SharedAssetsSection, SharedAsset } from './SharedAssetsSection';
 import { EventPatternsSection } from './EventPatternsSection';
+import { PresentationTemplatesSection } from '@/components/brand/PresentationTemplatesSection';
 import { Separator } from '@/components/ui/separator';
 
 export interface FullEventPageProps {
@@ -430,6 +431,16 @@ export const FullEventPage = ({
           <ClientLogosSection
             clientLogos={event.clientLogos || []}
             onClientLogosChange={editHandler((clientLogos) => updateEvent({ clientLogos }))}
+          />
+        );
+      case 'presentations':
+        return (
+          <PresentationTemplatesSection
+            presentations={event.presentationTemplates || []}
+            onUpdate={editHandler((presentationTemplates) => updateEvent({ presentationTemplates }))}
+            isEditable={canEdit}
+            entityId={eventId}
+            entityType="event"
           />
         );
       default:

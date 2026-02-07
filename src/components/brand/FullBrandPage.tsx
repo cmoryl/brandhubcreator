@@ -40,6 +40,7 @@ import { InsightsSection } from './InsightsSection';
 import { LeafletLocationsSection } from './LeafletLocationsSection';
 import { BrandEventSignageSection } from './BrandEventSignageSection';
 import { ClientLogosSection } from './ClientLogosSection';
+import { PresentationTemplatesSection } from './PresentationTemplatesSection';
 import { Separator } from '@/components/ui/separator';
 
 // Framer motion variants for smooth section animations
@@ -361,6 +362,14 @@ export const FullBrandPage = ({
           onClientLogosChange={editHandler((clientLogos) => onBrandUpdate({ clientLogos }))} 
           customSubtitle={customSubtitle} 
           onSubtitleChange={onSubtitleChange}
+        />;
+      case 'presentations':
+        return <PresentationTemplatesSection 
+          presentations={brand.presentationTemplates || []} 
+          onUpdate={editHandler((presentationTemplates) => onBrandUpdate({ presentationTemplates }))} 
+          isEditable={canEdit}
+          entityId={brandId}
+          entityType={entityType}
         />;
       default: return null;
     }
