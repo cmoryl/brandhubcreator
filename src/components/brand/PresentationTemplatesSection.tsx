@@ -268,8 +268,16 @@ export const PresentationTemplatesSection = ({
       return;
     }
 
+    if (!onUpdate) {
+      toast.error('Cannot save changes in read-only mode');
+      return;
+    }
+
     setIsUploading(true);
     setUploadProgress(10);
+
+    // Show loading toast for long-running operation
+    const loadingToast = toast.loading(`Uploading ${selectedFile.name}...`);
 
     try {
       // Create form data for the edge function
@@ -280,6 +288,7 @@ export const PresentationTemplatesSection = ({
       formData.append('organizationId', organization.id);
 
       setUploadProgress(30);
+      toast.loading(`Processing presentation...`, { id: loadingToast });
 
       // Call the parse-presentation edge function
       const { data: sessionData } = await supabase.auth.getSession();
@@ -302,7 +311,10 @@ export const PresentationTemplatesSection = ({
       }
 
       const result = await response.json();
+      console.log('[PresentationUpload] Parse result:', result);
       setUploadProgress(90);
+
+      toast.loading(`Saving presentation...`, { id: loadingToast });
 
       // Create the presentation template object
       const presentation: PresentationTemplate = {
@@ -317,18 +329,31 @@ export const PresentationTemplatesSection = ({
         createdAt: new Date().toISOString(),
       };
 
-      onUpdate([...presentations, presentation]);
+      console.log('[PresentationUpload] Created presentation object:', presentation);
+      console.log('[PresentationUpload] Current presentations:', presentations.length);
+
+      // Update the parent with new presentations array
+      const updatedPresentations = [...presentations, presentation];
+      onUpdate(updatedPresentations);
+      
+      console.log('[PresentationUpload] Called onUpdate with', updatedPresentations.length, 'presentations');
+      
       setUploadProgress(100);
       
+      // Dismiss loading toast and show success
+      toast.dismiss(loadingToast);
       toast.success(`Presentation uploaded with ${result.slides.length} slides`);
       
-      // Reset form
-      setSelectedFile(null);
-      setNewPresentation({ name: '', description: '', category: 'corporate' });
-      setIsDialogOpen(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      // Reset form after brief delay to ensure state update propagates
+      setTimeout(() => {
+        setSelectedFile(null);
+        setNewPresentation({ name: '', description: '', category: 'corporate' });
+        setIsDialogOpen(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }, 100);
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('[PresentationUpload] Error:', error);
+      toast.dismiss(loadingToast);
       toast.error(error instanceof Error ? error.message : 'Failed to upload presentation');
     } finally {
       setIsUploading(false);
