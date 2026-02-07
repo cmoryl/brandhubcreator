@@ -1122,7 +1122,90 @@ export const helpSections: HelpSection[] = [
         ],
       },
     ],
-    relatedSections: ['admin-analytics', 'brand-intelligence'],
+    relatedSections: ['admin-analytics', 'competitive-intelligence'],
+  },
+
+  {
+    id: 'competitive-intelligence',
+    title: 'Competitive Intelligence Reports',
+    description: 'Generate comprehensive AI-powered competitive analysis reports with personality mapping, score gauges, and strategic insights.',
+    icon: 'Target',
+    category: 'advanced',
+    keywords: ['competitive', 'competitor', 'analysis', 'report', 'radar', 'personality', 'benchmark', 'comparison', 'strategy'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Access Competitive Analysis',
+        description: 'Open the Competitive Intelligence dialog from the Admin Toolbar or via the Competitive Report Card in your brand dashboard.',
+        tips: [
+          'Analysis uses Gemini AI for deep competitive insights',
+          'Reports cover 8 strategic sections for comprehensive coverage',
+          'The feature is available to organization admins',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Select or Discover Competitors',
+        description: 'Choose from your saved favorite competitors or use AI to discover new competitors in your market.',
+        tips: [
+          'Favorite competitors are saved for quick access in future analyses',
+          'AI discovery finds competitors based on your brand\'s industry and positioning',
+          'You can analyze up to 5 competitors at once for comparison',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Generate the Report',
+        description: 'Click "Run Analysis" and wait for the AI to generate your comprehensive competitive report.',
+        tips: [
+          'Reports include 8 sections: Overview, Market Position, Strengths/Weaknesses, Opportunities, Threats, Recommendations, and more',
+          'Generation typically takes 15-30 seconds depending on complexity',
+          'Reports are automatically saved for future reference',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Explore the Personality Matrix',
+        description: 'View the radar chart visualization showing how your brand\'s personality compares to competitors across key dimensions.',
+        tips: [
+          'The Personality Matrix maps traits like Innovation, Trust, Energy, and Sophistication',
+          'Hover over data points for detailed scores',
+          'Use gaps in the chart to identify differentiation opportunities',
+        ],
+      },
+      {
+        id: 'step-5',
+        title: 'Review Score Gauges',
+        description: 'Examine the score gauges showing your competitive position across various metrics.',
+        tips: [
+          'Scores are calculated based on brand presence, messaging, and market signals',
+          'Compare your scores to competitor averages',
+          'Track score changes over time with historical reports',
+        ],
+      },
+      {
+        id: 'step-6',
+        title: 'Export as PDF',
+        description: 'Download the complete competitive analysis as a professional PDF document for sharing with stakeholders.',
+        tips: [
+          'PDF includes all visualizations, charts, and recommendations',
+          'Reports are formatted for executive presentations',
+          'Include competitor logos and brand comparisons',
+        ],
+      },
+      {
+        id: 'step-7',
+        title: 'Manage Favorite Competitors',
+        description: 'Save competitors to your favorites list for quick access in future analyses.',
+        tips: [
+          'Favorites are shared across your organization',
+          'Add notes about why each competitor is tracked',
+          'Remove outdated competitors to keep the list relevant',
+        ],
+        warning: 'Competitive data is based on public information and AI analysis. Always verify critical insights independently.',
+      },
+    ],
+    relatedSections: ['market-analysis', 'brand-intelligence', 'admin-analytics'],
   },
 
   {

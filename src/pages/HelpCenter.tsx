@@ -54,6 +54,7 @@ import {
   Keyboard,
   Newspaper,
   GitBranch,
+  Target,
 } from 'lucide-react';
 import {
   helpCategories,
@@ -97,6 +98,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Keyboard,
   Newspaper,
   GitBranch,
+  Target,
 };
 
 const HelpCenter = () => {
