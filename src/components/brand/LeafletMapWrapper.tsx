@@ -9,12 +9,22 @@
 
 import React, { useEffect, useRef, useState, memo } from 'react';
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import { BrandLocation, LocationCategory } from '@/types/brand';
 import { REGION_BOUNDS, RegionKey, hexToRgba } from './mapRegionTypes';
 import { cn } from '@/lib/utils';
 import { Compass } from 'lucide-react';
 import { MapThemeConfig, MAP_TILE_CONFIGS, DEFAULT_MAP_THEME } from '@/types/mapTheme';
+
+// Dynamically inject Leaflet CSS only when this component loads
+// This prevents render-blocking on pages that don't use maps
+const LEAFLET_CSS_ID = 'leaflet-dynamic-css';
+if (typeof document !== 'undefined' && !document.getElementById(LEAFLET_CSS_ID)) {
+  const link = document.createElement('link');
+  link.id = LEAFLET_CSS_ID;
+  link.rel = 'stylesheet';
+  link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+  document.head.appendChild(link);
+}
 
 // Fix default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
