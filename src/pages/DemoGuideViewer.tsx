@@ -380,6 +380,7 @@ export default function DemoGuideViewer() {
             heroFullWidth={(fullGuide as BrandGuide | ProductGuide).pageSettings?.heroFullWidth ?? false}
             canEdit={isAdmin}
             onBrandUpdate={isAdmin ? handleBrandUpdate : undefined}
+            entityType={type === 'product' ? 'product' : 'brand'}
           />
         )}
       </div>

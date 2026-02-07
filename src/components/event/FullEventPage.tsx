@@ -131,6 +131,9 @@ export const FullEventPage = ({
             hero={event.hero}
             onHeroChange={editHandler((hero) => updateEvent({ hero }))}
             fullWidth={heroFullWidth}
+            guideData={event as unknown as Record<string, unknown>}
+            entityType="event"
+            entityId={eventId}
           />
         );
       case 'tagline':
