@@ -1,16 +1,19 @@
 /**
- * Philosophical Pillars - AI-Generated Hyper-Realistic Imagery
- * Warm, human-interaction focused images for brand value cards
+ * Philosophical Pillars - Persistent Storage URLs
+ * Images stored in Supabase storage for reliability and admin management
  */
 
-import collaborationPillar from './collaboration-pillar.jpg';
-import integrityPillar from './integrity-pillar.jpg';
-import excellencePillar from './excellence-pillar.jpg';
-import innovationPillar from './innovation-pillar.jpg';
-import customerFocusPillar from './customer-focus-pillar.jpg';
-import trustPillar from './trust-pillar.jpg';
-import sustainabilityPillar from './sustainability-pillar.jpg';
-import diversityPillar from './diversity-pillar.jpg';
+const STORAGE_BASE = 'https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/public/organization-assets/pillars';
+
+// Persistent storage URLs for pillar images
+export const collaborationPillar = `${STORAGE_BASE}/collaboration-pillar.jpg`;
+export const integrityPillar = `${STORAGE_BASE}/integrity-pillar.jpg`;
+export const excellencePillar = `${STORAGE_BASE}/excellence-pillar.jpg`;
+export const innovationPillar = `${STORAGE_BASE}/innovation-pillar.jpg`;
+export const customerFocusPillar = `${STORAGE_BASE}/customer-focus-pillar.jpg`;
+export const trustPillar = `${STORAGE_BASE}/trust-pillar.jpg`;
+export const sustainabilityPillar = `${STORAGE_BASE}/sustainability-pillar.jpg`;
+export const diversityPillar = `${STORAGE_BASE}/diversity-pillar.jpg`;
 
 export const pillarImages: Record<string, string> = {
   // Collaboration / Teamwork
@@ -89,6 +92,17 @@ export const pillarImagesList = [
   diversityPillar,
 ];
 
+export const pillarImagesWithLabels = [
+  { url: collaborationPillar, label: 'Collaboration', keywords: ['teamwork', 'partnership', 'unity'] },
+  { url: integrityPillar, label: 'Integrity', keywords: ['honesty', 'transparency', 'ethics'] },
+  { url: excellencePillar, label: 'Excellence', keywords: ['quality', 'success', 'achievement'] },
+  { url: innovationPillar, label: 'Innovation', keywords: ['creativity', 'ideas', 'growth'] },
+  { url: customerFocusPillar, label: 'Customer Focus', keywords: ['service', 'care', 'empathy'] },
+  { url: trustPillar, label: 'Trust', keywords: ['reliability', 'commitment', 'accountability'] },
+  { url: sustainabilityPillar, label: 'Sustainability', keywords: ['environment', 'community', 'responsibility'] },
+  { url: diversityPillar, label: 'Diversity', keywords: ['inclusion', 'belonging', 'respect'] },
+];
+
 /**
  * Get pillar image based on value text keyword matching
  */
@@ -124,14 +138,3 @@ export function getStablePillarImage(valueText: string): string {
 export function getRandomPillarImage(): string {
   return pillarImagesList[Math.floor(Math.random() * pillarImagesList.length)];
 }
-
-export {
-  collaborationPillar,
-  integrityPillar,
-  excellencePillar,
-  innovationPillar,
-  customerFocusPillar,
-  trustPillar,
-  sustainabilityPillar,
-  diversityPillar,
-};
