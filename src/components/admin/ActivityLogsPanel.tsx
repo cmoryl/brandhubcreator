@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { usePersistedAdminData, formatLastRunMessage } from '@/hooks/usePersistedAdminData';
 
 interface AuditLog {
   id: string;
@@ -94,9 +95,16 @@ const DATE_RANGES = [
   { value: 'custom', label: 'Custom range' },
 ];
 
+interface CachedActivityLogsData {
+  logs: AuditLog[];
+  dateRange: string;
+  actionFilter: string;
+  entityFilter: string;
+  outcomeFilter: string;
+}
+
 export const ActivityLogsPanel = () => {
-  const [logs, setLogs] = useState<AuditLog[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [actionFilter, setActionFilter] = useState('all');
   const [entityFilter, setEntityFilter] = useState('all');
@@ -105,6 +113,16 @@ export const ActivityLogsPanel = () => {
   const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>();
   const [customDateTo, setCustomDateTo] = useState<Date | undefined>();
   const [expandedLogs, setExpandedLogs] = useState<Set<string>>(new Set());
+
+  // Use persisted data hook
+  const { 
+    data: cachedData, 
+    lastRunLabel, 
+    isExpired,
+    saveData 
+  } = usePersistedAdminData<CachedActivityLogsData>('activity_logs', { ttl: 15 * 60 * 1000 }); // 15 min cache
+  
+  const logs = cachedData?.logs || [];
 
   const fetchLogs = async () => {
     setIsLoading(true);
@@ -162,7 +180,17 @@ export const ActivityLogsPanel = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setLogs(data || []);
+      
+      // Save to persistent cache
+      saveData({
+        logs: data || [],
+        dateRange,
+        actionFilter,
+        entityFilter,
+        outcomeFilter,
+      });
+
+      toast.success('Activity logs refreshed');
     } catch (error) {
       console.error('Failed to fetch logs:', error);
       toast.error('Failed to load activity logs');
@@ -171,9 +199,12 @@ export const ActivityLogsPanel = () => {
     }
   };
 
+  // Only auto-fetch if no cached data exists
   useEffect(() => {
-    fetchLogs();
-  }, [dateRange, actionFilter, entityFilter, outcomeFilter, customDateFrom, customDateTo]);
+    if (!cachedData) {
+      fetchLogs();
+    }
+  }, []);
 
   // Filter logs by search term
   const filteredLogs = useMemo(() => {
@@ -335,8 +366,14 @@ export const ActivityLogsPanel = () => {
               </Button>
             </div>
           </div>
-          <CardDescription>
+          <CardDescription className="flex items-center gap-2 flex-wrap">
             Comprehensive audit trail of all admin and user actions
+            {lastRunLabel && (
+              <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-muted">
+                <Clock className="h-3 w-3" />
+                {formatLastRunMessage(lastRunLabel, isExpired)}
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

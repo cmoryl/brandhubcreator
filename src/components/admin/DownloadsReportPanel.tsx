@@ -31,10 +31,12 @@ import {
   Filter,
   BarChart3,
   FileDown,
+  Clock,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { toast } from 'sonner';
+import { usePersistedAdminData, formatLastRunMessage } from '@/hooks/usePersistedAdminData';
 
 interface DownloadLog {
   id: string;
@@ -62,13 +64,28 @@ interface DownloadStats {
   byDay: { date: string; count: number }[];
 }
 
+interface CachedDownloadsData {
+  downloads: DownloadLog[];
+  stats: DownloadStats | null;
+  dateRange: string;
+}
+
 export function DownloadsReportPanel() {
-  const [downloads, setDownloads] = useState<DownloadLog[]>([]);
-  const [stats, setStats] = useState<DownloadStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [dateRange, setDateRange] = useState('30d');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
+
+  // Use persisted data hook
+  const { 
+    data: cachedData, 
+    lastRunLabel, 
+    isExpired,
+    saveData 
+  } = usePersistedAdminData<CachedDownloadsData>('downloads_report', { ttl: 30 * 60 * 1000 }); // 30 min cache
+  
+  const downloads = cachedData?.downloads || [];
+  const stats = cachedData?.stats || null;
 
   const fetchDownloads = async () => {
     setIsLoading(true);
@@ -91,8 +108,6 @@ export function DownloadsReportPanel() {
         details: log.details as DownloadLog['details'],
       }));
 
-      setDownloads(logs);
-
       // Calculate stats
       const pdfCount = logs.filter(l => l.details?.download_type === 'pdf' || l.entity_type === 'pdf').length;
       const assetCount = logs.filter(l => l.details?.download_type === 'asset' || ['logo', 'pattern', 'icon'].includes(l.entity_type)).length;
@@ -108,13 +123,22 @@ export function DownloadsReportPanel() {
         .map(([date, count]) => ({ date, count }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
-      setStats({
+      const calculatedStats: DownloadStats = {
         total: logs.length,
         pdf: pdfCount,
         asset: assetCount,
         backup: backupCount,
         byDay,
+      };
+
+      // Save to persistent cache
+      saveData({
+        downloads: logs,
+        stats: calculatedStats,
+        dateRange,
       });
+
+      toast.success('Downloads report refreshed');
     } catch (error) {
       console.error('Error fetching downloads:', error);
       toast.error('Failed to load download history');
@@ -123,9 +147,12 @@ export function DownloadsReportPanel() {
     }
   };
 
+  // Only auto-fetch if no cached data exists
   useEffect(() => {
-    fetchDownloads();
-  }, [dateRange]);
+    if (!cachedData) {
+      fetchDownloads();
+    }
+  }, []);
 
   const filteredDownloads = useMemo(() => {
     return downloads.filter(log => {
@@ -240,8 +267,14 @@ export function DownloadsReportPanel() {
                 <FileDown className="h-5 w-5" />
                 Download History
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="flex items-center gap-2 flex-wrap">
                 Track all exports and downloads across the platform
+                {lastRunLabel && (
+                  <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-muted">
+                    <Clock className="h-3 w-3" />
+                    {formatLastRunMessage(lastRunLabel, isExpired)}
+                  </span>
+                )}
               </CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={fetchDownloads} disabled={isLoading}>
