@@ -158,50 +158,68 @@ export const QRCodeEditorDialog = ({
 
   // Generate styled QR preview using qr-code-styling
   useEffect(() => {
-    if (!qrContainerRef.current) return;
-    
-    // Clear container
-    qrContainerRef.current.innerHTML = '';
+    const container = qrContainerRef.current;
+    if (!container) return;
     
     // Use sample URL if the current URL is invalid (shows preview while typing)
     const previewUrl = isValidUrl(form.url) ? form.url : SAMPLE_URL;
     
-    try {
-      const qrCodeInstance = new QRCodeStyling({
-        width: 160,
-        height: 160,
-        type: 'svg',
-        data: previewUrl,
-        dotsOptions: {
-          color: form.fgColor,
-          type: form.dotStyle as DotType,
-        },
-        cornersSquareOptions: {
-          color: form.fgColor,
-          type: form.cornerStyle === 'dot' ? 'dot' : form.cornerStyle as CornerSquareType,
-        },
-        cornersDotOptions: {
-          color: form.fgColor,
-          type: form.cornerStyle as CornerDotType,
-        },
-        backgroundOptions: {
-          color: form.bgColor,
-        },
-        imageOptions: form.logoUrl && form.logoType !== 'none' ? {
+    // Determine if we have a valid logo to show
+    const hasValidLogo = form.logoType !== 'none' && form.logoUrl && form.logoUrl.trim() !== '';
+    
+    // Create QR code instance
+    const qrCodeInstance = new QRCodeStyling({
+      width: 160,
+      height: 160,
+      type: 'svg',
+      data: previewUrl,
+      dotsOptions: {
+        color: form.fgColor,
+        type: form.dotStyle as DotType,
+      },
+      cornersSquareOptions: {
+        color: form.fgColor,
+        type: form.cornerStyle === 'dot' ? 'dot' : form.cornerStyle as CornerSquareType,
+      },
+      cornersDotOptions: {
+        color: form.fgColor,
+        type: form.cornerStyle as CornerDotType,
+      },
+      backgroundOptions: {
+        color: form.bgColor,
+      },
+      ...(hasValidLogo ? {
+        imageOptions: {
           crossOrigin: 'anonymous',
           margin: 4,
-        } : undefined,
-        image: form.logoUrl && form.logoType !== 'none' ? form.logoUrl : undefined,
-        qrOptions: {
-          errorCorrectionLevel: form.errorCorrection,
+          hideBackgroundDots: true,
         },
-      });
+        image: form.logoUrl,
+      } : {}),
+      qrOptions: {
+        errorCorrectionLevel: form.errorCorrection,
+      },
+    });
 
-      qrCodeRef.current = qrCodeInstance;
-      qrCodeInstance.append(qrContainerRef.current);
-    } catch (error) {
-      console.warn('[QRCodeEditorDialog] Failed to generate QR preview:', error);
-    }
+    qrCodeRef.current = qrCodeInstance;
+    
+    // Clear container and append - use a timeout to ensure DOM is ready
+    const renderQR = () => {
+      try {
+        container.innerHTML = '';
+        qrCodeInstance.append(container);
+      } catch (err) {
+        console.warn('[QRCodeEditorDialog] Failed to append QR:', err);
+      }
+    };
+    
+    // Use requestAnimationFrame to ensure DOM is ready
+    const rafId = requestAnimationFrame(renderQR);
+    
+    return () => {
+      cancelAnimationFrame(rafId);
+      container.innerHTML = '';
+    };
   }, [form.url, form.fgColor, form.bgColor, form.errorCorrection, form.dotStyle, form.cornerStyle, form.logoUrl, form.logoType]);
 
   const handleSubmit = async () => {

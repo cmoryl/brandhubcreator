@@ -47,6 +47,9 @@ export const QRCodeCard = ({ qrCode, canEdit, onEdit, onDelete, variant = 'grid'
 
   // Create QRCodeStyling instance
   const createQRInstance = (size: number) => {
+    // Determine if we have a valid logo to show
+    const hasValidLogo = qrCode.logoType !== 'none' && qrCode.logoUrl && qrCode.logoUrl.trim() !== '';
+    
     return new QRCodeStyling({
       width: size,
       height: size,
@@ -67,11 +70,14 @@ export const QRCodeCard = ({ qrCode, canEdit, onEdit, onDelete, variant = 'grid'
       backgroundOptions: {
         color: qrCode.bgColor,
       },
-      imageOptions: qrCode.logoUrl && qrCode.logoType !== 'none' ? {
-        crossOrigin: 'anonymous',
-        margin: 4,
-      } : undefined,
-      image: qrCode.logoUrl && qrCode.logoType !== 'none' ? qrCode.logoUrl : undefined,
+      ...(hasValidLogo ? {
+        imageOptions: {
+          crossOrigin: 'anonymous',
+          margin: 4,
+          hideBackgroundDots: true,
+        },
+        image: qrCode.logoUrl,
+      } : {}),
       qrOptions: {
         errorCorrectionLevel: qrCode.errorCorrection,
       },
@@ -80,19 +86,34 @@ export const QRCodeCard = ({ qrCode, canEdit, onEdit, onDelete, variant = 'grid'
 
   // Render QR code preview - works for both variants
   useEffect(() => {
-    if (!containerRef.current) return;
-    containerRef.current.innerHTML = '';
+    const container = containerRef.current;
+    if (!container) return;
     
     // Skip rendering if URL is invalid
-    if (!isValidUrl(qrCode.url)) return;
-    
-    try {
-      const size = variant === 'list' ? 56 : 200;
-      const qrInstance = createQRInstance(size);
-      qrInstance.append(containerRef.current);
-    } catch (error) {
-      console.warn('[QRCodeCard] Failed to render QR code:', error);
+    if (!isValidUrl(qrCode.url)) {
+      container.innerHTML = '';
+      return;
     }
+    
+    const size = variant === 'list' ? 56 : 200;
+    const qrInstance = createQRInstance(size);
+    
+    // Use requestAnimationFrame to ensure DOM is ready
+    const renderQR = () => {
+      try {
+        container.innerHTML = '';
+        qrInstance.append(container);
+      } catch (error) {
+        console.warn('[QRCodeCard] Failed to render QR code:', error);
+      }
+    };
+    
+    const rafId = requestAnimationFrame(renderQR);
+    
+    return () => {
+      cancelAnimationFrame(rafId);
+      container.innerHTML = '';
+    };
   }, [qrCode.url, qrCode.fgColor, qrCode.bgColor, qrCode.errorCorrection, qrCode.dotStyle, qrCode.cornerStyle, qrCode.logoUrl, qrCode.logoType, variant]);
 
   const copyUrl = async () => {
