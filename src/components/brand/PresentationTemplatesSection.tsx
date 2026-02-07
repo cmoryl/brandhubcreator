@@ -51,16 +51,16 @@ const getCategoryColor = (category?: string) => {
   return colors[category || 'other'] || colors.other;
 };
 
-// Slide gallery component
+// Compact slide gallery component
 const SlideGallery = ({ slides, onClose }: { slides: PresentationSlide[]; onClose?: () => void }) => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   if (slides.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 bg-muted/30 rounded-lg">
+      <div className="flex items-center justify-center h-40 bg-muted/30 rounded-lg">
         <div className="text-center text-muted-foreground">
-          <Presentation className="h-12 w-12 mx-auto mb-2 opacity-50" />
-          <p>No slide previews available</p>
+          <Presentation className="h-8 w-8 mx-auto mb-2 opacity-50" />
+          <p className="text-sm">No slide previews available</p>
         </div>
       </div>
     );
@@ -69,9 +69,9 @@ const SlideGallery = ({ slides, onClose }: { slides: PresentationSlide[]; onClos
   const currentSlide = slides[activeIndex];
   
   return (
-    <div className="space-y-4">
-      {/* Main slide view */}
-      <div className="relative aspect-video bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden">
+    <div className="space-y-3">
+      {/* Compact main slide view */}
+      <div className="relative aspect-[16/10] max-h-[320px] bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden">
         {currentSlide?.thumbnailUrl ? (
           <img
             src={currentSlide.thumbnailUrl}
@@ -80,19 +80,16 @@ const SlideGallery = ({ slides, onClose }: { slides: PresentationSlide[]; onClos
             crossOrigin="anonymous"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-            <Presentation className="h-12 w-12 text-white/30 mb-3" />
-            <p className="text-lg font-medium text-white/70 mb-2">
+          <div className="flex flex-col items-center justify-center h-full p-4 text-center">
+            <Presentation className="h-8 w-8 text-white/30 mb-2" />
+            <p className="text-sm font-medium text-white/70 mb-1">
               {currentSlide?.title || `Slide ${activeIndex + 1}`}
             </p>
             {currentSlide?.textContent && (
-              <p className="text-sm text-white/50 max-w-md line-clamp-4">
+              <p className="text-xs text-white/50 max-w-sm line-clamp-3">
                 {currentSlide.textContent}
               </p>
             )}
-            <p className="text-xs text-white/30 mt-4">
-              Preview not available – download to view full slide
-            </p>
           </div>
         )}
         
@@ -101,46 +98,46 @@ const SlideGallery = ({ slides, onClose }: { slides: PresentationSlide[]; onClos
           <>
             <button
               onClick={() => setActiveIndex((i) => (i > 0 ? i - 1 : slides.length - 1))}
-              className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+              className="absolute left-1 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
             >
-              <ChevronLeft className="h-6 w-6 text-white" />
+              <ChevronLeft className="h-4 w-4 text-white" />
             </button>
             <button
               onClick={() => setActiveIndex((i) => (i < slides.length - 1 ? i + 1 : 0))}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+              className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
             >
-              <ChevronRight className="h-6 w-6 text-white" />
+              <ChevronRight className="h-4 w-4 text-white" />
             </button>
           </>
         )}
 
         {/* Slide counter */}
-        <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+        <div className="absolute bottom-1.5 right-1.5 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
           {activeIndex + 1} / {slides.length}
         </div>
 
         {onClose && (
           <button
             onClick={onClose}
-            className="absolute top-2 right-2 p-1.5 bg-black/60 rounded-full hover:bg-black/80 transition-colors"
+            className="absolute top-1.5 right-1.5 p-1 bg-black/60 rounded-full hover:bg-black/80 transition-colors"
           >
-            <X className="h-4 w-4 text-white" />
+            <X className="h-3 w-3 text-white" />
           </button>
         )}
       </div>
 
-      {/* Thumbnail strip */}
+      {/* Larger thumbnail strip for easier navigation */}
       <ScrollArea className="w-full">
-        <div className="flex gap-2 pb-2">
+        <div className="flex gap-1.5 pb-2">
           {slides.map((slide, index) => (
             <button
               key={slide.id}
               onClick={() => setActiveIndex(index)}
               className={cn(
-                "flex-shrink-0 w-24 aspect-video rounded border-2 overflow-hidden transition-all",
+                "flex-shrink-0 w-16 aspect-video rounded border overflow-hidden transition-all",
                 index === activeIndex
-                  ? "border-primary ring-2 ring-primary/30"
-                  : "border-transparent hover:border-primary/50"
+                  ? "border-primary ring-1 ring-primary/50"
+                  : "border-border/50 hover:border-primary/50"
               )}
             >
               {slide.thumbnailUrl ? (
@@ -151,7 +148,7 @@ const SlideGallery = ({ slides, onClose }: { slides: PresentationSlide[]; onClos
                 />
               ) : (
                 <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <span className="text-xs text-muted-foreground">{index + 1}</span>
+                  <span className="text-[10px] text-muted-foreground">{index + 1}</span>
                 </div>
               )}
             </button>
@@ -518,24 +515,24 @@ export const PresentationTemplatesSection = ({
         </div>
       )}
 
-      {/* Full-screen slide preview dialog */}
+      {/* Compact slide preview dialog */}
       <Dialog open={!!previewPresentation} onOpenChange={() => setPreviewPresentation(null)}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>{previewPresentation?.name}</DialogTitle>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-base">{previewPresentation?.name}</DialogTitle>
             {previewPresentation?.description && (
-              <DialogDescription>{previewPresentation.description}</DialogDescription>
+              <DialogDescription className="text-sm">{previewPresentation.description}</DialogDescription>
             )}
           </DialogHeader>
           
           {previewPresentation && (
-            <div className="pt-2">
+            <div>
               <SlideGallery slides={previewPresentation.slides} />
               
-              <div className="flex justify-end mt-4">
-                <Button asChild>
+              <div className="flex justify-end mt-3 pt-3 border-t">
+                <Button size="sm" asChild>
                   <a href={previewPresentation.fileUrl} download={previewPresentation.fileName}>
-                    <Download className="h-4 w-4 mr-2" />
+                    <Download className="h-3.5 w-3.5 mr-1.5" />
                     Download PowerPoint
                   </a>
                 </Button>
