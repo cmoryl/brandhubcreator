@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { 
   BarChart3, Heart, AlertTriangle, CheckCircle, XCircle, 
   RefreshCw, Download, TrendingUp, Palette, Type, Image,
-  Target, Sparkles, FileText, Layers, Info, ChevronDown, ChevronRight
+  Target, Sparkles, FileText, Layers, Info, ChevronDown, ChevronRight,
+  Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +15,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { usePersistedAdminData, formatLastRunMessage } from '@/hooks/usePersistedAdminData';
 
 // Types for brand analysis
 interface BrandHealthData {
@@ -77,12 +79,26 @@ const SECTION_WEIGHTS = {
   qr: { weight: 3, category: 'assets', label: 'QR Codes' },
 };
 
+interface CachedBrandAnalytics {
+  brandsHealth: BrandHealthData[];
+  summary: AnalyticsSummary | null;
+}
+
 export function BrandAnalyticsHub() {
   const [isLoading, setIsLoading] = useState(false);
-  const [brandsHealth, setBrandsHealth] = useState<BrandHealthData[]>([]);
-  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [expandedBrands, setExpandedBrands] = useState<Set<string>>(new Set());
+  
+  // Use persisted data hook for caching analytics
+  const { 
+    data: cachedData, 
+    lastRunLabel, 
+    isExpired,
+    saveData 
+  } = usePersistedAdminData<CachedBrandAnalytics>('brand_analytics', { ttl: 60 * 60 * 1000 }); // 1 hour cache
+  
+  const brandsHealth = cachedData?.brandsHealth || [];
+  const summary = cachedData?.summary || null;
 
   const analyzeBrands = async () => {
     setIsLoading(true);
@@ -120,8 +136,14 @@ export function BrandAnalyticsHub() {
         };
       });
 
-      setBrandsHealth(analyzedBrands);
-      calculateSummary(analyzedBrands);
+      const calculatedSummary = calculateSummary(analyzedBrands);
+      
+      // Save to persistent cache
+      saveData({
+        brandsHealth: analyzedBrands,
+        summary: calculatedSummary,
+      });
+      
       toast.success(`Analyzed ${analyzedBrands.length} brands`);
     } catch (error) {
       console.error('Error analyzing brands:', error);
@@ -430,10 +452,9 @@ export function BrandAnalyticsHub() {
     return { overallScore, scores, gaps, consistencyIssues };
   };
 
-  const calculateSummary = (brands: BrandHealthData[]) => {
+  const calculateSummary = (brands: BrandHealthData[]): AnalyticsSummary | null => {
     if (brands.length === 0) {
-      setSummary(null);
-      return;
+      return null;
     }
 
     const avgScore = Math.round(brands.reduce((sum, b) => sum + b.overallScore, 0) / brands.length);
@@ -466,14 +487,14 @@ export function BrandAnalyticsHub() {
       .slice(0, 5)
       .map(([issue, count]) => ({ issue, count }));
 
-    setSummary({
+    return {
       totalBrands: brands.length,
       avgHealthScore: avgScore,
       brandsNeedingAttention: needingAttention,
       fullyCompleteBrands: complete,
       topGaps,
       topIssues,
-    });
+    };
   };
 
   const downloadReport = () => {
@@ -563,8 +584,14 @@ export function BrandAnalyticsHub() {
               <BarChart3 className="h-5 w-5" />
               Brand Analytics Hub
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="flex items-center gap-2">
               Health scores, content gaps, and consistency audits across all brands
+              {lastRunLabel && (
+                <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-muted">
+                  <Clock className="h-3 w-3" />
+                  {formatLastRunMessage(lastRunLabel, isExpired)}
+                </span>
+              )}
             </CardDescription>
           </div>
           <div className="flex gap-2">
