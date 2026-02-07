@@ -1,9 +1,10 @@
 /**
  * PresentationTemplatesSection - Display and manage PowerPoint template examples
  * Shows slide thumbnail galleries with download capability
+ * Now persists to database via presentation_templates table
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Plus, Upload, Download, Trash2, FileText, Loader2, Eye, ChevronLeft, ChevronRight, Presentation, X, ExternalLink, Monitor } from 'lucide-react';
 import { PresentationTemplate, PresentationSlide } from '@/types/brand';
 import { Button } from '@/components/ui/button';
@@ -21,10 +22,11 @@ import { toast } from 'sonner';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { RichTextDisplay } from '@/components/ui/rich-text-editor';
 import { OptimizedImage } from '@/components/ui/optimized-image';
+import { usePresentationTemplates } from '@/hooks/usePresentationTemplates';
 
 interface PresentationTemplatesSectionProps {
-  presentations: PresentationTemplate[];
-  onUpdate: (presentations: PresentationTemplate[]) => void;
+  presentations?: PresentationTemplate[]; // Now optional - we fetch from DB
+  onUpdate?: (presentations: PresentationTemplate[]) => void; // Now optional
   isEditable?: boolean;
   subtitle?: string;
   entityType?: 'brand' | 'event' | 'product';
@@ -217,7 +219,7 @@ const SlideGallery = ({ slides, onClose }: { slides: PresentationSlide[]; onClos
 };
 
 export const PresentationTemplatesSection = ({
-  presentations,
+  presentations: propPresentations,
   onUpdate,
   isEditable = true,
   subtitle,
@@ -230,6 +232,17 @@ export const PresentationTemplatesSection = ({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [previewPresentation, setPreviewPresentation] = useState<PresentationTemplate | null>(null);
+  
+  // Fetch presentations from database
+  const { 
+    presentations: dbPresentations, 
+    isLoading: isLoadingPresentations,
+    addPresentation,
+    deletePresentation,
+  } = usePresentationTemplates(entityType, entityId);
+  
+  // Use database presentations if available, fallback to props for backward compatibility
+  const presentations = dbPresentations.length > 0 ? dbPresentations : (propPresentations || []);
   
   const [newPresentation, setNewPresentation] = useState({
     name: '',
@@ -265,11 +278,6 @@ export const PresentationTemplatesSection = ({
   const handleUpload = async () => {
     if (!selectedFile || !organization?.id || !entityId) {
       toast.error('Missing required information');
-      return;
-    }
-
-    if (!onUpdate) {
-      toast.error('Cannot save changes in read-only mode');
       return;
     }
 
@@ -314,11 +322,10 @@ export const PresentationTemplatesSection = ({
       console.log('[PresentationUpload] Parse result:', result);
       setUploadProgress(90);
 
-      toast.loading(`Saving presentation...`, { id: loadingToast });
+      toast.loading(`Saving to database...`, { id: loadingToast });
 
-      // Create the presentation template object
-      const presentation: PresentationTemplate = {
-        id: crypto.randomUUID(),
+      // Save to database using the hook
+      await addPresentation({
         name: newPresentation.name || selectedFile.name.replace('.pptx', ''),
         description: newPresentation.description,
         fileUrl: result.fileUrl,
@@ -326,17 +333,9 @@ export const PresentationTemplatesSection = ({
         fileSize: result.fileSize,
         slides: result.slides,
         category: newPresentation.category,
-        createdAt: new Date().toISOString(),
-      };
+      });
 
-      console.log('[PresentationUpload] Created presentation object:', presentation);
-      console.log('[PresentationUpload] Current presentations:', presentations.length);
-
-      // Update the parent with new presentations array
-      const updatedPresentations = [...presentations, presentation];
-      onUpdate(updatedPresentations);
-      
-      console.log('[PresentationUpload] Called onUpdate with', updatedPresentations.length, 'presentations');
+      console.log('[PresentationUpload] Saved to database successfully');
       
       setUploadProgress(100);
       
@@ -344,13 +343,11 @@ export const PresentationTemplatesSection = ({
       toast.dismiss(loadingToast);
       toast.success(`Presentation uploaded with ${result.slides.length} slides`);
       
-      // Reset form after brief delay to ensure state update propagates
-      setTimeout(() => {
-        setSelectedFile(null);
-        setNewPresentation({ name: '', description: '', category: 'corporate' });
-        setIsDialogOpen(false);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-      }, 100);
+      // Reset form
+      setSelectedFile(null);
+      setNewPresentation({ name: '', description: '', category: 'corporate' });
+      setIsDialogOpen(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error) {
       console.error('[PresentationUpload] Error:', error);
       toast.dismiss(loadingToast);
@@ -361,9 +358,12 @@ export const PresentationTemplatesSection = ({
     }
   };
 
-  const handleDelete = (id: string) => {
-    onUpdate(presentations.filter(p => p.id !== id));
-    toast.success('Presentation removed');
+  const handleDelete = async (id: string) => {
+    try {
+      await deletePresentation(id);
+    } catch (error) {
+      console.error('[PresentationDelete] Error:', error);
+    }
   };
 
   return (

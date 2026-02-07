@@ -5,7 +5,8 @@
  * Supports both brand-specific locations and shared company locations database
  */
 
-import React, { useState, useMemo, lazy, Suspense } from 'react';
+import React, { useState, useMemo, lazy, Suspense, useEffect } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -240,6 +241,7 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
   const [editingStatIndex, setEditingStatIndex] = useState<number | null>(null);
   const [isAddStatDialogOpen, setIsAddStatDialogOpen] = useState(false);
   const [statFormData, setStatFormData] = useState<Partial<LocationStat>>({ label: '', value: '' });
+  const [isLocationsExpanded, setIsLocationsExpanded] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState<Partial<BrandLocation>>({
@@ -250,7 +252,14 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
     description: '',
   });
 
-  // Get coordinates for a location
+  // Reset to 'all' view when switching to company locations mode
+  useEffect(() => {
+    if (useSharedLocations) {
+      setSelectedRegion('all');
+      setSelectedCategory('all');
+    }
+  }, [useSharedLocations]);
+
   const getCoordinates = (location: BrandLocation): { lat: number; lng: number } => {
     if (location.coordinates) {
       return { lat: location.coordinates.lat, lng: location.coordinates.lng };
@@ -673,53 +682,91 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
           </div>
         )}
 
-        {/* Locations list */}
+        {/* Locations list - show 2 rows (8 items) initially, expand to see all */}
         {displayLocations.length > 0 && (
           <div className="p-6 border-t border-white/10">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {filteredLocations.map((location) => {
-                const categoryConfig = CATEGORY_CONFIG[location.category];
-                return (
-                  <motion.div
-                    key={location.id}
-                    className="relative group p-3 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div 
-                        className="w-3 h-3 rounded-full mt-1 flex-shrink-0"
-                        style={{ backgroundColor: categoryConfig.color }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white font-medium text-sm truncate">{location.name}</p>
-                        <p className="text-gray-400 text-xs truncate">{location.city}, {location.country}</p>
-                      </div>
+            {/* Calculate how many items to show - 2 rows = 8 items on lg, 6 on md, 4 on sm, 2 on mobile */}
+            {(() => {
+              const ITEMS_PER_ROW = 4; // lg grid cols
+              const ROWS_TO_SHOW = 2;
+              const initialLimit = ITEMS_PER_ROW * ROWS_TO_SHOW;
+              const locationsToShow = isLocationsExpanded ? filteredLocations : filteredLocations.slice(0, initialLimit);
+              const hasMore = filteredLocations.length > initialLimit;
+              const hiddenCount = filteredLocations.length - initialLimit;
+              
+              return (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {locationsToShow.map((location) => {
+                      const categoryConfig = CATEGORY_CONFIG[location.category];
+                      return (
+                        <motion.div
+                          key={location.id}
+                          className="relative group p-3 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all"
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div 
+                              className="w-3 h-3 rounded-full mt-1 flex-shrink-0"
+                              style={{ backgroundColor: categoryConfig.color }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white font-medium text-sm truncate">{location.name}</p>
+                              <p className="text-gray-400 text-xs truncate">{location.city}, {location.country}</p>
+                            </div>
+                          </div>
+                          {canEdit && (
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6 bg-white/10"
+                                onClick={() => openEditDialog(location)}
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6 bg-red-500/20 text-red-400"
+                                onClick={() => handleDeleteLocation(location.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Expand/Collapse button */}
+                  {hasMore && (
+                    <div className="flex justify-center mt-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsLocationsExpanded(!isLocationsExpanded)}
+                        className="text-cyan-400 hover:text-cyan-300 hover:bg-white/5"
+                      >
+                        {isLocationsExpanded ? (
+                          <>
+                            <ChevronUp className="h-4 w-4 mr-2" />
+                            Show Less
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="h-4 w-4 mr-2" />
+                            Show All {hiddenCount} More Locations
+                          </>
+                        )}
+                      </Button>
                     </div>
-                    {canEdit && (
-                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-6 w-6 bg-white/10"
-                          onClick={() => openEditDialog(location)}
-                        >
-                          <Edit2 className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-6 w-6 bg-red-500/20 text-red-400"
-                          onClick={() => handleDeleteLocation(location.id)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    )}
-                  </motion.div>
-                );
-              })}
-            </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
         )}
       </div>
