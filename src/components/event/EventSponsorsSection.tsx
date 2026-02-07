@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
-import { Plus, Trash2, Check, X, Crown, Star, Medal, Award, Users, ExternalLink, Upload, Link } from 'lucide-react';
-import { EventSponsor } from '@/types/event';
+import { Plus, Trash2, Check, X, Crown, Star, Medal, Award, Users, ExternalLink, Upload, Link, ChevronDown, ChevronUp, Image } from 'lucide-react';
+import { EventSponsor, SponsorLogoVariant } from '@/types/event';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -9,8 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { RichTextDisplay } from '@/components/ui/rich-text-editor';
+import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
+import { toast } from 'sonner';
 
 interface EventSponsorsSectionProps {
   sponsors: EventSponsor[];
@@ -29,6 +32,13 @@ const SPONSOR_TIERS = [
   { value: 'other', label: 'Other', icon: Users, color: 'bg-gray-100 text-gray-800' },
 ];
 
+const LOGO_VARIANTS = [
+  { value: 'color', label: 'Color' },
+  { value: 'white', label: 'White' },
+  { value: 'black', label: 'Black' },
+  { value: 'primary', label: 'Primary' },
+];
+
 const getTierInfo = (tier: EventSponsor['tier']) => {
   return SPONSOR_TIERS.find(t => t.value === tier) || SPONSOR_TIERS[SPONSOR_TIERS.length - 1];
 };
@@ -41,20 +51,21 @@ export const EventSponsorsSection = ({
 }: EventSponsorsSectionProps) => {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [logoInputMode, setLogoInputMode] = useState<'upload' | 'url'>('upload');
+  const [expandedSponsors, setExpandedSponsors] = useState<Set<string>>(new Set());
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [newItem, setNewItem] = useState<Partial<EventSponsor>>({
     name: '',
     tier: 'gold',
     logoUrl: '',
+    logoVariants: [],
   });
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate image file
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file (PNG, JPG, SVG, etc.)');
+      toast.error('Please select an image file');
       return;
     }
 
@@ -74,22 +85,62 @@ export const EventSponsorsSection = ({
       name: newItem.name,
       tier: newItem.tier as EventSponsor['tier'],
       logoUrl: newItem.logoUrl || '',
+      logoVariants: [],
       websiteUrl: newItem.websiteUrl,
       description: newItem.description,
       placement: newItem.placement,
     };
     
     onUpdate([...sponsors, item]);
-    setNewItem({ name: '', tier: 'gold', logoUrl: '' });
+    setNewItem({ name: '', tier: 'gold', logoUrl: '', logoVariants: [] });
     setLogoInputMode('upload');
     if (logoInputRef.current) logoInputRef.current.value = '';
     setIsAddingNew(false);
+    toast.success('Sponsor added');
   };
 
   const handleDelete = (id: string) => {
     onUpdate(sponsors.filter(s => s.id !== id));
+    toast.success('Sponsor removed');
   };
 
+  const toggleSponsorExpanded = (id: string) => {
+    setExpandedSponsors(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleAddLogoVariant = (sponsorId: string, variant: SponsorLogoVariant['variant'], url: string) => {
+    onUpdate(sponsors.map(s => {
+      if (s.id !== sponsorId) return s;
+      const existingVariants = s.logoVariants || [];
+      // Replace if variant exists, otherwise add
+      const existingIndex = existingVariants.findIndex(v => v.variant === variant);
+      const newVariant: SponsorLogoVariant = { id: crypto.randomUUID(), variant, url };
+      
+      if (existingIndex >= 0) {
+        const updated = [...existingVariants];
+        updated[existingIndex] = newVariant;
+        return { ...s, logoVariants: updated };
+      }
+      return { ...s, logoVariants: [...existingVariants, newVariant] };
+    }));
+    toast.success(`${variant} logo added`);
+  };
+
+  const handleRemoveLogoVariant = (sponsorId: string, variantId: string) => {
+    onUpdate(sponsors.map(s => {
+      if (s.id !== sponsorId) return s;
+      return { ...s, logoVariants: (s.logoVariants || []).filter(v => v.id !== variantId) };
+    }));
+    toast.success('Logo variant removed');
+  };
   // Group sponsors by tier
   const groupedSponsors = sponsors.reduce((acc, sponsor) => {
     if (!acc[sponsor.tier]) acc[sponsor.tier] = [];
@@ -276,66 +327,138 @@ export const EventSponsorsSection = ({
                   tier === 'bronze' && "grid-cols-3 md:grid-cols-5",
                   ['partner', 'media', 'other'].includes(tier) && "grid-cols-3 md:grid-cols-6"
                 )}>
-                  {tierSponsors.map((sponsor) => (
-                    <Card key={sponsor.id} className="group relative overflow-hidden hover:border-primary/50 transition-colors">
-                      <CardContent className="p-4">
-                        {sponsor.logoUrl ? (
-                          <div className={cn(
-                            "flex items-center justify-center bg-white rounded-lg mb-3",
-                            tier === 'platinum' && "h-24",
-                            tier === 'gold' && "h-20",
-                            tier === 'silver' && "h-16",
-                            ['bronze', 'partner', 'media', 'other'].includes(tier) && "h-12"
-                          )}>
-                            <img
-                              src={sponsor.logoUrl}
-                              alt={sponsor.name}
-                              className="max-w-full max-h-full object-contain p-2"
-                            />
+                  {tierSponsors.map((sponsor) => {
+                    const isExpanded = expandedSponsors.has(sponsor.id);
+                    const variantCount = sponsor.logoVariants?.length || 0;
+                    
+                    return (
+                      <Card key={sponsor.id} className="group relative overflow-hidden hover:border-primary/50 transition-colors">
+                        <CardContent className="p-4">
+                          {/* Primary Logo */}
+                          {sponsor.logoUrl ? (
+                            <div className={cn(
+                              "flex items-center justify-center bg-white rounded-lg mb-3",
+                              tier === 'platinum' && "h-24",
+                              tier === 'gold' && "h-20",
+                              tier === 'silver' && "h-16",
+                              ['bronze', 'partner', 'media', 'other'].includes(tier) && "h-12"
+                            )}>
+                              <img
+                                src={sponsor.logoUrl}
+                                alt={sponsor.name}
+                                className="max-w-full max-h-full object-contain p-2"
+                              />
+                            </div>
+                          ) : (
+                            <div className={cn(
+                              "flex items-center justify-center bg-muted rounded-lg mb-3",
+                              tier === 'platinum' && "h-24",
+                              tier === 'gold' && "h-20",
+                              tier === 'silver' && "h-16",
+                              ['bronze', 'partner', 'media', 'other'].includes(tier) && "h-12"
+                            )}>
+                              <span className="text-muted-foreground font-medium text-sm">
+                                {sponsor.name.charAt(0)}
+                              </span>
+                            </div>
+                          )}
+                          
+                          {/* Name & Actions */}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <h4 className="font-medium truncate text-sm">{sponsor.name}</h4>
+                              {sponsor.placement && (
+                                <p className="text-xs text-muted-foreground truncate">{sponsor.placement}</p>
+                              )}
+                            </div>
+                            <div className="flex gap-1 shrink-0">
+                              {sponsor.websiteUrl && (
+                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" asChild>
+                                  <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer">
+                                    <ExternalLink className="h-3.5 w-3.5" />
+                                  </a>
+                                </Button>
+                              )}
+                              {isEditable && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 w-7 p-0 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => handleDelete(sponsor.id)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
-                        ) : (
-                          <div className={cn(
-                            "flex items-center justify-center bg-muted rounded-lg mb-3",
-                            tier === 'platinum' && "h-24",
-                            tier === 'gold' && "h-20",
-                            tier === 'silver' && "h-16",
-                            ['bronze', 'partner', 'media', 'other'].includes(tier) && "h-12"
-                          )}>
-                            <span className="text-muted-foreground font-medium text-sm">
-                              {sponsor.name.charAt(0)}
-                            </span>
-                          </div>
-                        )}
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <h4 className="font-medium truncate text-sm">{sponsor.name}</h4>
-                            {sponsor.placement && (
-                              <p className="text-xs text-muted-foreground truncate">{sponsor.placement}</p>
-                            )}
-                          </div>
-                          <div className="flex gap-1 shrink-0">
-                            {sponsor.websiteUrl && (
-                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0" asChild>
-                                <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer">
-                                  <ExternalLink className="h-3.5 w-3.5" />
-                                </a>
-                              </Button>
-                            )}
-                            {isEditable && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={() => handleDelete(sponsor.id)}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                          
+                          {/* Logo Variants Collapsible */}
+                          {(isEditable || variantCount > 0) && (
+                            <Collapsible open={isExpanded} onOpenChange={() => toggleSponsorExpanded(sponsor.id)} className="mt-3">
+                              <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="sm" className="w-full h-7 text-xs gap-1">
+                                  <Image className="h-3 w-3" />
+                                  Logo Variants {variantCount > 0 && `(${variantCount})`}
+                                  {isExpanded ? <ChevronUp className="h-3 w-3 ml-auto" /> : <ChevronDown className="h-3 w-3 ml-auto" />}
+                                </Button>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent className="pt-2 space-y-2">
+                                {/* Existing variants */}
+                                {sponsor.logoVariants && sponsor.logoVariants.length > 0 && (
+                                  <div className="grid grid-cols-2 gap-2">
+                                    {sponsor.logoVariants.map((variant) => (
+                                      <div key={variant.id} className="relative group/variant">
+                                        <div className={cn(
+                                          "aspect-[3/2] rounded border flex items-center justify-center p-1",
+                                          variant.variant === 'white' && "bg-gray-800",
+                                          variant.variant === 'black' && "bg-gray-100",
+                                          variant.variant === 'color' && "bg-white",
+                                          variant.variant === 'primary' && "bg-white"
+                                        )}>
+                                          <img src={variant.url} alt={variant.variant} className="max-w-full max-h-full object-contain" />
+                                        </div>
+                                        <Badge variant="secondary" className="absolute bottom-1 left-1 text-[10px] px-1 h-4">
+                                          {variant.variant}
+                                        </Badge>
+                                        {isEditable && (
+                                          <Button
+                                            size="icon"
+                                            variant="destructive"
+                                            className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover/variant:opacity-100 transition-opacity"
+                                            onClick={() => handleRemoveLogoVariant(sponsor.id, variant.id)}
+                                          >
+                                            <Trash2 className="h-3 w-3" />
+                                          </Button>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                
+                                {/* Add variant buttons */}
+                                {isEditable && (
+                                  <div className="flex flex-wrap gap-1">
+                                    {LOGO_VARIANTS.filter(v => !sponsor.logoVariants?.some(lv => lv.variant === v.value)).map((variant) => (
+                                      <ImageLibraryPicker
+                                        key={variant.value}
+                                        onSelect={(url) => handleAddLogoVariant(sponsor.id, variant.value as SponsorLogoVariant['variant'], url)}
+                                        trigger={
+                                          <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1">
+                                            <Plus className="h-2.5 w-2.5" />
+                                            {variant.label}
+                                          </Button>
+                                        }
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+                              </CollapsibleContent>
+                            </Collapsible>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             );

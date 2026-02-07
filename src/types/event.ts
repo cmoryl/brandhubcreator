@@ -123,11 +123,19 @@ export interface EventSpeaker {
   socialLinks?: { platform: string; url: string }[];
 }
 
+// Logo variant for sponsors with multiple logo versions
+export interface SponsorLogoVariant {
+  id: string;
+  variant: 'color' | 'white' | 'black' | 'primary';
+  url: string;
+}
+
 export interface EventSponsor {
   id: string;
   name: string;
   tier: 'platinum' | 'gold' | 'silver' | 'bronze' | 'partner' | 'media' | 'other';
-  logoUrl: string;
+  logoUrl: string;  // Primary logo (backwards compatibility)
+  logoVariants?: SponsorLogoVariant[];  // Multiple logo versions
   websiteUrl?: string;
   description?: string;
   placement?: string; // Where sponsor logo appears
@@ -262,6 +270,7 @@ export type EventSectionId =
   | 'clientlogos';      // Client logos
 
 // Default Event Section Order
+// Note: eventsponsors now includes sponsor logos - sponsorlogos section is not used in events
 export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'hero',
   'eventdetails',
@@ -284,14 +293,13 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'socialassets',
   'eventschedule',
   'eventspeakers',
-  'eventsponsors',
+  'eventsponsors',       // Unified sponsors section with logos
   'eventhistory',
   'casestudies',
   'templates',
   'brochures',
   'templatespecs',
   'presentations',
-  'sponsorlogos',
   'clientlogos',
   'assets',
   'imageassets',

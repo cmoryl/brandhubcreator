@@ -300,7 +300,10 @@ export function normalizeEventGuide(rawGuide: unknown): EventGuide {
     eventDigitalMaterials: safeArray(g.eventDigitalMaterials),
     eventSchedule: safeArray(g.eventSchedule),
     eventSpeakers: safeArray(g.eventSpeakers),
-    eventSponsors: safeArray(g.eventSponsors),
+    eventSponsors: safeArray(g.eventSponsors).map((s: any) => ({
+      ...s,
+      logoVariants: safeArray(s.logoVariants),
+    })),
     eventHistory: safeArray(g.eventHistory),
     eventVideos: safeArray(g.eventVideos),
     eventLocation: safeObject(g.eventLocation, DEFAULT_EVENT_LOCATION),
