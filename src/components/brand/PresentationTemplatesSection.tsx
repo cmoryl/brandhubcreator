@@ -5,7 +5,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Upload, Download, Trash2, Loader2, Eye, Presentation, ExternalLink, ImagePlus, FileText, X } from 'lucide-react';
+import { Plus, Upload, Download, Trash2, Loader2, Eye, Presentation, ExternalLink, ImagePlus, FileText, X, Maximize2, Minimize2 } from 'lucide-react';
 import { PresentationTemplate } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -135,6 +135,7 @@ export const PresentationTemplatesSection = ({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [previewPresentation, setPreviewPresentation] = useState<PresentationTemplate | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
   // Fetch presentations from database
   const { 
@@ -582,40 +583,88 @@ export const PresentationTemplatesSection = ({
         </div>
       )}
 
-      {/* Slide preview dialog with scrollable content */}
-      <Dialog open={!!previewPresentation} onOpenChange={() => setPreviewPresentation(null)}>
-        <DialogContent className="max-w-2xl w-[95vw] max-h-[80vh] overflow-y-auto">
-          <DialogHeader className="pb-2">
-            <DialogTitle className="text-base flex items-center gap-2">
-              <Presentation className="h-4 w-4" />
-              {previewPresentation?.name}
-            </DialogTitle>
+      {/* Slide preview dialog with fullscreen support */}
+      <Dialog open={!!previewPresentation} onOpenChange={(open) => {
+        if (!open) {
+          setPreviewPresentation(null);
+          setIsFullscreen(false);
+        }
+      }}>
+        <DialogContent 
+          className={cn(
+            "overflow-hidden transition-all duration-300",
+            isFullscreen 
+              ? "max-w-[100vw] w-[100vw] h-[100vh] max-h-[100vh] rounded-none p-4" 
+              : "max-w-3xl w-[95vw] max-h-[85vh]"
+          )}
+        >
+          <DialogHeader className="pb-2 flex-shrink-0">
+            <div className="flex items-center justify-between gap-2">
+              <DialogTitle className="text-base flex items-center gap-2 flex-1 min-w-0">
+                <Presentation className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">{previewPresentation?.name}</span>
+              </DialogTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 flex-shrink-0"
+                onClick={() => setIsFullscreen(!isFullscreen)}
+              >
+                {isFullscreen ? (
+                  <Minimize2 className="h-4 w-4" />
+                ) : (
+                  <Maximize2 className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
             {previewPresentation?.description && (
               <DialogDescription className="text-sm">{previewPresentation.description}</DialogDescription>
             )}
           </DialogHeader>
           
           {previewPresentation && (
-            <div className="space-y-4">
-              <OfficeEmbed 
-                fileUrl={previewPresentation.fileUrl} 
-                fileName={previewPresentation.fileName} 
-              />
-              <p className="text-[10px] text-muted-foreground text-center">
-                Powered by Microsoft Office Online
-              </p>
+            <div className={cn(
+              "flex flex-col",
+              isFullscreen ? "flex-1 min-h-0" : "space-y-4"
+            )}>
+              {/* Live preview embed */}
+              <div 
+                className={cn(
+                  "relative w-full bg-muted rounded-lg overflow-hidden",
+                  isFullscreen 
+                    ? "flex-1 min-h-0" 
+                    : "h-[55vh] min-h-[350px]"
+                )}
+              >
+                <iframe
+                  src={getOfficeEmbedUrl(previewPresentation.fileUrl)}
+                  className="w-full h-full border-0"
+                  title={`Preview: ${previewPresentation.fileName}`}
+                  allow="fullscreen"
+                  sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                />
+              </div>
               
-              <div className="flex items-center justify-between pt-3 border-t flex-shrink-0">
-                <Button variant="outline" size="sm" asChild>
-                  <a 
-                    href={getOfficeEmbedUrl(previewPresentation.fileUrl).replace('/embed.aspx', '/view.aspx')} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                    Open in Office
-                  </a>
-                </Button>
+              {/* Footer actions */}
+              <div className={cn(
+                "flex items-center justify-between pt-3 border-t flex-shrink-0",
+                isFullscreen && "mt-3"
+              )}>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <a 
+                      href={getOfficeEmbedUrl(previewPresentation.fileUrl).replace('/embed.aspx', '/view.aspx')} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                      Open in Office
+                    </a>
+                  </Button>
+                  <span className="text-[10px] text-muted-foreground hidden sm:inline">
+                    Powered by Microsoft Office Online
+                  </span>
+                </div>
                 <Button size="sm" asChild>
                   <a href={previewPresentation.fileUrl} download={previewPresentation.fileName}>
                     <Download className="h-3.5 w-3.5 mr-1.5" />
