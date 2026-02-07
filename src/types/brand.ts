@@ -450,6 +450,7 @@ export interface PresentationSlide {
   slideNumber: number;
   thumbnailUrl: string; // URL to slide thumbnail image
   title?: string; // Optional slide title extracted from PPTX
+  textContent?: string; // Extracted text content from the slide
 }
 
 export interface PresentationTemplate {
