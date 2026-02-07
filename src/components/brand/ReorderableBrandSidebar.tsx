@@ -44,6 +44,8 @@ interface ReorderableBrandSidebarProps {
   onShowFavoritesOnlyChange?: (show: boolean) => void;
 }
 
+// Section metadata - canonical labels and icons for each section
+// NOTE: casestudies and templates are deprecated aliases, kept only for backwards compatibility
 export const sectionMeta: Record<SectionId, { label: string; icon: React.ElementType; category: string }> = {
   hero: { label: 'Identity Shield', icon: Shield, category: 'Identity' },
   tagline: { label: 'Corporate Tagline', icon: Quote, category: 'Identity' },
@@ -54,6 +56,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   revenue: { label: 'Revenue Growth', icon: TrendingUp, category: 'Identity' },
   awards: { label: 'Awards & Recognition', icon: Award, category: 'Identity' },
   brief: { label: 'Brand Brief', icon: FileText, category: 'Identity' },
+  locations: { label: 'Global Locations', icon: Globe, category: 'Identity' },
   logos: { label: 'Logos', icon: Image, category: 'Visual' },
   brandicon: { label: 'Symbol Standards', icon: Bookmark, category: 'Visual' },
   colors: { label: 'Color Palette', icon: Palette, category: 'Visual' },
@@ -70,23 +73,23 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   signatures: { label: 'Signature Protocol', icon: Mail, category: 'Communication' },
   qr: { label: 'QR Codes', icon: QrCode, category: 'Communication' },
   videos: { label: 'Video Resources', icon: Video, category: 'Resources' },
+  webinars: { label: 'Webinar Series', icon: Presentation, category: 'Resources' },
   assets: { label: 'Operational Vault', icon: FolderArchive, category: 'Resources' },
   imageassets: { label: 'Image Assets', icon: ImageIcon, category: 'Resources' },
   misuse: { label: 'Anti-Patterns', icon: Ban, category: 'Resources' },
-  casestudies: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' }, // Deprecated - use brochures
+  insights: { label: 'Insights & Updates', icon: TrendingUp, category: 'Resources' },
   brochures: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
-  templates: { label: 'Presentation Templates', icon: Presentation, category: 'Collateral' }, // Legacy - now merged into presentations
   templatespecs: { label: 'Template Specs', icon: FileText, category: 'Collateral' },
-  webinars: { label: 'Webinar Series', icon: Presentation, category: 'Resources' },
+  presentations: { label: 'Presentation Templates', icon: Presentation, category: 'Collateral' },
   products: { label: 'Products', icon: Package, category: 'Collateral' },
   events: { label: 'Events', icon: Calendar, category: 'Collateral' },
   universe: { label: 'Product Universe', icon: Globe, category: 'Collateral' },
   sponsorlogos: { label: 'Sponsor Logos', icon: Crown, category: 'Collateral' },
   clientlogos: { label: 'Client Logos', icon: Users, category: 'Collateral' },
-  locations: { label: 'Global Locations', icon: Globe, category: 'Identity' },
-  insights: { label: 'Insights & Updates', icon: TrendingUp, category: 'Resources' },
   eventsignage: { label: 'Event Signage', icon: Maximize, category: 'Collateral' },
-  presentations: { label: 'Presentation Templates', icon: Presentation, category: 'Collateral' },
+  // Deprecated aliases - kept for backwards compatibility with old section orders
+  casestudies: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
+  templates: { label: 'Presentation Templates', icon: Presentation, category: 'Collateral' },
 };
 
 export const ReorderableBrandSidebar = ({ 
