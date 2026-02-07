@@ -3,7 +3,7 @@ import {
   Brain, Loader2, TrendingUp, Target, Lightbulb, AlertTriangle, CheckCircle, 
   Zap, Calendar, ArrowRight, Building2, Package, Users, BarChart3, 
   Globe, Share2, MessageCircle, Eye, RefreshCw, ChevronDown, ChevronUp,
-  Sparkles, LineChart, PieChart
+  Sparkles, LineChart, PieChart, Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { formatDistanceToNow } from 'date-fns';
 
 interface BrandSummary {
   id: string;
@@ -217,8 +218,14 @@ export function AIMarketAnalysis() {
             <Brain className="h-5 w-5" />
             Market Intelligence Center
           </CardTitle>
-          <CardDescription>
-            AI-powered competitor analysis, market positioning, social sentiment, and trend forecasting based on your brand data
+          <CardDescription className="flex items-center gap-2 flex-wrap">
+            AI-powered competitor analysis, market positioning, social sentiment, and trend forecasting
+            {result?.generatedAt && (
+              <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-muted">
+                <Clock className="h-3 w-3" />
+                Last run {formatDistanceToNow(new Date(result.generatedAt), { addSuffix: true })}
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

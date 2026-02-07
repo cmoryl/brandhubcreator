@@ -43,6 +43,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { usePersistedAdminData, formatLastRunMessage } from '@/hooks/usePersistedAdminData';
 
 interface UserStats {
   totalUsers: number;
@@ -82,22 +83,48 @@ interface UserActivity {
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--secondary))', '#10b981', '#f59e0b', '#ef4444'];
 
+interface CachedUserAnalytics {
+  stats: UserStats | null;
+  externalStats: { totalViews: number; uniqueViewers: number; anonymousViews: number; avgDuration: number } | null;
+  viewTrends: ViewTrend[];
+  topContent: TopContent[];
+  userActivity: UserActivity[];
+  dateRange: string;
+  externalOnly: boolean;
+}
+
 export function UserAnalyticsTab() {
   const [dateRange, setDateRange] = useState('30');
-  const [isLoading, setIsLoading] = useState(true);
-  const [externalOnly, setExternalOnly] = useState(false); // Toggle for external viewers only
-  const [stats, setStats] = useState<UserStats | null>(null);
-  const [externalStats, setExternalStats] = useState<{ totalViews: number; uniqueViewers: number; anonymousViews: number; avgDuration: number } | null>(null);
-  const [viewTrends, setViewTrends] = useState<ViewTrend[]>([]);
-  const [topContent, setTopContent] = useState<TopContent[]>([]);
-  const [userActivity, setUserActivity] = useState<UserActivity[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [externalOnly, setExternalOnly] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState('overview');
+  
+  // Use persisted data hook
+  const { 
+    data: cachedData, 
+    lastRunLabel, 
+    isExpired,
+    saveData 
+  } = usePersistedAdminData<CachedUserAnalytics>('user_analytics', { ttl: 30 * 60 * 1000 }); // 30 min cache
+  
+  // Use cached data or defaults
+  const stats = cachedData?.stats || null;
+  const externalStats = cachedData?.externalStats || null;
+  const viewTrends = cachedData?.viewTrends || [];
+  const topContent = cachedData?.topContent || [];
+  const userActivity = cachedData?.userActivity || [];
 
   const fetchAnalytics = useCallback(async () => {
     setIsLoading(true);
     const days = parseInt(dateRange);
 
     try {
+      let fetchedStats: UserStats | null = null;
+      let fetchedExternalStats: typeof externalStats = null;
+      let fetchedViewTrends: ViewTrend[] = [];
+      let fetchedTopContent: TopContent[] = [];
+      let fetchedUserActivity: UserActivity[] = [];
+
       // Fetch user stats using RPC function (always get full stats for comparison)
       const { data: statsData, error: statsError } = await supabase
         .rpc('get_admin_user_stats', { p_days: days });
@@ -106,7 +133,7 @@ export function UserAnalyticsTab() {
 
       if (statsData && statsData.length > 0) {
         const s = statsData[0];
-        setStats({
+        fetchedStats = {
           totalUsers: Number(s.total_users) || 0,
           activeUsers: Number(s.active_users) || 0,
           newUsers: Number(s.new_users) || 0,
@@ -115,7 +142,7 @@ export function UserAnalyticsTab() {
           totalPageViews: Number(s.total_page_views) || 0,
           mostViewedType: s.most_viewed_entity_type,
           mostViewedName: s.most_viewed_entity_name,
-        });
+        };
       }
 
       // Fetch external viewer stats
@@ -124,12 +151,12 @@ export function UserAnalyticsTab() {
       
       if (extStatsData && extStatsData.length > 0) {
         const es = extStatsData[0];
-        setExternalStats({
+        fetchedExternalStats = {
           totalViews: Number(es.total_views) || 0,
           uniqueViewers: Number(es.unique_viewers) || 0,
           anonymousViews: Number(es.anonymous_views) || 0,
           avgDuration: Number(es.avg_duration) || 0,
-        });
+        };
       }
 
       // Fetch view trends - use external-only RPC if toggle is on
@@ -138,11 +165,11 @@ export function UserAnalyticsTab() {
         .rpc(trendsRpc, { p_days: days });
 
       if (!trendsError && trendsData) {
-        setViewTrends(trendsData.map((t: { view_date: string; view_count: number; unique_users: number }) => ({
+        fetchedViewTrends = trendsData.map((t: { view_date: string; view_count: number; unique_users: number }) => ({
           date: format(new Date(t.view_date), 'MMM d'),
           views: Number(t.view_count),
           uniqueUsers: Number(t.unique_users),
-        })));
+        }));
       }
 
       // Fetch top content - use external-only RPC if toggle is on
@@ -151,14 +178,14 @@ export function UserAnalyticsTab() {
         .rpc(contentRpc, { p_days: days, p_limit: 10 });
 
       if (!contentError && contentData) {
-        setTopContent(contentData.map((c: { entity_type: string; entity_id: string; entity_name: string; view_count: number; unique_viewers: number; avg_duration: number }) => ({
+        fetchedTopContent = contentData.map((c: { entity_type: string; entity_id: string; entity_name: string; view_count: number; unique_viewers: number; avg_duration: number }) => ({
           entityType: c.entity_type,
           entityId: c.entity_id,
           entityName: c.entity_name,
           viewCount: Number(c.view_count),
           uniqueViewers: Number(c.unique_viewers),
           avgDuration: Number(c.avg_duration),
-        })));
+        }));
       }
 
       // Fetch user activity breakdown
@@ -166,7 +193,7 @@ export function UserAnalyticsTab() {
         .rpc('get_user_activity_breakdown', { p_days: days });
 
       if (!activityError && activityData) {
-        setUserActivity(activityData.map((a: { user_id: string; user_email: string; page_views: number; sessions: number; total_time_seconds: number; last_active: string | null; most_viewed_type: string | null }) => ({
+        fetchedUserActivity = activityData.map((a: { user_id: string; user_email: string; page_views: number; sessions: number; total_time_seconds: number; last_active: string | null; most_viewed_type: string | null }) => ({
           userId: a.user_id,
           userEmail: a.user_email || 'Unknown',
           pageViews: Number(a.page_views),
@@ -174,20 +201,35 @@ export function UserAnalyticsTab() {
           totalTimeSeconds: Number(a.total_time_seconds),
           lastActive: a.last_active,
           mostViewedType: a.most_viewed_type,
-        })));
+        }));
       }
 
+      // Save all data to persistent cache
+      saveData({
+        stats: fetchedStats,
+        externalStats: fetchedExternalStats,
+        viewTrends: fetchedViewTrends,
+        topContent: fetchedTopContent,
+        userActivity: fetchedUserActivity,
+        dateRange,
+        externalOnly,
+      });
+
+      toast.success('Analytics refreshed');
     } catch (error) {
       console.error('Error fetching analytics:', error);
       toast.error('Failed to load analytics data');
     } finally {
       setIsLoading(false);
     }
-  }, [dateRange, externalOnly]);
+  }, [dateRange, externalOnly, saveData]);
 
+  // Only auto-fetch if no cached data exists
   useEffect(() => {
-    fetchAnalytics();
-  }, [fetchAnalytics]);
+    if (!cachedData) {
+      fetchAnalytics();
+    }
+  }, []);
 
   const formatDuration = (seconds: number): string => {
     if (seconds < 60) return `${seconds}s`;
@@ -235,7 +277,7 @@ export function UserAnalyticsTab() {
     return acc;
   }, [] as { name: string; value: number }[]);
 
-  if (isLoading) {
+  if (isLoading && !cachedData) {
     return (
       <div className="flex items-center justify-center h-64">
         <RefreshCw className="h-8 w-8 animate-spin text-primary" />
@@ -247,7 +289,13 @@ export function UserAnalyticsTab() {
     <div className="space-y-6">
       {/* Header Controls */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
+          {lastRunLabel && (
+            <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              {formatLastRunMessage(lastRunLabel, isExpired)}
+            </span>
+          )}
           <Select value={dateRange} onValueChange={setDateRange}>
             <SelectTrigger className="w-[180px]">
               <Calendar className="h-4 w-4 mr-2" />
