@@ -641,8 +641,10 @@ export const HeroSection = ({
 
         {/* Main Content Area - z-20 to be above overlays */}
         <div className="absolute inset-0 flex items-end z-20 pointer-events-none">
-          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 pb-4 sm:pb-8 lg:pb-12 pointer-events-auto">
-            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-start lg:items-end justify-between">
+          <div className="w-full px-4 sm:px-6 lg:px-8 pb-4 sm:pb-8 lg:pb-12 pointer-events-auto">
+            {/* Centered content container matching page max-width */}
+            <div className="max-w-7xl mx-auto">
+              <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-start lg:items-end justify-between">
               {/* Left: Logo & Brand Info */}
               <div className="flex gap-4 sm:gap-6 items-end flex-1">
                 {/* Logo with enhanced styling - smaller on mobile */}
@@ -726,6 +728,7 @@ export const HeroSection = ({
                 </div>
               </div>
 
+              </div>
             </div>
           </div>
         </div>
