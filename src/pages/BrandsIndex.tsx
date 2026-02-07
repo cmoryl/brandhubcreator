@@ -900,17 +900,17 @@ const BrandsIndex = () => {
             <div className="hidden sm:grid gap-4 mb-8">
               <Card className="p-6 border-border/50 hover:border-accent/30 transition-colors">
                 <h3 className="font-semibold text-foreground mb-2">What is BrandHub?</h3>
-                <p className="text-muted-foreground">BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines with live previews, version control, and team collaboration features.</p>
+                <p className="text-muted-foreground">BrandHub is a comprehensive brand guide creation platform with live previews, AI-powered analytics, competitive intelligence, version control, and enterprise-grade security for team collaboration.</p>
               </Card>
               
               <Card className="p-6 border-border/50 hover:border-accent/30 transition-colors">
-                <h3 className="font-semibold text-foreground mb-2">What admin features are available?</h3>
-                <p className="text-muted-foreground">Administrators get access to the Admin Dashboard with user approvals, AI-powered market intelligence, brand health analytics, bulk repair tools, activity logging, and hidden sections scanning for platform-wide consistency.</p>
+                <h3 className="font-semibold text-foreground mb-2">What AI features are available?</h3>
+                <p className="text-muted-foreground">AI-powered Competitive Intelligence with personality matrix, Brand Intelligence learning system, automated pattern/gradient generation, market analysis, and brand health scoring—all built into the platform.</p>
               </Card>
 
               <Card className="p-6 border-border/50 hover:border-accent/30 transition-colors">
-                <h3 className="font-semibold text-foreground mb-2">Can I generate reports on my brands?</h3>
-                <p className="text-muted-foreground">Yes! The Brand Analytics Hub provides health scores, consistency audits, and completeness metrics. AI Market Intelligence offers competitor analysis, trend forecasting, and growth recommendations based on your brand data.</p>
+                <h3 className="font-semibold text-foreground mb-2">What are Product Suites?</h3>
+                <p className="text-muted-foreground">Product Suites let you create a master product with multiple linked sub-products in one streamlined wizard. Perfect for product families with shared branding that need individual customization.</p>
               </Card>
               
               <Card className="p-6 border-border/50 hover:border-accent/30 transition-colors">
@@ -920,12 +920,12 @@ const BrandsIndex = () => {
               
               <Card className="p-6 border-border/50 hover:border-accent/30 transition-colors">
                 <h3 className="font-semibold text-foreground mb-2">What sections can I include?</h3>
-                <p className="text-muted-foreground">Over 25 sections available: colors, typography, logos, imagery, patterns, gradients, icons, social media guidelines, templates, revenue charts, services, case studies, QR codes, and much more.</p>
+                <p className="text-muted-foreground">Over 25 sections: colors, typography, logos, philosophical pillars, imagery, patterns, gradients, icons, QR codes, email signatures, presentation templates, and much more.</p>
               </Card>
 
               <Card className="p-6 border-border/50 hover:border-accent/30 transition-colors">
-                <h3 className="font-semibold text-foreground mb-2">How do organizations work?</h3>
-                <p className="text-muted-foreground">Organizations allow teams to collaborate on brand guides together. Owners and admins can invite members, manage roles, customize the public portal, and control access to all organization brands.</p>
+                <h3 className="font-semibold text-foreground mb-2">Is my data secure?</h3>
+                <p className="text-muted-foreground">Enterprise-grade security with Row Level Security, email masking for privacy, leaked password protection, comprehensive audit logging, and SOC 2 compliant infrastructure.</p>
               </Card>
             </div>
 
@@ -936,15 +936,15 @@ const BrandsIndex = () => {
                   What is BrandHub?
                 </AccordionTrigger>
                 <AccordionContent className="text-sm text-muted-foreground pb-4">
-                  BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines with live previews and team collaboration.
+                  BrandHub is a comprehensive brand guide creation platform with AI-powered analytics, competitive intelligence, and enterprise security.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="faq-2" className="border-border/50">
                 <AccordionTrigger className="text-left text-sm font-semibold py-3">
-                  What admin features are available?
+                  What AI features are available?
                 </AccordionTrigger>
                 <AccordionContent className="text-sm text-muted-foreground pb-4">
-                  Administrators get user approvals, AI-powered market intelligence, brand health analytics, bulk repair tools, and activity logging.
+                  Competitive Intelligence with personality matrix, Brand Intelligence learning, automated pattern generation, and brand health scoring.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="faq-3" className="border-border/50">
@@ -957,10 +957,10 @@ const BrandsIndex = () => {
               </AccordionItem>
               <AccordionItem value="faq-4" className="border-border/50">
                 <AccordionTrigger className="text-left text-sm font-semibold py-3">
-                  What sections can I include?
+                  Is my data secure?
                 </AccordionTrigger>
                 <AccordionContent className="text-sm text-muted-foreground pb-4">
-                  Over 25 sections: colors, typography, logos, imagery, patterns, gradients, icons, social media guidelines, templates, and more.
+                  Enterprise-grade security with Row Level Security, email masking, leaked password protection, and comprehensive audit logs.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

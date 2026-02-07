@@ -82,15 +82,19 @@ const faqs = [
     questions: [
       {
         q: "What is BrandHub?",
-        a: "BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines. Create stunning brand books with colors, typography, logos, and more—plus dedicated event brand kits for conferences and summits."
+        a: "BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines. Create stunning brand books with colors, typography, logos, AI-powered analytics, competitive intelligence, and dedicated event brand kits—all with enterprise-grade security."
       },
       {
         q: "How do I create my first brand guide?",
-        a: "Sign in to your account, click 'New Brand' on the dashboard, and start customizing your brand identity. You can add colors, typography, logos, values, and much more to create a complete brand guide."
+        a: "Sign in to your account, click 'New Brand' on the dashboard, and start customizing your brand identity. You can add colors, typography, logos, values, philosophical pillars, and much more to create a complete brand guide."
       },
       {
         q: "Can I share my brand guide publicly?",
-        a: "Yes! All brand guides are publicly viewable by default. Share the link with your team, clients, or stakeholders so they can access your brand guidelines anytime."
+        a: "Yes! All brand guides can be made publicly viewable. Share the link with your team, clients, or stakeholders so they can access your brand guidelines anytime—no login required for viewers."
+      },
+      {
+        q: "What are Product Suites?",
+        a: "Product Suites let you create a master product with multiple linked sub-products in a streamlined wizard. Perfect for product families with shared branding—master products display a special badge and appear at the top of portal grids."
       }
     ]
   },
@@ -100,19 +104,23 @@ const faqs = [
     questions: [
       {
         q: "What sections can I include in my brand guide?",
-        a: "BrandHub supports many sections including: Hero/Cover, Identity & Mission, Color Palette, Typography, Logo Usage, Imagery Guidelines, Patterns, Gradients, Icons, Social Media, Templates, and more."
+        a: "BrandHub supports 25+ sections including: Hero with animated effects, Identity & Mission, Philosophical Pillars, Color Palette, Typography, Logo Usage, Imagery Guidelines, Patterns, Gradients, Icons, QR Codes, Email Signatures, Presentation Templates, Social Media, and more."
       },
       {
-        q: "How do I add custom colors to my palette?",
-        a: "In the Color Palette section, click 'Add Color' to input hex codes, RGB values, or use the color picker. You can organize colors into groups like Primary, Secondary, and Accent."
+        q: "What are Philosophical Pillars?",
+        a: "Philosophical Pillars showcase your brand values with high-quality imagery or icons. Toggle between icon and image modes, choose from preset themes like Collaboration or Innovation, or upload custom visuals for a premium editorial feel."
       },
       {
-        q: "Can I upload my own logos and assets?",
-        a: "Yes, you can upload logos, icons, patterns, and other brand assets directly to your brand guide. Supported formats include PNG, SVG, JPG, and more."
+        q: "How do QR Codes work?",
+        a: "Create branded QR codes with custom colors, dot styles, corner styles, and logo overlays. Track scan counts for marketing analytics, categorize by use case (Marketing, Events, Print), and download in multiple formats."
+      },
+      {
+        q: "Can I upload presentation templates?",
+        a: "Yes! The Presentation Templates section supports PPTX, PDF, and cloud folder links. Templates feature live Office Online previews, fullscreen mode, and auto-generated thumbnails. Perfect for distributing corporate decks and sales materials."
       },
       {
         q: "How do I reorder sections in my brand guide?",
-        a: "In edit mode, use the sidebar to drag and drop sections into your preferred order. You can also hide sections you don't need."
+        a: "In edit mode, use the sidebar to drag and drop sections into your preferred order. You can also hide sections you don't need using the eye icon toggle."
       }
     ]
   },
@@ -143,20 +151,24 @@ const faqs = [
     ]
   },
   {
-    category: "Products & Sub-brands",
+    category: "AI & Analytics",
     icon: HelpCircle,
     questions: [
       {
-        q: "What are product guides?",
-        a: "Product guides are sub-brand guidelines that inherit from a parent brand. They're perfect for product lines, campaigns, or variations that need their own identity while staying connected to the main brand."
+        q: "What is Competitive Intelligence?",
+        a: "Competitive Intelligence generates comprehensive AI-powered reports with personality matrix radar charts, score gauges, SWOT analysis, and strategic recommendations. Discover competitors automatically or track favorites across analyses."
       },
       {
-        q: "How do I link a product to a parent brand?",
-        a: "When creating a new product, select the parent brand from the dropdown. The product will then be associated with that brand and appear in its product list."
+        q: "What is Brand Intelligence?",
+        a: "Brand Intelligence is an AI learning system that builds knowledge about your brand over time. It tracks analysis history, confidence scores, and provides personalized recommendations based on your feedback."
       },
       {
-        q: "Can products have different colors than the parent brand?",
-        a: "Yes! Products can have their own unique color palettes, typography, and other elements while still being linked to the parent brand for organizational purposes."
+        q: "How do Brand Health Scores work?",
+        a: "Brand Health Scores track completeness and consistency metrics. The system analyzes section completion, identifies missing elements, and provides actionable recommendations to improve your brand guides."
+      },
+      {
+        q: "Can I generate patterns and gradients automatically?",
+        a: "Yes! AI generates brand-specific geometric patterns and CSS gradients based on your color palette. Use batch generation to create assets for all brands at once."
       }
     ]
   },
@@ -169,12 +181,16 @@ const faqs = [
         a: "Simply copy the URL of your brand guide and share it. Anyone with the link can view your brand guidelines without needing an account."
       },
       {
-        q: "Can I export my brand guide as a PDF?",
-        a: "Yes, use the Export PDF button in your brand guide to generate a downloadable PDF version of your complete brand guidelines."
+        q: "What is the Hero Effects Gallery?",
+        a: "The Hero Effects Gallery (/hero-effects) is an interactive playground for animated hero backgrounds. Browse 15+ effects, customize density, speed, and colors in real-time, then apply configurations to your brand guides."
       },
       {
-        q: "Is there a way to password-protect my brand guide?",
-        a: "Currently, all brand guides are publicly viewable. For private brand guides, we recommend sharing only with trusted parties. Enhanced privacy features are coming soon."
+        q: "Can I export my brand guide as a PDF?",
+        a: "Yes! Use the Export PDF button to generate a downloadable PDF with customizable layouts: Full Guide, Executive Summary, or Style Sheet presets."
+      },
+      {
+        q: "How do Organization Portals work?",
+        a: "Organization Portals aggregate all your public brands, products, and events in one branded page. Customize colors, logos, hero effects, and layout options. Access at /org/your-slug."
       }
     ]
   },
@@ -192,15 +208,11 @@ const faqs = [
       },
       {
         q: "What's included when I sign up?",
-        a: "All plans include brand guide creation, color palettes, typography management, logo usage guidelines, team collaboration, and public sharing. Contact us to learn about additional features like event kits and advanced integrations."
+        a: "All plans include brand guide creation, color palettes, typography management, logo usage guidelines, team collaboration, public sharing, and access to AI features. Contact us to learn about additional features like competitive intelligence and advanced integrations."
       },
       {
         q: "Do you offer custom solutions for enterprises?",
         a: "Yes! We work with organizations of all sizes to create custom solutions. Reach out to discuss white-labeling, custom domains, advanced integrations, and dedicated support options."
-      },
-      {
-        q: "How can I request a demo?",
-        a: "We'd love to show you around! Contact our team to schedule a personalized demo where we'll walk through how BrandHub can streamline your brand management workflow."
       }
     ]
   },
@@ -210,45 +222,19 @@ const faqs = [
     questions: [
       {
         q: "Can I invite team members to collaborate?",
-        a: "Yes! You can invite team members to your workspace. They'll be able to view and edit brand guides based on their assigned permissions."
+        a: "Yes! Invite team members by email with role-based permissions. Invitations include secure tokens that expire after 7 days if not accepted."
       },
       {
         q: "What permission levels are available?",
-        a: "We offer multiple permission levels: Viewer (view only), Editor (can edit guides), Admin (can manage settings and collaborators), and Owner (full control including deletion)."
+        a: "We offer multiple permission levels: Viewer (view only), Member (can edit guides), Admin (can manage settings and members), Owner (full control including deletion), and Super Admin (platform-wide access)."
       },
       {
-        q: "How many team members can I add?",
-        a: "Team member limits are based on your organization's plan. Contact us to discuss your team size requirements and we'll configure the right solution for you."
-      },
-      {
-        q: "Can different team members work on the same brand guide?",
-        a: "Yes, multiple team members can collaborate on the same brand guide. Changes are saved in real-time so everyone stays in sync."
+        q: "How does email masking work?",
+        a: "For privacy protection, non-admin users see masked email addresses (***@domain.com) for other team members. Admins see full emails for user management, and you always see your own email."
       },
       {
         q: "How do I remove a team member?",
         a: "Go to your workspace settings, find the People section, and remove the team member. They will immediately lose access to all shared brand guides."
-      }
-    ]
-  },
-  {
-    category: "Integrations",
-    icon: Plug,
-    questions: [
-      {
-        q: "Does BrandHub integrate with design tools?",
-        a: "We're actively working on integrations with popular design tools like Figma, Sketch, and Adobe Creative Cloud. Stay tuned for updates!"
-      },
-      {
-        q: "Can I embed my brand guide on my website?",
-        a: "Yes, you can embed your brand guide using an iframe or link directly to specific sections. This is great for internal wikis and documentation sites."
-      },
-      {
-        q: "Is there an API available?",
-        a: "API access is available for organizations that need programmatic access to brand data. Contact our team to learn more about integration options."
-      },
-      {
-        q: "Can I import brand assets from other tools?",
-        a: "You can upload assets directly from your computer. We support common formats like PNG, SVG, JPG, PDF, and font files."
       }
     ]
   },
@@ -258,19 +244,19 @@ const faqs = [
     questions: [
       {
         q: "Is my brand data secure?",
-        a: "Yes, we take security seriously. All data is encrypted in transit and at rest. We use industry-standard security practices to protect your brand assets."
+        a: "Yes! BrandHub uses enterprise-grade security with Row Level Security (RLS), encrypted data in transit and at rest, and comprehensive audit logging for compliance."
       },
       {
-        q: "Who can see my brand guides?",
-        a: "Brand guides are publicly viewable by default via their unique URL. Only people with the link can access them. Private brand guides with access controls are coming soon."
+        q: "What is Leaked Password Protection?",
+        a: "Leaked Password Protection checks new passwords against known breached password databases, preventing users from setting compromised passwords. Enable in authentication settings."
       },
       {
-        q: "Can I delete my account and data?",
-        a: "Yes, you can delete your account at any time from your account settings. This will permanently remove all your brand guides and associated data."
+        q: "How does audit logging work?",
+        a: "All actions are logged with user ID, session details, device info, and full change diffs (old vs new values). Logs are retained for 30 days and viewable in the Admin Dashboard."
       },
       {
         q: "Where is my data stored?",
-        a: "Your data is stored on secure cloud servers with automatic backups. We use trusted infrastructure providers to ensure reliability and performance."
+        a: "Your data is stored on secure cloud servers with automatic backups. We use trusted infrastructure providers with SOC 2 compliance to ensure reliability and performance."
       }
     ]
   }

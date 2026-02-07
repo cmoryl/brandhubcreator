@@ -57,20 +57,20 @@ const coreFeatures: Feature[] = [
   },
   {
     icon: Layers,
-    title: 'Products & Sub-brands',
-    description: 'Link product guides to parent brands. Build hierarchical brand ecosystems.',
+    title: 'Product Suites',
+    description: 'Create master products with sub-brands. Build hierarchical ecosystems with linked guides.',
     gradient: 'from-green-500/20 to-emerald-500/20',
   },
   {
     icon: Globe,
     title: 'Public Portals',
-    description: 'Share brand guides publicly. Organization portals with custom branding.',
+    description: 'Organization portals with custom branding, hero effects, and branded navigation.',
     gradient: 'from-sky-500/20 to-cyan-500/20',
   },
   {
     icon: FileText,
-    title: 'PDF Export',
-    description: 'Export complete brand guides as professional PDFs for offline use.',
+    title: 'Presentation Templates',
+    description: 'Upload PPTX/PDF decks with live Office Online previews and fullscreen mode.',
     gradient: 'from-indigo-500/20 to-blue-500/20',
   },
 ];
@@ -106,20 +106,20 @@ const analyticsFeatures: Feature[] = [
   },
   {
     icon: TrendingUp,
-    title: 'AI Market Intelligence',
-    description: 'Get competitor analysis, trend forecasting, and strategic growth recommendations.',
+    title: 'Competitive Intelligence',
+    description: 'AI personality matrix, score gauges, and strategic reports with PDF export.',
     gradient: 'from-primary/20 to-accent/20',
   },
   {
     icon: Brain,
     title: 'Brand Intelligence',
-    description: 'AI-powered knowledge base with summaries, voice profiles, and audience insights.',
+    description: 'AI-powered knowledge base with learning, confidence tracking, and recommendations.',
     gradient: 'from-purple-500/20 to-pink-500/20',
   },
   {
     icon: FileSearch,
-    title: 'Activity Logging',
-    description: 'Infographic-style audit logs tracking all changes across your organization.',
+    title: 'Comprehensive Audit Logs',
+    description: 'Full change tracking with session data, diffs, and infographic-style visualization.',
     gradient: 'from-blue-500/20 to-indigo-500/20',
   },
 ];
@@ -128,7 +128,7 @@ const adminFeatures: Feature[] = [
   {
     icon: Users,
     title: 'User Management',
-    description: 'Approve users, manage permissions, and control access across organizations.',
+    description: 'Approve users, manage roles, invite via email with expiring tokens.',
     gradient: 'from-green-500/20 to-teal-500/20',
   },
   {
@@ -139,14 +139,14 @@ const adminFeatures: Feature[] = [
   },
   {
     icon: ShieldCheck,
-    title: 'Hidden Sections Scanner',
-    description: 'Identify and bulk-fix guides missing critical branding sections.',
+    title: 'Enterprise Security',
+    description: 'Row Level Security, email masking, leaked password protection, and audit compliance.',
     gradient: 'from-red-500/20 to-rose-500/20',
   },
   {
     icon: Zap,
     title: 'Bulk Intelligence',
-    description: 'Generate AI analysis for all brands and products in a single batch operation.',
+    description: 'Generate AI analysis, patterns, and gradients for all brands in one operation.',
     gradient: 'from-cyan-500/20 to-blue-500/20',
   },
 ];

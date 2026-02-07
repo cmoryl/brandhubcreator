@@ -1402,6 +1402,279 @@ export const helpSections: HelpSection[] = [
     ],
     relatedSections: ['quick-actions'],
   },
+
+  // ============================
+  // NEW FEATURES (2026)
+  // ============================
+  {
+    id: 'hero-effects-showcase',
+    title: 'Hero Effects Gallery',
+    description: 'Browse and customize animated hero backgrounds with the interactive effects playground.',
+    icon: 'Sparkles',
+    category: 'brand-guides',
+    keywords: ['hero', 'effects', 'animation', 'background', 'particles', 'parallax', 'gallery'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Access the Hero Effects Gallery',
+        description: 'Visit /hero-effects to browse all available animated backgrounds in an interactive playground.',
+        tips: [
+          'See all 15+ effect styles in one place',
+          'Effects include Particles, Waves, Geometric, Nebula, and more',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Interactive Customization',
+        description: 'Use the control panel to adjust density, speed, intensity, brightness, and color schemes in real-time.',
+        tips: [
+          'Preview changes instantly before applying',
+          'Toggle fullscreen mode for immersive testing',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Apply to Your Brand',
+        description: 'Copy the effect configuration and apply it to your brand guide hero section.',
+        tips: [
+          'Effects automatically adapt to your brand colors',
+          'Ken Burns parallax available for all effects',
+        ],
+      },
+    ],
+    relatedSections: ['brand-identity', 'ai-patterns-gradients'],
+  },
+
+  {
+    id: 'presentation-templates',
+    title: 'Presentation Templates',
+    description: 'Upload, organize, and share presentation templates with live Office Online previews.',
+    icon: 'Presentation',
+    category: 'brand-guides',
+    keywords: ['presentation', 'powerpoint', 'pptx', 'pdf', 'templates', 'slides', 'deck'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Access Presentation Templates',
+        description: 'In your brand guide, navigate to the Presentation Templates section.',
+        tips: [
+          'Supports PPTX, PDF, and cloud folder links',
+          'Organize templates by category: Corporate, Sales, Events, etc.',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Upload Templates',
+        description: 'Drag and drop presentation files or click to browse. Add a name, description, and category.',
+        tips: [
+          'Thumbnails are auto-generated from the first slide',
+          'Set custom card images for visual consistency',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Live Preview',
+        description: 'Click any template to open the Office Online preview with fullscreen mode.',
+        tips: [
+          'Preview works for PPTX and PDF files',
+          'Embedded folders link directly to cloud storage',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Download & Share',
+        description: 'Download templates directly or share links to your team.',
+        tips: [
+          'File sizes and types are displayed on each card',
+          'External URLs open in new tabs for cloud-hosted files',
+        ],
+      },
+    ],
+    relatedSections: ['templates', 'publishing'],
+  },
+
+  {
+    id: 'security-features',
+    title: 'Security & Privacy',
+    description: 'Enterprise-grade security with Row Level Security, email masking, and leaked password protection.',
+    icon: 'Shield',
+    category: 'advanced',
+    keywords: ['security', 'privacy', 'rls', 'encryption', 'password', 'protection', 'enterprise'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Understand Security Model',
+        description: 'BrandHub uses Row Level Security (RLS) to ensure users only access data they\'re authorized to see.',
+        tips: [
+          'All database queries are filtered by user permissions',
+          'Organization data is isolated between tenants',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Email Masking',
+        description: 'Non-admin users see masked emails (***@domain.com) for other team members, preventing data harvesting.',
+        tips: [
+          'Admins see full email addresses for user management',
+          'Your own email is always visible to you',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Leaked Password Protection',
+        description: 'The platform checks new passwords against known breached password databases.',
+        tips: [
+          'Prevents use of compromised passwords',
+          'Enable in authentication settings',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Audit Logging',
+        description: 'All actions are logged with user ID, timestamp, and action details for compliance.',
+        tips: [
+          'Logs are retained for 30 days by default',
+          'Admins can view activity in the Admin Dashboard',
+        ],
+      },
+    ],
+    relatedSections: ['team-management', 'admin-analytics'],
+  },
+
+  {
+    id: 'philosophical-pillars',
+    title: 'Philosophical Pillars',
+    description: 'Showcase your brand values with high-quality imagery or icons in a grid layout.',
+    icon: 'Compass',
+    category: 'brand-guides',
+    keywords: ['pillars', 'values', 'philosophy', 'principles', 'culture', 'imagery'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Access Philosophical Pillars',
+        description: 'In your brand guide, navigate to the Philosophical Pillars section under Overview.',
+        tips: [
+          'Pillars represent your core brand values and principles',
+          'Use for culture decks, investor materials, or team alignment',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Choose Display Mode',
+        description: 'Toggle between Icons or Images mode. Images provide a more premium, editorial feel.',
+        tips: [
+          'Icons are great for minimal designs',
+          'Images work best for storytelling and emotional impact',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Select Preset Themes',
+        description: 'Browse preset themes like Collaboration, Integrity, Innovation, or Customer Focus.',
+        tips: [
+          'Presets include curated high-quality imagery',
+          'Override with custom uploads for brand-specific visuals',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Upload Custom Assets',
+        description: 'Upload your own images to Supabase storage for persistent, high-quality display.',
+        tips: [
+          'Images are stored in organization-assets bucket',
+          'Use candid, authentic imagery for best results',
+        ],
+      },
+    ],
+    relatedSections: ['overview-section', 'photography'],
+  },
+
+  {
+    id: 'qr-codes',
+    title: 'QR Codes & Access Ports',
+    description: 'Generate branded QR codes with custom styling, logos, and tracking.',
+    icon: 'QrCode',
+    category: 'brand-guides',
+    keywords: ['qr', 'code', 'access', 'port', 'scan', 'link', 'tracking'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Access QR Codes Section',
+        description: 'Navigate to QR Codes (Access Ports) in your brand guide sidebar.',
+        tips: [
+          'QR codes can link to any URL',
+          'Track scan counts for marketing analytics',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Create New QR Code',
+        description: 'Click Add QR Code, enter a name, URL, and description. Choose a use case category.',
+        tips: [
+          'Use cases: Marketing, Website, Social Media, Events, Print',
+          'Add descriptions for internal reference',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Customize Styling',
+        description: 'Set foreground/background colors, dot style, corner style, and error correction level.',
+        tips: [
+          'Brand colors are automatically suggested',
+          'Higher error correction allows for logo overlays',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Add Logo Overlay',
+        description: 'Optionally add your logo to the center of the QR code for brand recognition.',
+        tips: [
+          'Keep logos small to maintain scannability',
+          'Use transparent PNG logos for best results',
+        ],
+      },
+    ],
+    relatedSections: ['logo-management', 'publishing'],
+  },
+
+  {
+    id: 'email-signatures',
+    title: 'Email Signatures',
+    description: 'Create consistent, branded email signatures for your entire organization.',
+    icon: 'AtSign',
+    category: 'brand-guides',
+    keywords: ['email', 'signature', 'corporate', 'branding', 'template'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Access Email Signatures',
+        description: 'In your brand guide, navigate to the Email Signatures section.',
+        tips: [
+          'Signatures ensure consistent brand representation',
+          'Support for Standard and Reply variants',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Configure Signature Template',
+        description: 'Set up the signature layout with logo, contact fields, social links, and font choices.',
+        tips: [
+          'Use Verdana or Arial for maximum email client compatibility',
+          'Keep signatures under 5 lines for mobile readability',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Preview & Copy',
+        description: 'Preview how signatures look across email clients, then copy HTML to clipboard.',
+        tips: [
+          'Signatures use nested tables for cross-client support',
+          'Test in Outlook, Gmail, and Apple Mail',
+        ],
+      },
+    ],
+    relatedSections: ['logo-management', 'typography'],
+  },
 ];
 
 // Helper function to search help content
