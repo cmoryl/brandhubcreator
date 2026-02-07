@@ -70,12 +70,24 @@ export default defineConfig(({ mode }) => {
         "react", 
         "react-dom", 
         "react/jsx-runtime",
-        "@react-leaflet/core"
+        "react/jsx-dev-runtime",
+        "@react-leaflet/core",
+        "framer-motion",
+        "@tanstack/react-query",
+        "@radix-ui/react-context",
+        "@radix-ui/react-primitive",
+        "@radix-ui/react-slot",
       ],
     },
-    // Pre-bundle leaflet dependencies to prevent duplicate React instances
+    // Pre-bundle dependencies to prevent duplicate React instances
     optimizeDeps: {
-      include: ['leaflet', 'react-leaflet', '@react-leaflet/core'],
+      include: [
+        'leaflet', 
+        'react-leaflet', 
+        '@react-leaflet/core',
+        '@tanstack/react-query',
+        'framer-motion',
+      ],
     },
     define: {
       // Ensure env variables are available
