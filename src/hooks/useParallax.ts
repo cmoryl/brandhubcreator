@@ -9,6 +9,7 @@ export function useParallax({ speed = 0.5, maxOffset = 100 }: ParallaxOptions = 
   const [offset, setOffset] = useState(0);
   const rafRef = useRef<number | null>(null);
   const lastScrollY = useRef(0);
+  const isFirstRender = useRef(true);
 
   const updateOffset = useCallback(() => {
     const calculatedOffset = Math.min(lastScrollY.current * speed, maxOffset);
@@ -30,11 +31,21 @@ export function useParallax({ speed = 0.5, maxOffset = 100 }: ParallaxOptions = 
     // Use passive listener for better performance
     window.addEventListener('scroll', handleScroll, { passive: true });
     
-    // Defer initial read to next frame to avoid forced reflow during render
-    rafRef.current = requestAnimationFrame(() => {
-      lastScrollY.current = window.scrollY;
-      updateOffset();
-    });
+    // Defer initial read using requestIdleCallback or setTimeout fallback
+    // This prevents forced reflow during initial render
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      const initializeScroll = () => {
+        lastScrollY.current = window.scrollY;
+        updateOffset();
+      };
+      
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(initializeScroll, { timeout: 100 });
+      } else {
+        setTimeout(initializeScroll, 0);
+      }
+    }
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -52,13 +63,24 @@ export function useElementParallax(elementRef: React.RefObject<HTMLElement>, opt
   const { speed = 0.3, maxOffset = 50 } = options;
   const [transform, setTransform] = useState('translateY(0px)');
   const rafRef = useRef<number | null>(null);
+  const cachedRect = useRef<DOMRect | null>(null);
+  const lastUpdateTime = useRef(0);
 
   useEffect(() => {
     const element = elementRef.current;
     if (!element) return;
 
     const updateTransform = () => {
-      const rect = element.getBoundingClientRect();
+      const now = performance.now();
+      // Throttle getBoundingClientRect to max 30fps to reduce reflow
+      if (now - lastUpdateTime.current > 33) {
+        cachedRect.current = element.getBoundingClientRect();
+        lastUpdateTime.current = now;
+      }
+      
+      const rect = cachedRect.current;
+      if (!rect) return;
+      
       const viewportHeight = window.innerHeight;
       
       // Calculate how far the element is through the viewport
@@ -82,8 +104,18 @@ export function useElementParallax(elementRef: React.RefObject<HTMLElement>, opt
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     
-    // Defer initial calculation to next frame
-    rafRef.current = requestAnimationFrame(updateTransform);
+    // Defer initial calculation to next idle period
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(() => {
+        cachedRect.current = element.getBoundingClientRect();
+        updateTransform();
+      }, { timeout: 100 });
+    } else {
+      rafRef.current = requestAnimationFrame(() => {
+        cachedRect.current = element.getBoundingClientRect();
+        updateTransform();
+      });
+    }
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
