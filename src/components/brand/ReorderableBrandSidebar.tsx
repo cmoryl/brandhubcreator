@@ -79,6 +79,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   locations: { label: 'Global Locations', icon: Globe, category: 'Identity' },
   insights: { label: 'Insights & Updates', icon: TrendingUp, category: 'Resources' },
   eventsignage: { label: 'Event Signage', icon: Maximize, category: 'Collateral' },
+  presentations: { label: 'Presentation Templates', icon: Presentation, category: 'Collateral' },
 };
 
 export const ReorderableBrandSidebar = ({ 

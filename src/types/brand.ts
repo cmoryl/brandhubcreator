@@ -444,6 +444,26 @@ export interface BrandTemplate {
   isEmbeddedFolder?: boolean; // If true, shows as embedded folder browser
 }
 
+// PRESENTATION TEMPLATES - PowerPoint/Slide Deck Examples
+export interface PresentationSlide {
+  id: string;
+  slideNumber: number;
+  thumbnailUrl: string; // URL to slide thumbnail image
+  title?: string; // Optional slide title extracted from PPTX
+}
+
+export interface PresentationTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  fileUrl: string; // URL to download the original .pptx file
+  fileName: string; // Original file name
+  fileSize?: string; // e.g., "2.4 MB"
+  slides: PresentationSlide[];
+  category?: 'sales' | 'marketing' | 'corporate' | 'event' | 'training' | 'other';
+  createdAt?: string;
+}
+
 // TEMPLATE SPECIFICATIONS - Visual Template Annotation System
 export interface TemplateSpecItem {
   id: string;
@@ -853,6 +873,8 @@ export interface BaseGuide {
   mapTheme?: import('@/types/mapTheme').MapThemeConfig;
   // Event Signage (Booths, Banners for brand events)
   eventSignage?: BrandEventSignage[];
+  // Presentation Templates (PowerPoint slide galleries)
+  presentationTemplates?: PresentationTemplate[];
   // Metadata
   createdAt: Date;
   updatedAt: Date;
@@ -863,7 +885,7 @@ export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'insights', 'locations', 'webinars', 'logos', 'brandicon', 'colors', 'gradients', 
   'patterns', 'typography', 'textstyles', 'iconography', 'socialicons', 
   'imagery', 'social', 'socialassets', 'website', 'signatures', 'qr', 'videos', 'assets', 'imageassets', 'misuse',
-  'brochures', 'templates', 'templatespecs', 'sponsorlogos', 'clientlogos', 'universe', 'products', 'events', 'eventsignage'
+  'brochures', 'templates', 'templatespecs', 'presentations', 'sponsorlogos', 'clientlogos', 'universe', 'products', 'events', 'eventsignage'
 ];
 
 // Section IDs for navigation
@@ -919,7 +941,8 @@ export type SectionId =
   | 'clientlogos'
   | 'locations'
   | 'insights'
-  | 'eventsignage';
+  | 'eventsignage'
+  | 'presentations';
 
 // Insight item for the Insights & Updates section
 export interface InsightItem {

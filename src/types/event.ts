@@ -289,6 +289,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'templates',
   'brochures',
   'templatespecs',
+  'presentations',
   'sponsorlogos',
   'clientlogos',
   'assets',
@@ -373,6 +374,9 @@ export interface EventGuide {
   // Partner assets
   sponsorLogos?: SponsorLogo[];
   clientLogos?: ClientLogo[];
+  
+  // Presentation Templates (PowerPoint slide galleries)
+  presentationTemplates?: import('./brand').PresentationTemplate[];
   
   // Metadata
   createdAt: Date;
