@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   isApproved: boolean;
   /**
    * 'idle' = no user
@@ -30,6 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
   const [accessStatus, setAccessStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [accessError, setAccessError] = useState<string | null>(null);
@@ -57,14 +59,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     ]);
   };
 
-  const checkAdminRole = async (userId: string): Promise<CheckResult> => {
+  const checkAdminRole = async (userId: string): Promise<CheckResult & { isSuperAdmin?: boolean }> => {
     try {
       const res = await withTimeout(
-        supabase.from('user_roles').select('role').eq('user_id', userId).eq('role', 'admin').maybeSingle(),
+        supabase.from('user_roles').select('role').eq('user_id', userId).in('role', ['admin', 'super_admin']).maybeSingle(),
         8000
       );
 
-      const { data, error } = res as unknown as { data: unknown; error: unknown };
+      const { data, error } = res as unknown as { data: { role?: string } | null; error: unknown };
       if (error) {
         // Check for timeout/connection errors and handle gracefully
         const errMsg = typeof error === 'object' && (error as any)?.message ? (error as any).message : String(error);
@@ -73,7 +75,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         return { ok: false, error };
       }
-      return { ok: true, value: !!data };
+      const hasAdminRole = data?.role === 'admin' || data?.role === 'super_admin';
+      const hasSuperAdminRole = data?.role === 'super_admin';
+      return { ok: true, value: hasAdminRole, isSuperAdmin: hasSuperAdminRole };
     } catch (err) {
       return { ok: false, error: err };
     }
@@ -127,6 +131,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
           if (adminRes.ok && approvedRes.ok) {
             setIsAdmin(adminRes.value);
+            setIsSuperAdmin(adminRes.isSuperAdmin ?? false);
             setIsApproved(adminRes.value || approvedRes.value);
             setAccessError(null);
             setAccessStatus('ready');
@@ -137,6 +142,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // If the backend checks fail (network/RLS/etc), don't block the user on auth.
           // Default to approved but NOT admin.
           setIsAdmin(false);
+          setIsSuperAdmin(false);
           setIsApproved(true);
           setAccessError('Backend temporarily unreachable.');
           setAccessStatus('ready');
@@ -144,6 +150,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
       } else if (!nextSession?.user) {
         setIsAdmin(false);
+        setIsSuperAdmin(false);
         setIsApproved(false);
         setAccessStatus('idle');
         lastAccessCheckUserIdRef.current = null;
@@ -170,6 +177,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
           if (adminRes.ok && approvedRes.ok) {
             setIsAdmin(adminRes.value);
+            setIsSuperAdmin(adminRes.isSuperAdmin ?? false);
             setIsApproved(adminRes.value || approvedRes.value);
             setAccessError(null);
             setAccessStatus('ready');
@@ -179,6 +187,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // Default to approved but NOT admin.
             console.warn('[AUTH] Initial access check failed - granting default approved access');
             setIsAdmin(false);
+            setIsSuperAdmin(false);
             setIsApproved(true);
             setAccessError('Backend temporarily unreachable.');
             setAccessStatus('ready');
@@ -222,6 +231,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           .then(([adminRes, approvedRes]) => {
             if (adminRes.ok && approvedRes.ok) {
               setIsAdmin(adminRes.value);
+              setIsSuperAdmin(adminRes.isSuperAdmin ?? false);
               setIsApproved(adminRes.value || approvedRes.value);
               setAccessError(null);
               setAccessStatus('ready');
@@ -306,6 +316,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setSession(null);
       setIsAdmin(false);
+      setIsSuperAdmin(false);
       setIsApproved(false);
       lastAccessCheckUserIdRef.current = null;
     } catch (error) {
@@ -323,6 +334,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .then(([adminRes, approvedRes]) => {
         if (adminRes.ok && approvedRes.ok) {
           setIsAdmin(adminRes.value);
+          setIsSuperAdmin(adminRes.isSuperAdmin ?? false);
           setIsApproved(adminRes.value || approvedRes.value);
           setAccessError(null);
           setAccessStatus('ready');
@@ -337,6 +349,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         session,
         isAdmin,
+        isSuperAdmin,
         isApproved,
         accessStatus,
         accessError,

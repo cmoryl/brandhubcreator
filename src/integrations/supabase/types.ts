@@ -1754,6 +1754,7 @@ export type Database = {
         Returns: boolean
       }
       is_slug_taken: { Args: { check_slug: string }; Returns: boolean }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_valid_invite_token: {
         Args: { p_token: string }
         Returns: {
