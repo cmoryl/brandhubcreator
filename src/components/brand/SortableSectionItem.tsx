@@ -81,10 +81,12 @@ export const SortableSectionItem = ({
           }}
           className={cn(
             // Absolute positioning ensures this never gets pushed offscreen/clipped.
+            // Always visible with clear background - not hidden on hover
             "absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors z-10",
+            "bg-sidebar-accent/40", // Always show a subtle background so icon is visible
             isHidden 
-              ? "text-amber-500 hover:text-amber-400 hover:bg-amber-500/10" 
-              : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
+              ? "text-amber-500 hover:text-amber-400 hover:bg-amber-500/20" 
+              : "text-sidebar-foreground hover:text-primary hover:bg-sidebar-accent"
           )}
           aria-label={isHidden ? "Show section" : "Hide section"}
           title={isHidden ? "Section hidden from viewers - click to show" : "Click to hide from viewers"}
