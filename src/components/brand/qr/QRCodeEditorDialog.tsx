@@ -42,6 +42,21 @@ const ERROR_CORRECTIONS = [
   { value: 'H', label: 'High (30%)', description: 'Best for logo overlays, largest QR' },
 ];
 
+const STYLE_PRESETS = [
+  { id: 'classic', name: 'Classic', fgColor: '#000000', bgColor: '#ffffff', icon: '⬛' },
+  { id: 'inverted', name: 'Inverted', fgColor: '#ffffff', bgColor: '#000000', icon: '⬜' },
+  { id: 'ocean', name: 'Ocean', fgColor: '#0077b6', bgColor: '#caf0f8', icon: '🌊' },
+  { id: 'forest', name: 'Forest', fgColor: '#1b4332', bgColor: '#d8f3dc', icon: '🌲' },
+  { id: 'sunset', name: 'Sunset', fgColor: '#9d4edd', bgColor: '#ffecd2', icon: '🌅' },
+  { id: 'midnight', name: 'Midnight', fgColor: '#7209b7', bgColor: '#10002b', icon: '🌙' },
+  { id: 'coral', name: 'Coral', fgColor: '#e63946', bgColor: '#f1faee', icon: '🪸' },
+  { id: 'mint', name: 'Mint', fgColor: '#2d6a4f', bgColor: '#b7e4c7', icon: '🍃' },
+  { id: 'royal', name: 'Royal', fgColor: '#023e8a', bgColor: '#ade8f4', icon: '👑' },
+  { id: 'warm', name: 'Warm', fgColor: '#bc6c25', bgColor: '#fefae0', icon: '☀️' },
+  { id: 'berry', name: 'Berry', fgColor: '#7b2cbf', bgColor: '#e0aaff', icon: '🫐' },
+  { id: 'slate', name: 'Slate', fgColor: '#1e293b', bgColor: '#e2e8f0', icon: '🪨' },
+];
+
 interface FormState {
   name: string;
   description: string;
@@ -224,6 +239,38 @@ export const QRCodeEditorDialog = ({
                 </TabsContent>
 
                 <TabsContent value="style" className="space-y-4 pt-4">
+                  {/* Preset Styles */}
+                  <div className="space-y-2">
+                    <Label>Style Presets</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {STYLE_PRESETS.map((preset) => (
+                        <button
+                          key={preset.id}
+                          onClick={() => setForm(prev => ({ 
+                            ...prev, 
+                            fgColor: preset.fgColor, 
+                            bgColor: preset.bgColor 
+                          }))}
+                          className={cn(
+                            "flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all hover:scale-105",
+                            form.fgColor === preset.fgColor && form.bgColor === preset.bgColor
+                              ? "border-primary ring-2 ring-primary/20"
+                              : "border-border hover:border-muted-foreground/50"
+                          )}
+                          style={{ backgroundColor: preset.bgColor }}
+                        >
+                          <span className="text-lg">{preset.icon}</span>
+                          <span 
+                            className="text-[10px] font-medium"
+                            style={{ color: preset.fgColor }}
+                          >
+                            {preset.name}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Foreground Color</Label>
