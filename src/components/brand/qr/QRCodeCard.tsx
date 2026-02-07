@@ -1,9 +1,9 @@
 /**
- * QRCodeCard - Individual QR code display card with actions
+ * QRCodeCard - Individual QR code display card with styled rendering
  */
 
-import { useState, useEffect } from 'react';
-import QRCode from 'qrcode';
+import { useState, useEffect, useRef } from 'react';
+import QRCodeStyling, { DotType, CornerDotType, CornerSquareType } from 'qr-code-styling';
 import { Download, Pencil, Trash2, Copy, Check, ExternalLink, QrCode as QrCodeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,30 +30,52 @@ const USE_CASE_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export const QRCodeCard = ({ qrCode, canEdit, onEdit, onDelete, variant = 'grid' }: QRCodeCardProps) => {
-  const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Generate QR code preview
+  // Create QRCodeStyling instance
+  const createQRInstance = (size: number) => {
+    return new QRCodeStyling({
+      width: size,
+      height: size,
+      type: 'svg',
+      data: qrCode.url,
+      dotsOptions: {
+        color: qrCode.fgColor,
+        type: (qrCode.dotStyle || 'square') as DotType,
+      },
+      cornersSquareOptions: {
+        color: qrCode.fgColor,
+        type: ((qrCode.cornerStyle || 'square') === 'dot' ? 'dot' : (qrCode.cornerStyle || 'square')) as CornerSquareType,
+      },
+      cornersDotOptions: {
+        color: qrCode.fgColor,
+        type: (qrCode.cornerStyle || 'square') as CornerDotType,
+      },
+      backgroundOptions: {
+        color: qrCode.bgColor,
+      },
+      imageOptions: qrCode.logoUrl && qrCode.logoType !== 'none' ? {
+        crossOrigin: 'anonymous',
+        margin: 4,
+      } : undefined,
+      image: qrCode.logoUrl && qrCode.logoType !== 'none' ? qrCode.logoUrl : undefined,
+      qrOptions: {
+        errorCorrectionLevel: qrCode.errorCorrection,
+      },
+    });
+  };
+
+  // Render QR code preview - works for both variants
   useEffect(() => {
-    const generateQR = async () => {
-      try {
-        const dataUrl = await QRCode.toDataURL(qrCode.url, {
-          width: 200,
-          margin: 2,
-          color: {
-            dark: qrCode.fgColor,
-            light: qrCode.bgColor,
-          },
-          errorCorrectionLevel: qrCode.errorCorrection,
-        });
-        setQrDataUrl(dataUrl);
-      } catch (err) {
-        console.error('QR generation error:', err);
-      }
-    };
-    generateQR();
-  }, [qrCode.url, qrCode.fgColor, qrCode.bgColor, qrCode.errorCorrection]);
+    if (!containerRef.current) return;
+    containerRef.current.innerHTML = '';
+    
+    const size = variant === 'list' ? 56 : 200;
+    const qrInstance = createQRInstance(size);
+    qrInstance.append(containerRef.current);
+  }, [qrCode.url, qrCode.fgColor, qrCode.bgColor, qrCode.errorCorrection, qrCode.dotStyle, qrCode.cornerStyle, qrCode.logoUrl, qrCode.logoType, variant]);
 
   const copyUrl = async () => {
     await navigator.clipboard.writeText(qrCode.url);
@@ -64,19 +86,8 @@ export const QRCodeCard = ({ qrCode, canEdit, onEdit, onDelete, variant = 'grid'
   const downloadPNG = async () => {
     setIsDownloading(true);
     try {
-      const dataUrl = await QRCode.toDataURL(qrCode.url, {
-        width: qrCode.size,
-        margin: 2,
-        color: {
-          dark: qrCode.fgColor,
-          light: qrCode.bgColor,
-        },
-        errorCorrectionLevel: qrCode.errorCorrection,
-      });
-      const link = document.createElement('a');
-      link.download = `${qrCode.name.replace(/[^a-z0-9]/gi, '_')}-qr.png`;
-      link.href = dataUrl;
-      link.click();
+      const qr = createQRInstance(qrCode.size);
+      await qr.download({ name: `${qrCode.name.replace(/[^a-z0-9]/gi, '_')}-qr`, extension: 'png' });
     } catch (err) {
       console.error('PNG download error:', err);
     } finally {
@@ -87,23 +98,8 @@ export const QRCodeCard = ({ qrCode, canEdit, onEdit, onDelete, variant = 'grid'
   const downloadSVG = async () => {
     setIsDownloading(true);
     try {
-      const svgString = await QRCode.toString(qrCode.url, {
-        type: 'svg',
-        width: qrCode.size,
-        margin: 2,
-        color: {
-          dark: qrCode.fgColor,
-          light: qrCode.bgColor,
-        },
-        errorCorrectionLevel: qrCode.errorCorrection,
-      });
-      const blob = new Blob([svgString], { type: 'image/svg+xml' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.download = `${qrCode.name.replace(/[^a-z0-9]/gi, '_')}-qr.svg`;
-      link.href = url;
-      link.click();
-      URL.revokeObjectURL(url);
+      const qr = createQRInstance(qrCode.size);
+      await qr.download({ name: `${qrCode.name.replace(/[^a-z0-9]/gi, '_')}-qr`, extension: 'svg' });
     } catch (err) {
       console.error('SVG download error:', err);
     } finally {
@@ -118,13 +114,12 @@ export const QRCodeCard = ({ qrCode, canEdit, onEdit, onDelete, variant = 'grid'
     return (
       <Card className="group overflow-hidden hover:border-primary/50 transition-colors">
         <div className="flex items-center gap-4 p-3">
-          {/* QR Preview Thumbnail */}
-          <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center shrink-0 border">
-            {qrDataUrl ? (
-              <img src={qrDataUrl} alt={qrCode.name} className="w-full h-full object-contain p-1" />
-            ) : (
-              <QrCodeIcon className="h-6 w-6 text-muted-foreground/30" />
-            )}
+          {/* QR Preview Thumbnail - using qr-code-styling */}
+          <div 
+            ref={containerRef}
+            className="w-16 h-16 bg-white rounded-lg flex items-center justify-center shrink-0 border [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:p-1"
+          >
+            {!qrCode.url && <QrCodeIcon className="h-6 w-6 text-muted-foreground/30" />}
           </div>
 
           {/* Info */}
@@ -201,32 +196,21 @@ export const QRCodeCard = ({ qrCode, canEdit, onEdit, onDelete, variant = 'grid'
     );
   }
 
-  // Grid variant - original card layout
+  // Grid variant - card layout with styled QR
   return (
     <Card className="group overflow-hidden hover:border-primary/50 transition-colors">
-      {/* QR Code Preview */}
+      {/* QR Code Preview - using qr-code-styling */}
       <div className="aspect-square bg-white flex items-center justify-center p-4 relative">
-        {qrDataUrl ? (
-          <div className="relative">
-            <img src={qrDataUrl} alt={qrCode.name} className="w-full h-full object-contain" />
-            {/* Logo overlay */}
-            {qrCode.logoUrl && qrCode.logoType !== 'none' && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-1/4 h-1/4 bg-white rounded-sm flex items-center justify-center p-1">
-                  <img 
-                    src={qrCode.logoUrl} 
-                    alt="Logo" 
-                    className="max-w-full max-h-full object-contain"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="w-full h-full bg-muted animate-pulse rounded flex items-center justify-center">
-            <QrCodeIcon className="h-12 w-12 text-muted-foreground/30" />
-          </div>
-        )}
+        <div 
+          ref={containerRef}
+          className="w-full h-full flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full"
+        >
+          {!qrCode.url && (
+            <div className="w-full h-full bg-muted animate-pulse rounded flex items-center justify-center">
+              <QrCodeIcon className="h-12 w-12 text-muted-foreground/30" />
+            </div>
+          )}
+        </div>
 
         {/* Use case badge */}
         {useCaseConfig && (

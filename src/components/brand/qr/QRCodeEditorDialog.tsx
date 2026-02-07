@@ -1,10 +1,11 @@
 /**
- * QRCodeEditorDialog - Create/Edit QR code dialog with advanced options
+ * QRCodeEditorDialog - Create/Edit QR code dialog with advanced styling options
+ * Supports custom dot styles, corner styles, colors, and logo overlays
  */
 
-import { useState, useEffect } from 'react';
-import QRCode from 'qrcode';
-import { Loader2, Upload, Image as ImageIcon, QrCode as QrCodeIcon } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import QRCodeStyling, { DotType, CornerDotType, CornerSquareType } from 'qr-code-styling';
+import { Loader2, Upload, Image as ImageIcon, QrCode as QrCodeIcon, Circle, Square, Hexagon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { cn } from '@/lib/utils';
-import type { QRCode as QRCodeType } from '@/hooks/useQRCodes';
+import type { QRCode as QRCodeType, QRDotStyle, QRCornerStyle } from '@/hooks/useQRCodes';
 
 interface QRCodeEditorDialogProps {
   open: boolean;
@@ -40,6 +41,21 @@ const ERROR_CORRECTIONS = [
   { value: 'M', label: 'Medium (15%)', description: 'Good balance of size and reliability' },
   { value: 'Q', label: 'Quartile (25%)', description: 'Good for printed materials' },
   { value: 'H', label: 'High (30%)', description: 'Best for logo overlays, largest QR' },
+];
+
+const DOT_STYLES: { value: QRDotStyle; label: string; preview: string }[] = [
+  { value: 'square', label: 'Square', preview: '◼' },
+  { value: 'dots', label: 'Circles', preview: '●' },
+  { value: 'rounded', label: 'Rounded', preview: '◆' },
+  { value: 'extra-rounded', label: 'Pill', preview: '⬬' },
+  { value: 'classy', label: 'Classy', preview: '◧' },
+  { value: 'classy-rounded', label: 'Classy Rounded', preview: '◐' },
+];
+
+const CORNER_STYLES: { value: QRCornerStyle; label: string; preview: string }[] = [
+  { value: 'square', label: 'Square', preview: '◼' },
+  { value: 'dot', label: 'Dot', preview: '●' },
+  { value: 'extra-rounded', label: 'Rounded', preview: '◉' },
 ];
 
 const STYLE_PRESETS = [
@@ -67,6 +83,8 @@ interface FormState {
   logoType: 'none' | 'brand' | 'custom';
   size: number;
   errorCorrection: 'L' | 'M' | 'Q' | 'H';
+  dotStyle: QRDotStyle;
+  cornerStyle: QRCornerStyle;
   useCase: QRCodeType['useCase'];
   isActive: boolean;
 }
@@ -81,6 +99,8 @@ const DEFAULT_FORM: FormState = {
   logoType: 'none',
   size: 512,
   errorCorrection: 'M',
+  dotStyle: 'square',
+  cornerStyle: 'square',
   useCase: undefined,
   isActive: true,
 };
@@ -94,8 +114,9 @@ export const QRCodeEditorDialog = ({
   isSaving,
 }: QRCodeEditorDialogProps) => {
   const [form, setForm] = useState(DEFAULT_FORM);
-  const [previewUrl, setPreviewUrl] = useState<string>('');
   const [activeTab, setActiveTab] = useState('basic');
+  const qrContainerRef = useRef<HTMLDivElement>(null);
+  const qrCodeRef = useRef<QRCodeStyling | null>(null);
 
   // Initialize form when editing
   useEffect(() => {
@@ -110,6 +131,8 @@ export const QRCodeEditorDialog = ({
         logoType: qrCode.logoType,
         size: qrCode.size,
         errorCorrection: qrCode.errorCorrection,
+        dotStyle: qrCode.dotStyle || 'square',
+        cornerStyle: qrCode.cornerStyle || 'square',
         useCase: qrCode.useCase,
         isActive: qrCode.isActive,
       });
@@ -119,30 +142,50 @@ export const QRCodeEditorDialog = ({
     setActiveTab('basic');
   }, [qrCode, open]);
 
-  // Generate preview
+  // Generate styled QR preview using qr-code-styling
   useEffect(() => {
-    const generatePreview = async () => {
-      try {
-        if (!form.url || form.url === 'https://') {
-          setPreviewUrl('');
-          return;
-        }
-        const dataUrl = await QRCode.toDataURL(form.url, {
-          width: 200,
-          margin: 2,
-          color: {
-            dark: form.fgColor,
-            light: form.bgColor,
-          },
-          errorCorrectionLevel: form.errorCorrection,
-        });
-        setPreviewUrl(dataUrl);
-      } catch {
-        setPreviewUrl('');
-      }
-    };
-    generatePreview();
-  }, [form.url, form.fgColor, form.bgColor, form.errorCorrection]);
+    if (!qrContainerRef.current) return;
+    
+    // Clear container
+    qrContainerRef.current.innerHTML = '';
+    
+    if (!form.url || form.url === 'https://') {
+      return;
+    }
+
+    const qrCodeInstance = new QRCodeStyling({
+      width: 160,
+      height: 160,
+      type: 'svg',
+      data: form.url,
+      dotsOptions: {
+        color: form.fgColor,
+        type: form.dotStyle as DotType,
+      },
+      cornersSquareOptions: {
+        color: form.fgColor,
+        type: form.cornerStyle === 'dot' ? 'dot' : form.cornerStyle as CornerSquareType,
+      },
+      cornersDotOptions: {
+        color: form.fgColor,
+        type: form.cornerStyle as CornerDotType,
+      },
+      backgroundOptions: {
+        color: form.bgColor,
+      },
+      imageOptions: form.logoUrl && form.logoType !== 'none' ? {
+        crossOrigin: 'anonymous',
+        margin: 4,
+      } : undefined,
+      image: form.logoUrl && form.logoType !== 'none' ? form.logoUrl : undefined,
+      qrOptions: {
+        errorCorrectionLevel: form.errorCorrection,
+      },
+    });
+
+    qrCodeRef.current = qrCodeInstance;
+    qrCodeInstance.append(qrContainerRef.current);
+  }, [form.url, form.fgColor, form.bgColor, form.errorCorrection, form.dotStyle, form.cornerStyle, form.logoUrl, form.logoType]);
 
   const handleSubmit = async () => {
     if (!form.name.trim() || !form.url.trim()) return;
@@ -156,6 +199,8 @@ export const QRCodeEditorDialog = ({
       logoType: form.logoType,
       size: form.size,
       errorCorrection: form.errorCorrection,
+      dotStyle: form.dotStyle,
+      cornerStyle: form.cornerStyle,
       useCase: form.useCase,
       isActive: form.isActive,
     });
@@ -239,9 +284,53 @@ export const QRCodeEditorDialog = ({
                 </TabsContent>
 
                 <TabsContent value="style" className="space-y-4 pt-4">
-                  {/* Preset Styles */}
+                  {/* Dot Style Selection */}
                   <div className="space-y-2">
-                    <Label>Style Presets</Label>
+                    <Label>QR Dot Style</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {DOT_STYLES.map((style) => (
+                        <button
+                          key={style.value}
+                          onClick={() => setForm(prev => ({ ...prev, dotStyle: style.value }))}
+                          className={cn(
+                            "flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all",
+                            form.dotStyle === style.value
+                              ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                              : "border-border hover:border-muted-foreground/50 hover:bg-muted/30"
+                          )}
+                        >
+                          <span className="text-xl">{style.preview}</span>
+                          <span className="text-[10px] font-medium">{style.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Corner Style Selection */}
+                  <div className="space-y-2">
+                    <Label>Corner Style</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {CORNER_STYLES.map((style) => (
+                        <button
+                          key={style.value}
+                          onClick={() => setForm(prev => ({ ...prev, cornerStyle: style.value }))}
+                          className={cn(
+                            "flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all",
+                            form.cornerStyle === style.value
+                              ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                              : "border-border hover:border-muted-foreground/50 hover:bg-muted/30"
+                          )}
+                        >
+                          <span className="text-xl">{style.preview}</span>
+                          <span className="text-[10px] font-medium">{style.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Color Preset Styles */}
+                  <div className="space-y-2">
+                    <Label>Color Presets</Label>
                     <div className="grid grid-cols-4 gap-2">
                       {STYLE_PRESETS.map((preset) => (
                         <button
@@ -437,30 +526,17 @@ export const QRCodeEditorDialog = ({
                 <p className="text-xs text-muted-foreground">Updates as you configure</p>
               </div>
               
-              {/* QR Code Preview */}
+              {/* QR Code Preview - using qr-code-styling */}
               <div className="flex justify-center mb-4">
                 <div 
                   className="rounded-xl p-4 shadow-sm transition-colors"
                   style={{ backgroundColor: form.bgColor }}
                 >
-                  {previewUrl ? (
-                    <div className="relative">
-                      <img src={previewUrl} alt="QR Preview" className="w-[160px] h-[160px]" />
-                      {form.logoUrl && form.logoType !== 'none' && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div 
-                            className="w-1/4 h-1/4 rounded-sm flex items-center justify-center p-1 shadow-sm"
-                            style={{ backgroundColor: form.bgColor }}
-                          >
-                            <img 
-                              src={form.logoUrl} 
-                              alt="Logo" 
-                              className="max-w-full max-h-full object-contain"
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                  {form.url && form.url !== 'https://' ? (
+                    <div 
+                      ref={qrContainerRef}
+                      className="w-[160px] h-[160px] flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full"
+                    />
                   ) : (
                     <div className="w-[160px] h-[160px] bg-muted/50 rounded flex items-center justify-center border-2 border-dashed border-muted-foreground/20">
                       <div className="text-center">
@@ -491,6 +567,14 @@ export const QRCodeEditorDialog = ({
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Error Correction</span>
                   <span className="font-medium">{form.errorCorrection}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Dot Style</span>
+                  <span className="font-medium capitalize">{form.dotStyle.replace('-', ' ')}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Corner Style</span>
+                  <span className="font-medium capitalize">{form.cornerStyle.replace('-', ' ')}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Colors</span>
