@@ -31,7 +31,7 @@ export const helpCategories: HelpCategory[] = [
   {
     id: 'getting-started',
     title: 'Getting Started',
-    description: 'Learn the basics of using BrandHub',
+    description: 'Learn the basics and set up your first brand',
     icon: 'Rocket',
   },
   {
@@ -43,19 +43,21 @@ export const helpCategories: HelpCategory[] = [
   {
     id: 'organization',
     title: 'Organization',
-    description: 'Manage your organization, team, and settings',
+    description: 'Manage your organization, team, and portal settings',
     icon: 'Building2',
   },
   {
     id: 'advanced',
-    title: 'Advanced',
-    description: 'Power user features and integrations',
+    title: 'Advanced Features',
+    description: 'AI tools, analytics, and power user features',
     icon: 'Zap',
   },
 ];
 
 export const helpSections: HelpSection[] = [
-  // Getting Started
+  // ============================
+  // GETTING STARTED
+  // ============================
   {
     id: 'create-first-brand',
     title: 'Create Your First Brand Guide',
@@ -67,7 +69,7 @@ export const helpSections: HelpSection[] = [
       {
         id: 'step-1',
         title: 'Navigate to Your Dashboard',
-        description: 'From the main dashboard, click the "New Brand" button in the top right corner, or use the empty state card if this is your first brand.',
+        description: 'From the main dashboard, click the "New Brand" button in the top right corner, or use the Quick Add menu in your organization portal.',
         tips: [
           'You can also use the keyboard shortcut Cmd/Ctrl + N to quickly create a new brand',
           'Brands can be organized within organizations for team collaboration',
@@ -89,14 +91,104 @@ export const helpSections: HelpSection[] = [
         tips: [
           'Start with the Overview section to define your brand\'s mission and values',
           'You can reorder sections by dragging them in the sidebar',
-          'Hide sections you don\'t need using the section menu',
+          'Use the eye icon to hide sections from public viewers while you work on them',
         ],
       },
     ],
-    relatedSections: ['overview-section', 'brand-identity', 'color-palette'],
+    relatedSections: ['overview-section', 'brand-identity', 'section-visibility'],
   },
 
-  // Brand Guide Sections
+  {
+    id: 'brand-hierarchy',
+    title: 'Understanding Brand Hierarchy',
+    description: 'Learn how brands, products, and events relate to each other in a hierarchical structure.',
+    icon: 'GitBranch',
+    category: 'getting-started',
+    keywords: ['hierarchy', 'parent', 'child', 'brand', 'product', 'event', 'sub-brand', 'structure'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Understand the Hierarchy',
+        description: 'BrandHub uses a 3-tier hierarchy: Organizations contain Brands, Brands contain Products and Events. This allows for brand inheritance and consistent styling.',
+        tips: [
+          'Organizations set the top-level branding for your portal',
+          'Brands can have their own identity while respecting org guidelines',
+          'Products and Events inherit from their parent brand by default',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Navigate Between Levels',
+        description: 'Use breadcrumbs at the top of any guide to navigate up the hierarchy. Linked guides sections show child items.',
+        tips: [
+          'Breadcrumbs show the full path: Org → Brand → Product/Event',
+          'Master suites and events appear at the top of lists with special badges',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Inherit vs Override',
+        description: 'Child guides can inherit colors, typography, and other settings from parents, or override them for unique branding.',
+        tips: [
+          'Use inheritance for consistency across product lines',
+          'Override specific elements when sub-brands need differentiation',
+        ],
+      },
+    ],
+    relatedSections: ['linked-products', 'product-suites', 'organization-portal'],
+  },
+
+  {
+    id: 'quick-actions',
+    title: 'Quick Add & Portal Actions',
+    description: 'Use the Quick Add menu to rapidly create brands, products, events, and product suites.',
+    icon: 'Zap',
+    category: 'getting-started',
+    keywords: ['quick', 'add', 'fast', 'create', 'menu', 'portal', 'actions'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Access Quick Add Menu',
+        description: 'In the organization portal, look for the floating action button on the right side. Click it to expand the Quick Add menu.',
+        tips: [
+          'The menu appears only for admins with edit permissions',
+          'It collapses by default to stay out of the way',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Create Standard Items',
+        description: 'Choose from Brand, Product, or Event to create a standard guide with all default sections.',
+        tips: [
+          'New items are automatically linked to your organization',
+          'You can set parent relationships during or after creation',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Use Product Suite Workflow',
+        description: 'Select "Product Suite" for a multi-step wizard that creates a master product with multiple sub-products in one flow.',
+        tips: [
+          'Great for launching product lines with consistent branding',
+          'Master products are marked with a special badge in grids',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Extend Events',
+        description: 'Use "Extend Event" to create regional or temporal variants of an existing event, maintaining brand consistency.',
+        tips: [
+          'Sub-events inherit the parent event\'s branding',
+          'Perfect for multi-city conferences or annual event series',
+        ],
+      },
+    ],
+    relatedSections: ['product-suites', 'linked-products'],
+  },
+
+  // ============================
+  // BRAND GUIDES
+  // ============================
   {
     id: 'overview-section',
     title: 'Overview Section',
@@ -233,14 +325,8 @@ export const helpSections: HelpSection[] = [
           'Document minimum size requirements for legibility',
         ],
       },
-      {
-        id: 'step-5',
-        title: 'Delete Logos',
-        description: 'Hover over a logo and click the delete icon to remove it. A confirmation dialog will appear.',
-        warning: 'Deleted logos cannot be recovered. Make sure you have backups before deleting.',
-      },
     ],
-    relatedSections: ['brand-identity', 'iconography'],
+    relatedSections: ['brand-identity', 'icon-studio'],
   },
 
   {
@@ -280,16 +366,6 @@ export const helpSections: HelpSection[] = [
       },
       {
         id: 'step-4',
-        title: 'Add Color Usage Guidelines',
-        description: 'For each color, add notes about when and how to use it. Click the color swatch to edit details.',
-        tips: [
-          'Specify ratios: "Primary blue should be 60% of any design"',
-          'Note which colors pair well together',
-          'Include accessibility guidelines for text on colored backgrounds',
-        ],
-      },
-      {
-        id: 'step-5',
         title: 'Export Color Values',
         description: 'Use the export feature to download color values in various formats: CSS, SCSS, JSON, or design tool formats.',
         tips: [
@@ -297,7 +373,7 @@ export const helpSections: HelpSection[] = [
         ],
       },
     ],
-    relatedSections: ['typography', 'brand-identity'],
+    relatedSections: ['typography', 'ai-patterns-gradients'],
   },
 
   {
@@ -350,60 +426,63 @@ export const helpSections: HelpSection[] = [
   },
 
   {
-    id: 'iconography',
-    title: 'Iconography',
-    description: 'Create and manage your brand\'s icon library with consistent styling.',
+    id: 'icon-studio',
+    title: 'Icon Studio',
+    description: 'The unified hub for all icon management: library, AI generation, stylizing, app icons, and more.',
     icon: 'Sparkles',
     category: 'brand-guides',
-    keywords: ['icons', 'iconography', 'symbols', 'graphics', 'svg', 'vectors', 'style', 'library'],
+    keywords: ['icons', 'iconography', 'studio', 'library', 'ai', 'generate', 'app icon', 'stylizer', 'svg'],
     steps: [
       {
         id: 'step-1',
-        title: 'Access Icon Library',
-        description: 'Click "Iconography" in the sidebar. The Icon System Creator allows you to generate, select, or upload icons.',
+        title: 'Access Icon Studio',
+        description: 'Click "Iconography" in the sidebar, then open the Icon Studio. It contains multiple tabs for different icon workflows.',
         tips: [
-          'Icons are organized in a 3-level hierarchy: Core, Product Line, Brand',
+          'Icon Studio is the unified entry point for ALL icon functionality',
+          'Tabs include: Library, AI Generator, Stylizer, App Icons, Creator, and more',
         ],
       },
       {
         id: 'step-2',
-        title: 'Choose Icons from Library',
-        description: 'Browse 1500+ Lucide icons or search by keyword. Click an icon to add it to your brand library.',
+        title: 'Browse the Icon Library',
+        description: 'The Library tab lets you manage organization icon libraries with a 3-level hierarchy: Core, Product Line, and Brand.',
         tips: [
-          'Maintain consistency - stick to one icon style throughout',
-          'Search for icons by function: "search", "menu", "user", etc.',
+          'Icons inherit from parent levels for consistency',
+          'Drag to reorder icons and libraries',
+          'Use batch processing for bulk operations',
         ],
       },
       {
         id: 'step-3',
-        title: 'Generate Custom Icons',
-        description: 'Use the AI-powered icon generator. Describe the icon you need and select from 17 style presets.',
+        title: 'Generate Icons with AI',
+        description: 'The AI Generator tab creates complete icon sets based on your brand. Describe your needs and select from 17+ style presets.',
         tips: [
-          'Be specific in descriptions: "minimalist shopping cart with rounded corners"',
-          'Generated icons can be refined and regenerated',
+          'Be specific: "minimalist e-commerce icons with rounded corners"',
+          'Generate sets of related icons in one batch',
+          'AI uses your brand colors automatically',
         ],
       },
       {
         id: 'step-4',
-        title: 'Upload Custom SVGs',
-        description: 'Drag and drop SVG files to upload custom icons. They\'ll be added to your brand library.',
+        title: 'Stylize Existing Icons',
+        description: 'The Stylizer tab converts PNG images to brand-aligned SVG icons. Upload any image and AI will vectorize it.',
         tips: [
-          'Ensure SVGs are optimized and properly sized',
-          'Use consistent stroke weights across all custom icons',
+          'Great for converting sketches or photos to clean icons',
+          'Preview before saving to ensure quality',
         ],
-        warning: 'Only SVG format is supported for custom icon uploads.',
       },
       {
         id: 'step-5',
-        title: 'Export Icons',
-        description: 'Select icons and use batch export to download as SVG or PNG in various sizes.',
+        title: 'Create App Icons',
+        description: 'The App Icons tab generates platform-specific icons for Android, iOS, and PWA from a single source.',
         tips: [
-          'Export in multiple sizes for different use cases',
-          'PNG exports include proper padding and sizing',
+          'Outputs all required sizes automatically',
+          'Includes manifest files for PWA deployment',
+          'Handles platform-specific requirements (rounded corners, safe zones)',
         ],
       },
     ],
-    relatedSections: ['logo-management', 'color-palette'],
+    relatedSections: ['logo-management', 'ai-patterns-gradients'],
   },
 
   {
@@ -502,185 +581,48 @@ export const helpSections: HelpSection[] = [
   },
 
   {
-    id: 'services-section',
-    title: 'Services & Offerings',
-    description: 'Showcase your brand\'s services or products with rich media cards.',
-    icon: 'Briefcase',
+    id: 'section-visibility',
+    title: 'Section Visibility & Ordering',
+    description: 'Control which sections are visible to public viewers and customize the order of sections.',
+    icon: 'Eye',
     category: 'brand-guides',
-    keywords: ['services', 'products', 'offerings', 'cards', 'showcase', 'business'],
+    keywords: ['hide', 'show', 'visibility', 'sections', 'order', 'reorder', 'public', 'private'],
     steps: [
       {
         id: 'step-1',
-        title: 'Navigate to Services',
-        description: 'Click "Services" in the sidebar to manage your service/product cards.',
+        title: 'Locate Section Controls',
+        description: 'In the sidebar, each section has a drag handle and an eye icon (for admins only).',
         tips: [
-          'Services appear as interactive cards with optional header images',
+          'The eye icon appears when hovering over a section',
+          'Only admins see the visibility controls',
         ],
       },
       {
         id: 'step-2',
-        title: 'Add a New Service',
-        description: 'Click "Add Service" and fill in the title, description, and optional header image.',
+        title: 'Hide a Section',
+        description: 'Click the eye icon next to any section to toggle its visibility. Hidden sections show a strikethrough in the sidebar.',
         tips: [
-          'Keep titles concise - 2-4 words work best',
-          'Descriptions should be scannable - use short paragraphs',
+          'Hidden sections are still visible to admins in edit mode',
+          'Use hiding for work-in-progress sections',
+          'Public viewers won\'t see hidden sections at all',
         ],
       },
       {
         id: 'step-3',
-        title: 'Upload Header Images',
-        description: 'Each service card can have a cinematic header image. Click the image area to upload.',
-        tips: [
-          'Use abstract or atmospheric images - avoid text in images',
-          'Header images should evoke the service\'s essence',
-        ],
-      },
-      {
-        id: 'step-4',
-        title: 'Reorder Services',
-        description: 'Drag service cards to reorder them. The order is saved automatically.',
-        tips: [
-          'Lead with your most important or popular services',
-        ],
-      },
-    ],
-    relatedSections: ['overview-section', 'templates'],
-  },
-
-  {
-    id: 'templates',
-    title: 'Template Specifications',
-    description: 'Document brand templates for common collateral like business cards, letterheads, and presentations.',
-    icon: 'LayoutTemplate',
-    category: 'brand-guides',
-    keywords: ['templates', 'collateral', 'business cards', 'letterhead', 'presentations', 'specs'],
-    steps: [
-      {
-        id: 'step-1',
-        title: 'Access Template Specs',
-        description: 'Click "Templates" or "Collateral" in the sidebar to manage template specifications.',
-        tips: [
-          'Templates ensure consistency across all brand materials',
-        ],
-      },
-      {
-        id: 'step-2',
-        title: 'Add a Template Category',
-        description: 'Create categories like "Print Materials", "Digital Templates", "Social Media".',
-        tips: [
-          'Organize by medium or department for easy navigation',
-        ],
-      },
-      {
-        id: 'step-3',
-        title: 'Define Template Specs',
-        description: 'For each template, add dimensions, bleed requirements, color mode, and file format.',
-        tips: [
-          'Include both working file format (AI, PSD) and export format',
-          'Note any print-specific requirements like CMYK conversion',
-        ],
-      },
-      {
-        id: 'step-4',
-        title: 'Upload Template Files',
-        description: 'Attach downloadable template files for team members to use.',
-        tips: [
-          'Include both editable and locked versions where appropriate',
-          'Add preview images so users can see before downloading',
-        ],
-        warning: 'Large template files may take longer to upload. Compress files when possible.',
-      },
-    ],
-    relatedSections: ['color-palette', 'typography'],
-  },
-
-  {
-    id: 'publishing',
-    title: 'Publishing Your Brand Guide',
-    description: 'Make your brand guide public or share it with specific team members.',
-    icon: 'Globe',
-    category: 'brand-guides',
-    keywords: ['publish', 'public', 'share', 'visibility', 'access', 'link', 'url'],
-    steps: [
-      {
-        id: 'step-1',
-        title: 'Access Publishing Settings',
-        description: 'Click the settings icon in the brand editor header, or go to brand settings.',
-        tips: [
-          'You can toggle visibility at any time',
-        ],
-      },
-      {
-        id: 'step-2',
-        title: 'Toggle Public Access',
-        description: 'Enable "Make Public" to allow anyone with the link to view your brand guide.',
-        tips: [
-          'Public guides are viewable without login',
-          'Public guides can be indexed by search engines',
-        ],
-        warning: 'Public guides are accessible to anyone with the URL. Ensure no confidential information is included.',
-      },
-      {
-        id: 'step-3',
-        title: 'Copy Share Link',
-        description: 'Use the share button to copy your brand guide\'s public URL.',
-        tips: [
-          'The URL format is: yourdomain.com/brand/your-brand-slug',
-          'Organization portals aggregate all public brands at /org/your-org-slug',
-        ],
-      },
-      {
-        id: 'step-4',
-        title: 'Embed Options',
-        description: 'For advanced sharing, use embed codes to include your brand guide on external sites.',
-        tips: [
-          'Embed codes maintain brand styling and interactivity',
-        ],
-      },
-    ],
-    relatedSections: ['create-first-brand', 'section-management'],
-  },
-
-  {
-    id: 'section-management',
-    title: 'Managing Sections',
-    description: 'Reorder, hide, or customize sections in your brand guide.',
-    icon: 'LayoutList',
-    category: 'brand-guides',
-    keywords: ['sections', 'reorder', 'hide', 'show', 'organize', 'customize', 'sidebar'],
-    steps: [
-      {
-        id: 'step-1',
-        title: 'Access Section Controls',
-        description: 'Sections are listed in the sidebar. Each section has a menu icon (⋮) with management options.',
-        tips: [
-          'Drag sections in the sidebar to reorder them',
-        ],
-      },
-      {
-        id: 'step-2',
         title: 'Reorder Sections',
-        description: 'Click and drag a section in the sidebar to move it. The order is saved automatically.',
+        description: 'Use the grip handle (⋮⋮) to drag sections up or down. The new order is saved automatically.',
         tips: [
-          'Consider your audience\'s priorities when ordering',
-          'Most important sections should appear first',
-        ],
-      },
-      {
-        id: 'step-3',
-        title: 'Hide Sections',
-        description: 'Click the section menu and select "Hide Section" to remove it from view. Hidden sections remain in the system.',
-        tips: [
-          'Hidden sections can be restored anytime',
-          'Use hiding for sections in progress or not applicable',
+          'Order affects both edit view and public view',
+          'Consider user priorities when ordering',
         ],
       },
       {
         id: 'step-4',
-        title: 'Restore Hidden Sections',
-        description: 'Go to brand settings or use the sidebar menu to see and restore hidden sections.',
+        title: 'Verify Public View',
+        description: 'Open your guide in an incognito window or log out to verify hidden sections don\'t appear to public viewers.',
         tips: [
-          'Content in hidden sections is preserved',
+          'The public URL shows only visible sections',
+          'Admins always see all sections in edit mode',
         ],
       },
     ],
@@ -697,7 +639,7 @@ export const helpSections: HelpSection[] = [
     steps: [
       {
         id: 'step-1',
-        title: 'Navigate to Product Guides Section',
+        title: 'Navigate to Linked Guides Section',
         description: 'In your brand guide, scroll to "Product Guides" or "Linked Guides" section.',
         tips: [
           'Products and events can inherit from parent brands',
@@ -726,15 +668,113 @@ export const helpSections: HelpSection[] = [
         title: 'Manage Hierarchy',
         description: 'Reorder linked guides by dragging. The display order is saved automatically.',
         tips: [
-          'Linked guides are shown in organization portals with badges',
+          'Linked guides show in organization portals with hierarchy badges',
           'Breadcrumbs reflect the parent-child relationship',
         ],
       },
     ],
-    relatedSections: ['create-first-brand', 'publishing'],
+    relatedSections: ['product-suites', 'brand-hierarchy'],
   },
 
-  // Organization
+  {
+    id: 'product-suites',
+    title: 'Product Suites',
+    description: 'Create master products with multiple sub-products in a streamlined workflow.',
+    icon: 'Boxes',
+    category: 'brand-guides',
+    keywords: ['suite', 'master', 'sub-product', 'product line', 'family', 'collection'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Start Product Suite Creation',
+        description: 'From the portal Quick Add menu, select "Product Suite" to launch the multi-step wizard.',
+        tips: [
+          'Product suites are ideal for product families with shared branding',
+          'The master product acts as the parent for all sub-products',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Configure Master Product',
+        description: 'Enter the master product name and select a parent brand. This product will be marked as the suite master.',
+        tips: [
+          'Master products display a special ring in portal grids',
+          'They appear at the top of product lists',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Add Sub-Products',
+        description: 'Add as many sub-products as needed. Each inherits from the master and can be customized individually.',
+        tips: [
+          'Sub-products are automatically linked to the master',
+          'You can add more sub-products later from the master\'s linked guides section',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Review and Create',
+        description: 'Review your suite configuration and click Create. All products are created in one operation.',
+        tips: [
+          'Creation may take a moment for large suites',
+          'You\'ll be redirected to the master product after creation',
+        ],
+      },
+    ],
+    relatedSections: ['linked-products', 'brand-hierarchy', 'quick-actions'],
+  },
+
+  {
+    id: 'publishing',
+    title: 'Publishing Your Brand Guide',
+    description: 'Make your brand guide public or share it with specific team members.',
+    icon: 'Globe',
+    category: 'brand-guides',
+    keywords: ['publish', 'public', 'share', 'visibility', 'access', 'link', 'url'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Access Publishing Settings',
+        description: 'Click the settings icon in the brand editor header, or go to brand settings.',
+        tips: [
+          'You can toggle visibility at any time',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Toggle Public Access',
+        description: 'Enable "Make Public" to allow anyone with the link to view your brand guide.',
+        tips: [
+          'Public guides are viewable without login',
+          'Public guides appear in your organization portal',
+        ],
+        warning: 'Public guides are accessible to anyone with the URL. Ensure no confidential information is included.',
+      },
+      {
+        id: 'step-3',
+        title: 'Copy Share Link',
+        description: 'Use the share button to copy your brand guide\'s public URL.',
+        tips: [
+          'The URL format is: yourdomain.com/brand/your-brand-slug',
+          'Organization portals aggregate all public brands at /org/your-org-slug',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Control Section Visibility',
+        description: 'Use section visibility controls to hide work-in-progress sections from public viewers.',
+        tips: [
+          'Hidden sections are only visible to admins',
+          'Perfect for phased rollouts of brand updates',
+        ],
+      },
+    ],
+    relatedSections: ['section-visibility', 'organization-portal'],
+  },
+
+  // ============================
+  // ORGANIZATION
+  // ============================
   {
     id: 'organization-setup',
     title: 'Organization Setup',
@@ -821,7 +861,7 @@ export const helpSections: HelpSection[] = [
         ],
       },
     ],
-    relatedSections: ['organization-setup', 'publishing'],
+    relatedSections: ['organization-setup', 'admin-analytics'],
   },
 
   {
@@ -865,10 +905,419 @@ export const helpSections: HelpSection[] = [
         tips: [
           'Only public brands appear in the portal',
           'Brands are organized by type: Brands, Products, Events',
+          'Master suites and featured items appear at the top',
         ],
       },
     ],
-    relatedSections: ['publishing', 'organization-setup'],
+    relatedSections: ['publishing', 'quick-actions'],
+  },
+
+  {
+    id: 'insights-updates',
+    title: 'Insights & Updates Section',
+    description: 'Share reports, analytics, and news with your team through the Insights section.',
+    icon: 'Newspaper',
+    category: 'organization',
+    keywords: ['insights', 'updates', 'news', 'reports', 'analytics', 'timeline', 'infographic'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Access Insights Section',
+        description: 'In the organization portal or dashboard, find the "Insights & Updates" section. Admins can click "Edit" to modify content.',
+        tips: [
+          'This section is visible to all org members',
+          'Use it to share important brand updates and metrics',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Choose a Layout',
+        description: 'Select from Cards, Infographic, or Timeline layouts depending on your content type.',
+        tips: [
+          'Cards: Best for individual updates or announcements',
+          'Infographic: Great for metrics and data visualization',
+          'Timeline: Perfect for chronological updates or roadmaps',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Add Insight Items',
+        description: 'Click "Add Item" and fill in the title, description, type, and optional metrics or imagery.',
+        tips: [
+          'Set priority levels to highlight important items',
+          'Include metrics with values and change indicators',
+          'Upload images for visual impact',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Manage Items',
+        description: 'Drag to reorder, click to edit, or delete items as needed. Changes save automatically.',
+        tips: [
+          'Archive old items rather than deleting for historical reference',
+          'Pin critical updates to keep them at the top',
+        ],
+      },
+    ],
+    relatedSections: ['admin-analytics', 'organization-portal'],
+  },
+
+  // ============================
+  // ADVANCED FEATURES
+  // ============================
+  {
+    id: 'ai-patterns-gradients',
+    title: 'AI-Powered Patterns & Gradients',
+    description: 'Generate brand-specific patterns and gradients using AI, based on your color palette.',
+    icon: 'Wand2',
+    category: 'advanced',
+    keywords: ['ai', 'patterns', 'gradients', 'generate', 'geometric', 'mesh', 'automatic'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Navigate to Patterns or Gradients',
+        description: 'In your brand guide, click on "Patterns" or "Gradients" in the sidebar.',
+        tips: [
+          'Both sections support AI generation',
+          'Ensure your color palette is set up first for best results',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Generate Patterns',
+        description: 'Click the AI generate button to create 4 unique geometric patterns based on your brand colors.',
+        tips: [
+          'Patterns are generated using Gemini AI',
+          'Each pattern is high-resolution and unique',
+          'Generation takes a few seconds',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Generate Gradients',
+        description: 'For gradients, AI creates 4 CSS gradient styles: Primary, Radial, Spectrum, and Mesh.',
+        tips: [
+          'Gradients are pure CSS - no image files needed',
+          'They adapt automatically to your brand colors',
+          'Export as CSS for direct use in projects',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Batch Generation',
+        description: 'In Organization Settings, use batch generation to create patterns and gradients for all brands at once.',
+        tips: [
+          'Batch processing runs sequentially to manage resources',
+          'Progress is shown for each brand',
+          'Great for initial setup or brand refreshes',
+        ],
+        warning: 'Batch generation may take several minutes for organizations with many brands.',
+      },
+    ],
+    relatedSections: ['color-palette', 'icon-studio'],
+  },
+
+  {
+    id: 'admin-analytics',
+    title: 'Admin Analytics Dashboard',
+    description: 'View comprehensive analytics about brands, users, and content across your organization.',
+    icon: 'BarChart3',
+    category: 'advanced',
+    keywords: ['analytics', 'dashboard', 'stats', 'metrics', 'reports', 'admin', 'data'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Access Admin Panel',
+        description: 'Admins can access the analytics dashboard from the main navigation or organization settings.',
+        tips: [
+          'Only admins and owners can view analytics',
+          'Analytics cover brands, products, events, and users',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'View Brand Health Analytics',
+        description: 'The Brand Health section shows completeness scores, missing sections, and recommendations for each brand.',
+        tips: [
+          'Health scores are calculated based on section completion',
+          'Click any brand to see detailed recommendations',
+          'Data persists for 1 hour - see "Last run" timestamp',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Check User Analytics',
+        description: 'View user engagement metrics: active users, session counts, top content, and activity trends.',
+        tips: [
+          'Data persists for 30 minutes between tab switches',
+          'Export reports for sharing with stakeholders',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Review Activity Logs',
+        description: 'The Activity Logs panel shows recent actions: edits, creations, deletions, and user access.',
+        tips: [
+          'Logs persist for 15 minutes (shorter due to high activity)',
+          'Filter by action type, user, or date range',
+          'Use for audit trails and compliance',
+        ],
+      },
+      {
+        id: 'step-5',
+        title: 'Generate Downloads Report',
+        description: 'See which assets are being downloaded most frequently across your organization.',
+        tips: [
+          'Identify popular assets for optimization',
+          'Data cached for 30 minutes',
+          'Export as CSV for further analysis',
+        ],
+      },
+    ],
+    relatedSections: ['team-management', 'insights-updates'],
+  },
+
+  {
+    id: 'market-analysis',
+    title: 'AI Market Analysis',
+    description: 'Use AI to analyze your brand against competitors and market trends.',
+    icon: 'TrendingUp',
+    category: 'advanced',
+    keywords: ['market', 'analysis', 'competitive', 'ai', 'trends', 'comparison', 'intelligence'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Access Market Analysis',
+        description: 'In the admin panel, find the AI Market Analysis section.',
+        tips: [
+          'Analysis uses AI to evaluate brand positioning',
+          'Results include competitive insights and recommendations',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Run Analysis',
+        description: 'Click "Run Analysis" and wait for the AI to process your brand data.',
+        tips: [
+          'Analysis considers colors, messaging, positioning, and more',
+          'The "Last run" timestamp shows when data was generated',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Review Insights',
+        description: 'View the generated report with market position, competitive advantages, and growth recommendations.',
+        tips: [
+          'Insights are based on current brand guide content',
+          'Update your guide content for more accurate analysis',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Export Report',
+        description: 'Download the analysis as a PDF for sharing with stakeholders.',
+        tips: [
+          'Reports include visualizations and actionable recommendations',
+          'Re-run analysis after major brand updates',
+        ],
+      },
+    ],
+    relatedSections: ['admin-analytics', 'brand-intelligence'],
+  },
+
+  {
+    id: 'brand-intelligence',
+    title: 'Brand Intelligence',
+    description: 'AI-powered learning system that builds knowledge about your brand over time.',
+    icon: 'Brain',
+    category: 'advanced',
+    keywords: ['intelligence', 'ai', 'learning', 'knowledge', 'analysis', 'insights', 'history'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Understand Brand Intelligence',
+        description: 'Brand Intelligence is an AI system that learns from your brand guide content and usage patterns.',
+        tips: [
+          'Intelligence improves with more complete brand guides',
+          'It tracks analysis history and confidence scores',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'View Intelligence Profile',
+        description: 'Access your brand\'s intelligence profile to see accumulated knowledge entries and insights.',
+        tips: [
+          'Knowledge entries represent learned brand attributes',
+          'The system identifies patterns and relationships',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Provide Feedback',
+        description: 'Rate insights and recommendations to help the AI learn your preferences.',
+        tips: [
+          'Feedback improves future recommendations',
+          'The more feedback, the more personalized insights become',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Track Confidence Over Time',
+        description: 'Monitor how the AI\'s confidence in brand understanding grows with more data.',
+        tips: [
+          'Higher confidence means more reliable recommendations',
+          'Confidence can decay if brand content becomes stale',
+        ],
+      },
+    ],
+    relatedSections: ['market-analysis', 'ai-patterns-gradients'],
+  },
+
+  {
+    id: 'backup-restore',
+    title: 'Backup & Restore',
+    description: 'Create backups of your organization data and restore from previous states.',
+    icon: 'Database',
+    category: 'advanced',
+    keywords: ['backup', 'restore', 'export', 'import', 'save', 'recovery', 'data'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Access Backup Settings',
+        description: 'Go to Organization Settings and find the Backup & Restore section.',
+        tips: [
+          'Regular backups protect against accidental data loss',
+          'Backups include all brands, products, events, and settings',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Create Manual Backup',
+        description: 'Click "Create Backup" to generate a snapshot of your current organization state.',
+        tips: [
+          'Backups are stored securely in cloud storage',
+          'Include a descriptive name for easy identification',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Configure Automatic Backups',
+        description: 'Set up scheduled backups: daily, weekly, or monthly.',
+        tips: [
+          'Automatic backups run during low-traffic periods',
+          'Old backups are automatically cleaned up based on retention policy',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Restore from Backup',
+        description: 'Select a backup from the history and click "Restore" to return to that state.',
+        warning: 'Restoring overwrites current data. This action cannot be undone. Create a backup first.',
+        tips: [
+          'Preview backup contents before restoring',
+          'Partial restore options may be available for specific items',
+        ],
+      },
+    ],
+    relatedSections: ['organization-setup', 'admin-analytics'],
+  },
+
+  {
+    id: 'pdf-export',
+    title: 'PDF Export & Presets',
+    description: 'Export your brand guides as professional PDF documents with customizable layouts.',
+    icon: 'FileDown',
+    category: 'advanced',
+    keywords: ['pdf', 'export', 'download', 'print', 'document', 'presets', 'layout'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Access Export Options',
+        description: 'From any brand guide, click the Export or Download button in the header.',
+        tips: [
+          'Multiple export formats are available',
+          'PDF is best for professional documentation',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Choose a Preset',
+        description: 'Select from preset layouts: Full Guide, Executive Summary, Style Sheet, or Custom.',
+        tips: [
+          'Full Guide: Complete documentation with all sections',
+          'Executive Summary: Key elements only, 1-2 pages',
+          'Style Sheet: Quick reference card format',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Customize Layout',
+        description: 'For custom exports, choose which sections to include, page size, and styling options.',
+        tips: [
+          'Drag to reorder sections in the export',
+          'Toggle table of contents and page numbers',
+          'Set cover page options',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Generate and Download',
+        description: 'Click Generate PDF and wait for processing. Download when ready.',
+        tips: [
+          'Large guides may take 30-60 seconds to generate',
+          'PDFs are print-ready at 300 DPI',
+        ],
+      },
+    ],
+    relatedSections: ['publishing', 'templates'],
+  },
+
+  {
+    id: 'keyboard-shortcuts',
+    title: 'Keyboard Shortcuts',
+    description: 'Speed up your workflow with keyboard shortcuts for common actions.',
+    icon: 'Keyboard',
+    category: 'advanced',
+    keywords: ['keyboard', 'shortcuts', 'hotkeys', 'commands', 'speed', 'efficiency'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'View Shortcuts',
+        description: 'Press ? (question mark) or Cmd/Ctrl + / to see all available keyboard shortcuts.',
+        tips: [
+          'Shortcuts work in most views throughout the app',
+          'Some shortcuts are context-specific',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Navigation Shortcuts',
+        description: 'Use Cmd/Ctrl + number keys to jump between sections. Arrow keys navigate within lists.',
+        tips: [
+          'Cmd/Ctrl + 1-9 jumps to sidebar sections',
+          'Escape closes modals and returns to previous view',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Editing Shortcuts',
+        description: 'Standard editing shortcuts apply: Cmd/Ctrl + S to save, Cmd/Ctrl + Z to undo.',
+        tips: [
+          'Most text formatting shortcuts work in rich text editors',
+          'Cmd/Ctrl + Shift + Z for redo',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Quick Actions',
+        description: 'Cmd/Ctrl + N creates new items. Cmd/Ctrl + K opens command palette.',
+        tips: [
+          'Command palette provides quick access to any feature',
+          'Type to search for actions, sections, or brands',
+        ],
+      },
+    ],
+    relatedSections: ['quick-actions'],
   },
 ];
 

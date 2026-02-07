@@ -43,6 +43,17 @@ import {
   Link,
   Users,
   Plus,
+  Eye,
+  Boxes,
+  Wand2,
+  BarChart3,
+  TrendingUp,
+  Brain,
+  Database,
+  FileDown,
+  Keyboard,
+  Newspaper,
+  GitBranch,
 } from 'lucide-react';
 import {
   helpCategories,
@@ -75,6 +86,17 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutList,
   Link,
   Users,
+  Eye,
+  Boxes,
+  Wand2,
+  BarChart3,
+  TrendingUp,
+  Brain,
+  Database,
+  FileDown,
+  Keyboard,
+  Newspaper,
+  GitBranch,
 };
 
 const HelpCenter = () => {
