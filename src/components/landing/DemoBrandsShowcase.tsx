@@ -61,10 +61,10 @@ const DemoBrandsShowcase = React.forwardRef<HTMLElement, { onLoginClick: () => v
 
   // Feature highlights for the demo section
   const features = [
-    { icon: Palette, label: 'Color Systems', description: 'Complete color palettes with usage guidelines' },
+    { icon: Palette, label: 'Color Systems', description: 'Complete palettes with HEX, RGB & more' },
     { icon: Type, label: 'Typography', description: 'Font hierarchies and text styles' },
     { icon: Calendar, label: 'Event Branding', description: 'Signage, banners, and schedules' },
-    { icon: Layers, label: 'Logo Variants', description: 'Primary, secondary, and icon versions' },
+    { icon: Sparkles, label: 'AI Intelligence', description: 'Competitive analysis & insights' },
   ];
 
   // BrandHub demo card data (featured brand)

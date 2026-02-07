@@ -33,15 +33,15 @@ const loadingTips = [
 const faqs = [
   {
     question: "What is a brand guide?",
-    answer: "A comprehensive document that defines visual and verbal identity standards."
+    answer: "A digital rulebook defining your brand's colors, logos, typography, and visual standards."
   },
   {
-    question: "Why are brand guidelines important?",
-    answer: "They ensure consistency across all marketing materials and touchpoints."
+    question: "What are Product Suites?",
+    answer: "Master products with linked sub-products for consistent product family branding."
   },
   {
-    question: "Can I download assets?",
-    answer: "Yes! Public guides allow you to download logos, colors, and more."
+    question: "What AI features are available?",
+    answer: "Competitive Intelligence, Brand Intelligence learning, and automated pattern generation."
   },
 ];
 
