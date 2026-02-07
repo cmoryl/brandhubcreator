@@ -1021,6 +1021,65 @@ export type Database = {
         }
         Relationships: []
       }
+      presentation_templates: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          entity_id: string
+          entity_type: string
+          file_name: string
+          file_size: string | null
+          file_url: string
+          id: string
+          name: string
+          organization_id: string | null
+          slides: Json
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          entity_id: string
+          entity_type?: string
+          file_name: string
+          file_size?: string | null
+          file_url: string
+          id?: string
+          name: string
+          organization_id?: string | null
+          slides?: Json
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          entity_id?: string
+          entity_type?: string
+          file_name?: string
+          file_size?: string | null
+          file_url?: string
+          id?: string
+          name?: string
+          organization_id?: string | null
+          slides?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "presentation_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           created_at: string
