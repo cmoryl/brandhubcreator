@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Mail, Lock, ArrowLeft, Loader2, Chrome, RotateCcw, Activity, AlertTriangle } from 'lucide-react';
+import { Mail, Lock, ArrowLeft, Loader2, Chrome, RotateCcw, Activity, AlertTriangle, Check } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ConnectivityDiagnostics } from '@/components/ConnectivityDiagnostics';
 import { useToast } from '@/hooks/use-toast';
@@ -171,6 +172,10 @@ const AuthPage = () => {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(() => {
+    // Check if user previously opted for remember me
+    return localStorage.getItem('brandhub-remember-me') === 'true';
+  });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -513,6 +518,29 @@ const AuthPage = () => {
                       />
                     </div>
                   </div>
+                  
+                  {/* Remember me checkbox */}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="remember-me" 
+                      checked={rememberMe}
+                      onCheckedChange={(checked) => {
+                        setRememberMe(checked === true);
+                        if (checked) {
+                          localStorage.setItem('brandhub-remember-me', 'true');
+                        } else {
+                          localStorage.removeItem('brandhub-remember-me');
+                        }
+                      }}
+                    />
+                    <Label 
+                      htmlFor="remember-me" 
+                      className="text-sm font-normal text-muted-foreground cursor-pointer select-none"
+                    >
+                      Remember me
+                    </Label>
+                  </div>
+                  
                   <Button type="submit" className="w-full h-11 sm:h-10 text-base sm:text-sm touch-manipulation" disabled={isLoading}>
                     {isLoading ? (
                       <>
