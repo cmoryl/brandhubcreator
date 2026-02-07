@@ -270,9 +270,24 @@ const AuthPage = () => {
     }
   };
 
+  // Validate email domain for signup
+  const isValidSignupDomain = (email: string): boolean => {
+    return email.toLowerCase().endsWith('@transperfect.com');
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate @transperfect.com domain
+    if (!isValidSignupDomain(signupEmail)) {
+      toast({
+        title: 'Domain Not Allowed',
+        description: 'Only @transperfect.com email addresses can register. Please use your TransPerfect email.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (signupPassword !== signupConfirmPassword) {
       toast({
         title: 'Password Mismatch',
