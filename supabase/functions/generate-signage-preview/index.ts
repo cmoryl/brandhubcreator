@@ -96,13 +96,20 @@ serve(async (req) => {
 
     // CRITICAL RULE: Never generate text or logos in the output
     const noTextRule = `
-CRITICAL RULE - DO NOT ADD TEXT OR LOGOS:
-- NEVER add any text, words, letters, numbers, or typography to the generated image
-- NEVER add any logos, brand marks, symbols, or icons
-- NEVER add any signage titles, labels, or captions
-- The booth/signage surfaces should show abstract patterns, colors, or gradients ONLY
-- If the reference image contains text/logos, render those surfaces as clean abstract visuals instead
-- This is a visualization of the physical booth structure, NOT the final branded design`;
+CRITICAL RULES FOR GENERATION:
+1. DO NOT ADD TEXT OR LOGOS:
+   - NEVER add any text, words, letters, numbers, or typography to the generated image
+   - NEVER add any logos, brand marks, symbols, or icons
+   - NEVER add any signage titles, labels, or captions
+   - The booth/signage surfaces should show abstract patterns, colors, or gradients ONLY
+   - If the reference image contains text/logos, render those surfaces as clean abstract visuals instead
+
+2. ONLY RENDER UPLOADED CONTENT:
+   - This is a visualization tool, NOT a design creation tool
+   - ONLY render and transform the booth designs and images that have been uploaded
+   - Do NOT invent or create new booth designs, layouts, or decorative elements
+   - Your job is to make the uploaded design look realistic in a physical environment
+   - Preserve the exact structure, layout, and proportions from the uploaded reference images`;
 
     if (hasDesignImage) {
       // Image-to-image: enhance the uploaded booth photo
