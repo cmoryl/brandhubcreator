@@ -33,7 +33,7 @@ const SIGNAGE_TYPES = [
   { value: 'other', label: 'Other' },
 ];
 
-type PreviewMode = 'generate' | 'upload' | 'url';
+type PreviewMode = 'generate' | 'enhance' | 'upload' | 'url';
 type GenerationStyle = 'photorealistic' | 'venue' | 'mockup';
 
 interface UploadedFile {
@@ -57,6 +57,9 @@ export const AddSignageDialog = ({
   const [generatedPreview, setGeneratedPreview] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
+  const [directUploadImage, setDirectUploadImage] = useState<string | null>(null);
+  const [directUploadFileName, setDirectUploadFileName] = useState<string>('');
+  const directUploadRef = useRef<HTMLInputElement>(null);
   const [templateFile, setTemplateFile] = useState<UploadedFile | null>(null);
   
   const [newItem, setNewItem] = useState<Partial<EventSignage>>({
@@ -73,6 +76,8 @@ export const AddSignageDialog = ({
     setGeneratedPreview(null);
     setUploadedImage(null);
     setUploadedFileName('');
+    setDirectUploadImage(null);
+    setDirectUploadFileName('');
     setTemplateFile(null);
     setPreviewMode('generate');
   };
@@ -146,6 +151,38 @@ export const AddSignageDialog = ({
     }
   };
 
+  const handleDirectUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be under 10MB');
+      return;
+    }
+
+    setDirectUploadFileName(file.name);
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      setDirectUploadImage(base64);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearDirectUpload = () => {
+    setDirectUploadImage(null);
+    setDirectUploadFileName('');
+    if (directUploadRef.current) {
+      directUploadRef.current.value = '';
+    }
+  };
+
   const generatePreview = async (fromUpload = false) => {
     if (!newItem.name || !newItem.dimensions) {
       toast.error('Please enter name and dimensions first');
@@ -212,9 +249,12 @@ export const AddSignageDialog = ({
     
     if (withPreview && generatedPreview) {
       finalPreviewUrl = generatedPreview;
-    } else if (previewMode === 'upload' && uploadedImage && !generatedPreview) {
+    } else if (previewMode === 'enhance' && uploadedImage && !generatedPreview) {
       // Use the uploaded image directly if no AI generation was done
       finalPreviewUrl = uploadedImage;
+    } else if (previewMode === 'upload' && directUploadImage) {
+      // Use the direct uploaded image
+      finalPreviewUrl = directUploadImage;
     }
 
     const item: EventSignage = {
@@ -240,7 +280,7 @@ export const AddSignageDialog = ({
   ];
 
   const canGenerate = newItem.name && newItem.dimensions;
-  const hasGeneratedOrUploaded = generatedPreview || uploadedImage;
+  const hasGeneratedOrUploaded = generatedPreview || uploadedImage || directUploadImage;
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
@@ -307,12 +347,12 @@ export const AddSignageDialog = ({
             <Label>Preview Image</Label>
             
             {/* Mode Tabs */}
-            <div className="flex rounded-lg border bg-muted/50 p-1">
+            <div className="grid grid-cols-4 rounded-lg border bg-muted/50 p-1 gap-1">
               <button
                 type="button"
                 onClick={() => setPreviewMode('generate')}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors",
+                  "flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-md text-xs font-medium transition-colors",
                   previewMode === 'generate' 
                     ? "bg-background shadow-sm text-foreground" 
                     : "text-muted-foreground hover:text-foreground"
@@ -323,22 +363,35 @@ export const AddSignageDialog = ({
               </button>
               <button
                 type="button"
+                onClick={() => setPreviewMode('enhance')}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-md text-xs font-medium transition-colors",
+                  previewMode === 'enhance' 
+                    ? "bg-background shadow-sm text-foreground" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Sparkles className="h-4 w-4" />
+                Enhance
+              </button>
+              <button
+                type="button"
                 onClick={() => setPreviewMode('upload')}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors",
+                  "flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-md text-xs font-medium transition-colors",
                   previewMode === 'upload' 
                     ? "bg-background shadow-sm text-foreground" 
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <Upload className="h-4 w-4" />
-                Upload & Enhance
+                Upload
               </button>
               <button
                 type="button"
                 onClick={() => setPreviewMode('url')}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors",
+                  "flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-md text-xs font-medium transition-colors",
                   previewMode === 'url' 
                     ? "bg-background shadow-sm text-foreground" 
                     : "text-muted-foreground hover:text-foreground"
@@ -463,7 +516,7 @@ export const AddSignageDialog = ({
             )}
 
             {/* Upload & Enhance Mode */}
-            {previewMode === 'upload' && (
+            {previewMode === 'enhance' && (
               <div className="space-y-3">
                 <p className="text-xs text-muted-foreground">
                   Upload a booth photo or screen grab and AI will enhance it into a professional preview
@@ -554,6 +607,56 @@ export const AddSignageDialog = ({
               </div>
             )}
 
+            {/* Direct Upload Mode */}
+            {previewMode === 'upload' && (
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Upload a preview image directly without AI enhancement
+                </p>
+
+                {/* Upload Area */}
+                {!directUploadImage ? (
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">
+                        Click to upload preview image
+                      </p>
+                      <p className="text-xs text-muted-foreground/70 mt-1">
+                        PNG, JPG up to 10MB
+                      </p>
+                    </div>
+                    <input
+                      ref={directUploadRef}
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleDirectUpload}
+                    />
+                  </label>
+                ) : (
+                  <div className="relative">
+                    <img
+                      src={directUploadImage}
+                      alt="Preview image"
+                      className="w-full h-40 object-cover rounded-lg border"
+                    />
+                    <button
+                      type="button"
+                      onClick={clearDirectUpload}
+                      className="absolute top-2 right-2 p-1 bg-black/60 rounded-full hover:bg-black/80 transition-colors"
+                    >
+                      <X className="h-4 w-4 text-white" />
+                    </button>
+                    <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                      <ImageIcon className="h-3 w-3" />
+                      {directUploadFileName}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* URL Mode */}
             {previewMode === 'url' && (
               <Input
@@ -629,7 +732,7 @@ export const AddSignageDialog = ({
             </Button>
             <Button
               onClick={() => handleAdd(true)}
-              disabled={!newItem.name || !newItem.dimensions || (!generatedPreview && !newItem.previewUrl && !uploadedImage)}
+              disabled={!newItem.name || !newItem.dimensions || (!generatedPreview && !newItem.previewUrl && !uploadedImage && !directUploadImage)}
               className="flex-1"
             >
               {generatedPreview ? (
