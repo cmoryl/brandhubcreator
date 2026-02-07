@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { Plus, Trash2, Maximize, FileImage, Download, Eye, Pencil, Check, Upload, Sparkles, Loader2, ImagePlus } from 'lucide-react';
+import { useState, useCallback, useRef } from 'react';
+import { Plus, Trash2, Maximize, FileImage, Download, Eye, Pencil, Check, Upload, Sparkles, Loader2, ImagePlus, Link, FileText, Image, X } from 'lucide-react';
 import { BrandEventSignage, LayoutPreset, BrandColor } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { LayoutSelector, useLayoutClasses } from '@/components/brand/LayoutSelector';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
@@ -17,6 +18,20 @@ import { RichTextEditor, RichTextDisplay } from '@/components/ui/rich-text-edito
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+// Reference image types for AI generation context
+interface ReferenceImage {
+  data: string; // Base64 or URL
+  type: 'design' | 'booth-reference' | 'venue-reference';
+  name?: string;
+}
+
+interface TemplateReference {
+  data: string;
+  type: string; // MIME type
+  name: string;
+  pageCount?: number;
+}
 
 interface BrandEventSignageSectionProps {
   eventSignage: BrandEventSignage[];
@@ -88,6 +103,20 @@ export const BrandEventSignageSection = ({
   });
   const [newItemAiStyle, setNewItemAiStyle] = useState<'photorealistic' | 'venue' | 'mockup'>('photorealistic');
   const [isCreatingWithAi, setIsCreatingWithAi] = useState(false);
+  const [previewTab, setPreviewTab] = useState<'ai' | 'enhance' | 'upload' | 'url'>('ai');
+  
+  // Reference images for AI context
+  const [designImage, setDesignImage] = useState<string | null>(null);
+  const [templateReference, setTemplateReference] = useState<TemplateReference | null>(null);
+  const [boothReferences, setBoothReferences] = useState<string[]>([]);
+  const [venueReferences, setVenueReferences] = useState<string[]>([]);
+  const [isUploadingTemplate, setIsUploadingTemplate] = useState(false);
+  
+  // File input refs
+  const designInputRef = useRef<HTMLInputElement>(null);
+  const templateInputRef = useRef<HTMLInputElement>(null);
+  const boothInputRef = useRef<HTMLInputElement>(null);
+  const venueInputRef = useRef<HTMLInputElement>(null);
 
   const isEditable = !!onEventSignageChange;
   const canEditSubtitle = !!onSubtitleChange;
@@ -99,6 +128,111 @@ export const BrandEventSignageSection = ({
     setPreviewOpen(true);
   };
 
+  // File to base64 helper
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Handle design image upload
+  const handleDesignUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+    
+    try {
+      const base64 = await fileToBase64(file);
+      setDesignImage(base64);
+      setPreviewTab('enhance'); // Switch to enhance mode when design is uploaded
+      toast.success('Design uploaded');
+    } catch (error) {
+      toast.error('Failed to upload design');
+    }
+  };
+
+  // Handle template reference upload (PDF or image)
+  const handleTemplateUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const isPdf = file.type === 'application/pdf';
+    const isImage = file.type.startsWith('image/');
+    
+    if (!isPdf && !isImage) {
+      toast.error('Please upload a PDF or image file');
+      return;
+    }
+    
+    setIsUploadingTemplate(true);
+    try {
+      const base64 = await fileToBase64(file);
+      
+      if (isPdf) {
+        // For PDF, we'll pass it to the edge function for context
+        setTemplateReference({
+          data: base64,
+          type: file.type,
+          name: file.name,
+        });
+        toast.success(`PDF template "${file.name}" uploaded`);
+      } else {
+        // For images, use directly
+        setTemplateReference({
+          data: base64,
+          type: file.type,
+          name: file.name,
+        });
+        toast.success('Template image uploaded');
+      }
+    } catch (error) {
+      toast.error('Failed to upload template');
+    } finally {
+      setIsUploadingTemplate(false);
+    }
+  };
+
+  // Handle booth/venue reference uploads
+  const handleReferenceUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'booth' | 'venue') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+    
+    try {
+      const base64 = await fileToBase64(file);
+      if (type === 'booth') {
+        setBoothReferences(prev => [...prev, base64]);
+      } else {
+        setVenueReferences(prev => [...prev, base64]);
+      }
+      toast.success(`${type === 'booth' ? 'Booth' : 'Venue'} reference added`);
+    } catch (error) {
+      toast.error('Failed to upload reference');
+    }
+  };
+
+  // Clear all reference images when dialog closes
+  const resetDialog = () => {
+    setNewItem({ name: '', type: 'booth-backdrop', dimensions: '', notes: '' });
+    setDesignImage(null);
+    setTemplateReference(null);
+    setBoothReferences([]);
+    setVenueReferences([]);
+    setPreviewTab('ai');
+    setNewItemAiStyle('photorealistic');
+  };
+
   const handleAdd = async (generateAi: boolean = false) => {
     if (!newItem.name || !newItem.dimensions || !onEventSignageChange) return;
     
@@ -108,6 +242,21 @@ export const BrandEventSignageSection = ({
     if (generateAi) {
       setIsCreatingWithAi(true);
       try {
+        // Build reference images array for multi-image context
+        const referenceImages: ReferenceImage[] = [];
+        
+        if (designImage) {
+          referenceImages.push({ data: designImage, type: 'design', name: 'Design' });
+        }
+        
+        boothReferences.forEach((ref, i) => {
+          referenceImages.push({ data: ref, type: 'booth-reference', name: `Booth Reference ${i + 1}` });
+        });
+        
+        venueReferences.forEach((ref, i) => {
+          referenceImages.push({ data: ref, type: 'venue-reference', name: `Venue Reference ${i + 1}` });
+        });
+        
         const { data, error } = await supabase.functions.invoke('generate-signage-preview', {
           body: {
             signageType: newItem.type,
@@ -116,6 +265,8 @@ export const BrandEventSignageSection = ({
             brandName,
             brandColors: brandColors?.map(c => c.hex),
             style: newItemAiStyle,
+            referenceImages: referenceImages.length > 0 ? referenceImages : undefined,
+            templateReference: templateReference || undefined,
           },
         });
         
@@ -144,7 +295,7 @@ export const BrandEventSignageSection = ({
     };
     
     onEventSignageChange([...eventSignage, item]);
-    setNewItem({ name: '', type: 'booth-backdrop', dimensions: '', notes: '' });
+    resetDialog();
     setIsDialogOpen(false);
   };
 
@@ -293,143 +444,395 @@ export const BrandEventSignageSection = ({
                 Add Signage
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
               <DialogHeader>
                 <DialogTitle>Add Event Signage</DialogTitle>
                 <DialogDescription>
                   Add booth backdrops, banners, and other physical signage with optional AI-generated previews
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="grid grid-cols-2 gap-4">
+              <ScrollArea className="flex-1 pr-4">
+                <div className="space-y-4 pt-4 pb-2">
+                  {/* Name & Type */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Name</Label>
+                      <Input
+                        value={newItem.name || ''}
+                        onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                        placeholder="Main Booth Backdrop"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Type</Label>
+                      <Select
+                        value={newItem.type}
+                        onValueChange={(value) => setNewItem({ ...newItem, type: value as BrandEventSignage['type'] })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SIGNAGE_TYPES.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Dimensions */}
                   <div className="space-y-2">
-                    <Label>Name</Label>
+                    <Label>Dimensions</Label>
                     <Input
-                      value={newItem.name || ''}
-                      onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                      placeholder="Main Booth Backdrop"
+                      value={newItem.dimensions || ''}
+                      onChange={(e) => setNewItem({ ...newItem, dimensions: e.target.value })}
+                      placeholder="10ft x 8ft"
                     />
                   </div>
+                  
+                  {/* Preview Image Options - Enhanced with 4 tabs */}
                   <div className="space-y-2">
-                    <Label>Type</Label>
-                    <Select
-                      value={newItem.type}
-                      onValueChange={(value) => setNewItem({ ...newItem, type: value as BrandEventSignage['type'] })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SIGNAGE_TYPES.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Dimensions</Label>
-                  <Input
-                    value={newItem.dimensions || ''}
-                    onChange={(e) => setNewItem({ ...newItem, dimensions: e.target.value })}
-                    placeholder="10ft x 8ft"
-                  />
-                </div>
-                
-                {/* Preview Image Options */}
-                <div className="space-y-2">
-                  <Label>Preview Image</Label>
-                  <Tabs defaultValue="ai" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="ai" className="gap-1.5">
-                        <Sparkles className="h-3.5 w-3.5" />
-                        AI Generate
-                      </TabsTrigger>
-                      <TabsTrigger value="url" className="gap-1.5">
-                        <ImagePlus className="h-3.5 w-3.5" />
-                        URL
-                      </TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="ai" className="space-y-3 pt-2">
-                      <p className="text-xs text-muted-foreground">
-                        Generate a hyper-realistic preview image using AI
-                      </p>
-                      <div className="grid grid-cols-3 gap-2">
-                        {AI_STYLES.map((style) => (
+                    <Label>Preview Image</Label>
+                    <Tabs value={previewTab} onValueChange={(v) => setPreviewTab(v as any)} className="w-full">
+                      <TabsList className="grid w-full grid-cols-4">
+                        <TabsTrigger value="ai" className="gap-1 text-xs px-2">
+                          <Sparkles className="h-3 w-3" />
+                          AI Generate
+                        </TabsTrigger>
+                        <TabsTrigger value="enhance" className="gap-1 text-xs px-2">
+                          <Sparkles className="h-3 w-3" />
+                          Enhance
+                        </TabsTrigger>
+                        <TabsTrigger value="upload" className="gap-1 text-xs px-2">
+                          <Upload className="h-3 w-3" />
+                          Upload
+                        </TabsTrigger>
+                        <TabsTrigger value="url" className="gap-1 text-xs px-2">
+                          <Link className="h-3 w-3" />
+                          URL
+                        </TabsTrigger>
+                      </TabsList>
+
+                      {/* AI Generate Tab */}
+                      <TabsContent value="ai" className="space-y-3 pt-2">
+                        <p className="text-xs text-muted-foreground">
+                          Generate a hyper-realistic preview image using AI
+                        </p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {AI_STYLES.map((style) => (
+                            <button
+                              key={style.value}
+                              type="button"
+                              onClick={() => setNewItemAiStyle(style.value as any)}
+                              className={cn(
+                                "p-2 rounded-lg border text-center transition-all",
+                                newItemAiStyle === style.value 
+                                  ? "border-primary bg-primary/5 ring-1 ring-primary" 
+                                  : "border-border hover:border-primary/50"
+                              )}
+                            >
+                              <p className="text-xs font-medium">{style.label}</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">{style.description}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </TabsContent>
+
+                      {/* Enhance Tab (upload design for image-to-image) */}
+                      <TabsContent value="enhance" className="space-y-3 pt-2">
+                        <p className="text-xs text-muted-foreground">
+                          Upload your booth design and AI will render it in a realistic setting
+                        </p>
+                        {designImage ? (
+                          <div className="relative">
+                            <img src={designImage} alt="Design" className="w-full h-32 object-contain rounded-lg border bg-muted" />
+                            <Button
+                              size="icon"
+                              variant="destructive"
+                              className="absolute top-1 right-1 h-6 w-6"
+                              onClick={() => setDesignImage(null)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : (
                           <button
-                            key={style.value}
                             type="button"
-                            onClick={() => setNewItemAiStyle(style.value as any)}
-                            className={cn(
-                              "p-2 rounded-lg border text-center transition-all",
-                              newItemAiStyle === style.value 
-                                ? "border-primary bg-primary/5 ring-1 ring-primary" 
-                                : "border-border hover:border-primary/50"
-                            )}
+                            onClick={() => designInputRef.current?.click()}
+                            className="w-full p-4 border-2 border-dashed rounded-lg hover:border-primary/50 transition-colors text-center"
                           >
-                            <p className="text-xs font-medium">{style.label}</p>
-                            <p className="text-[10px] text-muted-foreground mt-0.5">{style.description}</p>
+                            <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
+                            <p className="text-sm font-medium">Upload your booth design</p>
+                            <p className="text-xs text-muted-foreground">Your artwork, mockup, or design file</p>
                           </button>
+                        )}
+                        <input
+                          ref={designInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleDesignUpload}
+                        />
+                        
+                        {/* Style selection for enhance mode too */}
+                        <div className="grid grid-cols-3 gap-2">
+                          {AI_STYLES.map((style) => (
+                            <button
+                              key={style.value}
+                              type="button"
+                              onClick={() => setNewItemAiStyle(style.value as any)}
+                              className={cn(
+                                "p-2 rounded-lg border text-center transition-all",
+                                newItemAiStyle === style.value 
+                                  ? "border-primary bg-primary/5 ring-1 ring-primary" 
+                                  : "border-border hover:border-primary/50"
+                              )}
+                            >
+                              <p className="text-xs font-medium">{style.label}</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">{style.description}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </TabsContent>
+
+                      {/* Upload Tab */}
+                      <TabsContent value="upload" className="space-y-2 pt-2">
+                        <ImageLibraryPicker
+                          onSelect={(url) => setNewItem({ ...newItem, previewUrl: url })}
+                          trigger={
+                            <button
+                              type="button"
+                              className="w-full p-4 border-2 border-dashed rounded-lg hover:border-primary/50 transition-colors text-center"
+                            >
+                              <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
+                              <p className="text-sm font-medium">Upload preview image</p>
+                              <p className="text-xs text-muted-foreground">Select from library or upload new</p>
+                            </button>
+                          }
+                        />
+                        {newItem.previewUrl && (
+                          <div className="relative">
+                            <img src={newItem.previewUrl} alt="Preview" className="w-full h-32 object-contain rounded-lg border bg-muted" />
+                            <Button
+                              size="icon"
+                              variant="destructive"
+                              className="absolute top-1 right-1 h-6 w-6"
+                              onClick={() => setNewItem({ ...newItem, previewUrl: '' })}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
+                      </TabsContent>
+
+                      {/* URL Tab */}
+                      <TabsContent value="url" className="space-y-2 pt-2">
+                        <Input
+                          value={newItem.previewUrl || ''}
+                          onChange={(e) => setNewItem({ ...newItem, previewUrl: e.target.value })}
+                          placeholder="https://..."
+                        />
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+
+                  {/* Booth Template Reference (PDF or Image) */}
+                  <div className="space-y-2">
+                    <Label>Booth Template Reference (optional)</Label>
+                    {templateReference ? (
+                      <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
+                        <div className="p-2 bg-background rounded">
+                          {templateReference.type === 'application/pdf' ? (
+                            <FileText className="h-5 w-5 text-red-500" />
+                          ) : (
+                            <Image className="h-5 w-5 text-blue-500" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{templateReference.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {templateReference.type === 'application/pdf' ? 'PDF Template' : 'Image Template'}
+                          </p>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() => setTemplateReference(null)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => templateInputRef.current?.click()}
+                        className="w-full p-3 border-2 border-dashed rounded-lg hover:border-primary/50 transition-colors text-left flex items-center gap-3"
+                        disabled={isUploadingTemplate}
+                      >
+                        {isUploadingTemplate ? (
+                          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                        ) : (
+                          <FileText className="h-5 w-5 text-muted-foreground" />
+                        )}
+                        <div>
+                          <p className="text-sm font-medium">Upload template reference</p>
+                          <p className="text-xs text-muted-foreground">PDF or image of booth layout/design template</p>
+                        </div>
+                      </button>
+                    )}
+                    <input
+                      ref={templateInputRef}
+                      type="file"
+                      accept=".pdf,image/*"
+                      className="hidden"
+                      onChange={handleTemplateUpload}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      AI will use this as reference for accurate booth proportions and layout
+                    </p>
+                  </div>
+
+                  {/* Booth & Venue References */}
+                  <div className="space-y-2">
+                    <Label>Booth & Venue References (optional)</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Add photos of similar booths or venue spaces to help AI create a more realistic render
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => boothInputRef.current?.click()}
+                        className="p-2 border-2 border-dashed rounded-lg hover:border-primary/50 transition-colors flex items-center gap-2"
+                      >
+                        <Image className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-xs">Booth Photo</span>
+                        {boothReferences.length > 0 && (
+                          <Badge variant="secondary" className="ml-auto">{boothReferences.length}</Badge>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => venueInputRef.current?.click()}
+                        className="p-2 border-2 border-dashed rounded-lg hover:border-primary/50 transition-colors flex items-center gap-2"
+                      >
+                        <Image className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-xs">Venue Photo</span>
+                        {venueReferences.length > 0 && (
+                          <Badge variant="secondary" className="ml-auto">{venueReferences.length}</Badge>
+                        )}
+                      </button>
+                    </div>
+                    <input
+                      ref={boothInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleReferenceUpload(e, 'booth')}
+                    />
+                    <input
+                      ref={venueInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleReferenceUpload(e, 'venue')}
+                    />
+                    
+                    {/* Show uploaded references */}
+                    {(boothReferences.length > 0 || venueReferences.length > 0) && (
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {boothReferences.map((ref, i) => (
+                          <div key={`booth-${i}`} className="relative w-12 h-12">
+                            <img src={ref} alt={`Booth ${i + 1}`} className="w-full h-full object-cover rounded" />
+                            <Button
+                              size="icon"
+                              variant="destructive"
+                              className="absolute -top-1 -right-1 h-4 w-4 p-0"
+                              onClick={() => setBoothReferences(prev => prev.filter((_, idx) => idx !== i))}
+                            >
+                              <X className="h-2 w-2" />
+                            </Button>
+                          </div>
+                        ))}
+                        {venueReferences.map((ref, i) => (
+                          <div key={`venue-${i}`} className="relative w-12 h-12">
+                            <img src={ref} alt={`Venue ${i + 1}`} className="w-full h-full object-cover rounded" />
+                            <Button
+                              size="icon"
+                              variant="destructive"
+                              className="absolute -top-1 -right-1 h-4 w-4 p-0"
+                              onClick={() => setVenueReferences(prev => prev.filter((_, idx) => idx !== i))}
+                            >
+                              <X className="h-2 w-2" />
+                            </Button>
+                          </div>
                         ))}
                       </div>
-                    </TabsContent>
-                    <TabsContent value="url" className="space-y-2 pt-2">
+                    )}
+                  </div>
+
+                  {/* Template URL & Live Files */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Template URL</Label>
                       <Input
-                        value={newItem.previewUrl || ''}
-                        onChange={(e) => setNewItem({ ...newItem, previewUrl: e.target.value })}
+                        value={newItem.templateUrl || ''}
+                        onChange={(e) => setNewItem({ ...newItem, templateUrl: e.target.value })}
                         placeholder="https://..."
                       />
-                    </TabsContent>
-                  </Tabs>
-                </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Live Files Location</Label>
+                      <Input
+                        value={newItem.specifications || ''}
+                        onChange={(e) => setNewItem({ ...newItem, specifications: e.target.value })}
+                        placeholder="Figma, Drive, etc."
+                      />
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label>Template URL (optional)</Label>
-                  <Input
-                    value={newItem.templateUrl || ''}
-                    onChange={(e) => setNewItem({ ...newItem, templateUrl: e.target.value })}
-                    placeholder="https://..."
-                  />
+                  <div className="space-y-2">
+                    <Label>Notes / Specifications (optional)</Label>
+                    <Textarea
+                      value={newItem.notes || ''}
+                      onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
+                      placeholder="Material, installation notes, vendor details..."
+                      rows={2}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Notes / Specifications (optional)</Label>
-                  <Textarea
-                    value={newItem.notes || ''}
-                    onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
-                    placeholder="Material, installation notes, vendor details..."
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={() => handleAdd(false)} 
-                    variant="outline"
-                    className="flex-1" 
-                    disabled={!newItem.name || !newItem.dimensions || isCreatingWithAi}
-                  >
-                    Add Without Preview
-                  </Button>
-                  <Button 
-                    onClick={() => handleAdd(true)} 
-                    className="flex-1 gap-1.5" 
-                    disabled={!newItem.name || !newItem.dimensions || isCreatingWithAi}
-                  >
-                    {isCreatingWithAi ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4" />
-                        Add with AI Preview
-                      </>
-                    )}
-                  </Button>
-                </div>
+              </ScrollArea>
+              
+              {/* Footer Actions */}
+              <div className="flex gap-2 pt-4 border-t">
+                <Button 
+                  onClick={() => handleAdd(false)} 
+                  variant="outline"
+                  className="flex-1" 
+                  disabled={!newItem.name || !newItem.dimensions || isCreatingWithAi}
+                >
+                  Add Without Preview
+                </Button>
+                <Button 
+                  onClick={() => handleAdd(true)} 
+                  className="flex-1 gap-1.5" 
+                  disabled={!newItem.name || !newItem.dimensions || isCreatingWithAi}
+                >
+                  {isCreatingWithAi ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      {previewTab === 'enhance' && designImage ? 'Generate Preview' : 'Add with AI Preview'}
+                    </>
+                  )}
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
