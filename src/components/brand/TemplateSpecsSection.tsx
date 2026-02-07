@@ -155,10 +155,12 @@ const SortableSpecItem = ({
     isDragging,
   } = useSortable({ id: item.id });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
+  // Only apply transform styles when actively dragging to prevent continuous repaints
+  const style: React.CSSProperties = transform ? {
+    transform: CSS.Translate.toString(transform),
     transition,
-  };
+    willChange: 'transform',
+  } : {};
 
   return (
     <div
