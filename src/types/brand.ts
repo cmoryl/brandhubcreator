@@ -463,6 +463,8 @@ export interface PresentationTemplate {
   slides: PresentationSlide[];
   category?: 'sales' | 'marketing' | 'corporate' | 'event' | 'training' | 'other';
   createdAt?: string;
+  /** Optional admin-uploaded card thumbnail to override slide-derived thumbnail */
+  cardImageUrl?: string;
 }
 
 // TEMPLATE SPECIFICATIONS - Visual Template Annotation System

@@ -5,7 +5,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Upload, Download, Trash2, FileText, Loader2, Eye, ChevronLeft, ChevronRight, Presentation, X, ExternalLink, Monitor } from 'lucide-react';
+import { Plus, Upload, Download, Trash2, FileText, Loader2, Eye, ChevronLeft, ChevronRight, Presentation, X, ExternalLink, Monitor, ImagePlus } from 'lucide-react';
 import { PresentationTemplate, PresentationSlide } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -61,36 +61,48 @@ const getOfficeEmbedUrl = (fileUrl: string): string => {
   return `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`;
 };
 
-// Office Online embed viewer component  
+// Office Online embed viewer component with improved sizing and error handling
 const OfficeEmbed = ({ fileUrl, fileName }: { fileUrl: string; fileName: string }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const embedUrl = getOfficeEmbedUrl(fileUrl);
 
+  // The Office Online embed may fail silently inside iframe; give it time to load, then show fallback on error
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // If still loading after 15s, assume it worked
+      setIsLoading(false);
+    }, 15000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <div className="relative w-full h-[350px] bg-muted rounded-lg overflow-hidden">
-      {isLoading && (
+    <div className="relative w-full bg-muted rounded-lg overflow-hidden" style={{ height: '60vh', minHeight: '400px', maxHeight: '600px' }}>
+      {isLoading && !hasError && (
         <div className="absolute inset-0 flex items-center justify-center bg-muted z-10">
           <div className="text-center">
             <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto mb-2" />
             <p className="text-xs text-muted-foreground">Loading presentation...</p>
+            <p className="text-[10px] text-muted-foreground/70 mt-1">This may take a moment</p>
           </div>
         </div>
       )}
       
       {hasError ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/50 p-4 text-center">
-          <Presentation className="h-8 w-8 text-muted-foreground/50 mb-2" />
+          <Presentation className="h-10 w-10 text-muted-foreground/50 mb-3" />
           <p className="text-sm font-medium mb-1">Preview unavailable</p>
-          <p className="text-xs text-muted-foreground mb-3">
-            Try opening in Office Online directly.
+          <p className="text-xs text-muted-foreground mb-4 max-w-sm">
+            The live preview could not load. This can happen with very large files or network issues.
           </p>
-          <Button variant="outline" size="sm" asChild>
-            <a href={embedUrl.replace('/embed.aspx', '/view.aspx')} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-              Open in Office Online
-            </a>
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <a href={embedUrl.replace('/embed.aspx', '/view.aspx')} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                Open in Office Online
+              </a>
+            </Button>
+          </div>
         </div>
       ) : (
         <iframe
@@ -102,7 +114,8 @@ const OfficeEmbed = ({ fileUrl, fileName }: { fileUrl: string; fileName: string 
             setIsLoading(false);
             setHasError(true);
           }}
-          sandbox="allow-scripts allow-same-origin allow-popups"
+          allow="fullscreen"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
         />
       )}
     </div>
@@ -239,7 +252,13 @@ export const PresentationTemplatesSection = ({
     isLoading: isLoadingPresentations,
     addPresentation,
     deletePresentation,
+    updatePresentation,
   } = usePresentationTemplates(entityType, entityId);
+  
+  // Card image replace
+  const cardImageInputRef = useRef<HTMLInputElement>(null);
+  const [replacingImageForId, setReplacingImageForId] = useState<string | null>(null);
+  const [isUploadingCardImage, setIsUploadingCardImage] = useState(false);
   
   // Use database presentations if available, fallback to props for backward compatibility
   const presentations = dbPresentations.length > 0 ? dbPresentations : (propPresentations || []);
@@ -364,6 +383,59 @@ export const PresentationTemplatesSection = ({
     } catch (error) {
       console.error('[PresentationDelete] Error:', error);
     }
+  };
+
+  // Handle card image replacement
+  const handleReplaceCardImage = async (file: File, presentationId: string) => {
+    if (!organization?.id) return;
+
+    setIsUploadingCardImage(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
+      const storagePath = `${organization.id}/presentations/cards/${presentationId}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('organization-assets')
+        .upload(storagePath, file, {
+          contentType: file.type,
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('organization-assets')
+        .getPublicUrl(storagePath);
+
+      const cardImageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      await updatePresentation({ id: presentationId, updates: { cardImageUrl } });
+      toast.success('Card image updated');
+    } catch (error) {
+      console.error('[CardImage] Upload error:', error);
+      toast.error('Failed to upload card image');
+    } finally {
+      setIsUploadingCardImage(false);
+      setReplacingImageForId(null);
+    }
+  };
+
+  const onCardImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !replacingImageForId) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be under 5MB');
+      return;
+    }
+
+    handleReplaceCardImage(file, replacingImageForId);
+    e.target.value = '';
   };
 
   return (
@@ -526,73 +598,97 @@ export const PresentationTemplatesSection = ({
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {presentations.map((pres) => (
-            <Card key={pres.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
-              {/* Slide preview */}
-              <div
-                className="aspect-video bg-muted relative cursor-pointer"
-                onClick={() => setPreviewPresentation(pres)}
-              >
-                {pres.slides[0]?.thumbnailUrl ? (
-                  <OptimizedImage
-                    src={pres.slides[0].thumbnailUrl}
-                    alt={pres.name}
-                    className="w-full h-full"
-                    objectFit="cover"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <Presentation className="h-12 w-12 text-muted-foreground/30" />
+          {presentations.map((pres) => {
+            // Determine card thumbnail: cardImageUrl > first slide > placeholder
+            const cardThumbnail = pres.cardImageUrl || pres.slides[0]?.thumbnailUrl;
+
+            return (
+              <Card key={pres.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
+                {/* Card preview image */}
+                <div
+                  className="aspect-video bg-muted relative cursor-pointer"
+                  onClick={() => setPreviewPresentation(pres)}
+                >
+                  {cardThumbnail ? (
+                    <OptimizedImage
+                      src={cardThumbnail}
+                      alt={pres.name}
+                      className="w-full h-full"
+                      objectFit="cover"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <Presentation className="h-12 w-12 text-muted-foreground/30" />
+                    </div>
+                  )}
+                  
+                  <Badge className={cn("absolute top-2 left-2", getCategoryColor(pres.category))}>
+                    {CATEGORIES.find(c => c.value === pres.category)?.label || 'Other'}
+                  </Badge>
+                  
+                  <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                    {pres.slides.length} slides
                   </div>
-                )}
-                
-                <Badge className={cn("absolute top-2 left-2", getCategoryColor(pres.category))}>
-                  {CATEGORIES.find(c => c.value === pres.category)?.label || 'Other'}
-                </Badge>
-                
-                <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                  {pres.slides.length} slides
-                </div>
 
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Button variant="secondary" size="sm">
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Slides
-                  </Button>
-                </div>
-              </div>
-
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="min-w-0">
-                    <h3 className="font-semibold truncate">{pres.name}</h3>
-                    {pres.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-1">{pres.description}</p>
+                  {/* Hover overlay with view + optional replace image */}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                    <Button variant="secondary" size="sm">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Slides
+                    </Button>
+                    {isEditable && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={isUploadingCardImage}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setReplacingImageForId(pres.id);
+                          cardImageInputRef.current?.click();
+                        }}
+                      >
+                        {isUploadingCardImage && replacingImageForId === pres.id ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <ImagePlus className="h-4 w-4 mr-2" />
+                        )}
+                        Replace Image
+                      </Button>
                     )}
                   </div>
-                  {isEditable && (
-                    <button
-                      onClick={() => handleDelete(pres.id)}
-                      className="p-1.5 rounded hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
-                    >
-                      <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                    </button>
-                  )}
                 </div>
 
-                <div className="flex items-center justify-between mt-3">
-                  <span className="text-xs text-muted-foreground">{pres.fileSize}</span>
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={pres.fileUrl} download={pres.fileName}>
-                      <Download className="h-3.5 w-3.5 mr-1.5" />
-                      Download
-                    </a>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold truncate">{pres.name}</h3>
+                      {pres.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-1">{pres.description}</p>
+                      )}
+                    </div>
+                    {isEditable && (
+                      <button
+                        onClick={() => handleDelete(pres.id)}
+                        className="p-1.5 rounded hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between mt-3">
+                    <span className="text-xs text-muted-foreground">{pres.fileSize}</span>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={pres.fileUrl} download={pres.fileName}>
+                        <Download className="h-3.5 w-3.5 mr-1.5" />
+                        Download
+                      </a>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -660,6 +756,15 @@ export const PresentationTemplatesSection = ({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Hidden input for card image replacement */}
+      <input
+        ref={cardImageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={onCardImageSelect}
+      />
     </section>
   );
 };
