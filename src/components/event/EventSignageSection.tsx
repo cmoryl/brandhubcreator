@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { Plus, Trash2, Maximize, FileImage, Download, Eye, Pencil } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Plus, Trash2, Maximize, FileImage, Download, Eye, Pencil, Check, X } from 'lucide-react';
 import { EventSignage } from '@/types/event';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { LayoutSelector, LayoutPreset, useLayoutClasses } from '@/components/brand/LayoutSelector';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
@@ -51,6 +52,85 @@ const getTypeColor = (type: EventSignage['type']) => {
   return colors[type] || colors.other;
 };
 
+// Inline editable field component
+const InlineEditField = ({ 
+  value, 
+  onSave, 
+  className,
+  inputClassName,
+  isEditable 
+}: { 
+  value: string; 
+  onSave: (newValue: string) => void;
+  className?: string;
+  inputClassName?: string;
+  isEditable: boolean;
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  useEffect(() => {
+    setEditValue(value);
+  }, [value]);
+
+  const handleSave = () => {
+    if (editValue.trim() && editValue !== value) {
+      onSave(editValue.trim());
+    } else {
+      setEditValue(value);
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditValue(value);
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSave();
+    } else if (e.key === 'Escape') {
+      handleCancel();
+    }
+  };
+
+  if (!isEditable) {
+    return <span className={className}>{value}</span>;
+  }
+
+  if (isEditing) {
+    return (
+      <Input
+        ref={inputRef}
+        value={editValue}
+        onChange={(e) => setEditValue(e.target.value)}
+        onBlur={handleSave}
+        onKeyDown={handleKeyDown}
+        className={cn("h-6 py-0 px-1 text-sm", inputClassName)}
+      />
+    );
+  }
+
+  return (
+    <span 
+      className={cn(className, "cursor-pointer hover:bg-muted/50 rounded px-1 -mx-1 transition-colors")}
+      onClick={() => setIsEditing(true)}
+      title="Click to edit"
+    >
+      {value}
+    </span>
+  );
+};
+
 export const EventSignageSection = ({
   signage,
   onUpdate,
@@ -76,6 +156,10 @@ export const EventSignageSection = ({
   const openEditDialog = (item: EventSignage) => {
     setEditingItem(item);
     setEditDialogOpen(true);
+  };
+
+  const handleInlineUpdate = (id: string, field: 'name' | 'dimensions', value: string) => {
+    onUpdate(signage.map(s => s.id === id ? { ...s, [field]: value } : s));
   };
 
   const handleAddSignage = (item: EventSignage) => {
@@ -180,9 +264,23 @@ export const EventSignageSection = ({
                     )}
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-2 mb-3">
-                        <div className="min-w-0">
-                          <h3 className="font-semibold truncate">{item.name}</h3>
-                          <p className="text-sm text-muted-foreground">{item.dimensions}</p>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold truncate">
+                            <InlineEditField
+                              value={item.name}
+                              onSave={(v) => handleInlineUpdate(item.id, 'name', v)}
+                              isEditable={isEditable}
+                              inputClassName="font-semibold"
+                            />
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            <InlineEditField
+                              value={item.dimensions}
+                              onSave={(v) => handleInlineUpdate(item.id, 'dimensions', v)}
+                              isEditable={isEditable}
+                              className="text-sm text-muted-foreground"
+                            />
+                          </p>
                         </div>
                         {isEditable && (
                           <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
