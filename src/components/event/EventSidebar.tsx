@@ -113,6 +113,7 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   clientlogos: { label: 'Client Logos', icon: Users, category: 'Collateral' },
   locations: { label: 'Global Locations', icon: MapPin, category: 'Venue' },
   insights: { label: 'Insights & Updates', icon: TrendingUp, category: 'Resources' },
+  presentations: { label: 'Presentation Templates', icon: Presentation, category: 'Collateral' },
 };
 
 export const EventSidebar = ({ 
