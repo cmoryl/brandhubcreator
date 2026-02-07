@@ -114,6 +114,7 @@ const ProductEditor = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('full');
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -624,6 +625,8 @@ const ProductEditor = () => {
             hiddenSections={hiddenSections}
             onHiddenSectionsChange={handleHiddenSectionsChange}
             isAdmin={isGuideAdmin}
+            showFavoritesOnly={showFavoritesOnly}
+            onShowFavoritesOnlyChange={setShowFavoritesOnly}
           />
         </div>
         
@@ -645,6 +648,8 @@ const ProductEditor = () => {
               hiddenSections={hiddenSections}
               onHiddenSectionsChange={handleHiddenSectionsChange}
               isAdmin={isGuideAdmin}
+              showFavoritesOnly={showFavoritesOnly}
+              onShowFavoritesOnlyChange={setShowFavoritesOnly}
             />
           </SheetContent>
         </Sheet>

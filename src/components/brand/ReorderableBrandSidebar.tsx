@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, Globe,
-  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase, LayoutGrid, TrendingUp, BarChart3, Presentation, Calendar, Award, ImageIcon, Crown, Maximize
+  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase, LayoutGrid, TrendingUp, BarChart3, Presentation, Calendar, Award, ImageIcon, Crown, Maximize, Star
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -21,7 +22,11 @@ import {
 import { SectionId, DEFAULT_SECTION_ORDER } from '@/types/brand';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { SortableSectionItem } from './SortableSectionItem';
+import { useSectionFavorites } from '@/hooks/useSectionFavorites';
 
 interface ReorderableBrandSidebarProps {
   activeSection: SectionId;
@@ -29,12 +34,14 @@ interface ReorderableBrandSidebarProps {
   brandName: string;
   brandId?: string;
   organizationId?: string | null;
-  entityType?: 'brand' | 'product';
+  entityType?: 'brand' | 'product' | 'event';
   sectionOrder: SectionId[];
   onSectionOrderChange: (newOrder: SectionId[]) => void;
   hiddenSections?: SectionId[];
   onHiddenSectionsChange?: (hiddenSections: SectionId[]) => void;
   isAdmin?: boolean;
+  showFavoritesOnly?: boolean;
+  onShowFavoritesOnlyChange?: (show: boolean) => void;
 }
 
 export const sectionMeta: Record<SectionId, { label: string; icon: React.ElementType; category: string }> = {
@@ -93,8 +100,22 @@ export const ReorderableBrandSidebar = ({
   onSectionOrderChange,
   hiddenSections = [],
   onHiddenSectionsChange,
-  isAdmin = false
+  isAdmin = false,
+  showFavoritesOnly = false,
+  onShowFavoritesOnlyChange,
 }: ReorderableBrandSidebarProps) => {
+  const [showFavoriteStars, setShowFavoriteStars] = useState(false);
+  
+  // Favorites hook
+  const {
+    isFavorited,
+    toggleFavorite,
+    favoriteCount,
+    hasFavorites,
+    isAuthenticated,
+    favoritedSectionIds,
+  } = useSectionFavorites({ entityType, entityId: brandId });
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -127,6 +148,11 @@ export const ReorderableBrandSidebar = ({
     }
   };
 
+  // Filter sections based on favorites mode
+  const displayedSections = showFavoritesOnly
+    ? sectionOrder.filter(id => favoritedSectionIds.has(id))
+    : sectionOrder;
+
   const visibleCount = sectionOrder.length - hiddenSections.length;
 
   return (
@@ -135,10 +161,55 @@ export const ReorderableBrandSidebar = ({
       <div className="p-4 border-b border-sidebar-border animate-fade-in" style={{ animationDelay: '0.1s' }}>
         <h2 className="font-semibold text-sidebar-foreground truncate">{brandName || 'Brand Guide'}</h2>
         <p className="text-xs text-sidebar-foreground/60 mt-1">
-          {visibleCount} of {sectionOrder.length} Sections
-          {isAdmin && ' • Click eye to hide'}
+          {showFavoritesOnly 
+            ? `${favoriteCount} Favorite${favoriteCount !== 1 ? 's' : ''}`
+            : `${visibleCount} of ${sectionOrder.length} Sections`}
+          {isAdmin && !showFavoritesOnly && ' • Click eye to hide'}
         </p>
       </div>
+
+      {/* Favorites filter bar */}
+      {isAuthenticated && (
+        <div className="px-3 py-2 border-b border-sidebar-border flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={showFavoritesOnly ? 'default' : 'ghost'}
+                size="sm"
+                className="flex-1 gap-2 h-8 text-xs"
+                onClick={() => onShowFavoritesOnlyChange?.(!showFavoritesOnly)}
+                disabled={!hasFavorites && !showFavoritesOnly}
+              >
+                <Star className={cn("h-3.5 w-3.5", showFavoritesOnly && "fill-current")} />
+                {showFavoritesOnly ? 'Favorites' : 'All Sections'}
+                {favoriteCount > 0 && (
+                  <Badge variant="secondary" className="h-4 px-1 text-[10px]">
+                    {favoriteCount}
+                  </Badge>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {showFavoritesOnly ? 'Show all sections' : 'Show only favorites'}
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={showFavoriteStars ? 'secondary' : 'ghost'}
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={() => setShowFavoriteStars(!showFavoriteStars)}
+              >
+                <Star className={cn("h-3.5 w-3.5", showFavoriteStars && "text-amber-500")} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {showFavoriteStars ? 'Hide favorite controls' : 'Show favorite controls'}
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      )}
 
       {/* Navigation */}
       <ScrollArea className="flex-1">
@@ -148,9 +219,9 @@ export const ReorderableBrandSidebar = ({
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
-            <SortableContext items={sectionOrder} strategy={verticalListSortingStrategy}>
+            <SortableContext items={displayedSections} strategy={verticalListSortingStrategy}>
               <div className="space-y-0.5">
-                {sectionOrder.map((sectionId, index) => {
+                {displayedSections.map((sectionId, index) => {
                   const meta = sectionMeta[sectionId];
                   if (!meta) return null;
                   const isHidden = hiddenSections.includes(sectionId);
@@ -169,12 +240,22 @@ export const ReorderableBrandSidebar = ({
                       isActive={activeSection === sectionId}
                       isHidden={isHidden}
                       isAdmin={isAdmin}
+                      isFavorited={isFavorited(sectionId)}
+                      showFavorites={showFavoriteStars}
+                      onFavoriteToggle={() => toggleFavorite(sectionId)}
                       onClick={() => onSectionChange(sectionId)}
                       onToggleVisibility={() => toggleSectionVisibility(sectionId)}
                     />
                     </div>
                   );
                 })}
+                {showFavoritesOnly && displayedSections.length === 0 && (
+                  <div className="text-center py-8 text-sm text-muted-foreground">
+                    <Star className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                    <p>No favorites yet</p>
+                    <p className="text-xs mt-1">Click the star button to add favorites</p>
+                  </div>
+                )}
               </div>
             </SortableContext>
           </DndContext>

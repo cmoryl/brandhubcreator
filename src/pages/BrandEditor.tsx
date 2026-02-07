@@ -114,6 +114,8 @@ const BrandEditor = () => {
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
   // Parent brand for hierarchical breadcrumbs
   const [parentBrand, setParentBrand] = useState<{ id: string; name: string; slug: string } | null>(null);
+  // Favorites filter state
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   // Redirect unapproved users to pending approval page (admins are always allowed)
   useEffect(() => {
@@ -747,11 +749,14 @@ const BrandEditor = () => {
             brandName={brand.hero.name}
             brandId={brand.id}
             organizationId={brand.organizationId}
+            entityType="brand"
             sectionOrder={sectionOrder}
             onSectionOrderChange={handleSectionOrderChange}
             hiddenSections={hiddenSections}
             onHiddenSectionsChange={handleHiddenSectionsChange}
             isAdmin={isGuideAdmin}
+            showFavoritesOnly={showFavoritesOnly}
+            onShowFavoritesOnlyChange={setShowFavoritesOnly}
           />
         </div>
         
@@ -767,11 +772,14 @@ const BrandEditor = () => {
               brandName={brand.hero.name}
               brandId={brand.id}
               organizationId={brand.organizationId}
+              entityType="brand"
               sectionOrder={sectionOrder}
               onSectionOrderChange={handleSectionOrderChange}
               hiddenSections={hiddenSections}
               onHiddenSectionsChange={handleHiddenSectionsChange}
               isAdmin={isGuideAdmin}
+              showFavoritesOnly={showFavoritesOnly}
+              onShowFavoritesOnlyChange={setShowFavoritesOnly}
             />
           </SheetContent>
         </Sheet>

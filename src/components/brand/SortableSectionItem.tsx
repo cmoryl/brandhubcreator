@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Eye, EyeOff } from 'lucide-react';
+import { GripVertical, Eye, EyeOff, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SortableSectionItemProps {
@@ -10,6 +10,9 @@ interface SortableSectionItemProps {
   isActive: boolean;
   isHidden?: boolean;
   isAdmin?: boolean;
+  isFavorited?: boolean;
+  showFavorites?: boolean;
+  onFavoriteToggle?: () => void;
   onClick: () => void;
   onToggleVisibility?: () => void;
 }
@@ -21,6 +24,9 @@ export const SortableSectionItem = ({
   isActive, 
   isHidden = false,
   isAdmin = false,
+  isFavorited = false,
+  showFavorites = false,
+  onFavoriteToggle,
   onClick,
   onToggleVisibility
 }: SortableSectionItemProps) => {
@@ -49,6 +55,27 @@ export const SortableSectionItem = ({
         isHidden && "opacity-50"
       )}
     >
+      {/* Favorite star (when favorites mode is shown) */}
+      {showFavorites && onFavoriteToggle && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onFavoriteToggle();
+          }}
+          className={cn(
+            "shrink-0 p-1 rounded transition-colors",
+            isFavorited
+              ? "text-amber-500 hover:text-amber-600"
+              : "text-muted-foreground/30 hover:text-amber-500"
+          )}
+          aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+          title={isFavorited ? "Remove from favorites" : "Add to favorites"}
+        >
+          <Star className={cn("h-3 w-3", isFavorited && "fill-current")} />
+        </button>
+      )}
+
       {isAdmin && onToggleVisibility && (
         <button
           type="button"
@@ -94,6 +121,10 @@ export const SortableSectionItem = ({
           )}
         />
         <span className="truncate flex-1 text-left">{label}</span>
+        {/* Small favorite indicator when not in favorites mode */}
+        {!showFavorites && isFavorited && (
+          <Star className="h-3 w-3 text-amber-500 fill-current shrink-0" />
+        )}
       </button>
     </div>
   );
