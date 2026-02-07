@@ -298,7 +298,15 @@ export const FullBrandPage = ({
       case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={editHandler((misuse) => onBrandUpdate({ misuse }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'casestudies':
       case 'brochures': return <DigitalCollateralSection collateral={brand.brochures || []} onCollateralChange={editHandler((brochures) => onBrandUpdate({ brochures }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />;
-      case 'templates': return <TemplatesSection templates={brand.templates || []} onTemplatesChange={editHandler((templates) => onBrandUpdate({ templates }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />;
+      case 'templates': 
+        // Legacy templates section now uses PresentationTemplatesSection
+        return <PresentationTemplatesSection 
+          presentations={brand.presentationTemplates || []} 
+          onUpdate={editHandler((presentationTemplates) => onBrandUpdate({ presentationTemplates }))} 
+          isEditable={canEdit}
+          entityId={brandId}
+          entityType={entityType}
+        />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={brand.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => onBrandUpdate({ templateSpecs }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandColors={brand.colors || []} />;
       case 'products': 
         // Support products section for both brands and products

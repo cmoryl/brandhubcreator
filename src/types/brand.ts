@@ -444,7 +444,7 @@ export interface BrandTemplate {
   isEmbeddedFolder?: boolean; // If true, shows as embedded folder browser
 }
 
-// PRESENTATION TEMPLATES - PowerPoint/Slide Deck Examples
+// PRESENTATION TEMPLATES - All document types including PowerPoint, PDFs, design files, cloud folders, and external links
 export interface PresentationSlide {
   id: string;
   slideNumber: number;
@@ -453,18 +453,38 @@ export interface PresentationSlide {
   textContent?: string; // Extracted text content from the slide
 }
 
+export type PresentationFileType = 
+  | 'pptx' | 'pdf' | 'docx' | 'xlsx' 
+  | 'figma' | 'sketch' | 'psd' | 'ai' 
+  | 'image' | 'video'
+  | 'dropbox' | 'dropbox-folder' | 'drive' | 'drive-folder'
+  | 'link' | 'other';
+
+export type PresentationCategory = 
+  | 'presentations' | 'documents' | 'design-files' 
+  | 'spreadsheets' | 'cloud-folders' | 'external-links' 
+  | 'pdf' | 'sales' | 'marketing' | 'corporate' 
+  | 'event' | 'training' | 'other';
+
 export interface PresentationTemplate {
   id: string;
   name: string;
   description?: string;
-  fileUrl: string; // URL to download the original .pptx file
+  fileUrl: string; // URL to download the original file or external URL
   fileName: string; // Original file name
   fileSize?: string; // e.g., "2.4 MB"
+  fileType?: PresentationFileType; // File type for classification
   slides: PresentationSlide[];
-  category?: 'sales' | 'marketing' | 'corporate' | 'event' | 'training' | 'other';
+  category?: PresentationCategory;
   createdAt?: string;
   /** Optional admin-uploaded card thumbnail to override slide-derived thumbnail */
   cardImageUrl?: string;
+  /** Optional thumbnail URL for preview */
+  thumbnailUrl?: string;
+  /** External URL for links and cloud folders */
+  externalUrl?: string;
+  /** Whether this is an embedded folder view (Dropbox/Drive) */
+  isEmbeddedFolder?: boolean;
 }
 
 // PDF DOCUMENTS - PDF File Templates and Documents

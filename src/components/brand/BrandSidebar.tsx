@@ -39,7 +39,7 @@ const sections: { id: SectionId; label: string; icon: React.ElementType; categor
   { id: 'assets', label: 'Operational Vault', icon: FolderArchive, category: 'Resources' },
   { id: 'misuse', label: 'Anti-Patterns', icon: Ban, category: 'Resources' },
   { id: 'brochures', label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
-  { id: 'templates', label: 'Master Scaffolds', icon: FileType, category: 'Collateral' },
+  { id: 'presentations', label: 'Presentation Templates', icon: FileType, category: 'Collateral' },
   { id: 'products', label: 'Products', icon: Package, category: 'Collateral' },
 ];
 
