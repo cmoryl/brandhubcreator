@@ -3,7 +3,7 @@
  * Dialog for creating a product suite with a master product and multiple sub-products
  */
 
-import { useState, forwardRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layers, Plus, Package, Trash2, GripVertical, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -45,9 +45,10 @@ interface CreateProductSuiteDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Using forwardRef for compatibility with Radix UI dialog components
-export const CreateProductSuiteDialog = forwardRef<HTMLDivElement, CreateProductSuiteDialogProps>(
-  function CreateProductSuiteDialog({ open, onOpenChange }, ref) {
+export const CreateProductSuiteDialog = ({
+  open,
+  onOpenChange,
+}: CreateProductSuiteDialogProps) => {
   const navigate = useNavigate();
   const { addProduct, refetch } = useBrands();
 
@@ -426,6 +427,4 @@ export const CreateProductSuiteDialog = forwardRef<HTMLDivElement, CreateProduct
       </AlertDialog>
     </Dialog>
   );
-});
-
-CreateProductSuiteDialog.displayName = 'CreateProductSuiteDialog';
+};
