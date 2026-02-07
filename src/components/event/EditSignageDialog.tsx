@@ -559,14 +559,24 @@ export const EditSignageDialog = ({
             )}
           </div>
 
-          {/* Template URL */}
-          <div className="space-y-2">
-            <Label>Template URL (optional)</Label>
-            <Input
-              value={editedItem.templateUrl || ''}
-              onChange={(e) => setEditedItem({ ...editedItem, templateUrl: e.target.value })}
-              placeholder="https://..."
-            />
+          {/* Template URL & Live Files URL */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Template URL</Label>
+              <Input
+                value={editedItem.templateUrl || ''}
+                onChange={(e) => setEditedItem({ ...editedItem, templateUrl: e.target.value })}
+                placeholder="https://..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Live Files Location</Label>
+              <Input
+                value={editedItem.liveFilesUrl || ''}
+                onChange={(e) => setEditedItem({ ...editedItem, liveFilesUrl: e.target.value })}
+                placeholder="Figma, Google Drive..."
+              />
+            </div>
           </div>
 
           {/* Notes */}

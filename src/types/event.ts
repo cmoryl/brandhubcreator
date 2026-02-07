@@ -77,6 +77,7 @@ export interface EventSignage {
   dimensions: string; // e.g., "10ft x 8ft"
   previewUrl?: string;
   templateUrl?: string;
+  liveFilesUrl?: string; // Link to live design files (Figma, Google Drive, Dropbox, etc.)
   notes?: string;
   specifications?: string;
 }
