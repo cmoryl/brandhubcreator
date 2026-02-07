@@ -12,6 +12,7 @@ interface SignagePreviewRequest {
   brandName?: string;
   brandColors?: string[];
   style?: 'photorealistic' | 'mockup' | 'venue';
+  referenceImage?: string; // Base64 image for image-to-image generation
 }
 
 serve(async (req) => {
@@ -20,7 +21,7 @@ serve(async (req) => {
   }
 
   try {
-    const { signageType, signageName, dimensions, brandName, brandColors, style = 'photorealistic' } = await req.json() as SignagePreviewRequest;
+    const { signageType, signageName, dimensions, brandName, brandColors, style = 'photorealistic', referenceImage } = await req.json() as SignagePreviewRequest;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -55,14 +56,47 @@ serve(async (req) => {
       'venue': 'In realistic venue setting, convention center or event space, natural lighting, people blur in background, authentic trade show atmosphere',
     };
 
-    const prompt = `Generate a hyper-realistic preview image of a ${signageDesc} ${brandContext}. 
+    // Different prompt based on whether we have a reference image
+    let prompt: string;
+    let messageContent: any;
+
+    if (referenceImage) {
+      // Image-to-image: enhance the uploaded booth photo
+      prompt = `Transform this booth/signage photo into a professional ${style} preview image.
+Keep the core design and branding elements from the uploaded image, but enhance it to look like:
+${stylePrompts[style]}
+
+The signage is "${signageName}" (${signageDesc}) with dimensions ${dimensions} ${brandContext} ${colorDescription}.
+
+Make it look polished, professional, and ready for marketing materials.
+Preserve the key design elements and branding from the original while making it look more professional.
+16:9 aspect ratio, 4K quality, commercial photography style.`;
+
+      messageContent = [
+        {
+          type: "text",
+          text: prompt,
+        },
+        {
+          type: "image_url",
+          image_url: {
+            url: referenceImage,
+          },
+        },
+      ];
+    } else {
+      // Text-to-image: generate from scratch
+      prompt = `Generate a hyper-realistic preview image of a ${signageDesc} ${brandContext}. 
 The signage is named "${signageName}" with dimensions ${dimensions} ${colorDescription}.
 ${stylePrompts[style]}
 Show the signage from a professional viewing angle, as if photographed at a real event or trade show.
 Make it look like a high-quality professional photograph, not an illustration.
 16:9 aspect ratio, 4K quality, commercial photography style.`;
 
-    console.log('[generate-signage-preview] Generating for:', signageName, signageType);
+      messageContent = prompt;
+    }
+
+    console.log('[generate-signage-preview] Generating for:', signageName, signageType, referenceImage ? '(with reference image)' : '(from scratch)');
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -75,7 +109,7 @@ Make it look like a high-quality professional photograph, not an illustration.
         messages: [
           {
             role: "user",
-            content: prompt,
+            content: messageContent,
           },
         ],
         modalities: ["image", "text"],

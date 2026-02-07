@@ -161,6 +161,8 @@ export const FullEventPage = ({
             signage={event.eventSignage || []}
             onUpdate={canEdit ? (eventSignage) => updateEvent({ eventSignage }) : () => {}}
             isEditable={canEdit}
+            brandName={event.hero?.name}
+            brandColors={event.colors?.map(c => c.hex)}
           />
         );
       case 'eventbanners':
