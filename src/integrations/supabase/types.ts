@@ -1030,13 +1030,17 @@ export type Database = {
           description: string | null
           entity_id: string
           entity_type: string
+          external_url: string | null
           file_name: string
           file_size: string | null
+          file_type: string | null
           file_url: string
           id: string
+          is_embedded_folder: boolean | null
           name: string
           organization_id: string | null
           slides: Json
+          thumbnail_url: string | null
           updated_at: string
         }
         Insert: {
@@ -1047,13 +1051,17 @@ export type Database = {
           description?: string | null
           entity_id: string
           entity_type?: string
+          external_url?: string | null
           file_name: string
           file_size?: string | null
+          file_type?: string | null
           file_url: string
           id?: string
+          is_embedded_folder?: boolean | null
           name: string
           organization_id?: string | null
           slides?: Json
+          thumbnail_url?: string | null
           updated_at?: string
         }
         Update: {
@@ -1064,13 +1072,17 @@ export type Database = {
           description?: string | null
           entity_id?: string
           entity_type?: string
+          external_url?: string | null
           file_name?: string
           file_size?: string | null
+          file_type?: string | null
           file_url?: string
           id?: string
+          is_embedded_folder?: boolean | null
           name?: string
           organization_id?: string | null
           slides?: Json
+          thumbnail_url?: string | null
           updated_at?: string
         }
         Relationships: [

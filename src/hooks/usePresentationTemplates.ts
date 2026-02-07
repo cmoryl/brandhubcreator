@@ -1,11 +1,11 @@
 /**
  * usePresentationTemplates - Hook for managing presentation templates in the database
- * Provides CRUD operations for presentation templates with real-time updates
+ * Provides CRUD operations for all document types: presentations, PDFs, design files, cloud folders, external links
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { PresentationTemplate, PresentationSlide } from '@/types/brand';
+import { PresentationTemplate, PresentationSlide, PresentationFileType, PresentationCategory } from '@/types/brand';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { toast } from 'sonner';
 
@@ -19,12 +19,16 @@ interface DatabasePresentationTemplate {
   file_url: string;
   file_name: string;
   file_size: string | null;
+  file_type: string | null;
   slides: PresentationSlide[];
   category: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
   card_image_url: string | null;
+  thumbnail_url: string | null;
+  external_url: string | null;
+  is_embedded_folder: boolean | null;
 }
 
 // Convert database record to frontend type
@@ -35,10 +39,14 @@ const toFrontendTemplate = (record: DatabasePresentationTemplate): PresentationT
   fileUrl: record.file_url,
   fileName: record.file_name,
   fileSize: record.file_size || undefined,
+  fileType: (record.file_type as PresentationFileType) || 'pptx',
   slides: record.slides || [],
-  category: (record.category as PresentationTemplate['category']) || 'corporate',
+  category: (record.category as PresentationCategory) || 'presentations',
   createdAt: record.created_at,
   cardImageUrl: record.card_image_url || undefined,
+  thumbnailUrl: record.thumbnail_url || undefined,
+  externalUrl: record.external_url || undefined,
+  isEmbeddedFolder: record.is_embedded_folder || false,
 });
 
 // Query key factory
@@ -101,9 +109,13 @@ export function usePresentationTemplates(
         file_url: template.fileUrl,
         file_name: template.fileName,
         file_size: template.fileSize || null,
-        slides: JSON.stringify(template.slides),
-        category: template.category || 'corporate',
+        file_type: template.fileType || 'pptx',
+        slides: JSON.stringify(template.slides || []),
+        category: template.category || 'presentations',
         created_by: session.session?.user?.id || null,
+        thumbnail_url: template.thumbnailUrl || null,
+        external_url: template.externalUrl || null,
+        is_embedded_folder: template.isEmbeddedFolder || false,
       };
       
       const { data, error } = await supabase
@@ -159,8 +171,12 @@ export function usePresentationTemplates(
       const updateData: Record<string, unknown> = {};
       if (updates.name !== undefined) updateData.name = updates.name;
       if (updates.description !== undefined) updateData.description = updates.description || null;
-      if (updates.category !== undefined) updateData.category = updates.category || 'corporate';
+      if (updates.category !== undefined) updateData.category = updates.category || 'presentations';
       if (updates.cardImageUrl !== undefined) updateData.card_image_url = updates.cardImageUrl || null;
+      if (updates.thumbnailUrl !== undefined) updateData.thumbnail_url = updates.thumbnailUrl || null;
+      if (updates.externalUrl !== undefined) updateData.external_url = updates.externalUrl || null;
+      if (updates.isEmbeddedFolder !== undefined) updateData.is_embedded_folder = updates.isEmbeddedFolder || false;
+      if (updates.fileType !== undefined) updateData.file_type = updates.fileType || 'pptx';
 
       const { error } = await supabase
         .from('presentation_templates')

@@ -68,7 +68,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   misuse: { label: 'Anti-Patterns', icon: Ban, category: 'Resources' },
   casestudies: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' }, // Deprecated - use brochures
   brochures: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
-  templates: { label: 'Master Scaffolds', icon: FileType, category: 'Collateral' },
+  templates: { label: 'Presentation Templates', icon: Presentation, category: 'Collateral' }, // Legacy - now merged into presentations
   templatespecs: { label: 'Template Specs', icon: FileText, category: 'Collateral' },
   webinars: { label: 'Webinar Series', icon: Presentation, category: 'Resources' },
   products: { label: 'Products', icon: Package, category: 'Collateral' },
