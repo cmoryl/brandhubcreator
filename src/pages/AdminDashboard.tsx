@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, Building2, Palette, Package, Activity, Shield, 
-  TrendingUp, TrendingDown, BarChart3, PieChart, Clock,
+  TrendingUp, TrendingDown, BarChart3, Clock,
   UserPlus, LogIn, Eye, Edit, Trash2, Download, RefreshCw,
-  Settings, Database, HardDrive, AlertTriangle, CheckCircle,
-  Crown, Search, Filter, MoreHorizontal, ArrowUpRight, Calendar,
-  FileText, Brain, UserCheck, Wrench, CalendarDays
+  HardDrive, Crown, Search, MoreHorizontal, ArrowUpRight, Calendar,
+  CalendarDays
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,7 +15,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -32,7 +30,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
-import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { BrandReportGenerator } from '@/components/admin/BrandReportGenerator';
 import { ProductReportGenerator } from '@/components/admin/ProductReportGenerator';
 import { EventReportGenerator } from '@/components/admin/EventReportGenerator';
@@ -56,52 +54,14 @@ import { GlobalMapThemeEditor } from '@/components/admin/GlobalMapThemeEditor';
 import { AdminOverview } from '@/components/admin/AdminOverview';
 import { DownloadsReportPanel } from '@/components/admin/DownloadsReportPanel';
 import { ActivityLogsPanel } from '@/components/admin/ActivityLogsPanel';
-interface DashboardStats {
-  totalUsers: number;
-  totalOrganizations: number;
-  totalBrands: number;
-  totalProducts: number;
-  totalEvents: number;
-  publicEvents: number;
-  activeUsersToday: number;
-  newUsersThisWeek: number;
-  publicBrands: number;
-  storageUsed: string;
-  pendingApprovals: number;
-}
-
-interface UserData {
-  id: string;
-  email: string;
-  created_at: string;
-  last_sign_in_at: string | null;
-  role: string;
-  organizations: number;
-  brands: number;
-}
-
-interface OrgData {
-  id: string;
-  name: string;
-  slug: string;
-  created_at: string;
-  memberCount: number;
-  brandCount: number;
-  productCount: number;
-  eventCount: number;
-  owner: string;
-}
-
-interface ActivityLog {
-  id: string;
-  type: 'create' | 'update' | 'delete' | 'view' | 'publish' | 'unpublish' | 'export' | 'login' | 'logout' | 'invite' | 'join';
-  entityType: string;
-  entityName: string;
-  description: string;
-  timestamp: string;
-  user?: string;
-  details?: Record<string, unknown>;
-}
+import { 
+  DashboardStats, 
+  ActivityLog, 
+  UserData, 
+  OrgData,
+  getActivityIcon,
+  getActionDescription 
+} from '@/lib/admin';
 
 export default function AdminDashboard() {
   const { user, isAdmin, isLoading: authLoading } = useAuth();
@@ -354,21 +314,7 @@ export default function AdminDashboard() {
 
     // Convert audit logs to ActivityLog format
     auditLogs?.forEach(log => {
-      const actionDescriptions: Record<string, string> = {
-        create: 'created',
-        update: 'updated',
-        delete: 'deleted',
-        view: 'viewed',
-        publish: 'published',
-        unpublish: 'unpublished',
-        export: 'exported',
-        login: 'logged in',
-        logout: 'logged out',
-        invite: 'invited member to',
-        join: 'joined',
-      };
-
-      const actionText = actionDescriptions[log.action_type] || log.action_type;
+      const actionText = getActionDescription(log.action_type);
       const entityName = log.entity_name || 'Unknown';
       const userEmail = log.user_email || 'Unknown user';
 
@@ -520,25 +466,7 @@ export default function AdminDashboard() {
     fetchUsers();
   };
 
-  const getActivityIcon = (type: ActivityLog['type'], entityType?: string) => {
-    switch (type) {
-      case 'create': 
-        if (entityType === 'user') return <UserPlus className="h-4 w-4 text-green-500" />;
-        if (entityType === 'organization') return <Building2 className="h-4 w-4 text-purple-500" />;
-        return <Palette className="h-4 w-4 text-blue-500" />;
-      case 'update': return <Edit className="h-4 w-4 text-amber-500" />;
-      case 'delete': return <Trash2 className="h-4 w-4 text-red-500" />;
-      case 'view': return <Eye className="h-4 w-4 text-gray-500" />;
-      case 'publish': return <Eye className="h-4 w-4 text-green-500" />;
-      case 'unpublish': return <Eye className="h-4 w-4 text-orange-500" />;
-      case 'export': return <Download className="h-4 w-4 text-blue-500" />;
-      case 'login': return <LogIn className="h-4 w-4 text-gray-500" />;
-      case 'logout': return <LogIn className="h-4 w-4 text-gray-400" />;
-      case 'invite': return <UserPlus className="h-4 w-4 text-purple-500" />;
-      case 'join': return <UserPlus className="h-4 w-4 text-green-500" />;
-      default: return <Activity className="h-4 w-4" />;
-    }
-  };
+  // Note: getActivityIcon is now imported from @/lib/admin
 
   const filteredUsers = users.filter(u => 
     u.email.toLowerCase().includes(searchTerm.toLowerCase())
