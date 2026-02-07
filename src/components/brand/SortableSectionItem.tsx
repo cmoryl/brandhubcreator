@@ -58,7 +58,7 @@ export const SortableSectionItem = ({
           }}
           className={cn(
             "shrink-0 p-1 rounded transition-colors",
-            "border border-primary/40 bg-primary/10 hover:bg-primary/20",
+            "bg-primary/10 hover:bg-primary/20",
             "text-primary hover:text-primary"
           )}
           aria-label={isHidden ? "Show section" : "Hide section"}
