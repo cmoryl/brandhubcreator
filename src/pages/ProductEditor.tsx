@@ -913,6 +913,8 @@ const ProductEditor = () => {
         activeSection={activeSection}
         onSectionSelect={handleSectionChange}
         brandName={currentProduct.hero.name}
+        isAdmin={isGuideAdmin}
+        onHiddenSectionsChange={handleHiddenSectionsChange}
       />
       
       {/* Back to top button */}
