@@ -1188,9 +1188,11 @@ export type Database = {
       qr_codes: {
         Row: {
           bg_color: string
+          corner_style: string | null
           created_at: string
           created_by: string | null
           description: string | null
+          dot_style: string | null
           entity_id: string
           entity_type: string
           error_correction: string
@@ -1209,9 +1211,11 @@ export type Database = {
         }
         Insert: {
           bg_color?: string
+          corner_style?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          dot_style?: string | null
           entity_id: string
           entity_type?: string
           error_correction?: string
@@ -1230,9 +1234,11 @@ export type Database = {
         }
         Update: {
           bg_color?: string
+          corner_style?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          dot_style?: string | null
           entity_id?: string
           entity_type?: string
           error_correction?: string
