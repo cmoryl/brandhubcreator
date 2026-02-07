@@ -1,0 +1,434 @@
+/**
+ * QRCodeEditorDialog - Create/Edit QR code dialog with advanced options
+ */
+
+import { useState, useEffect } from 'react';
+import QRCode from 'qrcode';
+import { Loader2, Upload, Image as ImageIcon, QrCode as QrCodeIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
+import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
+import { cn } from '@/lib/utils';
+import type { QRCode as QRCodeType } from '@/hooks/useQRCodes';
+
+interface QRCodeEditorDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  qrCode?: QRCodeType;
+  brandLogos?: { url: string; name: string }[];
+  onSave: (data: Omit<QRCodeType, 'id' | 'createdAt' | 'updatedAt' | 'scanCount'>) => Promise<void>;
+  isSaving: boolean;
+}
+
+const USE_CASES = [
+  { value: 'event', label: 'Event' },
+  { value: 'product', label: 'Product' },
+  { value: 'marketing', label: 'Marketing' },
+  { value: 'contact', label: 'Contact' },
+  { value: 'wifi', label: 'WiFi' },
+  { value: 'other', label: 'Other' },
+];
+
+const ERROR_CORRECTIONS = [
+  { value: 'L', label: 'Low (7%)', description: 'Smallest QR, least error tolerance' },
+  { value: 'M', label: 'Medium (15%)', description: 'Good balance of size and reliability' },
+  { value: 'Q', label: 'Quartile (25%)', description: 'Good for printed materials' },
+  { value: 'H', label: 'High (30%)', description: 'Best for logo overlays, largest QR' },
+];
+
+interface FormState {
+  name: string;
+  description: string;
+  url: string;
+  fgColor: string;
+  bgColor: string;
+  logoUrl: string;
+  logoType: 'none' | 'brand' | 'custom';
+  size: number;
+  errorCorrection: 'L' | 'M' | 'Q' | 'H';
+  useCase: QRCodeType['useCase'];
+  isActive: boolean;
+}
+
+const DEFAULT_FORM: FormState = {
+  name: '',
+  description: '',
+  url: 'https://',
+  fgColor: '#000000',
+  bgColor: '#ffffff',
+  logoUrl: '',
+  logoType: 'none',
+  size: 512,
+  errorCorrection: 'M',
+  useCase: undefined,
+  isActive: true,
+};
+
+export const QRCodeEditorDialog = ({
+  open,
+  onOpenChange,
+  qrCode,
+  brandLogos = [],
+  onSave,
+  isSaving,
+}: QRCodeEditorDialogProps) => {
+  const [form, setForm] = useState(DEFAULT_FORM);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [activeTab, setActiveTab] = useState('basic');
+
+  // Initialize form when editing
+  useEffect(() => {
+    if (qrCode) {
+      setForm({
+        name: qrCode.name,
+        description: qrCode.description || '',
+        url: qrCode.url,
+        fgColor: qrCode.fgColor,
+        bgColor: qrCode.bgColor,
+        logoUrl: qrCode.logoUrl || '',
+        logoType: qrCode.logoType,
+        size: qrCode.size,
+        errorCorrection: qrCode.errorCorrection,
+        useCase: qrCode.useCase,
+        isActive: qrCode.isActive,
+      });
+    } else {
+      setForm(DEFAULT_FORM);
+    }
+    setActiveTab('basic');
+  }, [qrCode, open]);
+
+  // Generate preview
+  useEffect(() => {
+    const generatePreview = async () => {
+      try {
+        if (!form.url || form.url === 'https://') {
+          setPreviewUrl('');
+          return;
+        }
+        const dataUrl = await QRCode.toDataURL(form.url, {
+          width: 200,
+          margin: 2,
+          color: {
+            dark: form.fgColor,
+            light: form.bgColor,
+          },
+          errorCorrectionLevel: form.errorCorrection,
+        });
+        setPreviewUrl(dataUrl);
+      } catch {
+        setPreviewUrl('');
+      }
+    };
+    generatePreview();
+  }, [form.url, form.fgColor, form.bgColor, form.errorCorrection]);
+
+  const handleSubmit = async () => {
+    if (!form.name.trim() || !form.url.trim()) return;
+    await onSave({
+      name: form.name.trim(),
+      description: form.description.trim() || undefined,
+      url: form.url.trim(),
+      fgColor: form.fgColor,
+      bgColor: form.bgColor,
+      logoUrl: form.logoType !== 'none' ? form.logoUrl : undefined,
+      logoType: form.logoType,
+      size: form.size,
+      errorCorrection: form.errorCorrection,
+      useCase: form.useCase,
+      isActive: form.isActive,
+    });
+    onOpenChange(false);
+  };
+
+  const handleLogoSelect = (url: string, type: 'brand' | 'custom') => {
+    setForm(prev => ({ ...prev, logoUrl: url, logoType: type }));
+  };
+
+  const clearLogo = () => {
+    setForm(prev => ({ ...prev, logoUrl: '', logoType: 'none' }));
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle>{qrCode ? 'Edit QR Code' : 'Create QR Code'}</DialogTitle>
+          <DialogDescription>
+            {qrCode ? 'Update your QR code settings' : 'Create a new branded QR code'}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left: Form */}
+            <div className="space-y-4">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid grid-cols-3 w-full">
+                  <TabsTrigger value="basic">Basic</TabsTrigger>
+                  <TabsTrigger value="style">Style</TabsTrigger>
+                  <TabsTrigger value="logo">Logo</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="basic" className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label>Name *</Label>
+                    <Input
+                      value={form.name}
+                      onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Main Website QR"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>URL *</Label>
+                    <Input
+                      value={form.url}
+                      onChange={(e) => setForm(prev => ({ ...prev, url: e.target.value }))}
+                      placeholder="https://yourbrand.com"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea
+                      value={form.description}
+                      onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Optional description for internal reference"
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Use Case</Label>
+                    <Select
+                      value={form.useCase || ''}
+                      onValueChange={(v) => setForm(prev => ({ ...prev, useCase: v as QRCodeType['useCase'] }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select use case" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {USE_CASES.map(uc => (
+                          <SelectItem key={uc.value} value={uc.value}>{uc.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="style" className="space-y-4 pt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Foreground Color</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="color"
+                          value={form.fgColor}
+                          onChange={(e) => setForm(prev => ({ ...prev, fgColor: e.target.value }))}
+                          className="w-12 h-10 p-1 cursor-pointer"
+                        />
+                        <Input
+                          value={form.fgColor}
+                          onChange={(e) => setForm(prev => ({ ...prev, fgColor: e.target.value }))}
+                          className="flex-1 font-mono uppercase"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Background Color</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="color"
+                          value={form.bgColor}
+                          onChange={(e) => setForm(prev => ({ ...prev, bgColor: e.target.value }))}
+                          className="w-12 h-10 p-1 cursor-pointer"
+                        />
+                        <Input
+                          value={form.bgColor}
+                          onChange={(e) => setForm(prev => ({ ...prev, bgColor: e.target.value }))}
+                          className="flex-1 font-mono uppercase"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Size: {form.size}px</Label>
+                    <Slider
+                      value={[form.size]}
+                      onValueChange={([v]) => setForm(prev => ({ ...prev, size: v }))}
+                      min={128}
+                      max={1024}
+                      step={64}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Larger sizes provide higher quality for print materials
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Error Correction</Label>
+                    <Select
+                      value={form.errorCorrection}
+                      onValueChange={(v) => setForm(prev => ({ ...prev, errorCorrection: v as typeof form.errorCorrection }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ERROR_CORRECTIONS.map(ec => (
+                          <SelectItem key={ec.value} value={ec.value}>
+                            <div>
+                              <span className="font-medium">{ec.label}</span>
+                              <span className="text-xs text-muted-foreground ml-2">{ec.description}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Higher error correction is recommended when using logo overlays
+                    </p>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="logo" className="space-y-4 pt-4">
+                  <div className="space-y-3">
+                    <Label>Logo Overlay (Optional)</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Add a logo in the center of your QR code. Requires High error correction.
+                    </p>
+
+                    {form.logoUrl && form.logoType !== 'none' ? (
+                      <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
+                        <img 
+                          src={form.logoUrl} 
+                          alt="Logo" 
+                          className="w-12 h-12 object-contain rounded"
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">
+                            {form.logoType === 'brand' ? 'Brand Logo' : 'Custom Logo'}
+                          </p>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={clearLogo}>
+                          Remove
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {brandLogos.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs font-medium">Brand Logos</p>
+                            <div className="grid grid-cols-4 gap-2">
+                              {brandLogos.slice(0, 8).map((logo, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => handleLogoSelect(logo.url, 'brand')}
+                                  className="aspect-square border rounded-lg p-2 hover:border-primary transition-colors bg-white"
+                                >
+                                  <img 
+                                    src={logo.url} 
+                                    alt={logo.name} 
+                                    className="w-full h-full object-contain"
+                                  />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="pt-2">
+                          <ImageLibraryPicker
+                            onSelect={(url) => handleLogoSelect(url, 'custom')}
+                            trigger={
+                              <Button variant="outline" size="sm" className="gap-2">
+                                <Upload className="h-4 w-4" />
+                                Upload Custom Logo
+                              </Button>
+                            }
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {form.logoType !== 'none' && form.errorCorrection !== 'H' && (
+                      <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                        <p className="text-xs text-amber-800 dark:text-amber-300">
+                          <strong>Tip:</strong> For best results with logo overlays, switch to High error correction.
+                        </p>
+                        <Button 
+                          variant="link" 
+                          size="sm" 
+                          className="h-auto p-0 text-xs"
+                          onClick={() => {
+                            setForm(prev => ({ ...prev, errorCorrection: 'H' }));
+                            setActiveTab('style');
+                          }}
+                        >
+                          Switch to High →
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            {/* Right: Preview */}
+            <div className="flex flex-col items-center justify-center p-6 bg-muted/30 rounded-xl border">
+              <p className="text-xs font-medium text-muted-foreground mb-4">Preview</p>
+              <div className="bg-white rounded-xl p-4 shadow-sm">
+                {previewUrl ? (
+                  <div className="relative">
+                    <img src={previewUrl} alt="QR Preview" className="w-[180px] h-[180px]" />
+                    {form.logoUrl && form.logoType !== 'none' && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-1/4 h-1/4 bg-white rounded-sm flex items-center justify-center p-1 shadow-sm">
+                          <img 
+                            src={form.logoUrl} 
+                            alt="Logo" 
+                            className="max-w-full max-h-full object-contain"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="w-[180px] h-[180px] bg-muted rounded flex items-center justify-center">
+                    <QrCodeIcon className="h-12 w-12 text-muted-foreground/30" />
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-3 text-center">
+                {form.size}px • {ERROR_CORRECTIONS.find(e => e.value === form.errorCorrection)?.label}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-3 pt-4 border-t mt-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={!form.name.trim() || !form.url.trim() || isSaving}
+          >
+            {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {qrCode ? 'Save Changes' : 'Create QR Code'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};

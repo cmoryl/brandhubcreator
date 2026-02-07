@@ -1,192 +1,174 @@
-import { useState, useEffect } from 'react';
-import { Pencil, Check, Copy, Download } from 'lucide-react';
-import QRCode from 'qrcode';
-import { BrandQR } from '@/types/brand';
+/**
+ * QRSection - Advanced QR code management section
+ * Supports multiple QR codes, logo overlays, and PNG/SVG exports
+ */
+
+import { useState } from 'react';
+import { Plus, QrCode as QrCodeIcon, Loader2 } from 'lucide-react';
+import { BrandQR, BrandLogo } from '@/types/brand';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
 import { SectionHeader } from './SectionHeader';
+import { QRCodeCard } from './qr/QRCodeCard';
+import { QRCodeEditorDialog } from './qr/QRCodeEditorDialog';
+import { useQRCodes, QRCode } from '@/hooks/useQRCodes';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 
 interface QRSectionProps {
-  qr: BrandQR;
-  onQRChange: (qr: BrandQR) => void;
+  qr?: BrandQR; // Legacy single QR (for backward compatibility)
+  onQRChange?: (qr: BrandQR) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  entityType?: 'brand' | 'product' | 'event';
+  entityId?: string;
+  logos?: BrandLogo[]; // Brand logos for overlay options
 }
 
-export const QRSection = ({ qr, onQRChange, customSubtitle, onSubtitleChange }: QRSectionProps) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+export const QRSection = ({ 
+  qr, 
+  onQRChange, 
+  customSubtitle, 
+  onSubtitleChange,
+  entityType = 'brand',
+  entityId,
+  logos = [],
+}: QRSectionProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingQR, setEditingQR] = useState<QRCode | undefined>();
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  
+  const { canEdit } = useGuideAdmin();
+  
+  // Use database-backed QR codes
+  const {
+    qrCodes,
+    isLoading,
+    addQRCode,
+    updateQRCode,
+    deleteQRCode,
+    isAdding,
+    isUpdating,
+    isDeleting,
+  } = useQRCodes(entityType, entityId);
 
-  // Generate real QR code
-  useEffect(() => {
-    const generateQR = async () => {
-      try {
-        const url = qr.defaultUrl || 'https://yourbrand.com';
-        const dataUrl = await QRCode.toDataURL(url, {
-          width: 200,
-          margin: 2,
-          color: {
-            dark: qr.fgColor,
-            light: qr.bgColor,
-          },
-          errorCorrectionLevel: 'M',
-        });
-        setQrDataUrl(dataUrl);
-      } catch (err) {
-        console.error('QR generation error:', err);
-      }
-    };
-    generateQR();
-  }, [qr.defaultUrl, qr.fgColor, qr.bgColor]);
+  // Convert brand logos to format for editor
+  const brandLogos = logos
+    .filter(logo => logo.url)
+    .map(logo => ({ url: logo.url, name: logo.name }));
 
-  const copySettings = async () => {
-    const settings = JSON.stringify(qr, null, 2);
-    await navigator.clipboard.writeText(settings);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCreate = () => {
+    setEditingQR(undefined);
+    setEditorOpen(true);
   };
 
-  const downloadQR = async () => {
-    try {
-      const url = qr.defaultUrl || 'https://yourbrand.com';
-      const dataUrl = await QRCode.toDataURL(url, {
-        width: 512,
-        margin: 2,
-        color: {
-          dark: qr.fgColor,
-          light: qr.bgColor,
-        },
-        errorCorrectionLevel: 'H',
-      });
-      const link = document.createElement('a');
-      link.download = 'brand-qr-code.png';
-      link.href = dataUrl;
-      link.click();
-    } catch (err) {
-      console.error('QR download error:', err);
+  const handleEdit = (qrCode: QRCode) => {
+    setEditingQR(qrCode);
+    setEditorOpen(true);
+  };
+
+  const handleSave = async (data: Omit<QRCode, 'id' | 'createdAt' | 'updatedAt' | 'scanCount'>) => {
+    if (editingQR) {
+      await updateQRCode({ id: editingQR.id, updates: data });
+    } else {
+      await addQRCode(data);
     }
   };
 
+  const handleDeleteConfirm = async () => {
+    if (deleteConfirmId) {
+      await deleteQRCode(deleteConfirmId);
+      setDeleteConfirmId(null);
+    }
+  };
+
+  const hasQRCodes = qrCodes.length > 0;
+
   return (
-    <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
+    <section id="qr" className="scroll-mt-24 space-y-6">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1">
           <SectionHeader
             title="QR Codes"
             defaultSubtitle="Physical-to-digital bridge - brand-compliant QR codes"
             customSubtitle={customSubtitle}
-            onSubtitleChange={onSubtitleChange}
+            onSubtitleChange={canEdit ? onSubtitleChange : undefined}
             isEditing={isHeaderEditing}
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button
-          variant={isEditing ? "default" : "outline"}
-          size="sm"
-          onClick={() => setIsEditing(!isEditing)}
-          className="gap-2 shrink-0"
-        >
-          {isEditing ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-          {isEditing ? 'Done' : 'Edit'}
-        </Button>
+        {canEdit && (
+          <Button onClick={handleCreate} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Create QR Code
+          </Button>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Preview */}
-        <div className="bg-card rounded-xl p-8 border border-border flex flex-col items-center justify-center">
-          <div className="rounded-xl overflow-hidden shadow-lg mb-4">
-            {qrDataUrl ? (
-              <img src={qrDataUrl} alt="QR Code" width={200} height={200} />
-            ) : (
-              <div className="w-[200px] h-[200px] bg-muted animate-pulse rounded" />
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : !hasQRCodes ? (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <QrCodeIcon className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <h3 className="font-semibold text-lg mb-2">No QR codes yet</h3>
+            <p className="text-muted-foreground mb-4 max-w-md">
+              Create branded QR codes for events, marketing materials, products, and more. 
+              Supports custom colors, logo overlays, and multiple export formats.
+            </p>
+            {canEdit && (
+              <Button onClick={handleCreate} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Create Your First QR Code
+              </Button>
             )}
-          </div>
-          <p className="text-sm text-muted-foreground text-center mb-3">
-            Scannable QR code with your brand colors
-          </p>
-          <Button variant="outline" size="sm" onClick={downloadQR} className="gap-2">
-            <Download className="h-4 w-4" />
-            Download HD
-          </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {qrCodes.map((qrCode) => (
+            <QRCodeCard
+              key={qrCode.id}
+              qrCode={qrCode}
+              canEdit={canEdit}
+              onEdit={() => handleEdit(qrCode)}
+              onDelete={() => setDeleteConfirmId(qrCode.id)}
+            />
+          ))}
         </div>
+      )}
 
-        {/* Settings */}
-        <div className="bg-card rounded-xl p-6 border border-border space-y-6">
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-muted-foreground block mb-2">Default URL</label>
-              {isEditing ? (
-                <Input
-                  value={qr.defaultUrl}
-                  onChange={(e) => onQRChange({ ...qr, defaultUrl: e.target.value })}
-                  placeholder="https://yourbrand.com"
-                />
-              ) : (
-                <p className="text-foreground font-mono text-sm bg-secondary px-3 py-2 rounded-md">
-                  {qr.defaultUrl || 'https://yourbrand.com'}
-                </p>
-              )}
-            </div>
+      {/* Editor Dialog */}
+      <QRCodeEditorDialog
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        qrCode={editingQR}
+        brandLogos={brandLogos}
+        onSave={handleSave}
+        isSaving={isAdding || isUpdating}
+      />
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground block mb-2">Foreground Color</label>
-                {isEditing ? (
-                  <div className="flex gap-2">
-                    <Input
-                      type="color"
-                      value={qr.fgColor}
-                      onChange={(e) => onQRChange({ ...qr, fgColor: e.target.value })}
-                      className="w-12 h-10 p-1"
-                    />
-                    <Input
-                      value={qr.fgColor}
-                      onChange={(e) => onQRChange({ ...qr, fgColor: e.target.value })}
-                      className="flex-1 font-mono uppercase"
-                    />
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded border border-border" style={{ backgroundColor: qr.fgColor }} />
-                    <span className="font-mono text-sm uppercase">{qr.fgColor}</span>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-muted-foreground block mb-2">Background Color</label>
-                {isEditing ? (
-                  <div className="flex gap-2">
-                    <Input
-                      type="color"
-                      value={qr.bgColor}
-                      onChange={(e) => onQRChange({ ...qr, bgColor: e.target.value })}
-                      className="w-12 h-10 p-1"
-                    />
-                    <Input
-                      value={qr.bgColor}
-                      onChange={(e) => onQRChange({ ...qr, bgColor: e.target.value })}
-                      className="flex-1 font-mono uppercase"
-                    />
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded border border-border" style={{ backgroundColor: qr.bgColor }} />
-                    <span className="font-mono text-sm uppercase">{qr.bgColor}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <Button variant="outline" onClick={copySettings} className="w-full gap-2">
-            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            {copied ? 'Copied!' : 'Copy Settings'}
-          </Button>
-        </div>
-      </div>
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete QR Code?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The QR code will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} disabled={isDeleting}>
+              {isDeleting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 };
