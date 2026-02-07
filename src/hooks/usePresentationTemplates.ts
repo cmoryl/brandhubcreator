@@ -24,6 +24,7 @@ interface DatabasePresentationTemplate {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  card_image_url: string | null;
 }
 
 // Convert database record to frontend type
@@ -37,6 +38,7 @@ const toFrontendTemplate = (record: DatabasePresentationTemplate): PresentationT
   slides: record.slides || [],
   category: (record.category as PresentationTemplate['category']) || 'corporate',
   createdAt: record.created_at,
+  cardImageUrl: record.card_image_url || undefined,
 });
 
 // Query key factory
@@ -153,13 +155,16 @@ export function usePresentationTemplates(
   // Update presentation mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<PresentationTemplate> }) => {
+      // Build update payload – only include fields that are explicitly passed
+      const updateData: Record<string, unknown> = {};
+      if (updates.name !== undefined) updateData.name = updates.name;
+      if (updates.description !== undefined) updateData.description = updates.description || null;
+      if (updates.category !== undefined) updateData.category = updates.category || 'corporate';
+      if (updates.cardImageUrl !== undefined) updateData.card_image_url = updates.cardImageUrl || null;
+
       const { error } = await supabase
         .from('presentation_templates')
-        .update({
-          name: updates.name,
-          description: updates.description || null,
-          category: updates.category || 'corporate',
-        })
+        .update(updateData)
         .eq('id', id);
 
       if (error) {

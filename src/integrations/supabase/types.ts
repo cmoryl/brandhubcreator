@@ -1023,6 +1023,7 @@ export type Database = {
       }
       presentation_templates: {
         Row: {
+          card_image_url: string | null
           category: string | null
           created_at: string
           created_by: string | null
@@ -1039,6 +1040,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          card_image_url?: string | null
           category?: string | null
           created_at?: string
           created_by?: string | null
@@ -1055,6 +1057,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          card_image_url?: string | null
           category?: string | null
           created_at?: string
           created_by?: string | null
