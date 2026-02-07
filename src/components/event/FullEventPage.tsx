@@ -163,6 +163,7 @@ export const FullEventPage = ({
             isEditable={canEdit}
             brandName={event.hero?.name}
             brandColors={event.colors?.map(c => c.hex)}
+            eventId={eventId}
           />
         );
       case 'eventbanners':
