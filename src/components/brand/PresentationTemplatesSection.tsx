@@ -66,22 +66,22 @@ const OfficeEmbed = ({ fileUrl, fileName }: { fileUrl: string; fileName: string 
   const embedUrl = getOfficeEmbedUrl(fileUrl);
 
   return (
-    <div className="relative w-full aspect-[4/3] bg-muted rounded-lg overflow-hidden">
+    <div className="relative w-full h-[350px] bg-muted rounded-lg overflow-hidden">
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-muted z-10">
           <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Loading presentation...</p>
+            <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto mb-2" />
+            <p className="text-xs text-muted-foreground">Loading presentation...</p>
           </div>
         </div>
       )}
       
       {hasError ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/50 p-4 text-center">
-          <Presentation className="h-10 w-10 text-muted-foreground/50 mb-3" />
+          <Presentation className="h-8 w-8 text-muted-foreground/50 mb-2" />
           <p className="text-sm font-medium mb-1">Preview unavailable</p>
           <p className="text-xs text-muted-foreground mb-3">
-            The live preview could not load. Try opening in Office Online directly.
+            Try opening in Office Online directly.
           </p>
           <Button variant="outline" size="sm" asChild>
             <a href={embedUrl.replace('/embed.aspx', '/view.aspx')} target="_blank" rel="noopener noreferrer">
@@ -107,16 +107,16 @@ const OfficeEmbed = ({ fileUrl, fileName }: { fileUrl: string; fileName: string 
   );
 };
 
-// Compact slide gallery component
+// Compact slide gallery component with scrollable slide deck
 const SlideGallery = ({ slides, onClose }: { slides: PresentationSlide[]; onClose?: () => void }) => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   if (slides.length === 0) {
     return (
-      <div className="flex items-center justify-center h-40 bg-muted/30 rounded-lg">
+      <div className="flex items-center justify-center h-32 bg-muted/30 rounded-lg">
         <div className="text-center text-muted-foreground">
-          <Presentation className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No slide previews available</p>
+          <Presentation className="h-6 w-6 mx-auto mb-1 opacity-50" />
+          <p className="text-xs">No slide previews available</p>
         </div>
       </div>
     );
@@ -125,9 +125,9 @@ const SlideGallery = ({ slides, onClose }: { slides: PresentationSlide[]; onClos
   const currentSlide = slides[activeIndex];
   
   return (
-    <div className="space-y-3">
-      {/* Compact main slide view */}
-      <div className="relative aspect-[16/10] max-h-[320px] bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden">
+    <div className="space-y-2">
+      {/* Main slide view - fixed height */}
+      <div className="relative h-[280px] bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden">
         {currentSlide?.thumbnailUrl ? (
           <img
             src={currentSlide.thumbnailUrl}
@@ -571,10 +571,10 @@ export const PresentationTemplatesSection = ({
         </div>
       )}
 
-      {/* Slide preview dialog with tabs for thumbnail vs Office embed */}
+      {/* Slide preview dialog with scrollable content */}
       <Dialog open={!!previewPresentation} onOpenChange={() => setPreviewPresentation(null)}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
-          <DialogHeader className="pb-2 flex-shrink-0">
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[80vh] overflow-y-auto">
+          <DialogHeader className="pb-2">
             <DialogTitle className="text-base flex items-center gap-2">
               <Presentation className="h-4 w-4" />
               {previewPresentation?.name}
@@ -585,9 +585,9 @@ export const PresentationTemplatesSection = ({
           </DialogHeader>
           
           {previewPresentation && (
-            <div className="flex-1 min-h-0 overflow-hidden">
-              <Tabs defaultValue="live" className="h-full flex flex-col">
-                <TabsList className="grid w-full grid-cols-2 mb-3 flex-shrink-0">
+            <div className="space-y-4">
+              <Tabs defaultValue="live" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-3">
                   <TabsTrigger value="live" className="text-xs">
                     <Monitor className="h-3.5 w-3.5 mr-1.5" />
                     Live Preview
@@ -598,19 +598,17 @@ export const PresentationTemplatesSection = ({
                   </TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="live" className="flex-1 min-h-0 mt-0 data-[state=active]:flex data-[state=active]:flex-col">
-                  <div className="flex-1 min-h-0">
-                    <OfficeEmbed 
-                      fileUrl={previewPresentation.fileUrl} 
-                      fileName={previewPresentation.fileName} 
-                    />
-                  </div>
+                <TabsContent value="live" className="mt-0">
+                  <OfficeEmbed 
+                    fileUrl={previewPresentation.fileUrl} 
+                    fileName={previewPresentation.fileName} 
+                  />
                   <p className="text-[10px] text-muted-foreground text-center mt-2">
                     Powered by Microsoft Office Online
                   </p>
                 </TabsContent>
                 
-                <TabsContent value="thumbnails" className="flex-1 min-h-0 mt-0 overflow-auto">
+                <TabsContent value="thumbnails" className="mt-0">
                   <SlideGallery slides={previewPresentation.slides} />
                 </TabsContent>
               </Tabs>
