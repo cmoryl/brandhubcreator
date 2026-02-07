@@ -44,6 +44,12 @@ interface UploadedFile {
   type: string;
 }
 
+interface ReferenceImage {
+  data: string;
+  name: string;
+  type: 'design' | 'booth-reference' | 'venue-reference';
+}
+
 export const AddSignageDialog = ({
   open,
   onOpenChange,
@@ -72,7 +78,9 @@ export const AddSignageDialog = ({
   const [directUploadFile, setDirectUploadFile] = useState<File | null>(null);
   const directUploadRef = useRef<HTMLInputElement>(null);
   const [templateFile, setTemplateFile] = useState<UploadedFile | null>(null);
-  
+  const [boothReferences, setBoothReferences] = useState<ReferenceImage[]>([]);
+  const boothRefInputRef = useRef<HTMLInputElement>(null);
+
   const [newItem, setNewItem] = useState<Partial<EventSignage>>({
     name: '',
     type: 'booth-backdrop',
@@ -80,10 +88,11 @@ export const AddSignageDialog = ({
     notes: '',
     previewUrl: '',
     templateUrl: '',
+    liveFilesUrl: '',
   });
 
   const resetForm = () => {
-    setNewItem({ name: '', type: 'booth-backdrop', dimensions: '', notes: '', previewUrl: '', templateUrl: '' });
+    setNewItem({ name: '', type: 'booth-backdrop', dimensions: '', notes: '', previewUrl: '', templateUrl: '', liveFilesUrl: '' });
     setGeneratedPreview(null);
     setUploadedImage(null);
     setUploadedFileName('');
@@ -92,6 +101,7 @@ export const AddSignageDialog = ({
     setDirectUploadFileName('');
     setDirectUploadFile(null);
     setTemplateFile(null);
+    setBoothReferences([]);
     setPreviewMode('generate');
   };
 
@@ -202,6 +212,49 @@ export const AddSignageDialog = ({
     }
   };
 
+  const handleBoothRefUpload = (e: React.ChangeEvent<HTMLInputElement>, refType: 'booth-reference' | 'venue-reference') => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // Limit to 5 reference images total
+    if (boothReferences.length + files.length > 5) {
+      toast.error('Maximum 5 reference images allowed');
+      return;
+    }
+
+    Array.from(files).forEach(file => {
+      if (!file.type.startsWith('image/')) {
+        toast.error(`${file.name} is not an image`);
+        return;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name} is too large (max 10MB)`);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        setBoothReferences(prev => [...prev, {
+          data: base64,
+          name: file.name,
+          type: refType,
+        }]);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Clear input for next upload
+    if (boothRefInputRef.current) {
+      boothRefInputRef.current.value = '';
+    }
+  };
+
+  const removeBoothReference = (index: number) => {
+    setBoothReferences(prev => prev.filter((_, i) => i !== index));
+  };
+
   const generatePreview = async (fromUpload = false) => {
     if (!newItem.name || !newItem.dimensions) {
       toast.error('Please enter name and dimensions first');
@@ -222,6 +275,15 @@ export const AddSignageDialog = ({
       // If generating from uploaded image, include base64
       if (fromUpload && uploadedImage) {
         payload.referenceImage = uploadedImage;
+      }
+
+      // Include booth/venue reference images if available
+      if (boothReferences.length > 0) {
+        payload.referenceImages = boothReferences.map(ref => ({
+          data: ref.data,
+          type: ref.type,
+          name: ref.name,
+        }));
       }
 
       // Include template reference if available
@@ -292,6 +354,7 @@ export const AddSignageDialog = ({
       dimensions: newItem.dimensions,
       previewUrl: finalPreviewUrl,
       templateUrl: newItem.templateUrl,
+      liveFilesUrl: newItem.liveFilesUrl,
       notes: newItem.notes,
       specifications: newItem.specifications,
     };
@@ -520,6 +583,73 @@ export const AddSignageDialog = ({
                   </p>
                 </div>
 
+                {/* Booth/Venue Reference Images */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Booth & Venue References (optional)</Label>
+                    {boothReferences.length > 0 && (
+                      <span className="text-xs text-muted-foreground">{boothReferences.length}/5</span>
+                    )}
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground/70">
+                    Add photos of similar booths or venue spaces to help AI create a more realistic render
+                  </p>
+
+                  {/* Reference image grid */}
+                  {boothReferences.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {boothReferences.map((ref, idx) => (
+                        <div key={idx} className="relative group">
+                          <img
+                            src={ref.data}
+                            alt={ref.name}
+                            className="w-full aspect-square object-cover rounded-lg border"
+                          />
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-1 rounded-b-lg">
+                            <span className="text-[10px] text-white/90 capitalize">{ref.type.replace('-', ' ')}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeBoothReference(idx)}
+                            className="absolute top-1 right-1 p-1 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3 w-3 text-white" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add reference buttons */}
+                  {boothReferences.length < 5 && (
+                    <div className="flex gap-2">
+                      <label className="flex-1 flex items-center justify-center gap-2 p-2 border border-dashed rounded-lg cursor-pointer hover:border-primary/50 transition-colors text-xs">
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Booth Photo</span>
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          multiple
+                          onChange={(e) => handleBoothRefUpload(e, 'booth-reference')}
+                        />
+                      </label>
+                      <label className="flex-1 flex items-center justify-center gap-2 p-2 border border-dashed rounded-lg cursor-pointer hover:border-primary/50 transition-colors text-xs">
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Venue Photo</span>
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          multiple
+                          onChange={(e) => handleBoothRefUpload(e, 'venue-reference')}
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+
                 {/* Generate Button */}
                 <Button
                   type="button"
@@ -727,14 +857,26 @@ export const AddSignageDialog = ({
             )}
           </div>
 
-          {/* Template URL */}
-          <div className="space-y-2">
-            <Label>Template URL (optional)</Label>
-            <Input
-              value={newItem.templateUrl || ''}
-              onChange={(e) => setNewItem({ ...newItem, templateUrl: e.target.value })}
-              placeholder="https://..."
-            />
+          {/* Template URL & Live Files URL */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Template URL</Label>
+              <Input
+                value={newItem.templateUrl || ''}
+                onChange={(e) => setNewItem({ ...newItem, templateUrl: e.target.value })}
+                placeholder="https://..."
+              />
+              <p className="text-xs text-muted-foreground/70">Link to downloadable template</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Live Files Location</Label>
+              <Input
+                value={newItem.liveFilesUrl || ''}
+                onChange={(e) => setNewItem({ ...newItem, liveFilesUrl: e.target.value })}
+                placeholder="Figma, Google Drive, Dropbox..."
+              />
+              <p className="text-xs text-muted-foreground/70">Link to editable design files</p>
+            </div>
           </div>
 
           {/* Notes */}

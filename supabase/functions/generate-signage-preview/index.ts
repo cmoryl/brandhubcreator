@@ -5,6 +5,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+interface ReferenceImage {
+  data: string; // Base64 data or URL
+  type: 'design' | 'booth-reference' | 'venue-reference'; // Purpose of the reference
+  name?: string;
+}
+
 interface TemplateReference {
   data: string; // Base64 data
   type: string; // MIME type
@@ -18,7 +24,8 @@ interface SignagePreviewRequest {
   brandName?: string;
   brandColors?: string[];
   style?: 'photorealistic' | 'mockup' | 'venue';
-  referenceImage?: string; // Base64 image for image-to-image generation
+  referenceImage?: string; // Base64 image for image-to-image generation (legacy/main design)
+  referenceImages?: ReferenceImage[]; // Multiple reference images for better context
   templateReference?: TemplateReference; // PDF or image template reference
 }
 
@@ -28,7 +35,7 @@ serve(async (req) => {
   }
 
   try {
-    const { signageType, signageName, dimensions, brandName, brandColors, style = 'photorealistic', referenceImage, templateReference } = await req.json() as SignagePreviewRequest;
+    const { signageType, signageName, dimensions, brandName, brandColors, style = 'photorealistic', referenceImage, referenceImages, templateReference } = await req.json() as SignagePreviewRequest;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -72,17 +79,37 @@ serve(async (req) => {
       ? `Use the provided booth template/layout reference to ensure accurate proportions, structure, and placement of design elements. Match the template's booth configuration precisely.`
       : '';
 
-    if (referenceImage) {
+    // Determine if we have reference images (new multi-image or legacy single image)
+    const hasDesignImage = referenceImage || referenceImages?.some(img => img.type === 'design');
+    const boothReferences = referenceImages?.filter(img => img.type === 'booth-reference') || [];
+    const venueReferences = referenceImages?.filter(img => img.type === 'venue-reference') || [];
+    
+    // Build context about reference images
+    const referenceContext = [];
+    if (boothReferences.length > 0) {
+      referenceContext.push(`Use the ${boothReferences.length} booth reference image(s) to understand the physical booth structure, layout, and how signage integrates into the space.`);
+    }
+    if (venueReferences.length > 0) {
+      referenceContext.push(`Use the ${venueReferences.length} venue reference image(s) to understand the environment, lighting, and atmosphere where the booth will be placed.`);
+    }
+    const referenceDescription = referenceContext.length > 0 ? referenceContext.join(' ') : '';
+
+    if (hasDesignImage) {
       // Image-to-image: enhance the uploaded booth photo
-      prompt = `Transform this booth/signage photo into a professional ${style} preview image.
-Keep the core design and branding elements from the uploaded image, but enhance it to look like:
+      prompt = `Transform this booth/signage design into a professional ${style} preview image.
+Keep the core design and branding elements from the uploaded design image, but render it as if it's a real physical booth at an event.
 ${stylePrompts[style]}
 
 The signage is "${signageName}" (${signageDesc}) with dimensions ${dimensions} ${brandContext} ${colorDescription}.
 ${templateContext}
+${referenceDescription}
 
-Make it look polished, professional, and ready for marketing materials.
-Preserve the key design elements and branding from the original while making it look more professional.
+IMPORTANT: 
+- The first/main image is the design that should be rendered onto the booth/signage
+- Use additional reference images to understand booth structure and venue context
+- Make it look polished, professional, and hyper-realistic
+- Preserve the exact branding, logos, and design elements from the original
+- Show realistic materials, lighting, shadows, and depth
 16:9 aspect ratio, 4K quality, commercial photography style.`;
     } else {
       // Text-to-image: generate from scratch (possibly with template reference)
@@ -90,6 +117,7 @@ Preserve the key design elements and branding from the original while making it 
 The signage is named "${signageName}" with dimensions ${dimensions} ${colorDescription}.
 ${stylePrompts[style]}
 ${templateContext}
+${referenceDescription}
 Show the signage from a professional viewing angle, as if photographed at a real event or trade show.
 Make it look like a high-quality professional photograph, not an illustration.
 16:9 aspect ratio, 4K quality, commercial photography style.`;
@@ -101,7 +129,7 @@ Make it look like a high-quality professional photograph, not an illustration.
       text: prompt,
     });
 
-    // Add reference image if provided
+    // Add reference image if provided (legacy single image - main design)
     if (referenceImage) {
       messageContent.push({
         type: "image_url",
@@ -109,6 +137,37 @@ Make it look like a high-quality professional photograph, not an illustration.
           url: referenceImage,
         },
       });
+    }
+
+    // Add multiple reference images if provided (new multi-image support)
+    if (referenceImages && referenceImages.length > 0) {
+      // Add design images first (most important)
+      for (const refImg of referenceImages.filter(img => img.type === 'design')) {
+        messageContent.push({
+          type: "image_url",
+          image_url: {
+            url: refImg.data,
+          },
+        });
+      }
+      // Then booth references
+      for (const refImg of referenceImages.filter(img => img.type === 'booth-reference')) {
+        messageContent.push({
+          type: "image_url",
+          image_url: {
+            url: refImg.data,
+          },
+        });
+      }
+      // Then venue references
+      for (const refImg of referenceImages.filter(img => img.type === 'venue-reference')) {
+        messageContent.push({
+          type: "image_url",
+          image_url: {
+            url: refImg.data,
+          },
+        });
+      }
     }
 
     // Add template reference if provided (image only - PDFs need different handling)
