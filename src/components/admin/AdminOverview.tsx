@@ -6,10 +6,9 @@
 import React from 'react';
 import { 
   Users, Building2, Palette, Package, Calendar, Activity, 
-  TrendingUp, TrendingDown, CheckCircle, AlertTriangle, Clock,
+  TrendingUp, AlertTriangle, Clock, Shield, CheckCircle,
   UserCheck, FileText, Database, HardDrive, MapPin, Mail, Image,
-  Eye, Edit, Trash2, UserPlus, LogIn, Download, Zap, ArrowRight,
-  Shield, Brain, Wrench, RefreshCw, BarChart3
+  Eye, Zap, ArrowRight, Brain, Wrench, RefreshCw, BarChart3
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,50 +17,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-
-interface DashboardStats {
-  totalUsers: number;
-  totalOrganizations: number;
-  totalBrands: number;
-  totalProducts: number;
-  totalEvents: number;
-  publicEvents: number;
-  activeUsersToday: number;
-  newUsersThisWeek: number;
-  publicBrands: number;
-  storageUsed: string;
-  pendingApprovals: number;
-}
-
-interface ActivityLog {
-  id: string;
-  type: 'create' | 'update' | 'delete' | 'view' | 'publish' | 'unpublish' | 'export' | 'login' | 'logout' | 'invite' | 'join';
-  entityType: string;
-  entityName: string;
-  description: string;
-  timestamp: string;
-  user?: string;
-  details?: Record<string, unknown>;
-}
-
-interface ModuleStatus {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-  count: number;
-  status: 'healthy' | 'warning' | 'error';
-  trend?: number;
-  description: string;
-}
-
-interface QuickAction {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  onClick: () => void;
-  variant?: 'default' | 'destructive' | 'outline';
-  badge?: number;
-}
+import { 
+  DashboardStats, 
+  ActivityLog, 
+  ModuleStatus, 
+  QuickAction,
+  getActivityIcon 
+} from '@/lib/admin';
 
 interface AdminOverviewProps {
   stats: DashboardStats | null;
@@ -73,26 +35,6 @@ interface AdminOverviewProps {
   leadCount?: number;
   imageCount?: number;
 }
-
-const getActivityIcon = (type: ActivityLog['type'], entityType?: string) => {
-  switch (type) {
-    case 'create': 
-      if (entityType === 'user') return <UserPlus className="h-4 w-4 text-green-500" />;
-      if (entityType === 'organization') return <Building2 className="h-4 w-4 text-purple-500" />;
-      return <Palette className="h-4 w-4 text-blue-500" />;
-    case 'update': return <Edit className="h-4 w-4 text-amber-500" />;
-    case 'delete': return <Trash2 className="h-4 w-4 text-red-500" />;
-    case 'view': return <Eye className="h-4 w-4 text-gray-500" />;
-    case 'publish': return <Eye className="h-4 w-4 text-green-500" />;
-    case 'unpublish': return <Eye className="h-4 w-4 text-orange-500" />;
-    case 'export': return <Download className="h-4 w-4 text-blue-500" />;
-    case 'login': return <LogIn className="h-4 w-4 text-gray-500" />;
-    case 'logout': return <LogIn className="h-4 w-4 text-gray-400" />;
-    case 'invite': return <UserPlus className="h-4 w-4 text-purple-500" />;
-    case 'join': return <UserPlus className="h-4 w-4 text-green-500" />;
-    default: return <Activity className="h-4 w-4" />;
-  }
-};
 
 export const AdminOverview: React.FC<AdminOverviewProps> = ({
   stats,
