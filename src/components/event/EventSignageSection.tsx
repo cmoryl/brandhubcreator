@@ -21,6 +21,7 @@ interface EventSignageSectionProps {
   onLayoutChange?: (layout: LayoutPreset) => void;
   brandName?: string;
   brandColors?: string[];
+  eventId?: string;
 }
 
 const SIGNAGE_TYPES = [
@@ -140,6 +141,7 @@ export const EventSignageSection = ({
   onLayoutChange,
   brandName,
   brandColors,
+  eventId,
 }: EventSignageSectionProps) => {
   const { gridClass, cardClass, isListView } = useLayoutClasses(layout);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -208,6 +210,7 @@ export const EventSignageSection = ({
               onAdd={handleAddSignage}
               brandName={brandName}
               brandColors={brandColors}
+              eventId={eventId}
             />
           )}
         </div>
@@ -380,6 +383,7 @@ export const EventSignageSection = ({
           onDelete={handleDelete}
           brandName={brandName}
           brandColors={brandColors}
+          eventId={eventId}
         />
       )}
     </section>

@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
 
 interface AddSignageDialogProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface AddSignageDialogProps {
   onAdd: (signage: EventSignage) => void;
   brandName?: string;
   brandColors?: string[];
+  eventId?: string;
 }
 
 const SIGNAGE_TYPES = [
@@ -48,17 +50,26 @@ export const AddSignageDialog = ({
   onAdd,
   brandName,
   brandColors,
+  eventId,
 }: AddSignageDialogProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const templateInputRef = useRef<HTMLInputElement>(null);
+  
+  // Storage upload for persistent image storage
+  const { uploadFile, isUploading: isStorageUploading, uploadProgress } = useStorageUpload({
+    entityType: 'event',
+    entityId: eventId,
+  });
   const [previewMode, setPreviewMode] = useState<PreviewMode>('generate');
   const [generationStyle, setGenerationStyle] = useState<GenerationStyle>('photorealistic');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPreview, setGeneratedPreview] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [directUploadImage, setDirectUploadImage] = useState<string | null>(null);
   const [directUploadFileName, setDirectUploadFileName] = useState<string>('');
+  const [directUploadFile, setDirectUploadFile] = useState<File | null>(null);
   const directUploadRef = useRef<HTMLInputElement>(null);
   const [templateFile, setTemplateFile] = useState<UploadedFile | null>(null);
   
@@ -76,8 +87,10 @@ export const AddSignageDialog = ({
     setGeneratedPreview(null);
     setUploadedImage(null);
     setUploadedFileName('');
+    setUploadedFile(null);
     setDirectUploadImage(null);
     setDirectUploadFileName('');
+    setDirectUploadFile(null);
     setTemplateFile(null);
     setPreviewMode('generate');
   };
@@ -97,7 +110,9 @@ export const AddSignageDialog = ({
     }
 
     setUploadedFileName(file.name);
+    setUploadedFile(file);
     
+    // Create preview URL for display
     const reader = new FileReader();
     reader.onload = (event) => {
       const base64 = event.target?.result as string;
@@ -146,6 +161,7 @@ export const AddSignageDialog = ({
   const clearUploadedImage = () => {
     setUploadedImage(null);
     setUploadedFileName('');
+    setUploadedFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -166,7 +182,9 @@ export const AddSignageDialog = ({
     }
 
     setDirectUploadFileName(file.name);
+    setDirectUploadFile(file);
     
+    // Create preview URL for display
     const reader = new FileReader();
     reader.onload = (event) => {
       const base64 = event.target?.result as string;
@@ -178,6 +196,7 @@ export const AddSignageDialog = ({
   const clearDirectUpload = () => {
     setDirectUploadImage(null);
     setDirectUploadFileName('');
+    setDirectUploadFile(null);
     if (directUploadRef.current) {
       directUploadRef.current.value = '';
     }
@@ -242,7 +261,7 @@ export const AddSignageDialog = ({
     }
   };
 
-  const handleAdd = (withPreview = false) => {
+  const handleAdd = async (withPreview = false) => {
     if (!newItem.name || !newItem.dimensions) return;
 
     let finalPreviewUrl = newItem.previewUrl;
@@ -252,8 +271,17 @@ export const AddSignageDialog = ({
     } else if (previewMode === 'enhance' && uploadedImage && !generatedPreview) {
       // Use the uploaded image directly if no AI generation was done
       finalPreviewUrl = uploadedImage;
+    } else if (previewMode === 'upload' && directUploadFile && eventId) {
+      // Upload directly to storage for persistent URL
+      const result = await uploadFile(directUploadFile, 'asset', `signage-${newItem.name?.replace(/\s+/g, '-').toLowerCase()}`);
+      if (result) {
+        finalPreviewUrl = result.url;
+      } else {
+        // Fallback to base64 if storage upload fails
+        finalPreviewUrl = directUploadImage || undefined;
+      }
     } else if (previewMode === 'upload' && directUploadImage) {
-      // Use the direct uploaded image
+      // No eventId available, use base64 as fallback
       finalPreviewUrl = directUploadImage;
     }
 
@@ -725,17 +753,22 @@ export const AddSignageDialog = ({
             <Button
               variant="outline"
               onClick={() => handleAdd(false)}
-              disabled={!newItem.name || !newItem.dimensions}
+              disabled={!newItem.name || !newItem.dimensions || isStorageUploading}
               className="flex-1"
             >
               Add Without Preview
             </Button>
             <Button
               onClick={() => handleAdd(true)}
-              disabled={!newItem.name || !newItem.dimensions || (!generatedPreview && !newItem.previewUrl && !uploadedImage && !directUploadImage)}
+              disabled={!newItem.name || !newItem.dimensions || (!generatedPreview && !newItem.previewUrl && !uploadedImage && !directUploadImage) || isStorageUploading}
               className="flex-1"
             >
-              {generatedPreview ? (
+              {isStorageUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Uploading... {uploadProgress}%
+                </>
+              ) : generatedPreview ? (
                 <>
                   <Sparkles className="h-4 w-4 mr-2" />
                   Add with AI Preview

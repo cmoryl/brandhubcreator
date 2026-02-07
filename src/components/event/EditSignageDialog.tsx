@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
 
 interface EditSignageDialogProps {
   open: boolean;
@@ -20,6 +21,7 @@ interface EditSignageDialogProps {
   onDelete: (id: string) => void;
   brandName?: string;
   brandColors?: string[];
+  eventId?: string;
 }
 
 const SIGNAGE_TYPES = [
@@ -52,15 +54,24 @@ export const EditSignageDialog = ({
   onDelete,
   brandName,
   brandColors,
+  eventId,
 }: EditSignageDialogProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const templateInputRef = useRef<HTMLInputElement>(null);
+  
+  // Storage upload for persistent image storage
+  const { uploadFile, isUploading: isStorageUploading, uploadProgress } = useStorageUpload({
+    entityType: 'event',
+    entityId: eventId,
+  });
+  
   const [previewMode, setPreviewMode] = useState<PreviewMode>('current');
   const [generationStyle, setGenerationStyle] = useState<GenerationStyle>('photorealistic');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPreview, setGeneratedPreview] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [templateFile, setTemplateFile] = useState<UploadedFile | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   
@@ -72,6 +83,7 @@ export const EditSignageDialog = ({
     setGeneratedPreview(null);
     setUploadedImage(null);
     setUploadedFileName('');
+    setUploadedFile(null);
     setTemplateFile(null);
     setPreviewMode(signage.previewUrl ? 'current' : 'generate');
     setConfirmDelete(false);
@@ -92,7 +104,9 @@ export const EditSignageDialog = ({
     }
 
     setUploadedFileName(file.name);
+    setUploadedFile(file);
     
+    // Create preview URL for display
     const reader = new FileReader();
     reader.onload = (event) => {
       const base64 = event.target?.result as string;
@@ -141,6 +155,7 @@ export const EditSignageDialog = ({
   const clearUploadedImage = () => {
     setUploadedImage(null);
     setUploadedFileName('');
+    setUploadedFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -203,14 +218,24 @@ export const EditSignageDialog = ({
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editedItem.name || !editedItem.dimensions) return;
 
     let finalPreviewUrl = editedItem.previewUrl;
     
     if (generatedPreview) {
       finalPreviewUrl = generatedPreview;
+    } else if (previewMode === 'upload' && uploadedFile && eventId) {
+      // Upload directly to storage for persistent URL
+      const result = await uploadFile(uploadedFile, 'asset', `signage-${editedItem.name?.replace(/\s+/g, '-').toLowerCase()}`);
+      if (result) {
+        finalPreviewUrl = result.url;
+      } else {
+        // Fallback to base64 if storage upload fails
+        finalPreviewUrl = uploadedImage || editedItem.previewUrl;
+      }
     } else if (previewMode === 'upload' && uploadedImage) {
+      // No eventId available, use base64 as fallback
       finalPreviewUrl = uploadedImage;
     }
 
@@ -560,16 +585,24 @@ export const EditSignageDialog = ({
             <Button
               variant={confirmDelete ? "destructive" : "outline"}
               onClick={handleDeleteClick}
+              disabled={isStorageUploading}
               className="flex-shrink-0"
             >
               {confirmDelete ? 'Confirm Delete' : 'Delete'}
             </Button>
             <Button
               onClick={handleSave}
-              disabled={!canSave}
+              disabled={!canSave || isStorageUploading}
               className="flex-1"
             >
-              Save Changes
+              {isStorageUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Uploading... {uploadProgress}%
+                </>
+              ) : (
+                'Save Changes'
+              )}
             </Button>
           </div>
         </div>
