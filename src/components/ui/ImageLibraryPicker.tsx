@@ -50,6 +50,9 @@ import {
   Clock,
   Download,
   Pencil,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -97,6 +100,8 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [editingImageId, setEditingImageId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [sortBy, setSortBy] = useState<'name' | 'date' | 'size'>('date');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [batchState, setBatchState] = useState<BatchUploadState>({
     files: [],
     progress: 0,
@@ -125,17 +130,40 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
     return uploadDate >= sevenDaysAgo;
   });
 
-  const filteredImages = images.filter((img) => {
-    const matchesSearch = img.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (selectedCategory === 'Recent') {
-      const uploadDate = new Date(img.created_at);
-      return matchesSearch && uploadDate >= sevenDaysAgo;
+  const filteredImages = images
+    .filter((img) => {
+      const matchesSearch = img.name.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      if (selectedCategory === 'Recent') {
+        const uploadDate = new Date(img.created_at);
+        return matchesSearch && uploadDate >= sevenDaysAgo;
+      }
+      
+      const matchesCategory = selectedCategory === 'All' || img.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      let comparison = 0;
+      
+      if (sortBy === 'name') {
+        comparison = a.name.localeCompare(b.name);
+      } else if (sortBy === 'date') {
+        comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      } else if (sortBy === 'size') {
+        comparison = (a.file_size_bytes || 0) - (b.file_size_bytes || 0);
+      }
+      
+      return sortDir === 'asc' ? comparison : -comparison;
+    });
+
+  const toggleSort = (field: 'name' | 'date' | 'size') => {
+    if (sortBy === field) {
+      setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortDir(field === 'name' ? 'asc' : 'desc');
     }
-    
-    const matchesCategory = selectedCategory === 'All' || img.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -353,8 +381,8 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
 
           <TabsContent value="browse" className="flex-1 flex flex-col min-h-0 mt-4">
             {/* Filters */}
-            <div className="flex gap-3 mb-4">
-              <div className="flex-1 relative">
+            <div className="flex flex-wrap gap-3 mb-4">
+              <div className="flex-1 min-w-[200px] relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search images..."
@@ -367,7 +395,7 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
                 value={selectedCategory}
                 onValueChange={(v) => setSelectedCategory(v as ImageCategory | 'All' | 'Recent')}
               >
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -385,10 +413,44 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
                   ))}
                 </SelectContent>
               </Select>
+              
+              {/* Sort buttons */}
+              <div className="flex items-center gap-1 border rounded-md p-1">
+                <button
+                  onClick={() => toggleSort('name')}
+                  className={cn(
+                    "px-2 py-1 text-xs rounded flex items-center gap-1 transition-colors",
+                    sortBy === 'name' ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Name
+                  {sortBy === 'name' && (sortDir === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
+                </button>
+                <button
+                  onClick={() => toggleSort('date')}
+                  className={cn(
+                    "px-2 py-1 text-xs rounded flex items-center gap-1 transition-colors",
+                    sortBy === 'date' ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Date
+                  {sortBy === 'date' && (sortDir === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
+                </button>
+                <button
+                  onClick={() => toggleSort('size')}
+                  className={cn(
+                    "px-2 py-1 text-xs rounded flex items-center gap-1 transition-colors",
+                    sortBy === 'size' ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Size
+                  {sortBy === 'size' && (sortDir === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
+                </button>
+              </div>
             </div>
 
-            {/* Image Grid */}
-            <ScrollArea className="flex-1 -mx-2 px-2 min-h-0">
+            {/* Image Grid - fixed height with scroll */}
+            <div className="flex-1 min-h-0 overflow-auto -mx-2 px-2">
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -465,7 +527,7 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
                   ))}
                 </div>
               )}
-            </ScrollArea>
+            </div>
 
             {/* Selected Preview & Confirm */}
             {selectedImage && (
@@ -565,7 +627,8 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
               </Badge>
             </div>
 
-            <ScrollArea className="flex-1 -mx-2 px-2 min-h-0">
+            {/* Image Grid - fixed height with scroll */}
+            <div className="flex-1 min-h-0 overflow-auto -mx-2 px-2">
               {projectImages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <ImageIcon className="h-12 w-12 text-muted-foreground/40 mb-3" />
@@ -605,7 +668,7 @@ export const ImageLibraryPicker: React.FC<ImageLibraryPickerProps> = ({
                   ))}
                 </div>
               )}
-            </ScrollArea>
+            </div>
           </TabsContent>
 
           {allowUpload && (
