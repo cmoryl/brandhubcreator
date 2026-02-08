@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { Plus, X, Pencil, Copy, Check, Sparkles, Loader2 } from 'lucide-react';
 import { BrandGradient, BrandColor, LayoutPreset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { SectionHeader } from './SectionHeader';
 import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
+import { GradientEditor } from './GradientEditor';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -189,23 +188,13 @@ export const GradientsSection = ({
             {/* Gradient info */}
             <div className="p-4 space-y-3">
               {editingId === gradient.id ? (
-                <div className="space-y-2">
-                  <Input
-                    value={gradient.name}
-                    onChange={(e) => updateGradient(gradient.id, { name: e.target.value })}
-                    placeholder="Gradient name"
-                    className="h-8"
-                  />
-                  <Textarea
-                    value={gradient.css}
-                    onChange={(e) => updateGradient(gradient.id, { css: e.target.value })}
-                    placeholder="CSS gradient value"
-                    className="min-h-[60px] text-sm font-mono resize-none"
-                  />
-                  <Button size="sm" variant="secondary" onClick={() => setEditingId(null)} className="w-full">
-                    Done
-                  </Button>
-                </div>
+                <GradientEditor
+                  css={gradient.css}
+                  onChange={(css) => updateGradient(gradient.id, { css })}
+                  name={gradient.name}
+                  onNameChange={(name) => updateGradient(gradient.id, { name })}
+                  onDone={() => setEditingId(null)}
+                />
               ) : (
                 <div className="flex items-start justify-between">
                   <div>
