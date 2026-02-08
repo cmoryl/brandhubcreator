@@ -58,6 +58,9 @@ export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtit
     if (editingId === id) setEditingId(null);
   };
 
+  // Determine if editing is allowed
+  const canEdit = Boolean(onMisuseChange);
+
   return (
     <section className="space-y-6">
       <div className="flex items-center justify-between gap-4">
@@ -71,22 +74,24 @@ export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtit
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <ImageLibraryPicker
-            onSelect={handleLibrarySelect}
-            trigger={
-              <Button variant="outline" size="sm" className="gap-2">
-                <FolderOpen className="h-4 w-4" />
-                Library
-              </Button>
-            }
-            defaultCategory="Logos"
-          />
-          <Button onClick={openFilePicker} size="sm" variant="destructive" className="gap-2">
-            <Upload className="h-4 w-4" />
-            Add Example
-          </Button>
-        </div>
+        {canEdit && (
+          <div className="flex items-center gap-2 shrink-0">
+            <ImageLibraryPicker
+              onSelect={handleLibrarySelect}
+              trigger={
+                <Button variant="outline" size="sm" className="gap-2">
+                  <FolderOpen className="h-4 w-4" />
+                  Library
+                </Button>
+              }
+              defaultCategory="Logos"
+            />
+            <Button onClick={openFilePicker} size="sm" variant="destructive" className="gap-2">
+              <Upload className="h-4 w-4" />
+              Add Example
+            </Button>
+          </div>
+        )}
       </div>
 
       <input
@@ -126,12 +131,14 @@ export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtit
                 <div className="absolute top-2 left-2 bg-destructive text-destructive-foreground text-xs font-bold px-2 py-1 rounded">
                   ✕ DON'T
                 </div>
-                <button
-                  onClick={() => deleteMisuse(item.id)}
-                  className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
+                {canEdit && (
+                  <button
+                    onClick={() => deleteMisuse(item.id)}
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
               <div className="p-3">
                 {editingId === item.id ? (
@@ -158,20 +165,22 @@ export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtit
             </div>
           ))}
 
-          <button
-            onClick={openFilePicker}
-            onDragOver={dragHandlers.onDragOver}
-            onDragLeave={dragHandlers.onDragLeave}
-            onDrop={dragHandlers.onDrop}
-            className={`aspect-video border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-2 transition-colors ${
-              isDragging 
-                ? 'border-destructive bg-destructive/10 text-destructive' 
-                : 'border-red-300 text-red-400 hover:bg-red-50'
-            }`}
-          >
-            <Plus className="h-6 w-6" />
-            <span className="text-sm font-medium">{isDragging ? 'Drop to add' : 'Add misuse example'}</span>
-          </button>
+          {canEdit && (
+            <button
+              onClick={openFilePicker}
+              onDragOver={dragHandlers.onDragOver}
+              onDragLeave={dragHandlers.onDragLeave}
+              onDrop={dragHandlers.onDrop}
+              className={`aspect-video border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-2 transition-colors ${
+                isDragging 
+                  ? 'border-destructive bg-destructive/10 text-destructive' 
+                  : 'border-red-300 text-red-400 hover:bg-red-50'
+              }`}
+            >
+              <Plus className="h-6 w-6" />
+              <span className="text-sm font-medium">{isDragging ? 'Drop to add' : 'Add misuse example'}</span>
+            </button>
+          )}
         </div>
       </div>
     </section>

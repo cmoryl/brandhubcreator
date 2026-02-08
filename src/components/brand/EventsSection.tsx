@@ -58,17 +58,21 @@ interface EventsSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   layout?: LayoutPreset;
   onLayoutChange?: (layout: LayoutPreset) => void;
+  /** If false, hides admin controls (link events, create events, unlink) */
+  canEdit?: boolean;
 }
 
 // Sortable event card component
 const SortableEventCard = ({ 
   event, 
   onUnlink, 
-  onOpen 
+  onOpen,
+  canEdit = true
 }: { 
   event: EventItem; 
   onUnlink: (event: EventItem) => void;
   onOpen: (event: EventItem) => void;
+  canEdit?: boolean;
 }) => {
   const {
     attributes,
@@ -162,17 +166,19 @@ const SortableEventCard = ({
               <ExternalLink className="h-3.5 w-3.5" />
               Open
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={(e) => {
-                e.stopPropagation();
-                onUnlink(event);
-              }}
-            >
-              Unlink
-            </Button>
+            {canEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUnlink(event);
+                }}
+              >
+                Unlink
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -185,7 +191,8 @@ export const EventsSection = ({
   customSubtitle, 
   onSubtitleChange,
   layout = 'grid-3',
-  onLayoutChange
+  onLayoutChange,
+  canEdit = true
 }: EventsSectionProps) => {
   const [linkedEvents, setLinkedEvents] = useState<EventItem[]>([]);
   const [availableEvents, setAvailableEvents] = useState<EventItem[]>([]);
@@ -355,7 +362,7 @@ export const EventsSection = ({
             />
           )}
           
-          {availableEvents.length > 0 && (
+          {canEdit && availableEvents.length > 0 && (
             <Select onValueChange={linkEvent}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Link existing event..." />
@@ -373,38 +380,40 @@ export const EventsSection = ({
             </Select>
           )}
           
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                New Event
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Event Guide</DialogTitle>
-                <DialogDescription>
-                  Create a new event guide linked to this brand.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="py-4">
-                <Input
-                  placeholder="Event name..."
-                  value={newEventName}
-                  onChange={(e) => setNewEventName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleCreateEvent()}
-                />
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                  Cancel
+          {canEdit && (
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  New Event
                 </Button>
-                <Button onClick={handleCreateEvent} disabled={isCreating || !newEventName.trim()}>
-                  {isCreating ? 'Creating...' : 'Create Event'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Event Guide</DialogTitle>
+                  <DialogDescription>
+                    Create a new event guide linked to this brand.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <Input
+                    placeholder="Event name..."
+                    value={newEventName}
+                    onChange={(e) => setNewEventName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleCreateEvent()}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCreateEvent} disabled={isCreating || !newEventName.trim()}>
+                    {isCreating ? 'Creating...' : 'Create Event'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
 
@@ -426,28 +435,33 @@ export const EventsSection = ({
             <Calendar className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-medium mb-2">No Events Linked</h3>
             <p className="text-sm text-muted-foreground mb-4 max-w-sm">
-              Link existing events or create new event guides for conferences, summits, and other brand events.
+              {canEdit 
+                ? 'Link existing events or create new event guides for conferences, summits, and other brand events.'
+                : 'No events are currently linked to this brand.'
+              }
             </p>
-            <div className="flex gap-2">
-              {availableEvents.length > 0 && (
-                <Select onValueChange={linkEvent}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Link event..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableEvents.map((event) => (
-                      <SelectItem key={event.id} value={event.id}>
-                        {event.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
-                <Plus className="h-4 w-4" />
-                Create Event
-              </Button>
-            </div>
+            {canEdit && (
+              <div className="flex gap-2">
+                {availableEvents.length > 0 && (
+                  <Select onValueChange={linkEvent}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Link event..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableEvents.map((event) => (
+                        <SelectItem key={event.id} value={event.id}>
+                          {event.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Create Event
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -467,6 +481,7 @@ export const EventsSection = ({
                   event={event}
                   onUnlink={unlinkEvent}
                   onOpen={openEvent}
+                  canEdit={canEdit}
                 />
               ))}
             </div>
