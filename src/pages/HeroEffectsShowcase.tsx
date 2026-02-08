@@ -173,7 +173,7 @@ const HeroEffectsShowcase = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
                   {/* Mode */}
                   <div className="space-y-2">
                     <Label className="text-white/70 text-xs">Mode</Label>
@@ -310,7 +310,7 @@ const HeroEffectsShowcase = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
           {EFFECTS.map((effect) => (
             <Card 
               key={effect.id}
@@ -321,7 +321,7 @@ const HeroEffectsShowcase = () => {
               }}
             >
               {/* Effect Preview - Large interactive area */}
-              <div className="relative h-72 md:h-80 overflow-hidden">
+              <div className="relative h-56 sm:h-64 md:h-72 lg:h-80 overflow-hidden">
                 {renderEffect(effect.id, { 
                   colorScheme: effect.defaultColorScheme, 
                   mode: 'dark', 
