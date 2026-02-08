@@ -160,47 +160,49 @@ export const BrandIconsSection = ({ brandIcons, onBrandIconsChange, customSubtit
             <p className={`text-muted-foreground text-center truncate w-full ${size === 'large' ? 'text-sm' : 'text-xs'}`}>
               {icon.settings}
             </p>
-            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              {!icon.isPrimary && (
+            {canEdit && (
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {!icon.isPrimary && (
+                  <button
+                    onClick={() => setPrimarySymbol(icon.id)}
+                    className="p-1 rounded-md bg-background/80 hover:bg-accent hover:text-accent-foreground transition-colors"
+                    title="Set as primary symbol"
+                  >
+                    <Star className="h-3 w-3" />
+                  </button>
+                )}
+                {icon.isPrimary && (
+                  <button
+                    onClick={() => updateIcon(icon.id, { isPrimary: false })}
+                    className="p-1 rounded-md bg-accent text-accent-foreground transition-colors"
+                    title="Remove as primary"
+                  >
+                    <StarOff className="h-3 w-3" />
+                  </button>
+                )}
+                {!icon.isPrimary && (
+                  <button
+                    onClick={() => toggleVariation(icon.id)}
+                    className={`p-1 rounded-md transition-colors ${icon.isVariation ? 'bg-secondary' : 'bg-background/80 hover:bg-secondary'}`}
+                    title={icon.isVariation ? "Remove from variations" : "Add as variation"}
+                  >
+                    <Layers className="h-3 w-3 text-muted-foreground" />
+                  </button>
+                )}
                 <button
-                  onClick={() => setPrimarySymbol(icon.id)}
-                  className="p-1 rounded-md bg-background/80 hover:bg-accent hover:text-accent-foreground transition-colors"
-                  title="Set as primary symbol"
+                  onClick={() => setEditingId(icon.id)}
+                  className="p-1 rounded-md bg-background/80 hover:bg-secondary transition-colors"
                 >
-                  <Star className="h-3 w-3" />
+                  <Pencil className="h-3 w-3 text-muted-foreground" />
                 </button>
-              )}
-              {icon.isPrimary && (
                 <button
-                  onClick={() => updateIcon(icon.id, { isPrimary: false })}
-                  className="p-1 rounded-md bg-accent text-accent-foreground transition-colors"
-                  title="Remove as primary"
+                  onClick={() => deleteIcon(icon.id)}
+                  className="p-1 rounded-md bg-background/80 hover:bg-destructive hover:text-destructive-foreground transition-colors"
                 >
-                  <StarOff className="h-3 w-3" />
+                  <X className="h-3 w-3" />
                 </button>
-              )}
-              {!icon.isPrimary && (
-                <button
-                  onClick={() => toggleVariation(icon.id)}
-                  className={`p-1 rounded-md transition-colors ${icon.isVariation ? 'bg-secondary' : 'bg-background/80 hover:bg-secondary'}`}
-                  title={icon.isVariation ? "Remove from variations" : "Add as variation"}
-                >
-                  <Layers className="h-3 w-3 text-muted-foreground" />
-                </button>
-              )}
-              <button
-                onClick={() => setEditingId(icon.id)}
-                className="p-1 rounded-md bg-background/80 hover:bg-secondary transition-colors"
-              >
-                <Pencil className="h-3 w-3 text-muted-foreground" />
-              </button>
-              <button
-                onClick={() => deleteIcon(icon.id)}
-                className="p-1 rounded-md bg-background/80 hover:bg-destructive hover:text-destructive-foreground transition-colors"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -220,23 +222,25 @@ export const BrandIconsSection = ({ brandIcons, onBrandIconsChange, customSubtit
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <div className="flex gap-2 shrink-0">
-          {organization?.id && (
-            <Button 
-              onClick={() => setShowLibraryPicker(true)} 
-              size="sm" 
-              variant="outline"
-              className="gap-2"
-            >
-              <Library className="h-4 w-4" />
-              From Library
+        {canEdit && (
+          <div className="flex gap-2 shrink-0">
+            {organization?.id && (
+              <Button 
+                onClick={() => setShowLibraryPicker(true)} 
+                size="sm" 
+                variant="outline"
+                className="gap-2"
+              >
+                <Library className="h-4 w-4" />
+                From Library
+              </Button>
+            )}
+            <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2">
+              <Upload className="h-4 w-4" />
+              Upload Icon
             </Button>
-          )}
-          <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2">
-            <Upload className="h-4 w-4" />
-            Upload Icon
-          </Button>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Icon Library Picker Dialog */}

@@ -207,11 +207,13 @@ const FolderEmbed = ({ template, expanded, onToggle }: { template: PresentationT
 export const PresentationTemplatesSection = ({
   presentations: propPresentations,
   onUpdate,
-  isEditable = true,
+  isEditable,
   subtitle,
   entityType = 'brand',
   entityId,
 }: PresentationTemplatesSectionProps) => {
+  // Default to false for public view; only editable if explicitly enabled
+  const canEdit = isEditable ?? false;
   const { organization } = useOrganization();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -512,7 +514,7 @@ export const PresentationTemplatesSection = ({
             </p>
           )}
         </div>
-        {isEditable && (
+        {canEdit && (
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -783,7 +785,7 @@ export const PresentationTemplatesSection = ({
         <div className="text-center py-12 text-muted-foreground">
           <FileType className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>{searchQuery || categoryFilter !== 'all' ? 'No templates match your search' : 'No templates added yet'}</p>
-          {isEditable && !searchQuery && categoryFilter === 'all' && (
+          {canEdit && !searchQuery && categoryFilter === 'all' && (
             <p className="text-sm mt-2">Click "Add Template" to upload files or add external links</p>
           )}
         </div>
@@ -822,7 +824,7 @@ export const PresentationTemplatesSection = ({
                         </a>
                       </Button>
                     )}
-                    {isEditable && (
+                    {canEdit && (
                       <>
                         <Button
                           size="icon"
@@ -910,7 +912,7 @@ export const PresentationTemplatesSection = ({
                       </a>
                     </Button>
                   )}
-                  {isEditable && (
+                  {canEdit && (
                     <Button size="icon" variant="ghost" onClick={() => handleDelete(template.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
