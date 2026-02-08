@@ -160,6 +160,11 @@ export const EventSidebar = ({
     }
   };
 
+  // Filter sections: non-admins never see hidden sections
+  const displayedSections = isAdmin 
+    ? sectionOrder 
+    : sectionOrder.filter(id => !hiddenSections.includes(id));
+    
   const visibleCount = sectionOrder.length - hiddenSections.length;
 
   return (
@@ -185,9 +190,9 @@ export const EventSidebar = ({
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
-            <SortableContext items={sectionOrder} strategy={verticalListSortingStrategy}>
+            <SortableContext items={displayedSections} strategy={verticalListSortingStrategy}>
               <div className="space-y-0.5">
-                {sectionOrder.map((sectionId, index) => {
+                {displayedSections.map((sectionId, index) => {
                   const meta = eventSectionMeta[sectionId];
                   if (!meta) return null;
                   const isHidden = hiddenSections.includes(sectionId);

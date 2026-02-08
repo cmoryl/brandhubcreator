@@ -19,6 +19,8 @@ interface MobileEventSectionNavProps {
   activeSection?: EventSectionId;
   onSectionSelect: (sectionId: EventSectionId) => void;
   eventName?: string;
+  /** When true (admin), show hidden sections with visual indicator */
+  isAdmin?: boolean;
 }
 
 export const MobileEventSectionNav = ({
@@ -27,12 +29,14 @@ export const MobileEventSectionNav = ({
   activeSection,
   onSectionSelect,
   eventName = 'Event Guide',
+  isAdmin = false,
 }: MobileEventSectionNavProps) => {
   const [open, setOpen] = useState(false);
 
-  const visibleSections = sectionOrder.filter(
-    (id) => !hiddenSections.includes(id) && eventSectionMeta[id]
-  );
+  // Non-admins never see hidden sections
+  const visibleSections = isAdmin
+    ? sectionOrder.filter((id) => eventSectionMeta[id])
+    : sectionOrder.filter((id) => !hiddenSections.includes(id) && eventSectionMeta[id]);
 
   const handleSelect = (sectionId: EventSectionId) => {
     onSectionSelect(sectionId);
