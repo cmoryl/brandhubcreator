@@ -49,6 +49,8 @@ export interface BrandHero {
   useVideo?: boolean;
   /** Whether to apply Ken Burns (slow pan/zoom) effect to hero image */
   kenBurnsEffect?: boolean;
+  /** Speed of the Ken Burns animation */
+  kenBurnsSpeed?: 'slow' | 'normal' | 'fast';
   /** Active hero background effect type */
   heroEffect?: 'none' | 'gradient-bars' | 'horizon-glow' | 'floating-orbs' | 'gradient-spheres' | 'image-orbs' | 'image-panels';
   /** Intensity of the hero effect */

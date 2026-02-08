@@ -383,6 +383,7 @@ export const HeroSection = ({
             videoSrc={hero.useVideo ? hero.coverVideo : undefined}
             preferVideo={hero.useVideo === true}
             kenBurnsEffect={hero.useVideo !== true && (hero.kenBurnsEffect === true || kenBurnsPreview)}
+            kenBurnsSpeed={hero.kenBurnsSpeed || 'normal'}
             fallbackSrc=""
             className={`relative ${heroHeight} group`}
             priority={true}
@@ -476,6 +477,7 @@ export const HeroSection = ({
             useVideo={hero.useVideo === true}
             kenBurnsEffect={hero.kenBurnsEffect === true}
             kenBurnsPreview={kenBurnsPreview}
+            kenBurnsSpeed={hero.kenBurnsSpeed || 'normal'}
             heroEffect={hero.heroEffect || (hero.gradientBarsEffect ? 'gradient-bars' : 'none')}
             heroEffectIntensity={hero.heroEffectIntensity || hero.gradientBarsIntensity || 'medium'}
             heroEffectColorScheme={hero.heroEffectColorScheme || hero.gradientBarsColorScheme || 'cyan-purple'}
@@ -505,6 +507,11 @@ export const HeroSection = ({
               }
             }}
             onKenBurnsPreviewEnd={() => setKenBurnsPreview(false)}
+            onKenBurnsSpeedChange={(speed) => {
+              if (onHeroChange) {
+                onHeroChange({ ...hero, kenBurnsSpeed: speed });
+              }
+            }}
             onHeroEffectChange={(effect) => {
               if (onHeroChange) {
                 onHeroChange({ ...hero, heroEffect: effect, gradientBarsEffect: effect === 'gradient-bars' });

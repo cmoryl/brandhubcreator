@@ -299,6 +299,8 @@ interface BackgroundImageProps {
   preferVideo?: boolean;
   /** Whether to apply Ken Burns (slow pan/zoom) effect to background */
   kenBurnsEffect?: boolean;
+  /** Speed of Ken Burns animation */
+  kenBurnsSpeed?: 'slow' | 'normal' | 'fast';
   children?: React.ReactNode;
   className?: string;
   overlayClassName?: string;
@@ -314,6 +316,7 @@ export const BackgroundImage = forwardRef<HTMLDivElement, BackgroundImageProps>(
   videoSrc,
   preferVideo = true,
   kenBurnsEffect = false,
+  kenBurnsSpeed = 'normal',
   children,
   className,
   overlayClassName,
@@ -425,7 +428,9 @@ export const BackgroundImage = forwardRef<HTMLDivElement, BackgroundImageProps>(
             'absolute inset-0 bg-cover bg-center transition-opacity duration-500',
             isLoaded ? 'opacity-100' : 'opacity-0',
             // Ken Burns takes priority - disable parallax transforms when Ken Burns is active
-            kenBurnsEffect ? 'animate-ken-burns' : (parallax && 'will-change-transform')
+            kenBurnsEffect 
+              ? (kenBurnsSpeed === 'slow' ? 'animate-ken-burns-slow' : kenBurnsSpeed === 'fast' ? 'animate-ken-burns-fast' : 'animate-ken-burns')
+              : (parallax && 'will-change-transform')
           )}
           style={{
             backgroundImage: isInView && currentSrc ? `url(${currentSrc})` : undefined,
