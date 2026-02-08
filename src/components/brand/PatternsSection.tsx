@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { X, Pencil, Upload, Download, Package, Maximize2, Sparkles, Loader2, FolderOpen } from 'lucide-react';
-import { BrandPattern, BrandColor, LayoutPreset } from '@/types/brand';
+import { BrandPattern, BrandColor, LayoutPreset, CustomDesignShape } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SectionHeader } from './SectionHeader';
@@ -34,6 +34,9 @@ interface PatternsSectionProps {
   brandTagline?: string;
   brandArchetype?: string;
   brandSlug?: string;
+  // Custom shapes
+  customShapes?: CustomDesignShape[];
+  onCustomShapesChange?: (shapes: CustomDesignShape[]) => void;
 }
 
 const RESOLUTION_OPTIONS = [
@@ -54,7 +57,9 @@ export const PatternsSection = ({
   brandColors,
   brandTagline,
   brandArchetype,
-  brandSlug
+  brandSlug,
+  customShapes = [],
+  onCustomShapesChange
 }: PatternsSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
@@ -446,7 +451,14 @@ export const PatternsSection = ({
           <h3 className="text-lg font-semibold">Design Elements Library</h3>
         </div>
         <div className="p-4 bg-muted/30 rounded-xl border border-border">
-          <DesignElementsSection canEdit={Boolean(onPatternsChange)} brandColors={brandColors} brandSlug={brandSlug} />
+          <DesignElementsSection 
+            canEdit={Boolean(onPatternsChange)} 
+            brandColors={brandColors} 
+            brandSlug={brandSlug}
+            customShapes={customShapes}
+            onCustomShapesChange={onCustomShapesChange}
+            brandName={brandName}
+          />
         </div>
       </div>
 
