@@ -233,7 +233,7 @@ export default function DemoBrandEditor() {
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-foreground mb-4">Demo Brand Not Found</h1>
           <p className="text-muted-foreground mb-6">The demo brand you're looking for doesn't exist in the database.</p>
-          <Button onClick={() => navigate('/admin/demo-pages')} className="gap-2">
+          <Button onClick={() => navigate('/admin?tab=demo-pages')} className="gap-2">
             <ArrowLeft className="h-4 w-4" />
             Back to Demo Pages
           </Button>
@@ -283,7 +283,7 @@ export default function DemoBrandEditor() {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => navigate('/admin/demo-pages')} 
+              onClick={() => navigate('/admin?tab=demo-pages')} 
               className="gap-1 sm:gap-2 shrink-0 h-9 px-2 sm:px-3"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -359,7 +359,7 @@ export default function DemoBrandEditor() {
         <AppBreadcrumbs
           items={[
             { label: 'Admin', icon: Settings, href: '/admin' },
-            { label: 'Demo Pages', icon: Star, href: '/admin/demo-pages' },
+            { label: 'Demo Pages', icon: Star, href: '/admin?tab=demo-pages' },
           ]}
           currentPage={`Edit: ${demoBrand.name}`}
         />
