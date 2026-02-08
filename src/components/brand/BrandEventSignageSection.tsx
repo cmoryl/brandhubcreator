@@ -16,6 +16,7 @@ import { LayoutSelector, useLayoutClasses } from '@/components/brand/LayoutSelec
 import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { RichTextEditor, RichTextDisplay } from '@/components/ui/rich-text-editor';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
+import { EditBrandSignageDialog } from './EditBrandSignageDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -93,6 +94,8 @@ export const BrandEventSignageSection = ({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<BrandEventSignage | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<BrandEventSignage | null>(null);
   const [editingSubtitle, setEditingSubtitle] = useState(false);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [newItem, setNewItem] = useState<Partial<BrandEventSignage>>({
@@ -126,6 +129,16 @@ export const BrandEventSignageSection = ({
   const openPreview = (item: BrandEventSignage) => {
     setPreviewItem(item);
     setPreviewOpen(true);
+  };
+
+  const openEditDialog = (item: BrandEventSignage) => {
+    setEditingItem(item);
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSignage = (updatedItem: BrandEventSignage) => {
+    if (!onEventSignageChange) return;
+    onEventSignageChange(eventSignage.map(s => s.id === updatedItem.id ? updatedItem : s));
   };
 
   // File to base64 helper
@@ -934,14 +947,24 @@ export const BrandEventSignageSection = ({
                           <p className="text-sm text-muted-foreground">{item.dimensions}</p>
                         </div>
                         {isEditable && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => handleDelete(item.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => openEditDialog(item)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              onClick={() => handleDelete(item.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         )}
                       </div>
                       
@@ -963,6 +986,12 @@ export const BrandEventSignageSection = ({
                               <Download className="h-3.5 w-3.5 mr-1.5" />
                               Download
                             </a>
+                          </Button>
+                        )}
+                        {isEditable && !item.previewUrl && !item.templateUrl && (
+                          <Button variant="outline" size="sm" className="flex-1" onClick={() => openEditDialog(item)}>
+                            <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                            Edit
                           </Button>
                         )}
                         {!item.previewUrl && !item.templateUrl && !isEditable && (
@@ -1011,6 +1040,19 @@ export const BrandEventSignageSection = ({
         externalUrl={previewItem?.previewUrl}
         type="image"
       />
+
+      {/* Edit Dialog */}
+      {editingItem && (
+        <EditBrandSignageDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          signage={editingItem}
+          onSave={handleEditSignage}
+          onDelete={handleDelete}
+          brandName={brandName}
+          brandColors={brandColors?.map(c => c.hex)}
+        />
+      )}
     </section>
   );
 };
