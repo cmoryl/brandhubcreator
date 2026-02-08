@@ -197,10 +197,12 @@ function LeadCard({ lead, onUpdate }: { lead: LeadSubmission; onUpdate: () => vo
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open(`mailto:${lead.email}`, '_blank')}
+                  asChild
                 >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Email
+                  <a href={`mailto:${lead.email}`}>
+                    <Mail className="h-4 w-4 mr-2" />
+                    Email
+                  </a>
                 </Button>
               </div>
             </div>
