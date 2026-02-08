@@ -127,6 +127,47 @@ export const normalizeTemplates = (templates: unknown[]): BrandTemplate[] =>
     fileSize: t.fileSize || '',
   }));
 
+import { BrandGradient } from '@/types/brand';
+
+/** 
+ * Normalize legacy gradients data (angle + colors array -> css string).
+ * Legacy format: { id, name, angle: 135, colors: ['#fff', '#000'] }
+ * New format: { id, name, css: 'linear-gradient(135deg, #fff 0%, #000 100%)' }
+ */
+export const normalizeGradients = (gradients: unknown[]): BrandGradient[] =>
+  safeArray(gradients).map((g: any) => {
+    // If already has css property, just ensure id exists
+    if (g.css) {
+      return {
+        id: String(g.id || crypto.randomUUID()),
+        name: g.name || 'Gradient',
+        css: g.css,
+      };
+    }
+    
+    // Legacy format: angle + colors array
+    if (g.colors && Array.isArray(g.colors) && g.colors.length > 0) {
+      const angle = typeof g.angle === 'number' ? g.angle : 135;
+      const colorStops = g.colors.map((color: string, index: number) => {
+        const position = Math.round((index / (g.colors.length - 1)) * 100);
+        return `${color} ${position}%`;
+      }).join(', ');
+      
+      return {
+        id: String(g.id || crypto.randomUUID()),
+        name: g.name || 'Gradient',
+        css: `linear-gradient(${angle}deg, ${colorStops})`,
+      };
+    }
+    
+    // Fallback: return with default gradient
+    return {
+      id: String(g.id || crypto.randomUUID()),
+      name: g.name || 'Gradient',
+      css: g.css || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    };
+  });
+
 /** Normalize legacy brochures data (imageUrl -> previewUrl, name -> title) */
 export const normalizeBrochures = (brochures: unknown[]): BrandBrochure[] =>
   safeArray(brochures).map((b: any) => ({
@@ -192,7 +233,7 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     brandIcons: safeArray(g.brandIcons),
     colors: safeArray(g.colors),
     colorCombinations: safeArray(g.colorCombinations),
-    gradients: safeArray(g.gradients),
+    gradients: normalizeGradients(g.gradients),
     patterns: safeArray(g.patterns),
     typography: normalizeTypography(g.typography),
     textStyles: safeArray(g.textStyles),
