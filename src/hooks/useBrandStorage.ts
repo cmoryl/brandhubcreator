@@ -11,7 +11,8 @@ import {
   safeObject, 
   normalizeTypography, 
   normalizeTemplates, 
-  normalizeBrochures 
+  normalizeBrochures,
+  normalizeGradients 
 } from '@/lib/guideNormalization';
 
 // Debounce delay for database syncing (ms)
@@ -142,7 +143,7 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     brandIcons: asArray(guideData.brandIcons, []) as BrandGuide['brandIcons'],
     colors: asArray(guideData.colors, []) as BrandGuide['colors'],
     colorCombinations: asArray(guideData.colorCombinations, []) as BrandGuide['colorCombinations'],
-    gradients: asArray(guideData.gradients, []) as BrandGuide['gradients'],
+    gradients: normalizeGradients(asArray(guideData.gradients, [])) as BrandGuide['gradients'],
     patterns: asArray(guideData.patterns, []) as BrandGuide['patterns'],
     typography: normalizeTypography(asArray(guideData.typography, [])) as BrandGuide['typography'],
     textStyles: asArray(guideData.textStyles, []) as BrandGuide['textStyles'],
@@ -203,7 +204,7 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
     brandIcons: asArray(guideData.brandIcons, []) as ProductGuide['brandIcons'],
     colors: asArray(guideData.colors, []) as ProductGuide['colors'],
     colorCombinations: asArray(guideData.colorCombinations, []) as ProductGuide['colorCombinations'],
-    gradients: asArray(guideData.gradients, []) as ProductGuide['gradients'],
+    gradients: normalizeGradients(asArray(guideData.gradients, [])) as ProductGuide['gradients'],
     patterns: asArray(guideData.patterns, []) as ProductGuide['patterns'],
     typography: normalizeTypography(asArray(guideData.typography, [])) as ProductGuide['typography'],
     textStyles: asArray(guideData.textStyles, []) as ProductGuide['textStyles'],
