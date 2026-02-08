@@ -1,18 +1,19 @@
 /**
- * QuickFind Logo Widget - Compact logo finder for organization portal
+ * QuickFind Logo Widget - Compact logo finder with ZIP download
  */
 
 import { useState, useMemo } from 'react';
-import { Search, Download, X, Image as ImageIcon, Star, ChevronDown } from 'lucide-react';
+import { Search, Download, X, Image as ImageIcon, Star, ChevronDown, Archive, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { useLogoFavorites } from '@/hooks/useLogoFavorites';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import JSZip from 'jszip';
 
 interface LogoResult {
   id: string;
@@ -61,6 +62,7 @@ export const QuickFindLogo = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [previewLogo, setPreviewLogo] = useState<LogoResult | null>(null);
+  const [isDownloadingAll, setIsDownloadingAll] = useState(false);
 
   // Aggregate all logos
   const allLogos = useMemo(() => {
@@ -125,7 +127,7 @@ export const QuickFindLogo = ({
     );
   }, [allLogos, searchQuery]);
 
-  // Download handler
+  // Single file download
   const handleDownload = async (logo: LogoResult, format?: 'png' | 'jpg' | 'webp') => {
     try {
       const response = await fetch(logo.url);
@@ -179,6 +181,68 @@ export const QuickFindLogo = ({
     }
   };
 
+  // Download all as ZIP
+  const handleDownloadAll = async (logos: LogoResult[]) => {
+    if (logos.length === 0) return;
+    
+    setIsDownloadingAll(true);
+    const loadingToast = toast.loading(`Preparing ${logos.length} logos...`);
+    
+    try {
+      const zip = new JSZip();
+      const folders: Record<string, JSZip> = {};
+      
+      // Create folders for each entity type
+      folders['brands'] = zip.folder('brands')!;
+      folders['products'] = zip.folder('products')!;
+      folders['events'] = zip.folder('events')!;
+      
+      let successCount = 0;
+      
+      for (const logo of logos) {
+        try {
+          const response = await fetch(logo.url);
+          if (!response.ok) continue;
+          
+          const blob = await response.blob();
+          const ext = logo.url.split('.').pop()?.split('?')[0]?.toLowerCase() || 'png';
+          const fileName = `${logo.entityName}/${logo.name}-${logo.variant}.${ext}`.replace(/[<>:"/\\|?*]/g, '_');
+          
+          const folder = folders[`${logo.entityType}s`];
+          if (folder) {
+            folder.file(fileName, blob);
+            successCount++;
+          }
+        } catch (err) {
+          console.warn(`Failed to fetch ${logo.name}:`, err);
+        }
+      }
+      
+      if (successCount === 0) {
+        toast.dismiss(loadingToast);
+        toast.error('No logos could be downloaded');
+        return;
+      }
+      
+      const content = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `logos-${new Date().toISOString().split('T')[0]}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      toast.dismiss(loadingToast);
+      toast.success(`Downloaded ${successCount} logos as ZIP`);
+    } catch (err) {
+      console.error('ZIP creation failed:', err);
+      toast.dismiss(loadingToast);
+      toast.error('Failed to create ZIP file');
+    } finally {
+      setIsDownloadingAll(false);
+    }
+  };
+
   const handleToggleFavorite = (logo: LogoResult) => {
     toggleFavorite({
       entityId: logo.entityId,
@@ -223,6 +287,21 @@ export const QuickFindLogo = ({
                   autoFocus
                 />
               </div>
+              {/* Download All Button */}
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={() => handleDownloadAll(allLogos)}
+                disabled={isDownloadingAll}
+                title="Download all as ZIP"
+              >
+                {isDownloadingAll ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Archive className="h-4 w-4" />
+                )}
+              </Button>
               <Button
                 variant="ghost"
                 size="icon"
@@ -303,7 +382,6 @@ export const QuickFindLogo = ({
                     <DropdownMenuTrigger asChild>
                       <Button size="sm" className="h-8 gap-1.5">
                         <Download className="h-4 w-4" />
-                        Download
                         <ChevronDown className="h-3 w-3" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -312,6 +390,11 @@ export const QuickFindLogo = ({
                       <DropdownMenuItem onClick={() => handleDownload(previewLogo, 'png')}>PNG</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleDownload(previewLogo, 'jpg')}>JPG</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleDownload(previewLogo, 'webp')}>WebP</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleDownloadAll(allLogos)} disabled={isDownloadingAll}>
+                        <Archive className="h-4 w-4 mr-2" />
+                        All Logos (ZIP)
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
