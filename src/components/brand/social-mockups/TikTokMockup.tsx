@@ -1,6 +1,6 @@
 import { Heart, MessageCircle, Share, Bookmark, MoreHorizontal, Music, Home, Search, PlusSquare, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { MockupProps } from './types';
+import { FormatMockupProps } from './types';
 
 export const TikTokMockup = ({ 
   imageUrl, 
@@ -8,7 +8,7 @@ export const TikTokMockup = ({
   brandName = 'Brand Name',
   handle = '@brandhandle',
   className 
-}: MockupProps) => {
+}: FormatMockupProps) => {
   return (
     <div className={cn(
       "relative bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border-[8px] border-gray-800",

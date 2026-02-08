@@ -1,10 +1,6 @@
 import { ThumbsUp, ThumbsDown, Share, MoreVertical, Bell, Play, Clock, ListVideo, Home, Compass, PlaySquare, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { MockupProps, PostFormat } from './types';
-
-interface YouTubeMockupProps extends MockupProps {
-  format: PostFormat;
-}
+import { FormatMockupProps } from './types';
 
 export const YouTubeMockup = ({ 
   imageUrl, 
@@ -13,7 +9,7 @@ export const YouTubeMockup = ({
   handle = '@brandhandle',
   format,
   className 
-}: YouTubeMockupProps) => {
+}: FormatMockupProps) => {
   if (format === 'reel') {
     // YouTube Shorts
     return (

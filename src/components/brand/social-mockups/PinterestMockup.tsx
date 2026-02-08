@@ -1,10 +1,6 @@
 import { Heart, Share, MoreHorizontal, ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { MockupProps, PostFormat } from './types';
-
-interface PinterestMockupProps extends MockupProps {
-  format: PostFormat;
-}
+import { FormatMockupProps } from './types';
 
 export const PinterestMockup = ({ 
   imageUrl, 
@@ -12,7 +8,7 @@ export const PinterestMockup = ({
   brandName = 'Brand Name',
   format,
   className 
-}: PinterestMockupProps) => {
+}: FormatMockupProps) => {
   if (format === 'story') {
     // Pinterest Idea Pin
     return (

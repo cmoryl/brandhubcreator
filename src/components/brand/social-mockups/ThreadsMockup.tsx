@@ -1,6 +1,6 @@
 import { Heart, MessageCircle, Send, MoreHorizontal, Repeat2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { MockupProps } from './types';
+import { FormatMockupProps } from './types';
 
 export const ThreadsMockup = ({ 
   imageUrl, 
@@ -8,7 +8,7 @@ export const ThreadsMockup = ({
   brandName = 'Brand Name',
   handle = 'brandhandle',
   className 
-}: MockupProps) => {
+}: FormatMockupProps) => {
   return (
     <div className={cn(
       "bg-black rounded-2xl shadow-xl overflow-hidden border border-gray-800",
