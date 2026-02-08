@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Sparkles, Loader2, Trash2, Download, Eye, Code, Copy, Check, Wand2 } from 'lucide-react';
+import DOMPurify from 'dompurify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +14,17 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { CustomDesignShape, BrandColor } from '@/types/brand';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+// SVG sanitization config to prevent XSS attacks
+const SVG_SANITIZE_CONFIG = {
+  USE_PROFILES: { svg: true, svgFilters: true },
+  FORBID_TAGS: ['script', 'foreignObject'],
+  FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur'],
+};
+
+const sanitizeSvg = (svg: string): string => {
+  return DOMPurify.sanitize(svg, SVG_SANITIZE_CONFIG);
+};
 
 // Example SVG templates for users to copy and modify
 const SVG_TEMPLATES = [
@@ -200,7 +212,7 @@ const TemplateCard = ({
         >
           <div 
             className="w-full h-full flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full"
-            dangerouslySetInnerHTML={{ __html: template.svg }}
+            dangerouslySetInnerHTML={{ __html: sanitizeSvg(template.svg) }}
           />
           <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             {copied ? (
@@ -467,7 +479,7 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
                     <CardContent className="p-3">
                       <div 
                         className="aspect-square flex items-center justify-center bg-muted/30 rounded-lg mb-2 overflow-hidden"
-                        dangerouslySetInnerHTML={{ __html: preset.svg }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeSvg(preset.svg) }}
                       />
                       <div className="flex items-center justify-between gap-1">
                         <div className="min-w-0">
@@ -566,7 +578,7 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
                     <Label className="text-muted-foreground">Preview</Label>
                     <div 
                       className="aspect-square max-h-[150px] flex items-center justify-center bg-muted/30 rounded-lg p-4 border border-border"
-                      dangerouslySetInnerHTML={{ __html: manualSvg }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeSvg(manualSvg) }}
                     />
                   </div>
                 )}
@@ -666,7 +678,7 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
                 >
                   <div 
                     className="aspect-square flex items-center justify-center overflow-hidden"
-                    dangerouslySetInnerHTML={{ __html: shape.svg }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeSvg(shape.svg) }}
                   />
                   <p className="text-[10px] text-center mt-1 truncate">{shape.name}</p>
                   
@@ -720,7 +732,7 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
             <div className="space-y-4">
               <div 
                 className="aspect-square max-h-[300px] flex items-center justify-center bg-muted/30 rounded-xl p-8 border border-border"
-                dangerouslySetInnerHTML={{ __html: previewShape.svg }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(previewShape.svg) }}
               />
               <div className="flex gap-2">
                 <Button 
