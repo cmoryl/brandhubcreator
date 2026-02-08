@@ -219,8 +219,8 @@ export const ReorderableBrandSidebar = ({
       )}
 
       {/* Navigation */}
-      <ScrollArea className="flex-1">
-        <nav className="p-2 pr-4">
+      <ScrollArea className="flex-1 overflow-hidden">
+        <nav className="p-2 pr-1">
           <DndContext 
             sensors={sensors}
             collisionDetection={closestCenter}
