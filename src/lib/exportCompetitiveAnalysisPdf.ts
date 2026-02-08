@@ -285,9 +285,18 @@ export const exportCompetitiveAnalysisPdf = async (
 
   const container = document.createElement('div');
   container.innerHTML = createPdfContent(report, options);
-  container.style.position = 'absolute';
-  container.style.left = '-9999px';
+  container.style.position = 'fixed';
+  container.style.top = '0';
+  container.style.left = '0';
+  container.style.width = '210mm'; // A4 width
+  container.style.zIndex = '-9999';
+  container.style.opacity = '0';
+  container.style.pointerEvents = 'none';
+  container.style.overflow = 'visible';
   document.body.appendChild(container);
+  
+  // Force layout calculation
+  container.offsetHeight;
 
   const filename = `${options.entityName.replace(/\s+/g, '_')}_Competitive_Analysis.pdf`;
 
