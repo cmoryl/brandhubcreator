@@ -37,8 +37,7 @@ export const SortableSectionItem = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id });
-
+  } = useSortable({ id, disabled: !isAdmin });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -95,14 +94,16 @@ export const SortableSectionItem = ({
         </button>
       )}
 
-      <button
-        {...attributes}
-        {...listeners}
-        className="p-1 text-muted-foreground/70 hover:text-muted-foreground cursor-grab active:cursor-grabbing transition-colors duration-200 shrink-0"
-        aria-label="Drag to reorder"
-      >
-        <GripVertical className="h-3.5 w-3.5" />
-      </button>
+      {isAdmin && (
+        <button
+          {...attributes}
+          {...listeners}
+          className="p-1 text-muted-foreground/70 hover:text-muted-foreground cursor-grab active:cursor-grabbing transition-colors duration-200 shrink-0"
+          aria-label="Drag to reorder"
+        >
+          <GripVertical className="h-3.5 w-3.5" />
+        </button>
+      )}
 
       <button
         onClick={onClick}
