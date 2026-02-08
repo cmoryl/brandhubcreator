@@ -220,13 +220,22 @@ export const exportScheduleToPdf = async (
   const timestamp = new Date().toISOString().split('T')[0];
   const filename = `${safeEventName}-schedule-${timestamp}.pdf`;
 
-  // Create a temporary container for the HTML
+  // Create a temporary container for the HTML - use opacity:0 instead of positioning off-screen
+  // to ensure html2canvas can properly capture the content
   const container = document.createElement('div');
   container.innerHTML = generatePdfHtml(schedule, options);
-  container.style.position = 'absolute';
-  container.style.left = '-9999px';
+  container.style.position = 'fixed';
   container.style.top = '0';
+  container.style.left = '0';
+  container.style.width = '210mm'; // A4 width
+  container.style.zIndex = '-9999';
+  container.style.opacity = '0';
+  container.style.pointerEvents = 'none';
+  container.style.overflow = 'visible';
   document.body.appendChild(container);
+  
+  // Force layout calculation
+  container.offsetHeight;
 
   const pdfOptions = {
     margin: [15, 15, 15, 15] as [number, number, number, number],
