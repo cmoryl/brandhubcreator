@@ -297,14 +297,13 @@ export const DesignElementsSection = ({ canEdit = false, brandColors, brandSlug 
 
   const hasBrandColors = brandColors && brandColors.length > 0;
   
-  // Life Sciences brand gets additional custom shapes
+  // Life Sciences brand gets only the custom shapes (no default elements)
   const isLifeSciences = brandSlug === 'life-sciences';
   
-  // Define which element types to show (base types + Life Sciences custom shapes)
-  const baseElementTypes: DesignElement['type'][] = ['speech-bubble', 'chevron', 'frame', 'wave'];
+  // Define which element types to show
   const elementTypes: DesignElement['type'][] = isLifeSciences 
-    ? [...baseElementTypes, 'rounded-rect', 'layered-rect']
-    : baseElementTypes;
+    ? ['rounded-rect', 'layered-rect']
+    : ['speech-bubble', 'chevron', 'frame', 'wave'];
 
   const downloadAsSVG = (element: DesignElement) => {
     const blob = new Blob([element.svg], { type: 'image/svg+xml' });
