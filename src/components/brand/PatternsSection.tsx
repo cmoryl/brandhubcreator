@@ -33,6 +33,7 @@ interface PatternsSectionProps {
   brandColors?: BrandColor[];
   brandTagline?: string;
   brandArchetype?: string;
+  brandSlug?: string;
 }
 
 const RESOLUTION_OPTIONS = [
@@ -52,7 +53,8 @@ export const PatternsSection = ({
   brandName,
   brandColors,
   brandTagline,
-  brandArchetype
+  brandArchetype,
+  brandSlug
 }: PatternsSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
@@ -444,7 +446,7 @@ export const PatternsSection = ({
           <h3 className="text-lg font-semibold">Design Elements Library</h3>
         </div>
         <div className="p-4 bg-muted/30 rounded-xl border border-border">
-          <DesignElementsSection canEdit={Boolean(onPatternsChange)} brandColors={brandColors} />
+          <DesignElementsSection canEdit={Boolean(onPatternsChange)} brandColors={brandColors} brandSlug={brandSlug} />
         </div>
       </div>
 

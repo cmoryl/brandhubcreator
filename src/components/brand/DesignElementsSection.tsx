@@ -284,9 +284,10 @@ const generateElements = (variants: ColorVariant[]): DesignElement[] => {
 interface DesignElementsSectionProps {
   canEdit?: boolean;
   brandColors?: BrandColor[];
+  brandSlug?: string;
 }
 
-export const DesignElementsSection = ({ canEdit = false, brandColors }: DesignElementsSectionProps) => {
+export const DesignElementsSection = ({ canEdit = false, brandColors, brandSlug }: DesignElementsSectionProps) => {
   const [selectedElement, setSelectedElement] = useState<DesignElement | null>(null);
   const [downloadedIds, setDownloadedIds] = useState<Set<string>>(new Set());
 
@@ -295,6 +296,15 @@ export const DesignElementsSection = ({ canEdit = false, brandColors }: DesignEl
   const designElements = useMemo(() => generateElements(colorVariants), [colorVariants]);
 
   const hasBrandColors = brandColors && brandColors.length > 0;
+  
+  // Life Sciences brand gets additional custom shapes
+  const isLifeSciences = brandSlug === 'life-sciences';
+  
+  // Define which element types to show (base types + Life Sciences custom shapes)
+  const baseElementTypes: DesignElement['type'][] = ['speech-bubble', 'chevron', 'frame', 'wave'];
+  const elementTypes: DesignElement['type'][] = isLifeSciences 
+    ? [...baseElementTypes, 'rounded-rect', 'layered-rect']
+    : baseElementTypes;
 
   const downloadAsSVG = (element: DesignElement) => {
     const blob = new Blob([element.svg], { type: 'image/svg+xml' });
@@ -406,8 +416,8 @@ export const DesignElementsSection = ({ canEdit = false, brandColors }: DesignEl
       </div>
 
       <Tabs defaultValue="speech-bubble" className="w-full">
-        <TabsList className="grid grid-cols-6 w-full max-w-2xl">
-          {(['speech-bubble', 'chevron', 'frame', 'wave', 'rounded-rect', 'layered-rect'] as const).map(type => {
+        <TabsList className={`grid w-full ${isLifeSciences ? 'grid-cols-6 max-w-2xl' : 'grid-cols-4 max-w-lg'}`}>
+          {elementTypes.map(type => {
             const Icon = TypeIcon[type];
             const label = type === 'rounded-rect' ? 'Rounded' : type === 'layered-rect' ? 'Layered' : type.replace('-', ' ');
             return (
@@ -419,7 +429,7 @@ export const DesignElementsSection = ({ canEdit = false, brandColors }: DesignEl
           })}
         </TabsList>
 
-        {(['speech-bubble', 'chevron', 'frame', 'wave', 'rounded-rect', 'layered-rect'] as const).map(type => (
+        {elementTypes.map(type => (
           <TabsContent key={type} value={type} className="mt-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
               {getElementsByType(type).map(renderElementCard)}
