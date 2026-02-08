@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Sparkles, Loader2, Trash2, Download, Eye, Code } from 'lucide-react';
+import { Plus, Sparkles, Loader2, Trash2, Download, Eye, Code, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,9 +9,79 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CustomDesignShape, BrandColor } from '@/types/brand';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+// Example SVG templates for users to copy and modify
+const SVG_TEMPLATES = [
+  {
+    name: 'Basic Circle',
+    description: 'Simple circle with solid fill',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <circle cx="50" cy="50" r="40" fill="#4F46E5"/>
+</svg>`,
+  },
+  {
+    name: 'Gradient Rectangle',
+    description: 'Rounded rectangle with gradient',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" width="120" height="80">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#A855F7"/>
+    </linearGradient>
+  </defs>
+  <rect x="10" y="10" width="100" height="60" rx="12" fill="url(#grad1)"/>
+</svg>`,
+  },
+  {
+    name: 'Star Shape',
+    description: '5-pointed star polygon',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <polygon 
+    points="50,5 61,40 98,40 68,62 79,97 50,75 21,97 32,62 2,40 39,40" 
+    fill="#F59E0B"
+  />
+</svg>`,
+  },
+  {
+    name: 'Soft Blob',
+    description: 'Organic blob shape with path',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <path 
+    d="M50 10 C80 15, 95 35, 90 55 C85 75, 70 90, 45 88 C20 86, 8 70, 12 50 C16 30, 25 8, 50 10 Z" 
+    fill="#10B981"
+  />
+</svg>`,
+  },
+  {
+    name: 'Badge with Stroke',
+    description: 'Hexagon with border',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <polygon 
+    points="50,5 90,27.5 90,72.5 50,95 10,72.5 10,27.5" 
+    fill="#1E293B" 
+    stroke="#3B82F6" 
+    stroke-width="3"
+  />
+</svg>`,
+  },
+  {
+    name: 'Radial Gradient',
+    description: 'Circle with radial glow',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <radialGradient id="radial1" cx="30%" cy="30%">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#1E40AF"/>
+    </radialGradient>
+  </defs>
+  <circle cx="50" cy="50" r="40" fill="url(#radial1)"/>
+</svg>`,
+  },
+];
 
 // Predefined shape templates
 const PRESET_SHAPES: Omit<CustomDesignShape, 'id'>[] = [
@@ -103,6 +173,51 @@ const STYLE_OPTIONS = [
   { value: 'layered', label: 'Layered', description: 'Depth with overlays' },
   { value: 'abstract', label: 'Abstract', description: 'Creative, artistic' },
 ];
+
+// Template card component for example SVGs
+const TemplateCard = ({ 
+  template, 
+  onUse 
+}: { 
+  template: typeof SVG_TEMPLATES[0]; 
+  onUse: (svg: string) => void;
+}) => {
+  const [copied, setCopied] = useState(false);
+  
+  const handleClick = () => {
+    onUse(template.svg);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={handleClick}
+          className="group relative aspect-square bg-muted/30 rounded-lg border border-border hover:border-primary/50 transition-all overflow-hidden p-2"
+        >
+          <div 
+            className="w-full h-full flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full"
+            dangerouslySetInnerHTML={{ __html: template.svg }}
+          />
+          <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            {copied ? (
+              <Check className="h-4 w-4 text-primary" />
+            ) : (
+              <Copy className="h-4 w-4 text-muted-foreground" />
+            )}
+          </div>
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" className="max-w-[200px]">
+        <p className="font-medium">{template.name}</p>
+        <p className="text-xs text-muted-foreground">{template.description}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+};
 
 interface ShapeManagerProps {
   shapes: CustomDesignShape[];
@@ -320,64 +435,84 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
 
           <TabsContent value="manual" className="flex-1 min-h-0 overflow-auto mt-4 space-y-4">
             <div className="space-y-4">
+              {/* Example Templates */}
               <div className="space-y-2">
-                <Label>Shape Name</Label>
-                <Input
-                  placeholder="e.g., Custom Badge, Brand Frame"
-                  value={manualName}
-                  onChange={(e) => setManualName(e.target.value)}
-                />
+                <Label className="text-muted-foreground">Example Templates</Label>
+                <p className="text-xs text-muted-foreground">Click to copy to editor, then customize</p>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  {SVG_TEMPLATES.map((template, index) => (
+                    <TemplateCard 
+                      key={index} 
+                      template={template} 
+                      onUse={(svg) => {
+                        handleSvgChange(svg);
+                        toast.success('Template copied to editor');
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Category</Label>
-                <Select value={manualCategory} onValueChange={setManualCategory}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STYLE_OPTIONS.map(opt => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value="custom">Custom</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>SVG Code</Label>
-                <Textarea
-                  placeholder='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">...</svg>'
-                  value={manualSvg}
-                  onChange={(e) => handleSvgChange(e.target.value)}
-                  className="font-mono text-xs min-h-[120px]"
-                />
-                {svgPreviewError && (
-                  <p className="text-xs text-destructive">{svgPreviewError}</p>
-                )}
-              </div>
-
-              {/* Live Preview */}
-              {manualSvg.trim() && !svgPreviewError && (
+              <div className="border-t border-border pt-4 space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Preview</Label>
-                  <div 
-                    className="aspect-square max-h-[150px] flex items-center justify-center bg-muted/30 rounded-lg p-4 border border-border"
-                    dangerouslySetInnerHTML={{ __html: manualSvg }}
+                  <Label>Shape Name</Label>
+                  <Input
+                    placeholder="e.g., Custom Badge, Brand Frame"
+                    value={manualName}
+                    onChange={(e) => setManualName(e.target.value)}
                   />
                 </div>
-              )}
 
-              <Button 
-                onClick={addManualShape} 
-                disabled={!manualName.trim() || !manualSvg.trim() || !!svgPreviewError}
-                className="w-full gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Add Shape
-              </Button>
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Select value={manualCategory} onValueChange={setManualCategory}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STYLE_OPTIONS.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="custom">Custom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>SVG Code</Label>
+                  <Textarea
+                    placeholder='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">...</svg>'
+                    value={manualSvg}
+                    onChange={(e) => handleSvgChange(e.target.value)}
+                    className="font-mono text-xs min-h-[120px]"
+                  />
+                  {svgPreviewError && (
+                    <p className="text-xs text-destructive">{svgPreviewError}</p>
+                  )}
+                </div>
+
+                {/* Live Preview */}
+                {manualSvg.trim() && !svgPreviewError && (
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground">Preview</Label>
+                    <div 
+                      className="aspect-square max-h-[150px] flex items-center justify-center bg-muted/30 rounded-lg p-4 border border-border"
+                      dangerouslySetInnerHTML={{ __html: manualSvg }}
+                    />
+                  </div>
+                )}
+
+                <Button 
+                  onClick={addManualShape} 
+                  disabled={!manualName.trim() || !manualSvg.trim() || !!svgPreviewError}
+                  className="w-full gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Shape
+                </Button>
+              </div>
             </div>
           </TabsContent>
 
