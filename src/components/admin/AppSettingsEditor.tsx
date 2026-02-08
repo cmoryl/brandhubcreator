@@ -1,5 +1,5 @@
 import React, { useState, useRef, forwardRef } from 'react';
-import { Settings, Upload, X, Save, RotateCcw, Image, Sparkles, Waves, LayoutGrid } from 'lucide-react';
+import { Settings, Upload, X, Save, RotateCcw, Image, Sparkles, Waves, LayoutGrid, Library } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +24,7 @@ import {
   HeroBackgroundType 
 } from '@/contexts/AppSettingsContext';
 import { toast } from 'sonner';
+import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 
 const colorPresets = [
   { name: 'Coral', accent: '12 76% 61%' },
@@ -235,7 +236,7 @@ export const AppSettingsEditor = forwardRef<HTMLDivElement, React.HTMLAttributes
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-900">Light Mode Logo</span>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   {formData.appLogoLight ? (
                     <div className="relative">
                       <img
@@ -270,6 +271,15 @@ export const AppSettingsEditor = forwardRef<HTMLDivElement, React.HTMLAttributes
                     <Upload className="h-4 w-4 mr-2" />
                     Upload
                   </Button>
+                  <ImageLibraryPicker
+                    onSelect={(url) => setFormData(prev => ({ ...prev, appLogoLight: url }))}
+                    trigger={
+                      <Button variant="outline" size="sm">
+                        <Library className="h-4 w-4 mr-2" />
+                        Library
+                      </Button>
+                    }
+                  />
                 </div>
               </div>
 
@@ -278,7 +288,7 @@ export const AppSettingsEditor = forwardRef<HTMLDivElement, React.HTMLAttributes
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-white">Dark Mode Logo</span>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   {formData.appLogoDark ? (
                     <div className="relative">
                       <img
@@ -314,6 +324,15 @@ export const AppSettingsEditor = forwardRef<HTMLDivElement, React.HTMLAttributes
                     <Upload className="h-4 w-4 mr-2" />
                     Upload
                   </Button>
+                  <ImageLibraryPicker
+                    onSelect={(url) => setFormData(prev => ({ ...prev, appLogoDark: url }))}
+                    trigger={
+                      <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-800">
+                        <Library className="h-4 w-4 mr-2" />
+                        Library
+                      </Button>
+                    }
+                  />
                 </div>
               </div>
 
@@ -325,7 +344,7 @@ export const AppSettingsEditor = forwardRef<HTMLDivElement, React.HTMLAttributes
                 <p className="text-xs text-muted-foreground mb-3">
                   Upload a square image (recommended 32x32 or 64x64px) for the browser tab icon.
                 </p>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   {formData.appFavicon ? (
                     <div className="relative">
                       <img
@@ -358,8 +377,17 @@ export const AppSettingsEditor = forwardRef<HTMLDivElement, React.HTMLAttributes
                     onClick={() => faviconInputRef.current?.click()}
                   >
                     <Upload className="h-4 w-4 mr-2" />
-                    Upload Favicon
+                    Upload
                   </Button>
+                  <ImageLibraryPicker
+                    onSelect={(url) => setFormData(prev => ({ ...prev, appFavicon: url }))}
+                    trigger={
+                      <Button variant="outline" size="sm">
+                        <Library className="h-4 w-4 mr-2" />
+                        Library
+                      </Button>
+                    }
+                  />
                 </div>
               </div>
             </div>
