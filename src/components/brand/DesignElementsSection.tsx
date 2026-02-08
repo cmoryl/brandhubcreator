@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
-import { Download, ChevronUp, Square, MessageCircle, Waves, Eye, Check, RectangleHorizontal, Layers } from 'lucide-react';
+import { Download, ChevronUp, Square, MessageCircle, Waves, Eye, Check, RectangleHorizontal, Layers, Shapes } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { BrandColor } from '@/types/brand';
+import { BrandColor, CustomDesignShape } from '@/types/brand';
+import { ShapeManager } from './ShapeManager';
 
 interface ColorVariant {
   id: string;
@@ -285,17 +286,29 @@ interface DesignElementsSectionProps {
   canEdit?: boolean;
   brandColors?: BrandColor[];
   brandSlug?: string;
+  customShapes?: CustomDesignShape[];
+  onCustomShapesChange?: (shapes: CustomDesignShape[]) => void;
+  brandName?: string;
 }
 
-export const DesignElementsSection = ({ canEdit = false, brandColors, brandSlug }: DesignElementsSectionProps) => {
+export const DesignElementsSection = ({ 
+  canEdit = false, 
+  brandColors, 
+  brandSlug,
+  customShapes = [],
+  onCustomShapesChange,
+  brandName
+}: DesignElementsSectionProps) => {
   const [selectedElement, setSelectedElement] = useState<DesignElement | null>(null);
   const [downloadedIds, setDownloadedIds] = useState<Set<string>>(new Set());
+  const [selectedCustomShape, setSelectedCustomShape] = useState<CustomDesignShape | null>(null);
 
   // Generate elements based on brand colors
   const colorVariants = useMemo(() => generateBrandVariants(brandColors || []), [brandColors]);
   const designElements = useMemo(() => generateElements(colorVariants), [colorVariants]);
 
   const hasBrandColors = brandColors && brandColors.length > 0;
+  const hasCustomShapes = customShapes && customShapes.length > 0;
   
   // Life Sciences brand gets only the custom shapes (no default elements)
   const isLifeSciences = brandSlug === 'life-sciences';
@@ -390,9 +403,22 @@ export const DesignElementsSection = ({ canEdit = false, brandColors, brandSlug 
     'layered-rect': Layers,
   };
 
+  const downloadCustomSVG = (shape: CustomDesignShape) => {
+    const blob = new Blob([shape.svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${shape.name.toLowerCase().replace(/\s+/g, '-')}.svg`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(`Downloaded ${shape.name} as SVG`);
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h3 className="text-lg font-semibold">Design Elements</h3>
           <p className="text-sm text-muted-foreground">
@@ -401,7 +427,16 @@ export const DesignElementsSection = ({ canEdit = false, brandColors, brandSlug 
               : 'Downloadable brand assets in SVG and PNG formats'}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Shape Manager for admins */}
+          {canEdit && onCustomShapesChange && (
+            <ShapeManager
+              shapes={customShapes}
+              onShapesChange={onCustomShapesChange}
+              brandColors={brandColors || []}
+              brandName={brandName}
+            />
+          )}
           {hasBrandColors && (
             <Badge variant="secondary" className="gap-1 bg-primary/10 text-primary border-primary/20">
               Brand Colors
@@ -409,13 +444,60 @@ export const DesignElementsSection = ({ canEdit = false, brandColors, brandSlug 
           )}
           <Badge variant="outline" className="gap-1">
             <Download className="h-3 w-3" />
-            {designElements.length} assets
+            {designElements.length + customShapes.length} assets
           </Badge>
         </div>
       </div>
 
-      <Tabs defaultValue="speech-bubble" className="w-full">
-        <TabsList className={`grid w-full ${isLifeSciences ? 'grid-cols-6 max-w-2xl' : 'grid-cols-4 max-w-lg'}`}>
+      {/* Custom Shapes Section (if any) */}
+      {hasCustomShapes && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Shapes className="h-4 w-4 text-primary" />
+            <h4 className="text-sm font-medium">Custom Shapes</h4>
+            <Badge variant="secondary" className="text-xs">{customShapes.length}</Badge>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            {customShapes.map((shape) => (
+              <Card 
+                key={shape.id} 
+                className="group relative overflow-hidden border-border/50 hover:border-primary/30 transition-all cursor-pointer"
+                onClick={() => setSelectedCustomShape(shape)}
+              >
+                <CardContent className="p-4">
+                  <div 
+                    className="aspect-square flex items-center justify-center bg-muted/30 rounded-lg mb-3 overflow-hidden"
+                    dangerouslySetInnerHTML={{ __html: shape.svg }}
+                  />
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{shape.name}</p>
+                      {shape.category && (
+                        <Badge variant="secondary" className="text-xs mt-1">
+                          {shape.category}
+                        </Badge>
+                      )}
+                    </div>
+                    {shape.aiGenerated && (
+                      <Badge variant="outline" className="text-xs shrink-0">AI</Badge>
+                    )}
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                    <Button size="sm" variant="secondary" className="gap-1.5">
+                      <Eye className="h-3.5 w-3.5" />
+                      Preview
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Built-in Element Types */}
+      <Tabs defaultValue={elementTypes[0]} className="w-full">
+        <TabsList className={`grid w-full ${elementTypes.length > 4 ? 'grid-cols-6 max-w-2xl' : 'grid-cols-4 max-w-lg'}`}>
           {elementTypes.map(type => {
             const Icon = TypeIcon[type];
             const label = type === 'rounded-rect' ? 'Rounded' : type === 'layered-rect' ? 'Layered' : type.replace('-', ' ');
@@ -508,6 +590,45 @@ export const DesignElementsSection = ({ canEdit = false, brandColors, brandSlug 
                   </Button>
                 </div>
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Custom Shape Preview Dialog */}
+      <Dialog open={!!selectedCustomShape} onOpenChange={(open) => !open && setSelectedCustomShape(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{selectedCustomShape?.name}</DialogTitle>
+          </DialogHeader>
+          
+          {selectedCustomShape && (
+            <div className="space-y-4">
+              {/* Large Preview */}
+              <div 
+                className="aspect-square max-h-[300px] flex items-center justify-center bg-muted/30 rounded-xl p-8 border border-border"
+                dangerouslySetInnerHTML={{ __html: selectedCustomShape.svg }}
+              />
+
+              {/* Info */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {selectedCustomShape.category && (
+                  <Badge variant="secondary">{selectedCustomShape.category}</Badge>
+                )}
+                {selectedCustomShape.aiGenerated && (
+                  <Badge variant="outline">AI Generated</Badge>
+                )}
+              </div>
+
+              {/* Download Button */}
+              <Button 
+                variant="outline" 
+                className="w-full gap-2"
+                onClick={() => downloadCustomSVG(selectedCustomShape)}
+              >
+                <Download className="h-4 w-4" />
+                Download SVG
+              </Button>
             </div>
           )}
         </DialogContent>

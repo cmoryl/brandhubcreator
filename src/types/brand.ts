@@ -167,6 +167,18 @@ export interface BrandPattern {
   url: string;
 }
 
+// CUSTOM DESIGN SHAPES - Brand-specific vector elements
+export interface CustomDesignShape {
+  id: string;
+  name: string;
+  type: 'custom';
+  svg: string;
+  /** Optional category for organization */
+  category?: string;
+  /** Whether this is AI-generated */
+  aiGenerated?: boolean;
+}
+
 // TEXTSTYLES - CSS Hierarchies
 export interface BrandTextStyle {
   id: string;
@@ -833,6 +845,8 @@ export interface BaseGuide {
   gradients: BrandGradient[];
   // Patterns (Geometric Primitives)
   patterns: BrandPattern[];
+  // Custom Design Shapes (Brand-specific vector elements)
+  customShapes?: CustomDesignShape[];
   // Typography (Type Registry)
   typography: BrandTypography[];
   // Text Styles (CSS Hierarchies)
