@@ -23,7 +23,15 @@ import {
   Camera,
   Shapes,
   ArrowLeft,
-  ChevronRight
+  ChevronRight,
+  LayoutDashboard,
+  Users,
+  Building2,
+  BarChart3,
+  Brain,
+  Shield,
+  Database,
+  Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +42,7 @@ interface SectionFeature {
   description: string;
   capabilities: string[];
   gradient: string;
-  category: 'core' | 'visual' | 'content' | 'advanced';
+  category: 'core' | 'visual' | 'content' | 'advanced' | 'admin';
 }
 
 const sections: SectionFeature[] = [
@@ -205,6 +213,72 @@ const sections: SectionFeature[] = [
     gradient: 'from-emerald-500/20 via-teal-500/20 to-cyan-500/20',
     category: 'advanced',
   },
+  
+  // Admin & Management
+  {
+    icon: LayoutDashboard,
+    title: 'Admin Dashboard',
+    description: 'Centralized platform health monitoring and quick actions.',
+    capabilities: ['Real-time stats', 'Activity feed', 'Module health status', 'Quick actions'],
+    gradient: 'from-blue-500/20 via-indigo-500/20 to-purple-500/20',
+    category: 'admin',
+  },
+  {
+    icon: Users,
+    title: 'User Management',
+    description: 'Manage team members, roles, and access permissions.',
+    capabilities: ['Role-based access', 'Invite workflows', 'Approval queue', 'Activity tracking'],
+    gradient: 'from-green-500/20 via-emerald-500/20 to-teal-500/20',
+    category: 'admin',
+  },
+  {
+    icon: Building2,
+    title: 'Organization Settings',
+    description: 'Configure organization branding and preferences.',
+    capabilities: ['Custom branding', 'Portal settings', 'Domain management', 'Feature toggles'],
+    gradient: 'from-orange-500/20 via-amber-500/20 to-yellow-500/20',
+    category: 'admin',
+  },
+  {
+    icon: BarChart3,
+    title: 'Analytics & Insights',
+    description: 'Track engagement, views, and content performance.',
+    capabilities: ['Page view trends', 'User activity', 'Content metrics', 'Export reports'],
+    gradient: 'from-cyan-500/20 via-blue-500/20 to-indigo-500/20',
+    category: 'admin',
+  },
+  {
+    icon: Brain,
+    title: 'AI-Powered Reports',
+    description: 'Automated brand audits and competitive intelligence.',
+    capabilities: ['Brand health scores', 'Market analysis', 'Growth recommendations', 'Competitor tracking'],
+    gradient: 'from-purple-500/20 via-fuchsia-500/20 to-pink-500/20',
+    category: 'admin',
+  },
+  {
+    icon: Shield,
+    title: 'Audit Logs',
+    description: 'Complete history of all platform activities and changes.',
+    capabilities: ['Action tracking', 'User attribution', 'Filtering & search', 'Export history'],
+    gradient: 'from-slate-500/20 via-gray-500/20 to-zinc-500/20',
+    category: 'admin',
+  },
+  {
+    icon: Database,
+    title: 'Backup Management',
+    description: 'Automated backups and disaster recovery options.',
+    capabilities: ['Scheduled backups', 'One-click restore', 'Version history', 'Export options'],
+    gradient: 'from-teal-500/20 via-cyan-500/20 to-sky-500/20',
+    category: 'admin',
+  },
+  {
+    icon: Settings,
+    title: 'Platform Settings',
+    description: 'Global configuration and system preferences.',
+    capabilities: ['Email templates', 'Notification settings', 'API configuration', 'Feature flags'],
+    gradient: 'from-gray-500/20 via-slate-500/20 to-zinc-500/20',
+    category: 'admin',
+  },
 ];
 
 const categoryLabels = {
@@ -212,6 +286,7 @@ const categoryLabels = {
   visual: { label: 'Visual Assets', description: 'Graphics, patterns, and imagery' },
   content: { label: 'Content & Templates', description: 'Documents and marketing materials' },
   advanced: { label: 'Advanced Features', description: 'Extended brand management tools' },
+  admin: { label: 'Admin & Management', description: 'Platform administration and analytics' },
 };
 
 function SectionCard({ section }: { section: SectionFeature }) {
@@ -303,7 +378,7 @@ export default function SectionsShowcase() {
       {/* Sections by Category */}
       <div className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto space-y-20">
-          {(['core', 'visual', 'content', 'advanced'] as const).map((category) => (
+          {(['core', 'visual', 'content', 'advanced', 'admin'] as const).map((category) => (
             <section key={category}>
               <div className="mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
