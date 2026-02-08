@@ -967,26 +967,28 @@ export const SignaturesSection = ({
                   </div>
                   
                   {/* Action buttons */}
-                  <div className="px-6 pb-4 flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => setEditingId(signature.id)}
-                      className="p-2 rounded-md hover:bg-secondary transition-colors"
-                    >
-                      <Pencil className="h-4 w-4 text-muted-foreground" />
-                    </button>
-                    <button
-                      onClick={() => deleteSignature(signature.id)}
-                      className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
+                  {canEdit && (
+                    <div className="px-6 pb-4 flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => setEditingId(signature.id)}
+                        className="p-2 rounded-md hover:bg-secondary transition-colors"
+                      >
+                        <Pencil className="h-4 w-4 text-muted-foreground" />
+                      </button>
+                      <button
+                        onClick={() => deleteSignature(signature.id)}
+                        className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
                 </>
               )}
             </div>
           ))}
 
-          {signatures.length === 0 && (
+          {signatures.length === 0 && canEdit && (
             <button
               onClick={() => addSignature('full')}
               className="w-full h-40 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
@@ -1042,20 +1044,22 @@ export const SignaturesSection = ({
                       <span className="text-[10px] font-mono bg-muted/80 px-2 py-0.5 rounded text-muted-foreground">
                         {banner.width} × {banner.height}
                       </span>
-                      <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => setEditingBannerId(isEditing ? null : banner.id)}
-                          className="p-1 rounded hover:bg-secondary transition-colors"
-                        >
-                          <Pencil className="h-3 w-3 text-muted-foreground" />
-                        </button>
-                        <button
-                          onClick={() => deleteEmailBanner(banner.id)}
-                          className="p-1 rounded hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
+                      {canEdit && (
+                        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => setEditingBannerId(isEditing ? null : banner.id)}
+                            className="p-1 rounded hover:bg-secondary transition-colors"
+                          >
+                            <Pencil className="h-3 w-3 text-muted-foreground" />
+                          </button>
+                          <button
+                            onClick={() => deleteEmailBanner(banner.id)}
+                            className="p-1 rounded hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
 

@@ -185,7 +185,7 @@ const PlatformCard = ({
   onDelete,
   onExpand,
   onMockupPreview,
-  canEdit = true,
+  canEdit = false,
 }: {
   asset: BrandSocialAssetSpec;
   onUpdate: (updates: Partial<BrandSocialAssetSpec>) => void;
@@ -285,7 +285,7 @@ const BannerCard = ({
   onUpdate,
   onDelete,
   onExpand,
-  canEdit = true,
+  canEdit = false,
 }: {
   banner: BrandDisplayBannerSpec;
   onUpdate: (updates: Partial<BrandDisplayBannerSpec>) => void;
