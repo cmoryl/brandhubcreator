@@ -151,10 +151,14 @@ export const ReorderableBrandSidebar = ({
     }
   };
 
-  // Filter sections based on favorites mode
+  // Filter sections: non-admins never see hidden sections, then apply favorites filter
+  const visibleSections = isAdmin 
+    ? sectionOrder 
+    : sectionOrder.filter(id => !hiddenSections.includes(id));
+    
   const displayedSections = showFavoritesOnly
-    ? sectionOrder.filter(id => favoritedSectionIds.has(id))
-    : sectionOrder;
+    ? visibleSections.filter(id => favoritedSectionIds.has(id))
+    : visibleSections;
 
   const visibleCount = sectionOrder.length - hiddenSections.length;
 
