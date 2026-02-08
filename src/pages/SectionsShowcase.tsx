@@ -37,6 +37,8 @@ import { AnimatedHero } from '@/components/sections-showcase/AnimatedHero';
 import { CategoryNav } from '@/components/sections-showcase/CategoryNav';
 import { SectionCard } from '@/components/sections-showcase/SectionCard';
 import { StatsCounter } from '@/components/sections-showcase/StatsCounter';
+import { FeatureExplorer } from '@/components/sections-showcase/FeatureExplorer';
+import { ScrollProgress } from '@/components/sections-showcase/ScrollProgress';
 
 interface SectionFeature {
   icon: React.ElementType;
@@ -323,7 +325,7 @@ export default function SectionsShowcase() {
     setActiveCategory(category);
     const element = sectionRefs.current[category];
     if (element) {
-      const offset = 140; // Account for sticky headers
+      const offset = 140;
       const top = element.getBoundingClientRect().top + window.scrollY - offset;
       window.scrollTo({ top, behavior: 'smooth' });
     }
@@ -331,9 +333,14 @@ export default function SectionsShowcase() {
 
   return (
     <div className="min-h-screen bg-background">
+      <ScrollProgress />
+      
       <AnimatedHero totalSections={sections.length} />
       
       <StatsCounter stats={stats} />
+      
+      {/* Interactive Feature Explorer */}
+      <FeatureExplorer />
       
       <CategoryNav 
         categories={categoryInfo}
@@ -393,7 +400,6 @@ export default function SectionsShowcase() {
 
       {/* CTA */}
       <section className="relative py-24 sm:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* Background effects */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-accent/5 to-background" />
         <motion.div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/10 rounded-full blur-3xl"

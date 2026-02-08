@@ -3,109 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Layers, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useEffect, useState, useRef } from 'react';
-
-interface Particle {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  speedX: number;
-  speedY: number;
-  opacity: number;
-  hue: number;
-}
+import { FloatingShapes } from './FloatingShapes';
 
 export function AnimatedHero({ totalSections }: { totalSections: number }) {
   const navigate = useNavigate();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
-  const particlesRef = useRef<Particle[]>([]);
-  const animationRef = useRef<number>();
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const resize = () => {
-      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    };
-    resize();
-    window.addEventListener('resize', resize);
-
-    // Initialize particles
-    const particleCount = 60;
-    particlesRef.current = Array.from({ length: particleCount }, (_, i) => ({
-      id: i,
-      x: Math.random() * canvas.offsetWidth,
-      y: Math.random() * canvas.offsetHeight,
-      size: Math.random() * 3 + 1,
-      speedX: (Math.random() - 0.5) * 0.5,
-      speedY: (Math.random() - 0.5) * 0.5,
-      opacity: Math.random() * 0.5 + 0.2,
-      hue: Math.random() * 60 + 200, // Blue to purple range
-    }));
-
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
-
-      particlesRef.current.forEach((particle, i) => {
-        // Update position
-        particle.x += particle.speedX + (mousePosition.x - 0.5) * 0.5;
-        particle.y += particle.speedY + (mousePosition.y - 0.5) * 0.5;
-
-        // Wrap around edges
-        if (particle.x < 0) particle.x = canvas.offsetWidth;
-        if (particle.x > canvas.offsetWidth) particle.x = 0;
-        if (particle.y < 0) particle.y = canvas.offsetHeight;
-        if (particle.y > canvas.offsetHeight) particle.y = 0;
-
-        // Draw particle
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${particle.hue}, 70%, 60%, ${particle.opacity})`;
-        ctx.fill();
-
-        // Draw connections
-        particlesRef.current.slice(i + 1).forEach((other) => {
-          const dx = particle.x - other.x;
-          const dy = particle.y - other.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          if (distance < 120) {
-            ctx.beginPath();
-            ctx.moveTo(particle.x, particle.y);
-            ctx.lineTo(other.x, other.y);
-            ctx.strokeStyle = `hsla(${particle.hue}, 70%, 60%, ${0.1 * (1 - distance / 120)})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        });
-      });
-
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    return () => {
-      window.removeEventListener('resize', resize);
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    };
-  }, [mousePosition]);
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setMousePosition({
-      x: (e.clientX - rect.left) / rect.width,
-      y: (e.clientY - rect.top) / rect.height,
-    });
-  };
 
   return (
     <>
@@ -129,45 +30,47 @@ export function AnimatedHero({ totalSections }: { totalSections: number }) {
       </header>
 
       {/* Hero */}
-      <section 
-        className="relative py-20 sm:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden"
-        onMouseMove={handleMouseMove}
-      >
-        {/* Animated canvas background */}
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full pointer-events-none"
-        />
+      <section className="relative py-20 sm:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden min-h-[80vh] flex items-center">
+        {/* 3D Floating shapes */}
+        <FloatingShapes />
 
         {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background pointer-events-none z-10" />
+        
+        {/* Animated mesh gradient */}
+        <div className="absolute inset-0 opacity-30">
+          <motion.div
+            className="absolute top-0 left-0 w-[500px] h-[500px] bg-accent/30 rounded-full blur-[100px]"
+            animate={{
+              x: [0, 100, 0],
+              y: [0, 50, 0],
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px]"
+            animate={{
+              x: [0, -80, 0],
+              y: [0, -60, 0],
+            }}
+            transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-500/20 rounded-full blur-[80px]"
+            animate={{
+              scale: [1, 1.2, 1],
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
 
-        {/* Floating orbs */}
-        <motion.div
-          className="absolute top-20 left-[20%] w-64 h-64 bg-primary/20 rounded-full blur-3xl"
-          animate={{
-            y: [0, -30, 0],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute bottom-20 right-[20%] w-96 h-96 bg-accent/20 rounded-full blur-3xl"
-          animate={{
-            y: [0, 30, 0],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        />
-
-        <div className="relative max-w-7xl mx-auto text-center">
+        <div className="relative max-w-7xl mx-auto text-center z-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <Badge variant="secondary" className="mb-6 gap-2 px-4 py-2 text-sm">
+            <Badge variant="secondary" className="mb-6 gap-2 px-4 py-2 text-sm bg-background/50 backdrop-blur-sm border border-border/50">
               <Sparkles className="h-4 w-4 text-accent animate-pulse" />
               {totalSections}+ Powerful Sections
             </Badge>
@@ -209,9 +112,29 @@ export function AnimatedHero({ totalSections }: { totalSections: number }) {
               <Layers className="h-4 w-4" />
               Start Building
             </Button>
-            <Button size="lg" variant="outline" onClick={() => navigate('/demo/brand/brandhub')}>
+            <Button size="lg" variant="outline" onClick={() => navigate('/demo/brand/brandhub')} className="bg-background/50 backdrop-blur-sm">
               View Demo
             </Button>
+          </motion.div>
+
+          {/* Scroll indicator */}
+          <motion.div
+            className="absolute bottom-8 left-1/2 -translate-x-1/2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+          >
+            <motion.div
+              className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex items-start justify-center p-2"
+              animate={{ y: [0, 5, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <motion.div
+                className="w-1 h-2 bg-accent rounded-full"
+                animate={{ y: [0, 8, 0], opacity: [1, 0.5, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+            </motion.div>
           </motion.div>
         </div>
       </section>
