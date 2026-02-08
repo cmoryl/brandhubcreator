@@ -311,30 +311,18 @@ export default function NotFound() {
         </motion.p>
       </motion.div>
 
-      {/* Corner decorations with color */}
+      {/* Corner decorations - subtle, slow movement */}
       <motion.div
         className="absolute top-10 right-10 w-32 h-32 rounded-full"
-        style={{ border: '1px solid hsl(280, 80%, 60%, 0.2)' }}
+        style={{ border: '1px solid hsl(280, 80%, 60%, 0.15)' }}
         animate={{ rotate: 360 }}
-        transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+        transition={{ duration: 120, repeat: Infinity, ease: 'linear' }}
       />
       <motion.div
         className="absolute bottom-10 left-10 w-24 h-24 rounded-full"
-        style={{ border: '1px solid hsl(180, 70%, 50%, 0.2)' }}
+        style={{ border: '1px solid hsl(180, 70%, 50%, 0.15)' }}
         animate={{ rotate: -360 }}
-        transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-      />
-      <motion.div
-        className="absolute top-1/4 left-10 w-16 h-16 rounded-full"
-        style={{ border: '1px solid hsl(320, 80%, 55%, 0.15)' }}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
-      />
-      <motion.div
-        className="absolute bottom-1/4 right-10 w-20 h-20 rounded-full"
-        style={{ border: '1px solid hsl(200, 90%, 50%, 0.15)' }}
-        animate={{ rotate: -360 }}
-        transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
+        transition={{ duration: 100, repeat: Infinity, ease: 'linear' }}
       />
     </div>
   );
