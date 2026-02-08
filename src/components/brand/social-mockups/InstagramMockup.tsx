@@ -1,10 +1,6 @@
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Home, Search, PlusSquare, Play, User, ChevronLeft, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { MockupProps, PostFormat } from './types';
-
-interface InstagramMockupProps extends MockupProps {
-  format: PostFormat;
-}
+import { FormatMockupProps } from './types';
 
 export const InstagramMockup = ({ 
   imageUrl, 
@@ -13,7 +9,7 @@ export const InstagramMockup = ({
   handle = 'brandhandle',
   format,
   className 
-}: InstagramMockupProps) => {
+}: FormatMockupProps) => {
   const isStoryOrReel = format === 'story' || format === 'reel';
   
   if (isStoryOrReel) {

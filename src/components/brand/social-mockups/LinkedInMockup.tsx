@@ -1,6 +1,6 @@
 import { ThumbsUp, MessageSquare, Repeat2, Send, MoreHorizontal, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { MockupProps } from './types';
+import { FormatMockupProps } from './types';
 
 export const LinkedInMockup = ({ 
   imageUrl, 
@@ -8,7 +8,7 @@ export const LinkedInMockup = ({
   brandName = 'Brand Name',
   handle = 'Company Page',
   className 
-}: MockupProps) => {
+}: FormatMockupProps) => {
   return (
     <div className={cn(
       "bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200",

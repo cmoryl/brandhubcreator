@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
-import { Instagram, Linkedin, Twitter, Facebook, Youtube, Monitor, Image as ImageIcon, Smartphone, Tv, Film } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Instagram, Linkedin, Twitter, Facebook, Youtube, Monitor, Image as ImageIcon, Smartphone, Tv, Film, Layers } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { BrandSocialAssetSpec } from '@/types/brand';
 import { 
@@ -16,7 +17,8 @@ import {
   ThreadsMockup,
   platformConfigs,
   SocialPlatform,
-  PostFormat
+  PostFormat,
+  PlatformSizeSpec
 } from './index';
 
 interface SocialMockupPreviewDialogProps {
@@ -56,6 +58,7 @@ export const SocialMockupPreviewDialog = ({
   brandName = 'Your Brand',
 }: SocialMockupPreviewDialogProps) => {
   const [selectedFormat, setSelectedFormat] = useState<PostFormat>('feed');
+  const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
 
   const platformConfig = useMemo(() => {
     if (!asset) return null;
@@ -70,19 +73,32 @@ export const SocialMockupPreviewDialog = ({
     return formats;
   }, [platformConfig]);
 
-  // Reset to feed when opening a new platform
+  const availableSizes = useMemo((): PlatformSizeSpec[] => {
+    if (!platformConfig) return [];
+    const formatSizes = platformConfig.sizes[selectedFormat];
+    return formatSizes || platformConfig.sizes.feed || [];
+  }, [platformConfig, selectedFormat]);
+
+  // Reset to feed and first size when opening a new platform
   const handleOpenChange = (isOpen: boolean) => {
     if (isOpen) {
       setSelectedFormat('feed');
+      setSelectedSizeIndex(0);
     }
     onOpenChange(isOpen);
+  };
+
+  // Reset size index when format changes
+  const handleFormatChange = (format: PostFormat) => {
+    setSelectedFormat(format);
+    setSelectedSizeIndex(0);
   };
 
   if (!asset) return null;
 
   const IconComponent = platformIcons[asset.platform] || Monitor;
-
   const handle = brandName.toLowerCase().replace(/\s+/g, '');
+  const currentSize = availableSizes[selectedSizeIndex];
 
   const renderMockup = () => {
     const props = {
@@ -90,23 +106,24 @@ export const SocialMockupPreviewDialog = ({
       profileImageUrl: asset.profileIconUrl,
       brandName,
       handle,
+      format: selectedFormat,
     };
 
     switch (asset.platform) {
       case 'Instagram':
-        return <InstagramMockup {...props} format={selectedFormat} />;
+        return <InstagramMockup {...props} />;
       case 'LinkedIn':
         return <LinkedInMockup {...props} />;
       case 'X (Twitter)':
         return <TwitterMockup {...props} />;
       case 'Facebook':
-        return <FacebookMockup {...props} format={selectedFormat} />;
+        return <FacebookMockup {...props} />;
       case 'YouTube':
-        return <YouTubeMockup {...props} format={selectedFormat} />;
+        return <YouTubeMockup {...props} />;
       case 'TikTok':
         return <TikTokMockup {...props} />;
       case 'Pinterest':
-        return <PinterestMockup {...props} format={selectedFormat} />;
+        return <PinterestMockup {...props} />;
       case 'Threads':
         return <ThreadsMockup {...props} />;
       default:
@@ -131,7 +148,7 @@ export const SocialMockupPreviewDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-3">
             <div 
@@ -149,11 +166,14 @@ export const SocialMockupPreviewDialog = ({
               <p className="text-sm font-normal text-muted-foreground">Live Preview Mockup</p>
             </div>
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Preview how your content will appear on {asset.platform} in different formats and sizes.
+          </DialogDescription>
         </DialogHeader>
 
         {/* Format selector tabs */}
-        <div className="flex-shrink-0 border-b border-border pb-4">
-          <div className="flex items-center gap-2">
+        <div className="flex-shrink-0 border-b border-border pb-4 space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm text-muted-foreground mr-2">Format:</span>
             {availableFormats.map((format) => {
               const FormatIcon = formatIcons[format];
@@ -163,7 +183,7 @@ export const SocialMockupPreviewDialog = ({
                   key={format}
                   variant={isActive ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setSelectedFormat(format)}
+                  onClick={() => handleFormatChange(format)}
                   className={cn(
                     'gap-2 transition-all',
                     isActive && 'ring-2 ring-primary/20'
@@ -175,6 +195,40 @@ export const SocialMockupPreviewDialog = ({
               );
             })}
           </div>
+          
+          {/* Size selector */}
+          {availableSizes.length > 1 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm text-muted-foreground mr-2">
+                <Layers className="h-4 w-4 inline mr-1" />
+                Size:
+              </span>
+              <ScrollArea className="max-w-[600px]">
+                <div className="flex gap-2">
+                  {availableSizes.map((size, index) => {
+                    const isActive = selectedSizeIndex === index;
+                    return (
+                      <Button
+                        key={`${size.name}-${index}`}
+                        variant={isActive ? 'secondary' : 'ghost'}
+                        size="sm"
+                        onClick={() => setSelectedSizeIndex(index)}
+                        className={cn(
+                          'text-xs whitespace-nowrap transition-all',
+                          isActive && 'ring-2 ring-primary/20 bg-secondary'
+                        )}
+                      >
+                        {size.name}
+                        <span className="ml-1.5 text-muted-foreground">
+                          ({size.aspectRatio})
+                        </span>
+                      </Button>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
         </div>
 
         {/* Mockup preview area */}
@@ -190,11 +244,18 @@ export const SocialMockupPreviewDialog = ({
             </div>
 
             {/* Size info */}
-            <div className="flex items-center gap-4 text-sm">
-              <Badge variant="secondary" className="gap-2">
-                <ImageIcon className="h-3 w-3" />
-                {getSizeInfo()}
-              </Badge>
+            <div className="flex flex-wrap items-center justify-center gap-3 text-sm">
+              {currentSize && (
+                <Badge variant="secondary" className="gap-2">
+                  <ImageIcon className="h-3 w-3" />
+                  {currentSize.width} x {currentSize.height} px
+                </Badge>
+              )}
+              {currentSize && (
+                <Badge variant="outline" className="gap-2">
+                  {currentSize.name}
+                </Badge>
+              )}
               {selectedFormat !== 'feed' && (() => {
                 const FormatIconComponent = formatIcons[selectedFormat];
                 return (
@@ -205,6 +266,11 @@ export const SocialMockupPreviewDialog = ({
                 );
               })()}
             </div>
+
+            {/* Size description */}
+            {currentSize?.description && (
+              <p className="text-sm text-muted-foreground">{currentSize.description}</p>
+            )}
 
             {/* Platform directive */}
             {asset.directive && (

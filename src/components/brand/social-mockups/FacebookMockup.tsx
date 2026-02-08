@@ -1,10 +1,6 @@
 import { ThumbsUp, MessageCircle, Share, MoreHorizontal, Globe, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { MockupProps, PostFormat } from './types';
-
-interface FacebookMockupProps extends MockupProps {
-  format: PostFormat;
-}
+import { FormatMockupProps } from './types';
 
 export const FacebookMockup = ({ 
   imageUrl, 
@@ -12,7 +8,7 @@ export const FacebookMockup = ({
   brandName = 'Brand Name',
   format,
   className 
-}: FacebookMockupProps) => {
+}: FormatMockupProps) => {
   const isStoryOrReel = format === 'story' || format === 'reel';
 
   if (isStoryOrReel) {
