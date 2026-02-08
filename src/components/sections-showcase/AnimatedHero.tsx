@@ -4,6 +4,7 @@ import { ArrowLeft, Layers, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FloatingShapes } from './FloatingShapes';
+import { InteractiveHeroBackground } from './InteractiveHeroBackground';
 
 export function AnimatedHero({ totalSections }: { totalSections: number }) {
   const navigate = useNavigate();
@@ -31,38 +32,14 @@ export function AnimatedHero({ totalSections }: { totalSections: number }) {
 
       {/* Hero */}
       <section className="relative py-20 sm:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden min-h-[80vh] flex items-center">
+        {/* Interactive mouse-reactive background */}
+        <InteractiveHeroBackground />
+
         {/* 3D Floating shapes */}
         <FloatingShapes />
 
         {/* Gradient overlays */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background pointer-events-none z-10" />
-        
-        {/* Animated mesh gradient */}
-        <div className="absolute inset-0 opacity-30">
-          <motion.div
-            className="absolute top-0 left-0 w-[500px] h-[500px] bg-accent/30 rounded-full blur-[100px]"
-            animate={{
-              x: [0, 100, 0],
-              y: [0, 50, 0],
-            }}
-            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px]"
-            animate={{
-              x: [0, -80, 0],
-              y: [0, -60, 0],
-            }}
-            transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-500/20 rounded-full blur-[80px]"
-            animate={{
-              scale: [1, 1.2, 1],
-            }}
-            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </div>
 
         <div className="relative max-w-7xl mx-auto text-center z-20">
           <motion.div
