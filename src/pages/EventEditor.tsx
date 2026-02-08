@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Calendar, Building2, Brain, Settings, Download, TrendingUp } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Calendar, Building2, Brain, Settings, Download, TrendingUp, LayoutDashboard, Users, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
@@ -71,6 +71,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -854,18 +855,63 @@ const EventEditor = () => {
                         </Avatar>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem className="text-xs text-muted-foreground">
-                        {user.email}
-                      </DropdownMenuItem>
-                      {isAdmin && (
-                        <DropdownMenuItem className="gap-2 text-accent">
-                          <Shield className="h-4 w-4" />
-                          Admin
-                        </DropdownMenuItem>
-                      )}
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium leading-none">{user.email}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            {isAdmin ? (
+                              <>
+                                <Shield className="h-3 w-3 text-accent" />
+                                <span className="text-accent">Admin</span>
+                              </>
+                            ) : orgRole ? (
+                              <span className="capitalize">{orgRole}</span>
+                            ) : (
+                              'Member'
+                            )}
+                          </p>
+                        </div>
+                      </DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleSignOut} className="gap-2">
+                      
+                      {/* Quick Navigation */}
+                      <DropdownMenuItem onClick={() => navigate(organization ? `/org/${organization.slug}` : '/')} className="gap-2 cursor-pointer">
+                        <LayoutDashboard className="h-4 w-4" />
+                        Dashboard
+                      </DropdownMenuItem>
+                      
+                      {isAdmin && (
+                        <>
+                          <DropdownMenuItem onClick={() => navigate('/admin')} className="gap-2 cursor-pointer">
+                            <Shield className="h-4 w-4" />
+                            Admin Panel
+                          </DropdownMenuItem>
+                          {organization && (
+                            <DropdownMenuItem onClick={() => navigate(`/org/${organization.slug}/settings`)} className="gap-2 cursor-pointer">
+                              <Settings className="h-4 w-4" />
+                              Organization Settings
+                            </DropdownMenuItem>
+                          )}
+                          {organization && (
+                            <DropdownMenuItem onClick={() => navigate(`/org/${organization.slug}/settings`)} className="gap-2 cursor-pointer">
+                              <Users className="h-4 w-4" />
+                              Manage Members
+                            </DropdownMenuItem>
+                          )}
+                        </>
+                      )}
+                      
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => navigate('/help')} className="gap-2 cursor-pointer">
+                        <HelpCircle className="h-4 w-4" />
+                        Help Center
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={handleSignOut} 
+                        className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+                      >
                         <LogOut className="h-4 w-4" />
                         Sign Out
                       </DropdownMenuItem>
