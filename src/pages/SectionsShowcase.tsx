@@ -39,6 +39,7 @@ import { SectionCard } from '@/components/sections-showcase/SectionCard';
 import { StatsCounter } from '@/components/sections-showcase/StatsCounter';
 import { FeatureExplorer } from '@/components/sections-showcase/FeatureExplorer';
 import { ScrollProgress } from '@/components/sections-showcase/ScrollProgress';
+import { CategoryExplorer } from '@/components/sections-showcase/explorers/CategoryExplorer';
 
 interface SectionFeature {
   icon: React.ElementType;
@@ -383,15 +384,40 @@ export default function SectionsShowcase() {
                   {categoryLabels[category].description}
                 </motion.h2>
               </div>
+
+              {/* Category-specific interactive explorer */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div className="lg:col-span-2">
+                  <CategoryExplorer category={category} />
+                </div>
+                <div className="hidden lg:block">
+                  {/* First card highlighted */}
+                  {groupedSections[category]?.[0] && (
+                    <SectionCard 
+                      {...groupedSections[category][0]}
+                      index={0}
+                    />
+                  )}
+                </div>
+              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {groupedSections[category]?.map((section, index) => (
+                {groupedSections[category]?.slice(1).map((section, index) => (
                   <SectionCard 
                     key={section.title} 
                     {...section}
-                    index={index}
+                    index={index + 1}
                   />
                 ))}
+                {/* Show first card on mobile */}
+                <div className="lg:hidden md:hidden">
+                  {groupedSections[category]?.[0] && (
+                    <SectionCard 
+                      {...groupedSections[category][0]}
+                      index={0}
+                    />
+                  )}
+                </div>
               </div>
             </motion.section>
           ))}
