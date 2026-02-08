@@ -612,7 +612,7 @@ const ProductEditor = () => {
       <UnsavedChangesBlocker />
       <div className="min-h-screen bg-background flex relative">
         {/* Desktop Sidebar - Fixed position for persistent visibility */}
-        <div className="hidden lg:block fixed top-0 left-0 h-screen w-64 z-30">
+        <div className="hidden lg:block fixed top-0 left-0 h-screen w-72 z-30">
           <ReorderableBrandSidebar 
             activeSection={activeSection} 
             onSectionChange={handleSectionChange} 
@@ -631,7 +631,7 @@ const ProductEditor = () => {
         </div>
         
         {/* Sidebar spacer for fixed positioning */}
-        <div className="hidden lg:block w-64 flex-shrink-0" />
+        <div className="hidden lg:block w-72 flex-shrink-0" />
 
         {/* Mobile Sidebar */}
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
