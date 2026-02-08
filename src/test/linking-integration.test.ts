@@ -137,7 +137,7 @@ describe('Linking Integration Tests', () => {
         
         expect(Array.isArray(linkedGuides)).toBe(true);
       }
-    });
+    }, 30000); // Increased timeout for network queries
 
     it('should fetch products by organization', async () => {
       // Get an organization first
@@ -158,7 +158,7 @@ describe('Linking Integration Tests', () => {
         expect(error).toBeNull();
         expect(Array.isArray(products)).toBe(true);
       }
-    }, 10000); // Increased timeout for network queries
+    }, 30000); // Increased timeout for network queries
 
     it('should find parent product for sub-product', async () => {
       const { data: parentProducts, error } = await supabase
