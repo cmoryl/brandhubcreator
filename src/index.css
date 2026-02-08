@@ -951,6 +951,18 @@
   transform-origin: center;
 }
 
+.animate-ken-burns-slow {
+  animation: ken-burns 22s ease-in-out infinite;
+  will-change: transform;
+  transform-origin: center;
+}
+
+.animate-ken-burns-fast {
+  animation: ken-burns 8s ease-in-out infinite;
+  will-change: transform;
+  transform-origin: center;
+}
+
 /* Parallax Container */
 .parallax-container {
   perspective: 1000px;

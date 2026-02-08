@@ -14,6 +14,7 @@ interface HeroEditToolbarProps {
   useVideo: boolean;
   kenBurnsEffect: boolean;
   kenBurnsPreview: boolean;
+  kenBurnsSpeed?: 'slow' | 'normal' | 'fast';
   // Unified hero effect props
   heroEffect?: HeroEffectType;
   heroEffectIntensity?: 'subtle' | 'medium' | 'bold';
@@ -34,6 +35,7 @@ interface HeroEditToolbarProps {
   onKenBurnsToggle: () => void;
   onKenBurnsPreviewStart: () => void;
   onKenBurnsPreviewEnd: () => void;
+  onKenBurnsSpeedChange?: (speed: 'slow' | 'normal' | 'fast') => void;
   // Unified hero effect callbacks
   onHeroEffectChange?: (effect: HeroEffectType) => void;
   onHeroEffectIntensityChange?: (value: 'subtle' | 'medium' | 'bold') => void;
@@ -53,6 +55,12 @@ interface HeroEditToolbarProps {
   onTitleColorChange?: (color: string) => void;
   onTaglineGlowChange?: (enabled: boolean) => void;
 }
+
+const KEN_BURNS_SPEEDS = [
+  { id: 'slow', label: 'Slow', duration: '22s' },
+  { id: 'normal', label: 'Normal', duration: '14s' },
+  { id: 'fast', label: 'Fast', duration: '8s' },
+] as const;
 
 const OVERLAY_PRESETS = [
   { id: 'default', label: 'Default', preview: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)' },
@@ -198,6 +206,7 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
     useVideo,
     kenBurnsEffect,
     kenBurnsPreview,
+    kenBurnsSpeed = 'normal',
     heroEffect = 'none',
     heroEffectIntensity = 'medium',
     heroEffectColorScheme = 'cyan-purple',
@@ -216,6 +225,7 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
     onKenBurnsToggle,
     onKenBurnsPreviewStart,
     onKenBurnsPreviewEnd,
+    onKenBurnsSpeedChange,
     onHeroEffectChange,
     onHeroEffectIntensityChange,
     onHeroEffectColorSchemeChange,
@@ -407,6 +417,34 @@ export const HeroEditToolbar = forwardRef<HTMLDivElement, HeroEditToolbarProps>(
                     {kenBurnsEffect && <Check className="h-4 w-4 text-accent" />}
                   </button>
                   <p className="text-white/40 text-xs text-center">Slow cinematic pan & zoom animation</p>
+                  
+                  {/* Ken Burns Speed Control - only show when Ken Burns is enabled */}
+                  {kenBurnsEffect && onKenBurnsSpeedChange && (
+                    <div className="space-y-2 pt-2">
+                      <label className="text-white/50 text-xs">Animation Speed</label>
+                      <div className="flex gap-1">
+                        {KEN_BURNS_SPEEDS.map((speed) => (
+                          <button
+                            key={speed.id}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onKenBurnsSpeedChange(speed.id);
+                            }}
+                            className={cn(
+                              "flex-1 py-2 px-2 rounded-lg text-xs font-medium transition-all border",
+                              kenBurnsSpeed === speed.id
+                                ? "bg-accent/30 border-accent/50 text-white"
+                                : "bg-white/10 border-white/20 text-white/70 hover:bg-white/15"
+                            )}
+                          >
+                            <div>{speed.label}</div>
+                            <div className="text-[10px] text-white/40">{speed.duration}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
