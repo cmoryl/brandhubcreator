@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Plus, Sparkles, Loader2, Trash2, Download, Eye, X } from 'lucide-react';
+import { Plus, Sparkles, Loader2, Trash2, Download, Eye, Code } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
@@ -112,11 +113,17 @@ interface ShapeManagerProps {
 
 export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }: ShapeManagerProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'presets' | 'generate'>('presets');
+  const [activeTab, setActiveTab] = useState<'presets' | 'generate' | 'manual'>('presets');
   const [isGenerating, setIsGenerating] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState<string>('geometric');
   const [previewShape, setPreviewShape] = useState<CustomDesignShape | null>(null);
+  
+  // Manual SVG state
+  const [manualName, setManualName] = useState('');
+  const [manualSvg, setManualSvg] = useState('');
+  const [manualCategory, setManualCategory] = useState<string>('custom');
+  const [svgPreviewError, setSvgPreviewError] = useState<string | null>(null);
 
   const addPresetShape = (preset: Omit<CustomDesignShape, 'id'>) => {
     const newShape: CustomDesignShape = {
@@ -192,6 +199,66 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
     return shapes.some(s => s.name === preset.name);
   };
 
+  const validateSvg = (svg: string): boolean => {
+    if (!svg.trim()) {
+      setSvgPreviewError('Please enter SVG code');
+      return false;
+    }
+    
+    // Basic SVG validation
+    const trimmed = svg.trim();
+    if (!trimmed.startsWith('<svg') || !trimmed.includes('</svg>')) {
+      setSvgPreviewError('Invalid SVG: must start with <svg and end with </svg>');
+      return false;
+    }
+    
+    // Check for potentially dangerous content
+    if (trimmed.includes('<script') || trimmed.includes('javascript:') || trimmed.includes('onerror')) {
+      setSvgPreviewError('SVG contains potentially unsafe content');
+      return false;
+    }
+    
+    setSvgPreviewError(null);
+    return true;
+  };
+
+  const addManualShape = () => {
+    if (!manualName.trim()) {
+      toast.error('Please enter a name for your shape');
+      return;
+    }
+    
+    if (!validateSvg(manualSvg)) {
+      toast.error(svgPreviewError || 'Invalid SVG');
+      return;
+    }
+
+    const newShape: CustomDesignShape = {
+      id: crypto.randomUUID(),
+      name: manualName.trim(),
+      type: 'custom',
+      category: manualCategory,
+      svg: manualSvg.trim(),
+    };
+    
+    onShapesChange([...shapes, newShape]);
+    setManualName('');
+    setManualSvg('');
+    setManualCategory('custom');
+    setSvgPreviewError(null);
+    toast.success(`Added "${newShape.name}" to your shapes`);
+  };
+
+  // Live preview validation
+  const handleSvgChange = (value: string) => {
+    setManualSvg(value);
+    if (value.trim()) {
+      validateSvg(value);
+    } else {
+      setSvgPreviewError(null);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -205,9 +272,13 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
           <DialogTitle>Design Shape Manager</DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'presets' | 'generate')} className="flex-1 flex flex-col min-h-0">
-          <TabsList className="grid grid-cols-2 w-full max-w-sm">
-            <TabsTrigger value="presets">Preset Shapes</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'presets' | 'generate' | 'manual')} className="flex-1 flex flex-col min-h-0">
+          <TabsList className="grid grid-cols-3 w-full max-w-md">
+            <TabsTrigger value="presets">Presets</TabsTrigger>
+            <TabsTrigger value="manual" className="gap-1.5">
+              <Code className="h-3.5 w-3.5" />
+              Manual SVG
+            </TabsTrigger>
             <TabsTrigger value="generate" className="gap-1.5">
               <Sparkles className="h-3.5 w-3.5" />
               AI Generate
@@ -244,6 +315,69 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
                   </Card>
                 );
               })}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="manual" className="flex-1 min-h-0 overflow-auto mt-4 space-y-4">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Shape Name</Label>
+                <Input
+                  placeholder="e.g., Custom Badge, Brand Frame"
+                  value={manualName}
+                  onChange={(e) => setManualName(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <Select value={manualCategory} onValueChange={setManualCategory}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STYLE_OPTIONS.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>SVG Code</Label>
+                <Textarea
+                  placeholder='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">...</svg>'
+                  value={manualSvg}
+                  onChange={(e) => handleSvgChange(e.target.value)}
+                  className="font-mono text-xs min-h-[120px]"
+                />
+                {svgPreviewError && (
+                  <p className="text-xs text-destructive">{svgPreviewError}</p>
+                )}
+              </div>
+
+              {/* Live Preview */}
+              {manualSvg.trim() && !svgPreviewError && (
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Preview</Label>
+                  <div 
+                    className="aspect-square max-h-[150px] flex items-center justify-center bg-muted/30 rounded-lg p-4 border border-border"
+                    dangerouslySetInnerHTML={{ __html: manualSvg }}
+                  />
+                </div>
+              )}
+
+              <Button 
+                onClick={addManualShape} 
+                disabled={!manualName.trim() || !manualSvg.trim() || !!svgPreviewError}
+                className="w-full gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Shape
+              </Button>
             </div>
           </TabsContent>
 
