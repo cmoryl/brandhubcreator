@@ -1,5 +1,6 @@
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 interface Particle {
   id: number;
@@ -21,6 +22,15 @@ interface GridLine {
 
 export function InteractiveHeroBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { isTablet, isMobile } = useBreakpoint();
+  
+  // Reduce particle count on tablet/mobile for better performance
+  const particleCount = useMemo(() => {
+    if (isMobile) return 15;
+    if (isTablet) return 25;
+    return 50;
+  }, [isMobile, isTablet]);
+  
   const [particles, setParticles] = useState<Particle[]>([]);
   const [gridLines, setGridLines] = useState<GridLine[]>([]);
   
@@ -36,7 +46,7 @@ export function InteractiveHeroBackground() {
 
   // Initialize particles and grid
   useEffect(() => {
-    const newParticles: Particle[] = Array.from({ length: 50 }, (_, i) => ({
+    const newParticles: Particle[] = Array.from({ length: particleCount }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
@@ -70,7 +80,7 @@ export function InteractiveHeroBackground() {
       });
     }
     setGridLines(lines);
-  }, []);
+  }, [particleCount]);
 
   // Track mouse movement
   useEffect(() => {

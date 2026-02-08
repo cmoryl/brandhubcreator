@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useTheme } from 'next-themes';
-
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 interface Orb {
   x: number;
   y: number;
@@ -23,8 +23,12 @@ export function AnimatedHeroCanvas({ className = '' }: AnimatedHeroCanvasProps) 
   const orbsRef = useRef<Orb[]>([]);
   const animationRef = useRef<number>(0);
   const { resolvedTheme } = useTheme();
+  const { isTablet, isMobile } = useBreakpoint();
+  
+  // Reduce orb count on tablet/mobile for better performance
+  const orbCount = isMobile ? 3 : isTablet ? 5 : 7;
 
-  const initOrbs = useCallback((width: number, height: number) => {
+  const initOrbs = useCallback((width: number, height: number, count: number) => {
     const isDark = resolvedTheme === 'dark';
     const colors = isDark
       ? [
@@ -43,7 +47,6 @@ export function AnimatedHeroCanvas({ className = '' }: AnimatedHeroCanvasProps) 
         ];
 
     const orbs: Orb[] = [];
-    const count = 7;
 
     for (let i = 0; i < count; i++) {
       const baseRadius = 100 + Math.random() * 200;
@@ -75,7 +78,7 @@ export function AnimatedHeroCanvas({ className = '' }: AnimatedHeroCanvasProps) 
       canvas.width = rect.width * window.devicePixelRatio;
       canvas.height = rect.height * window.devicePixelRatio;
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-      orbsRef.current = initOrbs(rect.width, rect.height);
+      orbsRef.current = initOrbs(rect.width, rect.height, orbCount);
     };
 
     resizeCanvas();
@@ -200,7 +203,7 @@ export function AnimatedHeroCanvas({ className = '' }: AnimatedHeroCanvasProps) 
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [initOrbs, resolvedTheme]);
+  }, [initOrbs, resolvedTheme, orbCount]);
 
   return (
     <canvas

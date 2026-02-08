@@ -2,6 +2,7 @@ import { useRef, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, MeshDistortMaterial, MeshWobbleMaterial, Icosahedron, Octahedron, Torus } from '@react-three/drei';
 import * as THREE from 'three';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 function FloatingIcosahedron({ position }: { position: [number, number, number] }) {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -103,6 +104,13 @@ function Scene() {
 }
 
 export function FloatingShapes() {
+  const { isTablet, isMobile } = useBreakpoint();
+  
+  // Disable 3D canvas on tablet/mobile for better performance
+  if (isTablet || isMobile) {
+    return null;
+  }
+  
   return (
     <div className="absolute inset-0 pointer-events-none">
       <Suspense fallback={null}>
