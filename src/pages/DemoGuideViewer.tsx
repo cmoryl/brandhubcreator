@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { FullEventPage } from '@/components/event/FullEventPage';
+import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
 import { MobileEventSectionNav } from '@/components/event/MobileEventSectionNav';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
@@ -375,8 +376,8 @@ export default function DemoGuideViewer() {
         </div>
       </div>
 
-      {/* Breadcrumbs - Hidden on mobile for cleaner look */}
-      <div className="hidden sm:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      {/* Breadcrumbs - Hidden on mobile for cleaner look, offset for sidebar */}
+      <div className="hidden sm:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:ml-72">
         <AppBreadcrumbs
           items={[
             { label: 'Demo Guides', icon: Star, href: '/' },
@@ -386,9 +387,9 @@ export default function DemoGuideViewer() {
         />
       </div>
 
-      {/* Admin Toolbar for demo editing */}
+      {/* Admin Toolbar for demo editing - offset for sidebar */}
       {isAdmin && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:ml-72">
           <AdminToolbar
             isVisible={true}
             guideType={isEvent ? 'event' : 'brand'}
@@ -415,8 +416,23 @@ export default function DemoGuideViewer() {
         </div>
       )}
 
-      {/* Page Content - Use different component for events */}
-      <div className="pb-6 sm:pb-8">
+      {/* Desktop Sidebar - Fixed position for persistent visibility */}
+      <div className="hidden lg:block fixed top-12 left-0 h-[calc(100vh-48px)] w-72 z-30">
+        {isEvent ? null : (
+          <ReorderableBrandSidebar 
+            activeSection={activeSection || 'hero'} 
+            onSectionChange={handleSectionSelect} 
+            brandName={heroName}
+            sectionOrder={sectionOrder}
+            onSectionOrderChange={() => {}} // Read-only for non-admins
+            hiddenSections={[]}
+            isAdmin={false} // Demos are always read-only for navigation
+          />
+        )}
+      </div>
+
+      {/* Page Content - Offset for sidebar on desktop */}
+      <div className={`pb-6 sm:pb-8 ${isEvent ? '' : 'lg:ml-72'}`}>
         {isEvent ? (
           <FullEventPage
             event={fullGuide as EventGuide}
@@ -466,8 +482,8 @@ export default function DemoGuideViewer() {
         />
       )}
 
-      {/* Bottom CTA Banner */}
-      <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-t border-border">
+      {/* Bottom CTA Banner - offset for sidebar */}
+      <div className={`bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-t border-border ${isEvent ? '' : 'lg:ml-72'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 text-center">
           <h3 className="text-lg sm:text-2xl font-semibold text-foreground mb-2 sm:mb-3">
             Like what you see?
