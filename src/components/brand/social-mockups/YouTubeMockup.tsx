@@ -2,12 +2,23 @@ import { ThumbsUp, ThumbsDown, Share, MoreVertical, Bell, Play, Clock, ListVideo
 import { cn } from '@/lib/utils';
 import { FormatMockupProps } from './types';
 
+// Helper to convert aspect ratio string like "16:9" or "1:1" to a CSS value
+const getAspectRatioStyle = (aspectRatio?: string): string => {
+  if (!aspectRatio) return '16/9';
+  const parts = aspectRatio.split(':').map(Number);
+  if (parts.length === 2 && parts[0] && parts[1]) {
+    return `${parts[0]}/${parts[1]}`;
+  }
+  return '16/9';
+};
+
 export const YouTubeMockup = ({ 
   imageUrl, 
   profileImageUrl, 
   brandName = 'Brand Name',
   handle = '@brandhandle',
   format,
+  sizeSpec,
   className 
 }: FormatMockupProps) => {
   if (format === 'reel') {
@@ -124,58 +135,71 @@ export const YouTubeMockup = ({
     );
   }
 
-  // YouTube Thumbnail / Video Preview
+  // YouTube Thumbnail / Video Preview - Dynamic aspect ratio
+  const aspectRatio = getAspectRatioStyle(sizeSpec?.aspectRatio);
+  const sizeLabel = sizeSpec ? `${sizeSpec.width} x ${sizeSpec.height} px` : '1280 x 720 px';
+  const isChannelBanner = sizeSpec?.name?.includes('Banner') || sizeSpec?.name?.includes('Channel');
+
   return (
     <div className={cn(
       "bg-white rounded-lg shadow-xl overflow-hidden",
       "w-[400px]",
       className
     )}>
-      {/* Thumbnail */}
-      <div className="relative aspect-video bg-gray-900">
+      {/* Thumbnail with dynamic aspect ratio */}
+      <div 
+        className="relative bg-gray-900"
+        style={{ aspectRatio }}
+      >
         {imageUrl ? (
           <img src={imageUrl} alt="Thumbnail" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm bg-gradient-to-br from-[#FF0000]/20 to-[#282828]">
-            Your Thumbnail (1280 x 720 px)
+            Your {sizeSpec?.name || 'Thumbnail'} ({sizeLabel})
           </div>
         )}
-        {/* Duration badge */}
-        <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs font-medium px-1 py-0.5 rounded">
-          10:24
-        </div>
-        {/* Play overlay */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
-          <div className="w-16 h-16 rounded-full bg-black/70 flex items-center justify-center">
-            <Play className="w-8 h-8 text-white ml-1" fill="white" />
+        {/* Duration badge - only show for video thumbnails */}
+        {!isChannelBanner && (
+          <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs font-medium px-1 py-0.5 rounded">
+            10:24
           </div>
-        </div>
+        )}
+        {/* Play overlay - only for video content */}
+        {!isChannelBanner && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
+            <div className="w-16 h-16 rounded-full bg-black/70 flex items-center justify-center">
+              <Play className="w-8 h-8 text-white ml-1" fill="white" />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Video info */}
-      <div className="p-3 flex gap-3">
-        <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-          {profileImageUrl ? (
-            <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-[#FF0000] flex items-center justify-center text-white font-bold text-sm">
-              {brandName.charAt(0)}
-            </div>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-medium text-gray-900 line-clamp-2 leading-tight">
-            Your Video Title Goes Here - Make It Compelling and Click-Worthy
-          </h3>
-          <p className="text-[13px] text-gray-600 mt-1">{brandName}</p>
-          <div className="flex items-center gap-1 text-[13px] text-gray-600">
-            <span>1.2M views</span>
-            <span>•</span>
-            <span>2 days ago</span>
+      {/* Video info - only for thumbnails, not banners */}
+      {!isChannelBanner && (
+        <div className="p-3 flex gap-3">
+          <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+            {profileImageUrl ? (
+              <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-[#FF0000] flex items-center justify-center text-white font-bold text-sm">
+                {brandName.charAt(0)}
+              </div>
+            )}
           </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-medium text-gray-900 line-clamp-2 leading-tight">
+              Your Video Title Goes Here - Make It Compelling and Click-Worthy
+            </h3>
+            <p className="text-[13px] text-gray-600 mt-1">{brandName}</p>
+            <div className="flex items-center gap-1 text-[13px] text-gray-600">
+              <span>1.2M views</span>
+              <span>•</span>
+              <span>2 days ago</span>
+            </div>
+          </div>
+          <MoreVertical className="w-5 h-5 text-gray-600 flex-shrink-0" />
         </div>
-        <MoreVertical className="w-5 h-5 text-gray-600 flex-shrink-0" />
-      </div>
+      )}
     </div>
   );
 };

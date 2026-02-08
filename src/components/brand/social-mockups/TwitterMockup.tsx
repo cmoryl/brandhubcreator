@@ -2,13 +2,27 @@ import { Heart, MessageCircle, Repeat2, Share, MoreHorizontal, BarChart2, Bookma
 import { cn } from '@/lib/utils';
 import { FormatMockupProps } from './types';
 
+// Helper to convert aspect ratio string like "16:9" or "1:1" to a CSS value
+const getAspectRatioStyle = (aspectRatio?: string): string => {
+  if (!aspectRatio) return '16/9';
+  const parts = aspectRatio.split(':').map(Number);
+  if (parts.length === 2 && parts[0] && parts[1]) {
+    return `${parts[0]}/${parts[1]}`;
+  }
+  return '16/9';
+};
+
 export const TwitterMockup = ({ 
   imageUrl, 
   profileImageUrl, 
   brandName = 'Brand Name',
   handle = 'brandhandle',
+  sizeSpec,
   className 
 }: FormatMockupProps) => {
+  const aspectRatio = getAspectRatioStyle(sizeSpec?.aspectRatio);
+  const sizeLabel = sizeSpec ? `${sizeSpec.width} x ${sizeSpec.height} px` : '1600 x 900 px';
+
   return (
     <div className={cn(
       "bg-black rounded-2xl shadow-xl overflow-hidden border border-gray-800",
@@ -43,14 +57,17 @@ export const TwitterMockup = ({
             Excited to share our latest update! 🚀 We're constantly innovating to bring you the best experience.
           </p>
 
-          {/* Image - Twitter uses 16:9 aspect ratio */}
+          {/* Image - Dynamic aspect ratio based on sizeSpec */}
           <div className="relative rounded-2xl overflow-hidden border border-gray-800">
-            <div className="aspect-[16/9] bg-gray-800">
+            <div 
+              className="bg-gray-800"
+              style={{ aspectRatio }}
+            >
               {imageUrl ? (
                 <img src={imageUrl} alt="Post" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
-                  Your Content (1600 x 900 px)
+                  Your Content ({sizeLabel})
                 </div>
               )}
             </div>

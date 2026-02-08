@@ -107,6 +107,7 @@ export const SocialMockupPreviewDialog = ({
       brandName,
       handle,
       format: selectedFormat,
+      sizeSpec: currentSize,
     };
 
     switch (asset.platform) {

@@ -2,11 +2,22 @@ import { Heart, Share, MoreHorizontal, ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { FormatMockupProps } from './types';
 
+// Helper to convert aspect ratio string like "2:3" or "1:1" to a CSS value
+const getAspectRatioStyle = (aspectRatio?: string): string => {
+  if (!aspectRatio) return '2/3';
+  const parts = aspectRatio.split(':').map(Number);
+  if (parts.length === 2 && parts[0] && parts[1]) {
+    return `${parts[0]}/${parts[1]}`;
+  }
+  return '2/3';
+};
+
 export const PinterestMockup = ({ 
   imageUrl, 
   profileImageUrl, 
   brandName = 'Brand Name',
   format,
+  sizeSpec,
   className 
 }: FormatMockupProps) => {
   if (format === 'story') {
@@ -78,20 +89,26 @@ export const PinterestMockup = ({
     );
   }
 
-  // Pinterest Pin (Feed)
+  // Pinterest Pin (Feed) - Dynamic aspect ratio
+  const aspectRatio = getAspectRatioStyle(sizeSpec?.aspectRatio);
+  const sizeLabel = sizeSpec ? `${sizeSpec.width} x ${sizeSpec.height} px` : '1000 x 1500 px';
+
   return (
     <div className={cn(
       "bg-white rounded-2xl shadow-xl overflow-hidden",
       "w-[280px]",
       className
     )}>
-      {/* Pin image - 2:3 aspect ratio */}
-      <div className="relative aspect-[2/3] bg-gray-100 group">
+      {/* Pin image - Dynamic aspect ratio */}
+      <div 
+        className="relative bg-gray-100 group"
+        style={{ aspectRatio }}
+      >
         {imageUrl ? (
           <img src={imageUrl} alt="Pin" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm bg-gradient-to-br from-[#E60023]/10 to-[#E60023]/5">
-            Your Pin (1000 x 1500 px)
+            Your Pin ({sizeLabel})
           </div>
         )}
         

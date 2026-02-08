@@ -2,12 +2,23 @@ import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Home, Search, Plu
 import { cn } from '@/lib/utils';
 import { FormatMockupProps } from './types';
 
+// Helper to convert aspect ratio string like "1:1" or "4:5" to a CSS value
+const getAspectRatioStyle = (aspectRatio?: string): string => {
+  if (!aspectRatio) return '1/1';
+  const parts = aspectRatio.split(':').map(Number);
+  if (parts.length === 2 && parts[0] && parts[1]) {
+    return `${parts[0]}/${parts[1]}`;
+  }
+  return '1/1';
+};
+
 export const InstagramMockup = ({ 
   imageUrl, 
   profileImageUrl, 
   brandName = 'Brand Name',
   handle = 'brandhandle',
   format,
+  sizeSpec,
   className 
 }: FormatMockupProps) => {
   const isStoryOrReel = format === 'story' || format === 'reel';
@@ -152,7 +163,10 @@ export const InstagramMockup = ({
     );
   }
 
-  // Feed post
+  // Feed post - use dynamic aspect ratio
+  const aspectRatio = getAspectRatioStyle(sizeSpec?.aspectRatio);
+  const sizeLabel = sizeSpec ? `${sizeSpec.width} x ${sizeSpec.height} px` : '1080 x 1080 px';
+
   return (
     <div className={cn(
       "bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200",
@@ -179,13 +193,16 @@ export const InstagramMockup = ({
         <MoreHorizontal className="w-5 h-5 text-gray-900" />
       </div>
 
-      {/* Image */}
-      <div className="aspect-square bg-gray-100">
+      {/* Image - Dynamic aspect ratio */}
+      <div 
+        className="bg-gray-100"
+        style={{ aspectRatio }}
+      >
         {imageUrl ? (
           <img src={imageUrl} alt="Post" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-            Your Content
+            Your Content ({sizeLabel})
           </div>
         )}
       </div>

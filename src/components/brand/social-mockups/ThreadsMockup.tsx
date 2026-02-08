@@ -2,13 +2,27 @@ import { Heart, MessageCircle, Send, MoreHorizontal, Repeat2 } from 'lucide-reac
 import { cn } from '@/lib/utils';
 import { FormatMockupProps } from './types';
 
+// Helper to convert aspect ratio string like "1:1" or "4:5" to a CSS value
+const getAspectRatioStyle = (aspectRatio?: string): string => {
+  if (!aspectRatio) return '1/1';
+  const parts = aspectRatio.split(':').map(Number);
+  if (parts.length === 2 && parts[0] && parts[1]) {
+    return `${parts[0]}/${parts[1]}`;
+  }
+  return '1/1';
+};
+
 export const ThreadsMockup = ({ 
   imageUrl, 
   profileImageUrl, 
   brandName = 'Brand Name',
   handle = 'brandhandle',
+  sizeSpec,
   className 
 }: FormatMockupProps) => {
+  const aspectRatio = getAspectRatioStyle(sizeSpec?.aspectRatio);
+  const sizeLabel = sizeSpec ? `${sizeSpec.width} x ${sizeSpec.height} px` : '1080 x 1080 px';
+
   return (
     <div className={cn(
       "bg-black rounded-2xl shadow-xl overflow-hidden border border-gray-800",
@@ -47,22 +61,21 @@ export const ThreadsMockup = ({
             Excited to share our latest update! 🚀 We're constantly innovating to bring you the best experience.
           </p>
 
-          {/* Image */}
-          {imageUrl && (
-            <div className="relative rounded-xl overflow-hidden border border-gray-800 mb-3">
-              <div className="aspect-square bg-gray-800">
+          {/* Image - Dynamic aspect ratio */}
+          <div className="relative rounded-xl overflow-hidden border border-gray-800 mb-3">
+            <div 
+              className="bg-gray-800"
+              style={{ aspectRatio }}
+            >
+              {imageUrl ? (
                 <img src={imageUrl} alt="Post" className="w-full h-full object-cover" />
-              </div>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-600 text-sm">
+                  Your Content ({sizeLabel})
+                </div>
+              )}
             </div>
-          )}
-
-          {!imageUrl && (
-            <div className="relative rounded-xl overflow-hidden border border-gray-800 mb-3">
-              <div className="aspect-square bg-gray-900 flex items-center justify-center text-gray-600 text-sm">
-                Your Content (1080 x 1080 px)
-              </div>
-            </div>
-          )}
+          </div>
 
           {/* Actions */}
           <div className="flex items-center gap-4">
