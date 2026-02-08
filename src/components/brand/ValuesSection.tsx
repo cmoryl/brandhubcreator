@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { 
-  Plus, X, Pencil, Upload, Image as ImageIcon, RefreshCw, ChevronLeft, ChevronRight, Loader2,
+  Plus, X, Pencil, Upload, Image as ImageIcon, RefreshCw, ChevronLeft, ChevronRight, Loader2, FolderOpen,
   // Core values
   Heart, Star, Shield, Zap, Target, Users, Lightbulb, Award, Compass, Leaf,
   // Business & Growth
@@ -34,6 +34,7 @@ import { Progress } from '@/components/ui/progress';
 import { SectionHeader } from './SectionHeader';
 import { SyncValuesButton } from './SyncValuesButton';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { toast } from 'sonner';
 import type { LucideIcon } from 'lucide-react';
 import { getPillarImage, getStablePillarImage, pillarImagesList, pillarImagesWithLabels } from '@/assets/pillars';
@@ -494,11 +495,31 @@ export const ValuesSection = ({
                           </p>
                         </div>
                         
+                        {/* Image Library Option */}
+                        <div className="pt-2 border-t border-border">
+                          <label className="text-xs font-medium text-muted-foreground mb-2 block">Choose from library</label>
+                          <ImageLibraryPicker
+                            onSelect={(url) => {
+                              updateValue(value.id, { imageUrl: url, useImage: true });
+                              toast.success('Image selected from library');
+                            }}
+                            defaultCategory="General"
+                            trigger={
+                              <button
+                                className="w-full h-12 border-2 border-dashed border-border rounded-lg flex items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                              >
+                                <FolderOpen className="h-4 w-4" />
+                                <span className="text-xs">Select from Image Library</span>
+                              </button>
+                            }
+                          />
+                        </div>
+
                         {/* Custom Upload Option */}
                         <div className="pt-2 border-t border-border">
-                          <label className="text-xs font-medium text-muted-foreground mb-2 block">Or upload custom image</label>
+                          <label className="text-xs font-medium text-muted-foreground mb-2 block">Or upload new image</label>
                           {isUploading && uploadingFor === value.id ? (
-                            <div className="w-full h-16 border-2 border-primary/50 rounded-lg flex flex-col items-center justify-center gap-2 bg-primary/5">
+                            <div className="w-full h-12 border-2 border-primary/50 rounded-lg flex flex-col items-center justify-center gap-2 bg-primary/5">
                               <Loader2 className="h-4 w-4 animate-spin text-primary" />
                               <Progress value={uploadProgress} className="w-3/4 h-1" />
                               <span className="text-xs text-muted-foreground">Uploading... {uploadProgress}%</span>
@@ -507,7 +528,7 @@ export const ValuesSection = ({
                             <button
                               onClick={() => triggerImageUpload(value.id)}
                               disabled={!brandId}
-                              className="w-full h-16 border-2 border-dashed border-border rounded-lg flex items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="w-full h-12 border-2 border-dashed border-border rounded-lg flex items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <Upload className="h-4 w-4" />
                               <span className="text-xs">
@@ -516,7 +537,7 @@ export const ValuesSection = ({
                             </button>
                           )}
                           {value.imageUrl && !value.imageUrl.includes('supabase.co') && (
-                            <p className="text-[10px] text-amber-600 mt-1 text-center">
+                            <p className="text-[10px] text-warning mt-1 text-center">
                               ⚠️ Current image is not in persistent storage
                             </p>
                           )}
