@@ -36,7 +36,9 @@ export function DemoFirstTimeModal({
     navigate(`${targetPath}?start=true`);
   };
 
-  const handleSkip = () => {
+  const handleSkip = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     // Mark as shown and close without navigating
     localStorage.setItem(STORAGE_KEY, 'true');
     onOpenChange(false);
