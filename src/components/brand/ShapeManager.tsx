@@ -3,7 +3,7 @@ import { Plus, Sparkles, Loader2, Trash2, Download, Eye, Code, Copy, Check } fro
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { SyntaxTextarea } from '@/components/ui/syntax-textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
@@ -482,11 +482,11 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
 
                 <div className="space-y-2">
                   <Label>SVG Code</Label>
-                  <Textarea
+                  <SyntaxTextarea
                     placeholder='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">...</svg>'
                     value={manualSvg}
-                    onChange={(e) => handleSvgChange(e.target.value)}
-                    className="font-mono text-xs min-h-[120px]"
+                    onChange={handleSvgChange}
+                    className="min-h-[140px]"
                   />
                   {svgPreviewError && (
                     <p className="text-xs text-destructive">{svgPreviewError}</p>
