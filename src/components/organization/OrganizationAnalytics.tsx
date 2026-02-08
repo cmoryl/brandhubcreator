@@ -60,6 +60,14 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { useToast } from '@/hooks/use-toast';
 import { format, subDays, endOfDay, eachDayOfInterval, parseISO } from 'date-fns';
 import { LocationAnalytics } from './LocationAnalytics';
+import {
+  PDF_FONTS,
+  PDF_COLORS,
+  PDF_TYPOGRAPHY,
+  PDF_SPACING,
+  PDF_PAPER_CONFIGS,
+  applyPdfContainerStyles,
+} from '@/lib/pdfStyleConfig';
 
 interface ActivityData {
   date: string;
@@ -316,121 +324,114 @@ export const OrganizationAnalytics = () => {
       const reportDate = format(new Date(), 'MMMM d, yyyy');
       const dateRangeLabel = dateRange === '7' ? '7 days' : dateRange === '30' ? '30 days' : '90 days';
       
-      // Create PDF content - append to DOM with proper visibility handling for html2canvas
+      // Create PDF content with consistent styling
       const pdfContent = document.createElement('div');
-      pdfContent.style.position = 'fixed';
-      pdfContent.style.top = '0';
-      pdfContent.style.left = '0';
-      pdfContent.style.width = '8.5in'; // Letter width
-      pdfContent.style.zIndex = '-9999';
-      pdfContent.style.opacity = '0';
-      pdfContent.style.pointerEvents = 'none';
-      pdfContent.style.overflow = 'visible';
-      pdfContent.style.padding = '40px';
-      pdfContent.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-      pdfContent.style.color = '#1f2937';
-      pdfContent.style.backgroundColor = '#ffffff';
+      applyPdfContainerStyles(pdfContent, 'letter');
+      pdfContent.style.padding = PDF_SPACING['4xl'];
+      pdfContent.style.fontFamily = PDF_FONTS.primary;
+      pdfContent.style.color = PDF_COLORS.text.primary;
+      pdfContent.style.backgroundColor = PDF_COLORS.background.white;
       
       pdfContent.innerHTML = `
-        <div style="margin-bottom: 32px;">
-          <h1 style="font-size: 28px; font-weight: 700; margin: 0 0 8px 0; color: #111827;">
+        <div style="margin-bottom: ${PDF_SPACING['3xl']};">
+          <h1 style="font-size: ${PDF_TYPOGRAPHY.h1.size}; font-weight: ${PDF_TYPOGRAPHY.h1.weight}; margin: 0 0 8px 0; color: ${PDF_COLORS.text.primary};">
             📊 Analytics Report
           </h1>
-          <p style="font-size: 16px; color: #6b7280; margin: 0;">
+          <p style="font-size: ${PDF_TYPOGRAPHY.h4.size}; color: ${PDF_COLORS.text.muted}; margin: 0;">
             ${organization.name} • Last ${dateRangeLabel}
           </p>
-          <p style="font-size: 12px; color: #9ca3af; margin-top: 4px;">
+          <p style="font-size: ${PDF_TYPOGRAPHY.caption.size}; color: ${PDF_COLORS.text.subtle}; margin-top: ${PDF_SPACING.xs};">
             Generated on ${reportDate}
           </p>
         </div>
         
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px;">
-          <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; text-align: center;">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: ${PDF_SPACING.lg}; margin-bottom: ${PDF_SPACING['3xl']};">
+          <div style="background: ${PDF_COLORS.background.muted}; padding: ${PDF_SPACING.lg}; border-radius: 8px; text-align: center;">
             <p style="font-size: 24px; font-weight: 700; margin: 0; color: #6366f1;">${entityCounts.brands}</p>
-            <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Brands</p>
+            <p style="font-size: ${PDF_TYPOGRAPHY.caption.size}; color: ${PDF_COLORS.text.muted}; margin: ${PDF_SPACING.xs} 0 0 0;">Brands</p>
           </div>
-          <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; text-align: center;">
+          <div style="background: ${PDF_COLORS.background.muted}; padding: ${PDF_SPACING.lg}; border-radius: 8px; text-align: center;">
             <p style="font-size: 24px; font-weight: 700; margin: 0; color: #8b5cf6;">${entityCounts.products}</p>
-            <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Products</p>
+            <p style="font-size: ${PDF_TYPOGRAPHY.caption.size}; color: ${PDF_COLORS.text.muted}; margin: ${PDF_SPACING.xs} 0 0 0;">Products</p>
           </div>
-          <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; text-align: center;">
-            <p style="font-size: 24px; font-weight: 700; margin: 0; color: #f59e0b;">${entityCounts.events}</p>
-            <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Events</p>
+          <div style="background: ${PDF_COLORS.background.muted}; padding: ${PDF_SPACING.lg}; border-radius: 8px; text-align: center;">
+            <p style="font-size: 24px; font-weight: 700; margin: 0; color: ${PDF_COLORS.accent.warning};">${entityCounts.events}</p>
+            <p style="font-size: ${PDF_TYPOGRAPHY.caption.size}; color: ${PDF_COLORS.text.muted}; margin: ${PDF_SPACING.xs} 0 0 0;">Events</p>
           </div>
-          <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; text-align: center;">
-            <p style="font-size: 24px; font-weight: 700; margin: 0; color: #22c55e;">${entityCounts.members}</p>
-            <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Team Members</p>
+          <div style="background: ${PDF_COLORS.background.muted}; padding: ${PDF_SPACING.lg}; border-radius: 8px; text-align: center;">
+            <p style="font-size: 24px; font-weight: 700; margin: 0; color: ${PDF_COLORS.accent.success};">${entityCounts.members}</p>
+            <p style="font-size: ${PDF_TYPOGRAPHY.caption.size}; color: ${PDF_COLORS.text.muted}; margin: ${PDF_SPACING.xs} 0 0 0;">Team Members</p>
           </div>
         </div>
         
-        <div style="margin-bottom: 32px;">
-          <h2 style="font-size: 18px; font-weight: 600; margin: 0 0 16px 0; color: #111827;">
+        <div style="margin-bottom: ${PDF_SPACING['3xl']};">
+          <h2 style="font-size: ${PDF_TYPOGRAPHY.h3.size}; font-weight: ${PDF_TYPOGRAPHY.h3.weight}; margin: 0 0 ${PDF_SPACING.lg} 0; color: ${PDF_COLORS.text.primary};">
             Content Visibility
           </h2>
-          <div style="display: flex; gap: 24px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="width: 12px; height: 12px; background: #22c55e; border-radius: 50%;"></span>
-              <span style="font-size: 14px;">Public: ${publicVsPrivate.public}</span>
+          <div style="display: flex; gap: ${PDF_SPACING['2xl']};">
+            <div style="display: flex; align-items: center; gap: ${PDF_SPACING.sm};">
+              <span style="width: 12px; height: 12px; background: ${PDF_COLORS.accent.success}; border-radius: 50%;"></span>
+              <span style="font-size: ${PDF_TYPOGRAPHY.body.size};">Public: ${publicVsPrivate.public}</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="width: 12px; height: 12px; background: #6b7280; border-radius: 50%;"></span>
-              <span style="font-size: 14px;">Private: ${publicVsPrivate.private}</span>
+            <div style="display: flex; align-items: center; gap: ${PDF_SPACING.sm};">
+              <span style="width: 12px; height: 12px; background: ${PDF_COLORS.text.muted}; border-radius: 50%;"></span>
+              <span style="font-size: ${PDF_TYPOGRAPHY.body.size};">Private: ${publicVsPrivate.private}</span>
             </div>
           </div>
         </div>
         
-        <div style="margin-bottom: 32px;">
-          <h2 style="font-size: 18px; font-weight: 600; margin: 0 0 16px 0; color: #111827;">
+        <div style="margin-bottom: ${PDF_SPACING['3xl']};">
+          <h2 style="font-size: ${PDF_TYPOGRAPHY.h3.size}; font-weight: ${PDF_TYPOGRAPHY.h3.weight}; margin: 0 0 ${PDF_SPACING.lg} 0; color: ${PDF_COLORS.text.primary};">
             Daily Activity Summary
           </h2>
-          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: ${PDF_TYPOGRAPHY.small.size};">
             <thead>
-              <tr style="background: #f9fafb;">
-                <th style="text-align: left; padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">Date</th>
-                <th style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">Views</th>
-                <th style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">Edits</th>
-                <th style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">Exports</th>
+              <tr style="background: ${PDF_COLORS.background.light};">
+                <th style="text-align: left; padding: ${PDF_SPACING.sm} ${PDF_SPACING.md}; border-bottom: 1px solid ${PDF_COLORS.border.light};">Date</th>
+                <th style="text-align: right; padding: ${PDF_SPACING.sm} ${PDF_SPACING.md}; border-bottom: 1px solid ${PDF_COLORS.border.light};">Views</th>
+                <th style="text-align: right; padding: ${PDF_SPACING.sm} ${PDF_SPACING.md}; border-bottom: 1px solid ${PDF_COLORS.border.light};">Edits</th>
+                <th style="text-align: right; padding: ${PDF_SPACING.sm} ${PDF_SPACING.md}; border-bottom: 1px solid ${PDF_COLORS.border.light};">Exports</th>
               </tr>
             </thead>
             <tbody>
               ${activityData.slice(-7).map(day => `
                 <tr>
-                  <td style="padding: 8px 12px; border-bottom: 1px solid #f3f4f6;">${day.date}</td>
-                  <td style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #f3f4f6;">${day.views}</td>
-                  <td style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #f3f4f6;">${day.edits}</td>
-                  <td style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #f3f4f6;">${day.exports}</td>
+                  <td style="padding: ${PDF_SPACING.sm} ${PDF_SPACING.md}; border-bottom: 1px solid ${PDF_COLORS.border.lighter};">${day.date}</td>
+                  <td style="text-align: right; padding: ${PDF_SPACING.sm} ${PDF_SPACING.md}; border-bottom: 1px solid ${PDF_COLORS.border.lighter};">${day.views}</td>
+                  <td style="text-align: right; padding: ${PDF_SPACING.sm} ${PDF_SPACING.md}; border-bottom: 1px solid ${PDF_COLORS.border.lighter};">${day.edits}</td>
+                  <td style="text-align: right; padding: ${PDF_SPACING.sm} ${PDF_SPACING.md}; border-bottom: 1px solid ${PDF_COLORS.border.lighter};">${day.exports}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
         </div>
         
-        <div style="margin-bottom: 32px;">
-          <h2 style="font-size: 18px; font-weight: 600; margin: 0 0 16px 0; color: #111827;">
+        <div style="margin-bottom: ${PDF_SPACING['3xl']};">
+          <h2 style="font-size: ${PDF_TYPOGRAPHY.h3.size}; font-weight: ${PDF_TYPOGRAPHY.h3.weight}; margin: 0 0 ${PDF_SPACING.lg} 0; color: ${PDF_COLORS.text.primary};">
             Recent Activity
           </h2>
-          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: ${PDF_TYPOGRAPHY.small.size};">
             <thead>
-              <tr style="background: #f9fafb;">
-                <th style="text-align: left; padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">Time</th>
-                <th style="text-align: left; padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">Action</th>
-                <th style="text-align: left; padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">Entity</th>
+              <tr style="background: ${PDF_COLORS.background.light};">
+                <th style="text-align: left; padding: ${PDF_SPACING.sm} ${PDF_SPACING.md}; border-bottom: 1px solid ${PDF_COLORS.border.light};">Time</th>
+                <th style="text-align: left; padding: ${PDF_SPACING.sm} ${PDF_SPACING.md}; border-bottom: 1px solid ${PDF_COLORS.border.light};">Action</th>
+                <th style="text-align: left; padding: ${PDF_SPACING.sm} ${PDF_SPACING.md}; border-bottom: 1px solid ${PDF_COLORS.border.light};">Entity</th>
               </tr>
             </thead>
             <tbody>
               ${recentActivity.slice(0, 10).map(activity => `
                 <tr>
-                  <td style="padding: 8px 12px; border-bottom: 1px solid #f3f4f6;">${format(parseISO(activity.createdAt), 'MMM d, h:mm a')}</td>
-                  <td style="padding: 8px 12px; border-bottom: 1px solid #f3f4f6; text-transform: capitalize;">${activity.actionType}</td>
-                  <td style="padding: 8px 12px; border-bottom: 1px solid #f3f4f6;">${activity.entityName} (${activity.entityType})</td>
+                  <td style="padding: ${PDF_SPACING.sm} ${PDF_SPACING.md}; border-bottom: 1px solid ${PDF_COLORS.border.lighter};">${format(parseISO(activity.createdAt), 'MMM d, h:mm a')}</td>
+                  <td style="padding: ${PDF_SPACING.sm} ${PDF_SPACING.md}; border-bottom: 1px solid ${PDF_COLORS.border.lighter}; text-transform: capitalize;">${activity.actionType}</td>
+                  <td style="padding: ${PDF_SPACING.sm} ${PDF_SPACING.md}; border-bottom: 1px solid ${PDF_COLORS.border.lighter};">${activity.entityName} (${activity.entityType})</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
         </div>
         
-        <div style="margin-top: 40px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center;">
-          <p style="font-size: 11px; color: #9ca3af; margin: 0;">
+        <div style="margin-top: ${PDF_SPACING['4xl']}; padding-top: ${PDF_SPACING.lg}; border-top: 1px solid ${PDF_COLORS.border.light}; text-align: center;">
+          <p style="font-size: ${PDF_TYPOGRAPHY.tiny.size}; color: ${PDF_COLORS.text.subtle}; margin: 0;">
             Generated by BrandHub Analytics • ${reportDate}
           </p>
         </div>
@@ -443,11 +444,11 @@ export const OrganizationAnalytics = () => {
       pdfContent.offsetHeight;
       
       const opt = {
-        margin: 0.5,
+        margin: PDF_PAPER_CONFIGS.letter.margins,
         filename: `${organization.slug}-analytics-report.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, backgroundColor: '#ffffff' },
-        jsPDF: { unit: 'in' as const, format: 'letter' as const, orientation: 'portrait' as const },
+        html2canvas: { scale: 2, backgroundColor: PDF_COLORS.background.white },
+        jsPDF: { ...PDF_PAPER_CONFIGS.letter.jsPDF, compress: true },
       };
       
       try {

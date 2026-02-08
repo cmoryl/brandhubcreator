@@ -1,5 +1,19 @@
 import html2pdf from 'html2pdf.js';
 import type { CompetitiveAnalysisReportData } from '@/types/competitiveAnalysis';
+import {
+  PDF_FONTS,
+  PDF_COLORS,
+  PDF_TYPOGRAPHY,
+  PDF_SPACING,
+  PDF_PAPER_CONFIGS,
+  applyPdfContainerStyles,
+  getScoreColor,
+  getSectionHeaderStyles,
+  getCardStyles,
+  getTableStyles,
+  generatePdfFooter,
+  formatPdfDate,
+} from './pdfStyleConfig';
 
 export interface ExportOptions {
   entityName: string;
@@ -7,27 +21,16 @@ export interface ExportOptions {
   theme?: 'light' | 'dark';
 }
 
-const getScoreColor = (score: number): string => {
-  if (score >= 80) return '#22c55e';
-  if (score >= 60) return '#eab308';
-  if (score >= 40) return '#f97316';
-  return '#ef4444';
-};
-
 const createPdfContent = (
   report: CompetitiveAnalysisReportData,
   options: ExportOptions
 ): string => {
   const { entityName, entityType } = options;
   const scoreColor = getScoreColor(report.score);
-  const generatedDate = new Date().toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const generatedDate = formatPdfDate();
 
   return `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1f2937; line-height: 1.6; padding: 40px;">
+    <div style="font-family: ${PDF_FONTS.primary}; color: ${PDF_COLORS.text.primary}; line-height: 1.6; padding: 40px;">
       <!-- Cover Page -->
       <div style="text-align: center; margin-bottom: 60px; page-break-after: always;">
         <div style="margin-bottom: 40px;">
@@ -285,14 +288,7 @@ export const exportCompetitiveAnalysisPdf = async (
 
   const container = document.createElement('div');
   container.innerHTML = createPdfContent(report, options);
-  container.style.position = 'fixed';
-  container.style.top = '0';
-  container.style.left = '0';
-  container.style.width = '210mm'; // A4 width
-  container.style.zIndex = '-9999';
-  container.style.opacity = '0';
-  container.style.pointerEvents = 'none';
-  container.style.overflow = 'visible';
+  applyPdfContainerStyles(container, 'a4');
   document.body.appendChild(container);
   
   // Force layout calculation
@@ -301,7 +297,7 @@ export const exportCompetitiveAnalysisPdf = async (
   const filename = `${options.entityName.replace(/\s+/g, '_')}_Competitive_Analysis.pdf`;
 
   const pdfOptions = {
-    margin: [10, 10, 10, 10] as [number, number, number, number],
+    margin: PDF_PAPER_CONFIGS.a4.margins,
     filename,
     image: { type: 'jpeg' as const, quality: 0.95 },
     html2canvas: {
@@ -309,12 +305,10 @@ export const exportCompetitiveAnalysisPdf = async (
       useCORS: true,
       allowTaint: true,
       logging: false,
-      backgroundColor: '#ffffff',
+      backgroundColor: PDF_COLORS.background.white,
     },
     jsPDF: {
-      unit: 'mm' as const,
-      format: 'a4' as const,
-      orientation: 'portrait' as const,
+      ...PDF_PAPER_CONFIGS.a4.jsPDF,
       compress: true,
     },
     pagebreak: {
