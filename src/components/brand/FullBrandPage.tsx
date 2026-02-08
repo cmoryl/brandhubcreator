@@ -316,7 +316,7 @@ export const FullBrandPage = ({
       case 'events':
         // Events section only for brands
         return brand.type === 'brand' 
-          ? <EventsSection brandId={brandId} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} />
+          ? <EventsSection brandId={brandId} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} canEdit={canEdit} />
           : null;
       case 'universe':
         // Only show for product suites (products with linkedGuides)

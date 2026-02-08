@@ -185,12 +185,14 @@ const PlatformCard = ({
   onDelete,
   onExpand,
   onMockupPreview,
+  canEdit = true,
 }: {
   asset: BrandSocialAssetSpec;
   onUpdate: (updates: Partial<BrandSocialAssetSpec>) => void;
   onDelete: () => void;
   onExpand: () => void;
   onMockupPreview: () => void;
+  canEdit?: boolean;
 }) => {
   const IconComponent = platformIcons[asset.platform] || Monitor;
   const hasTemplates = (asset.templates?.length || 0) > 0;
@@ -244,13 +246,15 @@ const PlatformCard = ({
           >
             <Maximize2 className="h-3 w-3 text-secondary-foreground" />
           </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-1.5 rounded-md bg-destructive hover:bg-destructive/90 transition-colors"
-            title="Delete"
-          >
-            <X className="h-3 w-3 text-destructive-foreground" />
-          </button>
+          {canEdit && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="p-1.5 rounded-md bg-destructive hover:bg-destructive/90 transition-colors"
+              title="Delete"
+            >
+              <X className="h-3 w-3 text-destructive-foreground" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -281,11 +285,13 @@ const BannerCard = ({
   onUpdate,
   onDelete,
   onExpand,
+  canEdit = true,
 }: {
   banner: BrandDisplayBannerSpec;
   onUpdate: (updates: Partial<BrandDisplayBannerSpec>) => void;
   onDelete: () => void;
   onExpand: () => void;
+  canEdit?: boolean;
 }) => {
   const aspectRatio = banner.aspectRatio || 1.2;
   const isVertical = aspectRatio < 0.7;
@@ -321,12 +327,14 @@ const BannerCard = ({
           >
             <Info className="h-3 w-3 text-muted-foreground" />
           </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-1.5 rounded hover:bg-destructive/10 text-destructive transition-colors"
-          >
-            <X className="h-3 w-3" />
-          </button>
+          {canEdit && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="p-1.5 rounded hover:bg-destructive/10 text-destructive transition-colors"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -1001,6 +1009,7 @@ export const SocialAssetsSection = ({
               onDelete={() => deleteSocialAsset(asset.id)}
               onExpand={() => setSelectedPlatform(asset)}
               onMockupPreview={() => setMockupPreviewPlatform(asset)}
+              canEdit={canEditSocial}
             />
           ))}
         </div>
@@ -1046,6 +1055,7 @@ export const SocialAssetsSection = ({
                     onUpdate={(updates) => updateDisplayBanner(banner.id, updates)}
                     onDelete={() => deleteDisplayBanner(banner.id)}
                     onExpand={() => setSelectedBanner(banner)}
+                    canEdit={canEditBanners}
                   />
                 ))}
               </div>

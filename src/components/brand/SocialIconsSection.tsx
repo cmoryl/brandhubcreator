@@ -29,7 +29,11 @@ export const SocialIconsSection = ({ socialIcons, onSocialIconsChange, customSub
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
+  // Determine if editing is allowed
+  const canEdit = Boolean(onSocialIconsChange);
+
   const addIcon = (platform?: string) => {
+    if (!onSocialIconsChange) return;
     const newIcon: BrandSocialIcon = {
       id: safeUUID(),
       platform: platform || 'Custom',
@@ -40,10 +44,12 @@ export const SocialIconsSection = ({ socialIcons, onSocialIconsChange, customSub
   };
 
   const updateIcon = (id: string, updates: Partial<BrandSocialIcon>) => {
+    if (!onSocialIconsChange) return;
     onSocialIconsChange(socialIcons.map(i => i.id === id ? { ...i, ...updates } : i));
   };
 
   const deleteIcon = (id: string) => {
+    if (!onSocialIconsChange) return;
     onSocialIconsChange(socialIcons.filter(i => i.id !== id));
     if (editingId === id) setEditingId(null);
   };
@@ -72,14 +78,16 @@ export const SocialIconsSection = ({ socialIcons, onSocialIconsChange, customSub
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <Button onClick={() => addIcon()} size="sm" className="gap-2 shrink-0">
-          <Plus className="h-4 w-4" />
-          Custom Icon
-        </Button>
+        {canEdit && (
+          <Button onClick={() => addIcon()} size="sm" className="gap-2 shrink-0">
+            <Plus className="h-4 w-4" />
+            Custom Icon
+          </Button>
+        )}
       </div>
 
-      {/* Quick add platforms */}
-      {unusedPlatforms.length > 0 && (
+      {/* Quick add platforms - admin only */}
+      {canEdit && unusedPlatforms.length > 0 && (
         <div className="flex flex-wrap gap-2">
           <span className="text-sm text-muted-foreground py-1">Quick add:</span>
           {unusedPlatforms.map(platform => (
@@ -124,24 +132,26 @@ export const SocialIconsSection = ({ socialIcons, onSocialIconsChange, customSub
               )}
             </div>
 
-            <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-              <button
-                onClick={(e) => { e.stopPropagation(); setEditingId(icon.id); }}
-                className="p-1 rounded bg-background/80"
-              >
-                <Pencil className="h-2.5 w-2.5" />
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); deleteIcon(icon.id); }}
-                className="p-1 rounded bg-background/80 hover:bg-destructive hover:text-destructive-foreground"
-              >
-                <X className="h-2.5 w-2.5" />
-              </button>
-            </div>
+            {canEdit && (
+              <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setEditingId(icon.id); }}
+                  className="p-1 rounded bg-background/80"
+                >
+                  <Pencil className="h-2.5 w-2.5" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); deleteIcon(icon.id); }}
+                  className="p-1 rounded bg-background/80 hover:bg-destructive hover:text-destructive-foreground"
+                >
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              </div>
+            )}
           </div>
         ))}
 
-        {socialIcons.length === 0 && (
+        {socialIcons.length === 0 && canEdit && (
           <button
             onClick={() => addIcon('LinkedIn')}
             className="col-span-full h-32 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors"
@@ -149,6 +159,11 @@ export const SocialIconsSection = ({ socialIcons, onSocialIconsChange, customSub
             <Plus className="h-6 w-6" />
             <span className="text-sm font-medium">Add social icons</span>
           </button>
+        )}
+        {socialIcons.length === 0 && !canEdit && (
+          <div className="col-span-full h-32 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground">
+            <span className="text-sm font-medium">No social icons configured</span>
+          </div>
         )}
       </div>
 
