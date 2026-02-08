@@ -131,6 +131,13 @@ export const ByTheNumbersSection = ({
   // Derive canEdit from handler presence
   const canEdit = Boolean(onStatisticsChange);
 
+  // Helper to open edit panel only when editing is allowed
+  const openEditPanel = (statId: string) => {
+    if (!canEdit) return;
+    setEditingId(statId);
+    setShowEditPanel(true);
+  };
+
   const addStatistic = () => {
     if (!onStatisticsChange) return;
     const newStat: StatisticItem = {
@@ -155,11 +162,13 @@ export const ByTheNumbersSection = ({
   };
 
   const deleteStatistic = (id: string) => {
+    if (!onStatisticsChange) return;
     onStatisticsChange(statistics.filter(stat => stat.id !== id));
     if (editingId === id) setEditingId(null);
   };
 
   const populateDefaults = () => {
+    if (!onStatisticsChange) return;
     onStatisticsChange(DEFAULT_STATISTICS);
   };
 
@@ -178,7 +187,7 @@ export const ByTheNumbersSection = ({
 
   // Render editing panel for a stat
   const renderEditPanel = () => {
-    if (!editingId) return null;
+    if (!canEdit || !editingId) return null;
     const stat = statistics.find(s => s.id === editingId);
     if (!stat) return null;
 
@@ -299,16 +308,17 @@ export const ByTheNumbersSection = ({
             <div
               key={stat.id}
               className={cn(
-                "group relative cursor-pointer overflow-hidden rounded-2xl",
+                "group relative overflow-hidden rounded-2xl",
                 "transition-all duration-500 ease-out transform-gpu",
                 isAnimated ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-12 scale-90",
-                isHovered && "scale-105 -translate-y-2"
+                isHovered && "scale-105 -translate-y-2",
+                canEdit && "cursor-pointer"
               )}
               style={{ 
                 animationDelay: `${index * 100}ms`,
                 boxShadow: isHovered ? `0 20px 40px -10px ${cardColor}50` : `0 8px 24px -8px ${cardColor}30`,
               }}
-              onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+              onClick={() => openEditPanel(stat.id)}
               onMouseEnter={() => setHoveredStat(stat.id)}
               onMouseLeave={() => setHoveredStat(null)}
             >
@@ -433,16 +443,17 @@ export const ByTheNumbersSection = ({
               <div
                 key={stat.id}
                 className={cn(
-                  "group flex items-center gap-4 p-5 rounded-xl cursor-pointer",
+                  "group flex items-center gap-4 p-5 rounded-xl",
                   "bg-card border-2 transition-all duration-500",
                   isAnimated ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8",
-                  isHovered ? "shadow-xl -translate-y-1" : "shadow-md"
+                  isHovered ? "shadow-xl -translate-y-1" : "shadow-md",
+                  canEdit && "cursor-pointer"
                 )}
                 style={{ 
                   animationDelay: `${(index + 4) * 100}ms`,
                   borderColor: isHovered ? themeColors.secondary : 'transparent',
                 }}
-                onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+                onClick={() => openEditPanel(stat.id)}
                 onMouseEnter={() => setHoveredStat(stat.id)}
                 onMouseLeave={() => setHoveredStat(null)}
               >
@@ -502,12 +513,13 @@ export const ByTheNumbersSection = ({
                 <div
                   key={stat.id}
                   className={cn(
-                    "group cursor-pointer text-white transition-all duration-500",
+                    "group text-white transition-all duration-500",
                     "hover:translate-x-1",
-                    isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+                    isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
+                    canEdit && "cursor-pointer"
                   )}
                   style={{ animationDelay: `${(index + 7) * 100}ms` }}
-                  onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+                  onClick={() => openEditPanel(stat.id)}
                   onMouseEnter={() => setHoveredStat(stat.id)}
                   onMouseLeave={() => setHoveredStat(null)}
                 >
@@ -559,16 +571,17 @@ export const ByTheNumbersSection = ({
           <Card 
             key={stat.id} 
             className={cn(
-              "relative group overflow-hidden cursor-pointer transition-all duration-500",
+              "relative group overflow-hidden transition-all duration-500",
               isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
-              isHovered && "shadow-xl -translate-y-2"
+              isHovered && "shadow-xl -translate-y-2",
+              canEdit && "cursor-pointer"
             )}
             style={{ 
               animationDelay: `${index * 100}ms`,
               borderColor: isHovered ? cardColor : undefined,
               borderWidth: isHovered ? 2 : 1,
             }}
-            onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+            onClick={() => openEditPanel(stat.id)}
             onMouseEnter={() => setHoveredStat(stat.id)}
             onMouseLeave={() => setHoveredStat(null)}
           >
@@ -621,12 +634,13 @@ export const ByTheNumbersSection = ({
             <div
               key={stat.id}
               className={cn(
-                "flex items-center gap-4 sm:gap-6 group cursor-pointer transition-all duration-500",
+                "flex items-center gap-4 sm:gap-6 group transition-all duration-500",
                 isAnimated ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8",
-                isHovered && "translate-x-4"
+                isHovered && "translate-x-4",
+                canEdit && "cursor-pointer"
               )}
               style={{ animationDelay: `${index * 150}ms` }}
-              onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+              onClick={() => openEditPanel(stat.id)}
               onMouseEnter={() => setHoveredStat(stat.id)}
               onMouseLeave={() => setHoveredStat(null)}
             >
@@ -661,8 +675,8 @@ export const ByTheNumbersSection = ({
           )}
         >
           <div 
-            className="cursor-pointer group" 
-            onClick={() => { setEditingId(primaryStats[0].id); setShowEditPanel(true); }}
+            className={cn("group", canEdit && "cursor-pointer")} 
+            onClick={() => openEditPanel(primaryStats[0].id)}
             onMouseEnter={() => setHoveredStat(primaryStats[0].id)}
             onMouseLeave={() => setHoveredStat(null)}
           >
@@ -694,19 +708,20 @@ export const ByTheNumbersSection = ({
           return (
             <div 
               key={stat.id}
-              className={cn(
-                "cursor-pointer p-4 rounded-xl border-2 transition-all duration-500 bg-card",
-                isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
-                isHovered && "shadow-lg -translate-y-1"
-              )}
-              style={{ 
-                animationDelay: `${(index + 1) * 100}ms`,
-                borderColor: isHovered ? cardColor : 'transparent',
-              }}
-              onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
-              onMouseEnter={() => setHoveredStat(stat.id)}
-              onMouseLeave={() => setHoveredStat(null)}
-            >
+                className={cn(
+                  "p-4 rounded-xl border-2 transition-all duration-500 bg-card",
+                  isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
+                  isHovered && "shadow-lg -translate-y-1",
+                  canEdit && "cursor-pointer"
+                )}
+                style={{ 
+                  animationDelay: `${(index + 1) * 100}ms`,
+                  borderColor: isHovered ? cardColor : 'transparent',
+                }}
+                onClick={() => openEditPanel(stat.id)}
+                onMouseEnter={() => setHoveredStat(stat.id)}
+                onMouseLeave={() => setHoveredStat(null)}
+              >
               <div className="text-center">
                 <span 
                   className="text-3xl sm:text-4xl font-black transition-colors duration-300"
@@ -735,12 +750,13 @@ export const ByTheNumbersSection = ({
             <div
               key={stat.id}
               className={cn(
-                "flex items-center gap-4 group cursor-pointer transition-all duration-500",
+                "flex items-center gap-4 group transition-all duration-500",
                 isAnimated ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8",
-                isHovered && "translate-x-2"
+                isHovered && "translate-x-2",
+                canEdit && "cursor-pointer"
               )}
               style={{ animationDelay: `${index * 100}ms` }}
-              onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+              onClick={() => openEditPanel(stat.id)}
               onMouseEnter={() => setHoveredStat(stat.id)}
               onMouseLeave={() => setHoveredStat(null)}
             >
@@ -783,12 +799,13 @@ export const ByTheNumbersSection = ({
             <div
               key={stat.id}
               className={cn(
-                "text-right group cursor-pointer transition-all duration-500",
+                "text-right group transition-all duration-500",
                 isAnimated ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8",
-                isHovered && "-translate-x-2"
+                isHovered && "-translate-x-2",
+                canEdit && "cursor-pointer"
               )}
               style={{ animationDelay: `${(index + primaryStats.length) * 100}ms` }}
-              onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+              onClick={() => openEditPanel(stat.id)}
               onMouseEnter={() => setHoveredStat(stat.id)}
               onMouseLeave={() => setHoveredStat(null)}
             >
@@ -824,12 +841,13 @@ export const ByTheNumbersSection = ({
             <div
               key={stat.id}
               className={cn(
-                "relative group cursor-pointer transition-all duration-700",
+                "relative group transition-all duration-700",
                 isAnimated ? "opacity-100 scale-100" : "opacity-0 scale-50",
-                isHovered && "scale-110 -translate-y-2"
+                isHovered && "scale-110 -translate-y-2",
+                canEdit && "cursor-pointer"
               )}
               style={{ animationDelay: `${index * 150}ms` }}
-              onClick={() => { setEditingId(stat.id); setShowEditPanel(true); }}
+              onClick={() => openEditPanel(stat.id)}
               onMouseEnter={() => setHoveredStat(stat.id)}
               onMouseLeave={() => setHoveredStat(null)}
             >
