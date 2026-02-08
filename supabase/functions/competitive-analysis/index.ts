@@ -478,6 +478,107 @@ serve(async (req) => {
 
     console.log("[competitive-analysis] Report saved successfully:", savedReport.id);
 
+    // Sync competitive insights to brand intelligence for AI advancement
+    const competitiveLandscape = {
+      last_updated: new Date().toISOString(),
+      overall_score: avgScore,
+      competitors_analyzed: competitors.slice(0, 5),
+      market_position: {
+        ranking: reportData.marketPerception?.currentRanking || null,
+        category_maturity: reportData.marketPerception?.categoryMaturity || null,
+        dominant_trends: reportData.marketPerception?.dominantTrends || [],
+      },
+      positioning: {
+        key_strengths: reportData.marketPerception?.keyStrengths || [],
+        critical_gaps: reportData.marketPerception?.criticalGaps || [],
+        differentiation: reportData.brandPositioning?.differentiation || [],
+        risks: reportData.marketPerception?.risks || [],
+      },
+      personality_matrix: reportData.brandPositioning?.personalityMatrix || null,
+      strengths_weaknesses: reportData.strengthsWeaknesses || null,
+      recommendations_summary: {
+        positioning_opportunities: reportData.recommendations?.positioningOpportunities?.slice(0, 3) || [],
+        design_priorities: reportData.recommendations?.designPriorities?.slice(0, 3) || [],
+        digital_improvements: reportData.recommendations?.digitalImprovements?.slice(0, 3) || [],
+      },
+      action_plan: reportData.executiveSummary?.actionPlan || null,
+      report_id: savedReport.id,
+    };
+
+    // Update or create brand intelligence record with competitive landscape
+    const { data: existingIntel } = await supabase
+      .from('brand_intelligence')
+      .select('id, competitive_landscape, knowledge_entries, analysis_count')
+      .eq('entity_id', entityId)
+      .eq('entity_type', entityType)
+      .single();
+
+    const now = new Date().toISOString();
+
+    // Create knowledge entry from competitive analysis
+    const competitiveInsightEntry = {
+      id: `competitive-${savedReport.id}`,
+      type: 'competitive_analysis',
+      content: `Competitive analysis completed against ${competitors.slice(0, 3).join(', ')}${competitors.length > 3 ? ` and ${competitors.length - 3} others` : ''}. Overall score: ${avgScore}/100. Key strengths: ${(reportData.marketPerception?.keyStrengths || []).slice(0, 2).join(', ') || 'N/A'}. Critical gaps: ${(reportData.marketPerception?.criticalGaps || []).slice(0, 2).join(', ') || 'N/A'}.`,
+      source: 'competitive_analysis',
+      category: 'competitive',
+      created_at: now,
+      metadata: {
+        report_id: savedReport.id,
+        competitors: competitors.slice(0, 5),
+        score: avgScore,
+      }
+    };
+
+    if (existingIntel?.id) {
+      // Update existing intelligence record
+      const existingEntries = (existingIntel.knowledge_entries || []) as Array<Record<string, unknown>>;
+      // Remove old competitive analysis entries (keep only the 3 most recent after adding new one)
+      const nonCompetitiveEntries = existingEntries.filter((e) => e.type !== 'competitive_analysis');
+      const competitiveEntries = existingEntries
+        .filter((e) => e.type === 'competitive_analysis')
+        .slice(0, 2); // Keep 2 most recent, new one will make 3
+      
+      const updatedEntries = [...nonCompetitiveEntries, ...competitiveEntries, competitiveInsightEntry];
+
+      const { error: updateIntelError } = await supabase
+        .from('brand_intelligence')
+        .update({
+          competitive_landscape: competitiveLandscape,
+          knowledge_entries: updatedEntries,
+          updated_at: now,
+        })
+        .eq('id', existingIntel.id);
+
+      if (updateIntelError) {
+        console.error("[competitive-analysis] Failed to update brand intelligence:", updateIntelError);
+        // Non-fatal - report is already saved
+      } else {
+        console.log("[competitive-analysis] Brand intelligence updated with competitive landscape");
+      }
+    } else {
+      // Create new intelligence record
+      const { error: createIntelError } = await supabase
+        .from('brand_intelligence')
+        .insert({
+          entity_type: entityType,
+          entity_id: entityId,
+          organization_id: organizationId || entityData.organization_id,
+          competitive_landscape: competitiveLandscape,
+          knowledge_entries: [competitiveInsightEntry],
+          analysis_count: 0,
+          created_at: now,
+          updated_at: now,
+        });
+
+      if (createIntelError) {
+        console.error("[competitive-analysis] Failed to create brand intelligence:", createIntelError);
+        // Non-fatal - report is already saved
+      } else {
+        console.log("[competitive-analysis] Brand intelligence created with competitive landscape");
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
