@@ -67,6 +67,31 @@ interface ExistingIntelligence {
   knowledge_entries: Array<Record<string, unknown>>;
 }
 
+interface EngagementMetrics {
+  pageViews: {
+    total: number;
+    uniqueViewers: number;
+    avgDurationSeconds: number;
+    topSections: string[];
+  };
+  qrCodes: {
+    totalScans: number;
+    activeQrCodes: number;
+    topUseCases: string[];
+  };
+  auditActivity: {
+    totalEdits: number;
+    totalExports: number;
+    lastEditedAt: string | null;
+    mostActiveActions: string[];
+  };
+  marketAnalysis: {
+    hasRecentAnalysis: boolean;
+    lastAnalysisDate: string | null;
+    keyFindings: string[];
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -240,8 +265,11 @@ async function processEntity(
       .limit(3);
     competitiveReports = (reportsRaw || []) as CompetitiveReport[];
 
-    // Build analysis prompt with competitive context
-    const analysisPrompt = buildAnalysisPrompt(entityName, entityType, guideData, favoriteCompetitors, competitiveReports);
+    // Fetch engagement metrics
+    const engagementMetrics = await fetchEngagementMetrics(supabaseAdmin, entityId, entityType);
+
+    // Build analysis prompt with competitive context and engagement metrics
+    const analysisPrompt = buildAnalysisPrompt(entityName, entityType, guideData, favoriteCompetitors, competitiveReports, engagementMetrics);
 
     // Call AI Gateway
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -396,7 +424,8 @@ function buildAnalysisPrompt(
   entityType: string,
   guideData: Record<string, unknown>,
   favoriteCompetitors: FavoriteCompetitor[],
-  competitiveReports: CompetitiveReport[]
+  competitiveReports: CompetitiveReport[],
+  engagementMetrics?: EngagementMetrics
 ): string {
   const sections: string[] = [];
 
@@ -480,7 +509,191 @@ function buildAnalysisPrompt(
     }
   }
 
-  sections.push(`\n\nPlease analyze this ${entityType} and provide comprehensive brand intelligence insights. ${favoriteCompetitors.length > 0 || competitiveReports.length > 0 ? 'Use the competitive context provided to inform your competitive_landscape analysis with specific insights about how this brand compares to its tracked competitors.' : ''}`);
+  // Add engagement metrics context
+  if (engagementMetrics) {
+    sections.push(`\n## Engagement & Activity Metrics`);
+    
+    if (engagementMetrics.pageViews.total > 0) {
+      sections.push(`\n### User Engagement`);
+      sections.push(`- Total Page Views: ${engagementMetrics.pageViews.total}`);
+      sections.push(`- Unique Viewers: ${engagementMetrics.pageViews.uniqueViewers}`);
+      sections.push(`- Avg. Session Duration: ${Math.round(engagementMetrics.pageViews.avgDurationSeconds / 60)} minutes`);
+      if (engagementMetrics.pageViews.topSections.length > 0) {
+        sections.push(`- Most Viewed Sections: ${engagementMetrics.pageViews.topSections.join(', ')}`);
+      }
+    }
+
+    if (engagementMetrics.qrCodes.totalScans > 0 || engagementMetrics.qrCodes.activeQrCodes > 0) {
+      sections.push(`\n### QR Code Performance`);
+      sections.push(`- Active QR Codes: ${engagementMetrics.qrCodes.activeQrCodes}`);
+      sections.push(`- Total Scans: ${engagementMetrics.qrCodes.totalScans}`);
+      if (engagementMetrics.qrCodes.topUseCases.length > 0) {
+        sections.push(`- Top Use Cases: ${engagementMetrics.qrCodes.topUseCases.join(', ')}`);
+      }
+    }
+
+    if (engagementMetrics.auditActivity.totalEdits > 0 || engagementMetrics.auditActivity.totalExports > 0) {
+      sections.push(`\n### Content Activity`);
+      sections.push(`- Total Edits: ${engagementMetrics.auditActivity.totalEdits}`);
+      sections.push(`- Total Exports: ${engagementMetrics.auditActivity.totalExports}`);
+      if (engagementMetrics.auditActivity.lastEditedAt) {
+        sections.push(`- Last Updated: ${engagementMetrics.auditActivity.lastEditedAt}`);
+      }
+      if (engagementMetrics.auditActivity.mostActiveActions.length > 0) {
+        sections.push(`- Most Common Actions: ${engagementMetrics.auditActivity.mostActiveActions.join(', ')}`);
+      }
+    }
+
+    if (engagementMetrics.marketAnalysis.hasRecentAnalysis) {
+      sections.push(`\n### Market Intelligence`);
+      sections.push(`- Recent Analysis Available: Yes`);
+      if (engagementMetrics.marketAnalysis.keyFindings.length > 0) {
+        sections.push(`- Key Findings: ${engagementMetrics.marketAnalysis.keyFindings.slice(0, 3).join('; ')}`);
+      }
+    }
+  }
+
+  const hasCompetitiveContext = favoriteCompetitors.length > 0 || competitiveReports.length > 0;
+  const hasEngagementData = engagementMetrics && (
+    engagementMetrics.pageViews.total > 0 ||
+    engagementMetrics.qrCodes.totalScans > 0 ||
+    engagementMetrics.auditActivity.totalEdits > 0
+  );
+
+  let contextInstructions = '';
+  if (hasCompetitiveContext) {
+    contextInstructions += 'Use the competitive context provided to inform your competitive_landscape analysis with specific insights about how this brand compares to its tracked competitors. ';
+  }
+  if (hasEngagementData) {
+    contextInstructions += 'Consider the engagement metrics to understand user interest patterns and inform growth recommendations - high engagement sections indicate strong content, low engagement may indicate opportunities for improvement.';
+  }
+
+  sections.push(`\n\nPlease analyze this ${entityType} and provide comprehensive brand intelligence insights. ${contextInstructions}`);
 
   return sections.join('\n');
+}
+
+// Fetch engagement metrics from various data sources
+async function fetchEngagementMetrics(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabaseAdmin: any,
+  entityId: string,
+  entityType: string
+): Promise<EngagementMetrics> {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  // Fetch page views
+  const { data: pageViewsRaw } = await supabaseAdmin
+    .from('page_views')
+    .select('id, user_id, duration_seconds, page_path')
+    .eq('entity_id', entityId)
+    .eq('entity_type', entityType)
+    .gte('created_at', thirtyDaysAgo);
+
+  const pageViews = pageViewsRaw || [];
+  const uniqueViewers = new Set(pageViews.filter((pv: { user_id: string }) => pv.user_id).map((pv: { user_id: string }) => pv.user_id)).size;
+  const avgDuration = pageViews.length > 0 
+    ? pageViews.reduce((sum: number, pv: { duration_seconds: number }) => sum + (pv.duration_seconds || 0), 0) / pageViews.length 
+    : 0;
+
+  // Extract section from page path (e.g., /brand/slug#section)
+  const sectionCounts: Record<string, number> = {};
+  pageViews.forEach((pv: { page_path: string }) => {
+    const section = pv.page_path?.split('#')[1] || 'hero';
+    sectionCounts[section] = (sectionCounts[section] || 0) + 1;
+  });
+  const topSections = Object.entries(sectionCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5)
+    .map(([section]) => section);
+
+  // Fetch QR codes
+  const { data: qrCodesRaw } = await supabaseAdmin
+    .from('qr_codes')
+    .select('id, scan_count, use_case, is_active')
+    .eq('entity_id', entityId)
+    .eq('entity_type', entityType);
+
+  const qrCodes = qrCodesRaw || [];
+  const totalScans = qrCodes.reduce((sum: number, qr: { scan_count: number }) => sum + (qr.scan_count || 0), 0);
+  const activeQrCodes = qrCodes.filter((qr: { is_active: boolean }) => qr.is_active).length;
+  const useCaseCounts: Record<string, number> = {};
+  qrCodes.forEach((qr: { use_case: string; scan_count: number }) => {
+    if (qr.use_case) {
+      useCaseCounts[qr.use_case] = (useCaseCounts[qr.use_case] || 0) + (qr.scan_count || 1);
+    }
+  });
+  const topUseCases = Object.entries(useCaseCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3)
+    .map(([useCase]) => useCase);
+
+  // Fetch audit activity
+  const { data: auditLogsRaw } = await supabaseAdmin
+    .from('audit_logs')
+    .select('id, action_type, created_at')
+    .eq('brand_id', entityId)
+    .gte('created_at', thirtyDaysAgo);
+
+  const auditLogs = auditLogsRaw || [];
+  const totalEdits = auditLogs.filter((log: { action_type: string }) => 
+    ['update', 'edit', 'create', 'modify'].some(action => log.action_type?.toLowerCase().includes(action))
+  ).length;
+  const totalExports = auditLogs.filter((log: { action_type: string }) => 
+    log.action_type?.toLowerCase().includes('export')
+  ).length;
+  
+  const lastEdit = auditLogs
+    .filter((log: { action_type: string }) => log.action_type?.toLowerCase().includes('update') || log.action_type?.toLowerCase().includes('edit'))
+    .sort((a: { created_at: string }, b: { created_at: string }) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+
+  const actionCounts: Record<string, number> = {};
+  auditLogs.forEach((log: { action_type: string }) => {
+    if (log.action_type) {
+      actionCounts[log.action_type] = (actionCounts[log.action_type] || 0) + 1;
+    }
+  });
+  const mostActiveActions = Object.entries(actionCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3)
+    .map(([action]) => action);
+
+  // Check for market analysis reports (stored in brand_intelligence analysis_history)
+  const { data: marketAnalysisRaw } = await supabaseAdmin
+    .from('brand_intelligence')
+    .select('analysis_history, last_analyzed_at')
+    .eq('entity_id', entityId)
+    .eq('entity_type', entityType)
+    .single();
+
+  const analysisHistory = (marketAnalysisRaw?.analysis_history as Array<{ type?: string; findings?: string[] }>) || [];
+  const marketReports = analysisHistory.filter(h => h?.type === 'market_analysis');
+  const keyFindings = marketReports.length > 0 && marketReports[0].findings 
+    ? marketReports[0].findings.slice(0, 3)
+    : [];
+
+  return {
+    pageViews: {
+      total: pageViews.length,
+      uniqueViewers,
+      avgDurationSeconds: avgDuration,
+      topSections,
+    },
+    qrCodes: {
+      totalScans,
+      activeQrCodes,
+      topUseCases,
+    },
+    auditActivity: {
+      totalEdits,
+      totalExports,
+      lastEditedAt: lastEdit?.created_at || null,
+      mostActiveActions,
+    },
+    marketAnalysis: {
+      hasRecentAnalysis: marketReports.length > 0,
+      lastAnalysisDate: marketAnalysisRaw?.last_analyzed_at || null,
+      keyFindings,
+    },
+  };
 }
