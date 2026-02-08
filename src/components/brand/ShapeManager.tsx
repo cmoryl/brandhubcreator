@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Sparkles, Loader2, Trash2, Download, Eye, Code, Copy, Check } from 'lucide-react';
+import { Plus, Sparkles, Loader2, Trash2, Download, Eye, Code, Copy, Check, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -374,6 +374,60 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
     }
   };
 
+  // Prettify/format SVG code
+  const prettifySvg = () => {
+    if (!manualSvg.trim()) return;
+    
+    try {
+      let formatted = manualSvg.trim();
+      
+      // Remove existing formatting (multiple spaces, newlines)
+      formatted = formatted.replace(/>\s+</g, '><');
+      formatted = formatted.replace(/\s+/g, ' ');
+      
+      // Add newlines after opening tags (but not self-closing)
+      formatted = formatted.replace(/>(?!<\/)/g, '>\n');
+      
+      // Add newlines before closing tags
+      formatted = formatted.replace(/<\//g, '\n</');
+      
+      // Split into lines for indentation
+      const lines = formatted.split('\n').filter(line => line.trim());
+      let indentLevel = 0;
+      const indentSize = 2;
+      
+      const indentedLines = lines.map(line => {
+        const trimmedLine = line.trim();
+        
+        // Decrease indent for closing tags
+        if (trimmedLine.startsWith('</')) {
+          indentLevel = Math.max(0, indentLevel - 1);
+        }
+        
+        const indent = ' '.repeat(indentLevel * indentSize);
+        const result = indent + trimmedLine;
+        
+        // Increase indent for opening tags (not self-closing, not closing)
+        if (
+          trimmedLine.startsWith('<') && 
+          !trimmedLine.startsWith('</') && 
+          !trimmedLine.endsWith('/>') &&
+          !trimmedLine.includes('</') // inline closing tag
+        ) {
+          indentLevel++;
+        }
+        
+        return result;
+      });
+      
+      const prettified = indentedLines.join('\n');
+      setManualSvg(prettified);
+      toast.success('SVG formatted');
+    } catch (error) {
+      toast.error('Could not format SVG');
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -481,7 +535,20 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
                 </div>
 
                 <div className="space-y-2">
-                  <Label>SVG Code</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>SVG Code</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={prettifySvg}
+                      disabled={!manualSvg.trim()}
+                      className="h-7 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      <Wand2 className="h-3.5 w-3.5" />
+                      Prettify
+                    </Button>
+                  </div>
                   <SyntaxTextarea
                     placeholder='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">...</svg>'
                     value={manualSvg}
