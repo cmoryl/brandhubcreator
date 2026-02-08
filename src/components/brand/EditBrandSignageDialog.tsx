@@ -32,6 +32,17 @@ const SIGNAGE_TYPES = [
   { value: 'podium-sign', label: 'Podium Sign' },
   { value: 'stage-backdrop', label: 'Stage Backdrop' },
   { value: 'outdoor-banner', label: 'Outdoor Banner' },
+  { value: 'registration-desk', label: 'Registration Desk' },
+  { value: 'feather-flag', label: 'Feather Flag' },
+  { value: 'pop-up-display', label: 'Pop-Up Display' },
+  { value: 'canopy-tent', label: 'Canopy/Tent' },
+  { value: 'window-cling', label: 'Window Cling' },
+  { value: 'a-frame', label: 'A-Frame Sign' },
+  { value: 'demo-station', label: 'Demo Station' },
+  { value: 'kiosk-wrap', label: 'Kiosk Wrap' },
+  { value: 'step-repeat', label: 'Step & Repeat' },
+  { value: 'counter-display', label: 'Counter Display' },
+  { value: 'ceiling-banner', label: 'Ceiling Banner' },
   { value: 'other', label: 'Other' },
 ];
 
