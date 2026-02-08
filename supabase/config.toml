@@ -21,5 +21,11 @@ verify_jwt = false
 [functions.discover-competitors]
 verify_jwt = false
 
+[functions.generate-brand-assets]
+verify_jwt = false
+
+[functions.generate-color-combinations]
+verify_jwt = false
+
 [functions.parse-presentation]
 verify_jwt = false
