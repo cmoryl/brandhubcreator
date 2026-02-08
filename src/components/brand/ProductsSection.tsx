@@ -559,6 +559,7 @@ export const ProductsSection = ({
                   index={index}
                   onOpen={openGuide}
                   onUnlink={unlinkGuide}
+                  canEdit={!!onLinkedGuidesChange}
                 />
               ))}
             </div>

@@ -81,7 +81,7 @@ const SortableEventCard = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: event.id });
+  } = useSortable({ id: event.id, disabled: !canEdit });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -102,9 +102,8 @@ const SortableEventCard = ({
   return (
     <div ref={setNodeRef} style={style}>
       <Card 
-        className="group relative overflow-hidden cursor-grab active:cursor-grabbing hover:shadow-lg transition-all duration-200"
-        {...attributes}
-        {...listeners}
+        className={`group relative overflow-hidden hover:shadow-lg transition-all duration-200 ${canEdit ? 'cursor-grab active:cursor-grabbing' : ''}`}
+        {...(canEdit ? { ...attributes, ...listeners } : {})}
       >
         {/* Color accent bar */}
         <div 

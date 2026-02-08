@@ -28,6 +28,7 @@ interface LinkedGuideCardProps {
   index: number;
   onOpen: (guide: GuideItem) => void;
   onUnlink: (guide: GuideItem) => void;
+  canEdit?: boolean;
 }
 
 // Helper to resolve image paths - handles both public and src/assets paths
@@ -48,7 +49,7 @@ const resolveImagePath = (path: string | undefined): string | undefined => {
   return `/${path}`;
 };
 
-export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideCardProps) => {
+export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink, canEdit = false }: LinkedGuideCardProps) => {
   const {
     attributes,
     listeners,
@@ -56,7 +57,7 @@ export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideC
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: guide.id });
+  } = useSortable({ id: guide.id, disabled: !canEdit });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -79,16 +80,18 @@ export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideC
       className={`group relative bg-card rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-xl hover:border-primary/30 transition-all duration-300 animate-scale-in touch-manipulation ${
         isDragging ? 'opacity-90 shadow-2xl ring-2 ring-primary/50' : ''
       }`}
-      {...attributes}
+      {...(canEdit ? { ...attributes } : {})}
     >
-      {/* Drag Handle - Always visible on mobile for better discoverability */}
-      <div
-        {...listeners}
-        className="absolute top-2 left-2 z-20 p-2 sm:p-1.5 bg-white/20 sm:bg-white/10 backdrop-blur-sm border border-white/30 sm:border-white/20 rounded-lg cursor-grab active:cursor-grabbing opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/30 active:bg-white/40"
-        aria-label="Drag to reorder"
-      >
-        <GripVertical className="h-5 w-5 sm:h-4 sm:w-4 text-white" />
-      </div>
+      {/* Drag Handle - Only visible for admins */}
+      {canEdit && (
+        <div
+          {...listeners}
+          className="absolute top-2 left-2 z-20 p-2 sm:p-1.5 bg-white/20 sm:bg-white/10 backdrop-blur-sm border border-white/30 sm:border-white/20 rounded-lg cursor-grab active:cursor-grabbing opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/30 active:bg-white/40"
+          aria-label="Drag to reorder"
+        >
+          <GripVertical className="h-5 w-5 sm:h-4 sm:w-4 text-white" />
+        </div>
+      )}
 
       {/* Clickable card area */}
       <div 
@@ -157,36 +160,38 @@ export const LinkedGuideCard = ({ guide, index, onOpen, onUnlink }: LinkedGuideC
             >
               <ExternalLink className="h-5 w-5 sm:h-4 sm:w-4" />
             </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 sm:h-8 sm:w-8 bg-white/20 sm:bg-white/10 backdrop-blur-sm border border-white/30 sm:border-white/20 text-white hover:bg-destructive active:bg-destructive hover:text-white hover:border-destructive"
-                  onClick={(e) => e.stopPropagation()}
-                  aria-label="Unlink guide"
-                >
-                  <Trash2 className="h-5 w-5 sm:h-4 sm:w-4" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Unlink {guide.type === 'brand' ? 'Brand' : guide.type === 'event' ? 'Event' : 'Product'} Guide</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will remove "{guide.name}" from this brand guide. The {guide.type} guide itself will not be deleted.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => onUnlink(guide)}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            {canEdit && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 sm:h-8 sm:w-8 bg-white/20 sm:bg-white/10 backdrop-blur-sm border border-white/30 sm:border-white/20 text-white hover:bg-destructive active:bg-destructive hover:text-white hover:border-destructive"
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label="Unlink guide"
                   >
-                    Unlink
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                    <Trash2 className="h-5 w-5 sm:h-4 sm:w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Unlink {guide.type === 'brand' ? 'Brand' : guide.type === 'event' ? 'Event' : 'Product'} Guide</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will remove "{guide.name}" from this brand guide. The {guide.type} guide itself will not be deleted.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => onUnlink(guide)}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Unlink
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </BackgroundImage>
 
