@@ -5,19 +5,17 @@
 
 import html2pdf from 'html2pdf.js';
 import { EventScheduleItem, EventSpeaker } from '@/types/event';
-
-/**
- * Escape HTML special characters to prevent XSS attacks
- */
-const escapeHtml = (unsafe: string): string => {
-  if (!unsafe) return '';
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-};
+import {
+  PDF_FONTS,
+  PDF_COLORS,
+  PDF_TYPOGRAPHY,
+  PDF_SPACING,
+  PDF_PAPER_CONFIGS,
+  applyPdfContainerStyles,
+  generatePdfFooter,
+  escapeHtml,
+  formatPdfDate,
+} from './pdfStyleConfig';
 
 interface PdfExportOptions {
   eventName: string;
@@ -121,32 +119,32 @@ const generatePdfHtml = (schedule: EventScheduleItem[], options: PdfExportOption
       const safeTime = escapeHtml(cleanTime(item.time));
       
       return `
-        <div style="display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
-          <div style="min-width: 80px; font-size: 13px; font-weight: 500; color: #374151;">
+        <div style="display: flex; gap: ${PDF_SPACING.lg}; padding: ${PDF_SPACING.md} 0; border-bottom: 1px solid ${PDF_COLORS.border.light};">
+          <div style="min-width: 80px; font-size: ${PDF_TYPOGRAPHY.small.size}; font-weight: 500; color: ${PDF_COLORS.text.secondary};">
             ${safeTime}
           </div>
           <div style="flex: 1;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-              <span style="font-weight: 600; color: #111827;">${safeTitle}</span>
+            <div style="display: flex; align-items: center; gap: ${PDF_SPACING.sm}; margin-bottom: ${PDF_SPACING.xs};">
+              <span style="font-weight: 600; color: ${PDF_COLORS.text.primary};">${safeTitle}</span>
               <span style="
                 display: inline-block;
                 padding: 2px 8px;
-                font-size: 11px;
+                font-size: ${PDF_TYPOGRAPHY.tiny.size};
                 font-weight: 500;
                 border-radius: 9999px;
                 background-color: ${typeColors.bg};
                 color: ${typeColors.text};
               ">${typeLabel}</span>
             </div>
-            ${item.description ? `<p style="font-size: 12px; color: #6b7280; margin: 4px 0;">${safeDescription}</p>` : ''}
-            <div style="display: flex; gap: 16px; margin-top: 6px;">
+            ${item.description ? `<p style="font-size: ${PDF_TYPOGRAPHY.caption.size}; color: ${PDF_COLORS.text.muted}; margin: ${PDF_SPACING.xs} 0;">${safeDescription}</p>` : ''}
+            <div style="display: flex; gap: ${PDF_SPACING.lg}; margin-top: 6px;">
               ${speakerName ? `
-                <span style="font-size: 12px; color: #4b5563;">
+                <span style="font-size: ${PDF_TYPOGRAPHY.caption.size}; color: ${PDF_COLORS.text.secondary};">
                   <strong>Speaker:</strong> ${safeSpeakerName}
                 </span>
               ` : ''}
               ${item.location ? `
-                <span style="font-size: 12px; color: #4b5563;">
+                <span style="font-size: ${PDF_TYPOGRAPHY.caption.size}; color: ${PDF_COLORS.text.secondary};">
                   <strong>Location:</strong> ${safeLocation}
                 </span>
               ` : ''}
@@ -157,15 +155,15 @@ const generatePdfHtml = (schedule: EventScheduleItem[], options: PdfExportOption
     }).join('');
 
     return `
-      <div style="margin-bottom: 24px;" class="pdf-avoid-break">
+      <div style="margin-bottom: ${PDF_SPACING['2xl']};" class="pdf-avoid-break">
         <h3 style="
-          font-size: 16px;
-          font-weight: 600;
-          color: #111827;
-          padding: 8px 12px;
-          background-color: #f3f4f6;
+          font-size: ${PDF_TYPOGRAPHY.h4.size};
+          font-weight: ${PDF_TYPOGRAPHY.h4.weight};
+          color: ${PDF_COLORS.text.primary};
+          padding: ${PDF_SPACING.sm} ${PDF_SPACING.md};
+          background-color: ${PDF_COLORS.background.muted};
           border-radius: 6px;
-          margin-bottom: 8px;
+          margin-bottom: ${PDF_SPACING.sm};
         ">${day}</h3>
         ${itemsHtml}
       </div>
@@ -173,17 +171,17 @@ const generatePdfHtml = (schedule: EventScheduleItem[], options: PdfExportOption
   }).join('');
 
   return `
-    <div style="font-family: system-ui, -apple-system, sans-serif; padding: 20px; max-width: 800px;">
+    <div style="font-family: ${PDF_FONTS.primary}; padding: 20px; max-width: 800px;">
       <!-- Header -->
-      <div style="text-align: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 2px solid #e5e7eb;">
-      <h1 style="font-size: 28px; font-weight: 700; color: #111827; margin: 0 0 8px 0;">
+      <div style="text-align: center; margin-bottom: ${PDF_SPACING['3xl']}; padding-bottom: ${PDF_SPACING['2xl']}; border-bottom: 2px solid ${PDF_COLORS.border.light};">
+        <h1 style="font-size: ${PDF_TYPOGRAPHY.h1.size}; font-weight: ${PDF_TYPOGRAPHY.h1.weight}; color: ${PDF_COLORS.text.primary}; margin: 0 0 8px 0;">
           ${escapeHtml(eventName)}
         </h1>
-        <p style="font-size: 14px; color: #6b7280; margin: 0;">
+        <p style="font-size: ${PDF_TYPOGRAPHY.body.size}; color: ${PDF_COLORS.text.muted}; margin: 0;">
           Event Schedule
         </p>
         ${eventDates || eventLocation ? `
-          <div style="margin-top: 12px; font-size: 13px; color: #4b5563;">
+          <div style="margin-top: ${PDF_SPACING.md}; font-size: ${PDF_TYPOGRAPHY.small.size}; color: ${PDF_COLORS.text.secondary};">
             ${eventDates ? `<span>${escapeHtml(eventDates)}</span>` : ''}
             ${eventDates && eventLocation ? ' • ' : ''}
             ${eventLocation ? `<span>${escapeHtml(eventLocation)}</span>` : ''}
@@ -195,13 +193,9 @@ const generatePdfHtml = (schedule: EventScheduleItem[], options: PdfExportOption
       ${scheduleHtml}
 
       <!-- Footer -->
-      <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center;">
-        <p style="font-size: 11px; color: #9ca3af; margin: 0;">
-          Generated on ${new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })} • ${schedule.length} sessions
+      <div style="margin-top: ${PDF_SPACING['3xl']}; padding-top: ${PDF_SPACING.lg}; border-top: 1px solid ${PDF_COLORS.border.light}; text-align: center;">
+        <p style="font-size: ${PDF_TYPOGRAPHY.tiny.size}; color: ${PDF_COLORS.text.subtle}; margin: 0;">
+          Generated by BrandHub • ${formatPdfDate()} • ${schedule.length} sessions
         </p>
       </div>
     </div>
@@ -220,37 +214,27 @@ export const exportScheduleToPdf = async (
   const timestamp = new Date().toISOString().split('T')[0];
   const filename = `${safeEventName}-schedule-${timestamp}.pdf`;
 
-  // Create a temporary container for the HTML - use opacity:0 instead of positioning off-screen
-  // to ensure html2canvas can properly capture the content
+  // Create container with consistent PDF styling
   const container = document.createElement('div');
   container.innerHTML = generatePdfHtml(schedule, options);
-  container.style.position = 'fixed';
-  container.style.top = '0';
-  container.style.left = '0';
-  container.style.width = '210mm'; // A4 width
-  container.style.zIndex = '-9999';
-  container.style.opacity = '0';
-  container.style.pointerEvents = 'none';
-  container.style.overflow = 'visible';
+  applyPdfContainerStyles(container, 'a4');
   document.body.appendChild(container);
   
   // Force layout calculation
   container.offsetHeight;
 
   const pdfOptions = {
-    margin: [15, 15, 15, 15] as [number, number, number, number],
+    margin: PDF_PAPER_CONFIGS.a4.margins,
     filename,
     image: { type: 'jpeg' as const, quality: 0.95 },
     html2canvas: {
       scale: 2,
       useCORS: true,
       logging: false,
-      backgroundColor: '#ffffff',
+      backgroundColor: PDF_COLORS.background.white,
     },
     jsPDF: {
-      unit: 'mm' as const,
-      format: 'a4',
-      orientation: 'portrait' as const,
+      ...PDF_PAPER_CONFIGS.a4.jsPDF,
       compress: true,
     },
     pagebreak: {
