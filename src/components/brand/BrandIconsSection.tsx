@@ -23,6 +23,9 @@ export const BrandIconsSection = ({ brandIcons, onBrandIconsChange, customSubtit
   const variationInputRef = useRef<HTMLInputElement>(null);
   
   const { organization } = useOrganization();
+  
+  // Derive canEdit from whether change handler is provided
+  const canEdit = Boolean(onBrandIconsChange);
 
   const primarySymbol = brandIcons.find(icon => icon.isPrimary);
   const variations = brandIcons.filter(icon => icon.isVariation && !icon.isPrimary);

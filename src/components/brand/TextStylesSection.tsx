@@ -127,7 +127,7 @@ export const TextStylesSection = ({
   onSubtitleChange,
   adminCustomStyle,
   onAdminCustomStyleChange,
-  canEdit = true,
+  canEdit = false,
 }: TextStylesSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);

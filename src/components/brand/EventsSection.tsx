@@ -67,8 +67,8 @@ const SortableEventCard = ({
   event, 
   onUnlink, 
   onOpen,
-  canEdit = true
-}: { 
+  canEdit = false
+}: {
   event: EventItem; 
   onUnlink: (event: EventItem) => void;
   onOpen: (event: EventItem) => void;
@@ -192,7 +192,7 @@ export const EventsSection = ({
   onSubtitleChange,
   layout = 'grid-3',
   onLayoutChange,
-  canEdit = true
+  canEdit = false
 }: EventsSectionProps) => {
   const [linkedEvents, setLinkedEvents] = useState<EventItem[]>([]);
   const [availableEvents, setAvailableEvents] = useState<EventItem[]>([]);

@@ -219,8 +219,10 @@ export const ValuesSection = ({
   organizationId,
   brandId,
   brandName,
-  canEdit = true
+  canEdit: canEditProp,
 }: ValuesSectionProps) => {
+  // Derive canEdit from prop or whether change handler is provided
+  const canEdit = canEditProp ?? Boolean(onValuesChange);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('Core Values');
@@ -599,20 +601,22 @@ export const ValuesSection = ({
                         )}
                       </div>
                     ) : <div />}
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => setEditingId(value.id)}
-                        className="p-1.5 rounded-md hover:bg-secondary transition-colors"
-                      >
-                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                      </button>
-                      <button
-                        onClick={() => deleteValue(value.id)}
-                        className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+                    {canEdit && (
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => setEditingId(value.id)}
+                          className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+                        >
+                          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
+                        <button
+                          onClick={() => deleteValue(value.id)}
+                          className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <h3 className="text-lg font-semibold text-foreground mb-2 transition-colors duration-300 group-hover:text-accent">{value.text}</h3>
                   <p className="text-sm text-muted-foreground transition-all duration-300 group-hover:text-foreground/80">{value.description}</p>
@@ -626,7 +630,7 @@ export const ValuesSection = ({
           );
         })}
 
-        {values.length === 0 && (
+        {values.length === 0 && canEdit && (
           <button
             onClick={addValue}
             className="h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors"
