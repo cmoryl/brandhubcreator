@@ -65,6 +65,12 @@ export const AppBreadcrumbs = React.forwardRef<
     if (ROUTE_MAPPINGS[fullPath]) {
       breadcrumbItems.push(ROUTE_MAPPINGS[fullPath]);
     } else {
+      // Detect if we're in an org-nested route (e.g., /org/:orgSlug/brand/:brandSlug)
+      const orgIndex = pathSegments.indexOf('org');
+      const hasOrgContext = orgIndex !== -1 && pathSegments[orgIndex + 1];
+      const orgSlug = hasOrgContext ? pathSegments[orgIndex + 1] : null;
+      const orgPath = orgSlug ? `/org/${orgSlug}` : null;
+      
       // Build path-based breadcrumbs
       let currentPath = '';
       pathSegments.forEach((segment, index) => {
@@ -73,19 +79,19 @@ export const AppBreadcrumbs = React.forwardRef<
         
         // Special handling for known route patterns
         if (segment === 'org' && pathSegments[index + 1]) {
+          // Add the organization as a breadcrumb link back to the portal
+          const orgName = pathSegments[index + 1];
           breadcrumbItems.push({
-            label: 'Organizations',
+            label: orgName.charAt(0).toUpperCase() + orgName.slice(1).replace(/-/g, ' '),
             icon: Building2,
-            href: '/',
+            href: `/org/${orgName}`,
           });
         } else if (segment === 'brand' && pathSegments[index + 1]) {
-          // Skip auto-generation for brand routes
-          // The editor provides proper parent context via the items prop
-          // This prevents incorrect "Brand Guides -> Home" navigation
+          // Skip - the brand name will be handled as currentPage or via items prop
         } else if (segment === 'product' && pathSegments[index + 1]) {
-          // Skip auto-generation for product routes
-          // The editor provides proper parent context via the items prop
-          // This prevents incorrect "Product Guides -> Home" navigation
+          // Skip - the product name will be handled as currentPage or via items prop
+        } else if (segment === 'event' && pathSegments[index + 1]) {
+          // Skip - the event name will be handled as currentPage or via items prop
         } else if (segment === 'demo') {
           breadcrumbItems.push({
             label: 'Demo Guides',
@@ -94,9 +100,9 @@ export const AppBreadcrumbs = React.forwardRef<
           });
         } else if (segment === 'settings') {
           // Skip, will be handled by currentPage
-        } else if (!['org', 'brand', 'product'].includes(pathSegments[index - 1] || '')) {
-          // Don't add if previous segment was a route prefix
-          if (!isLast) {
+        } else if (!['org', 'brand', 'product', 'event'].includes(pathSegments[index - 1] || '')) {
+          // Don't add if previous segment was a route prefix (like the slug after org/brand/product/event)
+          if (!isLast && !['org', 'brand', 'product', 'event'].includes(segment)) {
             breadcrumbItems.push({
               label: segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' '),
               href: currentPath,
