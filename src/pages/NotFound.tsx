@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Home, ArrowLeft, Compass, Sparkles } from 'lucide-react';
@@ -127,24 +127,11 @@ const AnimatedGradientText = () => {
 export default function NotFound() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   // Log the 404 error
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
   }, [location.pathname]);
-
-  // Track mouse for parallax effect
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({
-        x: (e.clientX / window.innerWidth - 0.5) * 20,
-        y: (e.clientY / window.innerHeight - 0.5) * 20,
-      });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
 
   // Generate colorful floating particles
   const particles = Array.from({ length: 25 }, (_, i) => ({
@@ -186,9 +173,6 @@ export default function NotFound() {
       {/* Main content */}
       <motion.div
         className="relative z-10 text-center px-4 max-w-2xl mx-auto"
-        style={{
-          transform: `translate(${mousePos.x * 0.5}px, ${mousePos.y * 0.5}px)`,
-        }}
       >
         {/* Large 404 with animation */}
         <div className="relative mb-8">
