@@ -7,8 +7,10 @@ export const TikTokMockup = ({
   profileImageUrl, 
   brandName = 'Brand Name',
   handle = '@brandhandle',
+  sizeSpec,
   className 
 }: FormatMockupProps) => {
+  // TikTok is always 9:16 vertical format
   return (
     <div className={cn(
       "relative bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border-[8px] border-gray-800",

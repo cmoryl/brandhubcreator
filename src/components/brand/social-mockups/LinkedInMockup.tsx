@@ -2,13 +2,27 @@ import { ThumbsUp, MessageSquare, Repeat2, Send, MoreHorizontal, Globe } from 'l
 import { cn } from '@/lib/utils';
 import { FormatMockupProps } from './types';
 
+// Helper to convert aspect ratio string like "1.91:1" or "4:5" to a CSS value
+const getAspectRatioStyle = (aspectRatio?: string): string => {
+  if (!aspectRatio) return '1.91/1';
+  const parts = aspectRatio.split(':').map(Number);
+  if (parts.length === 2 && parts[0] && parts[1]) {
+    return `${parts[0]}/${parts[1]}`;
+  }
+  return '1.91/1';
+};
+
 export const LinkedInMockup = ({ 
   imageUrl, 
   profileImageUrl, 
   brandName = 'Brand Name',
   handle = 'Company Page',
+  sizeSpec,
   className 
 }: FormatMockupProps) => {
+  const aspectRatio = getAspectRatioStyle(sizeSpec?.aspectRatio);
+  const sizeLabel = sizeSpec ? `${sizeSpec.width} x ${sizeSpec.height} px` : '1200 x 627 px';
+
   return (
     <div className={cn(
       "bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200",
@@ -51,13 +65,16 @@ export const LinkedInMockup = ({
         </p>
       </div>
 
-      {/* Image - LinkedIn uses 1.91:1 aspect ratio for link previews */}
-      <div className="relative aspect-[1.91/1] bg-gray-100">
+      {/* Image - Dynamic aspect ratio based on sizeSpec */}
+      <div 
+        className="relative bg-gray-100"
+        style={{ aspectRatio }}
+      >
         {imageUrl ? (
           <img src={imageUrl} alt="Post" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm bg-gradient-to-br from-[#0A66C2]/10 to-[#0A66C2]/5">
-            Your Content (1200 x 627 px)
+            Your Content ({sizeLabel})
           </div>
         )}
       </div>

@@ -2,11 +2,22 @@ import { ThumbsUp, MessageCircle, Share, MoreHorizontal, Globe, X } from 'lucide
 import { cn } from '@/lib/utils';
 import { FormatMockupProps } from './types';
 
+// Helper to convert aspect ratio string like "1.91:1" or "4:5" to a CSS value
+const getAspectRatioStyle = (aspectRatio?: string): string => {
+  if (!aspectRatio) return '1.91/1';
+  const parts = aspectRatio.split(':').map(Number);
+  if (parts.length === 2 && parts[0] && parts[1]) {
+    return `${parts[0]}/${parts[1]}`;
+  }
+  return '1.91/1';
+};
+
 export const FacebookMockup = ({ 
   imageUrl, 
   profileImageUrl, 
   brandName = 'Brand Name',
   format,
+  sizeSpec,
   className 
 }: FormatMockupProps) => {
   const isStoryOrReel = format === 'story' || format === 'reel';
@@ -95,7 +106,10 @@ export const FacebookMockup = ({
     );
   }
 
-  // Feed post
+  // Feed post - Dynamic aspect ratio
+  const aspectRatio = getAspectRatioStyle(sizeSpec?.aspectRatio);
+  const sizeLabel = sizeSpec ? `${sizeSpec.width} x ${sizeSpec.height} px` : '1200 x 630 px';
+
   return (
     <div className={cn(
       "bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200",
@@ -136,13 +150,16 @@ export const FacebookMockup = ({
         </p>
       </div>
 
-      {/* Image */}
-      <div className="aspect-[1.91/1] bg-gray-100">
+      {/* Image - Dynamic aspect ratio */}
+      <div 
+        className="bg-gray-100"
+        style={{ aspectRatio }}
+      >
         {imageUrl ? (
           <img src={imageUrl} alt="Post" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-            Your Content (1200 x 630 px)
+            Your Content ({sizeLabel})
           </div>
         )}
       </div>

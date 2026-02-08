@@ -18,6 +18,7 @@ export interface MockupProps {
   brandName?: string;
   handle?: string;
   className?: string;
+  sizeSpec?: PlatformSizeSpec;
 }
 
 export interface FormatMockupProps extends MockupProps {
