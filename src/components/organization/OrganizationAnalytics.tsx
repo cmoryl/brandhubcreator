@@ -316,8 +316,16 @@ export const OrganizationAnalytics = () => {
       const reportDate = format(new Date(), 'MMMM d, yyyy');
       const dateRangeLabel = dateRange === '7' ? '7 days' : dateRange === '30' ? '30 days' : '90 days';
       
-      // Create PDF content
+      // Create PDF content - append to DOM with proper visibility handling for html2canvas
       const pdfContent = document.createElement('div');
+      pdfContent.style.position = 'fixed';
+      pdfContent.style.top = '0';
+      pdfContent.style.left = '0';
+      pdfContent.style.width = '8.5in'; // Letter width
+      pdfContent.style.zIndex = '-9999';
+      pdfContent.style.opacity = '0';
+      pdfContent.style.pointerEvents = 'none';
+      pdfContent.style.overflow = 'visible';
       pdfContent.style.padding = '40px';
       pdfContent.style.fontFamily = 'system-ui, -apple-system, sans-serif';
       pdfContent.style.color = '#1f2937';
@@ -428,15 +436,25 @@ export const OrganizationAnalytics = () => {
         </div>
       `;
       
+      // Append to DOM for html2canvas to work properly
+      document.body.appendChild(pdfContent);
+      
+      // Force layout calculation
+      pdfContent.offsetHeight;
+      
       const opt = {
         margin: 0.5,
         filename: `${organization.slug}-analytics-report.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2 },
+        html2canvas: { scale: 2, backgroundColor: '#ffffff' },
         jsPDF: { unit: 'in' as const, format: 'letter' as const, orientation: 'portrait' as const },
       };
       
-      await html2pdf().set(opt).from(pdfContent).save();
+      try {
+        await html2pdf().set(opt).from(pdfContent).save();
+      } finally {
+        document.body.removeChild(pdfContent);
+      }
       
       toast({
         title: 'PDF Exported',
