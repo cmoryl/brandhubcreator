@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers, FolderOpen } from 'lucide-react';
+import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers, FolderOpen, Eye } from 'lucide-react';
 import { BrandSocialAssetSpec, BrandDisplayBannerSpec, SocialAssetTemplate } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ import { useDropZone } from '@/components/ui/drop-zone';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { safeUUID } from '@/lib/safeUUID';
 import { cn } from '@/lib/utils';
+import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewDialog';
 
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];
@@ -183,11 +184,13 @@ const PlatformCard = ({
   onUpdate,
   onDelete,
   onExpand,
+  onMockupPreview,
 }: {
   asset: BrandSocialAssetSpec;
   onUpdate: (updates: Partial<BrandSocialAssetSpec>) => void;
   onDelete: () => void;
   onExpand: () => void;
+  onMockupPreview: () => void;
 }) => {
   const IconComponent = platformIcons[asset.platform] || Monitor;
   const hasTemplates = (asset.templates?.length || 0) > 0;
@@ -228,14 +231,23 @@ const PlatformCard = ({
         {/* Actions overlay */}
         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
+            onClick={(e) => { e.stopPropagation(); onMockupPreview(); }}
+            className="p-1.5 rounded-md bg-primary/80 backdrop-blur-sm hover:bg-primary transition-colors"
+            title="View Mockup"
+          >
+            <Eye className="h-3 w-3 text-white" />
+          </button>
+          <button
             onClick={(e) => { e.stopPropagation(); onExpand(); }}
             className="p-1.5 rounded-md bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors"
+            title="Edit Details"
           >
             <Maximize2 className="h-3 w-3 text-white" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
             className="p-1.5 rounded-md bg-destructive/80 hover:bg-destructive transition-colors"
+            title="Delete"
           >
             <X className="h-3 w-3 text-white" />
           </button>
@@ -840,6 +852,7 @@ export const SocialAssetsSection = ({
 }: SocialAssetsProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<BrandSocialAssetSpec | null>(null);
+  const [mockupPreviewPlatform, setMockupPreviewPlatform] = useState<BrandSocialAssetSpec | null>(null);
   const [selectedBanner, setSelectedBanner] = useState<BrandDisplayBannerSpec | null>(null);
   const [bannerTab, setBannerTab] = useState('desktop');
   const { gridClass } = useLayoutClasses(layout);
@@ -987,6 +1000,7 @@ export const SocialAssetsSection = ({
               onUpdate={(updates) => updateSocialAsset(asset.id, updates)}
               onDelete={() => deleteSocialAsset(asset.id)}
               onExpand={() => setSelectedPlatform(asset)}
+              onMockupPreview={() => setMockupPreviewPlatform(asset)}
             />
           ))}
         </div>
@@ -1058,6 +1072,14 @@ export const SocialAssetsSection = ({
         open={!!selectedBanner}
         onOpenChange={(open) => !open && setSelectedBanner(null)}
         onUpdate={updateDisplayBanner}
+      />
+
+      {/* Mockup Preview Dialog */}
+      <SocialMockupPreviewDialog
+        asset={mockupPreviewPlatform}
+        open={!!mockupPreviewPlatform}
+        onOpenChange={(open) => !open && setMockupPreviewPlatform(null)}
+        brandName={customSubtitle?.split(' ')[0] || 'Your Brand'}
       />
     </section>
   );
