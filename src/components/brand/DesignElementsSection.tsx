@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Download, ChevronUp, Square, MessageCircle, Waves, Eye, Check } from 'lucide-react';
+import { Download, ChevronUp, Square, MessageCircle, Waves, Eye, Check, RectangleHorizontal, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -102,10 +102,56 @@ const adjustBrightness = (hex: string, percent: number): string => {
 interface DesignElement {
   id: string;
   name: string;
-  type: 'speech-bubble' | 'chevron' | 'frame' | 'wave';
+  type: 'speech-bubble' | 'chevron' | 'frame' | 'wave' | 'rounded-rect' | 'layered-rect';
   variant: ColorVariant;
   svg: string;
 }
+
+// Generate asymmetric rounded rectangle SVG (one corner different)
+const generateRoundedRectSVG = (colors: string[]): string => {
+  const gradientId = `grad-${Math.random().toString(36).slice(2, 9)}`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="100%">
+      ${colors.map((c, i) => `<stop offset="${(i / (colors.length - 1)) * 100}%" stop-color="${c}"/>`).join('')}
+    </linearGradient>
+  </defs>
+  <path d="M8 10 Q10 10, 10 10 L90 10 Q90 10, 90 12 L90 70 Q90 90, 70 90 L30 90 Q10 90, 10 70 L10 30 Q10 10, 30 10 Z" fill="url(#${gradientId})"/>
+</svg>`;
+};
+
+// Generate layered/nested rounded rectangles SVG
+const generateLayeredRectSVG = (colors: string[]): string => {
+  const gradientId1 = `grad1-${Math.random().toString(36).slice(2, 9)}`;
+  const gradientId2 = `grad2-${Math.random().toString(36).slice(2, 9)}`;
+  const gradientId3 = `grad3-${Math.random().toString(36).slice(2, 9)}`;
+  
+  // Create color variations for the layers
+  const baseColor = colors[0];
+  const endColor = colors[colors.length - 1] || colors[0];
+  
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90">
+  <defs>
+    <linearGradient id="${gradientId1}" x1="0%" y1="0%" x2="100%" y2="100%">
+      ${colors.map((c, i) => `<stop offset="${(i / (colors.length - 1)) * 100}%" stop-color="${c}"/>`).join('')}
+    </linearGradient>
+    <linearGradient id="${gradientId2}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${baseColor}" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="${endColor}" stop-opacity="0.6"/>
+    </linearGradient>
+    <linearGradient id="${gradientId3}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${baseColor}" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="${endColor}" stop-opacity="0.3"/>
+    </linearGradient>
+  </defs>
+  <!-- Back layer (largest, offset) -->
+  <rect x="10" y="15" width="100" height="65" rx="20" ry="20" fill="url(#${gradientId1})"/>
+  <!-- Middle layer -->
+  <rect x="15" y="12" width="92" height="58" rx="16" ry="16" fill="url(#${gradientId2})"/>
+  <!-- Front layer (smallest, innermost) -->
+  <rect x="22" y="8" width="82" height="48" rx="12" ry="12" fill="url(#${gradientId3})"/>
+</svg>`;
+};
 
 // Generate SVG strings for each element type
 const generateSpeechBubbleSVG = (colors: string[]): string => {
@@ -216,6 +262,20 @@ const generateElements = (variants: ColorVariant[]): DesignElement[] => {
       variant,
       svg: generateWaveSVG(variant.colors),
     });
+    elements.push({
+      id: `rounded-rect-${variant.id}`,
+      name: `Rounded Rectangle - ${variant.name}`,
+      type: 'rounded-rect',
+      variant,
+      svg: generateRoundedRectSVG(variant.colors),
+    });
+    elements.push({
+      id: `layered-rect-${variant.id}`,
+      name: `Layered Rectangle - ${variant.name}`,
+      type: 'layered-rect',
+      variant,
+      svg: generateLayeredRectSVG(variant.colors),
+    });
   });
   
   return elements;
@@ -317,6 +377,8 @@ export const DesignElementsSection = ({ canEdit = false, brandColors }: DesignEl
     'chevron': ChevronUp,
     'frame': Square,
     'wave': Waves,
+    'rounded-rect': RectangleHorizontal,
+    'layered-rect': Layers,
   };
 
   return (
@@ -344,19 +406,20 @@ export const DesignElementsSection = ({ canEdit = false, brandColors }: DesignEl
       </div>
 
       <Tabs defaultValue="speech-bubble" className="w-full">
-        <TabsList className="grid grid-cols-4 w-full max-w-lg">
-          {(['speech-bubble', 'chevron', 'frame', 'wave'] as const).map(type => {
+        <TabsList className="grid grid-cols-6 w-full max-w-2xl">
+          {(['speech-bubble', 'chevron', 'frame', 'wave', 'rounded-rect', 'layered-rect'] as const).map(type => {
             const Icon = TypeIcon[type];
+            const label = type === 'rounded-rect' ? 'Rounded' : type === 'layered-rect' ? 'Layered' : type.replace('-', ' ');
             return (
               <TabsTrigger key={type} value={type} className="gap-1.5 text-xs">
                 <Icon className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline capitalize">{type.replace('-', ' ')}s</span>
+                <span className="hidden sm:inline capitalize">{label}s</span>
               </TabsTrigger>
             );
           })}
         </TabsList>
 
-        {(['speech-bubble', 'chevron', 'frame', 'wave'] as const).map(type => (
+        {(['speech-bubble', 'chevron', 'frame', 'wave', 'rounded-rect', 'layered-rect'] as const).map(type => (
           <TabsContent key={type} value={type} className="mt-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
               {getElementsByType(type).map(renderElementCard)}
