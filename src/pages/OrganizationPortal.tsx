@@ -394,31 +394,6 @@ const OrganizationPortal = () => {
 
         {/* Hero Content */}
         <div className={`relative z-10 ${heroFullWidth ? 'px-4 sm:px-6 lg:px-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} pt-4 sm:pt-8 pb-16 sm:pb-24 overflow-visible`}>
-          {/* QuickFind Logo Widget - Top Right */}
-          <div className="absolute top-4 sm:top-8 right-4 sm:right-6 lg:right-8 z-40 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <QuickFindLogo
-              brands={brands.map(b => ({
-                id: b.id,
-                name: b.hero?.name || b.name,
-                slug: b.slug || undefined,
-                logos: b.logos || [],
-              }))}
-              products={products.map(p => ({
-                id: p.id,
-                name: p.hero?.name || p.name,
-                slug: p.slug || undefined,
-                logos: p.logos || [],
-              }))}
-              events={events.map(e => ({
-                id: e.id,
-                name: e.hero?.name || e.name,
-                slug: e.slug || undefined,
-                logos: e.logos || [],
-              }))}
-              accentColor={organization.accentColor || orgColors.primary}
-            />
-          </div>
-
           <div className="relative min-h-[400px] lg:min-h-[480px]">
             {/* Global Asset Orbit - background layer, not clickable except icons */}
             <div 
@@ -521,6 +496,31 @@ const OrganizationPortal = () => {
                     Found {totalResults} result{totalResults !== 1 ? 's' : ''} for "{searchQuery}"
                   </p>
                 )}
+              </div>
+
+              {/* QuickFind Logo Widget */}
+              <div className="mt-4 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                <QuickFindLogo
+                  brands={brands.map(b => ({
+                    id: b.id,
+                    name: b.hero?.name || b.name,
+                    slug: b.slug || undefined,
+                    logos: b.logos || [],
+                  }))}
+                  products={products.map(p => ({
+                    id: p.id,
+                    name: p.hero?.name || p.name,
+                    slug: p.slug || undefined,
+                    logos: p.logos || [],
+                  }))}
+                  events={events.map(e => ({
+                    id: e.id,
+                    name: e.hero?.name || e.name,
+                    slug: e.slug || undefined,
+                    logos: e.logos || [],
+                  }))}
+                  accentColor={organization.accentColor || orgColors.primary}
+                />
               </div>
 
 
