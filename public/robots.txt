@@ -1,3 +1,6 @@
+# BrandHub Robots.txt
+# https://brandhubcreator.lovable.app
+
 User-agent: Googlebot
 Allow: /
 
@@ -12,3 +15,24 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Sitemap location
+Sitemap: https://brandhubcreator.lovable.app/sitemap.xml
+
+# Disallow admin and authenticated routes from crawling
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /onboarding
+Disallow: /pending-approval
+Disallow: /org/settings
+
+# Allow public organization portals
+Allow: /org/
+
+# Allow demo pages
+Allow: /demo/
+
+# Allow public brand/product/event pages
+Allow: /brand/
+Allow: /product/
+Allow: /event/
