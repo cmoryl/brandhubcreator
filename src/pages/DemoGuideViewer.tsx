@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Star, Building2, Package, Calendar, ExternalLink, Shield, Settings, History } from 'lucide-react';
+import { ArrowLeft, Star, Building2, Package, Calendar, ExternalLink, Shield, Settings, History, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -179,28 +179,86 @@ export default function DemoGuideViewer() {
     }
   }, [searchParams, setSearchParams, demoGuide, sectionOrder, isEvent]);
 
-  // Admin update handlers - modify local state (session-only)
-  const handleBrandUpdate = useCallback((updates: Partial<BrandGuide | ProductGuide>) => {
+  // Admin update handlers - save to database if we have a db record
+  const handleBrandUpdate = useCallback(async (updates: Partial<BrandGuide | ProductGuide>) => {
     if (!isAdmin) return;
+    
+    // Update local state immediately for UI responsiveness
     setDemoGuideData(prev => {
       if (!prev) return prev;
       return { ...prev, ...updates } as typeof prev;
     });
-    toast.success('Demo updated (session only)', { 
-      description: 'Changes will reset on page reload' 
-    });
-  }, [isAdmin]);
 
-  const handleEventUpdate = useCallback((updates: Partial<EventGuide>) => {
+    // If we have a database record, persist the changes
+    if (dbDemoBrand) {
+      try {
+        const currentGuideData = dbDemoBrand.guide_data as Record<string, unknown>;
+        const updatedGuideData = { ...currentGuideData, ...updates };
+        
+        const { error } = await supabase
+          .from('demo_brands')
+          .update({
+            guide_data: updatedGuideData as Json,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', dbDemoBrand.id);
+
+        if (error) throw error;
+        
+        // Update the dbDemoBrand ref so future saves use latest data
+        setDbDemoBrand(prev => prev ? { ...prev, guide_data: updatedGuideData as Json } : prev);
+        
+        toast.success('Demo saved to database');
+      } catch (error) {
+        console.error('[DemoGuideViewer] Error saving to database:', error);
+        toast.error('Failed to save changes');
+      }
+    } else {
+      toast.success('Demo updated (session only)', { 
+        description: 'No database record found for this demo' 
+      });
+    }
+  }, [isAdmin, dbDemoBrand]);
+
+  const handleEventUpdate = useCallback(async (updates: Partial<EventGuide>) => {
     if (!isAdmin) return;
+    
+    // Update local state immediately for UI responsiveness
     setDemoGuideData(prev => {
       if (!prev) return prev;
       return { ...prev, ...updates } as typeof prev;
     });
-    toast.success('Demo updated (session only)', { 
-      description: 'Changes will reset on page reload' 
-    });
-  }, [isAdmin]);
+
+    // If we have a database record, persist the changes
+    if (dbDemoBrand) {
+      try {
+        const currentGuideData = dbDemoBrand.guide_data as Record<string, unknown>;
+        const updatedGuideData = { ...currentGuideData, ...updates };
+        
+        const { error } = await supabase
+          .from('demo_brands')
+          .update({
+            guide_data: updatedGuideData as Json,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', dbDemoBrand.id);
+
+        if (error) throw error;
+        
+        // Update the dbDemoBrand ref so future saves use latest data
+        setDbDemoBrand(prev => prev ? { ...prev, guide_data: updatedGuideData as Json } : prev);
+        
+        toast.success('Demo saved to database');
+      } catch (error) {
+        console.error('[DemoGuideViewer] Error saving to database:', error);
+        toast.error('Failed to save changes');
+      }
+    } else {
+      toast.success('Demo updated (session only)', { 
+        description: 'No database record found for this demo' 
+      });
+    }
+  }, [isAdmin, dbDemoBrand]);
 
   const handleSectionSelect = useCallback((sectionId: SectionId) => {
     setScrollToSection(sectionId);
@@ -342,11 +400,15 @@ export default function DemoGuideViewer() {
                 onClick: () => toast.info('Page settings available in hero edit mode'),
               },
               {
-                id: 'session-notice',
-                label: 'Session Only',
-                icon: History,
+                id: 'db-notice',
+                label: dbDemoBrand ? 'Saves to Database' : 'Session Only',
+                icon: dbDemoBrand ? Save : History,
                 variant: 'outline',
-                onClick: () => toast.info('Demo changes are session-only and will reset on page reload'),
+                onClick: () => toast.info(
+                  dbDemoBrand 
+                    ? 'Changes are saved to the database automatically' 
+                    : 'No database record found - changes are session-only'
+                ),
               },
             ]}
           />
