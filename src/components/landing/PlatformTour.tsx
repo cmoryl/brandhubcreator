@@ -196,9 +196,53 @@ export const PlatformTour: React.FC<PlatformTourProps> = ({ onDemoClick }) => {
                   duration: 0.2,
                   delay: idx * 0.03
                 }}
+                className="relative group"
               >
+                {/* Animated gradient border frame */}
+                <div 
+                  className="absolute -inset-[1px] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{
+                    background: 'linear-gradient(90deg, hsl(var(--accent)), hsl(var(--primary)), hsl(var(--accent)))',
+                    backgroundSize: '200% 100%',
+                    animation: 'gradient-shift 2s ease infinite',
+                  }}
+                />
+                {/* Animated corner accents */}
+                <div className="absolute -inset-[2px] rounded-xl overflow-hidden pointer-events-none">
+                  <div 
+                    className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 rounded-tl-xl opacity-60"
+                    style={{
+                      borderColor: 'hsl(var(--accent))',
+                      animation: 'pulse-border 2s ease-in-out infinite',
+                    }}
+                  />
+                  <div 
+                    className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 rounded-tr-xl opacity-60"
+                    style={{
+                      borderColor: 'hsl(var(--accent))',
+                      animation: 'pulse-border 2s ease-in-out infinite',
+                      animationDelay: '0.5s',
+                    }}
+                  />
+                  <div 
+                    className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 rounded-bl-xl opacity-60"
+                    style={{
+                      borderColor: 'hsl(var(--accent))',
+                      animation: 'pulse-border 2s ease-in-out infinite',
+                      animationDelay: '1s',
+                    }}
+                  />
+                  <div 
+                    className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 rounded-br-xl opacity-60"
+                    style={{
+                      borderColor: 'hsl(var(--accent))',
+                      animation: 'pulse-border 2s ease-in-out infinite',
+                      animationDelay: '1.5s',
+                    }}
+                  />
+                </div>
                 <Card 
-                  className="border bg-card hover:border-accent/50 transition-colors touch-manipulation h-full"
+                  className="relative border bg-card hover:border-accent/50 transition-colors touch-manipulation h-full z-10"
                 >
                   <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">

@@ -761,6 +761,17 @@
     }
   }
 
+  @keyframes pulse-border {
+    0%, 100% {
+      opacity: 0.4;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+  }
+
   /* Tagline animation keyframes */
   @keyframes wave-glow {
     0%, 100% {
