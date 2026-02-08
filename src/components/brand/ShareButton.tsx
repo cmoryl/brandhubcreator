@@ -79,7 +79,7 @@ export const ShareButton = ({
   const handleEmailShare = () => {
     const subject = encodeURIComponent(`Check out ${guideName} ${type} guide`);
     const body = encodeURIComponent(`I wanted to share this ${type} guide with you:\n\n${getShareUrl()}`);
-    window.open(`mailto:?subject=${subject}&body=${body}`);
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
   const handleTwitterShare = () => {
