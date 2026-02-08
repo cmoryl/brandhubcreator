@@ -232,24 +232,24 @@ const PlatformCard = ({
         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={(e) => { e.stopPropagation(); onMockupPreview(); }}
-            className="p-1.5 rounded-md bg-primary/80 backdrop-blur-sm hover:bg-primary transition-colors"
+            className="p-1.5 rounded-md bg-primary backdrop-blur-sm hover:bg-primary/90 transition-colors"
             title="View Mockup"
           >
-            <Eye className="h-3 w-3 text-white" />
+            <Eye className="h-3 w-3 text-primary-foreground" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onExpand(); }}
-            className="p-1.5 rounded-md bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors"
+            className="p-1.5 rounded-md bg-secondary backdrop-blur-sm hover:bg-secondary/80 transition-colors"
             title="Edit Details"
           >
-            <Maximize2 className="h-3 w-3 text-white" />
+            <Maximize2 className="h-3 w-3 text-secondary-foreground" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-1.5 rounded-md bg-destructive/80 hover:bg-destructive transition-colors"
+            className="p-1.5 rounded-md bg-destructive hover:bg-destructive/90 transition-colors"
             title="Delete"
           >
-            <X className="h-3 w-3 text-white" />
+            <X className="h-3 w-3 text-destructive-foreground" />
           </button>
         </div>
       </div>
