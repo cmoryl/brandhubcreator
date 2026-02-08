@@ -59,6 +59,7 @@ const SharedBrandPage = lazy(() => import("./pages/SharedBrandPage"));
 const BrandExportSchema = lazy(() => import("./pages/BrandExportSchema"));
 const HeroEffectsShowcase = lazy(() => import("./pages/HeroEffectsShowcase"));
 const Sitemap = lazy(() => import("./pages/Sitemap"));
+const SectionsShowcase = lazy(() => import("./pages/SectionsShowcase"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -286,6 +287,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <Sitemap />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="sections"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <SectionsShowcase />
                         </Suspense>
                       }
                     />
