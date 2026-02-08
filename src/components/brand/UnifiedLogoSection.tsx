@@ -84,7 +84,7 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
   defaultSubtitle = 'Upload and organize your logos',
   customSubtitle,
   onSubtitleChange,
-  isEditable = true,
+  isEditable,
   showGroupedByVariant = true,
   gridLayout = 'grouped',
 }, ref) => {
@@ -95,7 +95,8 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
   const [urlInput, setUrlInput] = useState('');
   const [expandedLogo, setExpandedLogo] = useState<UnifiedLogo | null>(null);
 
-  const canEdit = isEditable && !!onLogosChange;
+  // Default to false for public view; only editable if explicitly enabled AND handler exists
+  const canEdit = (isEditable ?? false) && !!onLogosChange;
 
   const handleFileDrop = useCallback((file: File, variant: string) => {
     if (!onLogosChange) return;

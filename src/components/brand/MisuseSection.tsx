@@ -155,8 +155,8 @@ export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtit
                   </div>
                 ) : (
                   <p
-                    className="text-sm text-muted-foreground cursor-pointer hover:text-foreground"
-                    onClick={() => setEditingId(item.id)}
+                    className={`text-sm text-muted-foreground ${canEdit ? 'cursor-pointer hover:text-foreground' : ''}`}
+                    onClick={() => canEdit && setEditingId(item.id)}
                   >
                     {item.description}
                   </p>

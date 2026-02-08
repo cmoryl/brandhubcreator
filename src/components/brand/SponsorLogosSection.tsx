@@ -37,7 +37,7 @@ export const SponsorLogosSection = ({
   onSponsorsChange,
   customSubtitle,
   onSubtitleChange,
-  isEditable = true,
+  isEditable,
 }: SponsorLogosSectionProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [urlPopoverOpen, setUrlPopoverOpen] = useState<string | null>(null);
@@ -50,7 +50,8 @@ export const SponsorLogosSection = ({
     placement: '',
   });
 
-  const canEdit = isEditable && !!onSponsorsChange;
+  // Default to false for public view; only editable if explicitly enabled AND handler exists
+  const canEdit = (isEditable ?? false) && !!onSponsorsChange;
 
   const handleAddSponsor = (logoUrl: string) => {
     if (!onSponsorsChange) return;
