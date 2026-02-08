@@ -457,6 +457,21 @@ serve(async (req) => {
           throw new Error("LOVABLE_API_KEY is not configured");
         }
 
+        // Check if user has permission to use AI features (org admin or higher)
+        const { data: canUseAI } = await supabase.rpc('can_use_ai_features', {
+          _user_id: user.id,
+          _entity_id: entityId,
+          _entity_type: entityType
+        });
+
+        if (!canUseAI) {
+          console.log("[brand-intelligence] User lacks AI permissions:", user.id);
+          return new Response(
+            JSON.stringify({ error: 'Organization admin role required for AI analysis' }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
         const table = entityType === 'brand' ? 'brands' : entityType === 'product' ? 'products' : 'events';
         
         // Fetch entity data - brands don't have parent_brand_id column

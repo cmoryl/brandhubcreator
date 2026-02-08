@@ -42,6 +42,24 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Check if user has permission to use AI features (org admin or higher)
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { data: canUseAI } = await serviceClient.rpc('can_use_ai_features', {
+      _user_id: user.id
+    });
+
+    if (!canUseAI) {
+      console.log("[run-brand-prompt] User lacks AI permissions:", user.id);
+      return new Response(
+        JSON.stringify({ error: 'Organization admin role required for custom AI prompts' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Rate limiting: Check recent prompt runs
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const { count: promptCount } = await supabaseClient

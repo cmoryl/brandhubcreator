@@ -1565,6 +1565,10 @@ export type Database = {
     }
     Functions: {
       admin_delete_user: { Args: { target_user_id: string }; Returns: boolean }
+      can_use_ai_features: {
+        Args: { _entity_id?: string; _entity_type?: string; _user_id: string }
+        Returns: boolean
+      }
       cleanup_expired_invites: { Args: never; Returns: number }
       cleanup_old_audit_logs: { Args: never; Returns: number }
       generate_slug: { Args: { name: string }; Returns: string }
@@ -1686,6 +1690,20 @@ export type Database = {
           name: string
           slug: string
           updated_at: string
+        }[]
+      }
+      get_public_org_for_portal: {
+        Args: { p_org_id?: string; p_slug?: string }
+        Returns: {
+          accent_color: string
+          favicon_url: string
+          hide_platform_branding: boolean
+          id: string
+          logo_url: string
+          name: string
+          primary_color: string
+          secondary_color: string
+          slug: string
         }[]
       }
       get_public_organization_info: {
