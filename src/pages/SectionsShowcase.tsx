@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useState, useRef } from 'react';
 import { 
   Palette, 
   Type, 
@@ -10,7 +12,6 @@ import {
   FileText,
   Award,
   BookOpen,
-  Brush,
   FileImage,
   Smartphone,
   Link2,
@@ -18,12 +19,9 @@ import {
   MessageSquare,
   Heart,
   ImageIcon,
-  PenTool,
   FolderOpen,
   Camera,
   Shapes,
-  ArrowLeft,
-  ChevronRight,
   LayoutDashboard,
   Users,
   Building2,
@@ -31,10 +29,14 @@ import {
   Brain,
   Shield,
   Database,
-  Settings
+  Settings,
+  Rocket
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { AnimatedHero } from '@/components/sections-showcase/AnimatedHero';
+import { CategoryNav } from '@/components/sections-showcase/CategoryNav';
+import { SectionCard } from '@/components/sections-showcase/SectionCard';
+import { StatsCounter } from '@/components/sections-showcase/StatsCounter';
 
 interface SectionFeature {
   icon: React.ElementType;
@@ -289,44 +291,17 @@ const categoryLabels = {
   admin: { label: 'Admin & Management', description: 'Platform administration and analytics' },
 };
 
-function SectionCard({ section }: { section: SectionFeature }) {
-  const Icon = section.icon;
-  
-  return (
-    <div className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card/50 hover:bg-card transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
-      {/* Gradient background on hover */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${section.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-      
-      <div className="relative p-6">
-        <div className="flex items-start gap-4 mb-4">
-          <div className="p-3 bg-accent/10 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-            <Icon className="h-6 w-6 text-accent" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-foreground mb-1 group-hover:text-accent transition-colors">
-              {section.title}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {section.description}
-            </p>
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          {section.capabilities.map((capability, index) => (
-            <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-              <ChevronRight className="h-3 w-3 text-accent shrink-0" />
-              <span>{capability}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+const stats = [
+  { label: 'Brand Sections', value: 27, suffix: '+' },
+  { label: 'Export Formats', value: 15, suffix: '+' },
+  { label: 'AI Features', value: 8, suffix: '' },
+  { label: 'Enterprise Ready', value: 100, suffix: '%' },
+];
 
 export default function SectionsShowcase() {
   const navigate = useNavigate();
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   
   const groupedSections = sections.reduce((acc, section) => {
     if (!acc[section.category]) {
@@ -336,86 +311,125 @@ export default function SectionsShowcase() {
     return acc;
   }, {} as Record<string, SectionFeature[]>);
 
+  const categoryInfo = Object.entries(categoryLabels).reduce((acc, [key, info]) => {
+    acc[key] = {
+      ...info,
+      count: groupedSections[key]?.length || 0,
+    };
+    return acc;
+  }, {} as Record<string, { label: string; description: string; count: number }>);
+
+  const handleCategoryClick = (category: string) => {
+    setActiveCategory(category);
+    const element = sectionRefs.current[category];
+    if (element) {
+      const offset = 140; // Account for sticky headers
+      const top = element.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/')}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
-            <Button onClick={() => navigate('/auth')}>
-              Get Started
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Hero */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-b border-border/30">
-        <div className="max-w-7xl mx-auto text-center">
-          <Badge variant="secondary" className="mb-4 gap-1">
-            <Layers className="h-3 w-3" />
-            25+ Sections
-          </Badge>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6">
-            Everything you need for
-            <span className="block text-accent">complete brand guidelines</span>
-          </h1>
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
-            From color palettes to presentation templates, explore all the sections 
-            available to build comprehensive, professional brand guidelines.
-          </p>
-        </div>
-      </section>
+      <AnimatedHero totalSections={sections.length} />
+      
+      <StatsCounter stats={stats} />
+      
+      <CategoryNav 
+        categories={categoryInfo}
+        activeCategory={activeCategory}
+        onCategoryClick={handleCategoryClick}
+      />
 
       {/* Sections by Category */}
       <div className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-20">
+        <div className="max-w-7xl mx-auto space-y-24">
           {(['core', 'visual', 'content', 'advanced', 'admin'] as const).map((category) => (
-            <section key={category}>
-              <div className="mb-8">
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-                  {categoryLabels[category].label}
-                </h2>
-                <p className="text-muted-foreground">
+            <motion.section 
+              key={category}
+              ref={(el) => { sectionRefs.current[category] = el; }}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="mb-10">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5 }}
+                  className="flex items-center gap-3 mb-3"
+                >
+                  <div className="h-1 w-12 bg-gradient-to-r from-accent to-primary rounded-full" />
+                  <span className="text-sm font-medium text-accent uppercase tracking-wider">
+                    {categoryLabels[category].label}
+                  </span>
+                </motion.div>
+                <motion.h2 
+                  className="text-3xl sm:text-4xl font-bold text-foreground mb-3"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                >
                   {categoryLabels[category].description}
-                </p>
+                </motion.h2>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {groupedSections[category]?.map((section) => (
-                  <SectionCard key={section.title} section={section} />
+                {groupedSections[category]?.map((section, index) => (
+                  <SectionCard 
+                    key={section.title} 
+                    {...section}
+                    index={index}
+                  />
                 ))}
               </div>
-            </section>
+            </motion.section>
           ))}
         </div>
       </div>
 
       {/* CTA */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-t border-border/30 bg-muted/30">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Ready to build your brand guide?
-          </h2>
-          <p className="text-lg text-muted-foreground mb-8">
-            Start creating professional brand guidelines with all these powerful sections.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" onClick={() => navigate('/auth')}>
-              Get Started Free
-            </Button>
-            <Button size="lg" variant="outline" onClick={() => navigate('/demo/brand/brandhub')}>
-              View Demo
-            </Button>
-          </div>
+      <section className="relative py-24 sm:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-accent/5 to-background" />
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/10 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        <div className="relative max-w-3xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+              Ready to build your 
+              <span className="block bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
+                brand guide?
+              </span>
+            </h2>
+            <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
+              Start creating professional brand guidelines with all these powerful sections.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" onClick={() => navigate('/auth')} className="gap-2 text-base px-8">
+                <Rocket className="h-5 w-5" />
+                Get Started Free
+              </Button>
+              <Button size="lg" variant="outline" onClick={() => navigate('/demo/brand/brandhub')} className="text-base px-8">
+                View Demo
+              </Button>
+            </div>
+          </motion.div>
         </div>
       </section>
     </div>
