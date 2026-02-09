@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Brain, FileText, Building2, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2 } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Brain, FileText, Building2, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2, Languages, MapPin } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, BrandGuide } from '@/types/brand';
@@ -60,6 +60,8 @@ import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEdi
 import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
 import { BrandBackupManager } from '@/components/brand/BrandBackupManager';
 import { QuickBackupButton } from '@/components/brand/QuickBackupButton';
+import { RegionalVariantWizard } from '@/components/brand/RegionalVariantWizard';
+import { TranslationHub } from '@/components/brand/TranslationHub';
 import { AdminToolbar } from '@/components/admin/AdminToolbar';
 import { StickyBreadcrumbs } from '@/components/StickyBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
@@ -117,6 +119,10 @@ const BrandEditor = () => {
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
   // Regional analysis panel state
   const [regionalAnalysisOpen, setRegionalAnalysisOpen] = useState(false);
+  // Regional variant wizard state
+  const [regionalWizardOpen, setRegionalWizardOpen] = useState(false);
+  // Translation hub state
+  const [translationHubOpen, setTranslationHubOpen] = useState(false);
   // Parent brand for hierarchical breadcrumbs
   const [parentBrand, setParentBrand] = useState<{ id: string; name: string; slug: string } | null>(null);
   // Favorites filter state
@@ -1053,7 +1059,39 @@ const BrandEditor = () => {
                 icon: HardDrive,
                 render: () => <BrandBackupManager guide={brand} />,
               },
+              {
+                id: 'regional',
+                label: 'Regional Variants',
+                icon: MapPin,
+                onClick: () => setRegionalWizardOpen(true),
+              },
+              {
+                id: 'translations',
+                label: 'Translations',
+                icon: Languages,
+                onClick: () => setTranslationHubOpen(true),
+              },
             ]}
+          />
+
+          {/* Regional Variant Wizard */}
+          <RegionalVariantWizard
+            open={regionalWizardOpen}
+            onOpenChange={setRegionalWizardOpen}
+            entityId={brand.id}
+            entityType="brand"
+            entityName={brand.hero.name}
+            organizationId={brand.organizationId}
+          />
+
+          {/* Translation Hub */}
+          <TranslationHub
+            open={translationHubOpen}
+            onOpenChange={setTranslationHubOpen}
+            entityId={brand.id}
+            entityType="brand"
+            entityName={brand.hero.name}
+            organizationId={brand.organizationId}
           />
 
           {/* Content */}
