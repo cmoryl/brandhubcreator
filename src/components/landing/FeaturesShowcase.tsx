@@ -24,7 +24,13 @@ import {
   Languages,
   Globe2,
   Sparkles,
-  Network
+  Network,
+  GitBranch,
+  Palette as PaletteIcon,
+  MessageSquare,
+  ImageIcon,
+  Map,
+  BookOpen
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +44,7 @@ interface Feature {
   title: string;
   description: string;
   gradient: string;
+  badge?: string;
 }
 
 const coreFeatures: Feature[] = [
@@ -101,31 +108,46 @@ const eventFeatures: Feature[] = [
   },
 ];
 
-// GlobalLink & Localization features (NEW)
+// GlobalLink & Localization features - EXPANDED
 const localizationFeatures: Feature[] = [
   {
     icon: Languages,
     title: 'GlobalLink Translation',
     description: 'Real-time translation via GlobalLink Web API with demo and live modes. Automatic caching for cost optimization.',
     gradient: 'from-emerald-500/20 to-teal-500/20',
+    badge: 'GlobalLink',
   },
   {
     icon: Globe2,
     title: 'Multicultural Intelligence',
-    description: 'AI-powered cultural insights with localization readiness scores and regional market analysis.',
+    description: 'AI-powered cultural insights with localization readiness scores and regional market analysis for global expansion.',
     gradient: 'from-blue-500/20 to-indigo-500/20',
+    badge: 'AI-Powered',
+  },
+  {
+    icon: GitBranch,
+    title: 'Regional Hierarchy',
+    description: 'Global → Region → Country inheritance with JSONB overrides for colors, imagery, messaging, and cultural adaptations.',
+    gradient: 'from-violet-500/20 to-purple-500/20',
+    badge: 'Living Guide',
   },
   {
     icon: Sparkles,
     title: 'Cultural Adaptation',
-    description: 'Regional variants with color, imagery, and messaging adaptations. GlobalLink Fluent and Connect integration.',
+    description: 'AI-suggested regional adaptations for color sensitivity, imagery guidelines, and messaging localization.',
     gradient: 'from-purple-500/20 to-pink-500/20',
   },
   {
     icon: Network,
     title: 'Translation Hub',
-    description: 'Centralized translation job management with status tracking, word counts, and cache analytics.',
+    description: 'Centralized job management with status tracking, word counts, cache analytics, and target language configuration.',
     gradient: 'from-orange-500/20 to-amber-500/20',
+  },
+  {
+    icon: Map,
+    title: 'Regional Comparison',
+    description: 'Side-by-side analysis of variant differences across markets. Compare adaptations and track regional changes.',
+    gradient: 'from-cyan-500/20 to-sky-500/20',
   },
 ];
 
@@ -197,8 +219,15 @@ function FeatureCard({ feature, index, isVisible }: { feature: Feature; index: n
       <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
       
       <CardContent className="relative p-6">
-        <div className="p-3 bg-accent/10 rounded-xl w-fit mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-          <Icon className="h-6 w-6 text-accent" />
+        <div className="flex items-start justify-between mb-4">
+          <div className="p-3 bg-accent/10 rounded-xl w-fit group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+            <Icon className="h-6 w-6 text-accent" />
+          </div>
+          {feature.badge && (
+            <Badge variant="secondary" className="text-xs">
+              {feature.badge}
+            </Badge>
+          )}
         </div>
         <h3 className="font-semibold text-foreground mb-2 group-hover:text-accent transition-colors">
           {feature.title}
@@ -250,6 +279,147 @@ function FeatureGrid({ features, isVisible }: { features: Feature[]; isVisible: 
   );
 }
 
+// Living Global Brand Guide Hero Section
+function GlobalBrandHero({ isVisible }: { isVisible: boolean }) {
+  return (
+    <div className={`mb-16 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`} style={{ animationDelay: '100ms' }}>
+      <Card className="relative overflow-hidden border-2 border-accent/20 bg-gradient-to-br from-accent/5 via-background to-primary/5">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
+        
+        <CardContent className="relative p-8 md:p-12">
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            {/* Left: Content */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-accent text-accent-foreground gap-1.5">
+                  <Globe2 className="h-3 w-3" />
+                  Living Global Brand Guide
+                </Badge>
+                <Badge variant="outline" className="gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  NEW
+                </Badge>
+              </div>
+              
+              <h3 className="text-3xl md:text-4xl font-bold text-foreground">
+                One Brand.
+                <span className="block text-accent">Every Market.</span>
+              </h3>
+              
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Create adaptive brand guidelines that evolve across regions while maintaining global consistency. 
+                Our tiered hierarchy system (Global → Region → Country) ensures your brand speaks authentically 
+                to every market.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-emerald-500/10 rounded-lg shrink-0">
+                    <PaletteIcon className="h-4 w-4 text-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Color Sensitivity</p>
+                    <p className="text-xs text-muted-foreground">Regional color adaptations</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-500/10 rounded-lg shrink-0">
+                    <MessageSquare className="h-4 w-4 text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Messaging Localization</p>
+                    <p className="text-xs text-muted-foreground">Cultural tone adjustments</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-purple-500/10 rounded-lg shrink-0">
+                    <ImageIcon className="h-4 w-4 text-purple-500" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Imagery Guidelines</p>
+                    <p className="text-xs text-muted-foreground">Market-specific visuals</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-orange-500/10 rounded-lg shrink-0">
+                    <BookOpen className="h-4 w-4 text-orange-500" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Content Inheritance</p>
+                    <p className="text-xs text-muted-foreground">Smart section overrides</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Right: Visual Hierarchy */}
+            <div className="relative">
+              <div className="space-y-3">
+                {/* Global tier */}
+                <div className="p-4 rounded-xl bg-accent/10 border border-accent/30">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Globe className="h-5 w-5 text-accent" />
+                    <span className="font-semibold text-accent">Global Master</span>
+                    <Badge variant="outline" className="text-xs ml-auto">Base</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Core brand DNA, colors, typography, values</p>
+                </div>
+                
+                {/* Region tier */}
+                <div className="ml-6 space-y-2">
+                  <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500" />
+                      <span className="text-sm font-medium">EMEA Region</span>
+                      <Badge variant="secondary" className="text-xs ml-auto">Override</Badge>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-purple-500" />
+                      <span className="text-sm font-medium">APAC Region</span>
+                      <Badge variant="secondary" className="text-xs ml-auto">Override</Badge>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Country tier */}
+                <div className="ml-12 space-y-2">
+                  <div className="p-2 rounded-md bg-muted/50 border border-border/50">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🇩🇪</span>
+                      <span className="text-xs font-medium">Germany</span>
+                    </div>
+                  </div>
+                  <div className="p-2 rounded-md bg-muted/50 border border-border/50">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🇯🇵</span>
+                      <span className="text-xs font-medium">Japan</span>
+                    </div>
+                  </div>
+                  <div className="p-2 rounded-md bg-muted/50 border border-border/50">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🇧🇷</span>
+                      <span className="text-xs font-medium">Brazil</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Connecting lines decoration */}
+              <div className="absolute left-3 top-16 w-px h-32 bg-gradient-to-b from-accent/50 to-transparent" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export function FeaturesShowcase() {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
@@ -283,26 +453,29 @@ export function FeaturesShowcase() {
           </Badge>
           <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-4">
             Everything you need for
-            <span className="block text-accent">brand consistency</span>
+            <span className="block text-accent">global brand consistency</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            From color systems to AI-powered analytics, BrandHub provides all the tools 
-            to create, manage, and scale your brand guidelines.
+            From color systems to AI-powered multicultural intelligence, BrandHub provides all the tools 
+            to create, manage, and localize your brand guidelines worldwide.
           </p>
         </div>
 
+        {/* Living Global Brand Guide Hero */}
+        <GlobalBrandHero isVisible={isVisible} />
+
         {/* Category Tabs */}
         <div className={`${isVisible ? 'animate-fade-in' : 'opacity-0'}`} style={{ animationDelay: '200ms' }}>
-          <Tabs defaultValue="core" className="w-full">
+          <Tabs defaultValue="localization" className="w-full">
             <div className="flex justify-center mb-12">
               <TabsList className="grid w-full max-w-3xl grid-cols-5 h-12">
-                <TabsTrigger value="core" className="gap-2 text-sm" aria-label="Core features">
-                  <Layers className="h-4 w-4" />
-                  <span className="hidden sm:inline">Core</span>
-                </TabsTrigger>
                 <TabsTrigger value="localization" className="gap-2 text-sm" aria-label="Localization features">
                   <Languages className="h-4 w-4" />
                   <span className="hidden sm:inline">Global</span>
+                </TabsTrigger>
+                <TabsTrigger value="core" className="gap-2 text-sm" aria-label="Core features">
+                  <Layers className="h-4 w-4" />
+                  <span className="hidden sm:inline">Core</span>
                 </TabsTrigger>
                 <TabsTrigger value="events" className="gap-2 text-sm" aria-label="Event features">
                   <Calendar className="h-4 w-4" />
@@ -319,11 +492,11 @@ export function FeaturesShowcase() {
               </TabsList>
             </div>
 
-            <TabsContent value="core" className="mb-12 mt-0">
-              <FeatureGrid features={coreFeatures} isVisible={isVisible} />
-            </TabsContent>
             <TabsContent value="localization" className="mb-12 mt-0">
               <FeatureGrid features={localizationFeatures} isVisible={isVisible} />
+            </TabsContent>
+            <TabsContent value="core" className="mb-12 mt-0">
+              <FeatureGrid features={coreFeatures} isVisible={isVisible} />
             </TabsContent>
             <TabsContent value="events" className="mb-12 mt-0">
               <FeatureGrid features={eventFeatures} isVisible={isVisible} />
@@ -337,12 +510,12 @@ export function FeaturesShowcase() {
           </Tabs>
         </div>
 
-        {/* Stats Row */}
+        {/* Stats Row - Updated with global stats */}
         <div className={`grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`} style={{ animationDelay: '600ms' }}>
           {[
+            { value: '50+', label: 'Languages Supported' },
+            { value: '3-Tier', label: 'Regional Hierarchy' },
             { value: '25+', label: 'Sections Available' },
-            { value: '50+', label: 'Icon Sets' },
-            { value: '∞', label: 'Color Formats' },
             { value: '100%', label: 'Customizable' },
           ].map((stat, index) => (
             <div key={stat.label} className="text-center p-6 rounded-2xl bg-muted/30 hover:bg-muted/50 transition-colors">
