@@ -114,6 +114,7 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   locations: { label: 'Global Locations', icon: MapPin, category: 'Venue' },
   insights: { label: 'Insights & Updates', icon: TrendingUp, category: 'Resources' },
   presentations: { label: 'Presentation Templates', icon: Presentation, category: 'Collateral' },
+  socialmetrics: { label: 'Social Performance', icon: TrendingUp, category: 'Communication' },
 };
 
 export const EventSidebar = ({ 

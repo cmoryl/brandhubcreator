@@ -101,4 +101,5 @@ export const SECTION_HEIGHT_ESTIMATES: Partial<Record<SectionId, number>> = {
   templates: 50,
   templatespecs: 80,
   products: 60,
+  socialmetrics: 100,
 };

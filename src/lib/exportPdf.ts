@@ -191,6 +191,7 @@ export const SECTION_METADATA: SectionMeta[] = [
   // Content & Communication
   { id: 'social', label: 'Social Profiles', category: 'content' },
   { id: 'socialassets', label: 'Social Assets & Specs', category: 'content' },
+  { id: 'socialmetrics', label: 'Social Media Performance', category: 'content' },
   { id: 'website', label: 'Website Links', category: 'content' },
   { id: 'signatures', label: 'Email Signatures', category: 'content' },
   { id: 'qr', label: 'QR Code', category: 'content' },
