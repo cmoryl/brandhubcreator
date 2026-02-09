@@ -5,7 +5,9 @@
 
 export type VariantLevel = 'global' | 'region' | 'country';
 
-export type TranslationStatus = 'draft' | 'in_translation' | 'review' | 'published';
+export type TranslationStatus = 'draft' | 'in_translation' | 'review' | 'approved' | 'published';
+
+export type AdaptationPriority = 'high' | 'medium' | 'low';
 
 // Region definitions (Americas, EMEA, APAC, etc.)
 export interface BrandRegion {
@@ -159,12 +161,14 @@ export interface CulturalAdaptation {
 
 export interface AdaptationSuggestion {
   id: string;
-  section: string;
+  section: LocalizableSection;
   field: string;
   original_value: unknown;
   suggested_value: unknown;
   reason: string;
   confidence: number;
+  priority: AdaptationPriority;
+  cultural_context?: string;
   status: 'pending' | 'applied' | 'rejected';
 }
 

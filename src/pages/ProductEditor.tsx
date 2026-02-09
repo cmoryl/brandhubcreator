@@ -1,12 +1,14 @@
 import React, { useState, useCallback, useMemo, useEffect, lazy, Suspense } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2 } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, ProductGuide } from '@/types/brand';
+import { GlobalBrandToolbar } from '@/components/brand/GlobalBrandToolbar';
+import { RegionalAnalysisPanel } from '@/components/brand/RegionalAnalysisPanel';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { useBrands } from '@/contexts/BrandContext';
@@ -114,6 +116,8 @@ const ProductEditor = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('full');
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
+  // Regional analysis panel state
+  const [regionalAnalysisOpen, setRegionalAnalysisOpen] = useState(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   const handleSignOut = async () => {
@@ -701,13 +705,23 @@ const ProductEditor = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                {/* Regional Analysis Toolbar */}
+                {currentProduct.organizationId && (
+                  <GlobalBrandToolbar
+                    entityType="product"
+                    entityId={currentProduct.id}
+                    organizationId={currentProduct.organizationId}
+                    onOpenAnalysis={() => setRegionalAnalysisOpen(true)}
+                    className="hidden md:flex"
+                  />
+                )}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
                       variant="ghost" 
                       size="icon"
                       onClick={() => toggleFavorite(currentProduct.id, 'product')}
-                      className={currentProduct.isFavorite ? 'text-yellow-500' : ''}
+                      className={currentProduct.isFavorite ? 'text-amber-500' : ''}
                     >
                       <Star className={`h-5 w-5 ${currentProduct.isFavorite ? 'fill-current' : ''}`} />
                     </Button>
@@ -968,6 +982,18 @@ const ProductEditor = () => {
       
       {/* Back to top button */}
       <BackToTopButton />
+
+      {/* Regional Analysis Panel */}
+      {currentProduct.organizationId && (
+        <RegionalAnalysisPanel
+          entityType="product"
+          entityId={currentProduct.id}
+          organizationId={currentProduct.organizationId}
+          guideData={currentProduct as unknown as Record<string, unknown>}
+          isOpen={regionalAnalysisOpen}
+          onOpenChange={setRegionalAnalysisOpen}
+        />
+      )}
     </TooltipProvider>
   );
 };

@@ -1,10 +1,12 @@
 import { useState, useCallback, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Brain, FileText, Building2, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Brain, FileText, Building2, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2 } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, BrandGuide } from '@/types/brand';
+import { GlobalBrandToolbar } from '@/components/brand/GlobalBrandToolbar';
+import { RegionalAnalysisPanel } from '@/components/brand/RegionalAnalysisPanel';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { supabase } from '@/integrations/supabase/client';
@@ -113,6 +115,8 @@ const BrandEditor = () => {
   // Start as true to prevent flash of "not found" before fetch begins
   const [publicBrandLoading, setPublicBrandLoading] = useState(true);
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
+  // Regional analysis panel state
+  const [regionalAnalysisOpen, setRegionalAnalysisOpen] = useState(false);
   // Parent brand for hierarchical breadcrumbs
   const [parentBrand, setParentBrand] = useState<{ id: string; name: string; slug: string } | null>(null);
   // Favorites filter state
@@ -830,13 +834,23 @@ const BrandEditor = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2 sm:gap-3">
+                {/* Regional Analysis Toolbar */}
+                {brand.organizationId && (
+                  <GlobalBrandToolbar
+                    entityType="brand"
+                    entityId={brand.id}
+                    organizationId={brand.organizationId}
+                    onOpenAnalysis={() => setRegionalAnalysisOpen(true)}
+                    className="hidden md:flex"
+                  />
+                )}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
                       variant="ghost" 
                       size="icon"
                       onClick={() => toggleFavorite(brand.id, 'brand')}
-                      className={brand.isFavorite ? 'text-yellow-500' : ''}
+                      className={brand.isFavorite ? 'text-amber-500' : ''}
                     >
                       <Star className={`h-5 w-5 ${brand.isFavorite ? 'fill-current' : ''}`} />
                     </Button>
@@ -1099,6 +1113,18 @@ const BrandEditor = () => {
       
       {/* Back to top button */}
       <BackToTopButton />
+
+      {/* Regional Analysis Panel */}
+      {brand.organizationId && (
+        <RegionalAnalysisPanel
+          entityType="brand"
+          entityId={brand.id}
+          organizationId={brand.organizationId}
+          guideData={brand as unknown as Record<string, unknown>}
+          isOpen={regionalAnalysisOpen}
+          onOpenChange={setRegionalAnalysisOpen}
+        />
+      )}
     </TooltipProvider>
   );
 };
