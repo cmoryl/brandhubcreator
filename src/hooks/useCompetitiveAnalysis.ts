@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { CompetitiveAnalysisReport, CompetitiveAnalysisReportData, EntityType } from '@/types/competitiveAnalysis';
+import { useCompetitiveIntegration } from './useCompetitiveIntegration';
 
 interface UseCompetitiveAnalysisOptions {
   entityType: EntityType;
@@ -15,6 +16,9 @@ export function useCompetitiveAnalysis({ entityType, entityId, organizationId }:
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Integration hook to sync competitive data to brand intelligence
+  const { syncCompetitiveLandscape } = useCompetitiveIntegration(entityId, entityType, organizationId);
 
   // Fetch existing reports for this entity
   const fetchReports = useCallback(async () => {
@@ -118,6 +122,12 @@ export function useCompetitiveAnalysis({ entityType, entityId, organizationId }:
 
         setReports(prev => [typedReport, ...prev]);
         setLatestReport(typedReport);
+        
+        // Sync to brand intelligence after successful report generation
+        syncCompetitiveLandscape().catch(err => {
+          console.warn('Failed to sync competitive landscape:', err);
+        });
+        
         toast.success('Competitive analysis report generated successfully');
         return typedReport;
       }
