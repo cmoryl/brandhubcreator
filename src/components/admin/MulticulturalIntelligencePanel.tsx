@@ -71,47 +71,69 @@ interface BrandIntelligenceData {
 export const MulticulturalIntelligencePanel: React.FC = () => {
   const { organization } = useOrganization();
 
-  // Fetch research briefings with multicultural insights
+  // Fetch research briefings with multicultural insights - scoped to organization
   const { data: briefings, isLoading: briefingsLoading, refetch: refetchBriefings } = useQuery({
     queryKey: ['admin-multicultural-briefings', organization?.id],
     queryFn: async () => {
+      if (!organization?.id) return [];
+      
+      // Get entity IDs for this organization first
+      const [brands, products, events] = await Promise.all([
+        supabase.from('brands').select('id').eq('organization_id', organization.id),
+        supabase.from('products').select('id').eq('organization_id', organization.id),
+        supabase.from('events').select('id').eq('organization_id', organization.id),
+      ]);
+      
+      const entityIds = [
+        ...(brands.data?.map(b => b.id) || []),
+        ...(products.data?.map(p => p.id) || []),
+        ...(events.data?.map(e => e.id) || []),
+      ];
+      
+      if (entityIds.length === 0) return [];
+      
       const { data, error } = await supabase
         .from('research_briefings')
         .select('*')
+        .in('entity_id', entityIds)
         .order('created_at', { ascending: false })
         .limit(20);
 
       if (error) throw error;
       return (data || []) as ResearchBriefingData[];
     },
-    enabled: true,
+    enabled: !!organization?.id,
   });
 
-  // Fetch brand intelligence for cultural insights
+  // Fetch brand intelligence for cultural insights - scoped to organization
   const { data: intelligenceRecords, isLoading: intelligenceLoading, refetch: refetchIntelligence } = useQuery({
     queryKey: ['admin-multicultural-intelligence', organization?.id],
     queryFn: async () => {
+      if (!organization?.id) return [];
+      
       const { data, error } = await supabase
         .from('brand_intelligence')
         .select('entity_id, entity_type, cultural_insights, globallink_recommendations, localization_readiness_score, regional_adaptations')
+        .eq('organization_id', organization.id)
         .not('cultural_insights', 'is', null)
         .limit(50);
 
       if (error) throw error;
-      // Cast through unknown to handle Json type from Supabase
       return (data || []) as unknown as BrandIntelligenceData[];
     },
-    enabled: true,
+    enabled: !!organization?.id,
   });
 
-  // Fetch entity names for display
+  // Fetch entity names for display - scoped to organization
   const { data: entityNames } = useQuery({
-    queryKey: ['admin-entity-names'],
+    queryKey: ['admin-entity-names', organization?.id],
     queryFn: async () => {
+      if (!organization?.id) return new Map<string, string>();
+      
       const [brands, products, events] = await Promise.all([
-        supabase.from('brands').select('id, name'),
-        supabase.from('products').select('id, name'),
-        supabase.from('events').select('id, name'),
+        supabase.from('brands').select('id, name').eq('organization_id', organization.id),
+        supabase.from('products').select('id, name').eq('organization_id', organization.id),
+        supabase.from('events').select('id, name').eq('organization_id', organization.id),
       ]);
 
       const nameMap = new Map<string, string>();
@@ -120,6 +142,7 @@ export const MulticulturalIntelligencePanel: React.FC = () => {
       events.data?.forEach(e => nameMap.set(e.id, e.name));
       return nameMap;
     },
+    enabled: !!organization?.id,
   });
 
   // Aggregate GlobalLink recommendations across all entities
