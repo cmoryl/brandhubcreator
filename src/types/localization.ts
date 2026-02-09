@@ -103,6 +103,7 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'ja_JP', name: 'Japanese' },
   { code: 'ko_KR', name: 'Korean' },
   { code: 'ar_SA', name: 'Arabic (Saudi Arabia)' },
+  { code: 'ar_AE', name: 'Arabic (UAE)' },
   { code: 'he_IL', name: 'Hebrew' },
   { code: 'tr_TR', name: 'Turkish' },
   { code: 'vi_VN', name: 'Vietnamese' },
@@ -119,6 +120,9 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'ro_RO', name: 'Romanian' },
   { code: 'el_GR', name: 'Greek' },
   { code: 'uk_UA', name: 'Ukrainian' },
+  { code: 'en_AU', name: 'English (Australia)' },
+  { code: 'en_SG', name: 'English (Singapore)' },
+  { code: 'en_CA', name: 'English (Canada)' },
 ] as const;
 
 export type LanguageCode = typeof SUPPORTED_LANGUAGES[number]['code'];
@@ -141,3 +145,28 @@ export interface TranslationResponse {
   cached?: boolean;
   error?: string;
 }
+
+// Re-export regional branding types for convenience
+export type {
+  BrandRegion,
+  BrandCountryMapping,
+  BrandRegionalVariant,
+  GlobalLinkProductConfig,
+  UserLocalePreference,
+  CulturalContext,
+  CulturalNotes,
+  BusinessContext,
+  CulturalAdaptation,
+  AdaptationSuggestion,
+  ResolvedBrandVariant,
+  RegionalComparison,
+  LocalizableSection,
+  VariantLevel,
+  TranslationStatus,
+} from './regionalBranding';
+
+export {
+  STANDARD_REGIONS,
+  COMMON_COUNTRIES,
+  LOCALIZABLE_SECTIONS,
+} from './regionalBranding';
