@@ -3,6 +3,7 @@
  * Types for Brand Compliance AI, AI Brand Assistant, Cultural Validation, and GenAI Training
  */
 
+export * from './service';
 export interface DataForceConfig {
   id: string;
   organizationId: string;
