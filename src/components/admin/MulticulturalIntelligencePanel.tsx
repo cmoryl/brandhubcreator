@@ -17,9 +17,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Globe2, TrendingUp, MapPin, Languages, Zap, AlertTriangle, 
   CheckCircle2, Target, Lightbulb, ArrowRight, Brain, RefreshCw,
-  BarChart3
+  BarChart3, Sparkles
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { CulturalAnalysisGenerator } from './CulturalAnalysisGenerator';
 
 interface MulticulturalInsight {
   market: string;
@@ -294,8 +295,12 @@ export const MulticulturalIntelligencePanel: React.FC = () => {
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="globallink" className="space-y-4">
+      <Tabs defaultValue="generate" className="space-y-4">
         <TabsList>
+          <TabsTrigger value="generate" className="gap-2">
+            <Sparkles className="h-4 w-4" />
+            Generate Analysis
+          </TabsTrigger>
           <TabsTrigger value="globallink" className="gap-2">
             <Zap className="h-4 w-4" />
             GlobalLink Recommendations
@@ -309,6 +314,11 @@ export const MulticulturalIntelligencePanel: React.FC = () => {
             Cultural Insights
           </TabsTrigger>
         </TabsList>
+
+        {/* Generate Analysis Tab */}
+        <TabsContent value="generate" className="space-y-4">
+          <CulturalAnalysisGenerator />
+        </TabsContent>
 
         {/* GlobalLink Recommendations Tab */}
         <TabsContent value="globallink" className="space-y-4">
