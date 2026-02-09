@@ -203,6 +203,56 @@ export type Database = {
           },
         ]
       }
+      brand_country_mappings: {
+        Row: {
+          business_context: Json | null
+          country_code: string
+          country_name: string
+          created_at: string | null
+          cultural_notes: Json | null
+          default_language: string | null
+          id: string
+          is_active: boolean | null
+          organization_id: string | null
+          region_code: string
+          updated_at: string | null
+        }
+        Insert: {
+          business_context?: Json | null
+          country_code: string
+          country_name: string
+          created_at?: string | null
+          cultural_notes?: Json | null
+          default_language?: string | null
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string | null
+          region_code: string
+          updated_at?: string | null
+        }
+        Update: {
+          business_context?: Json | null
+          country_code?: string
+          country_name?: string
+          created_at?: string | null
+          cultural_notes?: Json | null
+          default_language?: string | null
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string | null
+          region_code?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_country_mappings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brand_design_tokens: {
         Row: {
           created_at: string | null
@@ -508,6 +558,164 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "brand_prompt_library_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_regional_variants: {
+        Row: {
+          adaptation_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
+          colors_override: Json | null
+          created_at: string | null
+          created_by: string | null
+          cultural_adaptations: Json | null
+          custom_sections_override: Json | null
+          entity_id: string
+          entity_type: string
+          globallink_job_id: string | null
+          gradients_override: Json | null
+          hero_override: Json | null
+          id: string
+          identity_override: Json | null
+          imagery_override: Json | null
+          last_synced_at: string | null
+          logos_override: Json | null
+          messaging_override: Json | null
+          organization_id: string | null
+          parent_variant_id: string | null
+          patterns_override: Json | null
+          published_at: string | null
+          translation_status: string | null
+          typography_override: Json | null
+          updated_at: string | null
+          variant_code: string
+          variant_level: string
+          voice_override: Json | null
+        }
+        Insert: {
+          adaptation_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          colors_override?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          cultural_adaptations?: Json | null
+          custom_sections_override?: Json | null
+          entity_id: string
+          entity_type: string
+          globallink_job_id?: string | null
+          gradients_override?: Json | null
+          hero_override?: Json | null
+          id?: string
+          identity_override?: Json | null
+          imagery_override?: Json | null
+          last_synced_at?: string | null
+          logos_override?: Json | null
+          messaging_override?: Json | null
+          organization_id?: string | null
+          parent_variant_id?: string | null
+          patterns_override?: Json | null
+          published_at?: string | null
+          translation_status?: string | null
+          typography_override?: Json | null
+          updated_at?: string | null
+          variant_code: string
+          variant_level: string
+          voice_override?: Json | null
+        }
+        Update: {
+          adaptation_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          colors_override?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          cultural_adaptations?: Json | null
+          custom_sections_override?: Json | null
+          entity_id?: string
+          entity_type?: string
+          globallink_job_id?: string | null
+          gradients_override?: Json | null
+          hero_override?: Json | null
+          id?: string
+          identity_override?: Json | null
+          imagery_override?: Json | null
+          last_synced_at?: string | null
+          logos_override?: Json | null
+          messaging_override?: Json | null
+          organization_id?: string | null
+          parent_variant_id?: string | null
+          patterns_override?: Json | null
+          published_at?: string | null
+          translation_status?: string | null
+          typography_override?: Json | null
+          updated_at?: string | null
+          variant_code?: string
+          variant_level?: string
+          voice_override?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_regional_variants_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brand_regional_variants_parent_variant_id_fkey"
+            columns: ["parent_variant_id"]
+            isOneToOne: false
+            referencedRelation: "brand_regional_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_regions: {
+        Row: {
+          code: string
+          created_at: string | null
+          cultural_context: Json | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string | null
+          parent_region_code: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          cultural_context?: Json | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id?: string | null
+          parent_region_code?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          cultural_context?: Json | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string | null
+          parent_region_code?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_regions_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -932,6 +1140,68 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "globallink_config_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      globallink_product_config: {
+        Row: {
+          ai_content_optimization: boolean | null
+          ai_cultural_adaptation: boolean | null
+          ai_enabled: boolean | null
+          ai_model: string | null
+          connect_enabled: boolean | null
+          connect_project_id: string | null
+          connect_workflow_template: string | null
+          created_at: string | null
+          fluent_embed_key: string | null
+          fluent_enabled: boolean | null
+          id: string
+          organization_id: string | null
+          translation_api_key_id: string | null
+          translation_enabled: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_content_optimization?: boolean | null
+          ai_cultural_adaptation?: boolean | null
+          ai_enabled?: boolean | null
+          ai_model?: string | null
+          connect_enabled?: boolean | null
+          connect_project_id?: string | null
+          connect_workflow_template?: string | null
+          created_at?: string | null
+          fluent_embed_key?: string | null
+          fluent_enabled?: boolean | null
+          id?: string
+          organization_id?: string | null
+          translation_api_key_id?: string | null
+          translation_enabled?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_content_optimization?: boolean | null
+          ai_cultural_adaptation?: boolean | null
+          ai_enabled?: boolean | null
+          ai_model?: string | null
+          connect_enabled?: boolean | null
+          connect_project_id?: string | null
+          connect_workflow_template?: string | null
+          created_at?: string | null
+          fluent_embed_key?: string | null
+          fluent_enabled?: boolean | null
+          id?: string
+          organization_id?: string | null
+          translation_api_key_id?: string | null
+          translation_enabled?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "globallink_product_config_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: true
             referencedRelation: "organizations"
@@ -1987,6 +2257,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_locale_preferences: {
+        Row: {
+          created_at: string | null
+          id: string
+          preferred_country: string | null
+          preferred_language: string | null
+          preferred_region: string | null
+          show_regional_comparison: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          preferred_country?: string | null
+          preferred_language?: string | null
+          preferred_region?: string | null
+          show_regional_comparison?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          preferred_country?: string | null
+          preferred_language?: string | null
+          preferred_region?: string | null
+          show_regional_comparison?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_logo_favorites: {
         Row: {
