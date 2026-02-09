@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Brain, FileText, Building2, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2, Languages, MapPin } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Brain, FileText, Building2, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2, Languages, MapPin, Zap } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, BrandGuide } from '@/types/brand';
@@ -62,6 +62,7 @@ import { BrandBackupManager } from '@/components/brand/BrandBackupManager';
 import { QuickBackupButton } from '@/components/brand/QuickBackupButton';
 import { RegionalVariantWizard } from '@/components/brand/RegionalVariantWizard';
 import { TranslationHub } from '@/components/brand/TranslationHub';
+import { GlobalLinkWorkflowTrigger } from '@/components/brand/GlobalLinkWorkflowTrigger';
 import { AdminToolbar } from '@/components/admin/AdminToolbar';
 import { StickyBreadcrumbs } from '@/components/StickyBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
@@ -1070,6 +1071,19 @@ const BrandEditor = () => {
                 label: 'Translations',
                 icon: Languages,
                 onClick: () => setTranslationHubOpen(true),
+              },
+              {
+                id: 'workflow',
+                label: 'GlobalLink Workflow',
+                icon: Zap,
+                render: () => organization?.id ? (
+                  <GlobalLinkWorkflowTrigger
+                    entityId={brand.id}
+                    entityType="brand"
+                    entityName={brand.hero.name}
+                    organizationId={organization.id}
+                  />
+                ) : null,
               },
             ]}
           />
