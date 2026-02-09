@@ -41,7 +41,15 @@ const faqs = [
   },
   {
     question: "What AI features are available?",
-    answer: "Competitive Intelligence, Brand Intelligence learning, and automated pattern generation."
+    answer: "Competitive Intelligence, Brand Intelligence, Cultural Insights, and automated pattern generation."
+  },
+  {
+    question: "What is GlobalLink integration?",
+    answer: "Real-time translation and localization via GlobalLink Web API with caching and cultural adaptation."
+  },
+  {
+    question: "What is Multicultural Intelligence?",
+    answer: "AI-powered cultural insights with localization readiness scores and regional market analysis."
   },
 ];
 

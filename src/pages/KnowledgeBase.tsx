@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, BookOpen, HelpCircle, Lightbulb, Search, CreditCard, Plug, Users, Globe, Shield, Play, Video, X, Home, Palette } from "lucide-react";
+import { ArrowLeft, BookOpen, HelpCircle, Lightbulb, Search, CreditCard, Plug, Users, Globe, Shield, Play, Video, X, Home, Palette, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
@@ -82,7 +82,7 @@ const faqs = [
     questions: [
       {
         q: "What is BrandHub?",
-        a: "BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines. Create stunning brand books with colors, typography, logos, AI-powered analytics, competitive intelligence, and dedicated event brand kits—all with enterprise-grade security."
+        a: "BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines. Create stunning brand books with colors, typography, logos, AI-powered analytics, competitive intelligence, multicultural localization, and dedicated event brand kits—all with enterprise-grade security."
       },
       {
         q: "How do I create my first brand guide?",
@@ -125,6 +125,62 @@ const faqs = [
     ]
   },
   {
+    category: "GlobalLink & Localization",
+    icon: Globe,
+    questions: [
+      {
+        q: "What is GlobalLink integration?",
+        a: "GlobalLink integration provides real-time translation via the GlobalLink Web API. Configure your API key and project key in Admin Settings to enable live translations for all your brand content across multiple languages."
+      },
+      {
+        q: "What is Demo Mode vs Live Mode?",
+        a: "Demo Mode simulates translations by adding language markers to content (e.g., '[es_ES] Your text here')—perfect for testing workflows without API costs. Live Mode uses your actual GlobalLink credentials for production-quality translations."
+      },
+      {
+        q: "How does Translation Hub work?",
+        a: "The Translation Hub is your central dashboard for managing all translation jobs. View job status (Pending, In Progress, Completed), track word counts and character counts, monitor cache hit rates, and manage target languages—all from one interface."
+      },
+      {
+        q: "What is translation caching?",
+        a: "BrandHub automatically caches translated content to reduce API costs and improve speed. Previously translated content is served instantly from cache. View cache analytics including hit counts, storage usage, and cache efficiency metrics."
+      },
+      {
+        q: "What target languages are supported?",
+        a: "Configure any target language your GlobalLink account supports. Common languages include Spanish, French, German, Japanese, Chinese, Portuguese, Italian, and more. Set language priorities and enable/disable languages per organization."
+      },
+      {
+        q: "What GlobalLink products are supported?",
+        a: "BrandHub integrates with the full GlobalLink suite: Translation (real-time MT/HT), AI (content optimization), Connect (workflow management), and Fluent (website localization). Enable each product individually in Admin → Localization settings."
+      }
+    ]
+  },
+  {
+    category: "Multicultural Intelligence",
+    icon: Languages,
+    questions: [
+      {
+        q: "What is Multicultural Intelligence?",
+        a: "Multicultural Intelligence provides AI-powered cultural insights for your brands, products, and events. Get localization readiness scores, regional market analysis, and recommendations for cultural adaptations across global markets."
+      },
+      {
+        q: "What is a Localization Readiness Score?",
+        a: "The Localization Readiness Score (0-100) measures how prepared your brand is for international expansion. It considers content completeness, cultural sensitivity, visual adaptability, and messaging flexibility. Higher scores indicate better global readiness."
+      },
+      {
+        q: "How do Regional Variants work?",
+        a: "Regional Variants allow you to create market-specific versions of your brand guides with tailored colors, messaging, imagery, and cultural adaptations. Variants inherit from the parent brand while allowing regional customizations."
+      },
+      {
+        q: "What Cultural Insights are provided?",
+        a: "Cultural Insights include primary expansion markets, regional messaging considerations, design adaptations (color sensitivity, imagery guidelines), and specific recommendations for each target market based on your brand's characteristics."
+      },
+      {
+        q: "How does GlobalLink Strategy recommendation work?",
+        a: "Based on your brand's profile and expansion goals, the system recommends which GlobalLink products to prioritize: Translation for content localization, AI for automated adaptations, Connect for workflow management, or Fluent for website localization."
+      }
+    ]
+  },
+  {
     category: "Event Brand Kits",
     icon: Calendar,
     questions: [
@@ -160,15 +216,19 @@ const faqs = [
       },
       {
         q: "What is Brand Intelligence?",
-        a: "Brand Intelligence is an AI learning system that builds knowledge about your brand over time. It tracks analysis history, confidence scores, and provides personalized recommendations based on your feedback."
+        a: "Brand Intelligence is an AI learning system that builds knowledge about your brand over time. It tracks analysis history, confidence scores, cultural insights, global readiness, and provides personalized recommendations based on your feedback."
       },
       {
         q: "How do Brand Health Scores work?",
-        a: "Brand Health Scores track completeness and consistency metrics. The system analyzes section completion, identifies missing elements, and provides actionable recommendations to improve your brand guides."
+        a: "Brand Health Scores track completeness and consistency metrics across 35+ sections in 8 strategic categories. The system analyzes section completion with depth-based scoring, identifies missing elements, and provides actionable recommendations."
       },
       {
         q: "Can I generate patterns and gradients automatically?",
         a: "Yes! AI generates brand-specific geometric patterns and CSS gradients based on your color palette. Use batch generation to create assets for all brands at once."
+      },
+      {
+        q: "What is the Brand Creative Studio?",
+        a: "The Brand Creative Studio enables brand-aware imagery generation with a built-in AI generator, prompt library for reusable templates, and design token export utility for CSS, JSON, and Tailwind configurations."
       }
     ]
   },
@@ -208,11 +268,11 @@ const faqs = [
       },
       {
         q: "What's included when I sign up?",
-        a: "All plans include brand guide creation, color palettes, typography management, logo usage guidelines, team collaboration, public sharing, and access to AI features. Contact us to learn about additional features like competitive intelligence and advanced integrations."
+        a: "All plans include brand guide creation, color palettes, typography management, logo usage guidelines, team collaboration, public sharing, and access to AI features. Contact us to learn about GlobalLink integration, competitive intelligence, and advanced features."
       },
       {
         q: "Do you offer custom solutions for enterprises?",
-        a: "Yes! We work with organizations of all sizes to create custom solutions. Reach out to discuss white-labeling, custom domains, advanced integrations, and dedicated support options."
+        a: "Yes! We work with organizations of all sizes to create custom solutions. Reach out to discuss white-labeling, custom domains, GlobalLink enterprise integration, advanced integrations, and dedicated support options."
       }
     ]
   },
@@ -226,7 +286,7 @@ const faqs = [
       },
       {
         q: "What permission levels are available?",
-        a: "We offer multiple permission levels: Viewer (view only), Member (can edit guides), Admin (can manage settings and members), Owner (full control including deletion), and Super Admin (platform-wide access)."
+        a: "We offer multiple permission levels: Viewer (view only), Member (can edit guides), Admin (can manage settings, members, and GlobalLink config), Owner (full control including deletion), and Super Admin (platform-wide access)."
       },
       {
         q: "How does email masking work?",
@@ -245,6 +305,10 @@ const faqs = [
       {
         q: "Is my brand data secure?",
         a: "Yes! BrandHub uses enterprise-grade security with Row Level Security (RLS), encrypted data in transit and at rest, and comprehensive audit logging for compliance."
+      },
+      {
+        q: "How are GlobalLink API credentials stored?",
+        a: "GlobalLink API keys and project keys are stored securely in the database with encryption. Alternatively, you can configure them as backend secrets for additional security. Keys are never exposed to client-side code."
       },
       {
         q: "What is Leaked Password Protection?",

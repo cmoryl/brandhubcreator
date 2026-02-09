@@ -20,7 +20,11 @@ import {
   ChevronRight,
   Calendar,
   MapPin,
-  Ticket
+  Ticket,
+  Languages,
+  Globe2,
+  Sparkles,
+  Network
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -97,6 +101,34 @@ const eventFeatures: Feature[] = [
   },
 ];
 
+// GlobalLink & Localization features (NEW)
+const localizationFeatures: Feature[] = [
+  {
+    icon: Languages,
+    title: 'GlobalLink Translation',
+    description: 'Real-time translation via GlobalLink Web API with demo and live modes. Automatic caching for cost optimization.',
+    gradient: 'from-emerald-500/20 to-teal-500/20',
+  },
+  {
+    icon: Globe2,
+    title: 'Multicultural Intelligence',
+    description: 'AI-powered cultural insights with localization readiness scores and regional market analysis.',
+    gradient: 'from-blue-500/20 to-indigo-500/20',
+  },
+  {
+    icon: Sparkles,
+    title: 'Cultural Adaptation',
+    description: 'Regional variants with color, imagery, and messaging adaptations. GlobalLink Fluent and Connect integration.',
+    gradient: 'from-purple-500/20 to-pink-500/20',
+  },
+  {
+    icon: Network,
+    title: 'Translation Hub',
+    description: 'Centralized translation job management with status tracking, word counts, and cache analytics.',
+    gradient: 'from-orange-500/20 to-amber-500/20',
+  },
+];
+
 const analyticsFeatures: Feature[] = [
   {
     icon: BarChart3,
@@ -113,7 +145,7 @@ const analyticsFeatures: Feature[] = [
   {
     icon: Brain,
     title: 'Brand Intelligence',
-    description: 'AI-powered knowledge base with learning, confidence tracking, and recommendations.',
+    description: 'AI-powered knowledge base with learning, confidence tracking, cultural insights, and recommendations.',
     gradient: 'from-purple-500/20 to-pink-500/20',
   },
   {
@@ -146,7 +178,7 @@ const adminFeatures: Feature[] = [
   {
     icon: Zap,
     title: 'Bulk Intelligence',
-    description: 'Generate AI analysis, patterns, and gradients for all brands in one operation.',
+    description: 'Generate AI analysis, patterns, gradients, and cultural insights for all brands in one operation.',
     gradient: 'from-cyan-500/20 to-blue-500/20',
   },
 ];
@@ -263,10 +295,14 @@ export function FeaturesShowcase() {
         <div className={`${isVisible ? 'animate-fade-in' : 'opacity-0'}`} style={{ animationDelay: '200ms' }}>
           <Tabs defaultValue="core" className="w-full">
             <div className="flex justify-center mb-12">
-              <TabsList className="grid w-full max-w-2xl grid-cols-4 h-12">
+              <TabsList className="grid w-full max-w-3xl grid-cols-5 h-12">
                 <TabsTrigger value="core" className="gap-2 text-sm" aria-label="Core features">
                   <Layers className="h-4 w-4" />
                   <span className="hidden sm:inline">Core</span>
+                </TabsTrigger>
+                <TabsTrigger value="localization" className="gap-2 text-sm" aria-label="Localization features">
+                  <Languages className="h-4 w-4" />
+                  <span className="hidden sm:inline">Global</span>
                 </TabsTrigger>
                 <TabsTrigger value="events" className="gap-2 text-sm" aria-label="Event features">
                   <Calendar className="h-4 w-4" />
@@ -285,6 +321,9 @@ export function FeaturesShowcase() {
 
             <TabsContent value="core" className="mb-12 mt-0">
               <FeatureGrid features={coreFeatures} isVisible={isVisible} />
+            </TabsContent>
+            <TabsContent value="localization" className="mb-12 mt-0">
+              <FeatureGrid features={localizationFeatures} isVisible={isVisible} />
             </TabsContent>
             <TabsContent value="events" className="mb-12 mt-0">
               <FeatureGrid features={eventFeatures} isVisible={isVisible} />
