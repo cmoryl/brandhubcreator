@@ -16,7 +16,12 @@ import {
   ChevronUp,
   BookOpen,
   Zap,
-  Activity
+  Activity,
+  Globe2,
+  Palette,
+  Image,
+  Languages,
+  MapPin,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -26,7 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
- 
+import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { InsightFeedbackControls } from './intelligence/InsightFeedbackControls';
@@ -34,6 +39,7 @@ import { LearningStatusBadge } from './intelligence/LearningStatusBadge';
 import { ConfidenceIndicator } from './intelligence/ConfidenceIndicator';
 import { InsightActionTracker } from './intelligence/InsightActionTracker';
 import { CompetitiveLandscapeSection } from './intelligence/CompetitiveLandscapeSection';
+import { CulturalIntelligenceSection } from './intelligence/CulturalIntelligenceSection';
 
 interface KnowledgeEntry {
   id: string;
@@ -75,6 +81,26 @@ interface CompetitiveLandscape {
   market_share_estimate: string;
 }
 
+interface CulturalInsights {
+  global_readiness_score: number;
+  primary_markets: string[];
+  cultural_considerations: {
+    region: string;
+    considerations: string[];
+    design_adaptations: string[];
+    messaging_notes: string;
+  }[];
+  localization_priorities: string[];
+  color_cultural_notes: string[];
+  imagery_guidelines: string[];
+}
+
+interface GlobalLinkRecommendation {
+  product: string;
+  relevance: 'high' | 'medium' | 'low';
+  use_case: string;
+}
+
 interface BrandIntelligence {
   id: string;
   entity_type: string;
@@ -104,6 +130,9 @@ interface BrandIntelligence {
     confidence?: number;
   }[];
   competitive_landscape?: CompetitiveLandscape | null;
+  cultural_insights?: CulturalInsights | null;
+  globallink_recommendations?: GlobalLinkRecommendation[];
+  localization_readiness_score?: number;
   analysis_count: number;
   last_analyzed_at: string | null;
   insight_actions?: any[];
@@ -150,6 +179,7 @@ export const BrandIntelligencePanel = ({
     analysis: true,
     recommendations: false,
     competitive: false,
+    cultural: false,
   });
 
   const getFeedbackForInsight = useCallback((insightId: string): InsightFeedback | undefined => {
@@ -543,6 +573,39 @@ export const BrandIntelligencePanel = ({
               isExpanded={expandedSections.competitive}
               onToggle={() => toggleSection('competitive')}
             />
+          </>
+        )}
+
+        {/* Cultural Intelligence Section */}
+        {(intelligence?.cultural_insights || intelligence?.globallink_recommendations?.length) && (
+          <>
+            <Separator />
+            <Collapsible 
+              open={expandedSections.cultural} 
+              onOpenChange={() => toggleSection('cultural')}
+            >
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+                  <div className="flex items-center gap-2">
+                    <Globe2 className="h-4 w-4 text-sky-500" />
+                    <span className="font-medium">Cultural Intelligence</span>
+                    {intelligence?.localization_readiness_score !== undefined && intelligence.localization_readiness_score > 0 && (
+                      <Badge variant="secondary" className="ml-2">
+                        {intelligence.localization_readiness_score}/100
+                      </Badge>
+                    )}
+                  </div>
+                  {expandedSections.cultural ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-4">
+                <CulturalIntelligenceSection
+                  culturalInsights={intelligence?.cultural_insights}
+                  globallinkRecommendations={intelligence?.globallink_recommendations}
+                  localizationReadinessScore={intelligence?.localization_readiness_score}
+                />
+              </CollapsibleContent>
+            </Collapsible>
           </>
         )}
 
