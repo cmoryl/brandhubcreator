@@ -1,11 +1,13 @@
 /**
  * Cultural Analysis Generator
  * Allows admins to generate cultural analysis reports for brands, products, and events
+ * Scoped to current organization for data isolation
  */
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Globe2, Play, Loader2, CheckCircle2, AlertCircle, 
-  Brain, Sparkles, FileText
+  Brain, Sparkles, FileText, AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -27,19 +29,31 @@ interface EntityOption {
 
 export const CulturalAnalysisGenerator: React.FC = () => {
   const queryClient = useQueryClient();
+  const { organization } = useOrganization();
   const [selectedEntity, setSelectedEntity] = useState<string>('');
   const [analysisType, setAnalysisType] = useState<'cultural' | 'full'>('cultural');
 
-  // Fetch all entities with their analysis status
-  const { data: entities, isLoading: entitiesLoading } = useQuery({
-    queryKey: ['cultural-analysis-entities'],
+  // Fetch entities scoped to current organization with their analysis status
+  const { data: entities, isLoading: entitiesLoading, error: entitiesError } = useQuery({
+    queryKey: ['cultural-analysis-entities', organization?.id],
     queryFn: async () => {
+      if (!organization?.id) {
+        return [];
+      }
+
       const [brands, products, events, intelligence] = await Promise.all([
-        supabase.from('brands').select('id, name'),
-        supabase.from('products').select('id, name'),
-        supabase.from('events').select('id, name'),
-        supabase.from('brand_intelligence').select('entity_id, entity_type, last_analyzed_at, cultural_insights'),
+        supabase.from('brands').select('id, name').eq('organization_id', organization.id),
+        supabase.from('products').select('id, name').eq('organization_id', organization.id),
+        supabase.from('events').select('id, name').eq('organization_id', organization.id),
+        supabase.from('brand_intelligence')
+          .select('entity_id, entity_type, last_analyzed_at, cultural_insights')
+          .eq('organization_id', organization.id),
       ]);
+
+      // Check for errors in any query
+      if (brands.error) throw new Error(`Failed to fetch brands: ${brands.error.message}`);
+      if (products.error) throw new Error(`Failed to fetch products: ${products.error.message}`);
+      if (events.error) throw new Error(`Failed to fetch events: ${events.error.message}`);
 
       const intelligenceMap = new Map<string, { lastAnalyzed?: string; hasCultural: boolean }>();
       intelligence.data?.forEach(i => {
@@ -86,9 +100,10 @@ export const CulturalAnalysisGenerator: React.FC = () => {
 
       return allEntities;
     },
+    enabled: !!organization?.id,
   });
 
-  // Generate cultural analysis mutation
+  // Generate cultural analysis mutation with rate limit handling
   const generateAnalysis = useMutation({
     mutationFn: async ({ entityId, entityType }: { entityId: string; entityType: string }) => {
       // First, run brand intelligence analysis
@@ -97,10 +112,20 @@ export const CulturalAnalysisGenerator: React.FC = () => {
           action: 'analyze',
           entityType,
           entityId,
+          organizationId: organization?.id,
         },
       });
 
-      if (intelligenceError) throw intelligenceError;
+      if (intelligenceError) {
+        // Handle rate limiting
+        if (intelligenceError.message?.includes('429') || intelligenceError.message?.includes('rate limit')) {
+          throw new Error('Rate limit exceeded. Please wait a moment before trying again.');
+        }
+        if (intelligenceError.message?.includes('402')) {
+          throw new Error('AI credits exhausted. Please add credits to continue.');
+        }
+        throw intelligenceError;
+      }
 
       // Then generate a research briefing with multicultural focus
       const { data: researchResult, error: researchError } = await supabase.functions.invoke('brand-research', {
@@ -112,7 +137,15 @@ export const CulturalAnalysisGenerator: React.FC = () => {
         },
       });
 
-      if (researchError) throw researchError;
+      if (researchError) {
+        if (researchError.message?.includes('429') || researchError.message?.includes('rate limit')) {
+          throw new Error('Rate limit exceeded. Please wait a moment before trying again.');
+        }
+        if (researchError.message?.includes('402')) {
+          throw new Error('AI credits exhausted. Please add credits to continue.');
+        }
+        throw researchError;
+      }
 
       return { intelligence: intelligenceResult, research: researchResult };
     },
@@ -121,34 +154,62 @@ export const CulturalAnalysisGenerator: React.FC = () => {
       toast.success('Cultural analysis generated', {
         description: `Analysis complete for ${entity?.name || 'entity'}`,
       });
-      queryClient.invalidateQueries({ queryKey: ['cultural-analysis-entities'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-multicultural-intelligence'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-multicultural-briefings'] });
+      queryClient.invalidateQueries({ queryKey: ['cultural-analysis-entities', organization?.id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-multicultural-intelligence', organization?.id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-multicultural-briefings', organization?.id] });
     },
     onError: (error) => {
       console.error('Cultural analysis error:', error);
-      toast.error('Analysis failed', {
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-      });
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      if (message.includes('Rate limit')) {
+        toast.error('Rate Limited', {
+          description: message,
+          duration: 6000,
+        });
+      } else if (message.includes('credits')) {
+        toast.error('Credits Exhausted', {
+          description: message,
+          action: { label: 'Add Credits', onClick: () => window.open('/settings', '_blank') },
+        });
+      } else {
+        toast.error('Analysis failed', { description: message });
+      }
     },
   });
 
-  // Batch generate for all entities without analysis
+  // Batch generate for all entities without analysis with delay to avoid rate limiting
   const generateBatch = useMutation({
     mutationFn: async () => {
       const entitiesWithoutAnalysis = entities?.filter(e => !e.hasAnalysis) || [];
-      const results = [];
+      const results: Array<{ entity: EntityOption; success: boolean; error?: unknown }> = [];
 
       for (const entity of entitiesWithoutAnalysis.slice(0, 5)) { // Limit to 5 at a time
         try {
-          await supabase.functions.invoke('brand-intelligence', {
+          const { error } = await supabase.functions.invoke('brand-intelligence', {
             body: {
               action: 'analyze',
               entityType: entity.type,
               entityId: entity.id,
+              organizationId: organization?.id,
             },
           });
+          
+          if (error) {
+            // Check for rate limiting
+            if (error.message?.includes('429') || error.message?.includes('rate limit')) {
+              toast.warning(`Rate limited - waiting before continuing...`);
+              await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+              results.push({ entity, success: false, error: 'Rate limited' });
+              continue;
+            }
+            throw error;
+          }
+          
           results.push({ entity, success: true });
+          
+          // Add delay between requests to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (err) {
           results.push({ entity, success: false, error: err });
         }
@@ -161,8 +222,14 @@ export const CulturalAnalysisGenerator: React.FC = () => {
       toast.success(`Batch analysis complete`, {
         description: `${successCount}/${results.length} analyses generated successfully`,
       });
-      queryClient.invalidateQueries({ queryKey: ['cultural-analysis-entities'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-multicultural-intelligence'] });
+      queryClient.invalidateQueries({ queryKey: ['cultural-analysis-entities', organization?.id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-multicultural-intelligence', organization?.id] });
+    },
+    onError: (error) => {
+      console.error('Batch analysis error:', error);
+      toast.error('Batch analysis failed', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+      });
     },
   });
 
@@ -181,6 +248,51 @@ export const CulturalAnalysisGenerator: React.FC = () => {
   const selectedEntityData = entities?.find(e => e.id === selectedEntity);
   const entitiesWithoutAnalysis = entities?.filter(e => !e.hasAnalysis) || [];
   const entitiesWithAnalysis = entities?.filter(e => e.hasAnalysis) || [];
+
+  // Handle no organization selected
+  if (!organization?.id) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <div className="text-center text-muted-foreground">
+            <AlertTriangle className="h-12 w-12 mx-auto mb-3 text-warning" />
+            <p>Please select an organization to generate cultural analysis.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Handle loading state
+  if (entitiesLoading) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <div className="text-center text-muted-foreground">
+            <Loader2 className="h-8 w-8 mx-auto mb-3 animate-spin" />
+            <p>Loading entities...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Handle error state
+  if (entitiesError) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <div className="text-center text-destructive">
+            <AlertCircle className="h-12 w-12 mx-auto mb-3" />
+            <p>Failed to load entities</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {entitiesError instanceof Error ? entitiesError.message : 'Unknown error'}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
