@@ -160,21 +160,40 @@ export const RegionalVariantWizard = ({
     try {
       const { data, error } = await supabase.functions.invoke('globallink-cultural-adapt', {
         body: {
-          entityId,
-          entityType,
-          targetRegion: formData.variantCode,
-          variantLevel: formData.variantLevel,
+          organization_id: organizationId,
+          entity_id: entityId,
+          entity_type: entityType,
+          target_region: formData.variantCode,
+          target_country: formData.variantLevel === 'country' ? formData.variantCode : undefined,
         }
       });
 
       if (error) throw error;
 
-      if (data?.culturalNotes) {
+      if (data?.success && data?.suggestions?.length > 0) {
+        // Extract cultural notes from suggestions
+        const colorNotes = data.suggestions
+          .filter((s: { section: string }) => s.section === 'colors')
+          .map((s: { reason: string }) => s.reason)
+          .join('; ');
+        const imageryNotes = data.suggestions
+          .filter((s: { section: string }) => s.section === 'imagery')
+          .map((s: { suggested_value: string[] }) => Array.isArray(s.suggested_value) ? s.suggested_value.join(', ') : '')
+          .join('; ');
+        const messagingNotes = data.suggestions
+          .filter((s: { section: string }) => s.section === 'messaging')
+          .map((s: { reason: string }) => s.reason)
+          .join('; ');
+        
+        const culturalNotes = [colorNotes, imageryNotes, messagingNotes].filter(Boolean).join('\n\n');
+        
         updateFormData({
-          culturalNotes: data.culturalNotes,
-          adaptationNotes: data.adaptationRecommendations || '',
+          culturalNotes: culturalNotes || `Cultural insights for ${data.locale_name || formData.variantCode}`,
+          adaptationNotes: `Target locale: ${data.locale_name || formData.variantCode}`,
         });
         toast.success('AI cultural insights generated');
+      } else {
+        toast.info('No specific cultural adaptations found for this region');
       }
     } catch (err) {
       console.error('Failed to generate cultural notes:', err);
