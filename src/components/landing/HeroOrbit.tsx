@@ -622,19 +622,19 @@ export const HeroOrbit = forwardRef<HTMLDivElement, HeroOrbitProps>(({
           </div>
         </div>
 
-        {/* Legend badges */}
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-3 px-4 py-2 rounded-full bg-background/80 backdrop-blur-md border border-border/50 z-30">
+        {/* Legend badges - responsive positioning */}
+        <div className="absolute bottom-0 md:bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-3 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-background/90 md:bg-background/80 backdrop-blur-md border border-border/50 z-30 scale-90 md:scale-100">
           {[
             { type: 'brand', label: 'Brands', count: brands.length },
             { type: 'product', label: 'Products', count: products.length },
             { type: 'event', label: 'Events', count: events.length },
           ].map(({ type, label, count }) => (
-            <div key={type} className="flex items-center gap-1.5">
+            <div key={type} className="flex items-center gap-1 md:gap-1.5">
               <div 
-                className="w-2.5 h-2.5 rounded-full"
+                className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full"
                 style={{ background: TYPE_COLORS[type as keyof typeof TYPE_COLORS] }}
               />
-              <span className="text-[10px] font-medium text-muted-foreground">
+              <span className="text-[9px] md:text-[10px] font-medium text-muted-foreground whitespace-nowrap">
                 {label} ({count})
               </span>
             </div>
