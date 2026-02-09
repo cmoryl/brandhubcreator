@@ -207,6 +207,8 @@ function calculateConfidenceCalibration(history: ConfidenceRecord[]): number {
   return 1 - (totalError / validated.length);
 }
 
+// NOTE: Heavy AI analysis is now delegated to brand-intelligence-worker function
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -260,7 +262,6 @@ serve(async (req) => {
     
     const tableName = entityType === 'brand' ? 'brands' : entityType === 'product' ? 'products' : 'events';
     
-    // Build select query - brands don't have parent_brand_id
     const selectColumns = entityType === 'brand' 
       ? 'id, user_id, organization_id'
       : 'id, user_id, organization_id, parent_brand_id';
@@ -287,6 +288,107 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Handle analyze action with background processing
+    if (action === 'analyze') {
+      if (!lovableApiKey) {
+        throw new Error("LOVABLE_API_KEY is not configured");
+      }
+
+      // Check if user has permission to use AI features
+      const { data: canUseAI } = await supabase.rpc('can_use_ai_features', {
+        _user_id: user.id,
+        _entity_id: entityId,
+        _entity_type: entityType
+      });
+
+      if (!canUseAI) {
+        return new Response(
+          JSON.stringify({ error: 'Organization admin role required for AI analysis' }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Create job record immediately
+      const { data: job, error: jobError } = await supabase
+        .from('brand_intelligence_jobs')
+        .insert({
+          entity_type: entityType,
+          entity_id: entityId,
+          organization_id: organizationId,
+          user_id: user.id,
+          status: 'pending',
+          progress: 0,
+        })
+        .select()
+        .single();
+
+      if (jobError || !job) {
+        console.error("[brand-intelligence] Failed to create job:", jobError);
+        throw new Error("Failed to create analysis job");
+      }
+
+      // Call the worker function to process the job asynchronously
+      // Using EdgeRuntime.waitUntil to not block the response
+      // @ts-ignore - EdgeRuntime is available in Supabase Edge Functions
+      EdgeRuntime.waitUntil(
+        fetch(`${supabaseUrl}/functions/v1/brand-intelligence-worker`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+          },
+          body: JSON.stringify({ jobId: job.id }),
+        }).catch((error) => {
+          console.error("[brand-intelligence] Worker invocation error:", error);
+          // Update job status to failed if worker can't be reached
+          supabase
+            .from('brand_intelligence_jobs')
+            .update({ status: 'failed', error_message: 'Failed to start worker' })
+            .eq('id', job.id);
+        })
+      );
+
+      // Return immediately with job ID
+      return new Response(JSON.stringify({ 
+        success: true, 
+        job_id: job.id,
+        message: 'Analysis started. Poll for status using job_id.'
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Handle job status check
+    if (action === 'job_status') {
+      const { job_id } = await req.json().catch(() => ({}));
+      
+      if (!job_id) {
+        return new Response(
+          JSON.stringify({ error: 'job_id is required' }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: job, error: jobError } = await supabase
+        .from('brand_intelligence_jobs')
+        .select('*')
+        .eq('id', job_id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (jobError || !job) {
+        return new Response(
+          JSON.stringify({ error: 'Job not found' }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(JSON.stringify({ job }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Fetch intelligence for other actions
     let { data: intelligence, error: fetchError } = await supabase
       .from('brand_intelligence')
       .select('*')
@@ -412,7 +514,6 @@ serve(async (req) => {
         );
         const updatedFeedbackList = [...filteredFeedback, newFeedback];
         
-        // Update confidence history if validating a prediction
         const confidenceHistory = (intelligence.confidence_history || []) as ConfidenceRecord[];
         const insightEntry = (intelligence.knowledge_entries || []).find((e: KnowledgeEntry) => e.id === feedback.insight_id);
         if (insightEntry?.confidence) {
@@ -454,7 +555,7 @@ serve(async (req) => {
         };
         
         const currentActions = (intelligence.insight_actions || []) as InsightAction[];
-        const updatedActions = [...currentActions, newAction].slice(-100); // Keep last 100 actions
+        const updatedActions = [...currentActions, newAction].slice(-100);
         
         const { error: actionError } = await supabase
           .from('brand_intelligence')
@@ -470,406 +571,6 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
 
-      case 'analyze':
-        if (!lovableApiKey) {
-          throw new Error("LOVABLE_API_KEY is not configured");
-        }
-
-        // Check if user has permission to use AI features (org admin or higher)
-        const { data: canUseAI } = await supabase.rpc('can_use_ai_features', {
-          _user_id: user.id,
-          _entity_id: entityId,
-          _entity_type: entityType
-        });
-
-        if (!canUseAI) {
-          console.log("[brand-intelligence] User lacks AI permissions:", user.id);
-          return new Response(
-            JSON.stringify({ error: 'Organization admin role required for AI analysis' }),
-            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-
-        const table = entityType === 'brand' ? 'brands' : entityType === 'product' ? 'products' : 'events';
-        
-        // Fetch entity data - brands don't have parent_brand_id column
-        let entityData: { name: string; guide_data: unknown; parent_brand_id?: string } | null = null;
-        
-        if (entityType === 'brand') {
-          const { data, error } = await supabase
-            .from('brands')
-            .select('name, guide_data')
-            .eq('id', entityId)
-            .single();
-          if (error) {
-            console.error(`[brand-intelligence] Failed to fetch brand:`, error);
-            throw new Error('Failed to fetch brand data');
-          }
-          entityData = { ...data, parent_brand_id: undefined };
-        } else if (entityType === 'product') {
-          const { data, error } = await supabase
-            .from('products')
-            .select('name, guide_data, parent_brand_id')
-            .eq('id', entityId)
-            .single();
-          if (error) {
-            console.error(`[brand-intelligence] Failed to fetch product:`, error);
-            throw new Error('Failed to fetch product data');
-          }
-          entityData = data;
-        } else {
-          const { data, error } = await supabase
-            .from('events')
-            .select('name, guide_data, parent_brand_id')
-            .eq('id', entityId)
-            .single();
-          if (error) {
-            console.error(`[brand-intelligence] Failed to fetch event:`, error);
-            throw new Error('Failed to fetch event data');
-          }
-          entityData = data;
-        }
-
-        const guideData = entityData.guide_data as any;
-        const knowledgeEntries = (intelligence.knowledge_entries || []) as KnowledgeEntry[];
-        const insightFeedback = (intelligence.insight_feedback || []) as InsightFeedback[];
-        const insightActions = (intelligence.insight_actions || []) as InsightAction[];
-        const confidenceHist = (intelligence.confidence_history || []) as ConfidenceRecord[];
-        const existingHashes = (intelligence.semantic_hashes || []) as string[];
-        
-        // Build weighted learning context with temporal decay
-        const learningContext = buildWeightedLearningContext(
-          insightFeedback,
-          insightActions,
-          knowledgeEntries,
-          decayConfig
-        );
-        
-        // Add confidence calibration
-        learningContext.confidence_calibration = calculateConfidenceCalibration(confidenceHist);
-        
-        const previousAnalysis = intelligence.brand_summary ? {
-          summary: intelligence.brand_summary,
-          market_position: intelligence.market_position,
-          target_audience: intelligence.target_audience,
-          competitive_advantages: intelligence.competitive_advantages,
-          voice_profile: intelligence.brand_voice_profile,
-        } : null;
-
-        // Fetch cross-entity insights
-        let crossEntityContext = '';
-        const parentBrandId = (entityData as any).parent_brand_id || intelligence.parent_entity_id;
-        
-        if (parentBrandId && (entityType === 'product' || entityType === 'event')) {
-          const { data: parentIntel } = await supabase
-            .from('brand_intelligence')
-            .select('brand_summary, market_position, brand_voice_profile, competitive_advantages, knowledge_entries')
-            .eq('entity_id', parentBrandId)
-            .eq('entity_type', 'brand')
-            .maybeSingle();
-          
-          if (parentIntel) {
-            const parentInsights = (parentIntel.knowledge_entries as KnowledgeEntry[] || [])
-              .filter((e: KnowledgeEntry) => e.source === 'ai')
-              .slice(-5)
-              .map((e: KnowledgeEntry) => e.content);
-            
-            crossEntityContext = `
-PARENT BRAND CONTEXT:
-- Brand Summary: ${parentIntel.brand_summary || 'N/A'}
-- Market Position: ${parentIntel.market_position || 'N/A'}
-- Voice Profile: ${JSON.stringify(parentIntel.brand_voice_profile || {})}
-- Key Advantages: ${JSON.stringify(parentIntel.competitive_advantages || [])}
-- Recent Insights: ${parentInsights.join('; ') || 'None'}
-
-IMPORTANT: Ensure this ${entityType}'s analysis aligns with and extends the parent brand's positioning.`;
-            
-            learningContext.cross_entity_insights = parentInsights;
-          }
-        }
-
-        // Build learning context section with temporal weighting info
-        let learningSection = '';
-        const parts = [];
-        
-        if (learningContext.approved_insights.length) {
-          parts.push(`USER-APPROVED INSIGHTS (generate more like these, weighted by recency):\n${learningContext.approved_insights.map(i => `  ✓ ${i}`).join('\n')}`);
-        }
-        if (learningContext.rejected_insights.length) {
-          parts.push(`USER-REJECTED INSIGHTS (avoid similar patterns):\n${learningContext.rejected_insights.map(i => `  ✗ ${i}`).join('\n')}`);
-        }
-        if (learningContext.user_corrections.length) {
-          parts.push(`USER CORRECTIONS (learn from these preferences):\n${learningContext.user_corrections.map(c => `  Original: "${c.original}"\n  Preferred: "${c.corrected}"`).join('\n')}`);
-        }
-        if (learningContext.high_engagement_insights.length) {
-          parts.push(`HIGH-ENGAGEMENT INSIGHTS (users actively use these):\n${learningContext.high_engagement_insights.map(i => `  ★ ${i}`).join('\n')}`);
-        }
-        if (learningContext.confidence_calibration > 0) {
-          parts.push(`CONFIDENCE CALIBRATION: Your historical accuracy is ${Math.round(learningContext.confidence_calibration * 100)}%. Adjust confidence scores accordingly.`);
-        }
-        
-        if (parts.length > 0) {
-          learningSection = `\nLEARNING FROM USER FEEDBACK (temporally weighted - recent feedback matters more):\n${parts.join('\n\n')}`;
-        }
-
-        let previousAnalysisSection = '';
-        if (previousAnalysis) {
-          previousAnalysisSection = `
-PREVIOUS ANALYSIS (for context and evolution):
-- Previous Summary: ${previousAnalysis.summary}
-- Previous Market Position: ${previousAnalysis.market_position}
-- Previous Voice Profile: ${JSON.stringify(previousAnalysis.voice_profile)}
-
-IMPORTANT: Build upon and refine the previous analysis. Note any evolution or changes based on new knowledge entries.`;
-        }
-
-        // Build semantic deduplication context
-        const deduplicationNote = existingHashes.length > 0 
-          ? `\nIMPORTANT: Avoid generating insights similar to existing ones. Generate fresh, unique perspectives.`
-          : '';
-
-        const isEvent = entityType === 'event';
-        const eventDetails = isEvent ? guideData?.eventDetails : null;
-        
-        const analysisPrompt = `You are a ${isEvent ? 'event intelligence' : 'brand intelligence'} analyst with advanced learning capabilities. Analyze the following ${entityType} data and generate comprehensive insights.
-
-${isEvent ? 'EVENT' : 'BRAND/PRODUCT'} NAME: ${entityData.name}
-
-${isEvent ? `EVENT DATA:
-- Event Name: ${eventDetails?.eventName || entityData.name}
-- Event Dates: ${eventDetails?.eventDates || 'Not specified'}
-- Event Type: ${eventDetails?.eventType || 'Not specified'}
-- Location: ${eventDetails?.location || 'Not specified'}
-- Venue: ${eventDetails?.venue || 'Not specified'}
-- Expected Attendees: ${eventDetails?.expectedAttendees || 'Not specified'}
-- Hashtag: ${eventDetails?.hashtag || 'Not specified'}
-- Tagline: ${eventDetails?.tagline || guideData?.hero?.tagline || 'Not specified'}
-- Sponsors: ${JSON.stringify((guideData?.eventSponsors || []).map((s: any) => ({ name: s.name, tier: s.tier })))}
-- Schedule Items: ${(guideData?.eventSchedule || []).length} sessions` : 
-`BRAND DATA:
-- Mission: ${guideData?.hero?.tagline || 'Not specified'}
-- Description: ${guideData?.hero?.description || 'Not specified'}
-- Values: ${JSON.stringify(guideData?.values || [])}
-- Colors: ${JSON.stringify(guideData?.colors?.map((c: any) => c.name) || [])}
-- Typography: ${JSON.stringify(guideData?.typography || {})}
-- Services: ${JSON.stringify(guideData?.services || [])}`}
-
-KNOWLEDGE BASE (${knowledgeEntries.length} entries):
-${knowledgeEntries.map((e: KnowledgeEntry) => `- [${e.type}]${e.confidence ? ` (conf: ${Math.round(e.confidence * 100)}%)` : ''} ${e.content}`).join('\n') || 'No entries yet'}
-${crossEntityContext}
-${previousAnalysisSection}
-${learningSection}
-${deduplicationNote}
-
-ANALYSIS COUNT: ${intelligence.analysis_count}
-LAST ANALYZED: ${intelligence.last_analyzed_at || 'Never'}
-
-Generate a comprehensive analysis including:
-1. ${isEvent ? 'Event' : 'Brand'} summary (2-3 sentences, incorporate learnings)
-2. Market position assessment (evolved if previous exists)
-3. Target audience identification (primary, secondary, demographics)
-4. Competitive advantages (list 3-5)
-5. ${isEvent ? 'Event' : 'Brand'} voice profile (tone, personality traits, communication style)
-6. Growth recommendations (3-5 actionable items with priority, rationale, AND confidence score 0-1)
-7. New insights with confidence scores (3-5 unique observations that align with user preferences)
-8. Cultural intelligence for global localization:
-   - Global readiness score (0-100)
-   - Primary target markets/regions
-   - Cultural considerations per region (design adaptations, messaging notes)
-   - Color cultural significance notes
-   - Imagery guidelines for different cultures
-   - Localization priorities
-9. GlobalLink suite recommendations (which products would benefit this brand):
-   - GlobalLink Translation (for content translation)
-   - GlobalLink AI (for AI-powered adaptation)
-   - GlobalLink Connect (for workflow automation)
-   - GlobalLink Fluent (for in-context editing)
-
-CRITICAL: For each insight and recommendation, include a confidence score (0-1) indicating how certain you are about this assessment.
-
-Respond with valid JSON matching this structure:
-{
-  "brand_summary": "string",
-  "market_position": "string",
-  "target_audience": {
-    "primary": "string",
-    "secondary": ["string"],
-    "demographics": ["string"]
-  },
-  "competitive_advantages": ["string"],
-  "brand_voice_profile": {
-    "tone": ["string"],
-    "personality": ["string"],
-    "communication_style": "string"
-  },
-  "growth_recommendations": [
-    {
-      "priority": "high|medium|low",
-      "recommendation": "string",
-      "rationale": "string",
-      "confidence": 0.0-1.0
-    }
-  ],
-  "new_insights": [
-    {
-      "content": "string",
-      "confidence": 0.0-1.0
-    }
-  ],
-  "cultural_insights": {
-    "global_readiness_score": 0-100,
-    "primary_markets": ["string"],
-    "cultural_considerations": [
-      {
-        "region": "string",
-        "considerations": ["string"],
-        "design_adaptations": ["string"],
-        "messaging_notes": "string"
-      }
-    ],
-    "localization_priorities": ["string"],
-    "color_cultural_notes": ["string"],
-    "imagery_guidelines": ["string"]
-  },
-  "globallink_recommendations": [
-    {
-      "product": "Translation|AI|Connect|Fluent",
-      "relevance": "high|medium|low",
-      "use_case": "string"
-    }
-  ]
-}`;
-
-        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${lovableApiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-3-flash-preview",
-            messages: [
-              { role: "system", content: "You are a brand intelligence analyst with advanced learning capabilities and expertise in global localization and cultural adaptation. You improve based on user feedback, temporal patterns, and engagement signals. Always respond with valid JSON and include confidence scores. Provide actionable cultural insights for brands targeting international markets." },
-              { role: "user", content: analysisPrompt }
-            ],
-            temperature: 0.7,
-          }),
-        });
-
-        if (!aiResponse.ok) {
-          if (aiResponse.status === 429) {
-            return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
-              status: 429,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-          }
-          if (aiResponse.status === 402) {
-            return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
-              status: 402,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-          }
-          throw new Error(`AI analysis failed: ${aiResponse.status}`);
-        }
-
-        const aiData = await aiResponse.json();
-        const content = aiData.choices?.[0]?.message?.content;
-        
-        if (!content) throw new Error("No content in AI response");
-
-        let analysis: AnalysisResult;
-        try {
-          const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
-          const jsonStr = jsonMatch[1].trim();
-          analysis = JSON.parse(jsonStr);
-        } catch (parseError) {
-          console.error("Failed to parse AI response:", content);
-          throw new Error("Failed to parse AI analysis response");
-        }
-
-        // Filter out duplicate insights using semantic hashing
-        const newConfidenceRecords: ConfidenceRecord[] = [];
-        const aiInsights: KnowledgeEntry[] = [];
-        const newHashes: string[] = [];
-        
-        for (const insight of analysis.new_insights) {
-          const insightContent = typeof insight === 'string' ? insight : insight.content;
-          const confidence = typeof insight === 'string' ? 0.7 : insight.confidence;
-          const hash = generateSemanticHash(insightContent);
-          
-          if (!isDuplicate(hash, [...existingHashes, ...newHashes])) {
-            const insightId = crypto.randomUUID();
-            aiInsights.push({
-              id: insightId,
-              type: 'insight',
-              content: insightContent,
-              source: 'ai',
-              category: 'ai-analysis',
-              created_at: new Date().toISOString(),
-              confidence,
-              semantic_hash: hash,
-            });
-            newHashes.push(hash);
-            
-            // Track confidence for future calibration
-            newConfidenceRecords.push({
-              insight_id: insightId,
-              predicted_confidence: confidence,
-              actual_outcome: 'pending',
-            });
-          }
-        }
-
-        const analysisRecord = {
-          timestamp: new Date().toISOString(),
-          summary: analysis.brand_summary.substring(0, 200),
-          insights_count: aiInsights.length,
-          duplicates_filtered: analysis.new_insights.length - aiInsights.length,
-          had_learning_context: parts.length > 0,
-          had_cross_entity_context: !!crossEntityContext,
-          confidence_calibration: learningContext.confidence_calibration,
-        };
-
-        const { error: analysisError } = await supabase
-          .from('brand_intelligence')
-          .update({
-            brand_summary: analysis.brand_summary,
-            market_position: analysis.market_position,
-            target_audience: analysis.target_audience,
-            competitive_advantages: analysis.competitive_advantages,
-            brand_voice_profile: analysis.brand_voice_profile,
-            growth_recommendations: analysis.growth_recommendations,
-            knowledge_entries: [...knowledgeEntries, ...aiInsights],
-            semantic_hashes: [...existingHashes, ...newHashes],
-            confidence_history: [...confidenceHist, ...newConfidenceRecords],
-            analysis_history: [...(intelligence.analysis_history || []), analysisRecord],
-            last_analyzed_at: new Date().toISOString(),
-            analysis_count: (intelligence.analysis_count || 0) + 1,
-            parent_entity_id: parentBrandId || intelligence.parent_entity_id,
-            // Cultural intelligence fields
-            cultural_insights: analysis.cultural_insights || {},
-            globallink_recommendations: analysis.globallink_recommendations || [],
-            localization_readiness_score: analysis.cultural_insights?.global_readiness_score || 0,
-          })
-          .eq('id', intelligence.id);
-
-        if (analysisError) {
-          console.error("[brand-intelligence] Analysis save error:", analysisError);
-          throw new Error("Failed to save analysis results");
-        }
-
-        return new Response(JSON.stringify({ 
-          success: true, 
-          analysis,
-          insights_added: aiInsights.length,
-          duplicates_filtered: analysis.new_insights.length - aiInsights.length,
-          used_learning_context: parts.length > 0,
-          used_cross_entity_context: !!crossEntityContext,
-          confidence_calibration: learningContext.confidence_calibration,
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-
       default:
         throw new Error(`Unknown action: ${action}`);
     }
@@ -881,13 +582,14 @@ Respond with valid JSON matching this structure:
        'Entry is required for add_entry action', 'Entry ID is required for delete_entry action',
        'LOVABLE_API_KEY is not configured', 'Rate limit exceeded. Please try again later.',
        'AI credits exhausted. Please add funds.', 'Failed to parse AI analysis response',
-       'Feedback is required', 'Failed to save feedback', 'Action data is required',
-       'Failed to track action'].includes(error.message)
-      ? error.message 
-      : "Operation failed";
-    return new Response(
-      JSON.stringify({ error: safeMessage }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+       'Failed to create analysis job', 'AI analysis failed', 'Failed to fetch brand data',
+       'Failed to fetch product data', 'Failed to fetch event data'].includes(error.message)
+        ? error.message
+        : 'Analysis failed';
+    
+    return new Response(JSON.stringify({ error: safeMessage }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

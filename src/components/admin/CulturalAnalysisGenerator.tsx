@@ -103,11 +103,11 @@ export const CulturalAnalysisGenerator: React.FC = () => {
     enabled: !!organization?.id,
   });
 
-  // Generate cultural analysis mutation with rate limit handling
+  // Generate cultural analysis mutation with async job handling
   const generateAnalysis = useMutation({
     mutationFn: async ({ entityId, entityType }: { entityId: string; entityType: string }) => {
-      // First, run brand intelligence analysis
-      const { data: intelligenceResult, error: intelligenceError } = await supabase.functions.invoke('brand-intelligence', {
+      // Start brand intelligence analysis (returns job_id now)
+      const { data: jobResult, error: intelligenceError } = await supabase.functions.invoke('brand-intelligence', {
         body: {
           action: 'analyze',
           entityType,
@@ -117,7 +117,6 @@ export const CulturalAnalysisGenerator: React.FC = () => {
       });
 
       if (intelligenceError) {
-        // Handle rate limiting
         if (intelligenceError.message?.includes('429') || intelligenceError.message?.includes('rate limit')) {
           throw new Error('Rate limit exceeded. Please wait a moment before trying again.');
         }
@@ -127,27 +126,54 @@ export const CulturalAnalysisGenerator: React.FC = () => {
         throw intelligenceError;
       }
 
-      // Then generate a research briefing with multicultural focus
-      const { data: researchResult, error: researchError } = await supabase.functions.invoke('brand-research', {
-        body: {
-          entityId,
-          entityType,
-          briefingType: 'deep-dive',
-          focusAreas: ['multicultural marketing', 'localization', 'cultural adaptation', 'GlobalLink opportunities'],
-        },
-      });
-
-      if (researchError) {
-        if (researchError.message?.includes('429') || researchError.message?.includes('rate limit')) {
-          throw new Error('Rate limit exceeded. Please wait a moment before trying again.');
-        }
-        if (researchError.message?.includes('402')) {
-          throw new Error('AI credits exhausted. Please add credits to continue.');
-        }
-        throw researchError;
+      if (!jobResult?.job_id) {
+        throw new Error('Failed to start analysis job');
       }
 
-      return { intelligence: intelligenceResult, research: researchResult };
+      // Poll for job completion
+      let attempts = 0;
+      const maxAttempts = 60; // 2 minutes max
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const { data: job } = await supabase
+          .from('brand_intelligence_jobs')
+          .select('*')
+          .eq('id', jobResult.job_id)
+          .maybeSingle();
+
+        if (job?.status === 'completed') {
+          // Then generate research briefing
+          const { data: researchResult, error: researchError } = await supabase.functions.invoke('brand-research', {
+            body: {
+              entityId,
+              entityType,
+              briefingType: 'deep-dive',
+              focusAreas: ['multicultural marketing', 'localization', 'cultural adaptation', 'GlobalLink opportunities'],
+            },
+          });
+
+          if (researchError) {
+            if (researchError.message?.includes('429') || researchError.message?.includes('rate limit')) {
+              throw new Error('Rate limit exceeded. Please wait a moment before trying again.');
+            }
+            if (researchError.message?.includes('402')) {
+              throw new Error('AI credits exhausted. Please add credits to continue.');
+            }
+            throw researchError;
+          }
+
+          return { intelligence: job.result, research: researchResult };
+        }
+
+        if (job?.status === 'failed') {
+          throw new Error(job.error_message || 'Analysis failed');
+        }
+
+        attempts++;
+      }
+
+      throw new Error('Analysis timed out');
     },
     onSuccess: (data, variables) => {
       const entity = entities?.find(e => e.id === variables.entityId);
@@ -162,7 +188,7 @@ export const CulturalAnalysisGenerator: React.FC = () => {
       console.error('Cultural analysis error:', error);
       const message = error instanceof Error ? error.message : 'Unknown error occurred';
       
-      if (message.includes('Rate limit')) {
+      if (message.includes('Rate limit') || message.includes('timed out')) {
         toast.error('Rate Limited', {
           description: message,
           duration: 6000,
@@ -178,7 +204,7 @@ export const CulturalAnalysisGenerator: React.FC = () => {
     },
   });
 
-  // Batch generate for all entities without analysis with delay to avoid rate limiting
+  // Batch generate for all entities without analysis with async job handling
   const generateBatch = useMutation({
     mutationFn: async () => {
       const entitiesWithoutAnalysis = entities?.filter(e => !e.hasAnalysis) || [];
@@ -186,7 +212,7 @@ export const CulturalAnalysisGenerator: React.FC = () => {
 
       for (const entity of entitiesWithoutAnalysis.slice(0, 5)) { // Limit to 5 at a time
         try {
-          const { error } = await supabase.functions.invoke('brand-intelligence', {
+          const { data, error } = await supabase.functions.invoke('brand-intelligence', {
             body: {
               action: 'analyze',
               entityType: entity.type,
@@ -196,19 +222,48 @@ export const CulturalAnalysisGenerator: React.FC = () => {
           });
           
           if (error) {
-            // Check for rate limiting
             if (error.message?.includes('429') || error.message?.includes('rate limit')) {
               toast.warning(`Rate limited - waiting before continuing...`);
-              await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+              await new Promise(resolve => setTimeout(resolve, 5000));
               results.push({ entity, success: false, error: 'Rate limited' });
               continue;
             }
             throw error;
           }
+
+          if (!data?.job_id) {
+            results.push({ entity, success: false, error: 'No job ID returned' });
+            continue;
+          }
+
+          // Wait for job to complete (with timeout)
+          let attempts = 0;
+          const maxAttempts = 30;
+          while (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            const { data: job } = await supabase
+              .from('brand_intelligence_jobs')
+              .select('status, error_message')
+              .eq('id', data.job_id)
+              .maybeSingle();
+
+            if (job?.status === 'completed') {
+              results.push({ entity, success: true });
+              break;
+            }
+            if (job?.status === 'failed') {
+              results.push({ entity, success: false, error: job.error_message });
+              break;
+            }
+            attempts++;
+          }
+
+          if (attempts >= maxAttempts) {
+            results.push({ entity, success: false, error: 'Timeout' });
+          }
           
-          results.push({ entity, success: true });
-          
-          // Add delay between requests to avoid rate limiting
+          // Add delay between requests
           await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (err) {
           results.push({ entity, success: false, error: err });

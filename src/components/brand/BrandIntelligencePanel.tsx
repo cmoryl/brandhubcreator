@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Brain, 
   Plus, 
@@ -172,6 +172,7 @@ export const BrandIntelligencePanel = ({
   const [intelligence, setIntelligence] = useState<BrandIntelligence | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
   const [isAddingEntry, setIsAddingEntry] = useState(false);
   const [newEntry, setNewEntry] = useState({ type: 'note', content: '', category: '' });
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -181,6 +182,16 @@ export const BrandIntelligencePanel = ({
     competitive: false,
     cultural: false,
   });
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
+  }, []);
 
   const getFeedbackForInsight = useCallback((insightId: string): InsightFeedback | undefined => {
     return intelligence?.insight_feedback?.find(f => f.insight_id === insightId);
@@ -311,8 +322,49 @@ export const BrandIntelligencePanel = ({
     }
   };
 
+  // Poll for job status
+  const pollJobStatus = useCallback(async (jobId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('brand_intelligence_jobs')
+        .select('*')
+        .eq('id', jobId)
+        .maybeSingle();
+
+      if (error || !data) {
+        console.error('[BrandIntelligencePanel] Polling error:', error);
+        return;
+      }
+
+      setAnalysisProgress(data.progress || 0);
+
+      if (data.status === 'completed') {
+        setIsAnalyzing(false);
+        setAnalysisProgress(0);
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+        const result = data.result as any;
+        toast.success(`Analysis complete! ${result?.insights_added || 0} new insights added.`);
+        fetchIntelligence();
+      } else if (data.status === 'failed') {
+        setIsAnalyzing(false);
+        setAnalysisProgress(0);
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+        toast.error(data.error_message || 'Analysis failed');
+      }
+    } catch (err) {
+      console.error('[BrandIntelligencePanel] Poll error:', err);
+    }
+  }, []);
+
   const runAnalysis = async () => {
     setIsAnalyzing(true);
+    setAnalysisProgress(0);
     try {
       const { data, error } = await supabase.functions.invoke('brand-intelligence', {
         body: { action: 'analyze', entityType, entityId, organizationId }
@@ -320,10 +372,23 @@ export const BrandIntelligencePanel = ({
 
       if (error) throw error;
 
-      toast.success(`Analysis complete! ${data.insights_added} new insights added.`);
-      fetchIntelligence();
+      if (!data?.job_id) {
+        throw new Error('No job ID returned');
+      }
+
+      toast.info('Analysis started...');
+
+      // Start polling for job status
+      pollingRef.current = setInterval(() => {
+        pollJobStatus(data.job_id);
+      }, 2000);
+
+      // Initial poll
+      pollJobStatus(data.job_id);
     } catch (err: any) {
       console.error('Analysis failed:', err);
+      setIsAnalyzing(false);
+      setAnalysisProgress(0);
       if (err.message?.includes('Rate limit')) {
         toast.error('Rate limit exceeded. Please try again later.');
       } else if (err.message?.includes('credits')) {
@@ -331,8 +396,6 @@ export const BrandIntelligencePanel = ({
       } else {
         toast.error('Analysis failed. Please try again.');
       }
-    } finally {
-      setIsAnalyzing(false);
     }
   };
 
@@ -363,18 +426,23 @@ export const BrandIntelligencePanel = ({
               <CardDescription>{entityName}</CardDescription>
             </div>
           </div>
-          <Button 
-            onClick={runAnalysis} 
-            disabled={isAnalyzing}
-            className="gap-2"
-          >
-            {isAnalyzing ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Sparkles className="h-4 w-4" />
+          <div className="flex flex-col items-end gap-2">
+            <Button 
+              onClick={runAnalysis} 
+              disabled={isAnalyzing}
+              className="gap-2"
+            >
+              {isAnalyzing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              {isAnalyzing ? `Analyzing... ${analysisProgress}%` : 'Run AI Analysis'}
+            </Button>
+            {isAnalyzing && (
+              <Progress value={analysisProgress} className="w-32 h-2" />
             )}
-            {isAnalyzing ? 'Analyzing...' : 'Run AI Analysis'}
-          </Button>
+          </div>
         </div>
         
         {/* Stats row */}
