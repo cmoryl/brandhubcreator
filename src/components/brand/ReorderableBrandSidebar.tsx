@@ -87,6 +87,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   sponsorlogos: { label: 'Sponsor Logos', icon: Crown, category: 'Collateral' },
   clientlogos: { label: 'Client Logos', icon: Users, category: 'Collateral' },
   eventsignage: { label: 'Event Signage', icon: Maximize, category: 'Collateral' },
+  socialmetrics: { label: 'Social Performance', icon: TrendingUp, category: 'Communication' },
   // Deprecated aliases - kept for backwards compatibility with old section orders
   casestudies: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
   templates: { label: 'Presentation Templates', icon: Presentation, category: 'Collateral' },

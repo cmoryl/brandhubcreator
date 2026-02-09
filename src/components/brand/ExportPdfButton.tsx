@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb, Minus, Briefcase, Sparkles, Palette, Layout, Image, Calendar, Type, Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw, SplitSquareVertical } from 'lucide-react';
+import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb, Minus, Briefcase, Sparkles, Palette, Layout, Image, Calendar, Type, Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw, SplitSquareVertical, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseGuide, DEFAULT_SECTION_ORDER, SectionId, BrandSocialAssetSpec, BrandDisplayBannerSpec, TemplateSpec } from '@/types/brand';
 import { exportToPdf, PdfTheme, PaperSize, PAPER_SIZES, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
@@ -9,6 +9,8 @@ import { toast } from 'sonner';
 import QRCode from 'qrcode';
 import { normalizeGuide } from '@/lib/guideNormalization';
 import { supabase } from '@/integrations/supabase/client';
+import { AggregatedSocialMetrics, SocialMetricsSnapshot } from '@/types/socialMetrics';
+import { SocialMetricsPdfSection } from '@/components/brand/pdf/SocialMetricsPdfSection';
 import {
   Dialog,
   DialogContent,
@@ -80,6 +82,10 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
   const [pageBreaksBefore, setPageBreaksBefore] = useState<Set<SectionId>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['core', 'visual']));
   const [intelligence, setIntelligence] = useState<BrandIntelligenceData | null>(null);
+  const [socialMetrics, setSocialMetrics] = useState<{
+    aggregated: AggregatedSocialMetrics | null;
+    snapshots: SocialMetricsSnapshot[];
+  }>({ aggregated: null, snapshots: [] });
   const [previewZoom, setPreviewZoom] = useState(0.65);
   const [showMarginGuides, setShowMarginGuides] = useState(true);
   const [viewMode, setViewMode] = useState<'scroll' | 'single'>('scroll');
@@ -135,7 +141,46 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
     }
   }, [showPreview, guide.id]);
 
-  // Generate QR code when preview opens
+  // Fetch social metrics when preview opens
+  useEffect(() => {
+    if (showPreview && guide.id) {
+      const fetchSocialMetrics = async () => {
+        try {
+          // Fetch aggregated metrics
+          const { data: aggregatedData } = await supabase
+            .rpc('get_aggregated_social_metrics', {
+              p_entity_id: guide.id,
+              p_entity_type: guide.type || 'brand'
+            });
+          
+          // Fetch latest snapshots per platform
+          const { data: snapshotsData } = await supabase
+            .from('social_metrics_snapshots')
+            .select('*')
+            .eq('entity_id', guide.id)
+            .eq('entity_type', guide.type || 'brand')
+            .order('snapshot_date', { ascending: false });
+          
+          // Get latest snapshot per platform
+          const latestByPlatform = new Map<string, SocialMetricsSnapshot>();
+          (snapshotsData || []).forEach((snapshot: SocialMetricsSnapshot) => {
+            if (!latestByPlatform.has(snapshot.platform)) {
+              latestByPlatform.set(snapshot.platform, snapshot);
+            }
+          });
+          
+          setSocialMetrics({
+            aggregated: aggregatedData?.[0] || null,
+            snapshots: Array.from(latestByPlatform.values())
+          });
+        } catch (err) {
+          console.log('No social metrics data found for guide');
+        }
+      };
+      fetchSocialMetrics();
+    }
+  }, [showPreview, guide.id, guide.type]);
+
   useEffect(() => {
     if (showPreview && guide.qr.defaultUrl) {
       QRCode.toDataURL(guide.qr.defaultUrl, {
@@ -192,9 +237,10 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'templates': return guide.templates.length > 0;
       case 'templatespecs': return (guide.templateSpecs?.length ?? 0) > 0;
       case 'products': return (guide.linkedGuides?.length ?? 0) > 0;
+      case 'socialmetrics': return !!(socialMetrics.aggregated && socialMetrics.aggregated.platforms_count > 0);
       default: return false;
     }
-  }, [guide, intelligence]);
+  }, [guide, intelligence, socialMetrics]);
 
   const toggleSection = (sectionId: SectionId) => {
     setSelectedSections(prev => {
@@ -1333,6 +1379,17 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
               {guide.linkedGuides.length} linked {guide.linkedGuides.length === 1 ? 'guide' : 'guides'} available in the digital brand portal.
             </p>
           </div>
+        );
+
+      case 'socialmetrics':
+        if (!socialMetrics.aggregated || socialMetrics.aggregated.platforms_count === 0) return null;
+        return (
+          <SocialMetricsPdfSection
+            key="socialmetrics"
+            aggregated={socialMetrics.aggregated}
+            snapshots={socialMetrics.snapshots}
+            theme={pdfTheme}
+          />
         );
 
       default:
