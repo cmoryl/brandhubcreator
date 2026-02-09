@@ -548,6 +548,138 @@ Return JSON matching this exact structure:
       console.error('[brand-research] Failed to save briefing:', saveError);
     }
 
+    // ============================================================
+    // FEED RESEARCH INSIGHTS BACK TO BRAND INTELLIGENCE (LEARNING LOOP)
+    // ============================================================
+    try {
+      const adminSupabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+
+      // Fetch or create brand intelligence record
+      let { data: intelligenceRecord } = await adminSupabase
+        .from('brand_intelligence')
+        .select('id, knowledge_entries, analysis_history')
+        .eq('entity_id', entityId)
+        .eq('entity_type', entityType)
+        .single();
+
+      if (!intelligenceRecord) {
+        // Create intelligence record if it doesn't exist
+        const { data: newRecord } = await adminSupabase
+          .from('brand_intelligence')
+          .insert({
+            entity_id: entityId,
+            entity_type: entityType,
+            organization_id: entityData.organization_id,
+            knowledge_entries: [],
+            analysis_history: [],
+          })
+          .select('id, knowledge_entries, analysis_history')
+          .single();
+        intelligenceRecord = newRecord;
+      }
+
+      if (intelligenceRecord) {
+        const knowledgeEntries = (intelligenceRecord.knowledge_entries || []) as Array<{
+          id: string;
+          type: string;
+          content: string;
+          source: string;
+          category: string;
+          created_at: string;
+          confidence: number;
+        }>;
+        const analysisHistory = (intelligenceRecord.analysis_history || []) as Array<{
+          date: string;
+          type: string;
+          summary: string;
+        }>;
+
+        // Add key research insights as learning entries
+        const newLearningEntries: typeof knowledgeEntries = [];
+
+        // Add strategic recommendations as high-priority insights
+        for (const rec of briefingResult.strategicRecommendations?.slice(0, 3) || []) {
+          newLearningEntries.push({
+            id: crypto.randomUUID(),
+            type: 'insight',
+            content: `[Research] ${rec.action} - ${rec.rationale}`,
+            source: 'ai',
+            category: `research-strategy-${rec.priority}`,
+            created_at: new Date().toISOString(),
+            confidence: briefingResult.confidenceScore / 100,
+          });
+        }
+
+        // Add multicultural insights for GlobalLink learning
+        if (briefingResult.multiculturalInsights?.expansionOpportunities?.length) {
+          for (const opp of briefingResult.multiculturalInsights.expansionOpportunities.slice(0, 2)) {
+            newLearningEntries.push({
+              id: crypto.randomUUID(),
+              type: 'insight',
+              content: `[Multicultural] ${opp.market} expansion opportunity (${opp.readiness} readiness): ${opp.culturalConsiderations?.slice(0, 2).join('; ')}`,
+              source: 'ai',
+              category: 'research-multicultural',
+              created_at: new Date().toISOString(),
+              confidence: briefingResult.confidenceScore / 100,
+            });
+          }
+        }
+
+        // Add GlobalLink recommendations as learning entries
+        if (briefingResult.globallinkRecommendations?.length) {
+          for (const gl of briefingResult.globallinkRecommendations.slice(0, 2)) {
+            newLearningEntries.push({
+              id: crypto.randomUUID(),
+              type: 'learning',
+              content: `[GlobalLink ${gl.product}] ${gl.useCase} - ${gl.expectedBenefit}`,
+              source: 'ai',
+              category: `research-globallink-${gl.product.toLowerCase()}`,
+              created_at: new Date().toISOString(),
+              confidence: gl.priority === 'high' ? 0.9 : gl.priority === 'medium' ? 0.7 : 0.5,
+            });
+          }
+        }
+
+        // Add risk alerts as critical learning
+        for (const risk of briefingResult.riskAlerts?.filter(r => r.severity === 'critical').slice(0, 2) || []) {
+          newLearningEntries.push({
+            id: crypto.randomUUID(),
+            type: 'insight',
+            content: `[Risk Alert] ${risk.risk} - Mitigation: ${risk.mitigation}`,
+            source: 'ai',
+            category: 'research-risk-critical',
+            created_at: new Date().toISOString(),
+            confidence: 0.85,
+          });
+        }
+
+        // Add briefing to analysis history
+        const historyEntry = {
+          date: new Date().toISOString(),
+          type: `research-${briefingType}`,
+          summary: briefingResult.summary,
+        };
+
+        // Update brand intelligence with new learning
+        await adminSupabase
+          .from('brand_intelligence')
+          .update({
+            knowledge_entries: [...knowledgeEntries, ...newLearningEntries].slice(-100), // Keep last 100
+            analysis_history: [...analysisHistory, historyEntry].slice(-20), // Keep last 20
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', intelligenceRecord.id);
+
+        console.log(`[brand-research] Fed ${newLearningEntries.length} insights back to brand intelligence`);
+      }
+    } catch (feedbackError) {
+      // Don't fail the request if feedback loop fails
+      console.error('[brand-research] Failed to feed insights to intelligence:', feedbackError);
+    }
+
     console.log(`[brand-research] Briefing generated for ${entityData.name}. Confidence: ${briefingResult.confidenceScore}`);
 
     return new Response(
