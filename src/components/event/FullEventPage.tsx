@@ -298,6 +298,9 @@ export const FullEventPage = ({
           <SocialSection
             social={event.social || []}
             onSocialChange={editHandler((social) => updateEvent({ social }))}
+            entityId={eventId}
+            entityType="event"
+            organizationId={event.organizationId}
           />
         );
       case 'socialassets':

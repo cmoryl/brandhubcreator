@@ -694,7 +694,7 @@ const BrandEditor = () => {
       case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={editHandler((iconography) => updateBrand({ iconography }))} brandColors={brand.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organization?.id} />;
       case 'socialicons': return <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={editHandler((socialIcons) => updateBrand({ socialIcons }))} />;
       case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={editHandler((imagery) => updateBrand({ imagery }))} />;
-      case 'social': return <SocialSection social={brand.social} onSocialChange={editHandler((social) => updateBrand({ social }))} />;
+      case 'social': return <SocialSection social={brand.social} onSocialChange={editHandler((social) => updateBrand({ social }))} entityId={brand.id} entityType="brand" organizationId={brand.organizationId} />;
       case 'socialassets': return (
         <SocialAssetsSection
           socialAssets={brand.socialAssets || []}

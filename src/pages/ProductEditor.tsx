@@ -580,7 +580,7 @@ const ProductEditor = () => {
       case 'iconography': return <IconographySection iconography={currentProduct.iconography} onIconographyChange={editHandler((iconography) => handleUpdateProduct({ iconography }))} brandColors={currentProduct.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organization?.id} />;
       case 'socialicons': return <SocialIconsSection socialIcons={currentProduct.socialIcons} onSocialIconsChange={editHandler((socialIcons) => handleUpdateProduct({ socialIcons }))} />;
       case 'imagery': return <ImagerySection imagery={currentProduct.imagery} onImageryChange={editHandler((imagery) => handleUpdateProduct({ imagery }))} />;
-      case 'social': return <SocialSection social={currentProduct.social} onSocialChange={editHandler((social) => handleUpdateProduct({ social }))} />;
+      case 'social': return <SocialSection social={currentProduct.social} onSocialChange={editHandler((social) => handleUpdateProduct({ social }))} entityId={currentProduct.id} entityType="product" organizationId={currentProduct.organizationId} />;
       case 'socialassets':
         return (
           <SocialAssetsSection

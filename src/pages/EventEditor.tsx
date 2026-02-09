@@ -521,7 +521,7 @@ const EventEditor = () => {
       case 'imagery': 
         return <ImagerySection imagery={event.imagery} onImageryChange={editHandler((imagery) => updateEvent({ imagery }))} />;
       case 'social': 
-        return <SocialSection social={event.social} onSocialChange={editHandler((social) => updateEvent({ social }))} />;
+        return <SocialSection social={event.social} onSocialChange={editHandler((social) => updateEvent({ social }))} entityId={event.id} entityType="event" organizationId={event.organizationId} />;
       case 'socialassets': 
         return (
           <SocialAssetsSection
