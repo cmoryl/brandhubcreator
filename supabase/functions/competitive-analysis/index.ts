@@ -115,10 +115,24 @@ function extractEntityContext(guideData: EntityGuideData, name: string): string 
   return parts.join('\n');
 }
 
-function buildCompetitiveAnalysisPrompt(entityName: string, entityContext: string, competitors: string[]): string {
+function buildCompetitiveAnalysisPrompt(
+  entityName: string, 
+  entityContext: string, 
+  competitors: string[],
+  regionalContext?: { region?: string; country?: string }
+): string {
   const competitorList = competitors.slice(0, 5).map((c, i) => `${i + 1}. ${c}`).join('\n');
+  
+  const regionalNote = regionalContext?.country || regionalContext?.region
+    ? `\n\nREGIONAL FOCUS: This analysis should be tailored for the ${regionalContext.country || ''} ${regionalContext.region ? `(${regionalContext.region} region)` : ''} market. Consider:
+- Local competitors that operate primarily in this region
+- Cultural factors that affect brand perception in this market
+- Regional market dynamics and consumer preferences
+- Localization requirements for brand positioning
+- Regional regulatory or business environment considerations`
+    : '';
 
-  return `You are a brand strategy and design consultant conducting a comprehensive competitive analysis. Analyze the visual identity, design assets, and brand positioning of ${entityName} against its competitors from a design and perception perspective.
+  return `You are a brand strategy and design consultant conducting a comprehensive competitive analysis. Analyze the visual identity, design assets, and brand positioning of ${entityName} against its competitors from a design and perception perspective.${regionalNote}
 
 ENTITY TO ANALYZE:
 ${entityContext}
@@ -229,7 +243,16 @@ Provide a comprehensive analysis using the following structure. Return ONLY vali
     "keyStrengths": ["array", "of", "strengths"],
     "criticalGaps": ["array", "of", "gaps"],
     "risks": ["array", "of", "risks"]
-  },
+  },${regionalContext?.country || regionalContext?.region ? `
+  "regionalInsights": {
+    "marketContext": "string describing the regional market context and competitive landscape",
+    "localCompetitors": ["array", "of", "local", "competitors", "specific", "to", "this", "region"],
+    "culturalConsiderations": ["array", "of", "cultural", "factors", "for", "brand", "localization"],
+    "localizationPriorities": ["array", "of", "localization", "recommendations"],
+    "regulatoryConsiderations": "string describing any regional regulatory or compliance factors",
+    "marketOpportunities": ["array", "of", "regional", "market", "opportunities"],
+    "entryBarriers": ["array", "of", "potential", "barriers", "in", "this", "market"]
+  },` : ''}
   "executiveSummary": {
     "overview": "2-3 paragraph executive summary",
     "currentPosition": "string describing current market position",
@@ -243,10 +266,12 @@ Provide a comprehensive analysis using the following structure. Return ONLY vali
   },
   "score": 75,
   "generatedAt": "${new Date().toISOString()}",
-  "competitors": ${JSON.stringify(competitors.slice(0, 5))}
+  "competitors": ${JSON.stringify(competitors.slice(0, 5))}${regionalContext?.country || regionalContext?.region ? `,
+  "region": "${regionalContext.region || ''}",
+  "country": "${regionalContext.country || ''}"` : ''}
 }
 
-Scores should be 1-10 integers. Be specific, actionable, and insightful. Base your analysis on the entity's brand data provided and your knowledge of the competitors listed.`;
+Scores should be 1-10 integers. Be specific, actionable, and insightful. Base your analysis on the entity's brand data provided and your knowledge of the competitors listed.${regionalContext?.country || regionalContext?.region ? ' Pay special attention to regional competitive dynamics and localization opportunities.' : ''}`;
 }
 
 serve(async (req) => {
@@ -264,7 +289,7 @@ serve(async (req) => {
       );
     }
 
-    const { entityType, entityId, organizationId, competitors } = await req.json();
+    const { entityType, entityId, organizationId, competitors, region, country } = await req.json();
 
     // Validate inputs
     if (!entityType || !['brand', 'product', 'event'].includes(entityType)) {
@@ -369,7 +394,10 @@ serve(async (req) => {
     // Extract entity context
     const guideData = (entityData.guide_data || {}) as EntityGuideData;
     const entityContext = extractEntityContext(guideData, entityData.name);
-    const prompt = buildCompetitiveAnalysisPrompt(entityData.name, entityContext, competitors);
+    const regionalContext = region || country ? { region, country } : undefined;
+    const prompt = buildCompetitiveAnalysisPrompt(entityData.name, entityContext, competitors, regionalContext);
+
+    console.log("[competitive-analysis] Calling AI Gateway for entity:", entityData.name, regionalContext ? `(${country || region})` : '');
 
     console.log("[competitive-analysis] Calling AI Gateway for entity:", entityData.name);
 

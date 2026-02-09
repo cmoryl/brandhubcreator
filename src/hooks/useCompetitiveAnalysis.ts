@@ -51,7 +51,10 @@ export function useCompetitiveAnalysis({ entityType, entityId, organizationId }:
   }, [entityType, entityId]);
 
   // Generate a new competitive analysis report
-  const generateReport = useCallback(async (competitors: string[]) => {
+  const generateReport = useCallback(async (
+    competitors: string[], 
+    regionalContext?: { region?: string; country?: string }
+  ) => {
     if (!entityId) {
       toast.error('Entity ID is required');
       return null;
@@ -87,6 +90,8 @@ export function useCompetitiveAnalysis({ entityType, entityId, organizationId }:
             entityId,
             organizationId,
             competitors: competitors.slice(0, 10), // Limit to 10 competitors
+            region: regionalContext?.region,
+            country: regionalContext?.country,
           }),
         }
       );

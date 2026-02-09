@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { TrendingUp, Plus, X, Loader2, Sparkles, BarChart3, Target, Lightbulb, FileText, Users, AlertTriangle, CheckCircle, Download, Wand2, Search, Star, Heart } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { TrendingUp, Plus, X, Loader2, Sparkles, BarChart3, Target, Lightbulb, FileText, Users, AlertTriangle, CheckCircle, Download, Wand2, Search, Star, Heart, Globe2, MapPin } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,8 +17,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useCompetitiveAnalysis } from '@/hooks/useCompetitiveAnalysis';
 import { useFavoriteCompetitors } from '@/hooks/useFavoriteCompetitors';
+import { useRegionalBranding } from '@/hooks/useRegionalBranding';
 import { ScoreGauge } from '@/components/admin/competitive-analysis/ScoreGauge';
 import { PersonalityMatrixChart } from '@/components/admin/competitive-analysis/PersonalityMatrixChart';
 import { StrengthsWeaknessesMatrix } from '@/components/admin/competitive-analysis/StrengthsWeaknessesMatrix';
@@ -28,6 +36,7 @@ import { exportCompetitiveAnalysisPdf } from '@/lib/exportCompetitiveAnalysisPdf
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { EntityType, CompetitiveAnalysisReportData } from '@/types/competitiveAnalysis';
+import { STANDARD_REGIONS, COMMON_COUNTRIES } from '@/types/regionalBranding';
 
 interface DiscoveredCompetitor {
   name: string;
@@ -65,6 +74,11 @@ export function CompetitiveAnalysisDialog({
   const [additionalContext, setAdditionalContext] = useState('');
   const [showDiscoveryPanel, setShowDiscoveryPanel] = useState(false);
 
+  // Regional analysis state
+  const [targetRegion, setTargetRegion] = useState<string>('');
+  const [targetCountry, setTargetCountry] = useState<string>('');
+  const [isRegionalAnalysis, setIsRegionalAnalysis] = useState(false);
+
   // Favorites state
   const [showFavoritesPanel, setShowFavoritesPanel] = useState(false);
 
@@ -82,6 +96,32 @@ export function CompetitiveAnalysisDialog({
     isFavorite,
   } = useFavoriteCompetitors({ organizationId });
 
+  // Regional branding data
+  const { regions, countries } = useRegionalBranding(organizationId);
+
+  // Get available regions and countries
+  const availableRegions = useMemo(() => {
+    if (regions.length > 0) {
+      return regions.map(r => ({ code: r.code, name: r.name }));
+    }
+    return STANDARD_REGIONS;
+  }, [regions]);
+
+  const availableCountries = useMemo(() => {
+    if (countries.length > 0) {
+      if (targetRegion) {
+        return countries
+          .filter(c => c.region_code === targetRegion)
+          .map(c => ({ code: c.country_code, name: c.country_name }));
+      }
+      return countries.map(c => ({ code: c.country_code, name: c.country_name }));
+    }
+    if (targetRegion) {
+      return COMMON_COUNTRIES.filter(c => c.region === targetRegion);
+    }
+    return COMMON_COUNTRIES;
+  }, [countries, targetRegion]);
+
   const handleAddCompetitor = () => {
     if (newCompetitor.trim() && competitors.length < 10) {
       setCompetitors([...competitors, newCompetitor.trim()]);
@@ -94,7 +134,10 @@ export function CompetitiveAnalysisDialog({
   };
 
   const handleGenerate = async () => {
-    const result = await generateReport(competitors);
+    const regionalContext = isRegionalAnalysis && (targetRegion || targetCountry) 
+      ? { region: targetRegion || undefined, country: targetCountry || undefined }
+      : undefined;
+    const result = await generateReport(competitors, regionalContext);
     if (result) {
       setActiveTab('results');
     }
@@ -566,33 +609,115 @@ export function CompetitiveAnalysisDialog({
                 )}
               </div>
 
+              {/* Regional Analysis Section */}
+              <Card className="border-sky-500/20 bg-gradient-to-br from-sky-500/5 to-transparent">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center justify-between text-base">
+                    <div className="flex items-center gap-2">
+                      <Globe2 className="w-5 h-5 text-sky-500" />
+                      Regional Market Analysis
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="regional-analysis"
+                        checked={isRegionalAnalysis}
+                        onCheckedChange={(checked) => setIsRegionalAnalysis(!!checked)}
+                      />
+                      <Label htmlFor="regional-analysis" className="text-sm font-normal cursor-pointer">
+                        Enable
+                      </Label>
+                    </div>
+                  </CardTitle>
+                  <CardDescription>
+                    Analyze competitors within a specific region for localized brand integration
+                  </CardDescription>
+                </CardHeader>
+                {isRegionalAnalysis && (
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <Label htmlFor="target-region" className="text-sm">
+                          Target Region
+                        </Label>
+                        <Select value={targetRegion} onValueChange={(v) => {
+                          setTargetRegion(v);
+                          setTargetCountry('');
+                        }}>
+                          <SelectTrigger className="mt-1.5">
+                            <SelectValue placeholder="Select region" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableRegions.map(r => (
+                              <SelectItem key={r.code} value={r.code}>{r.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="target-country" className="text-sm">
+                          Target Country (optional)
+                        </Label>
+                        <Select value={targetCountry} onValueChange={setTargetCountry}>
+                          <SelectTrigger className="mt-1.5">
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableCountries.map(c => (
+                              <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    {(targetRegion || targetCountry) && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-md p-2">
+                        <MapPin className="w-4 h-4 text-sky-500" />
+                        Analysis will include regional competitors, cultural considerations, and localization priorities for {targetCountry || targetRegion}
+                      </div>
+                    )}
+                  </CardContent>
+                )}
+              </Card>
+
               <div className="bg-muted/50 rounded-lg p-4">
                 <h4 className="font-medium mb-2">Analysis includes:</h4>
                 <ul className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckCircle className="w-4 h-4 text-primary" />
                     Visual Identity Audit
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckCircle className="w-4 h-4 text-primary" />
                     Digital Presence Analysis
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckCircle className="w-4 h-4 text-primary" />
                     Brand Positioning Matrix
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckCircle className="w-4 h-4 text-primary" />
                     Strengths & Weaknesses
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckCircle className="w-4 h-4 text-primary" />
                     Strategic Recommendations
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckCircle className="w-4 h-4 text-primary" />
                     30/60/90 Day Action Plan
                   </li>
+                  {isRegionalAnalysis && (targetRegion || targetCountry) && (
+                    <>
+                      <li className="flex items-center gap-2">
+                        <Globe2 className="w-4 h-4 text-sky-500" />
+                        Regional Market Context
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-sky-500" />
+                        Localization Priorities
+                      </li>
+                    </>
+                  )}
                 </ul>
               </div>
 
@@ -622,11 +747,17 @@ export function CompetitiveAnalysisDialog({
               <ScrollArea className="h-[calc(90vh-200px)]">
                 <Tabs defaultValue="summary" className="w-full">
                   <div className="flex items-center justify-between mb-4 gap-4">
-                    <TabsList className="grid flex-1 grid-cols-4">
+                    <TabsList className={`grid flex-1 ${reportData.regionalInsights ? 'grid-cols-5' : 'grid-cols-4'}`}>
                       <TabsTrigger value="summary" className="text-xs">Summary</TabsTrigger>
                       <TabsTrigger value="positioning" className="text-xs">Positioning</TabsTrigger>
                       <TabsTrigger value="recommendations" className="text-xs">Recommendations</TabsTrigger>
                       <TabsTrigger value="action-plan" className="text-xs">Action Plan</TabsTrigger>
+                      {reportData.regionalInsights && (
+                        <TabsTrigger value="regional" className="text-xs gap-1">
+                          <Globe2 className="w-3 h-3" />
+                          Regional
+                        </TabsTrigger>
+                      )}
                     </TabsList>
                     <Button
                       variant="outline"
@@ -861,6 +992,136 @@ export function CompetitiveAnalysisDialog({
                       </CardContent>
                     </Card>
                   </TabsContent>
+
+                  {/* Regional Insights Tab */}
+                  {reportData.regionalInsights && (
+                    <TabsContent value="regional" className="space-y-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Globe2 className="w-5 h-5 text-sky-500" />
+                        <h3 className="font-semibold text-lg">Regional Market Insights</h3>
+                        {(reportData.country || reportData.region) && (
+                          <Badge variant="outline" className="gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {reportData.country || reportData.region}
+                          </Badge>
+                        )}
+                      </div>
+
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm">Market Context</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-muted-foreground">
+                            {reportData.regionalInsights.marketContext}
+                          </p>
+                        </CardContent>
+                      </Card>
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <Users className="w-4 h-4 text-sky-500" />
+                              Local Competitors
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex flex-wrap gap-2">
+                              {reportData.regionalInsights.localCompetitors.map((c, i) => (
+                                <Badge key={i} variant="secondary">{c}</Badge>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <Lightbulb className="w-4 h-4 text-amber-500" />
+                              Market Opportunities
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-1 text-sm">
+                              {reportData.regionalInsights.marketOpportunities.map((o, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2" />
+                                  {o}
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm">Cultural Considerations</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex flex-wrap gap-2">
+                            {reportData.regionalInsights.culturalConsiderations.map((c, i) => (
+                              <Badge key={i} variant="outline">{c}</Badge>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <Target className="w-4 h-4 text-primary" />
+                              Localization Priorities
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-1 text-sm">
+                              {reportData.regionalInsights.localizationPriorities.map((p, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
+                                  {p}
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <AlertTriangle className="w-4 h-4 text-destructive" />
+                              Entry Barriers
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-1 text-sm">
+                              {reportData.regionalInsights.entryBarriers.map((b, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-destructive mt-2" />
+                                  {b}
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {reportData.regionalInsights.regulatoryConsiderations && (
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm">Regulatory Considerations</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-sm text-muted-foreground">
+                              {reportData.regionalInsights.regulatoryConsiderations}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </TabsContent>
+                  )}
                 </Tabs>
               </ScrollArea>
             )}
