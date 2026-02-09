@@ -63,6 +63,7 @@ import { AdminToolbar } from '@/components/admin/AdminToolbar';
 import { StickyBreadcrumbs } from '@/components/StickyBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { BackToTopButton } from '@/components/BackToTopButton';
+import { GuideLanguageSelector } from '@/components/localization/GuideLanguageSelector';
 import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -715,6 +716,12 @@ const ProductEditor = () => {
                     className="hidden md:flex"
                   />
                 )}
+                {/* Language Selector */}
+                <GuideLanguageSelector
+                  entityType="product"
+                  entityId={currentProduct.id}
+                  entityName={currentProduct.hero.name}
+                />
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 

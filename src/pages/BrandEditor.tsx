@@ -66,6 +66,7 @@ import { GlobalLinkWorkflowTrigger } from '@/components/brand/GlobalLinkWorkflow
 import { AdminToolbar } from '@/components/admin/AdminToolbar';
 import { StickyBreadcrumbs } from '@/components/StickyBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
+import { GuideLanguageSelector } from '@/components/localization/GuideLanguageSelector';
 import { HeroBackground } from '@/components/HeroBackground';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
@@ -851,6 +852,13 @@ const BrandEditor = () => {
                     className="hidden md:flex"
                   />
                 )}
+                {/* Language Selector - Globe icon for translations */}
+                <GuideLanguageSelector
+                  entityType="brand"
+                  entityId={brand.id}
+                  entityName={brand.hero.name}
+                  onOpenLocalizationPanel={() => setTranslationHubOpen(true)}
+                />
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
