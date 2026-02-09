@@ -56,6 +56,7 @@ import { DownloadsReportPanel } from '@/components/admin/DownloadsReportPanel';
 import { ActivityLogsPanel } from '@/components/admin/ActivityLogsPanel';
 import { GlobalLinkAdminSection } from '@/components/admin/globallink';
 import { ResearchBriefingsPanel } from '@/components/admin/ResearchBriefingsPanel';
+import { MulticulturalIntelligencePanel } from '@/components/admin/MulticulturalIntelligencePanel';
 import { 
   DashboardStats, 
   ActivityLog, 
@@ -920,6 +921,11 @@ export default function AdminDashboard() {
           {/* GlobalLink Localization Tab */}
           <TabsContent value="globallink" className="space-y-6">
             <GlobalLinkAdminSection />
+          </TabsContent>
+
+          {/* Multicultural Intelligence Tab */}
+          <TabsContent value="multicultural" className="space-y-6">
+            <MulticulturalIntelligencePanel />
           </TabsContent>
 
           {/* Research Briefings Tab */}
