@@ -59,6 +59,7 @@ import { AdminToolbar } from '@/components/admin/AdminToolbar';
 import { StickyBreadcrumbs } from '@/components/StickyBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { HeroBackground } from '@/components/HeroBackground';
+import { GuideLanguageSelector } from '@/components/localization/GuideLanguageSelector';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { MobileEventSectionNav } from '@/components/event/MobileEventSectionNav';
 import { ParentEventBanner } from '@/components/event/ParentEventBanner';
@@ -816,6 +817,12 @@ const EventEditor = () => {
                     className="hidden md:flex"
                   />
                 )}
+                {/* Language Selector */}
+                <GuideLanguageSelector
+                  entityType="event"
+                  entityId={event.id}
+                  entityName={event.hero.name}
+                />
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
