@@ -886,6 +886,59 @@ export type Database = {
           },
         ]
       }
+      globallink_config: {
+        Row: {
+          api_endpoint: string | null
+          api_mode: string
+          auto_translate_new_content: boolean | null
+          callback_url: string | null
+          created_at: string
+          default_service: string | null
+          glossary_enabled: boolean | null
+          id: string
+          organization_id: string | null
+          preserve_formatting: boolean | null
+          project_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          api_endpoint?: string | null
+          api_mode?: string
+          auto_translate_new_content?: boolean | null
+          callback_url?: string | null
+          created_at?: string
+          default_service?: string | null
+          glossary_enabled?: boolean | null
+          id?: string
+          organization_id?: string | null
+          preserve_formatting?: boolean | null
+          project_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          api_endpoint?: string | null
+          api_mode?: string
+          auto_translate_new_content?: boolean | null
+          callback_url?: string | null
+          created_at?: string
+          default_service?: string | null
+          glossary_enabled?: boolean | null
+          id?: string
+          organization_id?: string | null
+          preserve_formatting?: boolean | null
+          project_key?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "globallink_config_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_submissions: {
         Row: {
           admin_notes: string | null
@@ -936,6 +989,233 @@ export type Database = {
           use_case?: string | null
         }
         Relationships: []
+      }
+      localization_cache: {
+        Row: {
+          context: string | null
+          created_at: string
+          hit_count: number | null
+          id: string
+          last_used_at: string | null
+          organization_id: string | null
+          source_hash: string
+          source_language: string
+          source_text: string
+          target_language: string
+          translated_text: string
+          updated_at: string
+        }
+        Insert: {
+          context?: string | null
+          created_at?: string
+          hit_count?: number | null
+          id?: string
+          last_used_at?: string | null
+          organization_id?: string | null
+          source_hash: string
+          source_language?: string
+          source_text: string
+          target_language: string
+          translated_text: string
+          updated_at?: string
+        }
+        Update: {
+          context?: string | null
+          created_at?: string
+          hit_count?: number | null
+          id?: string
+          last_used_at?: string | null
+          organization_id?: string | null
+          source_hash?: string
+          source_language?: string
+          source_text?: string
+          target_language?: string
+          translated_text?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "localization_cache_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      localization_jobs: {
+        Row: {
+          character_count: number | null
+          completed_at: string | null
+          created_at: string
+          entity_id: string | null
+          entity_name: string
+          entity_type: string
+          error_message: string | null
+          id: string
+          organization_id: string | null
+          source_content: Json
+          source_language: string
+          status: string
+          submitted_at: string
+          submitted_by: string | null
+          target_language: string
+          translated_content: Json | null
+          translation_method: string | null
+          updated_at: string
+          word_count: number | null
+        }
+        Insert: {
+          character_count?: number | null
+          completed_at?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_name: string
+          entity_type: string
+          error_message?: string | null
+          id?: string
+          organization_id?: string | null
+          source_content: Json
+          source_language?: string
+          status?: string
+          submitted_at?: string
+          submitted_by?: string | null
+          target_language: string
+          translated_content?: Json | null
+          translation_method?: string | null
+          updated_at?: string
+          word_count?: number | null
+        }
+        Update: {
+          character_count?: number | null
+          completed_at?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_name?: string
+          entity_type?: string
+          error_message?: string | null
+          id?: string
+          organization_id?: string | null
+          source_content?: Json
+          source_language?: string
+          status?: string
+          submitted_at?: string
+          submitted_by?: string | null
+          target_language?: string
+          translated_content?: Json | null
+          translation_method?: string | null
+          updated_at?: string
+          word_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "localization_jobs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      localization_target_languages: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          language_code: string
+          language_name: string
+          organization_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          language_code: string
+          language_name: string
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          language_code?: string
+          language_name?: string
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "localization_target_languages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      localized_content: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          language_code: string
+          last_synced_at: string | null
+          localized_guide_data: Json
+          organization_id: string | null
+          published_at: string | null
+          published_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          translation_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          language_code: string
+          last_synced_at?: string | null
+          localized_guide_data: Json
+          organization_id?: string | null
+          published_at?: string | null
+          published_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          translation_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          language_code?: string
+          last_synced_at?: string | null
+          localized_guide_data?: Json
+          organization_id?: string | null
+          published_at?: string | null
+          published_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          translation_status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "localized_content_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       organization_icon_libraries: {
         Row: {
