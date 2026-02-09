@@ -2059,6 +2059,98 @@ export type Database = {
           },
         ]
       }
+      research_briefings: {
+        Row: {
+          actioned_at: string | null
+          briefing_type: string
+          competitive_insights: Json | null
+          confidence_score: number | null
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          expires_at: string | null
+          growth_opportunities: Json | null
+          id: string
+          market_intelligence: Json | null
+          organization_id: string | null
+          priority_actions: Json | null
+          read_at: string | null
+          risk_alerts: Json | null
+          sentiment_signals: Json | null
+          status: string | null
+          strategic_recommendations: Json | null
+          suggested_updates: Json | null
+          summary: string | null
+          title: string
+          trend_analysis: Json | null
+          updated_at: string
+          urgency_level: string | null
+        }
+        Insert: {
+          actioned_at?: string | null
+          briefing_type?: string
+          competitive_insights?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_type?: string
+          expires_at?: string | null
+          growth_opportunities?: Json | null
+          id?: string
+          market_intelligence?: Json | null
+          organization_id?: string | null
+          priority_actions?: Json | null
+          read_at?: string | null
+          risk_alerts?: Json | null
+          sentiment_signals?: Json | null
+          status?: string | null
+          strategic_recommendations?: Json | null
+          suggested_updates?: Json | null
+          summary?: string | null
+          title: string
+          trend_analysis?: Json | null
+          updated_at?: string
+          urgency_level?: string | null
+        }
+        Update: {
+          actioned_at?: string | null
+          briefing_type?: string
+          competitive_insights?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          expires_at?: string | null
+          growth_opportunities?: Json | null
+          id?: string
+          market_intelligence?: Json | null
+          organization_id?: string | null
+          priority_actions?: Json | null
+          read_at?: string | null
+          risk_alerts?: Json | null
+          sentiment_signals?: Json | null
+          status?: string | null
+          strategic_recommendations?: Json | null
+          suggested_updates?: Json | null
+          summary?: string | null
+          title?: string
+          trend_analysis?: Json | null
+          updated_at?: string
+          urgency_level?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_briefings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_report_prompts: {
         Row: {
           category: string | null
