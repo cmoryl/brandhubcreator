@@ -1,7 +1,7 @@
 import { 
   BarChart3, UserCheck, Users, Building2, UserPlus, Palette, 
   Database, TrendingUp, Eye, Brain, FileText, Activity, 
-  Wrench, HardDrive, Shield, Menu, X, Orbit, Package, Image, Mail, Sparkles, MapPin, FileDown
+  Wrench, HardDrive, Shield, Menu, X, Orbit, Package, Image, Mail, Sparkles, MapPin, FileDown, Globe2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +28,7 @@ const navGroups = [
   { id: 'core', label: 'Core Admin' },
   { id: 'management', label: 'Management' },
   { id: 'content', label: 'Content & Data' },
+  { id: 'localization', label: 'Localization' },
   { id: 'analytics', label: 'Analytics & AI' },
   { id: 'tools', label: 'Tools' },
 ];
@@ -60,6 +61,7 @@ function SidebarContent({
     { id: 'leads', label: 'Lead Submissions', icon: <Mail className="h-4 w-4" />, group: 'core' },
     { id: 'demo-pages', label: 'Demo Pages', icon: <Sparkles className="h-4 w-4" />, group: 'content' },
     { id: 'locations', label: 'Company Locations', icon: <MapPin className="h-4 w-4" />, group: 'content' },
+    { id: 'globallink', label: 'GlobalLink', icon: <Globe2 className="h-4 w-4" />, group: 'localization' },
   ];
 
   const handleItemClick = (id: string) => {

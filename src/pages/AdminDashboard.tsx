@@ -54,6 +54,7 @@ import { GlobalMapThemeEditor } from '@/components/admin/GlobalMapThemeEditor';
 import { AdminOverview } from '@/components/admin/AdminOverview';
 import { DownloadsReportPanel } from '@/components/admin/DownloadsReportPanel';
 import { ActivityLogsPanel } from '@/components/admin/ActivityLogsPanel';
+import { GlobalLinkAdminSection } from '@/components/admin/globallink';
 import { 
   DashboardStats, 
   ActivityLog, 
@@ -913,6 +914,11 @@ export default function AdminDashboard() {
           <TabsContent value="locations" className="space-y-6">
             <GlobalMapThemeEditor />
             <CompanyLocationsManager />
+          </TabsContent>
+
+          {/* GlobalLink Localization Tab */}
+          <TabsContent value="globallink" className="space-y-6">
+            <GlobalLinkAdminSection />
           </TabsContent>
         </Tabs>
           </div>
