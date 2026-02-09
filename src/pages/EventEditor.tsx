@@ -60,6 +60,7 @@ import { StickyBreadcrumbs } from '@/components/StickyBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { HeroBackground } from '@/components/HeroBackground';
 import { GuideLanguageSelector } from '@/components/localization/GuideLanguageSelector';
+import { TranslationHub } from '@/components/brand/TranslationHub';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { MobileEventSectionNav } from '@/components/event/MobileEventSectionNav';
 import { ParentEventBanner } from '@/components/event/ParentEventBanner';
@@ -103,6 +104,8 @@ const EventEditor = () => {
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
   // Regional analysis panel state
   const [regionalAnalysisOpen, setRegionalAnalysisOpen] = useState(false);
+  // Translation hub state
+  const [translationHubOpen, setTranslationHubOpen] = useState(false);
   const [parentEvent, setParentEvent] = useState<{ id: string; name: string; slug: string } | null>(null);
 
   // Redirect unapproved users
@@ -822,6 +825,7 @@ const EventEditor = () => {
                   entityType="event"
                   entityId={event.id}
                   entityName={event.hero.name}
+                  onOpenLocalizationPanel={() => setTranslationHubOpen(true)}
                 />
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -1074,6 +1078,15 @@ const EventEditor = () => {
           onOpenChange={setRegionalAnalysisOpen}
         />
       )}
+
+      {/* Translation Hub */}
+      <TranslationHub
+        open={translationHubOpen}
+        onOpenChange={setTranslationHubOpen}
+        entityId={event.id}
+        entityType="event"
+        entityName={event.hero.name}
+      />
     </TooltipProvider>
   );
 };

@@ -64,6 +64,7 @@ import { StickyBreadcrumbs } from '@/components/StickyBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { GuideLanguageSelector } from '@/components/localization/GuideLanguageSelector';
+import { TranslationHub } from '@/components/brand/TranslationHub';
 import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -119,6 +120,8 @@ const ProductEditor = () => {
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
   // Regional analysis panel state
   const [regionalAnalysisOpen, setRegionalAnalysisOpen] = useState(false);
+  // Translation hub state
+  const [translationHubOpen, setTranslationHubOpen] = useState(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   const handleSignOut = async () => {
@@ -721,6 +724,7 @@ const ProductEditor = () => {
                   entityType="product"
                   entityId={currentProduct.id}
                   entityName={currentProduct.hero.name}
+                  onOpenLocalizationPanel={() => setTranslationHubOpen(true)}
                 />
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -1001,6 +1005,15 @@ const ProductEditor = () => {
           onOpenChange={setRegionalAnalysisOpen}
         />
       )}
+
+      {/* Translation Hub */}
+      <TranslationHub
+        open={translationHubOpen}
+        onOpenChange={setTranslationHubOpen}
+        entityId={currentProduct.id}
+        entityType="product"
+        entityName={currentProduct.hero.name}
+      />
     </TooltipProvider>
   );
 };
