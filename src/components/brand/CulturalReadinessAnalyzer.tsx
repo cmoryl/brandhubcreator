@@ -67,11 +67,23 @@ export const CulturalReadinessAnalyzer: React.FC<CulturalReadinessAnalyzerProps>
   onAnalysisComplete,
 }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
   const [insights, setInsights] = useState<CulturalInsights | null>(existingInsights || null);
   const [recommendations, setRecommendations] = useState<GlobalLinkRecommendation[]>(existingRecommendations);
+  const pollingRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Cleanup polling on unmount
+  React.useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
+  }, []);
 
   const runAnalysis = async () => {
     setIsAnalyzing(true);
+    setAnalysisProgress(0);
     try {
       const { data, error } = await supabase.functions.invoke('brand-intelligence', {
         body: {
@@ -84,20 +96,49 @@ export const CulturalReadinessAnalyzer: React.FC<CulturalReadinessAnalyzerProps>
 
       if (error) throw error;
 
-      if (data?.analysis?.cultural_insights) {
-        setInsights(data.analysis.cultural_insights);
-        onAnalysisComplete?.(data.analysis.cultural_insights);
-      }
-      if (data?.analysis?.globallink_recommendations) {
-        setRecommendations(data.analysis.globallink_recommendations);
+      if (!data?.job_id) {
+        throw new Error('No job ID returned');
       }
 
-      toast.success('Cultural analysis complete');
+      toast.info('Cultural analysis started...');
+
+      // Poll for job completion
+      pollingRef.current = setInterval(async () => {
+        const { data: job } = await supabase
+          .from('brand_intelligence_jobs')
+          .select('*')
+          .eq('id', data.job_id)
+          .maybeSingle();
+
+        if (job) {
+          setAnalysisProgress(job.progress || 0);
+          
+          if (job.status === 'completed') {
+            setIsAnalyzing(false);
+            setAnalysisProgress(0);
+            if (pollingRef.current) clearInterval(pollingRef.current);
+            
+            const result = job.result as any;
+            if (result?.analysis?.cultural_insights) {
+              setInsights(result.analysis.cultural_insights);
+              onAnalysisComplete?.(result.analysis.cultural_insights);
+            }
+            if (result?.analysis?.globallink_recommendations) {
+              setRecommendations(result.analysis.globallink_recommendations);
+            }
+            toast.success('Cultural analysis complete');
+          } else if (job.status === 'failed') {
+            setIsAnalyzing(false);
+            setAnalysisProgress(0);
+            if (pollingRef.current) clearInterval(pollingRef.current);
+            toast.error(job.error_message || 'Analysis failed');
+          }
+        }
+      }, 2000);
     } catch (error) {
       console.error('Cultural analysis error:', error);
-      toast.error('Failed to analyze cultural readiness');
-    } finally {
       setIsAnalyzing(false);
+      toast.error('Failed to start cultural analysis');
     }
   };
 
