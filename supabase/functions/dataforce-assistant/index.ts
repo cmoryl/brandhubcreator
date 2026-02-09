@@ -30,13 +30,7 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-
-    if (!LOVABLE_API_KEY) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'AI service not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const DATAFORCE_API_KEY = Deno.env.get('DATAFORCE_API_KEY');
 
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -141,14 +135,42 @@ serve(async (req) => {
       }
     }
 
-    // Get DataForce config for persona
+    // Get DataForce config for persona and mode
     const { data: config } = await supabase
       .from('dataforce_config')
-      .select('assistant_persona')
+      .select('assistant_persona, api_mode')
       .eq('organization_id', organization_id)
       .maybeSingle();
 
+    const isDemo = !config || config.api_mode === 'demo';
     const persona = config?.assistant_persona || `You are a helpful brand assistant for ${entityName}. You help users understand and apply brand guidelines correctly.`;
+
+    // Demo mode - return helpful placeholder response
+    if (isDemo && !LOVABLE_API_KEY) {
+      const demoResponse = generateDemoAssistantResponse(message, entityName);
+      
+      const newMessages = [
+        ...existingMessages,
+        { id: crypto.randomUUID(), role: 'user', content: message, timestamp: new Date().toISOString() },
+        { id: crypto.randomUUID(), role: 'assistant', content: demoResponse, timestamp: new Date().toISOString() }
+      ];
+
+      await supabase
+        .from('dataforce_assistant_conversations')
+        .update({ messages: newMessages })
+        .eq('id', conversation.id);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          conversationId: conversation.id,
+          message: demoResponse,
+          languageCode: language_code,
+          isDemo: true,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Build message history
     const existingMessages = conversation.messages || [];
@@ -285,4 +307,22 @@ function buildEntityContext(guideData: Record<string, unknown>, entityName: stri
   }
 
   return sections.join('\n');
+}
+
+function generateDemoAssistantResponse(message: string, entityName: string): string {
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes('color') || lowerMessage.includes('palette')) {
+    return `**Demo Mode Response**\n\nFor ${entityName}'s color guidelines, I would analyze your brand palette and provide specific recommendations. In live mode with DataForce activated, I can:\n\n• Explain color usage rules and accessibility requirements\n• Suggest color combinations for specific use cases\n• Provide hex/RGB values with context\n\nTo activate full AI capabilities, configure your DataForce API key in settings.`;
+  }
+  
+  if (lowerMessage.includes('logo') || lowerMessage.includes('brand mark')) {
+    return `**Demo Mode Response**\n\nRegarding ${entityName}'s logo guidelines, I'm currently in demo mode. When fully activated, I can help with:\n\n• Logo placement and spacing rules\n• Approved variations and when to use each\n• Common misuse examples to avoid\n\nActivate DataForce in settings for personalized brand guidance.`;
+  }
+  
+  if (lowerMessage.includes('tone') || lowerMessage.includes('voice') || lowerMessage.includes('messaging')) {
+    return `**Demo Mode Response**\n\nFor ${entityName}'s brand voice, the full assistant can provide:\n\n• Tone guidelines for different contexts\n• Example phrases and vocabulary\n• Writing style recommendations\n\nThis is a demo response. Enable DataForce for AI-powered brand assistance.`;
+  }
+  
+  return `**Demo Mode Response**\n\nThank you for your question about ${entityName}. I'm currently running in demo mode with limited capabilities.\n\nWhen DataForce is activated, I can:\n• Answer detailed brand guideline questions\n• Provide contextual recommendations\n• Help with content creation in your brand voice\n• Support multiple languages\n\nConfigure your DataForce API key in the admin settings to unlock full functionality.`;
 }

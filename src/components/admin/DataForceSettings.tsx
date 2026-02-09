@@ -173,15 +173,36 @@ export const DataForceSettings = () => {
             </Badge>
           </CardTitle>
           <CardDescription>
-            Configure your DataForce API connection. Demo mode simulates all services.
+            Configure your DataForce API connection. Demo mode provides simulated responses for testing.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Demo Mode Info */}
+          <div className="p-4 bg-muted/50 rounded-lg border border-border">
+            <div className="flex items-start gap-3">
+              {config.api_mode === 'demo' ? (
+                <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
+              ) : (
+                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+              )}
+              <div className="space-y-1">
+                <p className="font-medium text-sm">
+                  {config.api_mode === 'demo' ? 'Demo Mode Active' : 'Live Mode Active'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {config.api_mode === 'demo' 
+                    ? 'All DataForce services work with simulated responses. Brand Assistant and Compliance AI use built-in AI when available. Toggle to Live mode and add your DataForce API key for production services.'
+                    : 'Connected to DataForce production API. All services use your configured API key.'}
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label>Enable Live API</Label>
               <p className="text-sm text-muted-foreground">
-                Switch to live mode for production DataForce services
+                Switch to live mode when you have a DataForce API key
               </p>
             </div>
             <Switch
@@ -195,13 +216,16 @@ export const DataForceSettings = () => {
           {config.api_mode === 'live' && (
             <>
               <div className="space-y-2">
-                <Label>API Key</Label>
+                <Label>API Key (Optional)</Label>
                 <Input
                   type="password"
-                  placeholder="Enter your DataForce API key"
+                  placeholder="Enter your DataForce API key when ready"
                   value={config.api_key || ''}
                   onChange={(e) => setConfig({ ...config, api_key: e.target.value })}
                 />
+                <p className="text-sm text-muted-foreground">
+                  Leave empty to continue using built-in AI capabilities. Add key for full DataForce API access.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label>API Endpoint</Label>
@@ -219,7 +243,7 @@ export const DataForceSettings = () => {
             rel="noopener noreferrer"
             className="inline-flex items-center text-sm text-primary hover:underline"
           >
-            Learn more about DataForce <ExternalLink className="h-3 w-3 ml-1" />
+            Get a DataForce API key <ExternalLink className="h-3 w-3 ml-1" />
           </a>
         </CardContent>
       </Card>
