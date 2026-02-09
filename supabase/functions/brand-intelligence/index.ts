@@ -72,6 +72,24 @@ interface AnalysisResult {
     content: string;
     confidence: number;
   }[];
+  cultural_insights?: {
+    global_readiness_score: number;
+    primary_markets: string[];
+    cultural_considerations: {
+      region: string;
+      considerations: string[];
+      design_adaptations: string[];
+      messaging_notes: string;
+    }[];
+    localization_priorities: string[];
+    color_cultural_notes: string[];
+    imagery_guidelines: string[];
+  };
+  globallink_recommendations?: {
+    product: string;
+    relevance: 'high' | 'medium' | 'low';
+    use_case: string;
+  }[];
 }
 
 interface LearningContext {
@@ -654,6 +672,18 @@ Generate a comprehensive analysis including:
 5. ${isEvent ? 'Event' : 'Brand'} voice profile (tone, personality traits, communication style)
 6. Growth recommendations (3-5 actionable items with priority, rationale, AND confidence score 0-1)
 7. New insights with confidence scores (3-5 unique observations that align with user preferences)
+8. Cultural intelligence for global localization:
+   - Global readiness score (0-100)
+   - Primary target markets/regions
+   - Cultural considerations per region (design adaptations, messaging notes)
+   - Color cultural significance notes
+   - Imagery guidelines for different cultures
+   - Localization priorities
+9. GlobalLink suite recommendations (which products would benefit this brand):
+   - GlobalLink Translation (for content translation)
+   - GlobalLink AI (for AI-powered adaptation)
+   - GlobalLink Connect (for workflow automation)
+   - GlobalLink Fluent (for in-context editing)
 
 CRITICAL: For each insight and recommendation, include a confidence score (0-1) indicating how certain you are about this assessment.
 
@@ -685,6 +715,28 @@ Respond with valid JSON matching this structure:
       "content": "string",
       "confidence": 0.0-1.0
     }
+  ],
+  "cultural_insights": {
+    "global_readiness_score": 0-100,
+    "primary_markets": ["string"],
+    "cultural_considerations": [
+      {
+        "region": "string",
+        "considerations": ["string"],
+        "design_adaptations": ["string"],
+        "messaging_notes": "string"
+      }
+    ],
+    "localization_priorities": ["string"],
+    "color_cultural_notes": ["string"],
+    "imagery_guidelines": ["string"]
+  },
+  "globallink_recommendations": [
+    {
+      "product": "Translation|AI|Connect|Fluent",
+      "relevance": "high|medium|low",
+      "use_case": "string"
+    }
   ]
 }`;
 
@@ -697,7 +749,7 @@ Respond with valid JSON matching this structure:
           body: JSON.stringify({
             model: "google/gemini-3-flash-preview",
             messages: [
-              { role: "system", content: "You are a brand intelligence analyst with advanced learning capabilities. You improve based on user feedback, temporal patterns, and engagement signals. Always respond with valid JSON and include confidence scores." },
+              { role: "system", content: "You are a brand intelligence analyst with advanced learning capabilities and expertise in global localization and cultural adaptation. You improve based on user feedback, temporal patterns, and engagement signals. Always respond with valid JSON and include confidence scores. Provide actionable cultural insights for brands targeting international markets." },
               { role: "user", content: analysisPrompt }
             ],
             temperature: 0.7,
@@ -794,6 +846,10 @@ Respond with valid JSON matching this structure:
             last_analyzed_at: new Date().toISOString(),
             analysis_count: (intelligence.analysis_count || 0) + 1,
             parent_entity_id: parentBrandId || intelligence.parent_entity_id,
+            // Cultural intelligence fields
+            cultural_insights: analysis.cultural_insights || {},
+            globallink_recommendations: analysis.globallink_recommendations || [],
+            localization_readiness_score: analysis.cultural_insights?.global_readiness_score || 0,
           })
           .eq('id', intelligence.id);
 

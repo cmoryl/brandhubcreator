@@ -410,10 +410,12 @@ export type Database = {
           confidence_history: Json | null
           created_at: string
           created_by: string | null
+          cultural_insights: Json | null
           decay_config: Json | null
           entity_id: string
           entity_type: string
           feedback_score: number | null
+          globallink_recommendations: Json | null
           growth_recommendations: Json | null
           id: string
           insight_actions: Json | null
@@ -421,9 +423,11 @@ export type Database = {
           knowledge_entries: Json
           last_analyzed_at: string | null
           learning_context: Json | null
+          localization_readiness_score: number | null
           market_position: string | null
           organization_id: string | null
           parent_entity_id: string | null
+          regional_adaptations: Json | null
           semantic_hashes: Json | null
           target_audience: Json | null
           updated_at: string
@@ -438,10 +442,12 @@ export type Database = {
           confidence_history?: Json | null
           created_at?: string
           created_by?: string | null
+          cultural_insights?: Json | null
           decay_config?: Json | null
           entity_id: string
           entity_type: string
           feedback_score?: number | null
+          globallink_recommendations?: Json | null
           growth_recommendations?: Json | null
           id?: string
           insight_actions?: Json | null
@@ -449,9 +455,11 @@ export type Database = {
           knowledge_entries?: Json
           last_analyzed_at?: string | null
           learning_context?: Json | null
+          localization_readiness_score?: number | null
           market_position?: string | null
           organization_id?: string | null
           parent_entity_id?: string | null
+          regional_adaptations?: Json | null
           semantic_hashes?: Json | null
           target_audience?: Json | null
           updated_at?: string
@@ -466,10 +474,12 @@ export type Database = {
           confidence_history?: Json | null
           created_at?: string
           created_by?: string | null
+          cultural_insights?: Json | null
           decay_config?: Json | null
           entity_id?: string
           entity_type?: string
           feedback_score?: number | null
+          globallink_recommendations?: Json | null
           growth_recommendations?: Json | null
           id?: string
           insight_actions?: Json | null
@@ -477,9 +487,11 @@ export type Database = {
           knowledge_entries?: Json
           last_analyzed_at?: string | null
           learning_context?: Json | null
+          localization_readiness_score?: number | null
           market_position?: string | null
           organization_id?: string | null
           parent_entity_id?: string | null
+          regional_adaptations?: Json | null
           semantic_hashes?: Json | null
           target_audience?: Json | null
           updated_at?: string
