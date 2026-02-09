@@ -400,7 +400,7 @@ export function useCulturalAdaptation(organizationId: string | undefined) {
   const getCulturalSuggestions = useCallback(async (
     entityType: 'brand' | 'product' | 'event',
     entityId: string,
-    guideData: Record<string, unknown>,
+    _guideData: Record<string, unknown>, // Kept for API compat, not sent
     targetCountry?: string,
     targetRegion?: string,
     sections?: string[]
@@ -419,7 +419,6 @@ export function useCulturalAdaptation(organizationId: string | undefined) {
           target_region: targetRegion,
           target_country: targetCountry,
           sections,
-          guide_data: guideData,
         },
       });
 
