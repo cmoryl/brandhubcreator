@@ -10,17 +10,22 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, CheckCircle2, Settings, ExternalLink, Lock } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Settings, ExternalLink, Lock, Eye, EyeOff, Key } from 'lucide-react';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useLocalization } from '@/hooks/useLocalization';
+import { toast } from 'sonner';
 
 export const GlobalLinkConfigPanel: React.FC = () => {
   const { organization } = useOrganization();
   const { config, updateConfig, isLoading } = useLocalization(organization?.id);
+  const [showApiKey, setShowApiKey] = React.useState(false);
+  const [testingConnection, setTestingConnection] = React.useState(false);
   
   const [formData, setFormData] = React.useState({
     api_mode: config?.api_mode || 'demo',
     api_endpoint: config?.api_endpoint || '',
+    api_key: '',
+    project_key: config?.project_key || '',
     default_service: config?.default_service || 'mt',
     auto_translate_new_content: config?.auto_translate_new_content || false,
     preserve_formatting: config?.preserve_formatting ?? true,
@@ -29,19 +34,68 @@ export const GlobalLinkConfigPanel: React.FC = () => {
 
   React.useEffect(() => {
     if (config) {
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         api_mode: config.api_mode,
         api_endpoint: config.api_endpoint || '',
+        project_key: config.project_key || '',
         default_service: config.default_service || 'mt',
         auto_translate_new_content: config.auto_translate_new_content,
         preserve_formatting: config.preserve_formatting,
         glossary_enabled: config.glossary_enabled,
-      });
+        // Don't overwrite api_key if user has entered something - it's masked in DB
+      }));
     }
   }, [config]);
 
+  const hasApiKeyConfigured = config?.api_key && config.api_key.length > 0;
+
   const handleSave = () => {
-    updateConfig.mutate(formData);
+    // Only include api_key if user entered a new one
+    const dataToSave = {
+      ...formData,
+      api_key: formData.api_key || undefined,
+    };
+    updateConfig.mutate(dataToSave);
+    // Clear the api_key field after save for security
+    setFormData(prev => ({ ...prev, api_key: '' }));
+  };
+
+  const testConnection = async () => {
+    if (!formData.project_key && !config?.project_key) {
+      toast.error('Please enter a Project Key first');
+      return;
+    }
+    
+    setTestingConnection(true);
+    try {
+      // Simple test translation request
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/globallink-translate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          organization_id: organization?.id,
+          source_language: 'en_US',
+          target_language: 'es_ES',
+          content: 'Hello, this is a test.',
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.success('Connection successful! Translation API is working.');
+      } else {
+        toast.error(data.error || 'Connection test failed');
+      }
+    } catch (error) {
+      toast.error('Failed to test connection');
+    } finally {
+      setTestingConnection(false);
+    }
   };
 
   return (
@@ -93,14 +147,13 @@ export const GlobalLinkConfigPanel: React.FC = () => {
 
           {formData.api_mode === 'live' && (
             <>
-              <div className="p-4 border border-amber-500/20 bg-amber-500/5 rounded-lg">
+              <div className="p-4 border border-primary/20 bg-primary/5 rounded-lg">
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
+                  <Key className="h-5 w-5 text-primary mt-0.5" />
                   <div className="space-y-1">
-                    <p className="text-sm font-medium">API Credentials Required</p>
+                    <p className="text-sm font-medium">GlobalLink API Credentials</p>
                     <p className="text-xs text-muted-foreground">
-                      Live mode requires <code className="bg-muted px-1 py-0.5 rounded">GLOBALLINK_API_KEY</code> and 
-                      <code className="bg-muted px-1 py-0.5 rounded ml-1">GLOBALLINK_PROJECT_KEY</code> secrets to be configured.
+                      Enter your GlobalLink credentials below. They will be securely stored and used for live translations.
                     </p>
                     <Button variant="link" className="h-auto p-0 text-xs" asChild>
                       <a 
@@ -118,6 +171,46 @@ export const GlobalLinkConfigPanel: React.FC = () => {
               </div>
 
               <div className="space-y-2">
+                <Label>API Key</Label>
+                <div className="relative">
+                  <Input
+                    type={showApiKey ? 'text' : 'password'}
+                    value={formData.api_key}
+                    onChange={(e) => setFormData(prev => ({ ...prev, api_key: e.target.value }))}
+                    placeholder={hasApiKeyConfigured ? '••••••••••••••••' : 'Enter your GlobalLink API Key'}
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                  >
+                    {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {hasApiKeyConfigured && (
+                  <p className="text-xs text-green-600 flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" />
+                    API Key configured. Enter a new value to update.
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Project Key</Label>
+                <Input
+                  value={formData.project_key}
+                  onChange={(e) => setFormData(prev => ({ ...prev, project_key: e.target.value }))}
+                  placeholder="Enter your GlobalLink Project Key"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Your GlobalLink project identifier for translation services
+                </p>
+              </div>
+
+              <div className="space-y-2">
                 <Label>API Endpoint (Optional)</Label>
                 <Input
                   value={formData.api_endpoint}
@@ -128,6 +221,15 @@ export const GlobalLinkConfigPanel: React.FC = () => {
                   Leave blank to use the default GlobalLink Web API endpoint
                 </p>
               </div>
+
+              <Button 
+                variant="outline" 
+                onClick={testConnection}
+                disabled={testingConnection}
+                className="w-full"
+              >
+                {testingConnection ? 'Testing...' : 'Test Connection'}
+              </Button>
             </>
           )}
 

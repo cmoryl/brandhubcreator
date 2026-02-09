@@ -73,6 +73,7 @@ export interface GlobalLinkConfig {
   organization_id: string;
   api_mode: 'demo' | 'live';
   api_endpoint: string | null;
+  api_key: string | null;
   project_key: string | null;
   callback_url: string | null;
   default_service: string;

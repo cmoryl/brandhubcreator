@@ -153,15 +153,15 @@ serve(async (req) => {
       console.log('Demo translation completed for', target_language);
     } else {
       // Live mode - call GlobalLink Web API
-      // Note: This requires GLOBALLINK_API_KEY and GLOBALLINK_PROJECT_KEY secrets
-      const apiKey = Deno.env.get('GLOBALLINK_API_KEY');
+      // Check for API key in database config first, then fall back to environment secrets
+      const apiKey = config?.api_key || Deno.env.get('GLOBALLINK_API_KEY');
       const projectKey = config?.project_key || Deno.env.get('GLOBALLINK_PROJECT_KEY');
       
       if (!apiKey || !projectKey) {
         return new Response(
           JSON.stringify({ 
             success: false, 
-            error: 'GlobalLink API credentials not configured. Please add GLOBALLINK_API_KEY and GLOBALLINK_PROJECT_KEY secrets.' 
+            error: 'GlobalLink API credentials not configured. Please add your API Key and Project Key in the GlobalLink Settings panel.' 
           }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
