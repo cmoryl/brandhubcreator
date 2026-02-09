@@ -901,6 +901,326 @@ export type Database = {
           },
         ]
       }
+      dataforce_assistant_conversations: {
+        Row: {
+          context_data: Json | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          language_code: string | null
+          messages: Json | null
+          organization_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          context_data?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          language_code?: string | null
+          messages?: Json | null
+          organization_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          context_data?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          language_code?: string | null
+          messages?: Json | null
+          organization_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dataforce_assistant_conversations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dataforce_compliance_jobs: {
+        Row: {
+          assets_scanned: number | null
+          completed_at: string | null
+          compliance_score: number | null
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_name: string
+          entity_type: string
+          id: string
+          issues_data: Json | null
+          issues_found: number | null
+          organization_id: string | null
+          status: string | null
+        }
+        Insert: {
+          assets_scanned?: number | null
+          completed_at?: string | null
+          compliance_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_name: string
+          entity_type: string
+          id?: string
+          issues_data?: Json | null
+          issues_found?: number | null
+          organization_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          assets_scanned?: number | null
+          completed_at?: string | null
+          compliance_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_name?: string
+          entity_type?: string
+          id?: string
+          issues_data?: Json | null
+          issues_found?: number | null
+          organization_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dataforce_compliance_jobs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dataforce_config: {
+        Row: {
+          api_endpoint: string | null
+          api_key: string | null
+          api_mode: string | null
+          assistant_languages: string[] | null
+          assistant_model_id: string | null
+          assistant_persona: string | null
+          brand_assistant_enabled: boolean | null
+          compliance_ai_enabled: boolean | null
+          compliance_auto_scan: boolean | null
+          compliance_model_id: string | null
+          compliance_threshold: number | null
+          created_at: string
+          cultural_validation_enabled: boolean | null
+          genai_training_enabled: boolean | null
+          id: string
+          organization_id: string | null
+          training_last_sync_at: string | null
+          training_model_base: string | null
+          training_voice_samples: number | null
+          updated_at: string
+          validation_auto_request: boolean | null
+          validation_panel_size: number | null
+          validation_regions: string[] | null
+        }
+        Insert: {
+          api_endpoint?: string | null
+          api_key?: string | null
+          api_mode?: string | null
+          assistant_languages?: string[] | null
+          assistant_model_id?: string | null
+          assistant_persona?: string | null
+          brand_assistant_enabled?: boolean | null
+          compliance_ai_enabled?: boolean | null
+          compliance_auto_scan?: boolean | null
+          compliance_model_id?: string | null
+          compliance_threshold?: number | null
+          created_at?: string
+          cultural_validation_enabled?: boolean | null
+          genai_training_enabled?: boolean | null
+          id?: string
+          organization_id?: string | null
+          training_last_sync_at?: string | null
+          training_model_base?: string | null
+          training_voice_samples?: number | null
+          updated_at?: string
+          validation_auto_request?: boolean | null
+          validation_panel_size?: number | null
+          validation_regions?: string[] | null
+        }
+        Update: {
+          api_endpoint?: string | null
+          api_key?: string | null
+          api_mode?: string | null
+          assistant_languages?: string[] | null
+          assistant_model_id?: string | null
+          assistant_persona?: string | null
+          brand_assistant_enabled?: boolean | null
+          compliance_ai_enabled?: boolean | null
+          compliance_auto_scan?: boolean | null
+          compliance_model_id?: string | null
+          compliance_threshold?: number | null
+          created_at?: string
+          cultural_validation_enabled?: boolean | null
+          genai_training_enabled?: boolean | null
+          id?: string
+          organization_id?: string | null
+          training_last_sync_at?: string | null
+          training_model_base?: string | null
+          training_voice_samples?: number | null
+          updated_at?: string
+          validation_auto_request?: boolean | null
+          validation_panel_size?: number | null
+          validation_regions?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dataforce_config_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dataforce_training_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          metrics: Json | null
+          model_id: string | null
+          organization_id: string | null
+          samples_collected: number | null
+          samples_target: number | null
+          status: string | null
+          training_config: Json | null
+          training_type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metrics?: Json | null
+          model_id?: string | null
+          organization_id?: string | null
+          samples_collected?: number | null
+          samples_target?: number | null
+          status?: string | null
+          training_config?: Json | null
+          training_type: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metrics?: Json | null
+          model_id?: string | null
+          organization_id?: string | null
+          samples_collected?: number | null
+          samples_target?: number | null
+          status?: string | null
+          training_config?: Json | null
+          training_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dataforce_training_jobs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dataforce_validation_requests: {
+        Row: {
+          completed_at: string | null
+          content_snapshot: Json | null
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_name: string
+          entity_type: string
+          feedback_summary: Json | null
+          id: string
+          organization_id: string | null
+          panel_size: number | null
+          responses_received: number | null
+          status: string | null
+          target_regions: string[]
+          validation_score: number | null
+          variant_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          content_snapshot?: Json | null
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_name: string
+          entity_type: string
+          feedback_summary?: Json | null
+          id?: string
+          organization_id?: string | null
+          panel_size?: number | null
+          responses_received?: number | null
+          status?: string | null
+          target_regions: string[]
+          validation_score?: number | null
+          variant_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          content_snapshot?: Json | null
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_name?: string
+          entity_type?: string
+          feedback_summary?: Json | null
+          id?: string
+          organization_id?: string | null
+          panel_size?: number | null
+          responses_received?: number | null
+          status?: string | null
+          target_regions?: string[]
+          validation_score?: number | null
+          variant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dataforce_validation_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dataforce_validation_requests_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "brand_regional_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demo_brands: {
         Row: {
           card_image_url: string | null

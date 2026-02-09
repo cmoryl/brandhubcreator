@@ -41,3 +41,15 @@ verify_jwt = false
 
 [functions.globallink-connect-workflow]
 verify_jwt = false
+
+[functions.dataforce-compliance]
+verify_jwt = false
+
+[functions.dataforce-assistant]
+verify_jwt = false
+
+[functions.dataforce-validation]
+verify_jwt = false
+
+[functions.dataforce-training]
+verify_jwt = false
