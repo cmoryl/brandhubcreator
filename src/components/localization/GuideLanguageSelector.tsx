@@ -77,13 +77,12 @@ export const GuideLanguageSelector: React.FC<GuideLanguageSelectorProps> = ({
                   variant="ghost"
                   size="icon"
                   className={cn(
-                    'relative h-9 w-9',
-                    hasTranslations && 'text-primary',
+                    'relative h-9 w-9 text-muted-foreground hover:text-foreground transition-colors',
                     className
                   )}
                 >
                   {isTranslating ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                   ) : (
                     <Globe2 className="h-4 w-4" />
                   )}
