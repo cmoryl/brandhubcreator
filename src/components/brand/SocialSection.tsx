@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, X, Pencil, ExternalLink, BarChart3, TrendingUp } from 'lucide-react';
+import { Plus, X, Pencil, ExternalLink, BarChart3, TrendingUp, GitCompare } from 'lucide-react';
 import { BrandSocialProfile } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { safeUUID } from '@/lib/safeUUID';
 import { useSocialMetrics } from '@/hooks/useSocialMetrics';
 import { SocialMetricsEditor } from './SocialMetricsEditor';
 import { SocialMetricsSummary } from './SocialMetricsSummary';
+import { SocialMetricsComparison } from './SocialMetricsComparison';
 import { cn } from '@/lib/utils';
 
 interface SocialSectionProps {
@@ -50,6 +51,7 @@ export const SocialSection = ({
   const [metricsEditorOpen, setMetricsEditorOpen] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [showMetrics, setShowMetrics] = useState(false);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
 
   // Social metrics hook - only active if entityId is provided
   const {
@@ -117,6 +119,17 @@ export const SocialSection = ({
           />
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          {entityId && snapshots.length > 0 && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              onClick={() => setComparisonOpen(true)}
+            >
+              <GitCompare className="h-4 w-4" />
+              <span className="hidden sm:inline">Compare</span>
+            </Button>
+          )}
           {entityId && social.length > 0 && (
             <Button 
               variant={showMetrics ? "secondary" : "outline"} 
@@ -281,6 +294,13 @@ export const SocialSection = ({
           isSaving={isSaving}
         />
       )}
+
+      {/* Comparison Modal */}
+      <SocialMetricsComparison
+        open={comparisonOpen}
+        onOpenChange={setComparisonOpen}
+        snapshots={snapshots}
+      />
     </section>
   );
 };
