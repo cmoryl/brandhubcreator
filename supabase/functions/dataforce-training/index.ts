@@ -42,6 +42,7 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const DATAFORCE_API_KEY = Deno.env.get('DATAFORCE_API_KEY');
 
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -69,7 +70,7 @@ serve(async (req) => {
     const action = url.searchParams.get('action') || 'start_training';
 
     if (action === 'generate') {
-      return handleGenerate(req, supabase, user, LOVABLE_API_KEY);
+      return handleGenerate(req, supabase, user, LOVABLE_API_KEY, DATAFORCE_API_KEY);
     }
 
     // Default: start training
@@ -214,12 +215,38 @@ async function handleGenerate(
   req: Request, 
   supabase: any, 
   user: any,
-  LOVABLE_API_KEY: string | undefined
+  LOVABLE_API_KEY: string | undefined,
+  DATAFORCE_API_KEY: string | undefined
 ): Promise<Response> {
-  if (!LOVABLE_API_KEY) {
+  const body: GenerateRequest = await req.json();
+  const { organization_id, entity_type, entity_id, prompt, content_type } = body;
+
+  if (!organization_id || !entity_type || !entity_id || !prompt) {
     return new Response(
-      JSON.stringify({ success: false, error: 'AI service not configured' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ success: false, error: 'Missing required fields' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Check if in demo mode
+  const { data: config } = await supabase
+    .from('dataforce_config')
+    .select('api_mode')
+    .eq('organization_id', organization_id)
+    .maybeSingle();
+
+  const isDemo = !config || config.api_mode === 'demo';
+
+  // If no AI key available, return demo content
+  if (!LOVABLE_API_KEY && !DATAFORCE_API_KEY) {
+    return new Response(
+      JSON.stringify({
+        success: true,
+        content: generateDemoContent(content_type, prompt),
+        contentType: content_type,
+        isDemo: true,
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 
@@ -376,4 +403,16 @@ function calculateTrainingTime(samples: number): string {
   const completionDate = new Date();
   completionDate.setMinutes(completionDate.getMinutes() + minutesNeeded);
   return completionDate.toISOString();
+}
+
+function generateDemoContent(contentType: string, prompt: string): string {
+  const demoContents: Record<string, string> = {
+    tagline: '✨ Demo Mode: "Your Brand, Amplified" — Activate DataForce for custom AI-generated taglines.',
+    description: '📝 Demo Mode: This is a placeholder brand description. When DataForce is activated with your API key, the AI will generate compelling, on-brand descriptions tailored to your unique voice and messaging guidelines.',
+    social_post: '🚀 Demo Mode: [Your engaging social post here] — Connect DataForce to generate authentic social content that matches your brand voice. #BrandHub',
+    email: '📧 Demo Mode:\n\nDear Valued Customer,\n\nThis is a placeholder email introduction. Activate DataForce to generate personalized, on-brand email content that resonates with your audience.\n\nBest regards,\nYour Brand Team',
+    blog: '📖 Demo Mode:\n\n## Your Blog Post Title Here\n\nThis is demo content. When you activate DataForce with your API credentials, the AI will generate compelling blog introductions that match your brand voice, incorporate your key messages, and engage your target audience effectively.\n\nThe content will be tailored to your specific brand guidelines and tone of voice.'
+  };
+  
+  return demoContents[contentType] || `Demo Mode: Generated content for "${prompt}" would appear here. Activate DataForce for AI-powered content generation.`;
 }
