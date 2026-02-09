@@ -1109,6 +1109,7 @@ export type Database = {
       globallink_config: {
         Row: {
           api_endpoint: string | null
+          api_key: string | null
           api_mode: string
           auto_translate_new_content: boolean | null
           callback_url: string | null
@@ -1123,6 +1124,7 @@ export type Database = {
         }
         Insert: {
           api_endpoint?: string | null
+          api_key?: string | null
           api_mode?: string
           auto_translate_new_content?: boolean | null
           callback_url?: string | null
@@ -1137,6 +1139,7 @@ export type Database = {
         }
         Update: {
           api_endpoint?: string | null
+          api_key?: string | null
           api_mode?: string
           auto_translate_new_content?: boolean | null
           callback_url?: string | null
