@@ -55,6 +55,7 @@ import { AdminOverview } from '@/components/admin/AdminOverview';
 import { DownloadsReportPanel } from '@/components/admin/DownloadsReportPanel';
 import { ActivityLogsPanel } from '@/components/admin/ActivityLogsPanel';
 import { GlobalLinkAdminSection } from '@/components/admin/globallink';
+import { ResearchBriefingsPanel } from '@/components/admin/ResearchBriefingsPanel';
 import { 
   DashboardStats, 
   ActivityLog, 
@@ -919,6 +920,11 @@ export default function AdminDashboard() {
           {/* GlobalLink Localization Tab */}
           <TabsContent value="globallink" className="space-y-6">
             <GlobalLinkAdminSection />
+          </TabsContent>
+
+          {/* Research Briefings Tab */}
+          <TabsContent value="research" className="space-y-6">
+            <ResearchBriefingsPanel />
           </TabsContent>
         </Tabs>
           </div>
