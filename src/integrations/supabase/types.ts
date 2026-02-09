@@ -203,6 +203,152 @@ export type Database = {
           },
         ]
       }
+      brand_design_tokens: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          css_output: string | null
+          entity_id: string
+          entity_type: string
+          format: string
+          id: string
+          include_colors: boolean | null
+          include_shadows: boolean | null
+          include_spacing: boolean | null
+          include_typography: boolean | null
+          name: string
+          organization_id: string | null
+          prefix: string | null
+          tokens_data: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          css_output?: string | null
+          entity_id: string
+          entity_type?: string
+          format?: string
+          id?: string
+          include_colors?: boolean | null
+          include_shadows?: boolean | null
+          include_spacing?: boolean | null
+          include_typography?: boolean | null
+          name?: string
+          organization_id?: string | null
+          prefix?: string | null
+          tokens_data?: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          css_output?: string | null
+          entity_id?: string
+          entity_type?: string
+          format?: string
+          id?: string
+          include_colors?: boolean | null
+          include_shadows?: boolean | null
+          include_spacing?: boolean | null
+          include_typography?: boolean | null
+          name?: string
+          organization_id?: string | null
+          prefix?: string | null
+          tokens_data?: Json
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_design_tokens_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_generated_assets: {
+        Row: {
+          aspect_ratio: string | null
+          asset_type: string
+          category: string
+          created_at: string | null
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          generation_params: Json | null
+          id: string
+          image_url: string | null
+          is_approved: boolean | null
+          is_published: boolean | null
+          model_used: string | null
+          name: string
+          organization_id: string | null
+          prompt_id: string | null
+          prompt_used: string
+          rating: number | null
+          thumbnail_url: string | null
+        }
+        Insert: {
+          aspect_ratio?: string | null
+          asset_type?: string
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          entity_id: string
+          entity_type?: string
+          generation_params?: Json | null
+          id?: string
+          image_url?: string | null
+          is_approved?: boolean | null
+          is_published?: boolean | null
+          model_used?: string | null
+          name: string
+          organization_id?: string | null
+          prompt_id?: string | null
+          prompt_used: string
+          rating?: number | null
+          thumbnail_url?: string | null
+        }
+        Update: {
+          aspect_ratio?: string | null
+          asset_type?: string
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          generation_params?: Json | null
+          id?: string
+          image_url?: string | null
+          is_approved?: boolean | null
+          is_published?: boolean | null
+          model_used?: string | null
+          name?: string
+          organization_id?: string | null
+          prompt_id?: string | null
+          prompt_used?: string
+          rating?: number | null
+          thumbnail_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_generated_assets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brand_generated_assets_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "brand_prompt_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brand_intelligence: {
         Row: {
           analysis_count: number
@@ -291,6 +437,77 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "brand_intelligence_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_prompt_library: {
+        Row: {
+          aspect_ratio: string | null
+          category: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          is_default: boolean | null
+          is_shared: boolean | null
+          last_used_at: string | null
+          name: string
+          organization_id: string | null
+          output_format: string | null
+          prompt_template: string
+          style_preset: string | null
+          updated_at: string | null
+          use_count: number | null
+        }
+        Insert: {
+          aspect_ratio?: string | null
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          entity_id: string
+          entity_type?: string
+          id?: string
+          is_default?: boolean | null
+          is_shared?: boolean | null
+          last_used_at?: string | null
+          name: string
+          organization_id?: string | null
+          output_format?: string | null
+          prompt_template: string
+          style_preset?: string | null
+          updated_at?: string | null
+          use_count?: number | null
+        }
+        Update: {
+          aspect_ratio?: string | null
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          is_default?: boolean | null
+          is_shared?: boolean | null
+          last_used_at?: string | null
+          name?: string
+          organization_id?: string | null
+          output_format?: string | null
+          prompt_template?: string
+          style_preset?: string | null
+          updated_at?: string | null
+          use_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_prompt_library_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
