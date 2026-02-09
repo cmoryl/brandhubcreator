@@ -10,6 +10,7 @@ import { useSocialMetrics } from '@/hooks/useSocialMetrics';
 import { SocialMetricsEditor } from './SocialMetricsEditor';
 import { SocialMetricsSummary } from './SocialMetricsSummary';
 import { SocialMetricsComparison } from './SocialMetricsComparison';
+import { SocialMetricsOnboarding } from './SocialMetricsOnboarding';
 import { cn } from '@/lib/utils';
 
 interface SocialSectionProps {
@@ -150,13 +151,25 @@ export const SocialSection = ({
         </div>
       </div>
 
-      {/* Metrics Summary */}
+      {/* Metrics Summary or Onboarding */}
       {showMetrics && entityId && (
-        <SocialMetricsSummary 
-          aggregated={aggregated} 
-          snapshots={snapshots}
-          isLoading={metricsLoading}
-        />
+        snapshots.length > 0 ? (
+          <SocialMetricsSummary 
+            aggregated={aggregated} 
+            snapshots={snapshots}
+            isLoading={metricsLoading}
+          />
+        ) : (
+          <SocialMetricsOnboarding 
+            onAddMetrics={() => {
+              if (social.length > 0) {
+                setSelectedPlatform(social[0].platform);
+                setMetricsEditorOpen(true);
+              }
+            }}
+            platformCount={social.length}
+          />
+        )
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
