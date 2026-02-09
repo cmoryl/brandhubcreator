@@ -1,11 +1,13 @@
 import { useState, useCallback, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Calendar, Building2, Brain, Settings, Download, TrendingUp, LayoutDashboard, Users, HelpCircle } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Calendar, Building2, Brain, Settings, Download, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2 } from 'lucide-react';
 import { toast } from 'sonner';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { EventSectionId, DEFAULT_EVENT_SECTION_ORDER, EventGuide } from '@/types/event';
+import { GlobalBrandToolbar } from '@/components/brand/GlobalBrandToolbar';
+import { RegionalAnalysisPanel } from '@/components/brand/RegionalAnalysisPanel';
 import { DEFAULT_PAGE_SETTINGS, BrandPageSettings, SectionId, SectionLayoutSettings } from '@/types/brand';
 import { LayoutPreset } from '@/components/brand/LayoutSelector';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
@@ -98,6 +100,8 @@ const EventEditor = () => {
   const [publicEvent, setPublicEvent] = useState<EventGuide | null>(null);
   const [publicEventLoading, setPublicEventLoading] = useState(false);
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
+  // Regional analysis panel state
+  const [regionalAnalysisOpen, setRegionalAnalysisOpen] = useState(false);
   const [parentEvent, setParentEvent] = useState<{ id: string; name: string; slug: string } | null>(null);
 
   // Redirect unapproved users
@@ -802,6 +806,16 @@ const EventEditor = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                {/* Regional Analysis Toolbar */}
+                {event.organizationId && (
+                  <GlobalBrandToolbar
+                    entityType="event"
+                    entityId={event.id}
+                    organizationId={event.organizationId}
+                    onOpenAnalysis={() => setRegionalAnalysisOpen(true)}
+                    className="hidden md:flex"
+                  />
+                )}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
@@ -1041,6 +1055,18 @@ const EventEditor = () => {
       
       {/* Back to top button */}
       <BackToTopButton />
+
+      {/* Regional Analysis Panel */}
+      {event.organizationId && (
+        <RegionalAnalysisPanel
+          entityType="event"
+          entityId={event.id}
+          organizationId={event.organizationId}
+          guideData={event as unknown as Record<string, unknown>}
+          isOpen={regionalAnalysisOpen}
+          onOpenChange={setRegionalAnalysisOpen}
+        />
+      )}
     </TooltipProvider>
   );
 };
