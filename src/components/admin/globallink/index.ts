@@ -8,3 +8,5 @@ export { GlobalLinkConfigPanel } from './GlobalLinkConfigPanel';
 export { TargetLanguagesPanel } from './TargetLanguagesPanel';
 export { TranslationJobsPanel } from './TranslationJobsPanel';
 export { QuickTranslatePanel } from './QuickTranslatePanel';
+export { RegionalHierarchyPanel } from './RegionalHierarchyPanel';
+export { GlobalLinkSuiteConfigPanel } from './GlobalLinkSuiteConfigPanel';

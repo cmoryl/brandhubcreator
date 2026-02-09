@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.globallink-translate]
 verify_jwt = false
+
+[functions.globallink-cultural-adapt]
+verify_jwt = false
