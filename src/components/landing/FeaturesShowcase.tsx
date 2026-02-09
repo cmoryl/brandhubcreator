@@ -30,7 +30,10 @@ import {
   MessageSquare,
   ImageIcon,
   Map,
-  BookOpen
+  BookOpen,
+  Shield,
+  Bot,
+  GraduationCap
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -148,6 +151,34 @@ const localizationFeatures: Feature[] = [
     title: 'Regional Comparison',
     description: 'Side-by-side analysis of variant differences across markets. Compare adaptations and track regional changes.',
     gradient: 'from-cyan-500/20 to-sky-500/20',
+  },
+  {
+    icon: Shield,
+    title: 'DataForce Compliance AI',
+    description: 'Automated brand guideline compliance checking powered by DataForce. Detect color, typography, and logo issues.',
+    gradient: 'from-blue-500/20 to-sky-500/20',
+    badge: 'DataForce',
+  },
+  {
+    icon: Bot,
+    title: 'AI Brand Assistant',
+    description: 'Multilingual chatbot trained on your brand guidelines. Get instant answers in 50+ languages via DataForce.',
+    gradient: 'from-green-500/20 to-emerald-500/20',
+    badge: 'DataForce',
+  },
+  {
+    icon: Users,
+    title: 'Cultural Validation Panel',
+    description: 'Human-validated feedback from DataForce global crowd. Real user insights across target regions.',
+    gradient: 'from-purple-500/20 to-violet-500/20',
+    badge: 'DataForce',
+  },
+  {
+    icon: GraduationCap,
+    title: 'GenAI Brand Training',
+    description: 'Train custom AI models on your brand voice and style with DataForce annotation services.',
+    gradient: 'from-amber-500/20 to-orange-500/20',
+    badge: 'DataForce',
   },
 ];
 
