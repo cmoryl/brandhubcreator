@@ -35,6 +35,25 @@ interface BriefingResult {
     concernAreas: string[];
     neutralObservations: string[];
   };
+  // NEW: Multicultural Marketing Intelligence
+  multiculturalInsights: {
+    expansionOpportunities: {
+      market: string;
+      readiness: 'high' | 'medium' | 'low';
+      culturalConsiderations: string[];
+      priorityAdaptations: string[];
+    }[];
+    culturalGaps: string[];
+    localizationRecommendations: string[];
+    colorImageryNotes: string[];
+  };
+  // NEW: GlobalLink Suite Recommendations
+  globallinkRecommendations: {
+    product: 'Translation' | 'AI' | 'Connect' | 'Fluent';
+    priority: 'high' | 'medium' | 'low';
+    useCase: string;
+    expectedBenefit: string;
+  }[];
   strategicRecommendations: {
     priority: 'high' | 'medium' | 'low';
     action: string;
@@ -177,10 +196,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch existing brand intelligence
+    // Fetch existing brand intelligence including cultural insights
     const { data: intelligence } = await supabaseClient
       .from('brand_intelligence')
-      .select('brand_summary, market_position, competitive_landscape, growth_recommendations')
+      .select('brand_summary, market_position, competitive_landscape, growth_recommendations, cultural_insights, globallink_recommendations, regional_adaptations, localization_readiness_score')
       .eq('entity_id', entityId)
       .eq('entity_type', entityType)
       .single();
@@ -198,6 +217,25 @@ Deno.serve(async (req) => {
       .from('favorite_competitors')
       .select('name, competitor_type, industry')
       .limit(5);
+
+    // Fetch regional variants for multicultural context
+    const { data: regionalVariants } = await supabaseClient
+      .from('brand_regional_variants')
+      .select('variant_code, variant_level, cultural_adaptations, translation_status')
+      .eq('entity_id', entityId)
+      .eq('entity_type', entityType)
+      .limit(10);
+
+    // Fetch GlobalLink product configuration
+    let globallinkConfig = null;
+    if (entityData.organization_id) {
+      const { data: glConfig } = await supabaseClient
+        .from('globallink_product_config')
+        .select('*')
+        .eq('organization_id', entityData.organization_id)
+        .single();
+      globallinkConfig = glConfig;
+    }
 
     const brandContext = extractBrandContext(entityData.guide_data);
     
@@ -220,6 +258,86 @@ Deno.serve(async (req) => {
       const landscape = intelligence.competitive_landscape as Record<string, unknown>;
       if (landscape.summary) {
         contextSections.push('', '## Competitive Landscape', landscape.summary as string);
+      }
+    }
+
+    // Add Cultural Intelligence Context
+    if (intelligence?.cultural_insights) {
+      const cultural = intelligence.cultural_insights as Record<string, unknown>;
+      contextSections.push('', '## Cultural Intelligence');
+      
+      if (cultural.global_readiness_score) {
+        contextSections.push(`Global Readiness Score: ${cultural.global_readiness_score}/100`);
+      }
+      if (cultural.primary_markets && Array.isArray(cultural.primary_markets)) {
+        contextSections.push(`Primary Markets: ${(cultural.primary_markets as string[]).join(', ')}`);
+      }
+      if (cultural.cultural_considerations && Array.isArray(cultural.cultural_considerations)) {
+        const considerations = cultural.cultural_considerations as Array<{ region: string; considerations: string[] }>;
+        contextSections.push('Regional Considerations:');
+        considerations.slice(0, 5).forEach(c => {
+          contextSections.push(`  - ${c.region}: ${c.considerations?.slice(0, 2).join('; ')}`);
+        });
+      }
+      if (cultural.color_cultural_notes && Array.isArray(cultural.color_cultural_notes)) {
+        contextSections.push(`Color Cultural Notes: ${(cultural.color_cultural_notes as string[]).slice(0, 3).join('; ')}`);
+      }
+      if (cultural.imagery_guidelines && Array.isArray(cultural.imagery_guidelines)) {
+        contextSections.push(`Imagery Guidelines: ${(cultural.imagery_guidelines as string[]).slice(0, 3).join('; ')}`);
+      }
+    }
+
+    // Add Localization Readiness
+    if (intelligence?.localization_readiness_score) {
+      contextSections.push('', `## Localization Readiness: ${intelligence.localization_readiness_score}/100`);
+    }
+
+    // Add GlobalLink Recommendations
+    if (intelligence?.globallink_recommendations && Array.isArray(intelligence.globallink_recommendations)) {
+      const glRecs = intelligence.globallink_recommendations as Array<{ product: string; relevance: string; use_case: string }>;
+      if (glRecs.length > 0) {
+        contextSections.push('', '## GlobalLink Product Recommendations');
+        glRecs.forEach(rec => {
+          contextSections.push(`  - GlobalLink ${rec.product} (${rec.relevance} relevance): ${rec.use_case}`);
+        });
+      }
+    }
+
+    // Add Regional Adaptations
+    if (intelligence?.regional_adaptations) {
+      const adaptations = intelligence.regional_adaptations as Record<string, unknown>;
+      if (Object.keys(adaptations).length > 0) {
+        contextSections.push('', '## Regional Adaptations in Place');
+        Object.entries(adaptations).slice(0, 5).forEach(([region, data]) => {
+          contextSections.push(`  - ${region}: ${JSON.stringify(data).substring(0, 100)}...`);
+        });
+      }
+    }
+
+    // Add Active Regional Variants
+    if (regionalVariants?.length) {
+      contextSections.push('', '## Active Regional Variants');
+      regionalVariants.forEach(v => {
+        contextSections.push(`  - ${v.variant_code} (${v.variant_level}): Translation ${v.translation_status || 'pending'}`);
+      });
+    }
+
+    // Add GlobalLink Suite Configuration
+    if (globallinkConfig) {
+      const enabledProducts: string[] = [];
+      if (globallinkConfig.translation_enabled) enabledProducts.push('Translation');
+      if (globallinkConfig.ai_enabled) enabledProducts.push('AI');
+      if (globallinkConfig.connect_enabled) enabledProducts.push('Connect');
+      if (globallinkConfig.fluent_enabled) enabledProducts.push('Fluent');
+      
+      if (enabledProducts.length > 0) {
+        contextSections.push('', `## GlobalLink Suite: ${enabledProducts.join(', ')} enabled`);
+        if (globallinkConfig.ai_cultural_adaptation) {
+          contextSections.push('  - AI Cultural Adaptation: Active');
+        }
+        if (globallinkConfig.ai_content_optimization) {
+          contextSections.push('  - AI Content Optimization: Active');
+        }
       }
     }
 
@@ -248,8 +366,11 @@ Deno.serve(async (req) => {
 - Brand health monitoring and sentiment analysis
 - Growth opportunity identification
 - Risk assessment and mitigation planning
+- MULTICULTURAL MARKETING STRATEGY
+- GLOBAL LOCALIZATION AND CULTURAL ADAPTATION
+- GLOBALLINK PRODUCT SUITE UTILIZATION (Translation, AI, Connect, Fluent)
 
-Your role is to analyze brand data and generate actionable research briefings that help brand managers make strategic decisions.
+Your role is to analyze brand data and generate actionable research briefings that help brand managers make strategic decisions, with SPECIAL EMPHASIS on multicultural marketing opportunities and GlobalLink suite optimization.
 
 IMPORTANT GUIDELINES:
 1. Be specific and actionable - every insight should lead to a clear next step
@@ -258,6 +379,15 @@ IMPORTANT GUIDELINES:
 4. Base recommendations on the brand's values, positioning, and industry context
 5. Identify both opportunities and risks with equal rigor
 6. Suggest concrete updates to brand sections when improvements would help
+7. ALWAYS include multicultural marketing insights in your analysis
+8. Recommend specific GlobalLink products when localization opportunities exist:
+   - GlobalLink Translation: For content translation and localization workflows
+   - GlobalLink AI: For cultural adaptation and content optimization
+   - GlobalLink Connect: For workflow automation and CMS integration
+   - GlobalLink Fluent: For in-context editing and real-time translation review
+9. Analyze regional expansion opportunities with cultural sensitivity
+10. Consider color, imagery, messaging, and tone adaptations for different markets
+11. Identify localization gaps and prioritize markets for expansion
 
 Output format: Return ONLY valid JSON matching the specified structure. No markdown formatting, no code blocks.`;
 
@@ -270,18 +400,20 @@ Analyze all available data and produce a comprehensive briefing with:
 2. Competitive insights - positioning gaps, differentiation opportunities, threats
 3. Trend analysis - rising/declining trends relevant to this brand's space
 4. Sentiment signals - positive indicators and areas of concern
-5. Strategic recommendations - prioritized actions with rationale
-6. Growth opportunities - specific areas for expansion or improvement
-7. Risk alerts - potential threats with mitigation strategies
-8. Priority actions - top 3-5 things to focus on immediately
-9. Suggested updates - specific changes to brand guide sections
-10. Confidence score (0-100) based on data quality
-11. Urgency level (low/normal/high/critical)
+5. MULTICULTURAL MARKETING INSIGHTS - expansion opportunities, cultural gaps, localization priorities
+6. GLOBALLINK SUITE RECOMMENDATIONS - which products to use and why
+7. Strategic recommendations - prioritized actions with rationale
+8. Growth opportunities - specific areas for expansion or improvement
+9. Risk alerts - potential threats with mitigation strategies
+10. Priority actions - top 3-5 things to focus on immediately
+11. Suggested updates - specific changes to brand guide sections
+12. Confidence score (0-100) based on data quality
+13. Urgency level (low/normal/high/critical)
 
 Return JSON matching this exact structure:
 {
   "title": "Briefing title",
-  "summary": "2-3 sentence executive summary",
+  "summary": "2-3 sentence executive summary (include multicultural opportunities)",
   "marketIntelligence": {
     "industryTrends": ["trend1", "trend2"],
     "marketShifts": ["shift1"],
@@ -302,6 +434,18 @@ Return JSON matching this exact structure:
     "concernAreas": ["concern1"],
     "neutralObservations": ["obs1"]
   },
+  "multiculturalInsights": {
+    "expansionOpportunities": [
+      {"market": "Japan", "readiness": "high", "culturalConsiderations": ["formal communication preferred"], "priorityAdaptations": ["adjust color palette for local symbolism"]}
+    ],
+    "culturalGaps": ["Missing regional messaging variants for APAC"],
+    "localizationRecommendations": ["Prioritize German and Japanese translations"],
+    "colorImageryNotes": ["Red symbolism varies between markets - review for China/Japan"]
+  },
+  "globallinkRecommendations": [
+    {"product": "Translation", "priority": "high", "useCase": "Translate brand guidelines for EMEA expansion", "expectedBenefit": "Consistent brand voice across 12 languages"},
+    {"product": "AI", "priority": "medium", "useCase": "Cultural adaptation of marketing content", "expectedBenefit": "Avoid cultural missteps in new markets"}
+  ],
   "strategicRecommendations": [
     {"priority": "high", "action": "...", "rationale": "...", "timeframe": "Q1 2026"}
   ],
