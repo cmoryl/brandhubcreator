@@ -90,6 +90,17 @@ interface EngagementMetrics {
     lastAnalysisDate: string | null;
     keyFindings: string[];
   };
+  socialMetrics: {
+    hasData: boolean;
+    totalFollowers: number;
+    avgEngagementRate: number;
+    avgGrowthRate: number;
+    avgSentiment: number;
+    totalMentions: number;
+    platformsTracked: number;
+    topPlatform: string;
+    latestSnapshotDate: string | null;
+  };
 }
 
 Deno.serve(async (req) => {
@@ -551,13 +562,29 @@ function buildAnalysisPrompt(
         sections.push(`- Key Findings: ${engagementMetrics.marketAnalysis.keyFindings.slice(0, 3).join('; ')}`);
       }
     }
+
+    // Add social metrics
+    if (engagementMetrics.socialMetrics.hasData) {
+      sections.push(`\n### Social Media Performance`);
+      sections.push(`- Total Followers: ${engagementMetrics.socialMetrics.totalFollowers.toLocaleString()}`);
+      sections.push(`- Avg Engagement Rate: ${engagementMetrics.socialMetrics.avgEngagementRate.toFixed(2)}%`);
+      sections.push(`- Avg Follower Growth: ${engagementMetrics.socialMetrics.avgGrowthRate >= 0 ? '+' : ''}${engagementMetrics.socialMetrics.avgGrowthRate.toFixed(2)}%`);
+      sections.push(`- Sentiment Score: ${engagementMetrics.socialMetrics.avgSentiment.toFixed(1)} (${engagementMetrics.socialMetrics.avgSentiment > 20 ? 'Positive' : engagementMetrics.socialMetrics.avgSentiment < -20 ? 'Negative' : 'Neutral'})`);
+      sections.push(`- Total Brand Mentions: ${engagementMetrics.socialMetrics.totalMentions.toLocaleString()}`);
+      sections.push(`- Platforms Tracked: ${engagementMetrics.socialMetrics.platformsTracked}`);
+      sections.push(`- Top Platform: ${engagementMetrics.socialMetrics.topPlatform}`);
+      if (engagementMetrics.socialMetrics.latestSnapshotDate) {
+        sections.push(`- Data As Of: ${engagementMetrics.socialMetrics.latestSnapshotDate}`);
+      }
+    }
   }
 
   const hasCompetitiveContext = favoriteCompetitors.length > 0 || competitiveReports.length > 0;
   const hasEngagementData = engagementMetrics && (
     engagementMetrics.pageViews.total > 0 ||
     engagementMetrics.qrCodes.totalScans > 0 ||
-    engagementMetrics.auditActivity.totalEdits > 0
+    engagementMetrics.auditActivity.totalEdits > 0 ||
+    engagementMetrics.socialMetrics.hasData
   );
 
   let contextInstructions = '';
@@ -672,6 +699,44 @@ async function fetchEngagementMetrics(
     ? marketReports[0].findings.slice(0, 3)
     : [];
 
+  // Fetch social metrics using the RPC function
+  let socialMetricsData = {
+    hasData: false,
+    totalFollowers: 0,
+    avgEngagementRate: 0,
+    avgGrowthRate: 0,
+    avgSentiment: 0,
+    totalMentions: 0,
+    platformsTracked: 0,
+    topPlatform: 'None',
+    latestSnapshotDate: null as string | null,
+  };
+
+  try {
+    const { data: socialAggRaw } = await supabaseAdmin
+      .rpc('get_aggregated_social_metrics', {
+        p_entity_id: entityId,
+        p_entity_type: entityType
+      });
+    
+    if (socialAggRaw && socialAggRaw.length > 0) {
+      const agg = socialAggRaw[0];
+      socialMetricsData = {
+        hasData: agg.platforms_count > 0,
+        totalFollowers: Number(agg.total_followers) || 0,
+        avgEngagementRate: Number(agg.avg_engagement_rate) || 0,
+        avgGrowthRate: Number(agg.avg_growth_rate) || 0,
+        avgSentiment: Number(agg.avg_sentiment) || 0,
+        totalMentions: Number(agg.total_mentions) || 0,
+        platformsTracked: Number(agg.platforms_count) || 0,
+        topPlatform: agg.top_platform || 'None',
+        latestSnapshotDate: agg.latest_snapshot_date || null,
+      };
+    }
+  } catch (socialError) {
+    console.error('[bulk-intelligence] Error fetching social metrics:', socialError);
+  }
+
   return {
     pageViews: {
       total: pageViews.length,
@@ -695,5 +760,6 @@ async function fetchEngagementMetrics(
       lastAnalysisDate: marketAnalysisRaw?.last_analyzed_at || null,
       keyFindings,
     },
+    socialMetrics: socialMetricsData,
   };
 }

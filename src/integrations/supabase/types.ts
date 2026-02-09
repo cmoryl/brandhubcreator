@@ -1321,6 +1321,116 @@ export type Database = {
           },
         ]
       }
+      social_metrics_snapshots: {
+        Row: {
+          avg_comments_per_post: number | null
+          avg_likes_per_post: number | null
+          avg_shares_per_post: number | null
+          brand_mentions_count: number | null
+          created_at: string
+          created_by: string | null
+          data_source: string | null
+          earned_media_value: number | null
+          engagement_rate: number | null
+          entity_id: string
+          entity_type: string
+          follower_growth_percent: number | null
+          followers_count: number | null
+          id: string
+          impressions_count: number | null
+          negative_mentions: number | null
+          neutral_mentions: number | null
+          notes: string | null
+          organic_reach_count: number | null
+          organization_id: string | null
+          period_type: string | null
+          platform: string
+          positive_mentions: number | null
+          posts_count: number | null
+          reach_count: number | null
+          referral_traffic_count: number | null
+          sentiment_score: number | null
+          share_of_voice_percent: number | null
+          snapshot_date: string
+          updated_at: string
+          viral_coefficient: number | null
+        }
+        Insert: {
+          avg_comments_per_post?: number | null
+          avg_likes_per_post?: number | null
+          avg_shares_per_post?: number | null
+          brand_mentions_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          data_source?: string | null
+          earned_media_value?: number | null
+          engagement_rate?: number | null
+          entity_id: string
+          entity_type: string
+          follower_growth_percent?: number | null
+          followers_count?: number | null
+          id?: string
+          impressions_count?: number | null
+          negative_mentions?: number | null
+          neutral_mentions?: number | null
+          notes?: string | null
+          organic_reach_count?: number | null
+          organization_id?: string | null
+          period_type?: string | null
+          platform: string
+          positive_mentions?: number | null
+          posts_count?: number | null
+          reach_count?: number | null
+          referral_traffic_count?: number | null
+          sentiment_score?: number | null
+          share_of_voice_percent?: number | null
+          snapshot_date?: string
+          updated_at?: string
+          viral_coefficient?: number | null
+        }
+        Update: {
+          avg_comments_per_post?: number | null
+          avg_likes_per_post?: number | null
+          avg_shares_per_post?: number | null
+          brand_mentions_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          data_source?: string | null
+          earned_media_value?: number | null
+          engagement_rate?: number | null
+          entity_id?: string
+          entity_type?: string
+          follower_growth_percent?: number | null
+          followers_count?: number | null
+          id?: string
+          impressions_count?: number | null
+          negative_mentions?: number | null
+          neutral_mentions?: number | null
+          notes?: string | null
+          organic_reach_count?: number | null
+          organization_id?: string | null
+          period_type?: string | null
+          platform?: string
+          positive_mentions?: number | null
+          posts_count?: number | null
+          reach_count?: number | null
+          referral_traffic_count?: number | null
+          sentiment_score?: number | null
+          share_of_voice_percent?: number | null
+          snapshot_date?: string
+          updated_at?: string
+          viral_coefficient?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_metrics_snapshots_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       universe_backups: {
         Row: {
           backup_data: Json
@@ -1585,6 +1695,19 @@ export type Database = {
           total_users: number
         }[]
       }
+      get_aggregated_social_metrics: {
+        Args: { p_entity_id: string; p_entity_type: string }
+        Returns: {
+          avg_engagement_rate: number
+          avg_growth_rate: number
+          avg_sentiment: number
+          latest_snapshot_date: string
+          platforms_count: number
+          top_platform: string
+          total_followers: number
+          total_mentions: number
+        }[]
+      }
       get_auth_email: { Args: never; Returns: string }
       get_external_top_content: {
         Args: { p_days?: number; p_limit?: number }
@@ -1743,6 +1866,23 @@ export type Database = {
           name: string
           slug: string
           updated_at: string
+        }[]
+      }
+      get_social_metrics_trends: {
+        Args: {
+          p_entity_id: string
+          p_entity_type: string
+          p_months?: number
+          p_platform?: string
+        }
+        Returns: {
+          brand_mentions_count: number
+          engagement_rate: number
+          follower_growth_percent: number
+          followers_count: number
+          platform: string
+          sentiment_score: number
+          snapshot_date: string
         }[]
       }
       get_top_viewed_content: {
