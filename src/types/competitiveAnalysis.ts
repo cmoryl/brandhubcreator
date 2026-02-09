@@ -131,6 +131,16 @@ export interface MarketPerceptionSummary {
   risks: string[];
 }
 
+export interface RegionalInsights {
+  marketContext: string;
+  localCompetitors: string[];
+  culturalConsiderations: string[];
+  localizationPriorities: string[];
+  regulatoryConsiderations: string;
+  marketOpportunities: string[];
+  entryBarriers: string[];
+}
+
 export interface ActionPlan {
   thirtyDay: string[];
   sixtyDay: string[];
@@ -154,9 +164,12 @@ export interface CompetitiveAnalysisReportData {
   recommendations: RecommendationsSection;
   marketPerception: MarketPerceptionSummary;
   executiveSummary: ExecutiveSummary;
+  regionalInsights?: RegionalInsights;
   score: number;
   generatedAt: string;
   competitors: string[];
+  region?: string;
+  country?: string;
 }
 
 export interface CompetitiveAnalysisReport {
