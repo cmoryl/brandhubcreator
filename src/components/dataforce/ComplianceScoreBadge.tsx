@@ -5,7 +5,7 @@
 
 import { Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ComplianceScoreBadgeProps {
   score?: number | null;
@@ -31,34 +31,35 @@ export function ComplianceScoreBadge({ score, size = 'sm', showLabel = false, cl
   const padding = size === 'sm' ? 'px-1.5 py-0.5' : 'px-2 py-1';
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className={cn(
-            'inline-flex items-center gap-1 rounded-full font-semibold',
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            'inline-flex items-center gap-1 rounded-full font-semibold cursor-help',
             colors.bg, colors.text, textSize, padding,
             className
-          )}>
-            <Shield className={cn(iconSize, colors.icon)} />
-            {hasScore ? `${displayScore}%` : 'N/A'}
-            {showLabel && hasScore && (
-              <span className="font-normal opacity-80">
-                {score >= 80 ? 'Compliant' : score >= 60 ? 'Partial' : 'Non-compliant'}
-              </span>
-            )}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p className="font-medium">
-            {hasScore ? `Compliance Score: ${displayScore}%` : 'DataForce Compliance Checker'}
-          </p>
-          {hasScore && (
-            <p className="text-xs text-muted-foreground">
-              {score >= 80 ? 'Meets brand guidelines' : score >= 60 ? 'Partially compliant — review recommended' : 'Significant compliance issues detected'}
-            </p>
           )}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+        >
+          <Shield className={cn(iconSize, colors.icon)} />
+          {hasScore ? `${displayScore}%` : 'N/A'}
+          {showLabel && hasScore && (
+            <span className="font-normal opacity-80">
+              {score >= 80 ? 'Compliant' : score >= 60 ? 'Partial' : 'Non-compliant'}
+            </span>
+          )}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="right" className="z-[100]">
+        <p className="font-medium">
+          {hasScore ? `Compliance Score: ${displayScore}%` : 'DataForce Compliance Checker'}
+        </p>
+        {hasScore && (
+          <p className="text-xs text-muted-foreground">
+            {score >= 80 ? 'Meets brand guidelines' : score >= 60 ? 'Partially compliant — review recommended' : 'Significant compliance issues detected'}
+          </p>
+        )}
+      </TooltipContent>
+    </Tooltip>
   );
 }
