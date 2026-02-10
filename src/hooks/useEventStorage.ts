@@ -107,9 +107,18 @@ const dbToEventGuide = (db: DbEvent): EventGuide => {
     services: asArray(guideData.services, []) as EventGuide['services'],
     linkedGuides: asArray(guideData.linkedGuides, []) as EventGuide['linkedGuides'],
     templateSpecs: asArray(guideData.templateSpecs, []) as EventGuide['templateSpecs'],
+    presentationTemplates: asArray(guideData.presentationTemplates, []) as EventGuide['presentationTemplates'],
+    
+    // Data & Analytics
     revenueData: asArray(guideData.revenueData, []) as EventGuide['revenueData'],
     statistics: asArray(guideData.statistics, []) as EventGuide['statistics'],
     infographicLayout: (guideData.infographicLayout as EventGuide['infographicLayout']) || 'cards',
+    
+    // Partners
+    sponsorLogos: asArray(guideData.sponsorLogos, []) as EventGuide['sponsorLogos'],
+    clientLogos: asArray(guideData.clientLogos, []) as EventGuide['clientLogos'],
+    
+    // Settings
     sectionSubtitles: asObject(guideData.sectionSubtitles, {}) as EventGuide['sectionSubtitles'],
     sectionLayouts: asObject(guideData.sectionLayouts, {}) as EventGuide['sectionLayouts'],
     pageSettings: asObject(guideData.pageSettings, {}) as EventGuide['pageSettings'],
