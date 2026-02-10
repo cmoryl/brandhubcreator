@@ -550,7 +550,7 @@ const ProductEditor = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-foreground mb-4">Product not found</h1>
-          <Button onClick={() => navigate('/')}>Go back home</Button>
+          <Button onClick={() => navigate(organization ? `/org/${organization.slug}` : '/')}>{organization ? `Back to ${organization.name}` : 'Go back home'}</Button>
         </div>
       </div>
     );
@@ -683,7 +683,10 @@ const ProductEditor = () => {
                   </TooltipTrigger>
                   <TooltipContent>Back to Dashboard</TooltipContent>
                 </Tooltip>
-                <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => navigate(organization ? `/org/${organization.slug}` : '/')}
+                  className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                >
                   <img 
                     src={theme === 'dark' ? tpLogoWhite : tpLogoColor} 
                     alt="BrandHUB" 
@@ -692,7 +695,7 @@ const ProductEditor = () => {
                   <span className="font-semibold text-foreground hidden sm:inline">
                     Brand<span className="text-accent">HUB</span>
                   </span>
-                </div>
+                </button>
                 <div className="h-6 w-px bg-border mx-2 hidden sm:block" />
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="gap-1">

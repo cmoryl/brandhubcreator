@@ -28,6 +28,8 @@ interface AppBreadcrumbsProps {
   className?: string;
   /** Whether to show the home link */
   showHome?: boolean;
+  /** Override the home link destination (defaults to /) */
+  homeHref?: string;
 }
 
 // Route patterns to breadcrumb mappings
@@ -50,7 +52,8 @@ export const AppBreadcrumbs = React.forwardRef<
   currentPage, 
   currentIcon: CurrentIcon, 
   className,
-  showHome = true 
+  showHome = true,
+  homeHref = '/',
 }, ref) => {
   const location = useLocation();
   const pathSegments = location.pathname.split('/').filter(Boolean);
@@ -125,7 +128,7 @@ export const AppBreadcrumbs = React.forwardRef<
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
                 <Link 
-                  to="/" 
+                  to={homeHref} 
                   className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors min-h-[44px] sm:min-h-0 px-1"
                 >
                   <Home className="h-4 w-4 flex-shrink-0" />
