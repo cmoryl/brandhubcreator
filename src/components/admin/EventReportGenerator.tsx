@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CalendarDays, Download, Loader2, Calendar, Filter, BarChart3, AlertTriangle, Clock, MapPin, Users, Video, Mic2, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, subDays, subMonths, isPast, isFuture, parseISO } from 'date-fns';
 import { EventCustomPromptRunner } from './EventCustomPromptRunner';
+import { usePersistedAdminData, formatLastRunMessage } from '@/hooks/usePersistedAdminData';
+
+interface CachedEventReport {
+  reportData: EventReportData[];
+  summary: ReportSummary;
+  dateRange: string;
+  reportType: string;
+  eventStatusFilter: string;
+}
 import { EventAnalyticsCharts } from './EventAnalyticsCharts';
 
 interface EventReportData {
@@ -74,6 +83,22 @@ export function EventReportGenerator() {
   const [dateRange, setDateRange] = useState('all');
   const [reportType, setReportType] = useState<'all' | 'public' | 'private'>('all');
   const [eventStatusFilter, setEventStatusFilter] = useState<'all' | 'upcoming' | 'past'>('all');
+
+  const {
+    data: cachedData,
+    lastRunAt,
+    saveData: saveCachedData,
+  } = usePersistedAdminData<CachedEventReport>('event_report', { ttl: 60 * 60 * 1000 });
+
+  useEffect(() => {
+    if (cachedData && !reportData) {
+      setReportData(cachedData.reportData);
+      setSummary(cachedData.summary);
+      setDateRange(cachedData.dateRange);
+      setReportType(cachedData.reportType as 'all' | 'public' | 'private');
+      setEventStatusFilter((cachedData.eventStatusFilter || 'all') as 'all' | 'upcoming' | 'past');
+    }
+  }, [cachedData]);
 
   const generateReport = async () => {
     setIsGenerating(true);
@@ -272,7 +297,7 @@ export function EventReportGenerator() {
       const totalSpeakers = filteredEvents.reduce((sum, e) => sum + e.speakers_count, 0);
       const totalSponsors = filteredEvents.reduce((sum, e) => sum + e.sponsors_count, 0);
 
-      setSummary({
+      const newSummary: ReportSummary = {
         totalEvents: filteredEvents.length,
         publicEvents: filteredEvents.filter(e => e.is_public).length,
         avgCompleteness: filteredEvents.length > 0 
@@ -293,9 +318,11 @@ export function EventReportGenerator() {
         missingLocations,
         missingSchedules,
         eventsWithVideos,
-      });
+      };
 
+      setSummary(newSummary);
       setReportData(filteredEvents);
+      saveCachedData({ reportData: filteredEvents, summary: newSummary, dateRange, reportType, eventStatusFilter });
       toast.success('Event report generated successfully');
     } catch (error) {
       console.error('Error generating event report:', error);

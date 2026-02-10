@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FileText, Download, Loader2, Calendar, Filter, BarChart3, AlertTriangle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, subDays, subMonths } from 'date-fns';
 import { CustomPromptRunner } from './CustomPromptRunner';
+import { usePersistedAdminData, formatLastRunMessage } from '@/hooks/usePersistedAdminData';
+
+interface CachedBrandReport {
+  reportData: BrandReportData[];
+  summary: ReportSummary;
+  dateRange: string;
+  reportType: string;
+}
 
 interface BrandReportData {
   id: string;
@@ -53,6 +61,22 @@ export function BrandReportGenerator() {
   const [summary, setSummary] = useState<ReportSummary | null>(null);
   const [dateRange, setDateRange] = useState('30d');
   const [reportType, setReportType] = useState<'all' | 'public' | 'private'>('all');
+
+  const {
+    data: cachedData,
+    lastRunAt,
+    saveData: saveCachedData,
+  } = usePersistedAdminData<CachedBrandReport>('brand_report', { ttl: 60 * 60 * 1000 });
+
+  // Restore cached data on mount
+  useEffect(() => {
+    if (cachedData && !reportData) {
+      setReportData(cachedData.reportData);
+      setSummary(cachedData.summary);
+      setDateRange(cachedData.dateRange);
+      setReportType(cachedData.reportType as 'all' | 'public' | 'private');
+    }
+  }, [cachedData]);
 
   const generateReport = async () => {
     setIsGenerating(true);
@@ -184,7 +208,7 @@ export function BrandReportGenerator() {
       const missingColors = processedBrands.filter(b => b.colors_count === 0).length;
       const missingTypography = processedBrands.filter(b => b.fonts_count === 0).length;
 
-      setSummary({
+      const newSummary: ReportSummary = {
         totalBrands: processedBrands.length,
         publicBrands: processedBrands.filter(b => b.is_public).length,
         avgCompleteness: processedBrands.length > 0 
@@ -199,9 +223,11 @@ export function BrandReportGenerator() {
         missingLogos,
         missingColors,
         missingTypography,
-      });
+      };
 
+      setSummary(newSummary);
       setReportData(processedBrands);
+      saveCachedData({ reportData: processedBrands, summary: newSummary, dateRange, reportType });
       toast.success('Report generated successfully');
     } catch (error) {
       console.error('Error generating report:', error);
