@@ -65,6 +65,7 @@ function SidebarContent({
     { id: 'locations', label: 'Company Locations', icon: <MapPin className="h-4 w-4" />, group: 'content' },
     { id: 'globallink', label: 'GlobalLink', icon: <Globe2 className="h-4 w-4" />, group: 'localization' },
     { id: 'multicultural', label: 'Multicultural Intel', icon: <Brain className="h-4 w-4" />, group: 'localization' },
+    { id: 'dataforce', label: 'DataForce AI', icon: <Activity className="h-4 w-4" />, group: 'analytics' },
   ];
 
   const handleItemClick = (id: string) => {
