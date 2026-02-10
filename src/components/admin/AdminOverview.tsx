@@ -1,14 +1,15 @@
 /**
  * AdminOverview - Comprehensive admin dashboard overview
- * Features: Activity feed, module status cards, quick stats, and quick actions grid
+ * Features: Activity feed, module status cards, quick stats, DataForce summary, and quick actions grid
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, Building2, Palette, Package, Calendar, Activity, 
   TrendingUp, AlertTriangle, Clock, Shield, CheckCircle,
   UserCheck, FileText, Database, HardDrive, MapPin, Mail, Image,
-  Eye, Zap, ArrowRight, Brain, Wrench, RefreshCw, BarChart3
+  Eye, Zap, ArrowRight, Brain, Wrench, RefreshCw, BarChart3,
+  Bot
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { 
   DashboardStats, 
@@ -500,7 +502,162 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* DataForce AI Summary */}
+      <DataForceSummaryWidget onTabChange={onTabChange} />
     </div>
+  );
+};
+
+/** Lightweight DataForce summary for the overview page */
+const DataForceSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> = ({ onTabChange }) => {
+  const [data, setData] = useState<{
+    scans: number;
+    avgScore: number;
+    conversations: number;
+    validations: number;
+    pending: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const [
+        { data: compliance },
+        { data: convos },
+        { data: validations },
+      ] = await Promise.all([
+        supabase.from('dataforce_compliance_jobs').select('compliance_score, status').eq('status', 'completed'),
+        supabase.from('dataforce_assistant_conversations').select('id', { count: 'exact', head: true }),
+        supabase.from('dataforce_validation_requests').select('status'),
+      ]);
+
+      const scores = compliance || [];
+      const avg = scores.length > 0
+        ? scores.reduce((a, j) => a + (j.compliance_score || 0), 0) / scores.length
+        : 0;
+      const pendingCount = (validations || []).filter(v => v.status === 'pending' || v.status === 'in_review').length;
+
+      setData({
+        scans: scores.length,
+        avgScore: avg,
+        conversations: convos?.length || 0,
+        validations: (validations || []).length,
+        pending: pendingCount,
+      });
+    };
+    fetch();
+  }, []);
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-600 dark:text-green-400';
+    if (score >= 60) return 'text-amber-600 dark:text-amber-400';
+    return 'text-red-600 dark:text-red-400';
+  };
+
+  return (
+    <Card className="shadow-sm hover:shadow-md transition-shadow duration-300">
+      <CardHeader className="p-5 pb-3 border-b border-border/50">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2.5 font-semibold">
+              <div className="p-1.5 rounded-lg bg-blue-500/10">
+                <Activity className="h-4 w-4 text-blue-500" />
+              </div>
+              DataForce AI
+            </CardTitle>
+            <CardDescription className="text-xs mt-1">AI compliance, assistant & validation services</CardDescription>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs font-medium text-muted-foreground hover:text-foreground"
+            onClick={() => onTabChange('dataforce')}
+          >
+            View Details <ArrowRight className="h-3 w-3 ml-1.5" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-5 pt-4">
+        {!data ? (
+          <div className="flex items-center justify-center py-6">
+            <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <button
+              onClick={() => onTabChange('dataforce')}
+              className="flex flex-col items-start gap-2 p-4 rounded-xl border-2 border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left group"
+            >
+              <div className="flex items-center gap-2.5 w-full">
+                <div className="p-2 rounded-lg bg-blue-500/10">
+                  <Shield className="h-5 w-5 text-blue-500" />
+                </div>
+                <span className="text-2xl font-bold tracking-tight">{data.scans}</span>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-foreground/90">Compliance Scans</span>
+                {data.avgScore > 0 && (
+                  <p className={cn("text-[11px] font-medium mt-0.5", getScoreColor(data.avgScore))}>
+                    Avg: {data.avgScore.toFixed(0)}%
+                  </p>
+                )}
+              </div>
+            </button>
+
+            <button
+              onClick={() => onTabChange('dataforce')}
+              className="flex flex-col items-start gap-2 p-4 rounded-xl border-2 border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left group"
+            >
+              <div className="flex items-center gap-2.5 w-full">
+                <div className="p-2 rounded-lg bg-green-500/10">
+                  <Bot className="h-5 w-5 text-green-500" />
+                </div>
+                <span className="text-2xl font-bold tracking-tight">{data.conversations}</span>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-foreground/90">Conversations</span>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Brand Assistant</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => onTabChange('dataforce')}
+              className="flex flex-col items-start gap-2 p-4 rounded-xl border-2 border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left group"
+            >
+              <div className="flex items-center gap-2.5 w-full">
+                <div className="p-2 rounded-lg bg-purple-500/10">
+                  <Users className="h-5 w-5 text-purple-500" />
+                </div>
+                <span className="text-2xl font-bold tracking-tight">{data.validations}</span>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-foreground/90">Validations</span>
+                {data.pending > 0 && (
+                  <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">
+                    {data.pending} pending
+                  </p>
+                )}
+              </div>
+            </button>
+
+            <button
+              onClick={() => onTabChange('dataforce')}
+              className="flex flex-col items-start gap-2 p-4 rounded-xl border-2 border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left group"
+            >
+              <div className="flex items-center gap-2.5 w-full">
+                <div className="p-2 rounded-lg bg-orange-500/10">
+                  <Brain className="h-5 w-5 text-orange-500" />
+                </div>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-foreground/90">Full Dashboard</span>
+                <p className="text-[11px] text-muted-foreground mt-0.5">View all AI metrics →</p>
+              </div>
+            </button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
