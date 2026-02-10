@@ -16,6 +16,7 @@ import { useStableLoading } from '@/hooks/useStableLoading';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { useOrgSlug } from '@/hooks/useOrgSlug';
 import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { useSEO } from '@/hooks/useSEO';
 import { trackEntityView } from '@/hooks/usePageTracking';
@@ -307,6 +308,13 @@ const BrandEditor = () => {
   
   // Use context brand if available, otherwise use fetched public brand
   const brand = contextBrand || publicBrand;
+
+  // Resolve org slug for breadcrumbs - always resolve from entity's organizationId
+  const { orgSlug: resolvedOrgSlug, orgName: resolvedOrgName } = useOrgSlug(
+    brand?.organizationId
+  );
+  const effectiveOrgSlug = resolvedOrgSlug || organization?.slug;
+  const effectiveOrgName = resolvedOrgName || organization?.name;
 
   // Track brand view for analytics
   useEffect(() => {
@@ -1124,14 +1132,14 @@ const BrandEditor = () => {
             <div className={`${getContentWidthClass()} mx-auto animate-fade-in-up ${getSectionSpacingClass()}`}>
               {/* Sticky Breadcrumbs */}
               <StickyBreadcrumbs
-                homeHref={organization ? `/org/${organization.slug}` : '/'}
+                homeHref={effectiveOrgSlug ? `/org/${effectiveOrgSlug}` : '/'}
                 items={[
-                  { label: organization?.name || 'Brands', icon: organization ? Building2 : FileText, href: organization ? `/org/${organization.slug}` : '/' },
+                  { label: effectiveOrgName || 'Brands', icon: effectiveOrgSlug ? Building2 : FileText, href: effectiveOrgSlug ? `/org/${effectiveOrgSlug}` : '/' },
                   // Only show parent brand breadcrumb if:
                   // 1. There is a parent brand, AND
                   // 2. It's not the same entity name as the org (avoid "TransPerfect > TransPerfect > Games")
                   //    When org and master brand share a name, showing both is redundant
-                  ...(parentBrand && (!organization || parentBrand.name.toLowerCase() !== organization.name.toLowerCase()) 
+                  ...(parentBrand && (!effectiveOrgName || parentBrand.name.toLowerCase() !== effectiveOrgName.toLowerCase()) 
                     ? [{ label: parentBrand.name, icon: FileText, href: `/brand/${parentBrand.slug}` }] 
                     : []),
                 ]}

@@ -15,6 +15,7 @@ import { useBrands } from '@/contexts/BrandContext';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { useOrgSlug } from '@/hooks/useOrgSlug';
 import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { normalizeProductGuide } from '@/lib/guideNormalization';
@@ -315,6 +316,14 @@ const ProductEditor = () => {
 
   // Use context product if available, otherwise use fetched public product
   const currentProduct = contextProduct || publicProduct;
+
+  // Resolve org slug for breadcrumbs - always resolve from entity's organizationId
+  // since the auth-based organization context may not match the entity's org
+  const { orgSlug: resolvedOrgSlug, orgName: resolvedOrgName } = useOrgSlug(
+    currentProduct?.organizationId
+  );
+  const effectiveOrgSlug = resolvedOrgSlug || organization?.slug;
+  const effectiveOrgName = resolvedOrgName || organization?.name;
 
   // Use centralized admin detection hook for consistent behavior across all editors
   const { isGuideAdmin, canEdit } = useGuideAdmin({ 
@@ -945,9 +954,9 @@ const ProductEditor = () => {
             <div className={`${getContentWidthClass()} mx-auto animate-fade-in ${getSectionSpacingClass()}`}>
               {/* Sticky Breadcrumbs */}
               <StickyBreadcrumbs
-                homeHref={organization ? `/org/${organization.slug}` : '/'}
+                homeHref={effectiveOrgSlug ? `/org/${effectiveOrgSlug}` : '/'}
                 items={[
-                  { label: organization?.name || 'Products', icon: organization ? Building2 : Package, href: organization ? `/org/${organization.slug}` : '/' },
+                  { label: effectiveOrgName || 'Products', icon: effectiveOrgSlug ? Building2 : Package, href: effectiveOrgSlug ? `/org/${effectiveOrgSlug}` : '/' },
                   // Parent brand (if linked via parent_brand_id)
                   ...(parentBrand ? [{ label: parentBrand.name, icon: Building2, href: `/brand/${parentBrand.slug}` }] : []),
                   // "Linked Guides" section link to parent's products section
