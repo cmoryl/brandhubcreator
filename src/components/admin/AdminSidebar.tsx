@@ -42,9 +42,8 @@ function SidebarContent({
   const navItems: NavItem[] = [
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="h-4 w-4" />, group: 'core' },
     { id: 'approvals', label: 'Approvals', icon: <UserCheck className="h-4 w-4" />, badge: pendingApprovals, group: 'core' },
-    { id: 'users', label: 'Users', icon: <Users className="h-4 w-4" />, group: 'management' },
+    { id: 'users', label: 'Users & Members', icon: <Users className="h-4 w-4" />, group: 'management' },
     { id: 'organizations', label: 'Organizations', icon: <Building2 className="h-4 w-4" />, group: 'management' },
-    { id: 'members', label: 'Members', icon: <UserPlus className="h-4 w-4" />, group: 'management' },
     { id: 'content', label: 'Content', icon: <Palette className="h-4 w-4" />, group: 'content' },
     { id: 'inspector', label: 'Inspector', icon: <Database className="h-4 w-4" />, group: 'content' },
     { id: 'analytics', label: 'Brand Analytics', icon: <TrendingUp className="h-4 w-4" />, group: 'analytics' },

@@ -43,6 +43,7 @@ import { BulkRepairTool } from '@/components/admin/BulkRepairTool';
 import { HiddenSectionsScanner } from '@/components/admin/HiddenSectionsScanner';
 import { MembersManager } from '@/components/admin/MembersManager';
 import { UserAnalyticsTab } from '@/components/admin/UserAnalyticsTab';
+import { UsersAndMembersTab } from '@/components/admin/UsersAndMembersTab';
 import { CompressedBackupManager } from '@/components/admin/CompressedBackupManager';
 import { UniverseBackupManager } from '@/components/admin/UniverseBackupManager';
 import { ProductSuiteBackupManager } from '@/components/admin/ProductSuiteBackupManager';
@@ -573,83 +574,8 @@ export default function AdminDashboard() {
             <UserApprovalManager />
           </TabsContent>
 
-          {/* Users Tab */}
           <TabsContent value="users" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>User Management</CardTitle>
-                    <CardDescription>{users.length} total users</CardDescription>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        placeholder="Search users..." 
-                        className="pl-9 w-[200px]"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[500px]">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Organizations</TableHead>
-                        <TableHead>Brands</TableHead>
-                        <TableHead>Joined</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredUsers.map((u) => (
-                        <TableRow key={u.id}>
-                          <TableCell className="font-medium">{u.email}</TableCell>
-                          <TableCell>
-                            <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
-                              {u.role === 'admin' && <Crown className="h-3 w-3 mr-1" />}
-                              {u.role}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{u.organizations}</TableCell>
-                          <TableCell>{u.brands}</TableCell>
-                          <TableCell>{format(new Date(u.created_at), 'MMM d, yyyy')}</TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                {u.role === 'admin' ? (
-                                  <DropdownMenuItem onClick={() => demoteFromAdmin(u.id)}>
-                                    <TrendingDown className="h-4 w-4 mr-2" />
-                                    Demote to User
-                                  </DropdownMenuItem>
-                                ) : (
-                                  <DropdownMenuItem onClick={() => promoteToAdmin(u.id)}>
-                                    <Crown className="h-4 w-4 mr-2" />
-                                    Promote to Admin
-                                  </DropdownMenuItem>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+            <UsersAndMembersTab />
           </TabsContent>
 
           {/* Organizations Tab */}
@@ -715,10 +641,6 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Members Tab */}
-          <TabsContent value="members" className="space-y-6">
-            <MembersManager />
-          </TabsContent>
 
           {/* Content Tab */}
           <TabsContent value="content" className="space-y-6">
