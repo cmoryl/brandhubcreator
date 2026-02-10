@@ -1,7 +1,7 @@
 import { 
   BarChart3, UserCheck, Users, Building2, UserPlus, Palette, 
   Database, TrendingUp, Eye, Brain, FileText, Activity, 
-  Wrench, HardDrive, Shield, Menu, X, Orbit, Package, Image, Mail, Sparkles, MapPin, FileDown, Globe2, Microscope
+  Wrench, HardDrive, Shield, Menu, X, Orbit, Package, Image, Mail, Sparkles, MapPin, FileDown, Globe2, Microscope, Crown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -55,6 +55,7 @@ function SidebarContent({
     { id: 'downloads', label: 'Downloads', icon: <FileDown className="h-4 w-4" />, group: 'analytics' },
     { id: 'activity', label: 'Activity Log', icon: <Activity className="h-4 w-4" />, group: 'tools' },
     { id: 'image-library', label: 'Image Library', icon: <Image className="h-4 w-4" />, group: 'tools' },
+    { id: 'logo-hub', label: 'Logo Hub', icon: <Crown className="h-4 w-4" />, group: 'tools' },
     { id: 'repair', label: 'Repair Tools', icon: <Wrench className="h-4 w-4" />, group: 'tools' },
     { id: 'backups', label: 'Backups', icon: <HardDrive className="h-4 w-4" />, group: 'tools' },
     { id: 'universe-backups', label: 'Universe Backups', icon: <Orbit className="h-4 w-4" />, group: 'tools' },

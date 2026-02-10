@@ -1482,6 +1482,53 @@ export type Database = {
           },
         ]
       }
+      global_client_logos: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          files: Json
+          id: string
+          name: string
+          organization_id: string
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          files?: Json
+          id?: string
+          name: string
+          organization_id: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          files?: Json
+          id?: string
+          name?: string
+          organization_id?: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "global_client_logos_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       globallink_config: {
         Row: {
           api_endpoint: string | null
