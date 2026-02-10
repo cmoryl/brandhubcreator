@@ -106,8 +106,15 @@ serve(async (req) => {
     const isDemo = !config || config.api_mode === 'demo';
 
     // Extract full brand context for comprehensive compliance analysis (with images)
-    const { extractFullBrandContext: extractCtx, buildMultimodalContent: buildMM } = await import('../_shared/extractFullBrandContext.ts');
+    const { extractFullBrandContext: extractCtx, buildMultimodalContent: buildMM, fetchDocumentContext: fetchDocs } = await import('../_shared/extractFullBrandContext.ts');
     const { text: fullContext, imageUrls: complianceImages } = extractCtx(guide_data, entity_name, entity_type, 3000, true, 15);
+
+    // Fetch document content for compliance checking
+    const { text: docContext, imageUrls: docImages, documentCount } = await fetchDocs(supabase, entity_id, entity_type, guide_data, 1000);
+    const combinedContext = docContext ? `${fullContext}\n${docContext}` : fullContext;
+    for (const di of docImages.slice(0, 5)) {
+      if (complianceImages.length < 20) complianceImages.push(di);
+    }
     
     // Also keep individual sections for demo mode and asset counting
     const colors = guide_data.colors || {};

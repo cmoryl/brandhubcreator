@@ -132,6 +132,19 @@ serve(async (req) => {
         entityName = entity.name;
         const guideData = entity.guide_data || {};
         entityContext = buildEntityContext(guideData, entity.name);
+
+        // Enrich with document content (PDFs, PPTXs, slide text)
+        try {
+          const { fetchDocumentContext } = await import('../_shared/extractFullBrandContext.ts');
+          const { text: docContext, documentCount } = await fetchDocumentContext(
+            supabase, entity_id, entity_type, guideData as Record<string, unknown>, 1500
+          );
+          if (docContext) {
+            entityContext += `\n${docContext}`;
+          }
+        } catch (e) {
+          console.error('[dataforce-assistant] Document fetch error:', e);
+        }
       }
     }
 

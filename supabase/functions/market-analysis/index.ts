@@ -43,7 +43,7 @@ interface AnalysisResult {
   generatedAt: string;
 }
 
-import { extractFullBrandContext, buildMultimodalContent, type ImageReference } from '../_shared/extractFullBrandContext.ts';
+import { extractFullBrandContext, buildMultimodalContent, fetchDocumentContext, type ImageReference } from '../_shared/extractFullBrandContext.ts';
 
 function extractRelevantBrandData(guideData: Record<string, unknown>, entityName: string = '', entityType: string = 'brand'): { text: string; imageUrls: ImageReference[] } {
   const { text, imageUrls } = extractFullBrandContext(guideData, entityName, entityType, 3000, true, 10);
@@ -136,12 +136,17 @@ ${recentBrands?.map(b => `- ${b.name} (${b.is_public ? 'Public' : 'Private'})`).
       const guideData = brand.guide_data as Record<string, unknown>;
       const brandData = extractRelevantBrandData(guideData, brand.name, 'brand');
       marketImageUrls = brandData.imageUrls;
+
+      // Fetch document content
+      const { text: docCtx, imageUrls: docImgs } = await fetchDocumentContext(supabaseClient, entityId!, 'brand', guideData, 1000);
+      for (const di of docImgs.slice(0, 4)) { if (marketImageUrls.length < 14) marketImageUrls.push(di); }
+
       contextData = `Brand: ${brand.name}
 Status: ${brand.is_public ? 'Public' : 'Private'}
 Created: ${brand.created_at}
 
 Brand Details:
-${brandData.text}`;
+${brandData.text}${docCtx ? `\n${docCtx}` : ''}`;
     } else if (type === 'product' && entityId) {
       const { data: product } = await supabaseClient
         .from('products')
@@ -160,12 +165,17 @@ ${brandData.text}`;
       const guideData = product.guide_data as Record<string, unknown>;
       const productData = extractRelevantBrandData(guideData, product.name, 'product');
       marketImageUrls = productData.imageUrls;
+
+      // Fetch document content
+      const { text: docCtx, imageUrls: docImgs } = await fetchDocumentContext(supabaseClient, entityId!, 'product', guideData, 1000);
+      for (const di of docImgs.slice(0, 4)) { if (marketImageUrls.length < 14) marketImageUrls.push(di); }
+
       contextData = `Product: ${product.name}
 Status: ${product.is_public ? 'Public' : 'Private'}
 Created: ${product.created_at}
 
 Product Details:
-${productData.text}`;
+${productData.text}${docCtx ? `\n${docCtx}` : ''}`;
     } else if (type === 'organization' && entityId) {
       const { data: org } = await supabaseClient
         .from('organizations')

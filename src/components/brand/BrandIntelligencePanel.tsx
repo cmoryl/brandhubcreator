@@ -706,10 +706,11 @@ export const BrandIntelligencePanel = ({
                   <Brain className="h-4 w-4 text-purple-500" />
                   <span className="text-sm font-medium">AI Intelligence Engine</span>
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-violet-500/10 text-violet-500 border-violet-500/20">Vision</Badge>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-sky-500/10 text-sky-500 border-sky-500/20">Docs</Badge>
                 </div>
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-xs text-muted-foreground">Reads all 50+ sections including visual analysis of logos, imagery, patterns, icons, banners, and custom shapes via multimodal AI (Gemini Vision).</p>
+              <p className="text-xs text-muted-foreground">Reads all 50+ sections, visually analyzes logos/imagery/patterns, and extracts content from uploaded PDFs, PPTXs (slide text & thumbnails), brochures, and document assets.</p>
             </div>
 
             {/* Brand Research */}
@@ -719,10 +720,11 @@ export const BrandIntelligencePanel = ({
                   <Sparkles className="h-4 w-4 text-amber-500" />
                   <span className="text-sm font-medium">Research Briefings</span>
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-violet-500/10 text-violet-500 border-violet-500/20">Vision</Badge>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-sky-500/10 text-sky-500 border-sky-500/20">Docs</Badge>
                 </div>
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-xs text-muted-foreground">Full context + visual asset interpretation feeds into research. AI analyzes actual brand imagery, logos, and patterns for visual identity assessment.</p>
+              <p className="text-xs text-muted-foreground">Full context + visual assets + document content (PPTX slide text, PDF metadata, brochure content) feeds into strategic research briefings.</p>
             </div>
 
             {/* Market Analysis */}
@@ -732,10 +734,11 @@ export const BrandIntelligencePanel = ({
                   <TrendingUp className="h-4 w-4 text-green-500" />
                   <span className="text-sm font-medium">Market Analysis</span>
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-violet-500/10 text-violet-500 border-violet-500/20">Vision</Badge>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-sky-500/10 text-sky-500 border-sky-500/20">Docs</Badge>
                 </div>
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-xs text-muted-foreground">Market position analysis enriched with visual asset evaluation — logo quality, imagery consistency, and design sophistication scoring.</p>
+              <p className="text-xs text-muted-foreground">Market position analysis enriched with visual assets, presentation deck content, and document analysis for comprehensive positioning assessment.</p>
             </div>
 
             {/* Competitive Analysis */}
@@ -745,10 +748,11 @@ export const BrandIntelligencePanel = ({
                   <Target className="h-4 w-4 text-red-500" />
                   <span className="text-sm font-medium">Competitive Analysis</span>
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-violet-500/10 text-violet-500 border-violet-500/20">Vision</Badge>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-sky-500/10 text-sky-500 border-sky-500/20">Docs</Badge>
                 </div>
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-xs text-muted-foreground">Visual identity audit powered by actual logo, icon, pattern, and imagery analysis. Compares design sophistication against competitors with real asset evaluation.</p>
+              <p className="text-xs text-muted-foreground">Visual identity audit + document content analysis. Reads presentation decks, case studies, and brochures to strengthen competitive positioning insights.</p>
             </div>
 
             {/* GlobalLink */}
@@ -770,10 +774,11 @@ export const BrandIntelligencePanel = ({
                   <Activity className="h-4 w-4 text-orange-500" />
                   <span className="text-sm font-medium">DataForce Compliance</span>
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-violet-500/10 text-violet-500 border-violet-500/20">Vision</Badge>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-sky-500/10 text-sky-500 border-sky-500/20">Docs</Badge>
                 </div>
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-xs text-muted-foreground">Visual compliance scanning with real image analysis — verifies logo usage, color accuracy, imagery quality, pattern consistency, and misuse detection on actual assets.</p>
+              <p className="text-xs text-muted-foreground">Visual compliance + document scanning — verifies brand consistency across uploaded presentations, PDFs, brochures, and all visual assets.</p>
             </div>
 
             {/* DataForce Assistant */}
@@ -782,10 +787,11 @@ export const BrandIntelligencePanel = ({
                 <div className="flex items-center gap-2">
                   <MessageSquare className="h-4 w-4 text-cyan-500" />
                   <span className="text-sm font-medium">DataForce Brand Assistant</span>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-sky-500/10 text-sky-500 border-sky-500/20">Docs</Badge>
                 </div>
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-xs text-muted-foreground">AI chatbot with full brand context across all 50+ sections including identity, voice, colors, typography, services, social, awards, icons, and statistics.</p>
+              <p className="text-xs text-muted-foreground">AI chatbot with full brand context, document content extraction (PPTX slide text, PDF metadata), and all 50+ guide sections for comprehensive brand Q&A.</p>
             </div>
 
             {/* Custom Prompts */}
