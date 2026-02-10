@@ -135,9 +135,9 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
     },
     {
       id: 'ai-analysis',
-      label: 'AI Analysis',
+      label: 'Intelligence Hub',
       icon: <Brain className="h-4 w-4" />,
-      onClick: () => onTabChange('ai-analysis'),
+      onClick: () => onTabChange('intelligence'),
     },
     {
       id: 'backups',
@@ -574,7 +574,7 @@ const DataForceSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> =
             variant="ghost"
             size="sm"
             className="text-xs font-medium text-muted-foreground hover:text-foreground"
-            onClick={() => onTabChange('dataforce')}
+            onClick={() => onTabChange('intelligence')}
           >
             View Details <ArrowRight className="h-3 w-3 ml-1.5" />
           </Button>
@@ -588,7 +588,7 @@ const DataForceSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> =
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <button
-              onClick={() => onTabChange('dataforce')}
+              onClick={() => onTabChange('intelligence')}
               className="flex flex-col items-start gap-2 p-4 rounded-xl border-2 border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left group"
             >
               <div className="flex items-center gap-2.5 w-full">
@@ -608,7 +608,7 @@ const DataForceSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> =
             </button>
 
             <button
-              onClick={() => onTabChange('dataforce')}
+              onClick={() => onTabChange('intelligence')}
               className="flex flex-col items-start gap-2 p-4 rounded-xl border-2 border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left group"
             >
               <div className="flex items-center gap-2.5 w-full">
@@ -624,7 +624,7 @@ const DataForceSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> =
             </button>
 
             <button
-              onClick={() => onTabChange('dataforce')}
+              onClick={() => onTabChange('intelligence')}
               className="flex flex-col items-start gap-2 p-4 rounded-xl border-2 border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left group"
             >
               <div className="flex items-center gap-2.5 w-full">
@@ -644,7 +644,7 @@ const DataForceSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> =
             </button>
 
             <button
-              onClick={() => onTabChange('dataforce')}
+              onClick={() => onTabChange('intelligence')}
               className="flex flex-col items-start gap-2 p-4 rounded-xl border-2 border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left group"
             >
               <div className="flex items-center gap-2.5 w-full">

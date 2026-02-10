@@ -722,8 +722,6 @@ export default function AdminDashboard() {
 
           {/* Content Tab */}
           <TabsContent value="content" className="space-y-6">
-            {/* Demo Guides Manager */}
-            <DemoGuidesManager />
             
             <div className="grid md:grid-cols-3 gap-6">
               <Card>
@@ -851,9 +849,40 @@ export default function AdminDashboard() {
             <DownloadsReportPanel />
           </TabsContent>
 
-          {/* AI Analysis Tab */}
-          <TabsContent value="ai-analysis" className="space-y-6">
-            <AIMarketAnalysis />
+          {/* Intelligence Hub Tab */}
+          <TabsContent value="intelligence" className="space-y-6">
+            <Tabs defaultValue="ai-analysis" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="ai-analysis" className="gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  AI Analysis
+                </TabsTrigger>
+                <TabsTrigger value="multicultural" className="gap-2">
+                  <Users className="h-4 w-4" />
+                  Multicultural Intel
+                </TabsTrigger>
+                <TabsTrigger value="research" className="gap-2">
+                  <Eye className="h-4 w-4" />
+                  Research Briefings
+                </TabsTrigger>
+                <TabsTrigger value="dataforce" className="gap-2">
+                  <Activity className="h-4 w-4" />
+                  DataForce AI
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="ai-analysis">
+                <AIMarketAnalysis />
+              </TabsContent>
+              <TabsContent value="multicultural">
+                <MulticulturalIntelligencePanel />
+              </TabsContent>
+              <TabsContent value="research">
+                <ResearchBriefingsPanel />
+              </TabsContent>
+              <TabsContent value="dataforce">
+                <DataForceAdminPanel />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           {/* Activity Tab */}
@@ -877,36 +906,50 @@ export default function AdminDashboard() {
             <GlobalLogoHub />
           </TabsContent>
 
-          {/* Backups Tab */}
+          {/* Unified Backups Tab */}
           <TabsContent value="backups" className="space-y-6">
-            <div className="grid gap-6">
-              {organizations.map((org) => (
-                <CompressedBackupManager
-                  key={org.id}
-                  organizationId={org.id}
-                  organizationName={org.name}
-                />
-              ))}
-              {organizations.length === 0 && (
-                <Card>
-                  <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                    <HardDrive className="h-12 w-12 mb-4 opacity-50" />
-                    <p className="text-lg font-medium">No organizations found</p>
-                    <p className="text-sm">Organizations will appear here for backup management</p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* Universe Backups Tab */}
-          <TabsContent value="universe-backups" className="space-y-6">
-            <UniverseBackupManager />
-          </TabsContent>
-
-          {/* Product Suite Backups Tab */}
-          <TabsContent value="suite-backups" className="space-y-6">
-            <ProductSuiteBackupManager />
+            <Tabs defaultValue="org-backups" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="org-backups" className="gap-2">
+                  <HardDrive className="h-4 w-4" />
+                  Organization
+                </TabsTrigger>
+                <TabsTrigger value="universe-backups" className="gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Universe
+                </TabsTrigger>
+                <TabsTrigger value="suite-backups" className="gap-2">
+                  <Package className="h-4 w-4" />
+                  Product Suite
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="org-backups">
+                <div className="grid gap-6">
+                  {organizations.map((org) => (
+                    <CompressedBackupManager
+                      key={org.id}
+                      organizationId={org.id}
+                      organizationName={org.name}
+                    />
+                  ))}
+                  {organizations.length === 0 && (
+                    <Card>
+                      <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                        <HardDrive className="h-12 w-12 mb-4 opacity-50" />
+                        <p className="text-lg font-medium">No organizations found</p>
+                        <p className="text-sm">Organizations will appear here for backup management</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+              <TabsContent value="universe-backups">
+                <UniverseBackupManager />
+              </TabsContent>
+              <TabsContent value="suite-backups">
+                <ProductSuiteBackupManager />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           {/* Lead Submissions Tab */}
@@ -930,20 +973,6 @@ export default function AdminDashboard() {
             <GlobalLinkAdminSection />
           </TabsContent>
 
-          {/* Multicultural Intelligence Tab */}
-          <TabsContent value="multicultural" className="space-y-6">
-            <MulticulturalIntelligencePanel />
-          </TabsContent>
-
-          {/* Research Briefings Tab */}
-          <TabsContent value="research" className="space-y-6">
-            <ResearchBriefingsPanel />
-          </TabsContent>
-
-          {/* DataForce Admin Tab */}
-          <TabsContent value="dataforce" className="space-y-6">
-            <DataForceAdminPanel />
-          </TabsContent>
         </Tabs>
           </div>
         </main>
