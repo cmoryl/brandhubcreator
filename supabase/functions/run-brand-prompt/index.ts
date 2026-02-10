@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
     }
 
     // Build context from brand data
-    const brandContext = buildBrandContext(brands || [], products);
+    const brandContext = await buildBrandContext(brands || [], products);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -199,7 +199,8 @@ If data is missing or incomplete, note this and provide guidance on what informa
   }
 });
 
-function buildBrandContext(brands: unknown[], products: unknown[]): string {
+async function buildBrandContext(brands: unknown[], products: unknown[]): Promise<string> {
+  const { extractFullBrandContext } = await import('../_shared/extractFullBrandContext.ts');
   const sections: string[] = [];
   
   sections.push(`### Portfolio Overview`);
@@ -210,44 +211,12 @@ function buildBrandContext(brands: unknown[], products: unknown[]): string {
 
   for (const brand of brands as any[]) {
     const guideData = brand.guide_data || {};
-    const hero = guideData.hero || {};
-    const identity = guideData.identity || {};
-    const colors = guideData.colors || [];
-    const typography = guideData.typography || [];
-    const values = guideData.values || [];
-
     sections.push(`### ${brand.name}`);
     sections.push(`- Status: ${brand.is_public ? 'Public' : 'Private'}`);
     
-    if (hero.tagline) sections.push(`- Tagline: ${hero.tagline}`);
-    if (identity.missionStatement) sections.push(`- Mission: ${identity.missionStatement}`);
-    if (identity.archetype) sections.push(`- Archetype: ${identity.archetype}`);
-    if (identity.toneOfVoice?.length) sections.push(`- Tone: ${identity.toneOfVoice.join(', ')}`);
-    
-    if (values.length > 0) {
-      sections.push(`- Values: ${values.map((v: any) => v.title).join(', ')}`);
-    }
-    
-    if (colors.length > 0) {
-      sections.push(`- Colors: ${colors.length} defined (${colors.map((c: any) => c.name).join(', ')})`);
-    }
-    
-    if (typography.length > 0) {
-      sections.push(`- Typography: ${typography.length} styles`);
-    }
-
-    // Calculate completeness
-    let score = 0;
-    if (hero.name) score += 15;
-    if (hero.tagline) score += 10;
-    if (guideData.logo?.primaryUrl) score += 20;
-    if (colors.length > 0) score += 15;
-    if (typography.length > 0) score += 15;
-    if (identity.missionStatement) score += 10;
-    if (values.length > 0) score += 10;
-    if (guideData.patterns?.length) score += 5;
-    
-    sections.push(`- Completeness: ${score}%`);
+    const { text, sectionsWithData } = extractFullBrandContext(guideData, brand.name, 'brand', 1500);
+    sections.push(text);
+    sections.push(`- Data Coverage: ${sectionsWithData.length} sections populated`);
     sections.push('');
   }
 

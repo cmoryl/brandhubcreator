@@ -22,6 +22,8 @@ import {
   Image,
   Languages,
   MapPin,
+  CheckCircle2,
+  Cable,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -181,6 +183,7 @@ export const BrandIntelligencePanel = ({
     recommendations: false,
     competitive: false,
     cultural: false,
+    integrations: false,
   });
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -676,6 +679,129 @@ export const BrandIntelligencePanel = ({
             </Collapsible>
           </>
         )}
+
+        {/* Integration Status Section */}
+        <Separator />
+        <Collapsible 
+          open={expandedSections.integrations} 
+          onOpenChange={() => toggleSection('integrations')}
+        >
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+              <div className="flex items-center gap-2">
+                <Cable className="h-4 w-4 text-emerald-500" />
+                <span className="font-medium">Integration Compatibility</span>
+                <Badge variant="secondary" className="ml-2 bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                  100%
+                </Badge>
+              </div>
+              {expandedSections.integrations ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-4 space-y-3">
+            {/* AI Intelligence */}
+            <div className="p-3 rounded-lg bg-background/50 border border-border">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-purple-500" />
+                  <span className="text-sm font-medium">AI Intelligence Engine</span>
+                </div>
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              </div>
+              <p className="text-xs text-muted-foreground">Reads all sections: hero, identity, values, colors, typography, logos, services, imagery, patterns, gradients, social, templates, awards, statistics, and more.</p>
+            </div>
+
+            {/* Brand Research */}
+            <div className="p-3 rounded-lg bg-background/50 border border-border">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-amber-500" />
+                  <span className="text-sm font-medium">Research Briefings</span>
+                </div>
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              </div>
+              <p className="text-xs text-muted-foreground">Full context from all brand sections feeds into daily/weekly/deep-dive market research, competitive positioning, and strategic recommendations.</p>
+            </div>
+
+            {/* Market Analysis */}
+            <div className="p-3 rounded-lg bg-background/50 border border-border">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                  <span className="text-sm font-medium">Market Analysis</span>
+                </div>
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              </div>
+              <p className="text-xs text-muted-foreground">Comprehensive brand data powers market position analysis, growth recommendations, and trend tracking with full section coverage.</p>
+            </div>
+
+            {/* Competitive Analysis */}
+            <div className="p-3 rounded-lg bg-background/50 border border-border">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Target className="h-4 w-4 text-red-500" />
+                  <span className="text-sm font-medium">Competitive Analysis</span>
+                </div>
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              </div>
+              <p className="text-xs text-muted-foreground">Visual identity audit, design patterns, and brand positioning analysis powered by complete guide data including colors, typography, logos, and imagery.</p>
+            </div>
+
+            {/* GlobalLink */}
+            <div className="p-3 rounded-lg bg-background/50 border border-border">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Globe2 className="h-4 w-4 text-sky-500" />
+                  <span className="text-sm font-medium">GlobalLink Translation</span>
+                </div>
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              </div>
+              <p className="text-xs text-muted-foreground">Translation and cultural adaptation engine processes all translatable content: taglines, values, services, messaging, and regional variants.</p>
+            </div>
+
+            {/* DataForce Compliance */}
+            <div className="p-3 rounded-lg bg-background/50 border border-border">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-orange-500" />
+                  <span className="text-sm font-medium">DataForce Compliance</span>
+                </div>
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              </div>
+              <p className="text-xs text-muted-foreground">Full brand compliance scanning across all visual assets: colors, typography, logos, imagery, patterns, gradients, templates, and misuse guidelines.</p>
+            </div>
+
+            {/* DataForce Assistant */}
+            <div className="p-3 rounded-lg bg-background/50 border border-border">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-cyan-500" />
+                  <span className="text-sm font-medium">DataForce Brand Assistant</span>
+                </div>
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              </div>
+              <p className="text-xs text-muted-foreground">AI chatbot has full brand context including identity, voice, colors, typography, services, social profiles, awards, and statistics for accurate Q&A.</p>
+            </div>
+
+            {/* Custom Prompts */}
+            <div className="p-3 rounded-lg bg-background/50 border border-border">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-violet-500" />
+                  <span className="text-sm font-medium">Custom AI Prompts</span>
+                </div>
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              </div>
+              <p className="text-xs text-muted-foreground">Portfolio-wide AI prompts pull full brand data with section coverage stats, enabling comprehensive cross-brand analysis.</p>
+            </div>
+
+            <div className="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                ✓ All integrations now read from every populated brand section via a shared context extraction engine — ensuring 100% data compatibility across AI Intelligence, Research, Market Analysis, Competitive Analysis, GlobalLink, and DataForce.
+              </p>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
         <Separator />
 

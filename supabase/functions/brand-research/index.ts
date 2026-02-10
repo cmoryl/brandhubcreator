@@ -12,21 +12,11 @@ interface ResearchRequest {
   focusAreas?: string[];
 }
 
-function extractBrandContext(guideData: Record<string, unknown>): string {
-  const hero = guideData?.hero as Record<string, string> | undefined;
-  const identity = guideData?.identity as Record<string, unknown> | undefined;
-  const values = guideData?.values as Array<{ text: string }> | undefined;
-  const services = guideData?.services as Array<{ name: string }> | undefined;
+import { extractFullBrandContext } from '../_shared/extractFullBrandContext.ts';
 
-  const parts: string[] = [];
-  if (hero?.name) parts.push(`Brand: ${hero.name}`);
-  if (hero?.tagline) parts.push(`Tagline: ${hero.tagline}`);
-  if (identity?.missionStatement) parts.push(`Mission: ${identity.missionStatement}`);
-  if (identity?.industry) parts.push(`Industry: ${identity.industry}`);
-  if (identity?.archetype) parts.push(`Archetype: ${identity.archetype}`);
-  if (values?.length) parts.push(`Values: ${values.slice(0, 4).map(v => v.text).join(', ')}`);
-  if (services?.length) parts.push(`Services: ${services.slice(0, 4).map(s => s.name).join(', ')}`);
-  return parts.join('\n') || 'No brand data';
+function extractBrandContext(guideData: Record<string, unknown>, entityName: string, entityType: string): string {
+  const { text } = extractFullBrandContext(guideData, entityName, entityType, 3000);
+  return text || 'No brand data';
 }
 
 /** Background worker: runs AI call + saves results */
@@ -263,7 +253,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const brandContext = extractBrandContext(entityData.guide_data as Record<string, unknown>);
+    const brandContext = extractBrandContext(entityData.guide_data as Record<string, unknown>, entityData.name, entityType);
 
     // Fetch minimal intelligence summary
     let intelligenceSummary = '';

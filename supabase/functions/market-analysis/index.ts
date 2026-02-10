@@ -43,39 +43,11 @@ interface AnalysisResult {
   generatedAt: string;
 }
 
-// Extract only relevant fields from guide_data to reduce memory usage
-function extractRelevantBrandData(guideData: Record<string, unknown>): string {
-  const hero = guideData?.hero as Record<string, string> | undefined;
-  const identity = guideData?.identity as Record<string, unknown> | undefined;
-  const values = guideData?.values as Array<{ text: string; description: string }> | undefined;
-  const colors = guideData?.colors as Array<{ name: string; hex: string; usage?: string }> | undefined;
-  const services = guideData?.services as Array<{ name: string; description: string }> | undefined;
-  const social = guideData?.social as Array<{ platform: string; handle: string }> | undefined;
-  const tagline = guideData?.tagline as Record<string, unknown> | undefined;
-  
-  const parts: string[] = [];
-  
-  if (hero?.name) parts.push(`Brand Name: ${hero.name}`);
-  if (hero?.tagline) parts.push(`Hero Tagline: ${hero.tagline}`);
-  if (tagline?.primary) parts.push(`Primary Tagline: ${tagline.primary}`);
-  if (tagline?.secondary) parts.push(`Secondary Tagline: ${tagline.secondary}`);
-  if (identity?.missionStatement) parts.push(`Mission Statement: ${identity.missionStatement}`);
-  if (identity?.archetype) parts.push(`Brand Archetype: ${identity.archetype}`);
-  if (identity?.toneOfVoice) parts.push(`Tone of Voice: ${(identity.toneOfVoice as string[])?.join(', ')}`);
-  if (values?.length) {
-    parts.push(`Core Values:\n${values.slice(0, 6).map(v => `  - ${v.text}: ${v.description || ''}`).join('\n')}`);
-  }
-  if (services?.length) {
-    parts.push(`Services/Products:\n${services.slice(0, 6).map(s => `  - ${s.name}: ${s.description || ''}`).join('\n')}`);
-  }
-  if (colors?.length) {
-    parts.push(`Brand Colors: ${colors.slice(0, 5).map(c => `${c.name} (${c.hex})`).join(', ')}`);
-  }
-  if (social?.length) {
-    parts.push(`Social Presence: ${social.slice(0, 5).map(s => `${s.platform}: ${s.handle}`).join(', ')}`);
-  }
-  
-  return parts.join('\n\n') || 'No detailed data available';
+import { extractFullBrandContext } from '../_shared/extractFullBrandContext.ts';
+
+function extractRelevantBrandData(guideData: Record<string, unknown>, entityName: string = '', entityType: string = 'brand'): string {
+  const { text } = extractFullBrandContext(guideData, entityName, entityType, 3000);
+  return text || 'No detailed data available';
 }
 
 Deno.serve(async (req) => {
@@ -166,7 +138,7 @@ Status: ${brand.is_public ? 'Public' : 'Private'}
 Created: ${brand.created_at}
 
 Brand Details:
-${extractRelevantBrandData(guideData)}`;
+${extractRelevantBrandData(guideData, brand.name, 'brand')}`;
     } else if (type === 'product' && entityId) {
       const { data: product } = await supabaseClient
         .from('products')
@@ -188,7 +160,7 @@ Status: ${product.is_public ? 'Public' : 'Private'}
 Created: ${product.created_at}
 
 Product Details:
-${extractRelevantBrandData(guideData)}`;
+${extractRelevantBrandData(guideData, product.name, 'product')}`;
     } else if (type === 'organization' && entityId) {
       const { data: org } = await supabaseClient
         .from('organizations')

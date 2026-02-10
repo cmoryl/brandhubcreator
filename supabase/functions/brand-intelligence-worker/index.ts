@@ -69,11 +69,11 @@ serve(async (req) => {
       .update({ status: 'processing', started_at: new Date().toISOString(), progress: 10 })
       .eq('id', jobId);
 
-    // Fetch ONLY the name for minimal memory
+    // Fetch name + guide_data for comprehensive analysis
     const table = job.entity_type === 'brand' ? 'brands' : job.entity_type === 'product' ? 'products' : 'events';
     const { data: entity } = await supabase
       .from(table)
-      .select('name')
+      .select('name, guide_data')
       .eq('id', job.entity_id)
       .single();
 
@@ -86,9 +86,22 @@ serve(async (req) => {
       .update({ progress: 30 })
       .eq('id', jobId);
 
-    // Minimal prompt for minimal token/memory usage
-    const prompt = `Analyze "${entity.name}" brand. Return compact JSON:
-{"summary":"1 sentence","position":"1 sentence","audience":"1 sentence","advantages":["1"],"voice":{"tone":"1 word","style":"1 word"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50}`;
+    // Extract full brand context from all sections
+    const { extractFullBrandContext } = await import('../_shared/extractFullBrandContext.ts');
+    const { text: brandContext, sectionsWithData } = extractFullBrandContext(
+      (entity.guide_data || {}) as Record<string, unknown>,
+      entity.name,
+      job.entity_type,
+      2500,
+    );
+
+    const prompt = `Analyze "${entity.name}" brand using ALL the following data. Return compact JSON:
+${brandContext}
+
+Sections with data: ${sectionsWithData.join(', ')}
+
+Return ONLY valid JSON:
+{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]}`;
 
     // Use streaming to minimize memory - read chunks instead of full response
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -193,7 +206,7 @@ serve(async (req) => {
 
     const entries = Array.isArray(intel.knowledge_entries) ? intel.knowledge_entries : [];
 
-    // Update intelligence with minimal data
+    // Update intelligence with comprehensive data
     await supabase
       .from('brand_intelligence')
       .update({
@@ -208,10 +221,12 @@ serve(async (req) => {
           rationale: "",
           confidence: 0.7
         }] : [],
+        cultural_insights: analysis.cultural_insights || null,
+        globallink_recommendations: analysis.globallink_recommendations || [],
         knowledge_entries: [...entries, newInsight],
         last_analyzed_at: new Date().toISOString(),
         analysis_count: (intel as any).analysis_count ? (intel as any).analysis_count + 1 : 1,
-        localization_readiness_score: analysis.readiness || 50,
+        localization_readiness_score: analysis.cultural_insights?.global_readiness_score || analysis.readiness || 50,
       })
       .eq('id', intel.id);
 

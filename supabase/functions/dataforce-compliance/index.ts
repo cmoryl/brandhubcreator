@@ -105,7 +105,11 @@ serve(async (req) => {
 
     const isDemo = !config || config.api_mode === 'demo';
 
-    // Extract brand elements for analysis
+    // Extract full brand context for comprehensive compliance analysis
+    const { extractFullBrandContext: extractCtx } = await import('../_shared/extractFullBrandContext.ts');
+    const { text: fullContext } = extractCtx(guide_data, entity_name, entity_type, 3000);
+    
+    // Also keep individual sections for demo mode and asset counting
     const colors = guide_data.colors || {};
     const typography = guide_data.typography || {};
     const logos = guide_data.logos || {};
@@ -153,7 +157,7 @@ Return your analysis as a JSON object with this structure:
           model: "google/gemini-3-flash-preview",
           messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: JSON.stringify({ colors, typography, logos, imagery, identity }) }
+            { role: "user", content: fullContext }
           ],
           tools: [{
             type: "function",

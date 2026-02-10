@@ -274,39 +274,52 @@ Guidelines for responses:
 });
 
 function buildEntityContext(guideData: Record<string, unknown>, entityName: string): string {
-  const sections: string[] = [`Brand/Entity: ${entityName}`];
-  
-  const hero = guideData.hero as any;
+  // Dynamic import of shared context extractor for comprehensive coverage
+  // Note: We use inline extraction as fallback since dynamic imports may not work in all deploy modes
+  const g = guideData || {};
+  const parts: string[] = [`Brand/Entity: ${entityName}`];
+
+  const hero = g.hero as any;
   if (hero) {
-    if (hero.tagline) sections.push(`Tagline: ${hero.tagline}`);
+    if (hero.tagline) parts.push(`Tagline: ${hero.tagline}`);
   }
-
-  const identity = guideData.identity as any;
+  const identity = g.identity as any;
   if (identity) {
-    if (identity.mission) sections.push(`Mission: ${identity.mission}`);
-    if (identity.vision) sections.push(`Vision: ${identity.vision}`);
-    if (identity.archetype) sections.push(`Brand Archetype: ${identity.archetype}`);
+    if (identity.missionStatement || identity.mission) parts.push(`Mission: ${identity.missionStatement || identity.mission}`);
+    if (identity.vision) parts.push(`Vision: ${identity.vision}`);
+    if (identity.archetype) parts.push(`Brand Archetype: ${identity.archetype}`);
+    if (identity.industry) parts.push(`Industry: ${identity.industry}`);
+    const tone = Array.isArray(identity.toneOfVoice) ? identity.toneOfVoice : [];
+    if (tone.length) parts.push(`Tone of Voice: ${tone.join(', ')}`);
   }
+  const values = Array.isArray(g.values) ? g.values : [];
+  if (values.length) parts.push(`Core Values: ${values.map((v: any) => v.title || v.text || v.name).filter(Boolean).join(', ')}`);
+  const colors = Array.isArray(g.colors) ? g.colors : [];
+  if (colors.length) parts.push(`Colors (${colors.length}): ${colors.slice(0, 6).map((c: any) => `${c.name || 'color'}(${c.hex || ''})`).join(', ')}`);
+  const typography = Array.isArray(g.typography) ? g.typography : [];
+  if (typography.length) parts.push(`Typography: ${typography.slice(0, 4).map((t: any) => t.fontFamily || t.name || 'font').join(', ')}`);
+  const logos = Array.isArray(g.logos) ? g.logos : [];
+  if (logos.length) parts.push(`Logos: ${logos.length} defined`);
+  const services = Array.isArray(g.services) ? g.services : [];
+  if (services.length) parts.push(`Services: ${services.slice(0, 5).map((s: any) => s.name || s.title).filter(Boolean).join(', ')}`);
+  const social = Array.isArray(g.social) ? g.social : [];
+  if (social.length) parts.push(`Social: ${social.slice(0, 5).map((s: any) => `${s.platform || ''}: ${s.handle || s.url || ''}`).join(', ')}`);
+  const websites = Array.isArray(g.websites) ? g.websites : [];
+  if (websites.length) parts.push(`Websites: ${websites.slice(0, 3).map((w: any) => w.url || w.name || '').join(', ')}`);
+  const gradients = Array.isArray(g.gradients) ? g.gradients : [];
+  if (gradients.length) parts.push(`Gradients: ${gradients.length}`);
+  const patterns = Array.isArray(g.patterns) ? g.patterns : [];
+  if (patterns.length) parts.push(`Patterns: ${patterns.length}`);
+  const imagery = Array.isArray(g.imagery) ? g.imagery : [];
+  if (imagery.length) parts.push(`Imagery: ${imagery.length} assets`);
+  const templates = Array.isArray(g.templates) ? g.templates : [];
+  if (templates.length) parts.push(`Templates: ${templates.length}`);
+  const awards = Array.isArray(g.awards) ? g.awards : [];
+  if (awards.length) parts.push(`Awards: ${awards.length}`);
+  const statistics = Array.isArray(g.statistics) ? g.statistics : [];
+  if (statistics.length) parts.push(`Statistics: ${statistics.length}`);
 
-  const voice = guideData.voice as any;
-  if (voice) {
-    if (voice.tone) sections.push(`Tone: ${voice.tone}`);
-    if (voice.personality) sections.push(`Personality: ${voice.personality}`);
-  }
-
-  const colors = guideData.colors as any;
-  if (colors) {
-    if (colors.primary) sections.push(`Primary Color: ${colors.primary}`);
-    if (colors.secondary) sections.push(`Secondary Color: ${colors.secondary}`);
-  }
-
-  const values = guideData.values as any;
-  if (Array.isArray(values) && values.length > 0) {
-    const valueNames = values.map((v: any) => v.title || v.name).filter(Boolean).join(', ');
-    if (valueNames) sections.push(`Core Values: ${valueNames}`);
-  }
-
-  return sections.join('\n');
+  return parts.join('\n');
 }
 
 function generateDemoAssistantResponse(message: string, entityName: string): string {
