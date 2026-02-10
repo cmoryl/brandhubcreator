@@ -1,5 +1,5 @@
-import { useState, useRef, forwardRef } from 'react';
-import { Download, Upload, Plus, Trash2, ExternalLink, Pencil, Package, FolderArchive, Globe2 } from 'lucide-react';
+import { useState, useRef, forwardRef, useMemo } from 'react';
+import { Download, Upload, Plus, Trash2, ExternalLink, Pencil, Package, FolderArchive, Globe2, ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react';
 import { ClientLogo, ClientLogoFile, ClientLogoVariant, ClientLogoFormat } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,12 @@ import { GlobalLogoPickerDialog } from './GlobalLogoPickerDialog';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import JSZip from 'jszip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface ClientLogosSectionProps {
   clientLogos: ClientLogo[];
@@ -50,6 +56,28 @@ export const ClientLogosSection = forwardRef<HTMLElement, ClientLogosSectionProp
   const [activeVariant, setActiveVariant] = useState<ClientLogoVariant>('color');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [newLogo, setNewLogo] = useState<Partial<ClientLogo>>({ name: '', description: '', files: [] });
+  const [sortOption, setSortOption] = useState<'default' | 'name-asc' | 'name-desc' | 'files-desc'>('default');
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const VISIBLE_COUNT = 6;
+
+  const sortedLogos = useMemo(() => {
+    const logos = [...clientLogos];
+    switch (sortOption) {
+      case 'name-asc':
+        return logos.sort((a, b) => a.name.localeCompare(b.name));
+      case 'name-desc':
+        return logos.sort((a, b) => b.name.localeCompare(a.name));
+      case 'files-desc':
+        return logos.sort((a, b) => b.files.length - a.files.length);
+      default:
+        return logos;
+    }
+  }, [clientLogos, sortOption]);
+
+  const hasMoreLogos = sortedLogos.length > VISIBLE_COUNT;
+  const visibleLogos = isExpanded || !hasMoreLogos ? sortedLogos : sortedLogos.slice(0, VISIBLE_COUNT);
+  const hiddenCount = sortedLogos.length - VISIBLE_COUNT;
 
   const canEdit = Boolean(onClientLogosChange);
 
@@ -530,10 +558,57 @@ export const ClientLogosSection = forwardRef<HTMLElement, ClientLogosSectionProp
       </div>
 
       {clientLogos.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {clientLogos.map(logo => (
-            <LogoCard key={logo.id} logo={logo} />
-          ))}
+        <div className="space-y-4">
+          {/* Sort & Count Bar */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{clientLogos.length}</span>
+              <span>client{clientLogos.length !== 1 ? 's' : ''}</span>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2 h-8 text-muted-foreground hover:text-foreground">
+                  <ArrowUpDown className="h-3.5 w-3.5" />
+                  <span className="text-xs">
+                    {sortOption === 'default' ? 'Default' : sortOption === 'name-asc' ? 'A → Z' : sortOption === 'name-desc' ? 'Z → A' : 'Most Files'}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onClick={() => setSortOption('default')} className={cn("cursor-pointer text-sm", sortOption === 'default' && "bg-accent")}>Default</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOption('name-asc')} className={cn("cursor-pointer text-sm", sortOption === 'name-asc' && "bg-accent")}>A → Z</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOption('name-desc')} className={cn("cursor-pointer text-sm", sortOption === 'name-desc' && "bg-accent")}>Z → A</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOption('files-desc')} className={cn("cursor-pointer text-sm", sortOption === 'files-desc' && "bg-accent")}>Most Files</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Logo Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {visibleLogos.map(logo => (
+              <LogoCard key={logo.id} logo={logo} />
+            ))}
+          </div>
+
+          {/* Accordion Show More / Show Less */}
+          {hasMoreLogos && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-lg border border-border/50 bg-muted/30 hover:bg-muted/60 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="h-4 w-4" />
+                  Show Less
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-4 w-4" />
+                  Show {hiddenCount} More Client{hiddenCount !== 1 ? 's' : ''}
+                </>
+              )}
+            </button>
+          )}
         </div>
       ) : (
         <div className="text-center py-12 border-2 border-dashed rounded-xl">
