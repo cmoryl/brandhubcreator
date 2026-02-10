@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Package, Download, Loader2, Calendar, Filter, BarChart3, AlertTriangle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, subDays, subMonths } from 'date-fns';
 import { CustomPromptRunner } from './CustomPromptRunner';
+import { usePersistedAdminData, formatLastRunMessage } from '@/hooks/usePersistedAdminData';
+
+interface CachedProductReport {
+  reportData: ProductReportData[];
+  summary: ReportSummary;
+  dateRange: string;
+  reportType: string;
+}
 
 interface ProductReportData {
   id: string;
@@ -56,6 +64,21 @@ export function ProductReportGenerator() {
   const [summary, setSummary] = useState<ReportSummary | null>(null);
   const [dateRange, setDateRange] = useState('30d');
   const [reportType, setReportType] = useState<'all' | 'public' | 'private'>('all');
+
+  const {
+    data: cachedData,
+    lastRunAt,
+    saveData: saveCachedData,
+  } = usePersistedAdminData<CachedProductReport>('product_report', { ttl: 60 * 60 * 1000 });
+
+  useEffect(() => {
+    if (cachedData && !reportData) {
+      setReportData(cachedData.reportData);
+      setSummary(cachedData.summary);
+      setDateRange(cachedData.dateRange);
+      setReportType(cachedData.reportType as 'all' | 'public' | 'private');
+    }
+  }, [cachedData]);
 
   const generateReport = async () => {
     setIsGenerating(true);
@@ -189,7 +212,7 @@ export function ProductReportGenerator() {
       const missingLogos = processedProducts.filter(p => !p.has_logo).length;
       const missingColors = processedProducts.filter(p => p.colors_count === 0).length;
 
-      setSummary({
+      const newSummary: ReportSummary = {
         totalProducts: processedProducts.length,
         publicProducts: processedProducts.filter(p => p.is_public).length,
         avgCompleteness: processedProducts.length > 0 
@@ -205,9 +228,11 @@ export function ProductReportGenerator() {
         orphanedProducts,
         missingLogos,
         missingColors,
-      });
+      };
 
+      setSummary(newSummary);
       setReportData(processedProducts);
+      saveCachedData({ reportData: processedProducts, summary: newSummary, dateRange, reportType });
       toast.success('Report generated successfully');
     } catch (error) {
       console.error('Error generating report:', error);
