@@ -1124,6 +1124,7 @@ const BrandEditor = () => {
             <div className={`${getContentWidthClass()} mx-auto animate-fade-in-up ${getSectionSpacingClass()}`}>
               {/* Sticky Breadcrumbs */}
               <StickyBreadcrumbs
+                homeHref={organization ? `/org/${organization.slug}` : '/'}
                 items={[
                   { label: organization?.name || 'Brands', icon: organization ? Building2 : FileText, href: organization ? `/org/${organization.slug}` : '/' },
                   // Only show parent brand breadcrumb if:

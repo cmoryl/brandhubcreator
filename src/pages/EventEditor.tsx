@@ -1028,6 +1028,7 @@ const EventEditor = () => {
             <div className={`${getContentWidthClass()} mx-auto animate-fade-in-up ${getSectionSpacingClass()}`}>
               {/* Sticky Breadcrumbs - show full hierarchy for sub-events */}
               <StickyBreadcrumbs
+                homeHref={organization ? `/org/${organization.slug}` : '/'}
                 items={[
                   { label: organization?.name || 'Events', icon: organization ? Building2 : Calendar, href: organization ? `/org/${organization.slug}` : '/' },
                   ...(parentEvent ? [{ label: parentEvent.name, icon: Calendar, href: `/event/${parentEvent.slug}` }] : []),

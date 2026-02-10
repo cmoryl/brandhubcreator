@@ -14,6 +14,7 @@ interface StickyBreadcrumbsProps {
   currentIcon?: React.ElementType;
   className?: string;
   showHome?: boolean;
+  homeHref?: string;
 }
 
 /**
@@ -23,7 +24,7 @@ interface StickyBreadcrumbsProps {
 export const StickyBreadcrumbs = React.forwardRef<
   HTMLDivElement,
   StickyBreadcrumbsProps
->(({ items, currentPage, currentIcon, className, showHome = true }, ref) => {
+>(({ items, currentPage, currentIcon, className, showHome = true, homeHref }, ref) => {
   return (
     <>
       {/* Fixed breadcrumb bar */}
@@ -43,6 +44,7 @@ export const StickyBreadcrumbs = React.forwardRef<
             currentPage={currentPage}
             currentIcon={currentIcon}
             showHome={showHome}
+            homeHref={homeHref}
             className="mb-0"
           />
         </div>

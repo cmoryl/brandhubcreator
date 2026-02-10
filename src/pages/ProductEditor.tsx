@@ -945,6 +945,7 @@ const ProductEditor = () => {
             <div className={`${getContentWidthClass()} mx-auto animate-fade-in ${getSectionSpacingClass()}`}>
               {/* Sticky Breadcrumbs */}
               <StickyBreadcrumbs
+                homeHref={organization ? `/org/${organization.slug}` : '/'}
                 items={[
                   { label: organization?.name || 'Products', icon: organization ? Building2 : Package, href: organization ? `/org/${organization.slug}` : '/' },
                   // Parent brand (if linked via parent_brand_id)
