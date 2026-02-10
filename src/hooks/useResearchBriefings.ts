@@ -121,22 +121,43 @@ export function useResearchBriefings(entityId: string, entityType: 'brand' | 'pr
 
       if (error) throw error;
 
-      const response = data as GenerateBriefingResponse;
-      
-      if (!response.success) {
-        throw new Error('Failed to generate briefing');
+      // New async pattern: poll job status
+      const jobId = data?.jobId;
+      if (!jobId) throw new Error('No job ID returned');
+
+      // Poll for completion
+      let attempts = 0;
+      const maxAttempts = 90; // 3 minutes
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const { data: job } = await supabase
+          .from('brand_intelligence_jobs')
+          .select('status, result, error_message')
+          .eq('id', jobId)
+          .maybeSingle();
+
+        if (job?.status === 'completed') {
+          await queryClient.invalidateQueries({ 
+            queryKey: ['research-briefings', entityId, entityType] 
+          });
+
+          const result = job.result as Record<string, unknown> | null;
+          toast.success('Research briefing generated', {
+            description: (result?.briefing as Record<string, string>)?.title || 'Briefing ready',
+          });
+
+          return { success: true, briefing: result?.briefing, briefingId: result?.briefingId };
+        }
+
+        if (job?.status === 'failed') {
+          throw new Error(job.error_message || 'Research generation failed');
+        }
+
+        attempts++;
       }
 
-      // Invalidate and refetch briefings
-      await queryClient.invalidateQueries({ 
-        queryKey: ['research-briefings', entityId, entityType] 
-      });
-
-      toast.success('Research briefing generated', {
-        description: response.briefing.title,
-      });
-
-      return response;
+      throw new Error('Research generation timed out');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to generate briefing';
       toast.error('Research failed', { description: message });
