@@ -639,12 +639,10 @@ export const HeroSection = ({
                     <Sparkles className="h-3 w-3 mr-1" />
                     Brand Guide Active
                   </Badge>
-                  {/* Compliance score pill */}
-                  {complianceScore != null && (
-                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 shadow-lg">
-                      <ComplianceScoreBadge score={complianceScore} size="sm" />
-                    </div>
-                  )}
+                  {/* Compliance score pill — always visible */}
+                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 shadow-lg">
+                    <ComplianceScoreBadge score={complianceScore} size="sm" />
+                  </div>
                   {/* Brain / Intelligence quick-access */}
                   {onOpenIntelligence && (
                     <button

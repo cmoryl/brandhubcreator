@@ -176,9 +176,7 @@ export const PortalBrandCard = memo(React.forwardRef<HTMLDivElement, BrandCardPr
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
               <div className="flex items-center gap-2">
-                {complianceScore != null && (
-                  <ComplianceScoreBadge score={complianceScore} size="sm" />
-                )}
+                <ComplianceScoreBadge score={complianceScore} size="sm" />
                 {isMasterBrand && (
                   <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                     Brand Hub
