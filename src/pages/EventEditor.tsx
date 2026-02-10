@@ -19,6 +19,7 @@ import { useEvents } from '@/contexts/EventContext';
 import { Json } from '@/integrations/supabase/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { useOrgSlug } from '@/hooks/useOrgSlug';
 import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { useSEO } from '@/hooks/useSEO';
 import { trackEntityView } from '@/hooks/usePageTracking';
@@ -243,6 +244,13 @@ const EventEditor = () => {
   }, [eventSlug, contextEvent, isLoading]);
   
   const event = contextEvent || publicEvent;
+
+  // Resolve org slug for breadcrumbs - always resolve from entity's organizationId
+  const { orgSlug: resolvedOrgSlug, orgName: resolvedOrgName } = useOrgSlug(
+    event?.organizationId
+  );
+  const effectiveOrgSlug = resolvedOrgSlug || organization?.slug;
+  const effectiveOrgName = resolvedOrgName || organization?.name;
 
   // Track event view for analytics
   useEffect(() => {
@@ -1028,9 +1036,9 @@ const EventEditor = () => {
             <div className={`${getContentWidthClass()} mx-auto animate-fade-in-up ${getSectionSpacingClass()}`}>
               {/* Sticky Breadcrumbs - show full hierarchy for sub-events */}
               <StickyBreadcrumbs
-                homeHref={organization ? `/org/${organization.slug}` : '/'}
+                homeHref={effectiveOrgSlug ? `/org/${effectiveOrgSlug}` : '/'}
                 items={[
-                  { label: organization?.name || 'Events', icon: organization ? Building2 : Calendar, href: organization ? `/org/${organization.slug}` : '/' },
+                  { label: effectiveOrgName || 'Events', icon: effectiveOrgSlug ? Building2 : Calendar, href: effectiveOrgSlug ? `/org/${effectiveOrgSlug}` : '/' },
                   ...(parentEvent ? [{ label: parentEvent.name, icon: Calendar, href: `/event/${parentEvent.slug}` }] : []),
                 ]}
                 currentPage={event.hero.name}
