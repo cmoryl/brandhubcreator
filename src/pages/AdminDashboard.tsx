@@ -58,6 +58,7 @@ import { ActivityLogsPanel } from '@/components/admin/ActivityLogsPanel';
 import { GlobalLinkAdminSection } from '@/components/admin/globallink';
 import { ResearchBriefingsPanel } from '@/components/admin/ResearchBriefingsPanel';
 import { MulticulturalIntelligencePanel } from '@/components/admin/MulticulturalIntelligencePanel';
+import { DataForceAdminPanel } from '@/components/admin/DataForceAdminPanel';
 import { 
   DashboardStats, 
   ActivityLog, 
@@ -937,6 +938,11 @@ export default function AdminDashboard() {
           {/* Research Briefings Tab */}
           <TabsContent value="research" className="space-y-6">
             <ResearchBriefingsPanel />
+          </TabsContent>
+
+          {/* DataForce Admin Tab */}
+          <TabsContent value="dataforce" className="space-y-6">
+            <DataForceAdminPanel />
           </TabsContent>
         </Tabs>
           </div>
