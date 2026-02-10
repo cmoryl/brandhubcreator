@@ -595,7 +595,7 @@ export const HeroSection = ({
 
         {/* Stats Panel - Top Left - Aligned to page content */}
         {showStats && enhancedMode && (
-          <div className="absolute inset-x-0 top-0 z-20 pointer-events-none">
+          <div className="absolute inset-x-0 top-0 z-30 pointer-events-none">
             <div className="w-full px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
               <div className="max-w-7xl mx-auto">
                 <div className={`hidden sm:flex flex-col gap-2 w-fit transition-all duration-700 pointer-events-auto ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}>
