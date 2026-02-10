@@ -159,7 +159,7 @@ Return your analysis as a JSON object with this structure:
         ? buildMM(`Analyze these brand assets for compliance:\n\n${fullContext}`, complianceImages, 8)
         : fullContext;
 
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      let response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${LOVABLE_API_KEY}`,
@@ -203,6 +203,42 @@ Return your analysis as a JSON object with this structure:
           tool_choice: { type: "function", function: { name: "return_compliance_analysis" } }
         }),
       });
+
+      // If multimodal fails (broken image URLs), retry text-only
+      if (!response.ok && complianceImages.length > 0) {
+        console.warn('[compliance] Multimodal failed, retrying text-only:', response.status);
+        await response.text(); // consume body
+        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-3-flash-preview",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: fullContext }
+            ],
+            tools: [{
+              type: "function",
+              function: {
+                name: "return_compliance_analysis",
+                description: "Return the brand compliance analysis results",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    complianceScore: { type: "number" },
+                    issues: { type: "array", items: { type: "object", properties: { type: { type: "string" }, severity: { type: "string" }, assetName: { type: "string" }, description: { type: "string" }, recommendation: { type: "string" }, confidence: { type: "number" } }, required: ["type", "severity", "assetName", "description", "recommendation", "confidence"] } }
+                  },
+                  required: ["complianceScore", "issues"]
+                }
+              }
+            }],
+            tool_choice: { type: "function", function: { name: "return_compliance_analysis" } }
+          }),
+        });
+      }
 
       if (!response.ok) {
         if (response.status === 429) {

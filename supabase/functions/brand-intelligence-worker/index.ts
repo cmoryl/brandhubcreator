@@ -124,7 +124,7 @@ Analyze provided images and document content for visual consistency, content qua
       : prompt;
 
     // Use vision-capable model when images are available
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    let aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${lovableApiKey}`,
@@ -134,9 +134,28 @@ Analyze provided images and document content for visual consistency, content qua
         model: imageUrls.length > 0 ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash-lite",
         messages: [{ role: "user", content: messageContent }],
         temperature: 0.3,
-        max_tokens: 600,
+        max_tokens: 1000,
       }),
     });
+
+    // If multimodal request fails (e.g. broken image URLs), retry with text-only
+    if (!aiResponse.ok && imageUrls.length > 0) {
+      const errText = await aiResponse.text();
+      console.warn("[worker] Multimodal AI failed, retrying text-only:", aiResponse.status, errText.slice(0, 150));
+      aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${lovableApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.3,
+          max_tokens: 1000,
+        }),
+      });
+    }
 
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
@@ -164,23 +183,29 @@ Analyze provided images and document content for visual consistency, content qua
     // Extract JSON from potential markdown
     let analysis: any;
     try {
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || 
-                        content.match(/\{[\s\S]*\}/);
-      const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]).trim() : content.trim();
-      analysis = JSON.parse(jsonStr);
+      // Try direct parse first
+      analysis = JSON.parse(content.trim());
     } catch {
-      console.error("[worker] JSON extract error:", content.slice(0, 200));
-      // Use minimal fallback
-      analysis = {
-        summary: "Analysis completed",
-        position: "Market participant",
-        audience: "General consumers",
-        advantages: ["Brand recognition"],
-        voice: { tone: "Professional", style: "Clear" },
-        recommendation: "Continue brand development",
-        insight: "Opportunity for growth identified",
-        readiness: 50
-      };
+      try {
+        // Try extracting from markdown code blocks
+        const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || 
+                          content.match(/\{[\s\S]*\}/);
+        const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]).trim() : content.trim();
+        analysis = JSON.parse(jsonStr);
+      } catch {
+        console.error("[worker] JSON extract error:", content.slice(0, 200));
+        // Use minimal fallback
+        analysis = {
+          summary: "Analysis completed",
+          position: "Market participant",
+          audience: "General consumers",
+          advantages: ["Brand recognition"],
+          voice: { tone: "Professional", style: "Clear" },
+          recommendation: "Continue brand development",
+          insight: "Opportunity for growth identified",
+          readiness: 50
+        };
+      }
     }
 
     await supabase

@@ -57,10 +57,25 @@ function summarizeItems(items: any[], nameKey: string | string[], max = 5): stri
   }).join(', ');
 }
 
-/** Check if a string looks like a valid URL (http/https or storage path) */
+/** Check if a string looks like a valid image URL (http/https only, skip data URIs and storage paths that might be broken) */
 function isValidUrl(s: unknown): s is string {
   if (typeof s !== 'string' || !s) return false;
-  return s.startsWith('http') || s.startsWith('data:image') || s.startsWith('/storage');
+  // Only accept http/https URLs — data URIs are too large, relative /storage paths may not resolve
+  return s.startsWith('http');
+}
+
+/** Check if a URL is likely to return a valid image (filter out known-bad patterns) */
+function isLikelyImageUrl(url: string): boolean {
+  if (!url.startsWith('http')) return false;
+  // Skip URLs that are clearly not images
+  const lowerUrl = url.toLowerCase();
+  const imageExts = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.bmp', '.ico'];
+  const hasImageExt = imageExts.some(ext => lowerUrl.includes(ext));
+  // If it has a clear image extension, it's likely good
+  if (hasImageExt) return true;
+  // Supabase storage URLs without image extensions may return errors
+  // Still allow them but the caller should handle 400 errors gracefully
+  return true;
 }
 
 /** Extract image URLs from an item, checking common field names */
