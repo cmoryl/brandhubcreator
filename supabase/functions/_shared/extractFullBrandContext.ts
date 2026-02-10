@@ -654,6 +654,114 @@ export function buildMultimodalContent(
 }
 
 /**
+ * Async function to fetch document-based content (PDFs, PPTXs, etc.)
+ * from the presentation_templates table and guide_data document fields.
+ * Returns enriched text context and additional image URLs for vision analysis.
+ *
+ * @param supabase - Supabase client with appropriate permissions
+ * @param entityId - The entity ID to query documents for
+ * @param entityType - brand | product | event
+ * @param guideData - The guide_data JSONB (to extract document URLs from brochures/case studies)
+ * @param maxSlideText - Max characters of slide text to include (default 2000)
+ */
+export async function fetchDocumentContext(
+  supabase: any,
+  entityId: string,
+  entityType: string,
+  guideData: Record<string, unknown>,
+  maxSlideText: number = 2000,
+): Promise<{ text: string; imageUrls: ImageReference[]; documentCount: number }> {
+  const parts: string[] = [];
+  const docImages: ImageReference[] = [];
+  let documentCount = 0;
+
+  try {
+    // 1. Fetch presentation templates from DB
+    const { data: presentations } = await supabase
+      .from('presentation_templates')
+      .select('id, name, category, file_type, file_url, thumbnail_url, card_image_url, slides, description')
+      .eq('entity_id', entityId)
+      .eq('entity_type', entityType)
+      .limit(10);
+
+    if (presentations && presentations.length > 0) {
+      documentCount += presentations.length;
+      parts.push(`\nDOCUMENT ASSETS (${presentations.length} presentations/documents):`);
+
+      for (const pres of presentations) {
+        const label = `${pres.name} (${pres.file_type || 'unknown'})`;
+        parts.push(`  • ${label}${pres.category ? ` [${pres.category}]` : ''}${pres.description ? ` - ${String(pres.description).slice(0, 80)}` : ''}`);
+
+        // Extract thumbnail for vision analysis
+        const thumbUrl = pres.card_image_url || pres.thumbnail_url;
+        if (isValidUrl(thumbUrl)) {
+          docImages.push({ url: thumbUrl, section: 'presentationTemplates', label: `Presentation: ${pres.name}`, type: 'asset' });
+        }
+
+        // Extract slide text content (already parsed by parse-presentation edge function)
+        if (Array.isArray(pres.slides) && pres.slides.length > 0) {
+          let slideTextTotal = 0;
+          for (const slide of pres.slides) {
+            if (slideTextTotal >= maxSlideText) break;
+            const slideTitle = slide.title || `Slide ${slide.slideNumber || '?'}`;
+            const slideText = slide.textContent || '';
+            if (slideText) {
+              const chunk = `    Slide ${slide.slideNumber}: "${slideTitle}" - ${slideText.slice(0, 200)}`;
+              parts.push(chunk);
+              slideTextTotal += chunk.length;
+            }
+            // Slide thumbnail for vision
+            if (isValidUrl(slide.thumbnailUrl) && docImages.length < 30) {
+              docImages.push({ url: slide.thumbnailUrl, section: 'presentationSlides', label: `${pres.name} - Slide ${slide.slideNumber}`, type: 'image' });
+            }
+          }
+        }
+      }
+    }
+
+    // 2. Extract document/file URLs from guide_data fields (brochures, case studies, templates, assets)
+    const docSections = [
+      { key: 'brochures', label: 'Brochure' },
+      { key: 'caseStudies', label: 'Case Study' },
+      { key: 'templates', label: 'Template' },
+      { key: 'assets', label: 'Asset' },
+    ];
+
+    for (const { key, label } of docSections) {
+      const items = Array.isArray(guideData[key]) ? guideData[key] as any[] : [];
+      const docItems = items.filter((item: any) => {
+        const url = item.fileUrl || item.file_url || item.url || '';
+        return typeof url === 'string' && (url.endsWith('.pdf') || url.endsWith('.pptx') || url.endsWith('.docx') || url.endsWith('.xlsx'));
+      });
+
+      if (docItems.length > 0) {
+        documentCount += docItems.length;
+        for (const item of docItems.slice(0, 5)) {
+          const name = item.name || item.title || label;
+          const url = item.fileUrl || item.file_url || item.url || '';
+          const ext = url.split('.').pop()?.toUpperCase() || '';
+          parts.push(`  • ${label}: "${name}" (${ext})${item.description ? ` - ${String(item.description).slice(0, 60)}` : ''}`);
+          // Include thumbnail/preview image if available
+          const previewUrl = item.thumbnailUrl || item.thumbnail_url || item.cardImageUrl || item.card_image_url || item.coverImage;
+          if (isValidUrl(previewUrl)) {
+            docImages.push({ url: previewUrl, section: key, label: `${label}: ${name}`, type: 'asset' });
+          }
+        }
+      }
+    }
+
+  } catch (err) {
+    console.error('[extractFullBrandContext] Document fetch error:', err);
+  }
+
+  return {
+    text: parts.join('\n'),
+    imageUrls: docImages,
+    documentCount,
+  };
+}
+
+/**
  * Build a compatibility summary showing which sections have data.
  * Useful for showing integration coverage in the UI.
  */

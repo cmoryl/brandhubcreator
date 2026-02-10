@@ -87,9 +87,10 @@ serve(async (req) => {
       .eq('id', jobId);
 
     // Extract full brand context from all sections including image URLs
-    const { extractFullBrandContext, buildMultimodalContent } = await import('../_shared/extractFullBrandContext.ts');
+    const { extractFullBrandContext, buildMultimodalContent, fetchDocumentContext } = await import('../_shared/extractFullBrandContext.ts');
+    const guideData = (entity.guide_data || {}) as Record<string, unknown>;
     const { text: brandContext, sectionsWithData, imageUrls } = extractFullBrandContext(
-      (entity.guide_data || {}) as Record<string, unknown>,
+      guideData,
       entity.name,
       job.entity_type,
       2500,
@@ -97,14 +98,25 @@ serve(async (req) => {
       10,
     );
 
-    const prompt = `Analyze "${entity.name}" brand using ALL the following data including visual assets. Return compact JSON:
+    // Fetch document-based content (PDFs, PPTXs, slide text, etc.)
+    const { text: docContext, imageUrls: docImages, documentCount } = await fetchDocumentContext(
+      supabase, job.entity_id, job.entity_type, guideData, 1500
+    );
+    // Merge document images into main image set
+    for (const di of docImages.slice(0, 5)) {
+      if (imageUrls.length < 15) imageUrls.push(di);
+    }
+
+    const prompt = `Analyze "${entity.name}" brand using ALL the following data including visual assets and documents. Return compact JSON:
 ${brandContext}
+${docContext ? `\nDOCUMENT CONTENT:\n${docContext}` : ''}
 
 Sections with data: ${sectionsWithData.join(', ')}
+Documents analyzed: ${documentCount} files
 Visual assets included: ${imageUrls.length} images from ${[...new Set(imageUrls.map(i => i.section))].join(', ')}
 
-Analyze provided images for visual consistency, quality, and brand alignment. Return ONLY valid JSON:
-{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"visual_analysis":{"consistency":"1 sentence","quality":"1 sentence","alignment":"1 sentence"},"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]}`;
+Analyze provided images and document content for visual consistency, content quality, messaging alignment, and brand coherence. Return ONLY valid JSON:
+{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"visual_analysis":{"consistency":"1 sentence","quality":"1 sentence","alignment":"1 sentence"},"document_analysis":{"content_quality":"1 sentence","messaging_consistency":"1 sentence","asset_coverage":"1 sentence"},"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]}`;
 
     // Build multimodal content with images for vision analysis
     const messageContent = imageUrls.length > 0

@@ -217,6 +217,9 @@ async function buildBrandContext(brands: unknown[], products: unknown[]): Promis
     const { text, sectionsWithData } = extractFullBrandContext(guideData, brand.name, 'brand', 1500);
     sections.push(text);
     sections.push(`- Data Coverage: ${sectionsWithData.length} sections populated`);
+
+    // Note: Document content from presentation_templates and PDFs is included
+    // via the guide_data brochures/templates/assets extraction in extractFullBrandContext
     sections.push('');
   }
 
