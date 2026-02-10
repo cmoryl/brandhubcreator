@@ -705,10 +705,11 @@ export const BrandIntelligencePanel = ({
                 <div className="flex items-center gap-2">
                   <Brain className="h-4 w-4 text-purple-500" />
                   <span className="text-sm font-medium">AI Intelligence Engine</span>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-violet-500/10 text-violet-500 border-violet-500/20">Vision</Badge>
                 </div>
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-xs text-muted-foreground">Reads all sections: hero, identity, values, colors, typography, logos, services, imagery, patterns, gradients, social, templates, awards, statistics, and more.</p>
+              <p className="text-xs text-muted-foreground">Reads all 50+ sections including visual analysis of logos, imagery, patterns, icons, banners, and custom shapes via multimodal AI (Gemini Vision).</p>
             </div>
 
             {/* Brand Research */}
@@ -717,10 +718,11 @@ export const BrandIntelligencePanel = ({
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-amber-500" />
                   <span className="text-sm font-medium">Research Briefings</span>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-violet-500/10 text-violet-500 border-violet-500/20">Vision</Badge>
                 </div>
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-xs text-muted-foreground">Full context from all brand sections feeds into daily/weekly/deep-dive market research, competitive positioning, and strategic recommendations.</p>
+              <p className="text-xs text-muted-foreground">Full context + visual asset interpretation feeds into research. AI analyzes actual brand imagery, logos, and patterns for visual identity assessment.</p>
             </div>
 
             {/* Market Analysis */}
@@ -729,10 +731,11 @@ export const BrandIntelligencePanel = ({
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-green-500" />
                   <span className="text-sm font-medium">Market Analysis</span>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-violet-500/10 text-violet-500 border-violet-500/20">Vision</Badge>
                 </div>
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-xs text-muted-foreground">Comprehensive brand data powers market position analysis, growth recommendations, and trend tracking with full section coverage.</p>
+              <p className="text-xs text-muted-foreground">Market position analysis enriched with visual asset evaluation — logo quality, imagery consistency, and design sophistication scoring.</p>
             </div>
 
             {/* Competitive Analysis */}
@@ -741,10 +744,11 @@ export const BrandIntelligencePanel = ({
                 <div className="flex items-center gap-2">
                   <Target className="h-4 w-4 text-red-500" />
                   <span className="text-sm font-medium">Competitive Analysis</span>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-violet-500/10 text-violet-500 border-violet-500/20">Vision</Badge>
                 </div>
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-xs text-muted-foreground">Visual identity audit, design patterns, and brand positioning analysis powered by complete guide data including colors, typography, logos, and imagery.</p>
+              <p className="text-xs text-muted-foreground">Visual identity audit powered by actual logo, icon, pattern, and imagery analysis. Compares design sophistication against competitors with real asset evaluation.</p>
             </div>
 
             {/* GlobalLink */}
@@ -765,10 +769,11 @@ export const BrandIntelligencePanel = ({
                 <div className="flex items-center gap-2">
                   <Activity className="h-4 w-4 text-orange-500" />
                   <span className="text-sm font-medium">DataForce Compliance</span>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-violet-500/10 text-violet-500 border-violet-500/20">Vision</Badge>
                 </div>
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-xs text-muted-foreground">Full brand compliance scanning across all visual assets: colors, typography, logos, imagery, patterns, gradients, templates, and misuse guidelines.</p>
+              <p className="text-xs text-muted-foreground">Visual compliance scanning with real image analysis — verifies logo usage, color accuracy, imagery quality, pattern consistency, and misuse detection on actual assets.</p>
             </div>
 
             {/* DataForce Assistant */}
@@ -780,7 +785,7 @@ export const BrandIntelligencePanel = ({
                 </div>
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-xs text-muted-foreground">AI chatbot has full brand context including identity, voice, colors, typography, services, social profiles, awards, and statistics for accurate Q&A.</p>
+              <p className="text-xs text-muted-foreground">AI chatbot with full brand context across all 50+ sections including identity, voice, colors, typography, services, social, awards, icons, and statistics.</p>
             </div>
 
             {/* Custom Prompts */}
@@ -797,7 +802,7 @@ export const BrandIntelligencePanel = ({
 
             <div className="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
               <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                ✓ All integrations now read from every populated brand section via a shared context extraction engine — ensuring 100% data compatibility across AI Intelligence, Research, Market Analysis, Competitive Analysis, GlobalLink, and DataForce.
+                ✓ All integrations read from every populated brand section via a shared multimodal context engine. Vision-enabled modules (marked with <span className="text-violet-500">Vision</span>) analyze actual brand images, logos, patterns, and visual assets — not just metadata.
               </p>
             </div>
           </CollapsibleContent>

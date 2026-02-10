@@ -43,11 +43,11 @@ interface AnalysisResult {
   generatedAt: string;
 }
 
-import { extractFullBrandContext } from '../_shared/extractFullBrandContext.ts';
+import { extractFullBrandContext, buildMultimodalContent, type ImageReference } from '../_shared/extractFullBrandContext.ts';
 
-function extractRelevantBrandData(guideData: Record<string, unknown>, entityName: string = '', entityType: string = 'brand'): string {
-  const { text } = extractFullBrandContext(guideData, entityName, entityType, 3000);
-  return text || 'No detailed data available';
+function extractRelevantBrandData(guideData: Record<string, unknown>, entityName: string = '', entityType: string = 'brand'): { text: string; imageUrls: ImageReference[] } {
+  const { text, imageUrls } = extractFullBrandContext(guideData, entityName, entityType, 3000, true, 10);
+  return { text: text || 'No detailed data available', imageUrls };
 }
 
 Deno.serve(async (req) => {
@@ -91,6 +91,7 @@ Deno.serve(async (req) => {
 
     let contextData = '';
     let entityName = '';
+    let marketImageUrls: ImageReference[] = [];
 
     if (type === 'platform' && isAdmin) {
       // Fetch platform-wide stats for admin - use head: true to only get counts
@@ -133,12 +134,14 @@ ${recentBrands?.map(b => `- ${b.name} (${b.is_public ? 'Public' : 'Private'})`).
 
       entityName = brand.name;
       const guideData = brand.guide_data as Record<string, unknown>;
+      const brandData = extractRelevantBrandData(guideData, brand.name, 'brand');
+      marketImageUrls = brandData.imageUrls;
       contextData = `Brand: ${brand.name}
 Status: ${brand.is_public ? 'Public' : 'Private'}
 Created: ${brand.created_at}
 
 Brand Details:
-${extractRelevantBrandData(guideData, brand.name, 'brand')}`;
+${brandData.text}`;
     } else if (type === 'product' && entityId) {
       const { data: product } = await supabaseClient
         .from('products')
@@ -155,12 +158,14 @@ ${extractRelevantBrandData(guideData, brand.name, 'brand')}`;
 
       entityName = product.name;
       const guideData = product.guide_data as Record<string, unknown>;
+      const productData = extractRelevantBrandData(guideData, product.name, 'product');
+      marketImageUrls = productData.imageUrls;
       contextData = `Product: ${product.name}
 Status: ${product.is_public ? 'Public' : 'Private'}
 Created: ${product.created_at}
 
 Product Details:
-${extractRelevantBrandData(guideData, product.name, 'product')}`;
+${productData.text}`;
     } else if (type === 'organization' && entityId) {
       const { data: org } = await supabaseClient
         .from('organizations')
@@ -251,6 +256,11 @@ Provide insights that are specific to this brand's positioning, values, and mark
 
     console.log(`Running ${analysisType} analysis for ${entityName}`);
 
+    // Build multimodal content if images available
+    const userMessageContent = marketImageUrls.length > 0
+      ? buildMultimodalContent(userPrompt, marketImageUrls, 6)
+      : userPrompt;
+
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -258,10 +268,10 @@ Provide insights that are specific to this brand's positioning, values, and mark
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: marketImageUrls.length > 0 ? 'google/gemini-2.5-flash' : 'google/gemini-3-flash-preview',
         messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
+          { role: 'system', content: systemPrompt + (marketImageUrls.length > 0 ? '\n\nYou will also receive brand visual assets (logos, imagery, patterns). Analyze them to strengthen your market positioning assessment and visual identity evaluation.' : '') },
+          { role: 'user', content: userMessageContent }
         ],
         temperature: 0.4,
         max_tokens: 2000,
