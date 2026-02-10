@@ -659,9 +659,9 @@ const BrandEditor = () => {
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-foreground mb-2">Brand not found</h1>
           <p className="text-muted-foreground mb-4">The brand you're looking for doesn't exist.</p>
-          <Button onClick={() => navigate('/')}>
+          <Button onClick={() => navigate(organization ? `/org/${organization.slug}` : '/')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Brands
+            {organization ? `Back to ${organization.name}` : 'Back to Brands'}
           </Button>
         </div>
       </div>
@@ -818,7 +818,10 @@ const BrandEditor = () => {
                   </TooltipTrigger>
                   <TooltipContent>Back to Dashboard</TooltipContent>
                 </Tooltip>
-                <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => navigate(organization ? `/org/${organization.slug}` : '/')}
+                  className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                >
                   <img 
                     src={theme === 'dark' ? tpLogoWhite : tpLogoColor} 
                     alt="BrandHUB" 
@@ -827,7 +830,7 @@ const BrandEditor = () => {
                   <span className="font-semibold text-foreground hidden sm:inline">
                     Brand<span className="text-accent">HUB</span>
                   </span>
-                </div>
+                </button>
                 <div className="h-6 w-px bg-border mx-2 hidden sm:block" />
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-foreground truncate max-w-[150px] sm:max-w-[200px]">
