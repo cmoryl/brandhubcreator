@@ -1,7 +1,7 @@
 /**
  * useOrgSlug Hook
  * Resolves an organization slug + name from an organizationId.
- * Works for public visitors by using a database function that bypasses RLS.
+ * Uses a SECURITY DEFINER function to work for both authenticated and public visitors.
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -26,16 +26,24 @@ export const useOrgSlug = (organizationId: string | null | undefined): OrgSlugRe
       setIsLoading(true);
       fetchedIdRef.current = organizationId;
       try {
-        // Query organizations table - RLS allows if org has public entities
+        // Use the SECURITY DEFINER function that allows public access
+        // for orgs with public entities
         const { data, error } = await supabase
-          .from('organizations')
-          .select('slug, name')
-          .eq('id', organizationId)
-          .maybeSingle();
+          .rpc('get_org_slug_by_id', { p_org_id: organizationId } as any);
 
-        if (!error && data) {
-          setOrgSlug(data.slug);
-          setOrgName(data.name);
+        if (error) {
+          console.error('[useOrgSlug] RPC error:', error);
+          return;
+        }
+
+        // RPC returns TABLE, so data is an array
+        if (data && Array.isArray(data) && data.length > 0) {
+          setOrgSlug(data[0].slug);
+          setOrgName(data[0].name);
+        } else if (data && !Array.isArray(data)) {
+          // In case it returns a single object
+          setOrgSlug((data as any).slug);
+          setOrgName((data as any).name);
         }
       } catch (err) {
         console.error('[useOrgSlug] Error fetching org slug:', err);

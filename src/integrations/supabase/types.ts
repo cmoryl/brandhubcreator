@@ -3040,6 +3040,13 @@ export type Database = {
           slug: string
         }[]
       }
+      get_org_slug_by_id: {
+        Args: { p_org_id: string }
+        Returns: {
+          name: string
+          slug: string
+        }[]
+      }
       get_organization_members_safe: {
         Args: { p_org_id: string }
         Returns: {
