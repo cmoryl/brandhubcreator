@@ -47,6 +47,7 @@ import { CompressedBackupManager } from '@/components/admin/CompressedBackupMana
 import { UniverseBackupManager } from '@/components/admin/UniverseBackupManager';
 import { ProductSuiteBackupManager } from '@/components/admin/ProductSuiteBackupManager';
 import { AdminImageLibrary } from '@/components/admin/AdminImageLibrary';
+import { GlobalLogoHub } from '@/components/admin/GlobalLogoHub';
 import { AdminSidebar, AdminMobileNav } from '@/components/admin/AdminSidebar';
 import { LeadSubmissionsPanel } from '@/components/admin/LeadSubmissionsPanel';
 import { CompanyLocationsManager } from '@/components/admin/CompanyLocationsManager';
@@ -868,6 +869,11 @@ export default function AdminDashboard() {
           {/* Image Library Tab */}
           <TabsContent value="image-library" className="space-y-6">
             <AdminImageLibrary />
+          </TabsContent>
+
+          {/* Logo Hub Tab */}
+          <TabsContent value="logo-hub" className="space-y-6">
+            <GlobalLogoHub />
           </TabsContent>
 
           {/* Backups Tab */}

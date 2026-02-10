@@ -1,5 +1,5 @@
 import { useState, useRef, forwardRef } from 'react';
-import { Download, Upload, Plus, Trash2, ExternalLink, Pencil, Package, FolderArchive } from 'lucide-react';
+import { Download, Upload, Plus, Trash2, ExternalLink, Pencil, Package, FolderArchive, Globe2 } from 'lucide-react';
 import { ClientLogo, ClientLogoFile, ClientLogoVariant, ClientLogoFormat } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SectionHeader } from './SectionHeader';
+import { GlobalLogoPickerDialog } from './GlobalLogoPickerDialog';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import JSZip from 'jszip';
@@ -441,13 +442,20 @@ export const ClientLogosSection = forwardRef<HTMLElement, ClientLogosSectionProp
             </Button>
           )}
           {canEdit && (
-            <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Client Logo
-                </Button>
-              </DialogTrigger>
+            <>
+              <GlobalLogoPickerDialog
+                existingLogoNames={clientLogos.map(l => l.name)}
+                onImport={(imported) => {
+                  onClientLogosChange?.([...clientLogos, ...imported]);
+                }}
+              />
+              <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Client Logo
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                 <DialogTitle>Add Client Logo</DialogTitle>
@@ -516,6 +524,7 @@ export const ClientLogosSection = forwardRef<HTMLElement, ClientLogosSectionProp
               </div>
             </DialogContent>
           </Dialog>
+            </>
           )}
         </div>
       </div>
