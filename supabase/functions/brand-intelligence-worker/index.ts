@@ -86,24 +86,32 @@ serve(async (req) => {
       .update({ progress: 30 })
       .eq('id', jobId);
 
-    // Extract full brand context from all sections
-    const { extractFullBrandContext } = await import('../_shared/extractFullBrandContext.ts');
-    const { text: brandContext, sectionsWithData } = extractFullBrandContext(
+    // Extract full brand context from all sections including image URLs
+    const { extractFullBrandContext, buildMultimodalContent } = await import('../_shared/extractFullBrandContext.ts');
+    const { text: brandContext, sectionsWithData, imageUrls } = extractFullBrandContext(
       (entity.guide_data || {}) as Record<string, unknown>,
       entity.name,
       job.entity_type,
       2500,
+      true,
+      10,
     );
 
-    const prompt = `Analyze "${entity.name}" brand using ALL the following data. Return compact JSON:
+    const prompt = `Analyze "${entity.name}" brand using ALL the following data including visual assets. Return compact JSON:
 ${brandContext}
 
 Sections with data: ${sectionsWithData.join(', ')}
+Visual assets included: ${imageUrls.length} images from ${[...new Set(imageUrls.map(i => i.section))].join(', ')}
 
-Return ONLY valid JSON:
-{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]}`;
+Analyze provided images for visual consistency, quality, and brand alignment. Return ONLY valid JSON:
+{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"visual_analysis":{"consistency":"1 sentence","quality":"1 sentence","alignment":"1 sentence"},"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]}`;
 
-    // Use streaming to minimize memory - read chunks instead of full response
+    // Build multimodal content with images for vision analysis
+    const messageContent = imageUrls.length > 0
+      ? buildMultimodalContent(prompt, imageUrls, 6)
+      : prompt;
+
+    // Use vision-capable model when images are available
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -111,10 +119,10 @@ Return ONLY valid JSON:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [{ role: "user", content: prompt }],
+        model: imageUrls.length > 0 ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash-lite",
+        messages: [{ role: "user", content: messageContent }],
         temperature: 0.3,
-        max_tokens: 500,
+        max_tokens: 600,
       }),
     });
 

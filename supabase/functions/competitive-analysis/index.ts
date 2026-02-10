@@ -6,11 +6,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-import { extractFullBrandContext } from '../_shared/extractFullBrandContext.ts';
+import { extractFullBrandContext, buildMultimodalContent, type ImageReference } from '../_shared/extractFullBrandContext.ts';
 
-function extractEntityContext(guideData: Record<string, unknown>, name: string): string {
-  const { text } = extractFullBrandContext(guideData, name, 'brand', 3000);
-  return text;
+function extractEntityContext(guideData: Record<string, unknown>, name: string): { text: string; imageUrls: ImageReference[] } {
+  const { text, imageUrls } = extractFullBrandContext(guideData, name, 'brand', 3000, true, 10);
+  return { text, imageUrls };
 }
 
 function buildCompetitiveAnalysisPrompt(
@@ -289,9 +289,9 @@ serve(async (req) => {
       );
     }
 
-    // Extract entity context
+    // Extract entity context with images
     const guideData = (entityData.guide_data || {}) as EntityGuideData;
-    const entityContext = extractEntityContext(guideData, entityData.name);
+    const { text: entityContext, imageUrls: compEntityImages } = extractEntityContext(guideData, entityData.name);
     const regionalContext = region || country ? { region, country } : undefined;
     const prompt = buildCompetitiveAnalysisPrompt(entityData.name, entityContext, competitors, regionalContext);
 
@@ -299,7 +299,12 @@ serve(async (req) => {
 
     console.log("[competitive-analysis] Calling AI Gateway for entity:", entityData.name);
 
-    // Call Lovable AI Gateway with tool calling for structured output
+    // Build multimodal content with brand images for visual competitive analysis
+    const competitiveUserContent = compEntityImages.length > 0
+      ? buildMultimodalContent(prompt, compEntityImages, 8)
+      : prompt;
+
+    // Call Lovable AI Gateway with multimodal support
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -311,11 +316,11 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "You are an expert brand strategist and competitive analyst. Provide detailed, actionable insights based on the brand data provided. Always respond with valid JSON matching the requested schema exactly."
+            content: "You are an expert brand strategist and competitive analyst. Provide detailed, actionable insights based on the brand data provided." + (compEntityImages.length > 0 ? " You will also receive brand visual assets. Analyze logos, imagery, patterns, and design elements to strengthen your visual identity audit and competitive positioning analysis." : "") + " Always respond with valid JSON matching the requested schema exactly."
           },
           {
             role: "user",
-            content: prompt
+            content: competitiveUserContent
           }
         ],
         max_tokens: 8000,

@@ -105,9 +105,9 @@ serve(async (req) => {
 
     const isDemo = !config || config.api_mode === 'demo';
 
-    // Extract full brand context for comprehensive compliance analysis
-    const { extractFullBrandContext: extractCtx } = await import('../_shared/extractFullBrandContext.ts');
-    const { text: fullContext } = extractCtx(guide_data, entity_name, entity_type, 3000);
+    // Extract full brand context for comprehensive compliance analysis (with images)
+    const { extractFullBrandContext: extractCtx, buildMultimodalContent: buildMM } = await import('../_shared/extractFullBrandContext.ts');
+    const { text: fullContext, imageUrls: complianceImages } = extractCtx(guide_data, entity_name, entity_type, 3000, true, 15);
     
     // Also keep individual sections for demo mode and asset counting
     const colors = guide_data.colors || {};
@@ -147,6 +147,11 @@ Return your analysis as a JSON object with this structure:
   ]
 }`;
 
+      // Build multimodal content for visual compliance analysis
+      const userContent = complianceImages.length > 0
+        ? buildMM(`Analyze these brand assets for compliance:\n\n${fullContext}`, complianceImages, 8)
+        : fullContext;
+
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -154,10 +159,10 @@ Return your analysis as a JSON object with this structure:
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: complianceImages.length > 0 ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview",
           messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: fullContext }
+            { role: "system", content: systemPrompt + '\n\nIMPORTANT: You will receive actual brand images. Analyze them for visual consistency, proper logo usage, color accuracy, typography compliance, and imagery quality. Report specific issues found in the actual visuals.' },
+            { role: "user", content: userContent }
           ],
           tools: [{
             type: "function",

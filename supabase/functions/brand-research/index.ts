@@ -12,11 +12,11 @@ interface ResearchRequest {
   focusAreas?: string[];
 }
 
-import { extractFullBrandContext } from '../_shared/extractFullBrandContext.ts';
+import { extractFullBrandContext, buildMultimodalContent, type ImageReference } from '../_shared/extractFullBrandContext.ts';
 
-function extractBrandContext(guideData: Record<string, unknown>, entityName: string, entityType: string): string {
-  const { text } = extractFullBrandContext(guideData, entityName, entityType, 3000);
-  return text || 'No brand data';
+function extractBrandContext(guideData: Record<string, unknown>, entityName: string, entityType: string): { text: string; imageUrls: ImageReference[] } {
+  const { text, imageUrls } = extractFullBrandContext(guideData, entityName, entityType, 3000, true, 10);
+  return { text: text || 'No brand data', imageUrls };
 }
 
 /** Background worker: runs AI call + saves results */
@@ -27,6 +27,7 @@ async function processResearch(
   entityName: string,
   organizationId: string | null,
   brandContext: string,
+  brandImageUrls: ImageReference[],
   briefingType: string,
   focusAreas: string[],
   intelligenceSummary: string,
@@ -75,6 +76,11 @@ Return ONLY valid JSON (no markdown):
 
     await adminSupabase.from('brand_intelligence_jobs').update({ progress: 25 }).eq('id', jobId);
 
+    // Build multimodal content if images available
+    const userContent = brandImageUrls.length > 0
+      ? buildMultimodalContent(prompt, brandImageUrls, 5)
+      : prompt;
+
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -82,10 +88,10 @@ Return ONLY valid JSON (no markdown):
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: brandImageUrls.length > 0 ? 'google/gemini-2.5-flash' : 'google/gemini-2.5-flash-lite',
         messages: [
-          { role: 'system', content: 'You are a brand strategy research analyst. Provide actionable insights with emphasis on multicultural opportunities and GlobalLink product recommendations. Return ONLY valid JSON.' },
-          { role: 'user', content: prompt }
+          { role: 'system', content: 'You are a brand strategy research analyst. Analyze both text data AND visual assets provided. Provide actionable insights with emphasis on multicultural opportunities, visual identity assessment, and GlobalLink product recommendations. Return ONLY valid JSON.' },
+          { role: 'user', content: userContent }
         ],
         temperature: 0.4,
         max_tokens: 3000,
@@ -253,7 +259,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const brandContext = extractBrandContext(entityData.guide_data as Record<string, unknown>, entityData.name, entityType);
+    const { text: brandContext, imageUrls: brandImageUrls } = extractBrandContext(entityData.guide_data as Record<string, unknown>, entityData.name, entityType);
 
     // Fetch minimal intelligence summary
     let intelligenceSummary = '';
@@ -298,6 +304,7 @@ Deno.serve(async (req) => {
         entityData.name,
         entityData.organization_id || null,
         brandContext,
+        brandImageUrls,
         briefingType,
         focusAreas,
         intelligenceSummary,
