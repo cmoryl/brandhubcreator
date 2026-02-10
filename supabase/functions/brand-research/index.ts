@@ -81,7 +81,7 @@ Return ONLY valid JSON (no markdown):
       ? buildMultimodalContent(prompt, brandImageUrls, 5)
       : prompt;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    let response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
@@ -94,9 +94,31 @@ Return ONLY valid JSON (no markdown):
           { role: 'user', content: userContent }
         ],
         temperature: 0.4,
-        max_tokens: 3000,
+          max_tokens: 4500,
       }),
     });
+
+    // If multimodal fails (broken image URLs), retry text-only
+    if (!response.ok && brandImageUrls.length > 0) {
+      console.warn('[brand-research] Multimodal failed, retrying text-only:', response.status);
+      await response.text(); // consume body
+      response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash-lite',
+          messages: [
+            { role: 'system', content: 'You are a brand strategy research analyst. Provide actionable insights with emphasis on multicultural opportunities and GlobalLink product recommendations. Return ONLY valid JSON.' },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.4,
+          max_tokens: 4500,
+        }),
+      });
+    }
 
     if (!response.ok) {
       throw new Error(`AI Gateway error: ${response.status}`);
@@ -111,11 +133,20 @@ Return ONLY valid JSON (no markdown):
     // Parse
     let briefing: Record<string, unknown>;
     try {
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-      briefing = JSON.parse(jsonMatch ? jsonMatch[1].trim() : content.trim());
+      // Try direct parse first
+      briefing = JSON.parse(content.trim());
     } catch {
-      console.error('[brand-research] Parse failed:', content.substring(0, 300));
-      throw new Error('Failed to parse AI response');
+      try {
+        // Try extracting from markdown code blocks (closed or unclosed)
+        const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) ||
+                          content.match(/```(?:json)?\s*([\s\S]*)/) ||
+                          content.match(/\{[\s\S]*\}/);
+        const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]).trim() : content.trim();
+        briefing = JSON.parse(jsonStr);
+      } catch {
+        console.error('[brand-research] Parse failed:', content.substring(0, 300));
+        throw new Error('Failed to parse AI response');
+      }
     }
 
     // Save briefing

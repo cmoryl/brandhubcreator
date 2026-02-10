@@ -271,7 +271,7 @@ Provide insights that are specific to this brand's positioning, values, and mark
       ? buildMultimodalContent(userPrompt, marketImageUrls, 6)
       : userPrompt;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    let response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
@@ -287,6 +287,28 @@ Provide insights that are specific to this brand's positioning, values, and mark
         max_tokens: 2000,
       }),
     });
+
+    // If multimodal fails (broken image URLs), retry text-only
+    if (!response.ok && marketImageUrls.length > 0 && response.status !== 429 && response.status !== 402) {
+      console.warn('[market-analysis] Multimodal failed, retrying text-only:', response.status);
+      await response.text(); // consume body
+      response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-3-flash-preview',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: 0.4,
+          max_tokens: 2000,
+        }),
+      });
+    }
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -313,18 +335,23 @@ Provide insights that are specific to this brand's positioning, values, and mark
 
     let analysisResult: AnalysisResult;
     try {
-      // Try to extract JSON from markdown code blocks or raw JSON
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-      const jsonStr = jsonMatch ? jsonMatch[1].trim() : content.trim();
-      analysisResult = JSON.parse(jsonStr);
-      analysisResult.generatedAt = new Date().toISOString();
+      analysisResult = JSON.parse(content.trim());
     } catch {
-      console.error('Failed to parse AI response:', content.substring(0, 500));
-      return new Response(
-        JSON.stringify({ error: 'Failed to parse analysis results' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      try {
+        const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) ||
+                          content.match(/```(?:json)?\s*([\s\S]*)/) ||
+                          content.match(/\{[\s\S]*\}/);
+        const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]).trim() : content.trim();
+        analysisResult = JSON.parse(jsonStr);
+      } catch {
+        console.error('Failed to parse AI response:', content.substring(0, 500));
+        return new Response(
+          JSON.stringify({ error: 'Failed to parse analysis results' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
+    analysisResult.generatedAt = new Date().toISOString();
 
     console.log(`Analysis complete for ${entityName}. Score: ${analysisResult.score}`);
 
