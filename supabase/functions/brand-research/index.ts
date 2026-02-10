@@ -12,118 +12,203 @@ interface ResearchRequest {
   focusAreas?: string[];
 }
 
-interface BriefingResult {
-  title: string;
-  summary: string;
-  marketIntelligence: {
-    industryTrends: string[];
-    marketShifts: string[];
-    emergingOpportunities: string[];
-  };
-  competitiveInsights: {
-    positioningGaps: string[];
-    differentiationOpportunities: string[];
-    threatAssessment: string[];
-  };
-  trendAnalysis: {
-    risingTrends: string[];
-    decliningTrends: string[];
-    futureProjections: string[];
-  };
-  sentimentSignals: {
-    positiveIndicators: string[];
-    concernAreas: string[];
-    neutralObservations: string[];
-  };
-  // NEW: Multicultural Marketing Intelligence
-  multiculturalInsights: {
-    expansionOpportunities: {
-      market: string;
-      readiness: 'high' | 'medium' | 'low';
-      culturalConsiderations: string[];
-      priorityAdaptations: string[];
-    }[];
-    culturalGaps: string[];
-    localizationRecommendations: string[];
-    colorImageryNotes: string[];
-  };
-  // NEW: GlobalLink Suite Recommendations
-  globallinkRecommendations: {
-    product: 'Translation' | 'AI' | 'Connect' | 'Fluent';
-    priority: 'high' | 'medium' | 'low';
-    useCase: string;
-    expectedBenefit: string;
-  }[];
-  strategicRecommendations: {
-    priority: 'high' | 'medium' | 'low';
-    action: string;
-    rationale: string;
-    timeframe: string;
-  }[];
-  growthOpportunities: {
-    opportunity: string;
-    potentialImpact: string;
-    requiredInvestment: string;
-  }[];
-  riskAlerts: {
-    risk: string;
-    severity: 'critical' | 'moderate' | 'low';
-    mitigation: string;
-  }[];
-  priorityActions: string[];
-  suggestedUpdates: {
-    section: string;
-    currentState: string;
-    suggestedChange: string;
-    reason: string;
-  }[];
-  confidenceScore: number;
-  urgencyLevel: 'low' | 'normal' | 'high' | 'critical';
-}
-
 function extractBrandContext(guideData: Record<string, unknown>): string {
   const hero = guideData?.hero as Record<string, string> | undefined;
   const identity = guideData?.identity as Record<string, unknown> | undefined;
-  const values = guideData?.values as Array<{ text: string; description: string }> | undefined;
-  const colors = guideData?.colors as Array<{ name: string; hex: string }> | undefined;
-  const services = guideData?.services as Array<{ name: string; description: string }> | undefined;
-  const tagline = guideData?.tagline as Record<string, unknown> | undefined;
-  const voice = guideData?.voice as Record<string, unknown> | undefined;
-  const social = guideData?.social as Array<{ platform: string; handle: string }> | undefined;
-  
+  const values = guideData?.values as Array<{ text: string }> | undefined;
+  const services = guideData?.services as Array<{ name: string }> | undefined;
+
   const parts: string[] = [];
-  
-  if (hero?.name) parts.push(`Brand Name: ${hero.name}`);
+  if (hero?.name) parts.push(`Brand: ${hero.name}`);
   if (hero?.tagline) parts.push(`Tagline: ${hero.tagline}`);
-  if (tagline?.primary) parts.push(`Primary Tagline: ${tagline.primary}`);
   if (identity?.missionStatement) parts.push(`Mission: ${identity.missionStatement}`);
-  if (identity?.visionStatement) parts.push(`Vision: ${identity.visionStatement}`);
-  if (identity?.archetype) parts.push(`Brand Archetype: ${identity.archetype}`);
-  if (identity?.toneOfVoice) parts.push(`Tone: ${(identity.toneOfVoice as string[])?.join(', ')}`);
   if (identity?.industry) parts.push(`Industry: ${identity.industry}`);
-  
-  if (values?.length) {
-    parts.push(`Core Values:\n${values.slice(0, 5).map(v => `  - ${v.text}: ${v.description || ''}`).join('\n')}`);
+  if (identity?.archetype) parts.push(`Archetype: ${identity.archetype}`);
+  if (values?.length) parts.push(`Values: ${values.slice(0, 4).map(v => v.text).join(', ')}`);
+  if (services?.length) parts.push(`Services: ${services.slice(0, 4).map(s => s.name).join(', ')}`);
+  return parts.join('\n') || 'No brand data';
+}
+
+/** Background worker: runs AI call + saves results */
+async function processResearch(
+  jobId: string,
+  entityId: string,
+  entityType: string,
+  entityName: string,
+  organizationId: string | null,
+  brandContext: string,
+  briefingType: string,
+  focusAreas: string[],
+  intelligenceSummary: string,
+  userId: string,
+) {
+  const adminSupabase = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  );
+
+  try {
+    await adminSupabase.from('brand_intelligence_jobs').update({
+      status: 'processing',
+      started_at: new Date().toISOString(),
+      progress: 10,
+    }).eq('id', jobId);
+
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+
+    const focusText = focusAreas.length > 0 ? `\nFocus on: ${focusAreas.join(', ')}` : '';
+
+    const prompt = `Generate a ${briefingType} research briefing for "${entityName}".
+
+${brandContext}
+${intelligenceSummary}${focusText}
+
+Return ONLY valid JSON (no markdown):
+{
+  "title": "string",
+  "summary": "2 sentence executive summary",
+  "marketIntelligence": {"industryTrends":["..."],"marketShifts":["..."],"emergingOpportunities":["..."]},
+  "competitiveInsights": {"positioningGaps":["..."],"differentiationOpportunities":["..."],"threatAssessment":["..."]},
+  "trendAnalysis": {"risingTrends":["..."],"decliningTrends":["..."],"futureProjections":["..."]},
+  "sentimentSignals": {"positiveIndicators":["..."],"concernAreas":["..."],"neutralObservations":["..."]},
+  "multiculturalInsights": {"expansionOpportunities":[{"market":"...","readiness":"high|medium|low","culturalConsiderations":["..."],"priorityAdaptations":["..."]}],"culturalGaps":["..."],"localizationRecommendations":["..."],"colorImageryNotes":["..."]},
+  "globallinkRecommendations": [{"product":"Translation|AI|Connect|Fluent","priority":"high|medium|low","useCase":"...","expectedBenefit":"..."}],
+  "strategicRecommendations": [{"priority":"high|medium|low","action":"...","rationale":"...","timeframe":"..."}],
+  "growthOpportunities": [{"opportunity":"...","potentialImpact":"...","requiredInvestment":"..."}],
+  "riskAlerts": [{"risk":"...","severity":"critical|moderate|low","mitigation":"..."}],
+  "priorityActions": ["..."],
+  "suggestedUpdates": [{"section":"...","currentState":"...","suggestedChange":"...","reason":"..."}],
+  "confidenceScore": 75,
+  "urgencyLevel": "low|normal|high|critical"
+}`;
+
+    await adminSupabase.from('brand_intelligence_jobs').update({ progress: 25 }).eq('id', jobId);
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-lite',
+        messages: [
+          { role: 'system', content: 'You are a brand strategy research analyst. Provide actionable insights with emphasis on multicultural opportunities and GlobalLink product recommendations. Return ONLY valid JSON.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.4,
+        max_tokens: 3000,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`AI Gateway error: ${response.status}`);
+    }
+
+    const aiResponse = await response.json();
+    const content = aiResponse.choices?.[0]?.message?.content;
+    if (!content) throw new Error('No AI response');
+
+    await adminSupabase.from('brand_intelligence_jobs').update({ progress: 70 }).eq('id', jobId);
+
+    // Parse
+    let briefing: Record<string, unknown>;
+    try {
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+      briefing = JSON.parse(jsonMatch ? jsonMatch[1].trim() : content.trim());
+    } catch {
+      console.error('[brand-research] Parse failed:', content.substring(0, 300));
+      throw new Error('Failed to parse AI response');
+    }
+
+    // Save briefing
+    const { data: saved } = await adminSupabase
+      .from('research_briefings')
+      .insert({
+        entity_id: entityId,
+        entity_type: entityType,
+        organization_id: organizationId,
+        briefing_type: briefingType,
+        title: briefing.title,
+        summary: briefing.summary,
+        market_intelligence: briefing.marketIntelligence,
+        competitive_insights: briefing.competitiveInsights,
+        trend_analysis: briefing.trendAnalysis,
+        sentiment_signals: briefing.sentimentSignals,
+        strategic_recommendations: briefing.strategicRecommendations,
+        growth_opportunities: briefing.growthOpportunities,
+        risk_alerts: briefing.riskAlerts,
+        priority_actions: briefing.priorityActions,
+        suggested_updates: briefing.suggestedUpdates,
+        confidence_score: briefing.confidenceScore,
+        urgency_level: briefing.urgencyLevel,
+        created_by: userId,
+      })
+      .select('id')
+      .single();
+
+    await adminSupabase.from('brand_intelligence_jobs').update({ progress: 85 }).eq('id', jobId);
+
+    // Lightweight learning feedback — add top insights to brand intelligence
+    try {
+      const { data: intel } = await adminSupabase
+        .from('brand_intelligence')
+        .select('id, knowledge_entries, analysis_history')
+        .eq('entity_id', entityId)
+        .eq('entity_type', entityType)
+        .single();
+
+      if (intel) {
+        const entries = ((intel.knowledge_entries || []) as unknown[]);
+        const history = ((intel.analysis_history || []) as unknown[]);
+        const recs = (briefing.strategicRecommendations || []) as Array<{ action: string; rationale: string; priority: string }>;
+
+        const newEntries = recs.slice(0, 2).map(r => ({
+          id: crypto.randomUUID(),
+          type: 'insight',
+          content: `[Research] ${r.action} - ${r.rationale}`,
+          source: 'ai',
+          category: `research-strategy-${r.priority}`,
+          created_at: new Date().toISOString(),
+          confidence: ((briefing.confidenceScore as number) || 70) / 100,
+        }));
+
+        await adminSupabase
+          .from('brand_intelligence')
+          .update({
+            knowledge_entries: [...entries, ...newEntries].slice(-100),
+            analysis_history: [...history, {
+              date: new Date().toISOString(),
+              type: `research-${briefingType}`,
+              summary: briefing.summary,
+            }].slice(-20),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', intel.id);
+      }
+    } catch (e) {
+      console.error('[brand-research] Feedback loop error:', e);
+    }
+
+    // Mark job complete
+    await adminSupabase.from('brand_intelligence_jobs').update({
+      status: 'completed',
+      progress: 100,
+      completed_at: new Date().toISOString(),
+      result: { briefing, briefingId: saved?.id },
+    }).eq('id', jobId);
+
+    console.log(`[brand-research] Completed for ${entityName}`);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`[brand-research] Job ${jobId} failed:`, msg);
+    await adminSupabase.from('brand_intelligence_jobs').update({
+      status: 'failed',
+      error_message: msg,
+      completed_at: new Date().toISOString(),
+    }).eq('id', jobId);
   }
-  
-  if (services?.length) {
-    parts.push(`Products/Services:\n${services.slice(0, 5).map(s => `  - ${s.name}: ${s.description || ''}`).join('\n')}`);
-  }
-  
-  if (voice?.pillars) {
-    const pillars = voice.pillars as Array<{ title: string; description: string }>;
-    parts.push(`Voice Pillars:\n${pillars.slice(0, 4).map(p => `  - ${p.title}`).join('\n')}`);
-  }
-  
-  if (social?.length) {
-    parts.push(`Social Presence: ${social.slice(0, 4).map(s => s.platform).join(', ')}`);
-  }
-  
-  if (colors?.length) {
-    parts.push(`Brand Colors: ${colors.slice(0, 4).map(c => c.name).join(', ')}`);
-  }
-  
-  return parts.join('\n\n') || 'No detailed brand data available';
 }
 
 Deno.serve(async (req) => {
@@ -163,31 +248,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch entity data
-    let entityData: { name: string; guide_data: Record<string, unknown>; organization_id?: string } | null = null;
-    
-    if (entityType === 'brand') {
-      const { data } = await supabaseClient
-        .from('brands')
-        .select('name, guide_data, organization_id')
-        .eq('id', entityId)
-        .single();
-      entityData = data;
-    } else if (entityType === 'product') {
-      const { data } = await supabaseClient
-        .from('products')
-        .select('name, guide_data, organization_id')
-        .eq('id', entityId)
-        .single();
-      entityData = data;
-    } else if (entityType === 'event') {
-      const { data } = await supabaseClient
-        .from('events')
-        .select('name, guide_data, organization_id')
-        .eq('id', entityId)
-        .single();
-      entityData = data;
-    }
+    // Fetch entity — lightweight query
+    const tableName = entityType === 'brand' ? 'brands' : entityType === 'product' ? 'products' : 'events';
+    const { data: entityData } = await supabaseClient
+      .from(tableName)
+      .select('name, guide_data, organization_id')
+      .eq('id', entityId)
+      .single();
 
     if (!entityData) {
       return new Response(
@@ -196,500 +263,65 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch existing brand intelligence including cultural insights
-    const { data: intelligence } = await supabaseClient
+    const brandContext = extractBrandContext(entityData.guide_data as Record<string, unknown>);
+
+    // Fetch minimal intelligence summary
+    let intelligenceSummary = '';
+    const { data: intel } = await supabaseClient
       .from('brand_intelligence')
-      .select('brand_summary, market_position, competitive_landscape, growth_recommendations, cultural_insights, globallink_recommendations, regional_adaptations, localization_readiness_score')
+      .select('brand_summary, market_position')
       .eq('entity_id', entityId)
       .eq('entity_type', entityType)
       .single();
+    if (intel?.brand_summary) intelligenceSummary += `\nBrand Summary: ${intel.brand_summary}`;
+    if (intel?.market_position) intelligenceSummary += `\nMarket Position: ${intel.market_position}`;
 
-    // Fetch recent competitive reports
-    const { data: competitiveReports } = await supabaseClient
-      .from('competitive_analysis_reports')
-      .select('report_data, created_at')
-      .eq('entity_id', entityId)
-      .order('created_at', { ascending: false })
-      .limit(2);
+    // Create job record
+    const adminSupabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
-    // Fetch favorite competitors for context
-    const { data: competitors } = await supabaseClient
-      .from('favorite_competitors')
-      .select('name, competitor_type, industry')
-      .limit(5);
-
-    // Fetch regional variants for multicultural context
-    const { data: regionalVariants } = await supabaseClient
-      .from('brand_regional_variants')
-      .select('variant_code, variant_level, cultural_adaptations, translation_status')
-      .eq('entity_id', entityId)
-      .eq('entity_type', entityType)
-      .limit(10);
-
-    // Fetch GlobalLink product configuration
-    let globallinkConfig = null;
-    if (entityData.organization_id) {
-      const { data: glConfig } = await supabaseClient
-        .from('globallink_product_config')
-        .select('*')
-        .eq('organization_id', entityData.organization_id)
-        .single();
-      globallinkConfig = glConfig;
-    }
-
-    const brandContext = extractBrandContext(entityData.guide_data);
-    
-    const contextSections: string[] = [
-      `# ${entityData.name} - Brand Research Briefing`,
-      '',
-      '## Current Brand Profile',
-      brandContext,
-    ];
-
-    if (intelligence?.brand_summary) {
-      contextSections.push('', '## AI-Generated Brand Summary', intelligence.brand_summary);
-    }
-
-    if (intelligence?.market_position) {
-      contextSections.push('', '## Current Market Position', intelligence.market_position);
-    }
-
-    if (intelligence?.competitive_landscape) {
-      const landscape = intelligence.competitive_landscape as Record<string, unknown>;
-      if (landscape.summary) {
-        contextSections.push('', '## Competitive Landscape', landscape.summary as string);
-      }
-    }
-
-    // Add Cultural Intelligence Context
-    if (intelligence?.cultural_insights) {
-      const cultural = intelligence.cultural_insights as Record<string, unknown>;
-      contextSections.push('', '## Cultural Intelligence');
-      
-      if (cultural.global_readiness_score) {
-        contextSections.push(`Global Readiness Score: ${cultural.global_readiness_score}/100`);
-      }
-      if (cultural.primary_markets && Array.isArray(cultural.primary_markets)) {
-        contextSections.push(`Primary Markets: ${(cultural.primary_markets as string[]).join(', ')}`);
-      }
-      if (cultural.cultural_considerations && Array.isArray(cultural.cultural_considerations)) {
-        const considerations = cultural.cultural_considerations as Array<{ region: string; considerations: string[] }>;
-        contextSections.push('Regional Considerations:');
-        considerations.slice(0, 5).forEach(c => {
-          contextSections.push(`  - ${c.region}: ${c.considerations?.slice(0, 2).join('; ')}`);
-        });
-      }
-      if (cultural.color_cultural_notes && Array.isArray(cultural.color_cultural_notes)) {
-        contextSections.push(`Color Cultural Notes: ${(cultural.color_cultural_notes as string[]).slice(0, 3).join('; ')}`);
-      }
-      if (cultural.imagery_guidelines && Array.isArray(cultural.imagery_guidelines)) {
-        contextSections.push(`Imagery Guidelines: ${(cultural.imagery_guidelines as string[]).slice(0, 3).join('; ')}`);
-      }
-    }
-
-    // Add Localization Readiness
-    if (intelligence?.localization_readiness_score) {
-      contextSections.push('', `## Localization Readiness: ${intelligence.localization_readiness_score}/100`);
-    }
-
-    // Add GlobalLink Recommendations
-    if (intelligence?.globallink_recommendations && Array.isArray(intelligence.globallink_recommendations)) {
-      const glRecs = intelligence.globallink_recommendations as Array<{ product: string; relevance: string; use_case: string }>;
-      if (glRecs.length > 0) {
-        contextSections.push('', '## GlobalLink Product Recommendations');
-        glRecs.forEach(rec => {
-          contextSections.push(`  - GlobalLink ${rec.product} (${rec.relevance} relevance): ${rec.use_case}`);
-        });
-      }
-    }
-
-    // Add Regional Adaptations
-    if (intelligence?.regional_adaptations) {
-      const adaptations = intelligence.regional_adaptations as Record<string, unknown>;
-      if (Object.keys(adaptations).length > 0) {
-        contextSections.push('', '## Regional Adaptations in Place');
-        Object.entries(adaptations).slice(0, 5).forEach(([region, data]) => {
-          contextSections.push(`  - ${region}: ${JSON.stringify(data).substring(0, 100)}...`);
-        });
-      }
-    }
-
-    // Add Active Regional Variants
-    if (regionalVariants?.length) {
-      contextSections.push('', '## Active Regional Variants');
-      regionalVariants.forEach(v => {
-        contextSections.push(`  - ${v.variant_code} (${v.variant_level}): Translation ${v.translation_status || 'pending'}`);
-      });
-    }
-
-    // Add GlobalLink Suite Configuration
-    if (globallinkConfig) {
-      const enabledProducts: string[] = [];
-      if (globallinkConfig.translation_enabled) enabledProducts.push('Translation');
-      if (globallinkConfig.ai_enabled) enabledProducts.push('AI');
-      if (globallinkConfig.connect_enabled) enabledProducts.push('Connect');
-      if (globallinkConfig.fluent_enabled) enabledProducts.push('Fluent');
-      
-      if (enabledProducts.length > 0) {
-        contextSections.push('', `## GlobalLink Suite: ${enabledProducts.join(', ')} enabled`);
-        if (globallinkConfig.ai_cultural_adaptation) {
-          contextSections.push('  - AI Cultural Adaptation: Active');
-        }
-        if (globallinkConfig.ai_content_optimization) {
-          contextSections.push('  - AI Content Optimization: Active');
-        }
-      }
-    }
-
-    if (competitors?.length) {
-      contextSections.push('', '## Key Competitors Being Tracked', 
-        competitors.map(c => `- ${c.name} (${c.competitor_type})`).join('\n'));
-    }
-
-    if (competitiveReports?.length) {
-      contextSections.push('', '## Recent Competitive Analysis',
-        `${competitiveReports.length} report(s) on file, latest from ${new Date(competitiveReports[0].created_at).toLocaleDateString()}`);
-    }
-
-    const focusAreasText = focusAreas.length > 0 
-      ? `\n\nFocus especially on: ${focusAreas.join(', ')}` 
-      : '';
-
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
-
-    const systemPrompt = `You are an elite brand strategy research analyst with expertise in:
-- Market intelligence and trend forecasting
-- Competitive positioning and differentiation strategy
-- Brand health monitoring and sentiment analysis
-- Growth opportunity identification
-- Risk assessment and mitigation planning
-- MULTICULTURAL MARKETING STRATEGY
-- GLOBAL LOCALIZATION AND CULTURAL ADAPTATION
-- GLOBALLINK PRODUCT SUITE UTILIZATION (Translation, AI, Connect, Fluent)
-
-Your role is to analyze brand data and generate actionable research briefings that help brand managers make strategic decisions, with SPECIAL EMPHASIS on multicultural marketing opportunities and GlobalLink suite optimization.
-
-IMPORTANT GUIDELINES:
-1. Be specific and actionable - every insight should lead to a clear next step
-2. Prioritize insights by business impact
-3. Consider both short-term tactics and long-term strategy
-4. Base recommendations on the brand's values, positioning, and industry context
-5. Identify both opportunities and risks with equal rigor
-6. Suggest concrete updates to brand sections when improvements would help
-7. ALWAYS include multicultural marketing insights in your analysis
-8. Recommend specific GlobalLink products when localization opportunities exist:
-   - GlobalLink Translation: For content translation and localization workflows
-   - GlobalLink AI: For cultural adaptation and content optimization
-   - GlobalLink Connect: For workflow automation and CMS integration
-   - GlobalLink Fluent: For in-context editing and real-time translation review
-9. Analyze regional expansion opportunities with cultural sensitivity
-10. Consider color, imagery, messaging, and tone adaptations for different markets
-11. Identify localization gaps and prioritize markets for expansion
-
-Output format: Return ONLY valid JSON matching the specified structure. No markdown formatting, no code blocks.`;
-
-    const userPrompt = `Generate a ${briefingType} research briefing for ${entityData.name}.
-
-${contextSections.join('\n')}${focusAreasText}
-
-Analyze all available data and produce a comprehensive briefing with:
-1. Market intelligence - current industry trends and shifts affecting this brand
-2. Competitive insights - positioning gaps, differentiation opportunities, threats
-3. Trend analysis - rising/declining trends relevant to this brand's space
-4. Sentiment signals - positive indicators and areas of concern
-5. MULTICULTURAL MARKETING INSIGHTS - expansion opportunities, cultural gaps, localization priorities
-6. GLOBALLINK SUITE RECOMMENDATIONS - which products to use and why
-7. Strategic recommendations - prioritized actions with rationale
-8. Growth opportunities - specific areas for expansion or improvement
-9. Risk alerts - potential threats with mitigation strategies
-10. Priority actions - top 3-5 things to focus on immediately
-11. Suggested updates - specific changes to brand guide sections
-12. Confidence score (0-100) based on data quality
-13. Urgency level (low/normal/high/critical)
-
-Return JSON matching this exact structure:
-{
-  "title": "Briefing title",
-  "summary": "2-3 sentence executive summary (include multicultural opportunities)",
-  "marketIntelligence": {
-    "industryTrends": ["trend1", "trend2"],
-    "marketShifts": ["shift1"],
-    "emergingOpportunities": ["opp1"]
-  },
-  "competitiveInsights": {
-    "positioningGaps": ["gap1"],
-    "differentiationOpportunities": ["diff1"],
-    "threatAssessment": ["threat1"]
-  },
-  "trendAnalysis": {
-    "risingTrends": ["trend1"],
-    "decliningTrends": ["trend1"],
-    "futureProjections": ["projection1"]
-  },
-  "sentimentSignals": {
-    "positiveIndicators": ["indicator1"],
-    "concernAreas": ["concern1"],
-    "neutralObservations": ["obs1"]
-  },
-  "multiculturalInsights": {
-    "expansionOpportunities": [
-      {"market": "Japan", "readiness": "high", "culturalConsiderations": ["formal communication preferred"], "priorityAdaptations": ["adjust color palette for local symbolism"]}
-    ],
-    "culturalGaps": ["Missing regional messaging variants for APAC"],
-    "localizationRecommendations": ["Prioritize German and Japanese translations"],
-    "colorImageryNotes": ["Red symbolism varies between markets - review for China/Japan"]
-  },
-  "globallinkRecommendations": [
-    {"product": "Translation", "priority": "high", "useCase": "Translate brand guidelines for EMEA expansion", "expectedBenefit": "Consistent brand voice across 12 languages"},
-    {"product": "AI", "priority": "medium", "useCase": "Cultural adaptation of marketing content", "expectedBenefit": "Avoid cultural missteps in new markets"}
-  ],
-  "strategicRecommendations": [
-    {"priority": "high", "action": "...", "rationale": "...", "timeframe": "Q1 2026"}
-  ],
-  "growthOpportunities": [
-    {"opportunity": "...", "potentialImpact": "...", "requiredInvestment": "..."}
-  ],
-  "riskAlerts": [
-    {"risk": "...", "severity": "moderate", "mitigation": "..."}
-  ],
-  "priorityActions": ["action1", "action2"],
-  "suggestedUpdates": [
-    {"section": "identity", "currentState": "...", "suggestedChange": "...", "reason": "..."}
-  ],
-  "confidenceScore": 75,
-  "urgencyLevel": "normal"
-}`;
-
-    console.log(`[brand-research] Generating ${briefingType} briefing for ${entityData.name}`);
-
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.4,
-        max_tokens: 4000,
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'AI credits exhausted. Please add funds.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      throw new Error(`AI Gateway error: ${response.status}`);
-    }
-
-    const aiResponse = await response.json();
-    const content = aiResponse.choices?.[0]?.message?.content;
-
-    if (!content) {
-      throw new Error('No response from AI');
-    }
-
-    let briefingResult: BriefingResult;
-    try {
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-      const jsonStr = jsonMatch ? jsonMatch[1].trim() : content.trim();
-      briefingResult = JSON.parse(jsonStr);
-    } catch {
-      console.error('[brand-research] Failed to parse AI response:', content.substring(0, 500));
-      return new Response(
-        JSON.stringify({ error: 'Failed to parse research results' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Store the briefing in the database
-    const { data: savedBriefing, error: saveError } = await supabaseClient
-      .from('research_briefings')
+    const { data: job, error: jobError } = await adminSupabase
+      .from('brand_intelligence_jobs')
       .insert({
         entity_id: entityId,
         entity_type: entityType,
         organization_id: entityData.organization_id || null,
-        briefing_type: briefingType,
-        title: briefingResult.title,
-        summary: briefingResult.summary,
-        market_intelligence: briefingResult.marketIntelligence,
-        competitive_insights: briefingResult.competitiveInsights,
-        trend_analysis: briefingResult.trendAnalysis,
-        sentiment_signals: briefingResult.sentimentSignals,
-        strategic_recommendations: briefingResult.strategicRecommendations,
-        growth_opportunities: briefingResult.growthOpportunities,
-        risk_alerts: briefingResult.riskAlerts,
-        priority_actions: briefingResult.priorityActions,
-        suggested_updates: briefingResult.suggestedUpdates,
-        confidence_score: briefingResult.confidenceScore,
-        urgency_level: briefingResult.urgencyLevel,
-        created_by: user.id,
+        user_id: user.id,
+        status: 'pending',
+        progress: 0,
       })
       .select('id')
       .single();
 
-    if (saveError) {
-      console.error('[brand-research] Failed to save briefing:', saveError);
+    if (jobError || !job) {
+      throw new Error('Failed to create job: ' + jobError?.message);
     }
 
-    // ============================================================
-    // FEED RESEARCH INSIGHTS BACK TO BRAND INTELLIGENCE (LEARNING LOOP)
-    // ============================================================
-    try {
-      const adminSupabase = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-      );
+    // Fire background work
+    EdgeRuntime.waitUntil(
+      processResearch(
+        job.id,
+        entityId,
+        entityType,
+        entityData.name,
+        entityData.organization_id || null,
+        brandContext,
+        briefingType,
+        focusAreas,
+        intelligenceSummary,
+        user.id,
+      )
+    );
 
-      // Fetch or create brand intelligence record
-      let { data: intelligenceRecord } = await adminSupabase
-        .from('brand_intelligence')
-        .select('id, knowledge_entries, analysis_history')
-        .eq('entity_id', entityId)
-        .eq('entity_type', entityType)
-        .single();
-
-      if (!intelligenceRecord) {
-        // Create intelligence record if it doesn't exist
-        const { data: newRecord } = await adminSupabase
-          .from('brand_intelligence')
-          .insert({
-            entity_id: entityId,
-            entity_type: entityType,
-            organization_id: entityData.organization_id,
-            knowledge_entries: [],
-            analysis_history: [],
-          })
-          .select('id, knowledge_entries, analysis_history')
-          .single();
-        intelligenceRecord = newRecord;
-      }
-
-      if (intelligenceRecord) {
-        const knowledgeEntries = (intelligenceRecord.knowledge_entries || []) as Array<{
-          id: string;
-          type: string;
-          content: string;
-          source: string;
-          category: string;
-          created_at: string;
-          confidence: number;
-        }>;
-        const analysisHistory = (intelligenceRecord.analysis_history || []) as Array<{
-          date: string;
-          type: string;
-          summary: string;
-        }>;
-
-        // Add key research insights as learning entries
-        const newLearningEntries: typeof knowledgeEntries = [];
-
-        // Add strategic recommendations as high-priority insights
-        for (const rec of briefingResult.strategicRecommendations?.slice(0, 3) || []) {
-          newLearningEntries.push({
-            id: crypto.randomUUID(),
-            type: 'insight',
-            content: `[Research] ${rec.action} - ${rec.rationale}`,
-            source: 'ai',
-            category: `research-strategy-${rec.priority}`,
-            created_at: new Date().toISOString(),
-            confidence: briefingResult.confidenceScore / 100,
-          });
-        }
-
-        // Add multicultural insights for GlobalLink learning
-        if (briefingResult.multiculturalInsights?.expansionOpportunities?.length) {
-          for (const opp of briefingResult.multiculturalInsights.expansionOpportunities.slice(0, 2)) {
-            newLearningEntries.push({
-              id: crypto.randomUUID(),
-              type: 'insight',
-              content: `[Multicultural] ${opp.market} expansion opportunity (${opp.readiness} readiness): ${opp.culturalConsiderations?.slice(0, 2).join('; ')}`,
-              source: 'ai',
-              category: 'research-multicultural',
-              created_at: new Date().toISOString(),
-              confidence: briefingResult.confidenceScore / 100,
-            });
-          }
-        }
-
-        // Add GlobalLink recommendations as learning entries
-        if (briefingResult.globallinkRecommendations?.length) {
-          for (const gl of briefingResult.globallinkRecommendations.slice(0, 2)) {
-            newLearningEntries.push({
-              id: crypto.randomUUID(),
-              type: 'learning',
-              content: `[GlobalLink ${gl.product}] ${gl.useCase} - ${gl.expectedBenefit}`,
-              source: 'ai',
-              category: `research-globallink-${gl.product.toLowerCase()}`,
-              created_at: new Date().toISOString(),
-              confidence: gl.priority === 'high' ? 0.9 : gl.priority === 'medium' ? 0.7 : 0.5,
-            });
-          }
-        }
-
-        // Add risk alerts as critical learning
-        for (const risk of briefingResult.riskAlerts?.filter(r => r.severity === 'critical').slice(0, 2) || []) {
-          newLearningEntries.push({
-            id: crypto.randomUUID(),
-            type: 'insight',
-            content: `[Risk Alert] ${risk.risk} - Mitigation: ${risk.mitigation}`,
-            source: 'ai',
-            category: 'research-risk-critical',
-            created_at: new Date().toISOString(),
-            confidence: 0.85,
-          });
-        }
-
-        // Add briefing to analysis history
-        const historyEntry = {
-          date: new Date().toISOString(),
-          type: `research-${briefingType}`,
-          summary: briefingResult.summary,
-        };
-
-        // Update brand intelligence with new learning
-        await adminSupabase
-          .from('brand_intelligence')
-          .update({
-            knowledge_entries: [...knowledgeEntries, ...newLearningEntries].slice(-100), // Keep last 100
-            analysis_history: [...analysisHistory, historyEntry].slice(-20), // Keep last 20
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', intelligenceRecord.id);
-
-        console.log(`[brand-research] Fed ${newLearningEntries.length} insights back to brand intelligence`);
-      }
-    } catch (feedbackError) {
-      // Don't fail the request if feedback loop fails
-      console.error('[brand-research] Failed to feed insights to intelligence:', feedbackError);
-    }
-
-    console.log(`[brand-research] Briefing generated for ${entityData.name}. Confidence: ${briefingResult.confidenceScore}`);
-
+    // Return immediately
     return new Response(
       JSON.stringify({
         success: true,
-        briefing: briefingResult,
-        briefingId: savedBriefing?.id,
-        entityName: entityData.name,
-        entityType,
-        generatedAt: new Date().toISOString(),
+        jobId: job.id,
+        status: 'processing',
+        message: 'Research briefing is being generated. Poll the job status for results.',
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

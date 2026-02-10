@@ -143,7 +143,7 @@ export const CulturalAnalysisGenerator: React.FC = () => {
           .maybeSingle();
 
         if (job?.status === 'completed') {
-          // Then generate research briefing
+          // Then generate research briefing (now async)
           const { data: researchResult, error: researchError } = await supabase.functions.invoke('brand-research', {
             body: {
               entityId,
@@ -161,6 +161,29 @@ export const CulturalAnalysisGenerator: React.FC = () => {
               throw new Error('AI credits exhausted. Please add credits to continue.');
             }
             throw researchError;
+          }
+
+          // Poll research job for completion
+          const researchJobId = researchResult?.jobId;
+          if (researchJobId) {
+            let researchAttempts = 0;
+            while (researchAttempts < 90) {
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              const { data: rJob } = await supabase
+                .from('brand_intelligence_jobs')
+                .select('status, result, error_message')
+                .eq('id', researchJobId)
+                .maybeSingle();
+
+              if (rJob?.status === 'completed') {
+                return { intelligence: job.result, research: rJob.result };
+              }
+              if (rJob?.status === 'failed') {
+                console.warn('Research briefing failed:', rJob.error_message);
+                return { intelligence: job.result, research: null };
+              }
+              researchAttempts++;
+            }
           }
 
           return { intelligence: job.result, research: researchResult };
