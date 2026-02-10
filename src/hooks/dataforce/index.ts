@@ -9,3 +9,4 @@ export { useCulturalValidation } from './useCulturalValidation';
 export { useGenAITraining } from './useGenAITraining';
 export { useDataForceConfig } from './useDataForceConfig';
 export { useAutoCompliance } from './useAutoCompliance';
+export { useLatestComplianceScores } from './useLatestComplianceScores';

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Pencil, Check, TrendingUp, BarChart3, Sparkles, Brain, Loader2, Upload, Image as ImageIcon } from 'lucide-react';
+import { Pencil, Check, TrendingUp, BarChart3, Sparkles, Brain, Loader2, Upload, Image as ImageIcon, Shield } from 'lucide-react';
 import { BrandHero } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,6 +18,7 @@ import { ImagePanelsHero } from '@/components/backgrounds/ImagePanelsHero';
 import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { cn } from '@/lib/utils';
+import { ComplianceScoreBadge } from '@/components/dataforce/ComplianceScoreBadge';
 
 interface HeroStats {
   healthScore?: number;
@@ -41,6 +42,8 @@ interface HeroSectionProps {
   entityType?: 'brand' | 'event' | 'product';
   /** Entity ID for storage upload */
   entityId?: string;
+  /** Compliance score to display alongside health */
+  complianceScore?: number | null;
 }
 
 export const HeroSection = ({ 
@@ -54,6 +57,7 @@ export const HeroSection = ({
   guideData,
   entityType = 'brand',
   entityId,
+  complianceScore,
 }: HeroSectionProps) => {
   // Only allow editing if onHeroChange is provided (canEdit mode)
   const canEdit = !!onHeroChange;
@@ -635,6 +639,12 @@ export const HeroSection = ({
                     <Sparkles className="h-3 w-3 mr-1" />
                     Brand Guide Active
                   </Badge>
+                  {/* Compliance score pill */}
+                  {complianceScore != null && (
+                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 shadow-lg">
+                      <ComplianceScoreBadge score={complianceScore} size="sm" />
+                    </div>
+                  )}
                   {/* Brain / Intelligence quick-access */}
                   {onOpenIntelligence && (
                     <button

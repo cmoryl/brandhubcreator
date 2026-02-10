@@ -16,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { usePersistedAdminData, formatLastRunMessage } from '@/hooks/usePersistedAdminData';
+import { ComplianceScoreBadge } from '@/components/dataforce/ComplianceScoreBadge';
 
 // Types for brand analysis
 interface BrandHealthData {
@@ -23,6 +24,7 @@ interface BrandHealthData {
   name: string;
   organizationName: string | null;
   overallScore: number;
+  complianceScore?: number | null;
   scores: {
     identity: number;
     visual: number;
@@ -119,6 +121,20 @@ export function BrandAnalyticsHub() {
       
       const orgMap = new Map(orgs?.map(o => [o.id, o.name]) || []);
 
+      // Fetch latest compliance scores
+      const { data: complianceJobs } = await supabase
+        .from('dataforce_compliance_jobs')
+        .select('entity_id, compliance_score, created_at')
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false });
+
+      const complianceMap = new Map<string, number>();
+      for (const job of complianceJobs || []) {
+        if (!complianceMap.has(job.entity_id) && job.compliance_score != null) {
+          complianceMap.set(job.entity_id, job.compliance_score);
+        }
+      }
+
       const analyzedBrands: BrandHealthData[] = (brands || []).map(brand => {
         const guideData = brand.guide_data as Record<string, unknown> || {};
         const analysis = analyzeBrandHealth(guideData);
@@ -128,6 +144,7 @@ export function BrandAnalyticsHub() {
           name: brand.name,
           organizationName: brand.organization_id ? orgMap.get(brand.organization_id) || null : null,
           overallScore: analysis.overallScore,
+          complianceScore: complianceMap.get(brand.id) ?? null,
           scores: analysis.scores,
           gaps: analysis.gaps,
           consistencyIssues: analysis.consistencyIssues,
@@ -504,6 +521,7 @@ export function BrandAnalyticsHub() {
       'Brand Name': b.name,
       'Organization': b.organizationName || 'N/A',
       'Health Score': `${b.overallScore}%`,
+      'Compliance Score': b.complianceScore != null ? `${b.complianceScore}%` : 'N/A',
       'Identity Score': `${b.scores.identity}%`,
       'Visual Score': `${b.scores.visual}%`,
       'Content Score': `${b.scores.content}%`,
@@ -693,6 +711,7 @@ export function BrandAnalyticsHub() {
                               <Badge variant={getScoreBadge(brand.overallScore).variant}>
                                 {getScoreBadge(brand.overallScore).label}
                               </Badge>
+                              <ComplianceScoreBadge score={brand.complianceScore} size="sm" />
                               <div className="w-24">
                                 <Progress value={brand.overallScore} className="h-2" />
                               </div>
