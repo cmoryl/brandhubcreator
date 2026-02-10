@@ -265,15 +265,35 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     statistics: safeArray<StatisticItem>(g.statistics),
     webinars: safeArray<BrandWebinar>(g.webinars),
     awards: safeArray<BrandAward>(g.awards),
+    sponsorLogos: safeArray<SponsorLogo>(g.sponsorLogos),
     clientLogos: safeArray<ClientLogo>(g.clientLogos),
+    customShapes: safeArray(g.customShapes),
     
     // Objects
     qr: safeObject(g.qr, DEFAULT_QR),
     atmosphere: safeObject(g.atmosphere, DEFAULT_ATMOSPHERE),
+    adminCustomStyle: g.adminCustomStyle,
     
     // Misc
     infographicLayout: g.infographicLayout || 'infographic',
     defaultIconColor: g.defaultIconColor,
+    shareToken: g.shareToken ?? g.share_token ?? null,
+    
+    // Insights
+    insights: safeArray(g.insights),
+    insightsLayout: g.insightsLayout,
+    
+    // Locations
+    locations: safeArray(g.locations),
+    locationStats: safeArray(g.locationStats),
+    locationsSectionTitle: g.locationsSectionTitle,
+    locationsSectionDescription: g.locationsSectionDescription,
+    useSharedLocations: g.useSharedLocations ?? false,
+    mapTheme: g.mapTheme,
+    
+    // Event Signage & Presentations
+    eventSignage: safeArray(g.eventSignage),
+    presentationTemplates: safeArray(g.presentationTemplates),
     
     // Timestamps
     createdAt: g.createdAt instanceof Date ? g.createdAt : (g.createdAt ? new Date(g.createdAt) : new Date()),
@@ -281,9 +301,6 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     
     // Product-specific
     parentBrandId: g.parentBrandId ?? g.parent_brand_id ?? undefined,
-    
-    // Locations settings
-    useSharedLocations: g.useSharedLocations ?? false,
   } as BaseGuide;
 }
 
