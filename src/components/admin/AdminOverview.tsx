@@ -9,7 +9,7 @@ import {
   TrendingUp, AlertTriangle, Clock, Shield, CheckCircle,
   UserCheck, FileText, Database, HardDrive, MapPin, Mail, Image,
   Eye, Zap, ArrowRight, Brain, Wrench, RefreshCw, BarChart3,
-  Bot
+  Bot, Globe, Languages
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -505,6 +505,9 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
 
       {/* DataForce AI Summary */}
       <DataForceSummaryWidget onTabChange={onTabChange} />
+
+      {/* GlobalLink Summary */}
+      <GlobalLinkSummaryWidget onTabChange={onTabChange} />
     </div>
   );
 };
@@ -652,6 +655,147 @@ const DataForceSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> =
               <div>
                 <span className="text-sm font-medium text-foreground/90">Full Dashboard</span>
                 <p className="text-[11px] text-muted-foreground mt-0.5">View all AI metrics →</p>
+              </div>
+            </button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+/** Lightweight GlobalLink summary for the overview page */
+const GlobalLinkSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> = ({ onTabChange }) => {
+  const [data, setData] = useState<{
+    totalJobs: number;
+    completedJobs: number;
+    pendingJobs: number;
+    languages: number;
+    variants: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [
+        { data: jobs },
+        { data: languages },
+        { data: variants },
+      ] = await Promise.all([
+        supabase.from('localization_jobs').select('status'),
+        supabase.from('localization_target_languages').select('id', { count: 'exact', head: true }),
+        supabase.from('brand_regional_variants').select('id', { count: 'exact', head: true }),
+      ]);
+
+      const allJobs = jobs || [];
+      const completed = allJobs.filter(j => j.status === 'completed').length;
+      const pending = allJobs.filter(j => j.status === 'pending' || j.status === 'in_progress').length;
+
+      setData({
+        totalJobs: allJobs.length,
+        completedJobs: completed,
+        pendingJobs: pending,
+        languages: languages?.length || 0,
+        variants: variants?.length || 0,
+      });
+    };
+    fetchData();
+  }, []);
+
+  return (
+    <Card className="shadow-sm hover:shadow-md transition-shadow duration-300">
+      <CardHeader className="p-5 pb-3 border-b border-border/50">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2.5 font-semibold">
+              <div className="p-1.5 rounded-lg bg-sky-500/10">
+                <Globe className="h-4 w-4 text-sky-500" />
+              </div>
+              GlobalLink
+            </CardTitle>
+            <CardDescription className="text-xs mt-1">Translation, localization & regional variants</CardDescription>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs font-medium text-muted-foreground hover:text-foreground"
+            onClick={() => onTabChange('globallink')}
+          >
+            View Details <ArrowRight className="h-3 w-3 ml-1.5" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-5 pt-4">
+        {!data ? (
+          <div className="flex items-center justify-center py-6">
+            <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <button
+              onClick={() => onTabChange('globallink')}
+              className="flex flex-col items-start gap-2 p-4 rounded-xl border-2 border-border/60 hover:border-sky-500/40 hover:bg-sky-500/5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left group"
+            >
+              <div className="flex items-center gap-2.5 w-full">
+                <div className="p-2 rounded-lg bg-sky-500/10">
+                  <FileText className="h-5 w-5 text-sky-500" />
+                </div>
+                <span className="text-2xl font-bold tracking-tight">{data.totalJobs}</span>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-foreground/90">Translation Jobs</span>
+                {data.completedJobs > 0 && (
+                  <p className="text-[11px] text-green-600 dark:text-green-400 font-medium mt-0.5">
+                    {data.completedJobs} completed
+                  </p>
+                )}
+              </div>
+            </button>
+
+            <button
+              onClick={() => onTabChange('globallink')}
+              className="flex flex-col items-start gap-2 p-4 rounded-xl border-2 border-border/60 hover:border-sky-500/40 hover:bg-sky-500/5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left group"
+            >
+              <div className="flex items-center gap-2.5 w-full">
+                <div className="p-2 rounded-lg bg-amber-500/10">
+                  <Clock className="h-5 w-5 text-amber-500" />
+                </div>
+                <span className="text-2xl font-bold tracking-tight">{data.pendingJobs}</span>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-foreground/90">In Progress</span>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Active translations</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => onTabChange('globallink')}
+              className="flex flex-col items-start gap-2 p-4 rounded-xl border-2 border-border/60 hover:border-sky-500/40 hover:bg-sky-500/5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left group"
+            >
+              <div className="flex items-center gap-2.5 w-full">
+                <div className="p-2 rounded-lg bg-indigo-500/10">
+                  <Languages className="h-5 w-5 text-indigo-500" />
+                </div>
+                <span className="text-2xl font-bold tracking-tight">{data.languages}</span>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-foreground/90">Languages</span>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Target languages</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => onTabChange('globallink')}
+              className="flex flex-col items-start gap-2 p-4 rounded-xl border-2 border-border/60 hover:border-sky-500/40 hover:bg-sky-500/5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left group"
+            >
+              <div className="flex items-center gap-2.5 w-full">
+                <div className="p-2 rounded-lg bg-teal-500/10">
+                  <Globe className="h-5 w-5 text-teal-500" />
+                </div>
+                <span className="text-2xl font-bold tracking-tight">{data.variants}</span>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-foreground/90">Regional Variants</span>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Localized guides</p>
               </div>
             </button>
           </div>
