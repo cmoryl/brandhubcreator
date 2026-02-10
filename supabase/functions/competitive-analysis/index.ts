@@ -6,113 +6,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-interface EntityGuideData {
-  hero?: {
-    name?: string;
-    tagline?: string;
-    description?: string;
-    logoUrl?: string;
-  };
-  identity?: {
-    mission?: string;
-    vision?: string;
-    archetype?: string;
-    personality?: string[];
-  };
-  values?: Array<{
-    title?: string;
-    description?: string;
-  }>;
-  colors?: Array<{
-    name?: string;
-    hex?: string;
-    category?: string;
-  }>;
-  typography?: {
-    primaryFont?: string;
-    secondaryFont?: string;
-    bodyFont?: string;
-  };
-  services?: Array<{
-    title?: string;
-    description?: string;
-  }>;
-  logos?: Array<{
-    name?: string;
-    url?: string;
-    type?: string;
-  }>;
-  social?: {
-    platforms?: Array<{
-      platform?: string;
-      url?: string;
-    }>;
-  };
-  websites?: Array<{
-    name?: string;
-    url?: string;
-  }>;
-}
+import { extractFullBrandContext } from '../_shared/extractFullBrandContext.ts';
 
-function extractEntityContext(guideData: EntityGuideData, name: string): string {
-  const parts: string[] = [];
-
-  parts.push(`ENTITY NAME: ${name}`);
-
-  if (guideData.hero) {
-    if (guideData.hero.tagline) parts.push(`TAGLINE: ${guideData.hero.tagline}`);
-    if (guideData.hero.description) parts.push(`DESCRIPTION: ${guideData.hero.description}`);
-  }
-
-  if (guideData.identity) {
-    if (guideData.identity.mission) parts.push(`MISSION: ${guideData.identity.mission}`);
-    if (guideData.identity.vision) parts.push(`VISION: ${guideData.identity.vision}`);
-    if (guideData.identity.archetype) parts.push(`BRAND ARCHETYPE: ${guideData.identity.archetype}`);
-    if (guideData.identity.personality?.length) {
-      parts.push(`BRAND PERSONALITY: ${guideData.identity.personality.join(', ')}`);
-    }
-  }
-
-  if (guideData.values?.length) {
-    const valuesList = guideData.values
-      .map(v => `${v.title}: ${v.description}`)
-      .join('; ');
-    parts.push(`CORE VALUES: ${valuesList}`);
-  }
-
-  if (guideData.colors?.length) {
-    const colorsList = guideData.colors
-      .map(c => `${c.name} (${c.hex})`)
-      .join(', ');
-    parts.push(`COLOR PALETTE: ${colorsList}`);
-  }
-
-  if (guideData.typography) {
-    const fonts = [
-      guideData.typography.primaryFont,
-      guideData.typography.secondaryFont,
-      guideData.typography.bodyFont,
-    ].filter(Boolean);
-    if (fonts.length) parts.push(`TYPOGRAPHY: ${fonts.join(', ')}`);
-  }
-
-  if (guideData.services?.length) {
-    const servicesList = guideData.services
-      .slice(0, 5)
-      .map(s => s.title)
-      .join(', ');
-    parts.push(`KEY SERVICES: ${servicesList}`);
-  }
-
-  if (guideData.websites?.length) {
-    const websites = guideData.websites
-      .slice(0, 3)
-      .map(w => w.url)
-      .join(', ');
-    parts.push(`WEBSITES: ${websites}`);
-  }
-
-  return parts.join('\n');
+function extractEntityContext(guideData: Record<string, unknown>, name: string): string {
+  const { text } = extractFullBrandContext(guideData, name, 'brand', 3000);
+  return text;
 }
 
 function buildCompetitiveAnalysisPrompt(
