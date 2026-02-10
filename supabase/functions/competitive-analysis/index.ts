@@ -315,7 +315,7 @@ serve(async (req) => {
       : prompt;
 
     // Call Lovable AI Gateway with multimodal support
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    let aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${lovableApiKey}`,
@@ -337,6 +337,31 @@ serve(async (req) => {
         temperature: 0.7,
       }),
     });
+
+    // If multimodal fails (broken image URLs), retry text-only
+    if (!aiResponse.ok && compEntityImages.length > 0 && aiResponse.status !== 429 && aiResponse.status !== 402) {
+      console.warn("[competitive-analysis] Multimodal failed, retrying text-only:", aiResponse.status);
+      await aiResponse.text(); // consume body
+      aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${lovableApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-pro",
+          messages: [
+            {
+              role: "system",
+              content: "You are an expert brand strategist and competitive analyst. Provide detailed, actionable insights based on the brand data provided. Always respond with valid JSON matching the requested schema exactly."
+            },
+            { role: "user", content: prompt }
+          ],
+          max_tokens: 8000,
+          temperature: 0.7,
+        }),
+      });
+    }
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
@@ -368,17 +393,19 @@ serve(async (req) => {
     // Parse the JSON response
     let reportData;
     try {
-      // Extract JSON from the response (handle markdown code blocks)
-      let jsonStr = content;
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-      if (jsonMatch) {
-        jsonStr = jsonMatch[1].trim();
+      reportData = JSON.parse(content.trim());
+    } catch {
+      try {
+        const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) ||
+                          content.match(/```(?:json)?\s*([\s\S]*)/) ||
+                          content.match(/\{[\s\S]*\}/);
+        const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]).trim() : content.trim();
+        reportData = JSON.parse(jsonStr);
+      } catch (parseError) {
+        console.error("[competitive-analysis] Failed to parse AI response:", parseError);
+        console.error("[competitive-analysis] Raw content:", content.substring(0, 500));
+        throw new Error("Failed to parse analysis results");
       }
-      reportData = JSON.parse(jsonStr);
-    } catch (parseError) {
-      console.error("[competitive-analysis] Failed to parse AI response:", parseError);
-      console.error("[competitive-analysis] Raw content:", content.substring(0, 500));
-      throw new Error("Failed to parse analysis results");
     }
 
     // Calculate overall score from the analysis
