@@ -19,6 +19,7 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { useOrgSlug } from '@/hooks/useOrgSlug';
 import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { useSEO } from '@/hooks/useSEO';
+import { useLatestComplianceScores } from '@/hooks/dataforce/useLatestComplianceScores';
 import { trackEntityView } from '@/hooks/usePageTracking';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
@@ -315,6 +316,9 @@ const BrandEditor = () => {
   );
   const effectiveOrgSlug = resolvedOrgSlug || organization?.slug;
   const effectiveOrgName = resolvedOrgName || organization?.name;
+
+  // Compliance scores
+  const { data: complianceScores } = useLatestComplianceScores(brand?.organizationId);
 
   // Track brand view for analytics
   useEffect(() => {
@@ -696,7 +700,7 @@ const BrandEditor = () => {
     const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
     
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={editHandler((hero) => updateBrand({ hero }))} onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined} guideData={brand as unknown as Record<string, unknown>} entityType="brand" entityId={brand.id} />;
+      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={editHandler((hero) => updateBrand({ hero }))} onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined} guideData={brand as unknown as Record<string, unknown>} entityType="brand" entityId={brand.id} complianceScore={complianceScores?.get(brand.id)?.score} />;
       case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={editHandler((tagline) => updateBrand({ tagline }))} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={editHandler((identity) => updateBrand({ identity }))} />;
       case 'values': return <ValuesSection values={brand.values} onValuesChange={editHandler((values) => updateBrand({ values }))} organizationId={brand.organizationId} brandId={brand.id} brandName={brand.hero.name} canEdit={canEdit} />;

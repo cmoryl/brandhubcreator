@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { PortalBrand } from '@/hooks/usePortalData';
+import { ComplianceScoreBadge } from '@/components/dataforce/ComplianceScoreBadge';
+import { ComplianceScoreEntry } from '@/hooks/dataforce/useLatestComplianceScores';
 import { cn } from '@/lib/utils';
 
 interface BrandHierarchy {
@@ -25,10 +27,11 @@ interface SubBrandCardProps {
   brand: PortalBrand;
   fallbackGradient: string;
   onNavigate: (slug: string) => void;
+  complianceScore?: number | null;
 }
 
 // Memoized sub-brand mini card - defined outside to prevent recreation
-const SubBrandCard = memo(forwardRef<HTMLDivElement, SubBrandCardProps>(({ brand, fallbackGradient, onNavigate }, ref) => {
+const SubBrandCard = memo(forwardRef<HTMLDivElement, SubBrandCardProps>(({ brand, fallbackGradient, onNavigate, complianceScore }, ref) => {
   const hero = brand.hero || { name: brand.name, tagline: '' };
   const colors = brand.colors;
 
@@ -72,8 +75,13 @@ const SubBrandCard = memo(forwardRef<HTMLDivElement, SubBrandCardProps>(({ brand
             )}
           </div>
           
-          {/* Arrow */}
-          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-0.5 transition-all shrink-0" />
+          {/* Arrow + compliance */}
+          <div className="flex items-center gap-2 shrink-0">
+            {complianceScore != null && (
+              <ComplianceScoreBadge score={complianceScore} size="sm" />
+            )}
+            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-0.5 transition-all" />
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -85,10 +93,11 @@ interface StandaloneBrandCardProps {
   brand: PortalBrand;
   fallbackGradient: string;
   onNavigate: (slug: string) => void;
+  complianceScore?: number | null;
 }
 
 // Memoized standalone brand card
-const StandaloneBrandCard = memo(forwardRef<HTMLDivElement, StandaloneBrandCardProps>(({ brand, fallbackGradient, onNavigate }, ref) => {
+const StandaloneBrandCard = memo(forwardRef<HTMLDivElement, StandaloneBrandCardProps>(({ brand, fallbackGradient, onNavigate, complianceScore }, ref) => {
   const hero = brand.hero || { name: brand.name, tagline: '' };
   const colors = brand.colors;
 
@@ -136,10 +145,15 @@ const StandaloneBrandCard = memo(forwardRef<HTMLDivElement, StandaloneBrandCardP
               {hero.tagline}
             </p>
           )}
-          <Button variant="ghost" size="sm" className="gap-1.5 p-0 h-auto text-primary hover:text-accent hover:bg-transparent text-xs">
-            View
-            <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
-          </Button>
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" size="sm" className="gap-1.5 p-0 h-auto text-primary hover:text-accent hover:bg-transparent text-xs">
+              View
+              <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+            </Button>
+            {complianceScore != null && (
+              <ComplianceScoreBadge score={complianceScore} size="sm" />
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -154,6 +168,7 @@ interface MasterBrandSectionProps {
   isExpanded: boolean;
   onToggle: () => void;
   onNavigate: (slug: string) => void;
+  complianceScores?: Map<string, ComplianceScoreEntry>;
 }
 
 // Memoized master brand section
@@ -163,7 +178,8 @@ const MasterBrandSection = memo(({
   fallbackGradient, 
   isExpanded, 
   onToggle,
-  onNavigate 
+  onNavigate,
+  complianceScores,
 }: MasterBrandSectionProps) => {
   const hero = brand.hero || { name: brand.name, tagline: '' };
   const colors = brand.colors;
@@ -264,6 +280,10 @@ const MasterBrandSection = memo(({
                   View Brand Guidelines
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
+
+                {complianceScores?.get(brand.id) != null && (
+                  <ComplianceScoreBadge score={complianceScores.get(brand.id)!.score} size="sm" />
+                )}
                 
                 {subBrands.length > 0 && (
                   <Button
@@ -306,6 +326,7 @@ const MasterBrandSection = memo(({
                     brand={subBrand} 
                     fallbackGradient={fallbackGradient}
                     onNavigate={onNavigate}
+                    complianceScore={complianceScores?.get(subBrand.id)?.score}
                   />
                 ))}
               </div>
@@ -324,9 +345,10 @@ interface HierarchicalBrandGridProps {
     primary: string;
     secondary: string;
   };
+  complianceScores?: Map<string, ComplianceScoreEntry>;
 }
 
-export const HierarchicalBrandGrid = memo(forwardRef<HTMLDivElement, HierarchicalBrandGridProps>(({ brands, orgColors }, ref) => {
+export const HierarchicalBrandGrid = memo(forwardRef<HTMLDivElement, HierarchicalBrandGridProps>(({ brands, orgColors, complianceScores }, ref) => {
   const navigate = useNavigate();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
@@ -419,6 +441,7 @@ export const HierarchicalBrandGrid = memo(forwardRef<HTMLDivElement, Hierarchica
             brand={brand} 
             fallbackGradient={fallbackGradient}
             onNavigate={handleNavigate}
+            complianceScore={complianceScores?.get(brand.id)?.score}
           />
         ))}
       </div>
@@ -431,15 +454,16 @@ export const HierarchicalBrandGrid = memo(forwardRef<HTMLDivElement, Hierarchica
       {hierarchy.masterBrands.length > 0 && (
         <div className="space-y-8">
           {hierarchy.masterBrands.map((brand) => (
-            <MasterBrandSection 
-              key={brand.id} 
-              brand={brand}
-              subBrands={hierarchy.subBrandsByParent.get(brand.id) || []}
-              fallbackGradient={fallbackGradient}
-              isExpanded={expandedSections.has(brand.id)}
-              onToggle={createToggleHandler(brand.id)}
-              onNavigate={handleNavigate}
-            />
+              <MasterBrandSection 
+                key={brand.id} 
+                brand={brand}
+                subBrands={hierarchy.subBrandsByParent.get(brand.id) || []}
+                fallbackGradient={fallbackGradient}
+                isExpanded={expandedSections.has(brand.id)}
+                onToggle={createToggleHandler(brand.id)}
+                onNavigate={handleNavigate}
+                complianceScores={complianceScores}
+              />
           ))}
         </div>
       )}
@@ -459,6 +483,7 @@ export const HierarchicalBrandGrid = memo(forwardRef<HTMLDivElement, Hierarchica
                 brand={brand} 
                 fallbackGradient={fallbackGradient}
                 onNavigate={handleNavigate}
+                complianceScore={complianceScores?.get(brand.id)?.score}
               />
             ))}
           </div>

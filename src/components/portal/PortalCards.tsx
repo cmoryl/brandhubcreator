@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { PortalBrand, PortalProduct, PortalEvent, PortalLinkedGuide } from '@/hooks/usePortalData';
+import { ComplianceScoreBadge } from '@/components/dataforce/ComplianceScoreBadge';
 import { cn } from '@/lib/utils';
 
 interface CardColors {
@@ -29,6 +30,7 @@ interface BrandCardProps {
   index: number;
   orgColors: CardColors;
   isFocused?: boolean;
+  complianceScore?: number | null;
 }
 
 interface ProductCardProps {
@@ -99,7 +101,7 @@ ColorDots.displayName = 'ColorDots';
 
 // Memoized brand card for performance
 export const PortalBrandCard = memo(React.forwardRef<HTMLDivElement, BrandCardProps>(
-  ({ brand, index, orgColors, isFocused = false }, ref) => {
+  ({ brand, index, orgColors, isFocused = false, complianceScore }, ref) => {
     const navigate = useNavigate();
     const hero = brand.hero || { name: brand.name, tagline: '' };
     const colors = brand.colors;
@@ -173,11 +175,16 @@ export const PortalBrandCard = memo(React.forwardRef<HTMLDivElement, BrandCardPr
                 View Guidelines
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
-              {isMasterBrand && (
-                <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                  Brand Hub
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {complianceScore != null && (
+                  <ComplianceScoreBadge score={complianceScore} size="sm" />
+                )}
+                {isMasterBrand && (
+                  <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                    Brand Hub
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>

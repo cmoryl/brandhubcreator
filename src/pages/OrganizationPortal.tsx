@@ -29,6 +29,7 @@ import { useSEO } from '@/hooks/useSEO';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { usePortalData, useFilteredPortalData } from '@/hooks/usePortalData';
 import { usePortalPagination } from '@/hooks/usePortalPagination';
+import { useLatestComplianceScores } from '@/hooks/dataforce/useLatestComplianceScores';
 import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { SearchInput } from '@/components/ui/search-input';
@@ -48,6 +49,9 @@ const OrganizationPortal = () => {
   
   // Use the new portal data hook
   const { organization, brands, products, events, isLoading: dataLoading, hasFetchedOnce, error } = usePortalData(slug);
+  
+  // Fetch compliance scores for the org
+  const { data: complianceScores } = useLatestComplianceScores(organization?.id);
   
   // Track if we have meaningful content (prevents flicker on background refetches)
   const hasContent = brands.length > 0 || products.length > 0 || events.length > 0;
@@ -599,7 +603,7 @@ const OrganizationPortal = () => {
                     {filteredBrands.length}
                   </Badge>
                 </h2>
-                <HierarchicalBrandGrid brands={filteredBrands} orgColors={orgColors} />
+                <HierarchicalBrandGrid brands={filteredBrands} orgColors={orgColors} complianceScores={complianceScores} />
                 {filteredBrands.length > 6 && activeTab === 'all' && (
                   <div className="mt-6 text-center">
                     <Button 
@@ -677,7 +681,7 @@ const OrganizationPortal = () => {
             {filteredBrands.length === 0 ? (
               <EmptyState searchQuery={searchQuery} type="brands" />
             ) : (
-              <HierarchicalBrandGrid brands={filteredBrands} orgColors={orgColors} />
+              <HierarchicalBrandGrid brands={filteredBrands} orgColors={orgColors} complianceScores={complianceScores} />
             )}
           </TabsContent>
 
