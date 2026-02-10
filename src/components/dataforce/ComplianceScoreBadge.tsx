@@ -50,7 +50,7 @@ export function ComplianceScoreBadge({ score, size = 'sm', showLabel = false, cl
         </TooltipTrigger>
         <TooltipContent>
           <p className="font-medium">
-            {hasScore ? `Compliance Score: ${displayScore}%` : 'No compliance data'}
+            {hasScore ? `Compliance Score: ${displayScore}%` : 'DataForce Compliance Checker'}
           </p>
           {hasScore && (
             <p className="text-xs text-muted-foreground">
