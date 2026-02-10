@@ -178,6 +178,9 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     sectionSubtitles: asObject(guideData.sectionSubtitles, {}) as BrandGuide['sectionSubtitles'],
     sectionLayouts: asObject(guideData.sectionLayouts, {}) as BrandGuide['sectionLayouts'],
     pageSettings: asObject(guideData.pageSettings, DEFAULT_PAGE_SETTINGS) as BrandGuide['pageSettings'],
+    eventSignage: asArray(guideData.eventSignage, []) as BrandGuide['eventSignage'],
+    presentationTemplates: asArray(guideData.presentationTemplates, []) as BrandGuide['presentationTemplates'],
+    mapTheme: guideData.mapTheme as BrandGuide['mapTheme'],
     createdAt: new Date(db.created_at),
     updatedAt: new Date(db.updated_at),
   };
@@ -239,6 +242,9 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
     sectionSubtitles: asObject(guideData.sectionSubtitles, {}) as ProductGuide['sectionSubtitles'],
     sectionLayouts: asObject(guideData.sectionLayouts, {}) as ProductGuide['sectionLayouts'],
     pageSettings: asObject(guideData.pageSettings, DEFAULT_PAGE_SETTINGS) as ProductGuide['pageSettings'],
+    eventSignage: asArray(guideData.eventSignage, []) as ProductGuide['eventSignage'],
+    presentationTemplates: asArray(guideData.presentationTemplates, []) as ProductGuide['presentationTemplates'],
+    mapTheme: guideData.mapTheme as ProductGuide['mapTheme'],
     createdAt: new Date(db.created_at),
     updatedAt: new Date(db.updated_at),
   };
