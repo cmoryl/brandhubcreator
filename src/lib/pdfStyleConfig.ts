@@ -113,13 +113,16 @@ export const getPdfContainerStyles = (paperSize: 'a4' | 'letter' = 'a4'): Partia
   position: 'fixed',
   top: '0',
   left: '0',
-  width: PDF_PAPER_CONFIGS[paperSize].width,
-  zIndex: '99999',
+  width: '750px',
+  height: 'auto',
+  zIndex: '-1',
   pointerEvents: 'none',
   overflow: 'visible',
   background: '#ffffff',
   color: '#111827',
   colorScheme: 'light',
+  clipPath: 'inset(0 0 0 0)',
+  opacity: '0.01',
 });
 
 // Apply container styles to an element
