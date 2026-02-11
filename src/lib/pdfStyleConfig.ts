@@ -108,11 +108,10 @@ export const PDF_PAPER_CONFIGS = {
 
 // Helper to create consistent container styles for PDF rendering
 export const getPdfContainerStyles = (paperSize: 'a4' | 'letter' = 'a4'): Partial<CSSStyleDeclaration> => ({
-  position: 'fixed',
+  position: 'absolute',
+  left: '-9999px',
   top: '0',
-  left: '0',
   width: PDF_PAPER_CONFIGS[paperSize].width,
-  zIndex: '-9999',
   opacity: '1',
   pointerEvents: 'none',
   overflow: 'visible',
