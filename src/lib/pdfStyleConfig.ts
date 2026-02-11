@@ -117,12 +117,18 @@ export const getPdfContainerStyles = (paperSize: 'a4' | 'letter' = 'a4'): Partia
   pointerEvents: 'none',
   overflow: 'visible',
   background: '#ffffff',
+  color: '#111827',
+  colorScheme: 'light',
 });
 
 // Apply container styles to an element
 export const applyPdfContainerStyles = (element: HTMLElement, paperSize: 'a4' | 'letter' = 'a4'): void => {
   const styles = getPdfContainerStyles(paperSize);
   Object.assign(element.style, styles);
+  // Force light mode to prevent dark theme CSS from cascading into PDF content
+  element.setAttribute('data-theme', 'light');
+  element.classList.remove('dark');
+  element.classList.add('light');
 };
 
 // Helper to get score color (used across reports)
