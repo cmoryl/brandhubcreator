@@ -313,21 +313,31 @@ export const exportCompetitiveAnalysisPdf = async (
   applyPdfContainerStyles(container, 'a4');
   document.body.appendChild(container);
   
-  // Force layout calculation
-  container.offsetHeight;
+  // Force layout calculation - read multiple properties to ensure browser paints
+  void container.offsetHeight;
+  void container.offsetWidth;
+  void container.getBoundingClientRect();
+  
+  // Small delay to ensure paint completes
+  await new Promise(resolve => setTimeout(resolve, 500));
 
   const filename = `${options.entityName.replace(/\s+/g, '_')}_Competitive_Analysis.pdf`;
 
   const pdfOptions = {
     margin: PDF_PAPER_CONFIGS.a4.margins,
     filename,
-    image: { type: 'jpeg' as const, quality: 0.95 },
+    image: { type: 'jpeg' as const, quality: 0.98 },
     html2canvas: {
       scale: 2,
       useCORS: true,
       allowTaint: true,
-      logging: false,
-      backgroundColor: PDF_COLORS.background.white,
+      logging: true,
+      backgroundColor: '#ffffff',
+      windowWidth: 800,
+      scrollX: 0,
+      scrollY: 0,
+      x: 0,
+      y: 0,
     },
     jsPDF: {
       ...PDF_PAPER_CONFIGS.a4.jsPDF,
@@ -347,6 +357,8 @@ export const exportCompetitiveAnalysisPdf = async (
     console.error('PDF export failed:', error);
     throw new Error('Failed to export PDF');
   } finally {
-    document.body.removeChild(container);
+    if (document.body.contains(container)) {
+      document.body.removeChild(container);
+    }
   }
 };

@@ -107,17 +107,21 @@ export const PDF_PAPER_CONFIGS = {
 };
 
 // Helper to create consistent container styles for PDF rendering
+// IMPORTANT: html2canvas requires elements to be fully visible and in the document flow.
+// We use a full-screen overlay approach so the content is rendered on-screen during capture.
 export const getPdfContainerStyles = (paperSize: 'a4' | 'letter' = 'a4'): Partial<CSSStyleDeclaration> => ({
-  position: 'absolute',
-  left: '-9999px',
+  position: 'fixed',
   top: '0',
+  left: '0',
   width: PDF_PAPER_CONFIGS[paperSize].width,
+  zIndex: '99999',
   opacity: '1',
   pointerEvents: 'none',
-  overflow: 'visible',
+  overflow: 'auto',
   background: '#ffffff',
   color: '#111827',
   colorScheme: 'light',
+  maxHeight: '100vh',
 });
 
 // Apply container styles to an element
