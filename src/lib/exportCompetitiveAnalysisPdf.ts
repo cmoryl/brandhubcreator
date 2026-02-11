@@ -61,11 +61,9 @@ const createPdfContent = (
       <h1 style="font-size:36px;font-weight:800;color:#111827;margin:0 0 8px;letter-spacing:-.5px;">Competitive Analysis</h1>
       <p style="font-size:22px;color:#6b7280;margin:0 0 4px;">${entityName}</p>
       <p style="font-size:13px;color:#9ca3af;margin:0;text-transform:uppercase;letter-spacing:1px;">${entityType} Report</p>
-      <div style="margin:48px auto;width:140px;height:140px;border-radius:50%;background:linear-gradient(135deg,${accentColor}22,${accentColor}08);display:flex;align-items:center;justify-content:center;border:3px solid ${scoreColor};">
-        <div>
-          <div style="font-size:52px;font-weight:800;color:${scoreColor};line-height:1;">${report.score}</div>
-          <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;">Score</div>
-        </div>
+      <div style="margin:48px auto;width:140px;height:140px;border-radius:50%;background:linear-gradient(135deg,${accentColor}22,${accentColor}08);border:3px solid ${scoreColor};text-align:center;padding-top:35px;box-sizing:border-box;">
+        <div style="font-size:52px;font-weight:800;color:${scoreColor};line-height:1;">${report.score}</div>
+        <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;">Score</div>
       </div>
       <p style="font-size:12px;color:#9ca3af;">Generated ${date}</p>
     </div>`;
@@ -284,11 +282,12 @@ export const exportCompetitiveAnalysisPdf = async (
   applyPdfContainerStyles(container, 'a4');
   document.body.appendChild(container);
 
-  // Force browser paint
+  // Force browser to fully layout and paint the content
   void container.offsetHeight;
   void container.offsetWidth;
-  void container.getBoundingClientRect();
-  await new Promise(resolve => setTimeout(resolve, 500));
+  container.getBoundingClientRect();
+  // Allow enough time for full paint before html2canvas captures
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   const filename = `${options.entityName.replace(/\s+/g, '_')}_Competitive_Analysis.pdf`;
 
@@ -300,11 +299,16 @@ export const exportCompetitiveAnalysisPdf = async (
       scale: 2,
       useCORS: true,
       allowTaint: true,
-      logging: true,
+      logging: false,
       backgroundColor: '#ffffff',
-      windowWidth: 800,
+      width: container.scrollWidth,
+      height: container.scrollHeight,
+      windowWidth: container.scrollWidth,
+      windowHeight: container.scrollHeight,
       scrollX: 0,
       scrollY: 0,
+      x: 0,
+      y: 0,
     },
     jsPDF: {
       ...PDF_PAPER_CONFIGS.a4.jsPDF,

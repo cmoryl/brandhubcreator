@@ -117,11 +117,10 @@ export const getPdfContainerStyles = (paperSize: 'a4' | 'letter' = 'a4'): Partia
   zIndex: '99999',
   opacity: '1',
   pointerEvents: 'none',
-  overflow: 'auto',
+  overflow: 'visible',
   background: '#ffffff',
   color: '#111827',
   colorScheme: 'light',
-  maxHeight: '100vh',
 });
 
 // Apply container styles to an element
