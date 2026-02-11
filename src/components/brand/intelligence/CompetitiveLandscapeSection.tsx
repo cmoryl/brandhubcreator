@@ -46,11 +46,16 @@ export const CompetitiveLandscapeSection = ({
 }: CompetitiveLandscapeSectionProps) => {
   if (!landscape) return null;
 
-  const hasContent = landscape.tracked_competitors?.length > 0 || 
+  const trackedCompetitors = Array.isArray(landscape.tracked_competitors) ? landscape.tracked_competitors : [];
+  const competitiveGaps = Array.isArray(landscape.competitive_gaps) ? landscape.competitive_gaps : [];
+  const differentiationOpps = Array.isArray(landscape.differentiation_opportunities) ? landscape.differentiation_opportunities : [];
+  const threatAssessment = Array.isArray(landscape.threat_assessment) ? landscape.threat_assessment : [];
+
+  const hasContent = trackedCompetitors.length > 0 || 
     landscape.positioning_summary ||
-    landscape.competitive_gaps?.length > 0 ||
-    landscape.differentiation_opportunities?.length > 0 ||
-    landscape.threat_assessment?.length > 0;
+    competitiveGaps.length > 0 ||
+    differentiationOpps.length > 0 ||
+    threatAssessment.length > 0;
 
   if (!hasContent) return null;
 
@@ -61,9 +66,9 @@ export const CompetitiveLandscapeSection = ({
           <div className="flex items-center gap-2">
             <Crosshair className="h-4 w-4 text-rose-500" />
             <span className="font-medium">Competitive Landscape</span>
-            {landscape.tracked_competitors?.length > 0 && (
+            {trackedCompetitors.length > 0 && (
               <Badge variant="secondary" className="ml-2">
-                {landscape.tracked_competitors.length} competitors
+                {trackedCompetitors.length} competitors
               </Badge>
             )}
           </div>
@@ -72,14 +77,14 @@ export const CompetitiveLandscapeSection = ({
       </CollapsibleTrigger>
       <CollapsibleContent className="mt-4 space-y-4">
         {/* Tracked Competitors */}
-        {landscape.tracked_competitors?.length > 0 && (
+        {trackedCompetitors.length > 0 && (
           <div className="p-4 rounded-xl bg-background/50 border border-border">
             <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
               <Users className="h-4 w-4 text-blue-500" />
               Tracked Competitors
             </h4>
             <div className="flex flex-wrap gap-2">
-              {landscape.tracked_competitors.map((competitor, i) => (
+              {trackedCompetitors.map((competitor, i) => (
                 <Badge key={i} variant="outline" className="text-xs">
                   {competitor}
                 </Badge>
@@ -105,14 +110,14 @@ export const CompetitiveLandscapeSection = ({
         )}
 
         {/* Differentiation Opportunities */}
-        {landscape.differentiation_opportunities?.length > 0 && (
+        {differentiationOpps.length > 0 && (
           <div className="p-4 rounded-xl bg-background/50 border border-border">
             <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-green-500" />
               Differentiation Opportunities
             </h4>
             <ul className="space-y-1">
-              {landscape.differentiation_opportunities.map((opp, i) => (
+              {differentiationOpps.map((opp, i) => (
                 <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
                   <span className="text-green-500 mt-1">✓</span>
                   {opp}
@@ -123,14 +128,14 @@ export const CompetitiveLandscapeSection = ({
         )}
 
         {/* Competitive Gaps */}
-        {landscape.competitive_gaps?.length > 0 && (
+        {competitiveGaps.length > 0 && (
           <div className="p-4 rounded-xl bg-background/50 border border-border">
             <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-amber-500" />
               Competitive Gaps
             </h4>
             <ul className="space-y-1">
-              {landscape.competitive_gaps.map((gap, i) => (
+              {competitiveGaps.map((gap, i) => (
                 <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
                   <span className="text-amber-500 mt-1">!</span>
                   {gap}
@@ -141,14 +146,14 @@ export const CompetitiveLandscapeSection = ({
         )}
 
         {/* Threat Assessment */}
-        {landscape.threat_assessment?.length > 0 && (
+        {threatAssessment.length > 0 && (
           <div className="p-4 rounded-xl bg-background/50 border border-border">
             <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
               <Shield className="h-4 w-4 text-rose-500" />
               Threat Assessment
             </h4>
             <div className="space-y-3">
-              {landscape.threat_assessment.map((threat, i) => (
+              {threatAssessment.map((threat, i) => (
                 <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
                   <Badge className={`shrink-0 ${threatColors[threat.threat_level]}`}>
                     {threat.threat_level}
