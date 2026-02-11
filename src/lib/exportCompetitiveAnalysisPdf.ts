@@ -14,293 +14,264 @@ export interface ExportOptions {
   theme?: 'light' | 'dark';
 }
 
+// ─── Helpers ────────────────────────────────────────────
+const safe = (arr: unknown): string[] => Array.isArray(arr) ? arr.filter(Boolean).map(String) : [];
+const str = (v: unknown, fb = 'N/A'): string => (typeof v === 'string' && v) ? v : fb;
+
+const li = (items: string[], color = '#4b5563') =>
+  items.map(i => `<li style="font-size:13px;color:${color};margin-bottom:6px;line-height:1.5;">${i}</li>`).join('');
+
+const sectionTitle = (text: string) => `
+  <h2 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 18px;padding-bottom:10px;border-bottom:2px solid #e5e7eb;">${text}</h2>`;
+
+const htmlBar = (label: string, value: number, max = 10) => {
+  const pct = Math.round((value / max) * 100);
+  const color = value >= 8 ? '#22c55e' : value >= 6 ? '#eab308' : value >= 4 ? '#f97316' : '#ef4444';
+  return `
+    <tr>
+      <td style="padding:8px 12px;width:170px;font-size:13px;font-weight:500;color:#374151;">${label}</td>
+      <td style="padding:8px 12px;">
+        <div style="background:#e5e7eb;border-radius:999px;height:14px;overflow:hidden;position:relative;">
+          <div style="background:${color};width:${pct}%;height:100%;border-radius:999px;"></div>
+        </div>
+      </td>
+      <td style="padding:8px 12px;width:55px;text-align:right;font-size:13px;font-weight:700;color:${color};">${value}/${max}</td>
+    </tr>`;
+};
+
+const badge = (text: string, fg: string, bg: string) =>
+  `<span style="display:inline-block;padding:3px 12px;font-size:11px;font-weight:600;border-radius:999px;background:${bg};color:${fg};text-transform:uppercase;letter-spacing:.5px;">${text}</span>`;
+
+// ─── PDF Content Builder ────────────────────────────────
 const createPdfContent = (
   report: CompetitiveAnalysisReportData,
   options: ExportOptions
 ): string => {
   const { entityName, entityType } = options;
   const scoreColor = getScoreColor(report.score);
-  const generatedDate = formatPdfDate();
+  const date = formatPdfDate();
 
-  // Helper to safely render arrays
-  const safeArray = (arr: unknown): string[] => Array.isArray(arr) ? arr.filter(Boolean).map(String) : [];
-  const safeString = (val: unknown, fallback = 'N/A'): string => (typeof val === 'string' && val) ? val : fallback;
+  const entityColors: Record<string, string> = { brand: '#14b8a6', product: '#139cd8', event: '#a855f7' };
+  const accentColor = entityColors[entityType] || '#3b82f6';
 
-  const listItems = (items: string[]) => items.map(item => `<li style="font-size: 13px; color: #4b5563; margin-bottom: 6px;">${item}</li>`).join('');
+  // ── Cover ─────────────────────────────────
+  const cover = `
+    <div style="text-align:center;padding:60px 40px;page-break-after:always;">
+      <div style="display:inline-block;width:60px;height:4px;background:${accentColor};border-radius:2px;margin-bottom:32px;"></div>
+      <h1 style="font-size:36px;font-weight:800;color:#111827;margin:0 0 8px;letter-spacing:-.5px;">Competitive Analysis</h1>
+      <p style="font-size:22px;color:#6b7280;margin:0 0 4px;">${entityName}</p>
+      <p style="font-size:13px;color:#9ca3af;margin:0;text-transform:uppercase;letter-spacing:1px;">${entityType} Report</p>
+      <div style="margin:48px auto;width:140px;height:140px;border-radius:50%;background:linear-gradient(135deg,${accentColor}22,${accentColor}08);display:flex;align-items:center;justify-content:center;border:3px solid ${scoreColor};">
+        <div>
+          <div style="font-size:52px;font-weight:800;color:${scoreColor};line-height:1;">${report.score}</div>
+          <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;">Score</div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:#9ca3af;">Generated ${date}</p>
+    </div>`;
+
+  // ── Executive Summary ─────────────────────
+  const execSummary = `
+    <div style="margin-bottom:40px;page-break-after:always;">
+      ${sectionTitle('Executive Summary')}
+      <p style="font-size:14px;color:#374151;line-height:1.7;margin:0 0 24px;">${str(report.executiveSummary?.overview)}</p>
+      <div style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border-left:4px solid #22c55e;padding:16px 20px;border-radius:0 10px 10px 0;margin-bottom:24px;">
+        <p style="font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;">Current Position</p>
+        <p style="font-size:13px;color:#15803d;margin:0;line-height:1.6;">${str(report.executiveSummary?.currentPosition)}</p>
+      </div>
+      <p style="font-size:14px;font-weight:700;color:#111827;margin:0 0 10px;">Top Priorities</p>
+      <ul style="margin:0;padding-left:18px;">${li(safe(report.executiveSummary?.topPriorities))}</ul>
+    </div>`;
+
+  // ── Market Perception ─────────────────────
+  const marketPerception = `
+    <div style="margin-bottom:40px;page-break-after:always;">
+      ${sectionTitle('Market Perception')}
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+        <tr>
+          <td style="width:50%;vertical-align:top;padding-right:10px;">
+            <div style="background:#f0fdf4;padding:18px;border-radius:10px;min-height:120px;">
+              <p style="font-size:13px;font-weight:700;color:#166534;margin:0 0 10px;">✓ Key Strengths</p>
+              <ul style="margin:0;padding-left:14px;">${li(safe(report.marketPerception?.keyStrengths), '#15803d')}</ul>
+            </div>
+          </td>
+          <td style="width:50%;vertical-align:top;padding-left:10px;">
+            <div style="background:#fef3c7;padding:18px;border-radius:10px;min-height:120px;">
+              <p style="font-size:13px;font-weight:700;color:#92400e;margin:0 0 10px;">⚠ Critical Gaps</p>
+              <ul style="margin:0;padding-left:14px;">${li(safe(report.marketPerception?.criticalGaps), '#a16207')}</ul>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <div style="background:#fef2f2;padding:18px;border-radius:10px;">
+        <p style="font-size:13px;font-weight:700;color:#991b1b;margin:0 0 10px;">⚡ Risks</p>
+        <ul style="margin:0;padding-left:14px;">${li(safe(report.marketPerception?.risks), '#b91c1c')}</ul>
+      </div>
+    </div>`;
+
+  // ── Strengths & Weaknesses (HTML bar chart) ───
+  const matrixEntries = [
+    ['Design Sophistication', report.strengthsWeaknesses?.designSophistication],
+    ['Visual Consistency', report.strengthsWeaknesses?.visualConsistency],
+    ['User Centricity', report.strengthsWeaknesses?.userCentricity],
+    ['Innovation', report.strengthsWeaknesses?.innovation],
+    ['Clarity', report.strengthsWeaknesses?.clarity],
+    ['Emotional Connection', report.strengthsWeaknesses?.emotionalConnection],
+    ['Professional Polish', report.strengthsWeaknesses?.professionalPolish],
+  ].sort((a, b) => (Number(b[1]) || 0) - (Number(a[1]) || 0));
+
+  const swMatrix = `
+    <div style="margin-bottom:40px;page-break-after:always;">
+      ${sectionTitle('Strengths & Weaknesses Matrix')}
+      <table style="width:100%;border-collapse:collapse;">
+        <tbody>
+          ${matrixEntries.map(([label, val]) => htmlBar(String(label), Number(val) || 0)).join('')}
+        </tbody>
+      </table>
+    </div>`;
+
+  // ── Brand Positioning ─────────────────────
+  const pm = report.brandPositioning?.personalityMatrix || {} as any;
+  const personalityItems = [
+    ['Innovation', pm.innovationScore],
+    ['Approachability', pm.approachabilityScore],
+    ['Technical', pm.technicalScore],
+    ['Boldness', pm.boldnessScore],
+    ['Enterprise', pm.enterpriseScore],
+    ['Global', pm.globalScore],
+  ];
+
+  const positioning = `
+    <div style="margin-bottom:40px;page-break-after:always;">
+      ${sectionTitle('Brand Positioning')}
+      <p style="font-size:14px;font-weight:700;color:#374151;margin:0 0 12px;">Personality Matrix</p>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        <tbody>
+          ${personalityItems.map(([l, v]) => htmlBar(String(l), Number(v) || 0)).join('')}
+        </tbody>
+      </table>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr>
+          <td style="width:50%;vertical-align:top;padding-right:10px;">
+            <p style="font-size:13px;font-weight:700;color:#1d4ed8;margin:0 0 8px;">Target Audience Signals</p>
+            <ul style="margin:0;padding-left:14px;">${li(safe(report.brandPositioning?.targetAudienceSignals), '#2563eb')}</ul>
+          </td>
+          <td style="width:50%;vertical-align:top;padding-left:10px;">
+            <p style="font-size:13px;font-weight:700;color:#7c3aed;margin:0 0 8px;">Differentiation Factors</p>
+            <ul style="margin:0;padding-left:14px;">${li(safe(report.brandPositioning?.differentiation), '#7c3aed')}</ul>
+          </td>
+        </tr>
+      </table>
+      ${safe(report.brandPositioning?.trustIndicators).length > 0 ? `
+        <div style="margin-top:20px;">
+          <p style="font-size:13px;font-weight:700;color:#374151;margin:0 0 8px;">Trust Indicators</p>
+          <div>${safe(report.brandPositioning?.trustIndicators).map(t => badge(t, '#065f46', '#d1fae5')).join(' ')}</div>
+        </div>
+      ` : ''}
+    </div>`;
+
+  // ── Recommendations ───────────────────────
+  const designPriorities = safe(report.recommendations?.designPriorities).map((p: any, i: number) => {
+    const impactColor = p?.impact === 'high' ? '#22c55e' : p?.impact === 'medium' ? '#eab308' : '#9ca3af';
+    const effortColor = p?.effort === 'low' ? '#22c55e' : p?.effort === 'medium' ? '#eab308' : '#ef4444';
+    return `
+      <tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #f3f4f6;font-size:13px;color:#374151;">
+          <strong style="color:#111827;">${i + 1}.</strong> ${str(p?.title, 'Untitled')}
+        </td>
+        <td style="text-align:center;padding:10px 12px;border-bottom:1px solid #f3f4f6;">
+          ${badge(str(p?.impact, '-'), impactColor, impactColor + '18')}
+        </td>
+        <td style="text-align:center;padding:10px 12px;border-bottom:1px solid #f3f4f6;">
+          ${badge(str(p?.effort, '-'), effortColor, effortColor + '18')}
+        </td>
+      </tr>`;
+  }).join('');
+
+  const br = report.recommendations?.brandRefinements;
+  const refinementCard = (title: string, text: string, icon: string) => `
+    <td style="width:50%;vertical-align:top;padding:6px;">
+      <div style="background:#f9fafb;padding:14px 16px;border-radius:8px;border:1px solid #f3f4f6;">
+        <p style="font-size:12px;font-weight:700;color:#374151;margin:0 0 4px;">${icon} ${title}</p>
+        <p style="font-size:12px;color:#6b7280;margin:0;line-height:1.5;">${str(text)}</p>
+      </div>
+    </td>`;
+
+  const recommendations = `
+    <div style="margin-bottom:40px;page-break-before:always;">
+      ${sectionTitle('Strategic Recommendations')}
+      <p style="font-size:14px;font-weight:700;color:#374151;margin:0 0 12px;">Design Priorities</p>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:28px;">
+        <thead>
+          <tr style="background:#f9fafb;">
+            <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #e5e7eb;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">Priority</th>
+            <th style="text-align:center;padding:10px 12px;border-bottom:2px solid #e5e7eb;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">Impact</th>
+            <th style="text-align:center;padding:10px 12px;border-bottom:2px solid #e5e7eb;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">Effort</th>
+          </tr>
+        </thead>
+        <tbody>${designPriorities}</tbody>
+      </table>
+
+      <p style="font-size:14px;font-weight:700;color:#374151;margin:0 0 12px;">Brand Refinements</p>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:28px;">
+        <tr>${refinementCard('Logo', str(br?.logo), '◆')}${refinementCard('Colors', str(br?.colors), '◉')}</tr>
+        <tr>${refinementCard('Typography', str(br?.typography), '𝐓')}${refinementCard('Imagery', str(br?.imagery), '▣')}</tr>
+      </table>
+
+      <p style="font-size:14px;font-weight:700;color:#374151;margin:0 0 10px;">Positioning Opportunities</p>
+      <ul style="margin:0 0 20px;padding-left:18px;">${li(safe(report.recommendations?.positioningOpportunities))}</ul>
+
+      ${safe(report.recommendations?.digitalImprovements).length > 0 ? `
+        <p style="font-size:14px;font-weight:700;color:#374151;margin:0 0 10px;">Digital Improvements</p>
+        <ul style="margin:0 0 20px;padding-left:18px;">${li(safe(report.recommendations?.digitalImprovements))}</ul>
+      ` : ''}
+    </div>`;
+
+  // ── Action Plan ───────────────────────────
+  const phase = (title: string, items: string[], bg: string, headColor: string, textColor: string) => `
+    <td style="width:33.33%;vertical-align:top;padding:6px;">
+      <div style="background:${bg};padding:18px;border-radius:10px;min-height:140px;">
+        <p style="font-size:14px;font-weight:700;color:${headColor};margin:0 0 12px;">${title}</p>
+        <ul style="margin:0;padding-left:14px;">${li(items, textColor)}</ul>
+      </div>
+    </td>`;
+
+  const actionPlan = `
+    <div style="margin-bottom:40px;page-break-before:always;">
+      ${sectionTitle('30 / 60 / 90 Day Action Plan')}
+      <table style="width:100%;border-collapse:collapse;margin-bottom:28px;">
+        <tr>
+          ${phase('30 Days', safe(report.executiveSummary?.actionPlan?.thirtyDay), '#dbeafe', '#1e40af', '#1e3a8a')}
+          ${phase('60 Days', safe(report.executiveSummary?.actionPlan?.sixtyDay), '#fef3c7', '#92400e', '#78350f')}
+          ${phase('90 Days', safe(report.executiveSummary?.actionPlan?.ninetyDay), '#d1fae5', '#065f46', '#064e3b')}
+        </tr>
+      </table>
+      <div style="background:#f0f9ff;border:1px solid #bae6fd;padding:18px;border-radius:10px;">
+        <p style="font-size:13px;font-weight:700;color:#0369a1;margin:0 0 10px;">📊 Success Metrics</p>
+        <ul style="margin:0;padding-left:14px;">${li(safe(report.executiveSummary?.successMetrics), '#0284c7')}</ul>
+      </div>
+    </div>`;
+
+  // ── Footer ────────────────────────────────
+  const footer = `
+    <div style="text-align:center;padding-top:32px;border-top:1px solid #e5e7eb;">
+      <p style="font-size:11px;color:#9ca3af;margin:0;">Generated by Brand Intelligence System · ${date}</p>
+    </div>`;
 
   return `
-    <div style="font-family: 'Helvetica Neue', Arial, sans-serif; color: #111827; line-height: 1.6; padding: 40px;">
-      <!-- Cover Page -->
-      <div style="text-align: center; margin-bottom: 60px; page-break-after: always;">
-        <div style="margin-bottom: 40px;">
-          <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 8px; color: #111827;">Competitive Analysis Report</h1>
-          <p style="font-size: 20px; color: #6b7280; margin: 0;">${entityName}</p>
-          <p style="font-size: 14px; color: #9ca3af; margin-top: 8px; text-transform: capitalize;">${entityType} Analysis</p>
-        </div>
-        
-        <div style="display: inline-block; padding: 24px 48px; background: #f9fafb; border-radius: 16px; margin: 40px 0;">
-          <div style="font-size: 64px; font-weight: 700; color: ${scoreColor};">${report.score}</div>
-          <div style="font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;">Overall Score</div>
-        </div>
-        
-        <p style="font-size: 14px; color: #9ca3af; margin-top: 40px;">Generated on ${generatedDate}</p>
-      </div>
-
-      <!-- Executive Summary -->
-      <div style="margin-bottom: 40px; page-break-after: always;">
-        <h2 style="font-size: 24px; font-weight: 600; color: #111827; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e5e7eb;">
-          Executive Summary
-        </h2>
-        <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">${safeString(report.executiveSummary?.overview)}</p>
-        
-        <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 16px 20px; margin-bottom: 24px; border-radius: 0 8px 8px 0;">
-          <h3 style="font-size: 16px; font-weight: 600; color: #166534; margin: 0 0 12px;">Current Position</h3>
-          <p style="font-size: 14px; color: #15803d; margin: 0;">${safeString(report.executiveSummary?.currentPosition)}</p>
-        </div>
-
-        <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 24px 0 16px;">Top Priorities</h3>
-        <ul style="margin: 0; padding-left: 20px;">
-          ${listItems(safeArray(report.executiveSummary?.topPriorities))}
-        </ul>
-      </div>
-
-      <!-- Key Strengths & Gaps -->
-      <div style="margin-bottom: 40px;">
-        <h2 style="font-size: 24px; font-weight: 600; color: #111827; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e5e7eb;">
-          Market Perception
-        </h2>
-        
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
-          <tr>
-            <td style="width: 50%; vertical-align: top; padding-right: 12px;">
-              <div style="background: #f0fdf4; padding: 20px; border-radius: 12px;">
-                <h3 style="font-size: 16px; font-weight: 600; color: #166534; margin: 0 0 12px;">✓ Key Strengths</h3>
-                <ul style="margin: 0; padding-left: 16px;">
-                  ${safeArray(report.marketPerception?.keyStrengths).map(s => `<li style="font-size: 13px; color: #15803d; margin-bottom: 6px;">${s}</li>`).join('')}
-                </ul>
-              </div>
-            </td>
-            <td style="width: 50%; vertical-align: top; padding-left: 12px;">
-              <div style="background: #fef3c7; padding: 20px; border-radius: 12px;">
-                <h3 style="font-size: 16px; font-weight: 600; color: #92400e; margin: 0 0 12px;">⚠ Critical Gaps</h3>
-                <ul style="margin: 0; padding-left: 16px;">
-                  ${safeArray(report.marketPerception?.criticalGaps).map(g => `<li style="font-size: 13px; color: #a16207; margin-bottom: 6px;">${g}</li>`).join('')}
-                </ul>
-              </div>
-            </td>
-          </tr>
-        </table>
-
-        <div style="background: #fef2f2; padding: 20px; border-radius: 12px;">
-          <h3 style="font-size: 16px; font-weight: 600; color: #991b1b; margin: 0 0 12px;">⚡ Risks</h3>
-          <ul style="margin: 0; padding-left: 16px;">
-            ${safeArray(report.marketPerception?.risks).map(r => `<li style="font-size: 13px; color: #b91c1c; margin-bottom: 6px;">${r}</li>`).join('')}
-          </ul>
-        </div>
-      </div>
-
-      <!-- Strengths & Weaknesses Matrix -->
-      <div style="margin-bottom: 40px; page-break-before: always;">
-        <h2 style="font-size: 24px; font-weight: 600; color: #111827; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e5e7eb;">
-          Strengths & Weaknesses Matrix
-        </h2>
-        
-        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-          <thead>
-            <tr style="background: #f9fafb;">
-              <th style="text-align: left; padding: 12px; border-bottom: 2px solid #e5e7eb;">Metric</th>
-              <th style="text-align: center; padding: 12px; border-bottom: 2px solid #e5e7eb;">Score</th>
-              <th style="text-align: left; padding: 12px; border-bottom: 2px solid #e5e7eb;">Rating</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${Object.entries(report.strengthsWeaknesses || {}).map(([key, value]) => {
-              const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-              const numVal = typeof value === 'number' ? value : 0;
-              const rating = numVal >= 8 ? 'Excellent' : numVal >= 6 ? 'Good' : numVal >= 4 ? 'Average' : 'Needs Work';
-              const color = numVal >= 8 ? '#22c55e' : numVal >= 6 ? '#3b82f6' : numVal >= 4 ? '#eab308' : '#ef4444';
-              return `
-                <tr>
-                  <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">${label}</td>
-                  <td style="text-align: center; padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                    <span style="color: ${color}; font-weight: 600;">${numVal}/10</span>
-                  </td>
-                  <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; color: ${color}; font-weight: 500;">${rating}</td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Brand Positioning -->
-      <div style="margin-bottom: 40px;">
-        <h2 style="font-size: 24px; font-weight: 600; color: #111827; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e5e7eb;">
-          Brand Positioning
-        </h2>
-        
-        <h3 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 12px;">Personality Matrix</h3>
-        <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
-          <tbody>
-            ${Object.entries(report.brandPositioning?.personalityMatrix || {}).map(([key, value]) => {
-              const label = key.replace('Score', '').replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-              const numVal = typeof value === 'number' ? value : 0;
-              const width = numVal * 10;
-              return `
-                <tr>
-                  <td style="padding: 8px 12px; width: 150px; font-weight: 500;">${label}</td>
-                  <td style="padding: 8px 12px;">
-                    <div style="background: #e5e7eb; border-radius: 9999px; height: 12px; overflow: hidden;">
-                      <div style="background: #3b82f6; width: ${width}%; height: 100%; border-radius: 9999px;"></div>
-                    </div>
-                  </td>
-                  <td style="padding: 8px 12px; width: 60px; text-align: right; font-weight: 600; color: #6b7280;">${numVal}/10</td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-
-        <table style="width: 100%; border-collapse: collapse;">
-          <tr>
-            <td style="width: 50%; vertical-align: top; padding-right: 12px;">
-              <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Target Audience Signals</h3>
-              <ul style="margin: 0; padding-left: 16px;">
-                ${safeArray(report.brandPositioning?.targetAudienceSignals).map(s => `<li style="font-size: 12px; color: #1d4ed8; margin-bottom: 4px;">${s}</li>`).join('')}
-              </ul>
-            </td>
-            <td style="width: 50%; vertical-align: top; padding-left: 12px;">
-              <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Differentiation Factors</h3>
-              <ul style="margin: 0; padding-left: 16px;">
-                ${safeArray(report.brandPositioning?.differentiation).map(d => `<li style="font-size: 12px; color: #7c3aed; margin-bottom: 4px;">${d}</li>`).join('')}
-              </ul>
-            </td>
-          </tr>
-        </table>
-      </div>
-
-      <!-- Recommendations -->
-      <div style="margin-bottom: 40px; page-break-before: always;">
-        <h2 style="font-size: 24px; font-weight: 600; color: #111827; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e5e7eb;">
-          Strategic Recommendations
-        </h2>
-
-        <h3 style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 16px;">Design Priorities</h3>
-        <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 32px;">
-          <thead>
-            <tr style="background: #f9fafb;">
-              <th style="text-align: left; padding: 12px; border-bottom: 2px solid #e5e7eb;">Priority</th>
-              <th style="text-align: center; padding: 12px; border-bottom: 2px solid #e5e7eb;">Impact</th>
-              <th style="text-align: center; padding: 12px; border-bottom: 2px solid #e5e7eb;">Effort</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${safeArray(report.recommendations?.designPriorities).map((p: any, i: number) => `
-              <tr>
-                <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                  <strong>${i + 1}.</strong> ${safeString(p?.title, 'Untitled')}
-                </td>
-                <td style="text-align: center; padding: 12px; border-bottom: 1px solid #e5e7eb; text-transform: capitalize;">
-                  ${safeString(p?.impact, '-')}
-                </td>
-                <td style="text-align: center; padding: 12px; border-bottom: 1px solid #e5e7eb; text-transform: capitalize;">
-                  ${safeString(p?.effort, '-')}
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-
-        <h3 style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 16px;">Brand Refinements</h3>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 32px;">
-          <tr>
-            <td style="width: 50%; vertical-align: top; padding: 8px;">
-              <div style="background: #f9fafb; padding: 16px; border-radius: 8px;">
-                <strong style="color: #374151;">Logo:</strong>
-                <p style="color: #6b7280; margin: 4px 0 0; font-size: 13px;">${safeString(report.recommendations?.brandRefinements?.logo)}</p>
-              </div>
-            </td>
-            <td style="width: 50%; vertical-align: top; padding: 8px;">
-              <div style="background: #f9fafb; padding: 16px; border-radius: 8px;">
-                <strong style="color: #374151;">Colors:</strong>
-                <p style="color: #6b7280; margin: 4px 0 0; font-size: 13px;">${safeString(report.recommendations?.brandRefinements?.colors)}</p>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td style="width: 50%; vertical-align: top; padding: 8px;">
-              <div style="background: #f9fafb; padding: 16px; border-radius: 8px;">
-                <strong style="color: #374151;">Typography:</strong>
-                <p style="color: #6b7280; margin: 4px 0 0; font-size: 13px;">${safeString(report.recommendations?.brandRefinements?.typography)}</p>
-              </div>
-            </td>
-            <td style="width: 50%; vertical-align: top; padding: 8px;">
-              <div style="background: #f9fafb; padding: 16px; border-radius: 8px;">
-                <strong style="color: #374151;">Imagery:</strong>
-                <p style="color: #6b7280; margin: 4px 0 0; font-size: 13px;">${safeString(report.recommendations?.brandRefinements?.imagery)}</p>
-              </div>
-            </td>
-          </tr>
-        </table>
-
-        <h3 style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 16px;">Positioning Opportunities</h3>
-        <ul style="margin: 0; padding-left: 20px;">
-          ${safeArray(report.recommendations?.positioningOpportunities).map(o => `<li style="font-size: 14px; color: #4b5563; margin-bottom: 8px;">${o}</li>`).join('')}
-        </ul>
-      </div>
-
-      <!-- Action Plan -->
-      <div style="margin-bottom: 40px; page-break-before: always;">
-        <h2 style="font-size: 24px; font-weight: 600; color: #111827; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e5e7eb;">
-          30/60/90 Day Action Plan
-        </h2>
-
-        <table style="width: 100%; border-collapse: collapse;">
-          <tr>
-            <td style="width: 33.33%; vertical-align: top; padding: 8px;">
-              <div style="background: #dbeafe; padding: 20px; border-radius: 12px; min-height: 150px;">
-                <h3 style="font-size: 16px; font-weight: 600; color: #1e40af; margin: 0 0 16px;">30 Days</h3>
-                <ul style="margin: 0; padding-left: 16px;">
-                  ${safeArray(report.executiveSummary?.actionPlan?.thirtyDay).map(a => `<li style="font-size: 13px; color: #3730a3; margin-bottom: 8px;">${a}</li>`).join('')}
-                </ul>
-              </div>
-            </td>
-            <td style="width: 33.33%; vertical-align: top; padding: 8px;">
-              <div style="background: #fef3c7; padding: 20px; border-radius: 12px; min-height: 150px;">
-                <h3 style="font-size: 16px; font-weight: 600; color: #92400e; margin: 0 0 16px;">60 Days</h3>
-                <ul style="margin: 0; padding-left: 16px;">
-                  ${safeArray(report.executiveSummary?.actionPlan?.sixtyDay).map(a => `<li style="font-size: 13px; color: #9a3412; margin-bottom: 8px;">${a}</li>`).join('')}
-                </ul>
-              </div>
-            </td>
-            <td style="width: 33.33%; vertical-align: top; padding: 8px;">
-              <div style="background: #d1fae5; padding: 20px; border-radius: 12px; min-height: 150px;">
-                <h3 style="font-size: 16px; font-weight: 600; color: #065f46; margin: 0 0 16px;">90 Days</h3>
-                <ul style="margin: 0; padding-left: 16px;">
-                  ${safeArray(report.executiveSummary?.actionPlan?.ninetyDay).map(a => `<li style="font-size: 13px; color: #047857; margin-bottom: 8px;">${a}</li>`).join('')}
-                </ul>
-              </div>
-            </td>
-          </tr>
-        </table>
-
-        <div style="margin-top: 32px; background: #f0f9ff; border: 1px solid #bae6fd; padding: 20px; border-radius: 12px;">
-          <h3 style="font-size: 16px; font-weight: 600; color: #0369a1; margin: 0 0 12px;">Success Metrics</h3>
-          <ul style="margin: 0; padding-left: 20px;">
-            ${safeArray(report.executiveSummary?.successMetrics).map(m => `<li style="font-size: 13px; color: #0284c7; margin-bottom: 8px;">${m}</li>`).join('')}
-          </ul>
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <div style="text-align: center; padding-top: 40px; border-top: 1px solid #e5e7eb; color: #9ca3af; font-size: 12px;">
-        <p>Generated by Brand Intelligence System</p>
-        <p>${generatedDate}</p>
-      </div>
-    </div>
-  `;
+    <div style="font-family:'Helvetica Neue',Arial,sans-serif;color:#111827;line-height:1.6;padding:36px 40px;background:#ffffff;">
+      ${cover}
+      ${execSummary}
+      ${marketPerception}
+      ${swMatrix}
+      ${positioning}
+      ${recommendations}
+      ${actionPlan}
+      ${footer}
+    </div>`;
 };
 
+// ─── Export Function ────────────────────────────────────
 export const exportCompetitiveAnalysisPdf = async (
   report: CompetitiveAnalysisReportData,
   options: ExportOptions,
@@ -312,13 +283,11 @@ export const exportCompetitiveAnalysisPdf = async (
   container.innerHTML = createPdfContent(report, options);
   applyPdfContainerStyles(container, 'a4');
   document.body.appendChild(container);
-  
-  // Force layout calculation - read multiple properties to ensure browser paints
+
+  // Force browser paint
   void container.offsetHeight;
   void container.offsetWidth;
   void container.getBoundingClientRect();
-  
-  // Small delay to ensure paint completes
   await new Promise(resolve => setTimeout(resolve, 500));
 
   const filename = `${options.entityName.replace(/\s+/g, '_')}_Competitive_Analysis.pdf`;
@@ -336,8 +305,6 @@ export const exportCompetitiveAnalysisPdf = async (
       windowWidth: 800,
       scrollX: 0,
       scrollY: 0,
-      x: 0,
-      y: 0,
     },
     jsPDF: {
       ...PDF_PAPER_CONFIGS.a4.jsPDF,
