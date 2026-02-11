@@ -1,18 +1,10 @@
 import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
 import type { CompetitiveAnalysisReportData } from '@/types/competitiveAnalysis';
 import {
   PDF_COLORS,
-  PDF_FONTS,
   PDF_TYPOGRAPHY,
-  PDF_SPACING,
-  applyPdfContainerStyles,
   getScoreColor,
   formatPdfDate,
-  getSectionHeaderStyles,
-  getCardStyles,
-  getTableStyles,
-  getBadgeStyles,
 } from './pdfStyleConfig';
 
 export interface ExportOptions {
@@ -21,119 +13,278 @@ export interface ExportOptions {
   theme?: 'light' | 'dark';
 }
 
-// ─── Shorthand references ───────────────────────────────
 const C = PDF_COLORS;
-const T = PDF_TYPOGRAPHY;
-const S = PDF_SPACING;
 
-// ─── Helpers ────────────────────────────────────────────
 const safe = (arr: unknown): string[] =>
   Array.isArray(arr) ? arr.filter(Boolean).map(String) : [];
 const str = (v: unknown, fb = 'N/A'): string =>
   typeof v === 'string' && v ? v : fb;
 
-const li = (items: string[], color = C.text.secondary) =>
-  items
-    .map(
-      (i) =>
-        `<li style="font-size:${T.small.size};color:${color};margin-bottom:6px;line-height:${T.small.lineHeight};">${i}</li>`
-    )
-    .join('');
-
-const sectionTitle = (text: string) =>
-  `<h2 style="${getSectionHeaderStyles()}">${text}</h2>`;
-
-const htmlBar = (label: string, value: number, max = 10) => {
-  const pct = Math.round((value / max) * 100);
-  const color =
-    value >= 8
-      ? C.accent.success
-      : value >= 6
-        ? C.accent.warning
-        : value >= 4
-          ? C.accent.orange
-          : C.accent.danger;
-  return `
-    <tr>
-      <td style="padding:${S.sm} ${S.md};width:170px;font-size:${T.small.size};font-weight:500;color:${C.text.secondary};">${label}</td>
-      <td style="padding:${S.sm} ${S.md};">
-        <div style="background:${C.border.light};border-radius:999px;height:14px;overflow:hidden;position:relative;">
-          <div style="background:${color};width:${pct}%;height:100%;border-radius:999px;"></div>
-        </div>
-      </td>
-      <td style="padding:${S.sm} ${S.md};width:55px;text-align:right;font-size:${T.small.size};font-weight:700;color:${color};">${value}/${max}</td>
-    </tr>`;
+// ─── Color helpers ──────────────────────────────────────
+const hexToRgb = (hex: string): [number, number, number] => {
+  const h = hex.replace('#', '');
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 };
 
-const badge = (text: string, fg: string, bg: string) =>
-  `<span style="${getBadgeStyles(fg, bg)};text-transform:uppercase;letter-spacing:.5px;font-weight:600;">${text}</span>`;
+const setColor = (pdf: jsPDF, hex: string) => pdf.setTextColor(...hexToRgb(hex));
+const setDraw = (pdf: jsPDF, hex: string) => pdf.setDrawColor(...hexToRgb(hex));
+const setFill = (pdf: jsPDF, hex: string) => pdf.setFillColor(...hexToRgb(hex));
 
-const subheading = (text: string) =>
-  `<p style="font-size:${T.body.size};font-weight:700;color:${C.text.secondary};margin:0 0 ${S.md};">${text}</p>`;
+// ─── Layout constants ───────────────────────────────────
+const A4_W = 210;
+const A4_H = 297;
+const M = 15; // margin
+const CW = A4_W - M * 2; // content width
+const COL_W = (CW - 6) / 2; // two-column width with gap
 
-// ─── PDF Section Builders ───────────────────────────────
-const buildCover = (
-  report: CompetitiveAnalysisReportData,
-  entityName: string,
-  entityType: string,
-  accentColor: string,
-  scoreColor: string,
-  date: string
-) => `
-  <div data-pdf-section style="text-align:center;padding:60px ${S['4xl']};">
-    <div style="display:inline-block;width:60px;height:4px;background:${accentColor};border-radius:2px;margin-bottom:${S['3xl']};"></div>
-    <h1 style="font-size:${T.title.size};font-weight:800;color:${C.text.primary};margin:0 0 ${S.sm};letter-spacing:-.5px;">Competitive Analysis</h1>
-    <p style="font-size:${T.h2.size};color:${C.text.muted};margin:0 0 ${S.xs};">${entityName}</p>
-    <p style="font-size:${T.small.size};color:${C.text.subtle};margin:0;text-transform:uppercase;letter-spacing:1px;">${entityType} Report</p>
-    <div style="margin:48px auto;width:140px;height:140px;border-radius:50%;background:linear-gradient(135deg,${accentColor}22,${accentColor}08);border:3px solid ${scoreColor};text-align:center;padding-top:35px;box-sizing:border-box;">
-      <div style="font-size:52px;font-weight:800;color:${scoreColor};line-height:1;">${report.score}</div>
-      <div style="font-size:${T.tiny.size};color:${C.text.subtle};text-transform:uppercase;letter-spacing:1.5px;margin-top:${S.xs};">Score</div>
-    </div>
-    <p style="font-size:${T.caption.size};color:${C.text.subtle};">Generated ${date}</p>
-  </div>`;
-
-const buildExecSummary = (report: CompetitiveAnalysisReportData) => `
-  <div data-pdf-section style="padding:${S.xl} 0;">
-    ${sectionTitle('Executive Summary')}
-    <p style="font-size:${T.body.size};color:${C.text.secondary};line-height:1.7;margin:0 0 ${S['2xl']};">${str(report.executiveSummary?.overview)}</p>
-    <div style="${getCardStyles('success')};border-left:4px solid ${C.accent.success};border-radius:0 10px 10px 0;margin-bottom:${S['2xl']};">
-      <p style="font-size:${T.tiny.size};font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;">Current Position</p>
-      <p style="font-size:${T.small.size};color:#15803d;margin:0;line-height:${T.small.lineHeight};">${str(report.executiveSummary?.currentPosition)}</p>
-    </div>
-    ${subheading('Top Priorities')}
-    <ul style="margin:0;padding-left:18px;">${li(safe(report.executiveSummary?.topPriorities))}</ul>
-  </div>`;
-
-const buildMarketPerception = (report: CompetitiveAnalysisReportData) => {
-  const tableStyles = getTableStyles();
-  return `
-  <div data-pdf-section style="padding:${S.xl} 0;">
-    ${sectionTitle('Market Perception')}
-    <table style="${tableStyles.table};margin-bottom:${S.xl};">
-      <tr>
-        <td style="width:50%;vertical-align:top;padding-right:${S.md};">
-          <div style="${getCardStyles('success')};min-height:120px;">
-            <p style="font-size:${T.small.size};font-weight:700;color:#166534;margin:0 0 ${S.md};">✓ Key Strengths</p>
-            <ul style="margin:0;padding-left:14px;">${li(safe(report.marketPerception?.keyStrengths), '#15803d')}</ul>
-          </div>
-        </td>
-        <td style="width:50%;vertical-align:top;padding-left:${S.md};">
-          <div style="${getCardStyles('warning')};min-height:120px;">
-            <p style="font-size:${T.small.size};font-weight:700;color:#92400e;margin:0 0 ${S.md};">⚠ Critical Gaps</p>
-            <ul style="margin:0;padding-left:14px;">${li(safe(report.marketPerception?.criticalGaps), '#a16207')}</ul>
-          </div>
-        </td>
-      </tr>
-    </table>
-    <div style="${getCardStyles('danger')};">
-      <p style="font-size:${T.small.size};font-weight:700;color:#991b1b;margin:0 0 ${S.md};">⚡ Risks</p>
-      <ul style="margin:0;padding-left:14px;">${li(safe(report.marketPerception?.risks), '#b91c1c')}</ul>
-    </div>
-  </div>`;
+// ─── Text helpers ───────────────────────────────────────
+const ensureSpace = (pdf: jsPDF, y: number, needed: number): number => {
+  if (y + needed > A4_H - M) {
+    pdf.addPage();
+    return M;
+  }
+  return y;
 };
 
-const buildSwMatrix = (report: CompetitiveAnalysisReportData) => {
-  const matrixEntries = [
+const wrapText = (pdf: jsPDF, text: string, maxWidth: number): string[] => {
+  return pdf.splitTextToSize(text, maxWidth) as string[];
+};
+
+const drawSectionTitle = (pdf: jsPDF, title: string, y: number): number => {
+  y = ensureSpace(pdf, y, 14);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(16);
+  setColor(pdf, C.text.primary);
+  pdf.text(title, M, y);
+  y += 2;
+  setDraw(pdf, C.border.light);
+  pdf.setLineWidth(0.5);
+  pdf.line(M, y, A4_W - M, y);
+  return y + 6;
+};
+
+const drawSubheading = (pdf: jsPDF, text: string, y: number): number => {
+  y = ensureSpace(pdf, y, 10);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(11);
+  setColor(pdf, C.text.secondary);
+  pdf.text(text, M, y);
+  return y + 6;
+};
+
+const drawParagraph = (pdf: jsPDF, text: string, y: number, x = M, width = CW, color = C.text.secondary): number => {
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(10);
+  setColor(pdf, color);
+  const lines = wrapText(pdf, text, width);
+  for (const line of lines) {
+    y = ensureSpace(pdf, y, 5);
+    pdf.text(line, x, y);
+    y += 4.2;
+  }
+  return y + 2;
+};
+
+const drawBullets = (pdf: jsPDF, items: string[], y: number, x = M, width = CW - 4, color = C.text.secondary): number => {
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(9.5);
+  setColor(pdf, color);
+  for (const item of items) {
+    const lines = wrapText(pdf, item, width);
+    y = ensureSpace(pdf, y, lines.length * 4 + 2);
+    pdf.text('•', x, y);
+    for (let j = 0; j < lines.length; j++) {
+      pdf.text(lines[j], x + 4, y);
+      if (j < lines.length - 1) y += 4;
+    }
+    y += 5;
+  }
+  return y;
+};
+
+const drawCard = (pdf: jsPDF, x: number, y: number, w: number, h: number, bgHex: string, borderHex?: string) => {
+  setFill(pdf, bgHex);
+  pdf.roundedRect(x, y, w, h, 2, 2, 'F');
+  if (borderHex) {
+    setDraw(pdf, borderHex);
+    pdf.setLineWidth(0.3);
+    pdf.roundedRect(x, y, w, h, 2, 2, 'S');
+  }
+};
+
+const drawBadge = (pdf: jsPDF, text: string, x: number, y: number, fg: string, bg: string): number => {
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(7.5);
+  const tw = pdf.getTextWidth(text.toUpperCase()) + 5;
+  setFill(pdf, bg);
+  pdf.roundedRect(x, y - 3, tw, 5, 1.5, 1.5, 'F');
+  setColor(pdf, fg);
+  pdf.text(text.toUpperCase(), x + 2.5, y);
+  return tw + 2;
+};
+
+// ─── Section Builders ───────────────────────────────────
+
+const drawCover = (pdf: jsPDF, report: CompetitiveAnalysisReportData, entityName: string, entityType: string, accentColor: string, scoreColor: string, date: string): number => {
+  let y = 80;
+
+  // Accent line
+  setFill(pdf, accentColor);
+  pdf.rect(A4_W / 2 - 15, y, 30, 1.5, 'F');
+  y += 12;
+
+  // Title
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(28);
+  setColor(pdf, C.text.primary);
+  pdf.text('Competitive Analysis', A4_W / 2, y, { align: 'center' });
+  y += 10;
+
+  // Entity name
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(18);
+  setColor(pdf, C.text.muted);
+  pdf.text(entityName, A4_W / 2, y, { align: 'center' });
+  y += 7;
+
+  // Entity type
+  pdf.setFontSize(10);
+  setColor(pdf, C.text.subtle);
+  pdf.text(`${entityType.toUpperCase()} REPORT`, A4_W / 2, y, { align: 'center' });
+  y += 20;
+
+  // Score circle
+  const cx = A4_W / 2, cy = y + 25, radius = 22;
+  setDraw(pdf, scoreColor);
+  pdf.setLineWidth(1);
+  pdf.circle(cx, cy, radius, 'S');
+
+  // Score number
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(36);
+  setColor(pdf, scoreColor);
+  pdf.text(String(report.score), cx, cy + 2, { align: 'center' });
+
+  // Score label
+  pdf.setFontSize(8);
+  setColor(pdf, C.text.subtle);
+  pdf.text('SCORE', cx, cy + 10, { align: 'center' });
+
+  y = cy + radius + 15;
+
+  // Date
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(9);
+  setColor(pdf, C.text.subtle);
+  pdf.text(`Generated ${date}`, A4_W / 2, y, { align: 'center' });
+
+  return y + 10;
+};
+
+const drawExecSummary = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number): number => {
+  y = drawSectionTitle(pdf, 'Executive Summary', y);
+  y = drawParagraph(pdf, str(report.executiveSummary?.overview), y);
+  y += 2;
+
+  // Position card
+  const cardH = 18;
+  y = ensureSpace(pdf, y, cardH + 4);
+  drawCard(pdf, M, y, CW, cardH, '#f0fdf4');
+  setFill(pdf, '#22c55e');
+  pdf.rect(M, y, 1.2, cardH, 'F');
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(8);
+  setColor(pdf, '#166534');
+  pdf.text('CURRENT POSITION', M + 5, y + 5);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(9);
+  setColor(pdf, '#15803d');
+  const posLines = wrapText(pdf, str(report.executiveSummary?.currentPosition), CW - 10);
+  for (let i = 0; i < Math.min(posLines.length, 2); i++) {
+    pdf.text(posLines[i], M + 5, y + 10 + i * 4);
+  }
+  y += cardH + 6;
+
+  y = drawSubheading(pdf, 'Top Priorities', y);
+  y = drawBullets(pdf, safe(report.executiveSummary?.topPriorities), y);
+  return y;
+};
+
+const drawMarketPerception = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number): number => {
+  y = drawSectionTitle(pdf, 'Market Perception', y);
+
+  const strengths = safe(report.marketPerception?.keyStrengths);
+  const gaps = safe(report.marketPerception?.criticalGaps);
+  const risks = safe(report.marketPerception?.risks);
+
+  // Two-column: Strengths & Gaps
+  const col1X = M;
+  const col2X = M + COL_W + 6;
+  const maxItems = Math.max(strengths.length, gaps.length);
+  const colH = Math.max(maxItems * 5 + 14, 30);
+
+  y = ensureSpace(pdf, y, colH + 4);
+
+  // Strengths card
+  drawCard(pdf, col1X, y, COL_W, colH, '#f0fdf4');
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(9);
+  setColor(pdf, '#166534');
+  pdf.text('✓ Key Strengths', col1X + 4, y + 6);
+  let sy = y + 12;
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(8.5);
+  setColor(pdf, '#15803d');
+  for (const s of strengths) {
+    pdf.text('• ' + s.substring(0, 60), col1X + 4, sy);
+    sy += 4.5;
+  }
+
+  // Gaps card
+  drawCard(pdf, col2X, y, COL_W, colH, '#fef3c7');
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(9);
+  setColor(pdf, '#92400e');
+  pdf.text('⚠ Critical Gaps', col2X + 4, y + 6);
+  let gy = y + 12;
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(8.5);
+  setColor(pdf, '#a16207');
+  for (const g of gaps) {
+    pdf.text('• ' + g.substring(0, 60), col2X + 4, gy);
+    gy += 4.5;
+  }
+
+  y += colH + 5;
+
+  // Risks card
+  if (risks.length > 0) {
+    const riskH = risks.length * 5 + 12;
+    y = ensureSpace(pdf, y, riskH);
+    drawCard(pdf, M, y, CW, riskH, '#fef2f2');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(9);
+    setColor(pdf, '#991b1b');
+    pdf.text('⚡ Risks', M + 4, y + 6);
+    let ry = y + 12;
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8.5);
+    setColor(pdf, '#b91c1c');
+    for (const r of risks) {
+      pdf.text('• ' + r.substring(0, 80), M + 4, ry);
+      ry += 4.5;
+    }
+    y += riskH + 4;
+  }
+
+  return y;
+};
+
+const drawSwMatrix = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number): number => {
+  y = drawSectionTitle(pdf, 'Strengths & Weaknesses Matrix', y);
+
+  const entries = [
     ['Design Sophistication', report.strengthsWeaknesses?.designSophistication],
     ['Visual Consistency', report.strengthsWeaknesses?.visualConsistency],
     ['User Centricity', report.strengthsWeaknesses?.userCentricity],
@@ -143,74 +294,136 @@ const buildSwMatrix = (report: CompetitiveAnalysisReportData) => {
     ['Professional Polish', report.strengthsWeaknesses?.professionalPolish],
   ].sort((a, b) => (Number(b[1]) || 0) - (Number(a[1]) || 0));
 
-  return `
-    <div data-pdf-section style="padding:${S.xl} 0;">
-      ${sectionTitle('Strengths & Weaknesses Matrix')}
-      <table style="width:100%;border-collapse:collapse;">
-        <tbody>
-          ${matrixEntries.map(([label, val]) => htmlBar(String(label), Number(val) || 0)).join('')}
-        </tbody>
-      </table>
-    </div>`;
+  const barH = 4;
+  const barW = 90;
+  const labelW = 50;
+
+  for (const [label, val] of entries) {
+    const v = Number(val) || 0;
+    y = ensureSpace(pdf, y, 8);
+
+    // Label
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    setColor(pdf, C.text.secondary);
+    pdf.text(String(label), M, y + 3);
+
+    // Bar background
+    const barX = M + labelW;
+    setFill(pdf, C.border.light);
+    pdf.roundedRect(barX, y, barW, barH, 2, 2, 'F');
+
+    // Bar fill
+    const pct = (v / 10) * barW;
+    const barColor = v >= 8 ? C.accent.success : v >= 6 ? C.accent.warning : v >= 4 ? C.accent.orange : C.accent.danger;
+    setFill(pdf, barColor);
+    if (pct > 0) pdf.roundedRect(barX, y, pct, barH, 2, 2, 'F');
+
+    // Value
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(9);
+    setColor(pdf, barColor);
+    pdf.text(`${v}/10`, barX + barW + 4, y + 3);
+
+    y += 8;
+  }
+
+  return y + 4;
 };
 
-const buildRadarSvg = (items: [string, number][]) => {
-  const cx = 200, cy = 200, r = 150;
+const drawRadarChart = (pdf: jsPDF, items: [string, number][], y: number): number => {
+  const cx = A4_W / 2;
+  const r = 30;
+  const chartH = r * 2 + 25;
+  y = ensureSpace(pdf, y, chartH);
+  const cy = y + r + 8;
   const n = items.length;
-  const angleStep = (2 * Math.PI) / n;
-  const startAngle = -Math.PI / 2; // top
+  const step = (2 * Math.PI) / n;
+  const start = -Math.PI / 2;
 
-  const point = (i: number, val: number) => {
-    const a = startAngle + i * angleStep;
+  const pt = (i: number, val: number): [number, number] => {
+    const a = start + i * step;
     const d = (val / 10) * r;
     return [cx + d * Math.cos(a), cy + d * Math.sin(a)];
   };
 
-  // Grid rings at 2, 4, 6, 8, 10
-  const rings = [2, 4, 6, 8, 10].map((v) => {
-    const pts = items.map((_, i) => point(i, v));
-    return `<polygon points="${pts.map((p) => p.join(',')).join(' ')}" fill="none" stroke="#d1d5db" stroke-width="1"/>`;
-  }).join('');
+  // Grid rings
+  setDraw(pdf, '#d1d5db');
+  pdf.setLineWidth(0.15);
+  for (const ring of [2, 4, 6, 8, 10]) {
+    const pts = items.map((_, i) => pt(i, ring));
+    for (let i = 0; i < pts.length; i++) {
+      const next = pts[(i + 1) % pts.length];
+      pdf.line(pts[i][0], pts[i][1], next[0], next[1]);
+    }
+  }
 
   // Axis lines
-  const axes = items.map((_, i) => {
-    const [x, y] = point(i, 10);
-    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#d1d5db" stroke-width="1"/>`;
-  }).join('');
+  for (let i = 0; i < n; i++) {
+    const [ex, ey] = pt(i, 10);
+    pdf.line(cx, cy, ex, ey);
+  }
 
-  // Labels
-  const labels = items.map(([label], i) => {
-    const a = startAngle + i * angleStep;
-    const lx = cx + (r + 30) * Math.cos(a);
-    const ly = cy + (r + 30) * Math.sin(a);
-    const anchor = Math.abs(Math.cos(a)) < 0.1 ? 'middle' : Math.cos(a) > 0 ? 'start' : 'end';
-    return `<text x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle" font-size="12" fill="${C.text.secondary}" font-weight="500">${label}</text>`;
-  }).join('');
+  // Data polygon fill
+  const dataPts = items.map(([, v], i) => pt(i, v));
+  setFill(pdf, C.accent.primary);
+  // jsPDF doesn't have fillPolygon with opacity, so draw filled triangles from center
+  pdf.setGState(new (pdf as any).GState({ opacity: 0.2 }));
+  for (let i = 0; i < dataPts.length; i++) {
+    const next = dataPts[(i + 1) % dataPts.length];
+    pdf.triangle(cx, cy, dataPts[i][0], dataPts[i][1], next[0], next[1], 'F');
+  }
+  pdf.setGState(new (pdf as any).GState({ opacity: 1 }));
 
-  // Data polygon
-  const dataPts = items.map(([, v], i) => point(i, v));
-  const dataPolygon = `<polygon points="${dataPts.map((p) => p.join(',')).join(' ')}" fill="${C.accent.primary}" fill-opacity="0.25" stroke="${C.accent.primary}" stroke-width="2.5"/>`;
+  // Data polygon stroke
+  setDraw(pdf, C.accent.primary);
+  pdf.setLineWidth(0.6);
+  for (let i = 0; i < dataPts.length; i++) {
+    const next = dataPts[(i + 1) % dataPts.length];
+    pdf.line(dataPts[i][0], dataPts[i][1], next[0], next[1]);
+  }
 
-  // Data dots
-  const dots = dataPts.map(([x, y]) =>
-    `<circle cx="${x}" cy="${y}" r="4" fill="${C.background.white}" stroke="${C.accent.primary}" stroke-width="2"/>`
-  ).join('');
+  // Dots and labels
+  for (let i = 0; i < items.length; i++) {
+    const [px, py] = dataPts[i];
+    // Dot
+    setFill(pdf, C.background.white);
+    setDraw(pdf, C.accent.primary);
+    pdf.setLineWidth(0.5);
+    pdf.circle(px, py, 1.2, 'FD');
 
-  // Value labels on dots
-  const valLabels = items.map(([, v], i) => {
-    const [x, y] = point(i, v);
-    const a = startAngle + i * angleStep;
-    const ox = 14 * Math.cos(a);
-    const oy = 14 * Math.sin(a);
-    return `<text x="${x + ox}" y="${y + oy}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="${C.accent.primary}" font-weight="700">${v}</text>`;
-  }).join('');
+    // Value near dot
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(7);
+    setColor(pdf, C.accent.primary);
+    const a = start + i * step;
+    const vx = px + 4 * Math.cos(a);
+    const vy = py + 4 * Math.sin(a);
+    pdf.text(String(items[i][1]), vx, vy, { align: 'center' });
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" style="display:block;margin:0 auto;">
-    ${rings}${axes}${dataPolygon}${dots}${valLabels}${labels}
-  </svg>`;
+    // Axis label
+    const lx = cx + (r + 12) * Math.cos(a);
+    const ly = cy + (r + 12) * Math.sin(a);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    setColor(pdf, C.text.secondary);
+    const align = Math.abs(Math.cos(a)) < 0.1 ? 'center' : Math.cos(a) > 0 ? 'left' : 'right';
+    pdf.text(items[i][0], lx, ly, { align: align as any });
+  }
+
+  return y + chartH;
 };
 
-const buildPositioning = (report: CompetitiveAnalysisReportData) => {
+const drawPositioning = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number): number => {
+  y = drawSectionTitle(pdf, 'Brand Positioning', y);
+  y = drawSubheading(pdf, 'Brand Personality Matrix', y);
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(9);
+  setColor(pdf, C.text.muted);
+  pdf.text('How the brand is positioned across key dimensions', M, y);
+  y += 6;
+
   const pm = (report.brandPositioning?.personalityMatrix || {}) as any;
   const personalityItems: [string, number][] = [
     ['Innovation', Number(pm.innovationScore) || 0],
@@ -221,134 +434,213 @@ const buildPositioning = (report: CompetitiveAnalysisReportData) => {
     ['Global', Number(pm.globalScore) || 0],
   ];
 
-  return `
-    <div data-pdf-section style="padding:${S.xl} 0;">
-      ${sectionTitle('Brand Positioning')}
-      ${subheading('Brand Personality Matrix')}
-      <p style="font-size:${T.small.size};color:${C.text.muted};margin:0 0 ${S.lg};">How the brand is positioned across key dimensions</p>
-      ${buildRadarSvg(personalityItems)}
-      <div style="margin-top:${S['2xl']};">
-        <table style="width:100%;border-collapse:collapse;">
-          <tr>
-            <td style="width:50%;vertical-align:top;padding-right:${S.md};">
-              <p style="font-size:${T.small.size};font-weight:700;color:${C.accent.primary};margin:0 0 ${S.sm};">Target Audience Signals</p>
-              <ul style="margin:0;padding-left:14px;">${li(safe(report.brandPositioning?.targetAudienceSignals), C.accent.primary)}</ul>
-            </td>
-            <td style="width:50%;vertical-align:top;padding-left:${S.md};">
-              <p style="font-size:${T.small.size};font-weight:700;color:${C.accent.secondary};margin:0 0 ${S.sm};">Differentiation Factors</p>
-              <ul style="margin:0;padding-left:14px;">${li(safe(report.brandPositioning?.differentiation), C.accent.secondary)}</ul>
-            </td>
-          </tr>
-        </table>
-      </div>
-      ${
-        safe(report.brandPositioning?.trustIndicators).length > 0
-          ? `
-        <div style="margin-top:${S.xl};">
-          <p style="font-size:${T.small.size};font-weight:700;color:${C.text.secondary};margin:0 0 ${S.sm};">Trust Indicators</p>
-          <div>${safe(report.brandPositioning?.trustIndicators).map((t) => badge(t, '#065f46', '#d1fae5')).join(' ')}</div>
-        </div>
-      `
-          : ''
-      }
-    </div>`;
+  y = drawRadarChart(pdf, personalityItems, y);
+  y += 4;
+
+  // Two-column: Audience & Differentiation
+  const audiences = safe(report.brandPositioning?.targetAudienceSignals);
+  const diffFactors = safe(report.brandPositioning?.differentiation);
+
+  if (audiences.length > 0 || diffFactors.length > 0) {
+    y = ensureSpace(pdf, y, 20);
+
+    if (audiences.length > 0) {
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(9);
+      setColor(pdf, C.accent.primary);
+      pdf.text('Target Audience Signals', M, y);
+      y += 5;
+      y = drawBullets(pdf, audiences, y, M, COL_W - 4, C.accent.primary);
+    }
+
+    if (diffFactors.length > 0) {
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(9);
+      setColor(pdf, C.accent.secondary);
+      pdf.text('Differentiation Factors', M, y);
+      y += 5;
+      y = drawBullets(pdf, diffFactors, y, M, COL_W - 4, C.accent.secondary);
+    }
+  }
+
+  // Trust indicators as badges
+  const trust = safe(report.brandPositioning?.trustIndicators);
+  if (trust.length > 0) {
+    y = ensureSpace(pdf, y, 12);
+    y = drawSubheading(pdf, 'Trust Indicators', y);
+    let bx = M;
+    for (const t of trust) {
+      const bw = drawBadge(pdf, t, bx, y, '#065f46', '#d1fae5');
+      bx += bw + 2;
+      if (bx > A4_W - M - 20) { bx = M; y += 7; }
+    }
+    y += 6;
+  }
+
+  return y;
 };
 
-const buildRecommendations = (report: CompetitiveAnalysisReportData) => {
-  const tableStyles = getTableStyles();
+const drawRecommendations = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number): number => {
+  y = drawSectionTitle(pdf, 'Strategic Recommendations', y);
+  y = drawSubheading(pdf, 'Design Priorities', y);
 
-  const designPriorities = safe(report.recommendations?.designPriorities)
-    .map((p: any, i: number) => {
-      const impactColor =
-        p?.impact === 'high' ? C.accent.success : p?.impact === 'medium' ? C.accent.warning : C.text.subtle;
-      const effortColor =
-        p?.effort === 'low' ? C.accent.success : p?.effort === 'medium' ? C.accent.warning : C.accent.danger;
-      return `
-      <tr>
-        <td style="${tableStyles.td};font-size:${T.small.size};color:${C.text.secondary};">
-          <strong style="color:${C.text.primary};">${i + 1}.</strong> ${str(p?.title, 'Untitled')}
-        </td>
-        <td style="${tableStyles.td};text-align:center;">
-          ${badge(str(p?.impact, '-'), impactColor, impactColor + '18')}
-        </td>
-        <td style="${tableStyles.td};text-align:center;">
-          ${badge(str(p?.effort, '-'), effortColor, effortColor + '18')}
-        </td>
-      </tr>`;
-    })
-    .join('');
+  const priorities = safe(report.recommendations?.designPriorities);
 
+  // Table header
+  y = ensureSpace(pdf, y, 10);
+  drawCard(pdf, M, y - 1, CW, 7, C.background.light);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(8);
+  setColor(pdf, C.text.secondary);
+  pdf.text('PRIORITY', M + 3, y + 3);
+  pdf.text('IMPACT', M + CW * 0.65, y + 3);
+  pdf.text('EFFORT', M + CW * 0.82, y + 3);
+  y += 9;
+
+  // Table rows
+  for (let i = 0; i < priorities.length; i++) {
+    const p = priorities[i] as any;
+    y = ensureSpace(pdf, y, 8);
+
+    setDraw(pdf, C.border.light);
+    pdf.setLineWidth(0.2);
+    pdf.line(M, y + 4, A4_W - M, y + 4);
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    setColor(pdf, C.text.secondary);
+    const title = `${i + 1}. ${str(p?.title, 'Untitled')}`;
+    pdf.text(title.substring(0, 50), M + 3, y + 2);
+
+    const impactColor = p?.impact === 'high' ? C.accent.success : p?.impact === 'medium' ? C.accent.warning : C.text.subtle;
+    const effortColor = p?.effort === 'low' ? C.accent.success : p?.effort === 'medium' ? C.accent.warning : C.accent.danger;
+    drawBadge(pdf, str(p?.impact, '-'), M + CW * 0.63, y + 2, impactColor, impactColor + '30');
+    drawBadge(pdf, str(p?.effort, '-'), M + CW * 0.80, y + 2, effortColor, effortColor + '30');
+
+    y += 7;
+  }
+
+  y += 6;
+
+  // Brand refinements
+  y = drawSubheading(pdf, 'Brand Refinements', y);
   const br = report.recommendations?.brandRefinements;
-  const refinementCard = (title: string, text: string, icon: string) => `
-    <td style="width:50%;vertical-align:top;padding:6px;">
-      <div style="background:${C.background.light};padding:14px ${S.lg};border-radius:8px;border:1px solid ${C.border.lighter};">
-        <p style="font-size:${T.caption.size};font-weight:700;color:${C.text.secondary};margin:0 0 ${S.xs};">${icon} ${title}</p>
-        <p style="font-size:${T.caption.size};color:${C.text.muted};margin:0;line-height:${T.caption.lineHeight};">${str(text)}</p>
-      </div>
-    </td>`;
+  const refinements = [
+    ['◆ Logo', str(br?.logo)],
+    ['◉ Colors', str(br?.colors)],
+    ['𝐓 Typography', str(br?.typography)],
+    ['▣ Imagery', str(br?.imagery)],
+  ];
 
-  return `
-    <div data-pdf-section style="padding:${S.xl} 0;">
-      ${sectionTitle('Strategic Recommendations')}
-      ${subheading('Design Priorities')}
-      <table style="${tableStyles.table};margin-bottom:${S['3xl']};">
-        <thead>
-          <tr style="background:${C.background.light};">
-            <th style="${tableStyles.th};text-transform:uppercase;letter-spacing:.5px;">Priority</th>
-            <th style="${tableStyles.th};text-align:center;text-transform:uppercase;letter-spacing:.5px;">Impact</th>
-            <th style="${tableStyles.th};text-align:center;text-transform:uppercase;letter-spacing:.5px;">Effort</th>
-          </tr>
-        </thead>
-        <tbody>${designPriorities}</tbody>
-      </table>
-      ${subheading('Brand Refinements')}
-      <table style="width:100%;border-collapse:collapse;margin-bottom:${S['3xl']};">
-        <tr>${refinementCard('Logo', str(br?.logo), '◆')}${refinementCard('Colors', str(br?.colors), '◉')}</tr>
-        <tr>${refinementCard('Typography', str(br?.typography), '𝐓')}${refinementCard('Imagery', str(br?.imagery), '▣')}</tr>
-      </table>
-      ${subheading('Positioning Opportunities')}
-      <ul style="margin:0 0 ${S.xl};padding-left:18px;">${li(safe(report.recommendations?.positioningOpportunities))}</ul>
-      ${
-        safe(report.recommendations?.digitalImprovements).length > 0
-          ? `
-        ${subheading('Digital Improvements')}
-        <ul style="margin:0 0 ${S.xl};padding-left:18px;">${li(safe(report.recommendations?.digitalImprovements))}</ul>
-      `
-          : ''
-      }
-    </div>`;
+  for (const [label, text] of refinements) {
+    const cardH = 14;
+    y = ensureSpace(pdf, y, cardH + 2);
+    drawCard(pdf, M, y, CW, cardH, C.background.light, C.border.light);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(8.5);
+    setColor(pdf, C.text.secondary);
+    pdf.text(label, M + 4, y + 5);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    setColor(pdf, C.text.muted);
+    const lines = wrapText(pdf, text, CW - 10);
+    pdf.text(lines[0] || '', M + 4, y + 10);
+    y += cardH + 3;
+  }
+
+  // Positioning opportunities
+  const posOps = safe(report.recommendations?.positioningOpportunities);
+  if (posOps.length > 0) {
+    y += 2;
+    y = drawSubheading(pdf, 'Positioning Opportunities', y);
+    y = drawBullets(pdf, posOps, y);
+  }
+
+  // Digital improvements
+  const digImps = safe(report.recommendations?.digitalImprovements);
+  if (digImps.length > 0) {
+    y = drawSubheading(pdf, 'Digital Improvements', y);
+    y = drawBullets(pdf, digImps, y);
+  }
+
+  return y;
 };
 
-const buildActionPlan = (report: CompetitiveAnalysisReportData, date: string) => {
-  const phase = (title: string, items: string[], bg: string, headColor: string, textColor: string) => `
-    <td style="width:33.33%;vertical-align:top;padding:6px;">
-      <div style="background:${bg};padding:${S.xl};border-radius:10px;min-height:140px;">
-        <p style="font-size:${T.body.size};font-weight:700;color:${headColor};margin:0 0 ${S.md};">${title}</p>
-        <ul style="margin:0;padding-left:14px;">${li(items, textColor)}</ul>
-      </div>
-    </td>`;
+const drawActionPlan = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number, date: string): number => {
+  y = drawSectionTitle(pdf, '30 / 60 / 90 Day Action Plan', y);
 
-  return `
-    <div data-pdf-section style="padding:${S.xl} 0;">
-      ${sectionTitle('30 / 60 / 90 Day Action Plan')}
-      <table style="width:100%;border-collapse:collapse;margin-bottom:${S['3xl']};">
-        <tr>
-          ${phase('30 Days', safe(report.executiveSummary?.actionPlan?.thirtyDay), '#dbeafe', '#1e40af', '#1e3a8a')}
-          ${phase('60 Days', safe(report.executiveSummary?.actionPlan?.sixtyDay), '#fef3c7', '#92400e', '#78350f')}
-          ${phase('90 Days', safe(report.executiveSummary?.actionPlan?.ninetyDay), '#d1fae5', '#065f46', '#064e3b')}
-        </tr>
-      </table>
-      <div style="background:#f0f9ff;border:1px solid #bae6fd;padding:${S.xl};border-radius:10px;">
-        <p style="font-size:${T.small.size};font-weight:700;color:#0369a1;margin:0 0 ${S.md};">📊 Success Metrics</p>
-        <ul style="margin:0;padding-left:14px;">${li(safe(report.executiveSummary?.successMetrics), '#0284c7')}</ul>
-      </div>
-    </div>
-    <div data-pdf-section style="text-align:center;padding-top:${S['3xl']};border-top:1px solid ${C.border.light};">
-      <p style="font-size:${T.tiny.size};color:${C.text.subtle};margin:0;">Generated by Brand Intelligence System · ${date}</p>
-    </div>`;
+  const phases: [string, string[], string, string, string][] = [
+    ['30 Days', safe(report.executiveSummary?.actionPlan?.thirtyDay), '#dbeafe', '#1e40af', '#1e3a8a'],
+    ['60 Days', safe(report.executiveSummary?.actionPlan?.sixtyDay), '#fef3c7', '#92400e', '#78350f'],
+    ['90 Days', safe(report.executiveSummary?.actionPlan?.ninetyDay), '#d1fae5', '#065f46', '#064e3b'],
+  ];
+
+  const colW = (CW - 8) / 3;
+  const maxItems = Math.max(...phases.map(([, items]) => items.length));
+  const phaseH = Math.max(maxItems * 5 + 14, 30);
+
+  y = ensureSpace(pdf, y, phaseH + 4);
+
+  for (let p = 0; p < 3; p++) {
+    const [title, items, bg, headColor, textColor] = phases[p];
+    const px = M + p * (colW + 4);
+
+    drawCard(pdf, px, y, colW, phaseH, bg);
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(10);
+    setColor(pdf, headColor);
+    pdf.text(title, px + 4, y + 7);
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    setColor(pdf, textColor);
+    let iy = y + 14;
+    for (const item of items) {
+      const t = '• ' + item.substring(0, 40);
+      pdf.text(t, px + 4, iy);
+      iy += 4.5;
+    }
+  }
+
+  y += phaseH + 6;
+
+  // Success metrics
+  const metrics = safe(report.executiveSummary?.successMetrics);
+  if (metrics.length > 0) {
+    const mH = metrics.length * 5 + 12;
+    y = ensureSpace(pdf, y, mH);
+    drawCard(pdf, M, y, CW, mH, '#f0f9ff', '#bae6fd');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(9);
+    setColor(pdf, '#0369a1');
+    pdf.text('📊 Success Metrics', M + 4, y + 6);
+    let my = y + 12;
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8.5);
+    setColor(pdf, '#0284c7');
+    for (const m of metrics) {
+      pdf.text('• ' + m.substring(0, 70), M + 4, my);
+      my += 4.5;
+    }
+    y += mH + 6;
+  }
+
+  // Footer
+  y = ensureSpace(pdf, y, 10);
+  setDraw(pdf, C.border.light);
+  pdf.setLineWidth(0.3);
+  pdf.line(M, y, A4_W - M, y);
+  y += 5;
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(7.5);
+  setColor(pdf, C.text.subtle);
+  pdf.text(`Generated by Brand Intelligence System · ${date}`, A4_W / 2, y, { align: 'center' });
+
+  return y + 5;
 };
 
-// ─── Export Function (section-based jsPDF + html2canvas) ─────────
+// ─── Main Export Function ───────────────────────────────
 export const exportCompetitiveAnalysisPdf = async (
   report: CompetitiveAnalysisReportData,
   options: ExportOptions,
@@ -361,97 +653,24 @@ export const exportCompetitiveAnalysisPdf = async (
   const date = formatPdfDate();
   const accentColor = C.entity[entityType as keyof typeof C.entity] || C.accent.primary;
 
-  // Build all section HTML
-  const allHtml = [
-    buildCover(report, entityName, entityType, accentColor, scoreColor, date),
-    buildExecSummary(report),
-    buildMarketPerception(report),
-    buildSwMatrix(report),
-    buildPositioning(report),
-    buildRecommendations(report),
-    buildActionPlan(report, date),
-  ].join('');
-
-  // Create container — on-screen for html2canvas, hidden via opacity
-  const container = document.createElement('div');
-  container.innerHTML = `<div style="font-family:${PDF_FONTS.primary};color:${C.text.primary};line-height:1.6;padding:36px 40px;background:${C.background.white};width:750px;">${allHtml}</div>`;
-  applyPdfContainerStyles(container, 'a4');
-  document.body.appendChild(container);
-
-  // Force full layout computation
-  void container.offsetHeight;
-  void container.offsetWidth;
-  container.getBoundingClientRect();
-  await new Promise((resolve) => setTimeout(resolve, 1200));
-
-  // A4 dimensions in mm
-  const A4_W = 210;
-  const A4_H = 297;
-  const MARGIN = 10;
-  const CONTENT_W = A4_W - MARGIN * 2;
-  const GAP = 4;
-  const PAGE_CONTENT_H = A4_H - MARGIN * 2;
-
-  const sections = Array.from(container.querySelectorAll('[data-pdf-section]')) as HTMLElement[];
-  console.log(`[PDF Export] Found ${sections.length} sections to capture`);
-
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  let currentY = MARGIN;
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
 
   onProgress?.('Generating PDF...');
 
   try {
-    for (let i = 0; i < sections.length; i++) {
-      const section = sections[i];
-      const rect = section.getBoundingClientRect();
-      console.log(`[PDF Export] Section ${i}: ${rect.width}x${rect.height}`);
+    // Cover page
+    drawCover(pdf, report, entityName, entityType, accentColor, scoreColor, date);
 
-      if (rect.height === 0 || rect.width === 0) {
-        console.warn(`[PDF Export] Skipping empty section ${i}`);
-        continue;
-      }
+    // Content pages
+    pdf.addPage();
+    let y = M;
 
-      const RENDER_SCALE = 1.5;
-      const canvas = await html2canvas(section, {
-        scale: RENDER_SCALE,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        backgroundColor: C.background.white,
-      });
-
-      console.log(`[PDF Export] Canvas ${i}: ${canvas.width}x${canvas.height}`);
-
-      const scaleFactor = CONTENT_W / (canvas.width / RENDER_SCALE);
-      const heightMM = (canvas.height / RENDER_SCALE) * scaleFactor;
-      const remaining = A4_H - MARGIN - currentY;
-
-      // Section fits on current page
-      if (heightMM <= remaining) {
-        const imgData = canvas.toDataURL('image/jpeg', 0.75);
-        pdf.addImage(imgData, 'JPEG', MARGIN, currentY, CONTENT_W, heightMM);
-        currentY += heightMM + GAP;
-      }
-      // Section doesn't fit but is smaller than a full page — move to next page
-      else if (heightMM <= PAGE_CONTENT_H) {
-        pdf.addPage();
-        currentY = MARGIN;
-        const imgData = canvas.toDataURL('image/jpeg', 0.75);
-        pdf.addImage(imgData, 'JPEG', MARGIN, currentY, CONTENT_W, heightMM);
-        currentY += heightMM + GAP;
-      }
-      // Section is taller than a full page — place on fresh page
-      else {
-        if (currentY > MARGIN) {
-          pdf.addPage();
-          currentY = MARGIN;
-        }
-        const imgData = canvas.toDataURL('image/jpeg', 0.75);
-        pdf.addImage(imgData, 'JPEG', MARGIN, currentY, CONTENT_W, heightMM);
-        currentY += heightMM + GAP;
-        // If it overflows the page, the next section will trigger a new page
-      }
-    }
+    y = drawExecSummary(pdf, report, y);
+    y = drawMarketPerception(pdf, report, y);
+    y = drawSwMatrix(pdf, report, y);
+    y = drawPositioning(pdf, report, y);
+    y = drawRecommendations(pdf, report, y);
+    y = drawActionPlan(pdf, report, y, date);
 
     const filename = `${entityName.replace(/\s+/g, '_')}_Competitive_Analysis.pdf`;
     pdf.save(filename);
@@ -459,9 +678,5 @@ export const exportCompetitiveAnalysisPdf = async (
   } catch (error) {
     console.error('PDF export failed:', error);
     throw new Error('Failed to export PDF');
-  } finally {
-    if (document.body.contains(container)) {
-      document.body.removeChild(container);
-    }
   }
 };
