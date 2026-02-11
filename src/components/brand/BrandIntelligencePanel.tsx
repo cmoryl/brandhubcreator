@@ -530,7 +530,7 @@ export const BrandIntelligencePanel = ({
                     {intelligence.target_audience.secondary?.length > 0 && (
                       <p className="text-sm"><strong>Secondary:</strong> {intelligence.target_audience.secondary.join(', ')}</p>
                     )}
-                    {intelligence.target_audience.demographics?.length > 0 && (
+                    {Array.isArray(intelligence.target_audience.demographics) && intelligence.target_audience.demographics.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {intelligence.target_audience.demographics.map((demo, i) => (
                           <Badge key={i} variant="secondary" className="text-xs">{demo}</Badge>
@@ -542,7 +542,7 @@ export const BrandIntelligencePanel = ({
               )}
 
               {/* Competitive Advantages */}
-              {intelligence.competitive_advantages?.length > 0 && (
+              {Array.isArray(intelligence.competitive_advantages) && intelligence.competitive_advantages.length > 0 && (
                 <div className="p-4 rounded-xl bg-background/50 border border-border">
                   <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
                     <Zap className="h-4 w-4 text-amber-500" />
@@ -567,7 +567,7 @@ export const BrandIntelligencePanel = ({
                     Brand Voice Profile
                   </h4>
                   <div className="space-y-2">
-                    {intelligence.brand_voice_profile.tone?.length > 0 && (
+                    {Array.isArray(intelligence.brand_voice_profile.tone) && intelligence.brand_voice_profile.tone.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         <span className="text-xs text-muted-foreground mr-2">Tone:</span>
                         {intelligence.brand_voice_profile.tone.map((t, i) => (
@@ -575,7 +575,7 @@ export const BrandIntelligencePanel = ({
                         ))}
                       </div>
                     )}
-                    {intelligence.brand_voice_profile.personality?.length > 0 && (
+                    {Array.isArray(intelligence.brand_voice_profile.personality) && intelligence.brand_voice_profile.personality.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         <span className="text-xs text-muted-foreground mr-2">Personality:</span>
                         {intelligence.brand_voice_profile.personality.map((p, i) => (
@@ -598,7 +598,7 @@ export const BrandIntelligencePanel = ({
         <Separator />
 
         {/* Growth Recommendations */}
-        {intelligence?.growth_recommendations?.length > 0 && (
+        {Array.isArray(intelligence?.growth_recommendations) && intelligence.growth_recommendations.length > 0 && (
           <Collapsible 
             open={expandedSections.recommendations} 
             onOpenChange={() => toggleSection('recommendations')}
