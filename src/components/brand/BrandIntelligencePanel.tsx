@@ -42,6 +42,7 @@ import { ConfidenceIndicator } from './intelligence/ConfidenceIndicator';
 import { InsightActionTracker } from './intelligence/InsightActionTracker';
 import { CompetitiveLandscapeSection } from './intelligence/CompetitiveLandscapeSection';
 import { CulturalIntelligenceSection } from './intelligence/CulturalIntelligenceSection';
+import { ImportReportDialog } from './intelligence/ImportReportDialog';
 
 interface KnowledgeEntry {
   id: string;
@@ -828,7 +829,15 @@ export const BrandIntelligencePanel = ({
                 <span className="font-medium">Knowledge Base</span>
                 <Badge variant="secondary" className="ml-2">{intelligence?.knowledge_entries?.length || 0}</Badge>
               </div>
-              {expandedSections.knowledge ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              <div className="flex items-center gap-2">
+                <ImportReportDialog
+                  entityType={entityType}
+                  entityId={entityId}
+                  organizationId={organizationId}
+                  onInsightsImported={() => fetchIntelligence()}
+                />
+                {expandedSections.knowledge ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </div>
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-4 space-y-4">
