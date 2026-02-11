@@ -1010,26 +1010,7 @@ const BrandEditor = () => {
                 id: 'intelligence',
                 label: 'Intelligence',
                 icon: Brain,
-                render: () => (
-                  <Sheet open={intelligenceOpen} onOpenChange={setIntelligenceOpen}>
-                    <SheetTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 gap-1.5">
-                        <Brain className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">Intelligence</span>
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="right" className="w-full sm:w-[540px] sm:max-w-xl p-0 flex flex-col h-full min-h-0 overflow-hidden">
-                      <div className="p-6 flex-1 min-h-0">
-                        <BrandIntelligencePanel
-                          entityType="brand"
-                          entityId={brand.id}
-                          entityName={brand.hero.name}
-                          organizationId={brand.organizationId}
-                        />
-                      </div>
-                    </SheetContent>
-                  </Sheet>
-                ),
+                onClick: () => setIntelligenceOpen(true),
               },
               {
                 id: 'competitive',
@@ -1201,6 +1182,20 @@ const BrandEditor = () => {
           onOpenChange={setRegionalAnalysisOpen}
         />
       )}
+
+      {/* Intelligence Panel - rendered at top level so hero button works */}
+      <Sheet open={intelligenceOpen} onOpenChange={setIntelligenceOpen}>
+        <SheetContent side="right" className="w-full sm:w-[540px] sm:max-w-xl p-0 flex flex-col h-full min-h-0 overflow-hidden">
+          <div className="p-6 flex-1 min-h-0">
+            <BrandIntelligencePanel
+              entityType="brand"
+              entityId={brand.id}
+              entityName={brand.hero.name}
+              organizationId={brand.organizationId}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
     </TooltipProvider>
   );
 };
