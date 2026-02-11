@@ -216,7 +216,7 @@ Analyze provided images and document content for visual consistency, content qua
     // Get or create intelligence record
     let { data: intel } = await supabase
       .from('brand_intelligence')
-      .select('id, knowledge_entries')
+      .select('id, knowledge_entries, brand_summary, market_position, target_audience, competitive_advantages, brand_voice_profile, growth_recommendations, cultural_insights, globallink_recommendations, localization_readiness_score, analysis_count, competitive_landscape')
       .eq('entity_type', job.entity_type)
       .eq('entity_id', job.entity_id)
       .maybeSingle();
@@ -231,7 +231,7 @@ Analyze provided images and document content for visual consistency, content qua
           knowledge_entries: [],
           semantic_hashes: [],
         })
-        .select('id, knowledge_entries')
+        .select('id, knowledge_entries, brand_summary, market_position, target_audience, competitive_advantages, brand_voice_profile, growth_recommendations, cultural_insights, globallink_recommendations, localization_readiness_score, analysis_count, competitive_landscape')
         .single();
       intel = newIntel;
     }
@@ -251,27 +251,95 @@ Analyze provided images and document content for visual consistency, content qua
 
     const entries = Array.isArray(intel.knowledge_entries) ? intel.knowledge_entries : [];
 
-    // Update intelligence with comprehensive data
+    // --- MERGE logic: preserve existing data, only update if AI returned something meaningful ---
+
+    // Merge arrays by combining existing + new, deduplicating
+    const mergeArrays = (existing: any, incoming: any) => {
+      const ex = Array.isArray(existing) ? existing : [];
+      const inc = Array.isArray(incoming) ? incoming : [];
+      const combined = [...ex];
+      for (const item of inc) {
+        const str = typeof item === 'string' ? item : JSON.stringify(item);
+        const isDuplicate = combined.some(e => {
+          const eStr = typeof e === 'string' ? e : JSON.stringify(e);
+          return eStr.toLowerCase() === str.toLowerCase();
+        });
+        if (!isDuplicate) combined.push(item);
+      }
+      return combined;
+    };
+
+    // Only replace text fields if AI returned a substantive value and existing is empty
+    const mergeText = (existing: string | null, incoming: string | null | undefined) => {
+      if (!incoming) return existing;
+      if (!existing) return incoming;
+      // If existing is very short and new is longer, prefer new
+      if (existing.length < 20 && incoming.length > existing.length) return incoming;
+      return existing; // Keep existing by default
+    };
+
+    // Merge voice profile
+    const existingVoice = (intel.brand_voice_profile as any) || {};
+    const incomingVoice = analysis.voice || {};
+    const mergedVoice = {
+      ...existingVoice,
+      tone: existingVoice.tone || incomingVoice.tone || "",
+      style: existingVoice.style || incomingVoice.style || "",
+      personality: existingVoice.personality || incomingVoice.personality,
+      communication_style: existingVoice.communication_style || incomingVoice.style || "",
+    };
+
+    // Merge growth recommendations
+    const existingRecs = Array.isArray(intel.growth_recommendations) ? intel.growth_recommendations : [];
+    const incomingRecs = analysis.recommendation ? [{
+      priority: "medium",
+      recommendation: analysis.recommendation,
+      rationale: "",
+      confidence: 0.7
+    }] : [];
+    const mergedRecs = mergeArrays(existingRecs, incomingRecs);
+
+    // Merge cultural insights
+    const existingCultural = (intel.cultural_insights as any) || {};
+    const incomingCultural = analysis.cultural_insights || {};
+    const mergedCultural = Object.keys(incomingCultural).length > 0 ? {
+      ...existingCultural,
+      global_readiness_score: incomingCultural.global_readiness_score || existingCultural.global_readiness_score || 50,
+      primary_markets: mergeArrays(existingCultural.primary_markets, incomingCultural.primary_markets),
+      cultural_considerations: mergeArrays(existingCultural.cultural_considerations, incomingCultural.cultural_considerations),
+      localization_priorities: mergeArrays(existingCultural.localization_priorities, incomingCultural.localization_priorities),
+      color_cultural_notes: mergeArrays(existingCultural.color_cultural_notes, incomingCultural.color_cultural_notes),
+      imagery_guidelines: mergeArrays(existingCultural.imagery_guidelines, incomingCultural.imagery_guidelines),
+    } : existingCultural;
+
+    // Merge target audience
+    const existingAudience = (intel.target_audience as any) || {};
+    const mergedAudience = {
+      ...existingAudience,
+      primary: existingAudience.primary || analysis.audience || "",
+      secondary: mergeArrays(existingAudience.secondary, []),
+      demographics: mergeArrays(existingAudience.demographics, []),
+    };
+
+    // Update intelligence with MERGED data
     await supabase
       .from('brand_intelligence')
       .update({
-        brand_summary: analysis.summary || null,
-        market_position: analysis.position || null,
-        target_audience: { primary: analysis.audience || "" },
-        competitive_advantages: analysis.advantages || [],
-        brand_voice_profile: analysis.voice || {},
-        growth_recommendations: analysis.recommendation ? [{
-          priority: "medium",
-          recommendation: analysis.recommendation,
-          rationale: "",
-          confidence: 0.7
-        }] : [],
-        cultural_insights: analysis.cultural_insights || null,
-        globallink_recommendations: analysis.globallink_recommendations || [],
+        brand_summary: mergeText(intel.brand_summary as string | null, analysis.summary),
+        market_position: mergeText(intel.market_position as string | null, analysis.position),
+        target_audience: mergedAudience,
+        competitive_advantages: mergeArrays(intel.competitive_advantages, analysis.advantages),
+        brand_voice_profile: mergedVoice,
+        growth_recommendations: mergedRecs,
+        cultural_insights: Object.keys(mergedCultural).length > 0 ? mergedCultural : null,
+        globallink_recommendations: mergeArrays(intel.globallink_recommendations, analysis.globallink_recommendations),
         knowledge_entries: [...entries, newInsight],
         last_analyzed_at: new Date().toISOString(),
-        analysis_count: (intel as any).analysis_count ? (intel as any).analysis_count + 1 : 1,
-        localization_readiness_score: analysis.cultural_insights?.global_readiness_score || analysis.readiness || 50,
+        analysis_count: ((intel as any).analysis_count || 0) + 1,
+        localization_readiness_score: Math.max(
+          (intel.localization_readiness_score as number) || 0,
+          analysis.cultural_insights?.global_readiness_score || analysis.readiness || 50
+        ),
       })
       .eq('id', intel.id);
 
