@@ -1,8 +1,8 @@
-import html2pdf from 'html2pdf.js';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 import type { CompetitiveAnalysisReportData } from '@/types/competitiveAnalysis';
 import {
   PDF_COLORS,
-  PDF_PAPER_CONFIGS,
   applyPdfContainerStyles,
   getScoreColor,
   formatPdfDate,
@@ -42,72 +42,58 @@ const htmlBar = (label: string, value: number, max = 10) => {
 const badge = (text: string, fg: string, bg: string) =>
   `<span style="display:inline-block;padding:3px 12px;font-size:11px;font-weight:600;border-radius:999px;background:${bg};color:${fg};text-transform:uppercase;letter-spacing:.5px;">${text}</span>`;
 
-// ─── PDF Content Builder ────────────────────────────────
-const createPdfContent = (
-  report: CompetitiveAnalysisReportData,
-  options: ExportOptions
-): string => {
-  const { entityName, entityType } = options;
-  const scoreColor = getScoreColor(report.score);
-  const date = formatPdfDate();
+// ─── PDF Section Builders (each returns HTML for one page/section) ───
+const buildCover = (report: CompetitiveAnalysisReportData, entityName: string, entityType: string, accentColor: string, scoreColor: string, date: string) => `
+  <div data-pdf-section style="text-align:center;padding:60px 40px;">
+    <div style="display:inline-block;width:60px;height:4px;background:${accentColor};border-radius:2px;margin-bottom:32px;"></div>
+    <h1 style="font-size:36px;font-weight:800;color:#111827;margin:0 0 8px;letter-spacing:-.5px;">Competitive Analysis</h1>
+    <p style="font-size:22px;color:#6b7280;margin:0 0 4px;">${entityName}</p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;text-transform:uppercase;letter-spacing:1px;">${entityType} Report</p>
+    <div style="margin:48px auto;width:140px;height:140px;border-radius:50%;background:linear-gradient(135deg,${accentColor}22,${accentColor}08);border:3px solid ${scoreColor};text-align:center;padding-top:35px;box-sizing:border-box;">
+      <div style="font-size:52px;font-weight:800;color:${scoreColor};line-height:1;">${report.score}</div>
+      <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;">Score</div>
+    </div>
+    <p style="font-size:12px;color:#9ca3af;">Generated ${date}</p>
+  </div>`;
 
-  const entityColors: Record<string, string> = { brand: '#14b8a6', product: '#139cd8', event: '#a855f7' };
-  const accentColor = entityColors[entityType] || '#3b82f6';
+const buildExecSummary = (report: CompetitiveAnalysisReportData) => `
+  <div data-pdf-section style="padding:20px 0;">
+    ${sectionTitle('Executive Summary')}
+    <p style="font-size:14px;color:#374151;line-height:1.7;margin:0 0 24px;">${str(report.executiveSummary?.overview)}</p>
+    <div style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border-left:4px solid #22c55e;padding:16px 20px;border-radius:0 10px 10px 0;margin-bottom:24px;">
+      <p style="font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;">Current Position</p>
+      <p style="font-size:13px;color:#15803d;margin:0;line-height:1.6;">${str(report.executiveSummary?.currentPosition)}</p>
+    </div>
+    <p style="font-size:14px;font-weight:700;color:#111827;margin:0 0 10px;">Top Priorities</p>
+    <ul style="margin:0;padding-left:18px;">${li(safe(report.executiveSummary?.topPriorities))}</ul>
+  </div>`;
 
-  // ── Cover ─────────────────────────────────
-  const cover = `
-    <div style="text-align:center;padding:60px 40px;page-break-after:always;">
-      <div style="display:inline-block;width:60px;height:4px;background:${accentColor};border-radius:2px;margin-bottom:32px;"></div>
-      <h1 style="font-size:36px;font-weight:800;color:#111827;margin:0 0 8px;letter-spacing:-.5px;">Competitive Analysis</h1>
-      <p style="font-size:22px;color:#6b7280;margin:0 0 4px;">${entityName}</p>
-      <p style="font-size:13px;color:#9ca3af;margin:0;text-transform:uppercase;letter-spacing:1px;">${entityType} Report</p>
-      <div style="margin:48px auto;width:140px;height:140px;border-radius:50%;background:linear-gradient(135deg,${accentColor}22,${accentColor}08);border:3px solid ${scoreColor};text-align:center;padding-top:35px;box-sizing:border-box;">
-        <div style="font-size:52px;font-weight:800;color:${scoreColor};line-height:1;">${report.score}</div>
-        <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;">Score</div>
-      </div>
-      <p style="font-size:12px;color:#9ca3af;">Generated ${date}</p>
-    </div>`;
+const buildMarketPerception = (report: CompetitiveAnalysisReportData) => `
+  <div data-pdf-section style="padding:20px 0;">
+    ${sectionTitle('Market Perception')}
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+      <tr>
+        <td style="width:50%;vertical-align:top;padding-right:10px;">
+          <div style="background:#f0fdf4;padding:18px;border-radius:10px;min-height:120px;">
+            <p style="font-size:13px;font-weight:700;color:#166534;margin:0 0 10px;">✓ Key Strengths</p>
+            <ul style="margin:0;padding-left:14px;">${li(safe(report.marketPerception?.keyStrengths), '#15803d')}</ul>
+          </div>
+        </td>
+        <td style="width:50%;vertical-align:top;padding-left:10px;">
+          <div style="background:#fef3c7;padding:18px;border-radius:10px;min-height:120px;">
+            <p style="font-size:13px;font-weight:700;color:#92400e;margin:0 0 10px;">⚠ Critical Gaps</p>
+            <ul style="margin:0;padding-left:14px;">${li(safe(report.marketPerception?.criticalGaps), '#a16207')}</ul>
+          </div>
+        </td>
+      </tr>
+    </table>
+    <div style="background:#fef2f2;padding:18px;border-radius:10px;">
+      <p style="font-size:13px;font-weight:700;color:#991b1b;margin:0 0 10px;">⚡ Risks</p>
+      <ul style="margin:0;padding-left:14px;">${li(safe(report.marketPerception?.risks), '#b91c1c')}</ul>
+    </div>
+  </div>`;
 
-  // ── Executive Summary ─────────────────────
-  const execSummary = `
-    <div style="margin-bottom:40px;page-break-after:always;">
-      ${sectionTitle('Executive Summary')}
-      <p style="font-size:14px;color:#374151;line-height:1.7;margin:0 0 24px;">${str(report.executiveSummary?.overview)}</p>
-      <div style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border-left:4px solid #22c55e;padding:16px 20px;border-radius:0 10px 10px 0;margin-bottom:24px;">
-        <p style="font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;">Current Position</p>
-        <p style="font-size:13px;color:#15803d;margin:0;line-height:1.6;">${str(report.executiveSummary?.currentPosition)}</p>
-      </div>
-      <p style="font-size:14px;font-weight:700;color:#111827;margin:0 0 10px;">Top Priorities</p>
-      <ul style="margin:0;padding-left:18px;">${li(safe(report.executiveSummary?.topPriorities))}</ul>
-    </div>`;
-
-  // ── Market Perception ─────────────────────
-  const marketPerception = `
-    <div style="margin-bottom:40px;page-break-after:always;">
-      ${sectionTitle('Market Perception')}
-      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
-        <tr>
-          <td style="width:50%;vertical-align:top;padding-right:10px;">
-            <div style="background:#f0fdf4;padding:18px;border-radius:10px;min-height:120px;">
-              <p style="font-size:13px;font-weight:700;color:#166534;margin:0 0 10px;">✓ Key Strengths</p>
-              <ul style="margin:0;padding-left:14px;">${li(safe(report.marketPerception?.keyStrengths), '#15803d')}</ul>
-            </div>
-          </td>
-          <td style="width:50%;vertical-align:top;padding-left:10px;">
-            <div style="background:#fef3c7;padding:18px;border-radius:10px;min-height:120px;">
-              <p style="font-size:13px;font-weight:700;color:#92400e;margin:0 0 10px;">⚠ Critical Gaps</p>
-              <ul style="margin:0;padding-left:14px;">${li(safe(report.marketPerception?.criticalGaps), '#a16207')}</ul>
-            </div>
-          </td>
-        </tr>
-      </table>
-      <div style="background:#fef2f2;padding:18px;border-radius:10px;">
-        <p style="font-size:13px;font-weight:700;color:#991b1b;margin:0 0 10px;">⚡ Risks</p>
-        <ul style="margin:0;padding-left:14px;">${li(safe(report.marketPerception?.risks), '#b91c1c')}</ul>
-      </div>
-    </div>`;
-
-  // ── Strengths & Weaknesses (HTML bar chart) ───
+const buildSwMatrix = (report: CompetitiveAnalysisReportData) => {
   const matrixEntries = [
     ['Design Sophistication', report.strengthsWeaknesses?.designSophistication],
     ['Visual Consistency', report.strengthsWeaknesses?.visualConsistency],
@@ -118,8 +104,8 @@ const createPdfContent = (
     ['Professional Polish', report.strengthsWeaknesses?.professionalPolish],
   ].sort((a, b) => (Number(b[1]) || 0) - (Number(a[1]) || 0));
 
-  const swMatrix = `
-    <div style="margin-bottom:40px;page-break-after:always;">
+  return `
+    <div data-pdf-section style="padding:20px 0;">
       ${sectionTitle('Strengths & Weaknesses Matrix')}
       <table style="width:100%;border-collapse:collapse;">
         <tbody>
@@ -127,8 +113,9 @@ const createPdfContent = (
         </tbody>
       </table>
     </div>`;
+};
 
-  // ── Brand Positioning ─────────────────────
+const buildPositioning = (report: CompetitiveAnalysisReportData) => {
   const pm = report.brandPositioning?.personalityMatrix || {} as any;
   const personalityItems = [
     ['Innovation', pm.innovationScore],
@@ -139,8 +126,8 @@ const createPdfContent = (
     ['Global', pm.globalScore],
   ];
 
-  const positioning = `
-    <div style="margin-bottom:40px;page-break-after:always;">
+  return `
+    <div data-pdf-section style="padding:20px 0;">
       ${sectionTitle('Brand Positioning')}
       <p style="font-size:14px;font-weight:700;color:#374151;margin:0 0 12px;">Personality Matrix</p>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
@@ -167,8 +154,9 @@ const createPdfContent = (
         </div>
       ` : ''}
     </div>`;
+};
 
-  // ── Recommendations ───────────────────────
+const buildRecommendations = (report: CompetitiveAnalysisReportData) => {
   const designPriorities = safe(report.recommendations?.designPriorities).map((p: any, i: number) => {
     const impactColor = p?.impact === 'high' ? '#22c55e' : p?.impact === 'medium' ? '#eab308' : '#9ca3af';
     const effortColor = p?.effort === 'low' ? '#22c55e' : p?.effort === 'medium' ? '#eab308' : '#ef4444';
@@ -195,8 +183,8 @@ const createPdfContent = (
       </div>
     </td>`;
 
-  const recommendations = `
-    <div style="margin-bottom:40px;page-break-before:always;">
+  return `
+    <div data-pdf-section style="padding:20px 0;">
       ${sectionTitle('Strategic Recommendations')}
       <p style="font-size:14px;font-weight:700;color:#374151;margin:0 0 12px;">Design Priorities</p>
       <table style="width:100%;border-collapse:collapse;margin-bottom:28px;">
@@ -209,23 +197,21 @@ const createPdfContent = (
         </thead>
         <tbody>${designPriorities}</tbody>
       </table>
-
       <p style="font-size:14px;font-weight:700;color:#374151;margin:0 0 12px;">Brand Refinements</p>
       <table style="width:100%;border-collapse:collapse;margin-bottom:28px;">
         <tr>${refinementCard('Logo', str(br?.logo), '◆')}${refinementCard('Colors', str(br?.colors), '◉')}</tr>
         <tr>${refinementCard('Typography', str(br?.typography), '𝐓')}${refinementCard('Imagery', str(br?.imagery), '▣')}</tr>
       </table>
-
       <p style="font-size:14px;font-weight:700;color:#374151;margin:0 0 10px;">Positioning Opportunities</p>
       <ul style="margin:0 0 20px;padding-left:18px;">${li(safe(report.recommendations?.positioningOpportunities))}</ul>
-
       ${safe(report.recommendations?.digitalImprovements).length > 0 ? `
         <p style="font-size:14px;font-weight:700;color:#374151;margin:0 0 10px;">Digital Improvements</p>
         <ul style="margin:0 0 20px;padding-left:18px;">${li(safe(report.recommendations?.digitalImprovements))}</ul>
       ` : ''}
     </div>`;
+};
 
-  // ── Action Plan ───────────────────────────
+const buildActionPlan = (report: CompetitiveAnalysisReportData, date: string) => {
   const phase = (title: string, items: string[], bg: string, headColor: string, textColor: string) => `
     <td style="width:33.33%;vertical-align:top;padding:6px;">
       <div style="background:${bg};padding:18px;border-radius:10px;min-height:140px;">
@@ -234,8 +220,8 @@ const createPdfContent = (
       </div>
     </td>`;
 
-  const actionPlan = `
-    <div style="margin-bottom:40px;page-break-before:always;">
+  return `
+    <div data-pdf-section style="padding:20px 0;">
       ${sectionTitle('30 / 60 / 90 Day Action Plan')}
       <table style="width:100%;border-collapse:collapse;margin-bottom:28px;">
         <tr>
@@ -248,28 +234,13 @@ const createPdfContent = (
         <p style="font-size:13px;font-weight:700;color:#0369a1;margin:0 0 10px;">📊 Success Metrics</p>
         <ul style="margin:0;padding-left:14px;">${li(safe(report.executiveSummary?.successMetrics), '#0284c7')}</ul>
       </div>
-    </div>`;
-
-  // ── Footer ────────────────────────────────
-  const footer = `
-    <div style="text-align:center;padding-top:32px;border-top:1px solid #e5e7eb;">
+    </div>
+    <div data-pdf-section style="text-align:center;padding-top:32px;border-top:1px solid #e5e7eb;">
       <p style="font-size:11px;color:#9ca3af;margin:0;">Generated by Brand Intelligence System · ${date}</p>
-    </div>`;
-
-  return `
-    <div style="font-family:'Helvetica Neue',Arial,sans-serif;color:#111827;line-height:1.6;padding:36px 40px;background:#ffffff;">
-      ${cover}
-      ${execSummary}
-      ${marketPerception}
-      ${swMatrix}
-      ${positioning}
-      ${recommendations}
-      ${actionPlan}
-      ${footer}
     </div>`;
 };
 
-// ─── Export Function ────────────────────────────────────
+// ─── Export Function (section-based jsPDF + html2canvas) ─────────
 export const exportCompetitiveAnalysisPdf = async (
   report: CompetitiveAnalysisReportData,
   options: ExportOptions,
@@ -277,52 +248,75 @@ export const exportCompetitiveAnalysisPdf = async (
 ): Promise<void> => {
   onProgress?.('Preparing PDF...');
 
+  const { entityName, entityType } = options;
+  const scoreColor = getScoreColor(report.score);
+  const date = formatPdfDate();
+  const entityColors: Record<string, string> = { brand: '#14b8a6', product: '#139cd8', event: '#a855f7' };
+  const accentColor = entityColors[entityType] || '#3b82f6';
+
+  // Build all section HTML
+  const allHtml = [
+    buildCover(report, entityName, entityType, accentColor, scoreColor, date),
+    buildExecSummary(report),
+    buildMarketPerception(report),
+    buildSwMatrix(report),
+    buildPositioning(report),
+    buildRecommendations(report),
+    buildActionPlan(report, date),
+  ].join('');
+
+  // Create container
   const container = document.createElement('div');
-  container.innerHTML = createPdfContent(report, options);
+  container.innerHTML = `<div style="font-family:'Helvetica Neue',Arial,sans-serif;color:#111827;line-height:1.6;padding:36px 40px;background:#ffffff;">${allHtml}</div>`;
   applyPdfContainerStyles(container, 'a4');
   document.body.appendChild(container);
 
-  // Force browser to fully layout and paint the content
+  // Force layout
   void container.offsetHeight;
-  void container.offsetWidth;
-  container.getBoundingClientRect();
-  // Allow enough time for full paint before html2canvas captures
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await new Promise(resolve => setTimeout(resolve, 800));
 
-  const filename = `${options.entityName.replace(/\s+/g, '_')}_Competitive_Analysis.pdf`;
+  // A4 dimensions in mm
+  const A4_W = 210;
+  const A4_H = 297;
+  const MARGIN = 10;
+  const CONTENT_W = A4_W - MARGIN * 2;
+  const GAP = 4;
 
-  const pdfOptions = {
-    margin: PDF_PAPER_CONFIGS.a4.margins,
-    filename,
-    image: { type: 'jpeg' as const, quality: 0.98 },
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-      backgroundColor: '#ffffff',
-      width: container.scrollWidth,
-      height: container.scrollHeight,
-      windowWidth: container.scrollWidth,
-      windowHeight: container.scrollHeight,
-      scrollX: 0,
-      scrollY: 0,
-      x: 0,
-      y: 0,
-    },
-    jsPDF: {
-      ...PDF_PAPER_CONFIGS.a4.jsPDF,
-      compress: true,
-    },
-    pagebreak: {
-      mode: ['avoid-all', 'css'],
-    },
-  };
+  const sections = Array.from(container.querySelectorAll('[data-pdf-section]')) as HTMLElement[];
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  let currentY = MARGIN;
 
   onProgress?.('Generating PDF...');
 
   try {
-    await html2pdf().set(pdfOptions).from(container).save();
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i];
+      const canvas = await html2canvas(section, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: section.scrollWidth,
+        height: section.scrollHeight,
+      });
+
+      const scaleFactor = CONTENT_W / (canvas.width / 2);
+      const heightMM = (canvas.height / 2) * scaleFactor;
+      const remaining = A4_H - MARGIN - currentY;
+
+      if (heightMM > remaining && currentY > MARGIN) {
+        pdf.addPage();
+        currentY = MARGIN;
+      }
+
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', MARGIN, currentY, CONTENT_W, heightMM);
+      currentY += heightMM + GAP;
+    }
+
+    const filename = `${entityName.replace(/\s+/g, '_')}_Competitive_Analysis.pdf`;
+    pdf.save(filename);
     onProgress?.('PDF exported successfully!');
   } catch (error) {
     console.error('PDF export failed:', error);
