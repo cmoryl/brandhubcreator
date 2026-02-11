@@ -829,17 +829,17 @@ export const BrandIntelligencePanel = ({
                 <span className="font-medium">Knowledge Base</span>
                 <Badge variant="secondary" className="ml-2">{intelligence?.knowledge_entries?.length || 0}</Badge>
               </div>
-              <div className="flex items-center gap-2">
-                <ImportReportDialog
-                  entityType={entityType}
-                  entityId={entityId}
-                  organizationId={organizationId}
-                  onInsightsImported={() => fetchIntelligence()}
-                />
-                {expandedSections.knowledge ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </div>
+              {expandedSections.knowledge ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
           </CollapsibleTrigger>
+          <div className="flex justify-end mt-2">
+            <ImportReportDialog
+              entityType={entityType}
+              entityId={entityId}
+              organizationId={organizationId}
+              onInsightsImported={() => fetchIntelligence()}
+            />
+          </div>
           <CollapsibleContent className="mt-4 space-y-4">
             {/* Add Entry Form */}
             <div className="p-4 rounded-xl bg-background border border-dashed border-border">
