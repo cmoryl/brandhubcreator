@@ -115,7 +115,6 @@ export const getPdfContainerStyles = (paperSize: 'a4' | 'letter' = 'a4'): Partia
   left: '0',
   width: PDF_PAPER_CONFIGS[paperSize].width,
   zIndex: '99999',
-  opacity: '0',
   pointerEvents: 'none',
   overflow: 'visible',
   background: '#ffffff',
