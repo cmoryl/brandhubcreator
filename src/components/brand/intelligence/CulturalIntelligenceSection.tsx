@@ -97,6 +97,14 @@ export const CulturalIntelligenceSection: React.FC<CulturalIntelligenceSectionPr
 
   const readinessScore = localizationReadinessScore || culturalInsights?.global_readiness_score || 0;
 
+  // Safely coerce fields to arrays
+  const primaryMarkets = Array.isArray(culturalInsights?.primary_markets) ? culturalInsights.primary_markets : [];
+  const culturalConsiderations = Array.isArray(culturalInsights?.cultural_considerations) ? culturalInsights.cultural_considerations : [];
+  const colorCulturalNotes = Array.isArray(culturalInsights?.color_cultural_notes) ? culturalInsights.color_cultural_notes : [];
+  const imageryGuidelines = Array.isArray(culturalInsights?.imagery_guidelines) ? culturalInsights.imagery_guidelines : [];
+  const localizationPriorities = Array.isArray(culturalInsights?.localization_priorities) ? culturalInsights.localization_priorities : [];
+  const safeRecommendations = Array.isArray(globallinkRecommendations) ? globallinkRecommendations : [];
+
   return (
     <div className="space-y-4">
       {/* Localization Readiness Score */}
@@ -127,14 +135,14 @@ export const CulturalIntelligenceSection: React.FC<CulturalIntelligenceSectionPr
       </Card>
 
       {/* Primary Markets */}
-      {culturalInsights?.primary_markets && culturalInsights.primary_markets.length > 0 && (
+      {primaryMarkets.length > 0 && (
         <div>
           <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
             <MapPin className="h-4 w-4 text-primary" />
             Primary Target Markets
           </h4>
           <div className="flex flex-wrap gap-2">
-            {culturalInsights.primary_markets.map((market, i) => (
+            {primaryMarkets.map((market, i) => (
               <Badge key={i} variant="secondary" className="gap-1">
                 {market}
               </Badge>
@@ -144,20 +152,20 @@ export const CulturalIntelligenceSection: React.FC<CulturalIntelligenceSectionPr
       )}
 
       {/* Cultural Considerations by Region */}
-      {culturalInsights?.cultural_considerations && culturalInsights.cultural_considerations.length > 0 && (
+      {culturalConsiderations.length > 0 && (
         <div>
           <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
             <Languages className="h-4 w-4 text-primary" />
             Regional Considerations
           </h4>
           <Accordion type="multiple" className="space-y-2">
-            {culturalInsights.cultural_considerations.map((region, i) => (
+            {culturalConsiderations.map((region, i) => (
               <AccordionItem key={i} value={region.region} className="border rounded-lg px-3">
                 <AccordionTrigger className="py-2 hover:no-underline">
                   <span className="font-medium text-sm">{region.region}</span>
                 </AccordionTrigger>
                 <AccordionContent className="space-y-3 pb-3">
-                  {region.considerations.length > 0 && (
+                  {Array.isArray(region.considerations) && region.considerations.length > 0 && (
                     <div>
                       <p className="text-xs font-medium text-muted-foreground mb-1">Cultural Notes</p>
                       <ul className="space-y-1">
@@ -170,7 +178,7 @@ export const CulturalIntelligenceSection: React.FC<CulturalIntelligenceSectionPr
                       </ul>
                     </div>
                   )}
-                  {region.design_adaptations.length > 0 && (
+                  {Array.isArray(region.design_adaptations) && region.design_adaptations.length > 0 && (
                     <div>
                       <p className="text-xs font-medium text-muted-foreground mb-1">Design Adaptations</p>
                       <div className="flex flex-wrap gap-1">
@@ -196,14 +204,14 @@ export const CulturalIntelligenceSection: React.FC<CulturalIntelligenceSectionPr
       )}
 
       {/* Color Cultural Notes */}
-      {culturalInsights?.color_cultural_notes && culturalInsights.color_cultural_notes.length > 0 && (
+      {colorCulturalNotes.length > 0 && (
         <div>
           <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
             <Palette className="h-4 w-4 text-primary" />
             Color Considerations
           </h4>
           <ul className="space-y-1">
-            {culturalInsights.color_cultural_notes.map((note, i) => (
+            {colorCulturalNotes.map((note, i) => (
               <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
                 <ChevronRight className="h-3 w-3 mt-1 shrink-0" />
                 {note}
@@ -214,14 +222,14 @@ export const CulturalIntelligenceSection: React.FC<CulturalIntelligenceSectionPr
       )}
 
       {/* Imagery Guidelines */}
-      {culturalInsights?.imagery_guidelines && culturalInsights.imagery_guidelines.length > 0 && (
+      {imageryGuidelines.length > 0 && (
         <div>
           <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
             <Image className="h-4 w-4 text-primary" />
             Imagery Guidelines
           </h4>
           <ul className="space-y-1">
-            {culturalInsights.imagery_guidelines.map((guideline, i) => (
+            {imageryGuidelines.map((guideline, i) => (
               <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
                 <ChevronRight className="h-3 w-3 mt-1 shrink-0" />
                 {guideline}
@@ -232,11 +240,11 @@ export const CulturalIntelligenceSection: React.FC<CulturalIntelligenceSectionPr
       )}
 
       {/* Localization Priorities */}
-      {culturalInsights?.localization_priorities && culturalInsights.localization_priorities.length > 0 && (
+      {localizationPriorities.length > 0 && (
         <div>
           <h4 className="text-sm font-medium mb-2">Localization Priorities</h4>
           <div className="space-y-1">
-            {culturalInsights.localization_priorities.map((priority, i) => (
+            {localizationPriorities.map((priority, i) => (
               <div key={i} className="flex items-center gap-2 text-sm">
                 <Badge variant="secondary" className="h-5 w-5 p-0 justify-center shrink-0">
                   {i + 1}
@@ -251,14 +259,14 @@ export const CulturalIntelligenceSection: React.FC<CulturalIntelligenceSectionPr
       <Separator />
 
       {/* GlobalLink Recommendations */}
-      {globallinkRecommendations && globallinkRecommendations.length > 0 && (
+      {safeRecommendations.length > 0 && (
         <div>
           <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
             <Zap className="h-4 w-4 text-primary" />
             Recommended GlobalLink Products
           </h4>
           <div className="space-y-2">
-            {globallinkRecommendations.map((rec, i) => {
+            {safeRecommendations.map((rec, i) => {
               const productInfo = GLOBALLINK_PRODUCTS[rec.product] || {
                 icon: <Globe2 className="h-4 w-4" />,
                 color: 'bg-muted text-muted-foreground',
