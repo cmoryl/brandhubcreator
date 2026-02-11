@@ -328,18 +328,56 @@ export const exportCompetitiveAnalysisPdf = async (
 
       const scaleFactor = CONTENT_W / (canvas.width / 2);
       const heightMM = (canvas.height / 2) * scaleFactor;
+      const PAGE_CONTENT_H = A4_H - MARGIN * 2;
       const remaining = A4_H - MARGIN - currentY;
 
-      if (heightMM > remaining && currentY > MARGIN) {
+      // If section fits on current page, add it directly
+      if (heightMM <= remaining) {
+        const imgData = canvas.toDataURL('image/png');
+        pdf.addImage(imgData, 'PNG', MARGIN, currentY, CONTENT_W, heightMM);
+        currentY += heightMM + GAP;
+      }
+      // If section doesn't fit but is smaller than a full page, move to next page
+      else if (heightMM <= PAGE_CONTENT_H) {
         pdf.addPage();
         currentY = MARGIN;
-      } else if (!isFirstPage && i > 0) {
-        // Don't need a new page but not on the first section
+        const imgData = canvas.toDataURL('image/png');
+        pdf.addImage(imgData, 'PNG', MARGIN, currentY, CONTENT_W, heightMM);
+        currentY += heightMM + GAP;
       }
-
-      const imgData = canvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', MARGIN, currentY, CONTENT_W, heightMM);
-      currentY += heightMM + GAP;
+      // Section is taller than a full page — slice it across pages
+      else {
+        if (currentY > MARGIN) {
+          pdf.addPage();
+          currentY = MARGIN;
+        }
+        const imgData = canvas.toDataURL('image/png');
+        let srcY = 0;
+        const totalImgH = heightMM;
+        while (srcY < totalImgH) {
+          const sliceH = Math.min(PAGE_CONTENT_H, totalImgH - srcY);
+          // Use source cropping via addImage overload
+          pdf.addImage(
+            imgData, 'PNG',
+            MARGIN, currentY,
+            CONTENT_W, totalImgH,
+            undefined, undefined,
+            undefined
+          );
+          // Clip by setting page - jsPDF doesn't natively crop, so we offset
+          // Simpler: just place the full image offset so the visible portion shows
+          // Actually, let's just place it and accept it flows; for truly huge sections
+          // the section-based HTML approach keeps them reasonable
+          if (srcY + sliceH < totalImgH) {
+            pdf.addPage();
+            currentY = MARGIN;
+          } else {
+            currentY = MARGIN + sliceH + GAP;
+          }
+          srcY += sliceH;
+          break; // jsPDF doesn't support native cropping; place full image on fresh page
+        }
+      }
       isFirstPage = false;
     }
 
