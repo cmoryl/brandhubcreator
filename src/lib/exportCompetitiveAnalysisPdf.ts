@@ -265,15 +265,17 @@ export const exportCompetitiveAnalysisPdf = async (
     buildActionPlan(report, date),
   ].join('');
 
-  // Create container
+  // Create container - must be on-screen for html2canvas but visually hidden via opacity
   const container = document.createElement('div');
-  container.innerHTML = `<div style="font-family:'Helvetica Neue',Arial,sans-serif;color:#111827;line-height:1.6;padding:36px 40px;background:#ffffff;">${allHtml}</div>`;
+  container.innerHTML = `<div style="font-family:'Helvetica Neue',Arial,sans-serif;color:#111827;line-height:1.6;padding:36px 40px;background:#ffffff;width:750px;">${allHtml}</div>`;
   applyPdfContainerStyles(container, 'a4');
   document.body.appendChild(container);
 
-  // Force layout
+  // Force full layout computation
   void container.offsetHeight;
-  await new Promise(resolve => setTimeout(resolve, 800));
+  void container.offsetWidth;
+  container.getBoundingClientRect();
+  await new Promise(resolve => setTimeout(resolve, 1200));
 
   // A4 dimensions in mm
   const A4_W = 210;
@@ -283,23 +285,46 @@ export const exportCompetitiveAnalysisPdf = async (
   const GAP = 4;
 
   const sections = Array.from(container.querySelectorAll('[data-pdf-section]')) as HTMLElement[];
+  console.log(`[PDF Export] Found ${sections.length} sections to capture`);
+  
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   let currentY = MARGIN;
+  let isFirstPage = true;
 
   onProgress?.('Generating PDF...');
 
   try {
     for (let i = 0; i < sections.length; i++) {
       const section = sections[i];
+      const rect = section.getBoundingClientRect();
+      console.log(`[PDF Export] Section ${i}: ${rect.width}x${rect.height}`);
+      
+      if (rect.height === 0 || rect.width === 0) {
+        console.warn(`[PDF Export] Skipping empty section ${i}`);
+        continue;
+      }
+
+      // Temporarily make container visible for this capture
+      container.style.opacity = '1';
+      
       const canvas = await html2canvas(section, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         logging: false,
         backgroundColor: '#ffffff',
-        width: section.scrollWidth,
-        height: section.scrollHeight,
+        width: Math.ceil(rect.width),
+        height: Math.ceil(rect.height),
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0,
       });
+      
+      // Hide again immediately after capture
+      container.style.opacity = '0';
+
+      console.log(`[PDF Export] Canvas ${i}: ${canvas.width}x${canvas.height}`);
 
       const scaleFactor = CONTENT_W / (canvas.width / 2);
       const heightMM = (canvas.height / 2) * scaleFactor;
@@ -308,11 +333,14 @@ export const exportCompetitiveAnalysisPdf = async (
       if (heightMM > remaining && currentY > MARGIN) {
         pdf.addPage();
         currentY = MARGIN;
+      } else if (!isFirstPage && i > 0) {
+        // Don't need a new page but not on the first section
       }
 
       const imgData = canvas.toDataURL('image/png');
       pdf.addImage(imgData, 'PNG', MARGIN, currentY, CONTENT_W, heightMM);
       currentY += heightMM + GAP;
+      isFirstPage = false;
     }
 
     const filename = `${entityName.replace(/\s+/g, '_')}_Competitive_Analysis.pdf`;
