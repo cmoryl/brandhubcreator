@@ -74,9 +74,9 @@ export const PDF_TYPOGRAPHY = {
 
 // Common html2pdf options for consistency
 export const PDF_HTML2PDF_BASE_OPTIONS = {
-  image: { type: 'jpeg' as const, quality: 0.95 },
+  image: { type: 'jpeg' as const, quality: 0.75 },
   html2canvas: {
-    scale: 2,
+    scale: 1.5,
     useCORS: true,
     allowTaint: true,
     logging: false,

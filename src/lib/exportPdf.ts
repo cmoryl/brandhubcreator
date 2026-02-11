@@ -74,9 +74,9 @@ export const exportToPdf = async (
   const opt = {
     margin: paper.margins,
     filename: `${guide.hero.name.replace(/\s+/g, '_')}_Brand_Guide_${theme}_${paperSize.toUpperCase()}.pdf`,
-    image: { type: 'jpeg' as const, quality: 0.95 },
+    image: { type: 'jpeg' as const, quality: 0.75 },
     html2canvas: { 
-      scale: 2,
+      scale: 1.5,
       useCORS: true,
       allowTaint: true,
       logging: false,

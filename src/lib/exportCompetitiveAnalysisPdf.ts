@@ -411,8 +411,9 @@ export const exportCompetitiveAnalysisPdf = async (
         continue;
       }
 
+      const RENDER_SCALE = 1.5;
       const canvas = await html2canvas(section, {
-        scale: 2,
+        scale: RENDER_SCALE,
         useCORS: true,
         allowTaint: true,
         logging: false,
@@ -421,22 +422,22 @@ export const exportCompetitiveAnalysisPdf = async (
 
       console.log(`[PDF Export] Canvas ${i}: ${canvas.width}x${canvas.height}`);
 
-      const scaleFactor = CONTENT_W / (canvas.width / 2);
-      const heightMM = (canvas.height / 2) * scaleFactor;
+      const scaleFactor = CONTENT_W / (canvas.width / RENDER_SCALE);
+      const heightMM = (canvas.height / RENDER_SCALE) * scaleFactor;
       const remaining = A4_H - MARGIN - currentY;
 
       // Section fits on current page
       if (heightMM <= remaining) {
-        const imgData = canvas.toDataURL('image/png');
-        pdf.addImage(imgData, 'PNG', MARGIN, currentY, CONTENT_W, heightMM);
+        const imgData = canvas.toDataURL('image/jpeg', 0.75);
+        pdf.addImage(imgData, 'JPEG', MARGIN, currentY, CONTENT_W, heightMM);
         currentY += heightMM + GAP;
       }
       // Section doesn't fit but is smaller than a full page — move to next page
       else if (heightMM <= PAGE_CONTENT_H) {
         pdf.addPage();
         currentY = MARGIN;
-        const imgData = canvas.toDataURL('image/png');
-        pdf.addImage(imgData, 'PNG', MARGIN, currentY, CONTENT_W, heightMM);
+        const imgData = canvas.toDataURL('image/jpeg', 0.75);
+        pdf.addImage(imgData, 'JPEG', MARGIN, currentY, CONTENT_W, heightMM);
         currentY += heightMM + GAP;
       }
       // Section is taller than a full page — place on fresh page
@@ -445,8 +446,8 @@ export const exportCompetitiveAnalysisPdf = async (
           pdf.addPage();
           currentY = MARGIN;
         }
-        const imgData = canvas.toDataURL('image/png');
-        pdf.addImage(imgData, 'PNG', MARGIN, currentY, CONTENT_W, heightMM);
+        const imgData = canvas.toDataURL('image/jpeg', 0.75);
+        pdf.addImage(imgData, 'JPEG', MARGIN, currentY, CONTENT_W, heightMM);
         currentY += heightMM + GAP;
         // If it overflows the page, the next section will trigger a new page
       }
