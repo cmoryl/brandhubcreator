@@ -110,11 +110,11 @@ export const PDF_PAPER_CONFIGS = {
 // IMPORTANT: html2canvas requires elements to be fully visible and in the document flow.
 // We use a full-screen overlay approach so the content is rendered on-screen during capture.
 export const getPdfContainerStyles = (paperSize: 'a4' | 'letter' = 'a4'): Partial<CSSStyleDeclaration> => ({
-  position: 'fixed',
+  position: 'absolute',
   top: '0',
-  left: '0',
+  left: '-9999px',
   width: PDF_PAPER_CONFIGS[paperSize].width,
-  zIndex: '99999',
+  zIndex: '-1',
   opacity: '1',
   pointerEvents: 'none',
   overflow: 'visible',
