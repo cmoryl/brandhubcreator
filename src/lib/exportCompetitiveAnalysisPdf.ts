@@ -1,17 +1,10 @@
 import html2pdf from 'html2pdf.js';
 import type { CompetitiveAnalysisReportData } from '@/types/competitiveAnalysis';
 import {
-  PDF_FONTS,
   PDF_COLORS,
-  PDF_TYPOGRAPHY,
-  PDF_SPACING,
   PDF_PAPER_CONFIGS,
   applyPdfContainerStyles,
   getScoreColor,
-  getSectionHeaderStyles,
-  getCardStyles,
-  getTableStyles,
-  generatePdfFooter,
   formatPdfDate,
 } from './pdfStyleConfig';
 
@@ -29,14 +22,17 @@ const createPdfContent = (
   const scoreColor = getScoreColor(report.score);
   const generatedDate = formatPdfDate();
 
+  // Helper to safely render arrays
+  const safeArray = (arr: unknown): string[] => Array.isArray(arr) ? arr.filter(Boolean).map(String) : [];
+  const safeString = (val: unknown, fallback = 'N/A'): string => (typeof val === 'string' && val) ? val : fallback;
+
+  const listItems = (items: string[]) => items.map(item => `<li style="font-size: 13px; color: #4b5563; margin-bottom: 6px;">${item}</li>`).join('');
+
   return `
-    <div style="font-family: ${PDF_FONTS.primary}; color: ${PDF_COLORS.text.primary}; line-height: 1.6; padding: 40px;">
+    <div style="font-family: 'Helvetica Neue', Arial, sans-serif; color: #111827; line-height: 1.6; padding: 40px;">
       <!-- Cover Page -->
       <div style="text-align: center; margin-bottom: 60px; page-break-after: always;">
         <div style="margin-bottom: 40px;">
-          <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 16px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center;">
-            <span style="color: white; font-size: 40px;">📊</span>
-          </div>
           <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 8px; color: #111827;">Competitive Analysis Report</h1>
           <p style="font-size: 20px; color: #6b7280; margin: 0;">${entityName}</p>
           <p style="font-size: 14px; color: #9ca3af; margin-top: 8px; text-transform: capitalize;">${entityType} Analysis</p>
@@ -55,16 +51,16 @@ const createPdfContent = (
         <h2 style="font-size: 24px; font-weight: 600; color: #111827; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e5e7eb;">
           Executive Summary
         </h2>
-        <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">${report.executiveSummary.overview}</p>
+        <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">${safeString(report.executiveSummary?.overview)}</p>
         
         <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 16px 20px; margin-bottom: 24px; border-radius: 0 8px 8px 0;">
           <h3 style="font-size: 16px; font-weight: 600; color: #166534; margin: 0 0 12px;">Current Position</h3>
-          <p style="font-size: 14px; color: #15803d; margin: 0;">${report.executiveSummary.currentPosition}</p>
+          <p style="font-size: 14px; color: #15803d; margin: 0;">${safeString(report.executiveSummary?.currentPosition)}</p>
         </div>
 
         <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 24px 0 16px;">Top Priorities</h3>
         <ul style="margin: 0; padding-left: 20px;">
-          ${report.executiveSummary.topPriorities.map(p => `<li style="font-size: 14px; color: #4b5563; margin-bottom: 8px;">${p}</li>`).join('')}
+          ${listItems(safeArray(report.executiveSummary?.topPriorities))}
         </ul>
       </div>
 
@@ -74,26 +70,31 @@ const createPdfContent = (
           Market Perception
         </h2>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
-          <div style="background: #f0fdf4; padding: 20px; border-radius: 12px;">
-            <h3 style="font-size: 16px; font-weight: 600; color: #166534; margin: 0 0 12px;">✓ Key Strengths</h3>
-            <ul style="margin: 0; padding-left: 16px;">
-              ${report.marketPerception.keyStrengths.map(s => `<li style="font-size: 13px; color: #15803d; margin-bottom: 6px;">${s}</li>`).join('')}
-            </ul>
-          </div>
-          
-          <div style="background: #fef3c7; padding: 20px; border-radius: 12px;">
-            <h3 style="font-size: 16px; font-weight: 600; color: #92400e; margin: 0 0 12px;">⚠ Critical Gaps</h3>
-            <ul style="margin: 0; padding-left: 16px;">
-              ${report.marketPerception.criticalGaps.map(g => `<li style="font-size: 13px; color: #a16207; margin-bottom: 6px;">${g}</li>`).join('')}
-            </ul>
-          </div>
-        </div>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+          <tr>
+            <td style="width: 50%; vertical-align: top; padding-right: 12px;">
+              <div style="background: #f0fdf4; padding: 20px; border-radius: 12px;">
+                <h3 style="font-size: 16px; font-weight: 600; color: #166534; margin: 0 0 12px;">✓ Key Strengths</h3>
+                <ul style="margin: 0; padding-left: 16px;">
+                  ${safeArray(report.marketPerception?.keyStrengths).map(s => `<li style="font-size: 13px; color: #15803d; margin-bottom: 6px;">${s}</li>`).join('')}
+                </ul>
+              </div>
+            </td>
+            <td style="width: 50%; vertical-align: top; padding-left: 12px;">
+              <div style="background: #fef3c7; padding: 20px; border-radius: 12px;">
+                <h3 style="font-size: 16px; font-weight: 600; color: #92400e; margin: 0 0 12px;">⚠ Critical Gaps</h3>
+                <ul style="margin: 0; padding-left: 16px;">
+                  ${safeArray(report.marketPerception?.criticalGaps).map(g => `<li style="font-size: 13px; color: #a16207; margin-bottom: 6px;">${g}</li>`).join('')}
+                </ul>
+              </div>
+            </td>
+          </tr>
+        </table>
 
         <div style="background: #fef2f2; padding: 20px; border-radius: 12px;">
           <h3 style="font-size: 16px; font-weight: 600; color: #991b1b; margin: 0 0 12px;">⚡ Risks</h3>
-          <ul style="margin: 0; padding-left: 16px; columns: 2; column-gap: 24px;">
-            ${report.marketPerception.risks.map(r => `<li style="font-size: 13px; color: #b91c1c; margin-bottom: 6px;">${r}</li>`).join('')}
+          <ul style="margin: 0; padding-left: 16px;">
+            ${safeArray(report.marketPerception?.risks).map(r => `<li style="font-size: 13px; color: #b91c1c; margin-bottom: 6px;">${r}</li>`).join('')}
           </ul>
         </div>
       </div>
@@ -113,15 +114,16 @@ const createPdfContent = (
             </tr>
           </thead>
           <tbody>
-            ${Object.entries(report.strengthsWeaknesses).map(([key, value]) => {
+            ${Object.entries(report.strengthsWeaknesses || {}).map(([key, value]) => {
               const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-              const rating = value >= 8 ? 'Excellent' : value >= 6 ? 'Good' : value >= 4 ? 'Average' : 'Needs Work';
-              const color = value >= 8 ? '#22c55e' : value >= 6 ? '#3b82f6' : value >= 4 ? '#eab308' : '#ef4444';
+              const numVal = typeof value === 'number' ? value : 0;
+              const rating = numVal >= 8 ? 'Excellent' : numVal >= 6 ? 'Good' : numVal >= 4 ? 'Average' : 'Needs Work';
+              const color = numVal >= 8 ? '#22c55e' : numVal >= 6 ? '#3b82f6' : numVal >= 4 ? '#eab308' : '#ef4444';
               return `
                 <tr>
                   <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">${label}</td>
                   <td style="text-align: center; padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                    <span style="display: inline-block; width: 36px; height: 36px; line-height: 36px; border-radius: 50%; background: ${color}20; color: ${color}; font-weight: 600;">${value}</span>
+                    <span style="color: ${color}; font-weight: 600;">${numVal}/10</span>
                   </td>
                   <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; color: ${color}; font-weight: 500;">${rating}</td>
                 </tr>
@@ -140,38 +142,41 @@ const createPdfContent = (
         <h3 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 12px;">Personality Matrix</h3>
         <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
           <tbody>
-            ${Object.entries(report.brandPositioning.personalityMatrix).map(([key, value]) => {
+            ${Object.entries(report.brandPositioning?.personalityMatrix || {}).map(([key, value]) => {
               const label = key.replace('Score', '').replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-              const width = (value as number) * 10;
+              const numVal = typeof value === 'number' ? value : 0;
+              const width = numVal * 10;
               return `
                 <tr>
                   <td style="padding: 8px 12px; width: 150px; font-weight: 500;">${label}</td>
                   <td style="padding: 8px 12px;">
                     <div style="background: #e5e7eb; border-radius: 9999px; height: 12px; overflow: hidden;">
-                      <div style="background: linear-gradient(90deg, #3b82f6, #8b5cf6); width: ${width}%; height: 100%; border-radius: 9999px;"></div>
+                      <div style="background: #3b82f6; width: ${width}%; height: 100%; border-radius: 9999px;"></div>
                     </div>
                   </td>
-                  <td style="padding: 8px 12px; width: 60px; text-align: right; font-weight: 600; color: #6b7280;">${value}/10</td>
+                  <td style="padding: 8px 12px; width: 60px; text-align: right; font-weight: 600; color: #6b7280;">${numVal}/10</td>
                 </tr>
               `;
             }).join('')}
           </tbody>
         </table>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-          <div>
-            <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Target Audience Signals</h3>
-            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-              ${report.brandPositioning.targetAudienceSignals.map(s => `<span style="display: inline-block; padding: 4px 12px; background: #dbeafe; color: #1d4ed8; border-radius: 9999px; font-size: 12px;">${s}</span>`).join('')}
-            </div>
-          </div>
-          <div>
-            <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Differentiation Factors</h3>
-            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-              ${report.brandPositioning.differentiation.map(d => `<span style="display: inline-block; padding: 4px 12px; background: #f3e8ff; color: #7c3aed; border-radius: 9999px; font-size: 12px;">${d}</span>`).join('')}
-            </div>
-          </div>
-        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="width: 50%; vertical-align: top; padding-right: 12px;">
+              <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Target Audience Signals</h3>
+              <ul style="margin: 0; padding-left: 16px;">
+                ${safeArray(report.brandPositioning?.targetAudienceSignals).map(s => `<li style="font-size: 12px; color: #1d4ed8; margin-bottom: 4px;">${s}</li>`).join('')}
+              </ul>
+            </td>
+            <td style="width: 50%; vertical-align: top; padding-left: 12px;">
+              <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Differentiation Factors</h3>
+              <ul style="margin: 0; padding-left: 16px;">
+                ${safeArray(report.brandPositioning?.differentiation).map(d => `<li style="font-size: 12px; color: #7c3aed; margin-bottom: 4px;">${d}</li>`).join('')}
+              </ul>
+            </td>
+          </tr>
+        </table>
       </div>
 
       <!-- Recommendations -->
@@ -190,17 +195,16 @@ const createPdfContent = (
             </tr>
           </thead>
           <tbody>
-            ${report.recommendations.designPriorities.map((p, i) => `
+            ${safeArray(report.recommendations?.designPriorities).map((p: any, i: number) => `
               <tr>
                 <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                  <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; background: #3b82f6; color: white; border-radius: 50%; font-size: 12px; margin-right: 8px;">${i + 1}</span>
-                  ${p.title}
+                  <strong>${i + 1}.</strong> ${safeString(p?.title, 'Untitled')}
                 </td>
-                <td style="text-align: center; padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                  <span style="padding: 2px 10px; background: ${p.impact === 'high' ? '#dcfce7' : p.impact === 'medium' ? '#fef9c3' : '#fee2e2'}; color: ${p.impact === 'high' ? '#166534' : p.impact === 'medium' ? '#854d0e' : '#991b1b'}; border-radius: 9999px; font-size: 12px; text-transform: capitalize;">${p.impact}</span>
+                <td style="text-align: center; padding: 12px; border-bottom: 1px solid #e5e7eb; text-transform: capitalize;">
+                  ${safeString(p?.impact, '-')}
                 </td>
-                <td style="text-align: center; padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                  <span style="padding: 2px 10px; background: #f3f4f6; color: #374151; border-radius: 9999px; font-size: 12px; text-transform: capitalize;">${p.effort}</span>
+                <td style="text-align: center; padding: 12px; border-bottom: 1px solid #e5e7eb; text-transform: capitalize;">
+                  ${safeString(p?.effort, '-')}
                 </td>
               </tr>
             `).join('')}
@@ -208,28 +212,40 @@ const createPdfContent = (
         </table>
 
         <h3 style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 16px;">Brand Refinements</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px;">
-          <div style="background: #f9fafb; padding: 16px; border-radius: 8px;">
-            <strong style="color: #374151;">Logo:</strong>
-            <p style="color: #6b7280; margin: 4px 0 0; font-size: 13px;">${report.recommendations.brandRefinements.logo}</p>
-          </div>
-          <div style="background: #f9fafb; padding: 16px; border-radius: 8px;">
-            <strong style="color: #374151;">Colors:</strong>
-            <p style="color: #6b7280; margin: 4px 0 0; font-size: 13px;">${report.recommendations.brandRefinements.colors}</p>
-          </div>
-          <div style="background: #f9fafb; padding: 16px; border-radius: 8px;">
-            <strong style="color: #374151;">Typography:</strong>
-            <p style="color: #6b7280; margin: 4px 0 0; font-size: 13px;">${report.recommendations.brandRefinements.typography}</p>
-          </div>
-          <div style="background: #f9fafb; padding: 16px; border-radius: 8px;">
-            <strong style="color: #374151;">Imagery:</strong>
-            <p style="color: #6b7280; margin: 4px 0 0; font-size: 13px;">${report.recommendations.brandRefinements.imagery}</p>
-          </div>
-        </div>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 32px;">
+          <tr>
+            <td style="width: 50%; vertical-align: top; padding: 8px;">
+              <div style="background: #f9fafb; padding: 16px; border-radius: 8px;">
+                <strong style="color: #374151;">Logo:</strong>
+                <p style="color: #6b7280; margin: 4px 0 0; font-size: 13px;">${safeString(report.recommendations?.brandRefinements?.logo)}</p>
+              </div>
+            </td>
+            <td style="width: 50%; vertical-align: top; padding: 8px;">
+              <div style="background: #f9fafb; padding: 16px; border-radius: 8px;">
+                <strong style="color: #374151;">Colors:</strong>
+                <p style="color: #6b7280; margin: 4px 0 0; font-size: 13px;">${safeString(report.recommendations?.brandRefinements?.colors)}</p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="width: 50%; vertical-align: top; padding: 8px;">
+              <div style="background: #f9fafb; padding: 16px; border-radius: 8px;">
+                <strong style="color: #374151;">Typography:</strong>
+                <p style="color: #6b7280; margin: 4px 0 0; font-size: 13px;">${safeString(report.recommendations?.brandRefinements?.typography)}</p>
+              </div>
+            </td>
+            <td style="width: 50%; vertical-align: top; padding: 8px;">
+              <div style="background: #f9fafb; padding: 16px; border-radius: 8px;">
+                <strong style="color: #374151;">Imagery:</strong>
+                <p style="color: #6b7280; margin: 4px 0 0; font-size: 13px;">${safeString(report.recommendations?.brandRefinements?.imagery)}</p>
+              </div>
+            </td>
+          </tr>
+        </table>
 
         <h3 style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 16px;">Positioning Opportunities</h3>
         <ul style="margin: 0; padding-left: 20px;">
-          ${report.recommendations.positioningOpportunities.map(o => `<li style="font-size: 14px; color: #4b5563; margin-bottom: 8px;">${o}</li>`).join('')}
+          ${safeArray(report.recommendations?.positioningOpportunities).map(o => `<li style="font-size: 14px; color: #4b5563; margin-bottom: 8px;">${o}</li>`).join('')}
         </ul>
       </div>
 
@@ -239,33 +255,39 @@ const createPdfContent = (
           30/60/90 Day Action Plan
         </h2>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
-          <div style="background: linear-gradient(135deg, #dbeafe, #ede9fe); padding: 20px; border-radius: 12px;">
-            <h3 style="font-size: 16px; font-weight: 600; color: #1e40af; margin: 0 0 16px;">📅 30 Days</h3>
-            <ul style="margin: 0; padding-left: 16px;">
-              ${report.executiveSummary.actionPlan.thirtyDay.map(a => `<li style="font-size: 13px; color: #3730a3; margin-bottom: 8px;">${a}</li>`).join('')}
-            </ul>
-          </div>
-          
-          <div style="background: linear-gradient(135deg, #fef3c7, #fce7f3); padding: 20px; border-radius: 12px;">
-            <h3 style="font-size: 16px; font-weight: 600; color: #92400e; margin: 0 0 16px;">📅 60 Days</h3>
-            <ul style="margin: 0; padding-left: 16px;">
-              ${report.executiveSummary.actionPlan.sixtyDay.map(a => `<li style="font-size: 13px; color: #9a3412; margin-bottom: 8px;">${a}</li>`).join('')}
-            </ul>
-          </div>
-          
-          <div style="background: linear-gradient(135deg, #d1fae5, #cffafe); padding: 20px; border-radius: 12px;">
-            <h3 style="font-size: 16px; font-weight: 600; color: #065f46; margin: 0 0 16px;">📅 90 Days</h3>
-            <ul style="margin: 0; padding-left: 16px;">
-              ${report.executiveSummary.actionPlan.ninetyDay.map(a => `<li style="font-size: 13px; color: #047857; margin-bottom: 8px;">${a}</li>`).join('')}
-            </ul>
-          </div>
-        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="width: 33.33%; vertical-align: top; padding: 8px;">
+              <div style="background: #dbeafe; padding: 20px; border-radius: 12px; min-height: 150px;">
+                <h3 style="font-size: 16px; font-weight: 600; color: #1e40af; margin: 0 0 16px;">30 Days</h3>
+                <ul style="margin: 0; padding-left: 16px;">
+                  ${safeArray(report.executiveSummary?.actionPlan?.thirtyDay).map(a => `<li style="font-size: 13px; color: #3730a3; margin-bottom: 8px;">${a}</li>`).join('')}
+                </ul>
+              </div>
+            </td>
+            <td style="width: 33.33%; vertical-align: top; padding: 8px;">
+              <div style="background: #fef3c7; padding: 20px; border-radius: 12px; min-height: 150px;">
+                <h3 style="font-size: 16px; font-weight: 600; color: #92400e; margin: 0 0 16px;">60 Days</h3>
+                <ul style="margin: 0; padding-left: 16px;">
+                  ${safeArray(report.executiveSummary?.actionPlan?.sixtyDay).map(a => `<li style="font-size: 13px; color: #9a3412; margin-bottom: 8px;">${a}</li>`).join('')}
+                </ul>
+              </div>
+            </td>
+            <td style="width: 33.33%; vertical-align: top; padding: 8px;">
+              <div style="background: #d1fae5; padding: 20px; border-radius: 12px; min-height: 150px;">
+                <h3 style="font-size: 16px; font-weight: 600; color: #065f46; margin: 0 0 16px;">90 Days</h3>
+                <ul style="margin: 0; padding-left: 16px;">
+                  ${safeArray(report.executiveSummary?.actionPlan?.ninetyDay).map(a => `<li style="font-size: 13px; color: #047857; margin-bottom: 8px;">${a}</li>`).join('')}
+                </ul>
+              </div>
+            </td>
+          </tr>
+        </table>
 
         <div style="margin-top: 32px; background: #f0f9ff; border: 1px solid #bae6fd; padding: 20px; border-radius: 12px;">
-          <h3 style="font-size: 16px; font-weight: 600; color: #0369a1; margin: 0 0 12px;">📊 Success Metrics</h3>
-          <ul style="margin: 0; padding-left: 20px; columns: 2; column-gap: 24px;">
-            ${report.executiveSummary.successMetrics.map(m => `<li style="font-size: 13px; color: #0284c7; margin-bottom: 8px;">${m}</li>`).join('')}
+          <h3 style="font-size: 16px; font-weight: 600; color: #0369a1; margin: 0 0 12px;">Success Metrics</h3>
+          <ul style="margin: 0; padding-left: 20px;">
+            ${safeArray(report.executiveSummary?.successMetrics).map(m => `<li style="font-size: 13px; color: #0284c7; margin-bottom: 8px;">${m}</li>`).join('')}
           </ul>
         </div>
       </div>
