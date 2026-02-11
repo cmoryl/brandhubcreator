@@ -154,38 +154,93 @@ const buildSwMatrix = (report: CompetitiveAnalysisReportData) => {
     </div>`;
 };
 
+const buildRadarSvg = (items: [string, number][]) => {
+  const cx = 200, cy = 200, r = 150;
+  const n = items.length;
+  const angleStep = (2 * Math.PI) / n;
+  const startAngle = -Math.PI / 2; // top
+
+  const point = (i: number, val: number) => {
+    const a = startAngle + i * angleStep;
+    const d = (val / 10) * r;
+    return [cx + d * Math.cos(a), cy + d * Math.sin(a)];
+  };
+
+  // Grid rings at 2, 4, 6, 8, 10
+  const rings = [2, 4, 6, 8, 10].map((v) => {
+    const pts = items.map((_, i) => point(i, v));
+    return `<polygon points="${pts.map((p) => p.join(',')).join(' ')}" fill="none" stroke="#d1d5db" stroke-width="1"/>`;
+  }).join('');
+
+  // Axis lines
+  const axes = items.map((_, i) => {
+    const [x, y] = point(i, 10);
+    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#d1d5db" stroke-width="1"/>`;
+  }).join('');
+
+  // Labels
+  const labels = items.map(([label], i) => {
+    const a = startAngle + i * angleStep;
+    const lx = cx + (r + 30) * Math.cos(a);
+    const ly = cy + (r + 30) * Math.sin(a);
+    const anchor = Math.abs(Math.cos(a)) < 0.1 ? 'middle' : Math.cos(a) > 0 ? 'start' : 'end';
+    return `<text x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle" font-size="12" fill="${C.text.secondary}" font-weight="500">${label}</text>`;
+  }).join('');
+
+  // Data polygon
+  const dataPts = items.map(([, v], i) => point(i, v));
+  const dataPolygon = `<polygon points="${dataPts.map((p) => p.join(',')).join(' ')}" fill="${C.accent.primary}" fill-opacity="0.25" stroke="${C.accent.primary}" stroke-width="2.5"/>`;
+
+  // Data dots
+  const dots = dataPts.map(([x, y]) =>
+    `<circle cx="${x}" cy="${y}" r="4" fill="${C.background.white}" stroke="${C.accent.primary}" stroke-width="2"/>`
+  ).join('');
+
+  // Value labels on dots
+  const valLabels = items.map(([, v], i) => {
+    const [x, y] = point(i, v);
+    const a = startAngle + i * angleStep;
+    const ox = 14 * Math.cos(a);
+    const oy = 14 * Math.sin(a);
+    return `<text x="${x + ox}" y="${y + oy}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="${C.accent.primary}" font-weight="700">${v}</text>`;
+  }).join('');
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" style="display:block;margin:0 auto;">
+    ${rings}${axes}${dataPolygon}${dots}${valLabels}${labels}
+  </svg>`;
+};
+
 const buildPositioning = (report: CompetitiveAnalysisReportData) => {
   const pm = (report.brandPositioning?.personalityMatrix || {}) as any;
-  const personalityItems = [
-    ['Innovation', pm.innovationScore],
-    ['Approachability', pm.approachabilityScore],
-    ['Technical', pm.technicalScore],
-    ['Boldness', pm.boldnessScore],
-    ['Enterprise', pm.enterpriseScore],
-    ['Global', pm.globalScore],
+  const personalityItems: [string, number][] = [
+    ['Innovation', Number(pm.innovationScore) || 0],
+    ['Approachability', Number(pm.approachabilityScore) || 0],
+    ['Technical', Number(pm.technicalScore) || 0],
+    ['Boldness', Number(pm.boldnessScore) || 0],
+    ['Enterprise', Number(pm.enterpriseScore) || 0],
+    ['Global', Number(pm.globalScore) || 0],
   ];
 
   return `
     <div data-pdf-section style="padding:${S.xl} 0;">
       ${sectionTitle('Brand Positioning')}
-      ${subheading('Personality Matrix')}
-      <table style="width:100%;border-collapse:collapse;margin-bottom:${S['2xl']};">
-        <tbody>
-          ${personalityItems.map(([l, v]) => htmlBar(String(l), Number(v) || 0)).join('')}
-        </tbody>
-      </table>
-      <table style="width:100%;border-collapse:collapse;">
-        <tr>
-          <td style="width:50%;vertical-align:top;padding-right:${S.md};">
-            <p style="font-size:${T.small.size};font-weight:700;color:${C.accent.primary};margin:0 0 ${S.sm};">Target Audience Signals</p>
-            <ul style="margin:0;padding-left:14px;">${li(safe(report.brandPositioning?.targetAudienceSignals), C.accent.primary)}</ul>
-          </td>
-          <td style="width:50%;vertical-align:top;padding-left:${S.md};">
-            <p style="font-size:${T.small.size};font-weight:700;color:${C.accent.secondary};margin:0 0 ${S.sm};">Differentiation Factors</p>
-            <ul style="margin:0;padding-left:14px;">${li(safe(report.brandPositioning?.differentiation), C.accent.secondary)}</ul>
-          </td>
-        </tr>
-      </table>
+      ${subheading('Brand Personality Matrix')}
+      <p style="font-size:${T.small.size};color:${C.text.muted};margin:0 0 ${S.lg};">How the brand is positioned across key dimensions</p>
+      ${buildRadarSvg(personalityItems)}
+      <div style="margin-top:${S['2xl']};">
+        <table style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="width:50%;vertical-align:top;padding-right:${S.md};">
+              <p style="font-size:${T.small.size};font-weight:700;color:${C.accent.primary};margin:0 0 ${S.sm};">Target Audience Signals</p>
+              <ul style="margin:0;padding-left:14px;">${li(safe(report.brandPositioning?.targetAudienceSignals), C.accent.primary)}</ul>
+            </td>
+            <td style="width:50%;vertical-align:top;padding-left:${S.md};">
+              <p style="font-size:${T.small.size};font-weight:700;color:${C.accent.secondary};margin:0 0 ${S.sm};">Differentiation Factors</p>
+              <ul style="margin:0;padding-left:14px;">${li(safe(report.brandPositioning?.differentiation), C.accent.secondary)}</ul>
+            </td>
+          </tr>
+        </table>
+      </div>
       ${
         safe(report.brandPositioning?.trustIndicators).length > 0
           ? `
@@ -356,25 +411,13 @@ export const exportCompetitiveAnalysisPdf = async (
         continue;
       }
 
-      // Temporarily make container visible for capture
-      container.style.opacity = '1';
-
       const canvas = await html2canvas(section, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         logging: false,
         backgroundColor: C.background.white,
-        width: Math.ceil(rect.width),
-        height: Math.ceil(rect.height),
-        scrollX: 0,
-        scrollY: 0,
-        x: 0,
-        y: 0,
       });
-
-      // Hide again immediately after capture
-      container.style.opacity = '0';
 
       console.log(`[PDF Export] Canvas ${i}: ${canvas.width}x${canvas.height}`);
 
