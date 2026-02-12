@@ -7,19 +7,35 @@ import { cn } from '@/lib/utils';
 
 const UNIVERSAL_ACCESS_CODE = 'MarComm';
 
-// Floating luminous particles for the gate backdrop
+// Floating luminous particles with varied colors for the gate backdrop
+const PARTICLE_COLORS = [
+  { color: 'var(--primary)', label: 'primary' },
+  { color: '199 89% 48%', label: 'cyan' },
+  { color: '280 65% 60%', label: 'purple' },
+  { color: '340 75% 55%', label: 'rose' },
+  { color: '45 93% 58%', label: 'amber' },
+  { color: '160 60% 45%', label: 'emerald' },
+];
+
 const GateParticles = () => {
   const particles = useMemo(() =>
-    Array.from({ length: 24 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 5 + 2,
-      duration: Math.random() * 6 + 4,
-      delay: Math.random() * 5,
-      opacity: Math.random() * 0.35 + 0.1,
-      drift: (Math.random() - 0.5) * 30,
-    })), []
+    Array.from({ length: 30 }, (_, i) => {
+      const colorEntry = PARTICLE_COLORS[i % PARTICLE_COLORS.length];
+      const isPrimary = colorEntry.label === 'primary';
+      const hslColor = isPrimary ? `hsl(var(--primary))` : `hsl(${colorEntry.color})`;
+      const hslGlow = isPrimary ? `hsl(var(--primary) / 0.3)` : `hsl(${colorEntry.color} / 0.3)`;
+      return {
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 6 + 2,
+        duration: Math.random() * 6 + 4,
+        delay: Math.random() * 5,
+        opacity: Math.random() * 0.4 + 0.15,
+        color: hslColor,
+        glow: hslGlow,
+      };
+    }), []
   );
 
   return (
@@ -33,8 +49,8 @@ const GateParticles = () => {
             top: `${p.y}%`,
             width: `${p.size}px`,
             height: `${p.size}px`,
-            background: `radial-gradient(circle, hsl(var(--primary) / 0.6), transparent)`,
-            boxShadow: `0 0 ${p.size * 3}px hsl(var(--primary) / 0.25)`,
+            background: `radial-gradient(circle, ${p.color}, transparent)`,
+            boxShadow: `0 0 ${p.size * 3}px ${p.glow}`,
             opacity: p.opacity,
             animation: `particle-float ${p.duration}s ease-in-out infinite`,
             animationDelay: `${p.delay}s`,
@@ -144,9 +160,9 @@ export const InsightsAccessGate = ({
             <div 
               className="absolute inset-0 opacity-60"
               style={{
-                background: 'linear-gradient(135deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--accent) / 0.1) 30%, hsl(var(--muted) / 0.2) 60%, hsl(var(--primary) / 0.12) 100%)',
-                backgroundSize: '300% 300%',
-                animation: 'aurora 10s ease-in-out infinite',
+                background: 'linear-gradient(135deg, hsl(var(--primary) / 0.18) 0%, hsl(280 65% 60% / 0.12) 25%, hsl(var(--accent) / 0.1) 40%, hsl(199 89% 48% / 0.1) 60%, hsl(340 75% 55% / 0.08) 80%, hsl(var(--primary) / 0.14) 100%)',
+                backgroundSize: '400% 400%',
+                animation: 'aurora 12s ease-in-out infinite',
               }}
             />
             <div 

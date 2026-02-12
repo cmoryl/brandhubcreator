@@ -418,7 +418,8 @@ export const InsightsSection = ({
   const websitesWithUrls = (websites || []).filter(w => w.url);
   const hasWebsiteAnalysis = websitesWithUrls.length > 0;
 
-  if (allInsights.length === 0 && !canEdit && !hasWebsiteAnalysis) {
+  // For admins: hide if empty. For public users: always show (gate will be displayed)
+  if (allInsights.length === 0 && canEdit && !hasWebsiteAnalysis) {
     return null;
   }
 
@@ -494,7 +495,23 @@ export const InsightsSection = ({
         {(() => {
           // Filter out site-analysis insights from the card grid (they're shown via WebsiteAnalysisCard)
           const displayInsights = allInsights.filter(i => !i.id.startsWith('site-analysis-'));
-          if (displayInsights.length === 0) return null;
+          if (displayInsights.length === 0) {
+            // Show a public-facing empty state when no insights are available after unlock
+            if (!canEdit) {
+              return (
+                <div className="text-center py-12 px-6 rounded-xl border border-border/30 bg-muted/10">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary mb-4">
+                    <TrendingUp className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2 text-foreground">Insights Coming Soon</h3>
+                  <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                    Brand analytics, intelligence reports, and competitive insights will appear here once generated.
+                  </p>
+                </div>
+              );
+            }
+            return null;
+          }
           return (
             <>
               {(layout === 'infographic' || layout === 'dashboard') ? (
