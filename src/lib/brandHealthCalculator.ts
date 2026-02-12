@@ -2,65 +2,71 @@
  * Brand Health Score Calculator
  * Calculates a completeness/health score based on guide_data content
  * Analyzes ALL sections for comprehensive brand health assessment
+ *
+ * IMPORTANT: Field names MUST match the actual guide_data JSONB keys
+ * stored in the database (see BaseGuideData in src/types/brand.ts).
  */
 
 // All weighted sections with their importance to brand completeness
 const SECTION_WEIGHTS: Record<string, { weight: number; label: string }> = {
-  // Core Identity (High Weight - 40% total)
+  // Core Identity (High Weight)
   hero: { weight: 10, label: 'Brand Name & Hero' },
   tagline: { weight: 6, label: 'Tagline' },
   identity: { weight: 8, label: 'Mission & Vision' },
   values: { weight: 8, label: 'Core Values' },
   services: { weight: 8, label: 'Services' },
 
-  // Visual Identity (High Weight - 30% total)
+  // Visual Identity (High Weight)
   colors: { weight: 10, label: 'Color Palette' },
+  colorCombinations: { weight: 2, label: 'Color Combinations' },
   typography: { weight: 8, label: 'Typography' },
-  logo: { weight: 10, label: 'Logo Assets' },
+  logos: { weight: 10, label: 'Logo Assets' },
+  brandIcons: { weight: 3, label: 'Brand Icons' },
   gradients: { weight: 2, label: 'Gradients' },
   patterns: { weight: 2, label: 'Patterns' },
+  customShapes: { weight: 1, label: 'Custom Shapes' },
   iconography: { weight: 3, label: 'Iconography' },
   textstyles: { weight: 2, label: 'Text Styles' },
-  brandicon: { weight: 3, label: 'Brand Icon' },
 
-  // Digital Presence (Medium Weight - 15% total)
+  // Digital Presence (Medium Weight)
   social: { weight: 5, label: 'Social Profiles' },
-  socialicons: { weight: 2, label: 'Social Icons' },
-  socialassets: { weight: 2, label: 'Social Assets' },
-  website: { weight: 3, label: 'Website' },
+  socialIcons: { weight: 2, label: 'Social Icons' },
+  socialAssets: { weight: 2, label: 'Social Assets' },
+  websites: { weight: 3, label: 'Website' },
   qr: { weight: 2, label: 'QR Codes' },
   signatures: { weight: 2, label: 'Email Signatures' },
 
-  // Content & Assets (Medium Weight - 10% total)
+  // Content & Assets (Medium Weight)
   imagery: { weight: 3, label: 'Imagery Guidelines' },
-  imageassets: { weight: 2, label: 'Image Assets' },
+  imageAssets: { weight: 2, label: 'Image Assets' },
   videos: { weight: 2, label: 'Videos' },
   assets: { weight: 2, label: 'Assets' },
   misuse: { weight: 2, label: 'Misuse Guidelines' },
 
-  // Marketing Materials (Low-Medium Weight - 8% total)
+  // Marketing Materials (Low-Medium Weight)
   templates: { weight: 3, label: 'Templates' },
-  templatespecs: { weight: 2, label: 'Template Specs' },
+  templateSpecs: { weight: 2, label: 'Template Specs' },
+  presentationTemplates: { weight: 2, label: 'Presentations' },
   brochures: { weight: 3, label: 'Brochures' },
+  displayBanners: { weight: 1, label: 'Display Banners' },
 
-  // Business & Events (Low Weight - 7% total)
+  // Business & Events (Low Weight)
   awards: { weight: 2, label: 'Awards & Recognition' },
-  casestudies: { weight: 2, label: 'Case Studies' },
-  bythenumbers: { weight: 2, label: 'Statistics' },
-  revenue: { weight: 1, label: 'Revenue Metrics' },
+  caseStudies: { weight: 2, label: 'Case Studies' },
+  statistics: { weight: 2, label: 'Statistics' },
+  revenueData: { weight: 1, label: 'Revenue Metrics' },
   locations: { weight: 2, label: 'Locations' },
   webinars: { weight: 2, label: 'Webinars' },
   insights: { weight: 2, label: 'Insights & Updates' },
-  events: { weight: 1, label: 'Events' },
-  eventsignage: { weight: 1, label: 'Event Signage' },
+  eventSignage: { weight: 1, label: 'Event Signage' },
 
-  // Partnerships (Low Weight - 3% total)
-  clientlogos: { weight: 2, label: 'Client Logos' },
-  sponsorlogos: { weight: 2, label: 'Sponsor Logos' },
+  // Partnerships (Low Weight)
+  clientLogos: { weight: 2, label: 'Client Logos' },
+  sponsorLogos: { weight: 2, label: 'Sponsor Logos' },
 
-  // Extended Features (Low Weight - 2% total)
-  products: { weight: 1, label: 'Linked Products' },
-  universe: { weight: 1, label: 'Brand Universe' },
+  // Extended Features (Low Weight)
+  linkedGuides: { weight: 1, label: 'Linked Guides' },
+  emailBanners: { weight: 1, label: 'Email Banners' },
 };
 
 export interface SectionScore {
@@ -88,244 +94,247 @@ export interface HealthScoreResult {
 type GuideData = Record<string, unknown>;
 
 /**
- * Check if an array-like field has content
+ * Safely get an array from guide_data, returns [] if not an array
  */
-function hasArrayContent(data: unknown[] | undefined | null, minCount = 1): { has: boolean; count: number } {
-  const arr = data || [];
-  return { has: arr.length >= minCount, count: arr.length };
+function safeArray(data: unknown): unknown[] {
+  return Array.isArray(data) ? data : [];
 }
 
 /**
- * Check if an object has meaningful content
+ * Check if an object has meaningful values in the given fields
  */
-function hasObjectContent(obj: Record<string, unknown> | undefined | null, requiredFields: string[]): { has: boolean; filledCount: number } {
-  if (!obj) return { has: false, filledCount: 0 };
-  const filledCount = requiredFields.filter(field => {
+function countFilledFields(obj: Record<string, unknown> | undefined | null, fields: string[]): number {
+  if (!obj) return 0;
+  return fields.filter(field => {
     const value = obj[field];
     if (value === null || value === undefined || value === '') return false;
     if (Array.isArray(value) && value.length === 0) return false;
     return true;
   }).length;
-  return { has: filledCount > 0, filledCount };
 }
 
 /**
- * Calculate section completeness (0-1)
+ * Score for array-based sections: 0 items = 0, 1 = 0.4, 2 = 0.6, 3+ = 1
+ */
+function scoreArray(arr: unknown[], thresholds: [number, number] = [2, 3]): number {
+  if (arr.length === 0) return 0;
+  if (arr.length >= thresholds[1]) return 1;
+  if (arr.length >= thresholds[0]) return 0.7;
+  return 0.4;
+}
+
+/**
+ * Calculate section completeness (0-1) based on actual guide_data field names
  */
 function calculateSectionCompleteness(
   guideData: GuideData,
   section: string
 ): number {
   switch (section) {
-    // Hero
+    // ─── Core Identity ───
+
     case 'hero': {
       const hero = guideData.hero as Record<string, unknown> | undefined;
       if (!hero?.name) return 0;
-      const fields = ['name', 'description', 'tagline', 'imageUrl'];
-      const filled = fields.filter(f => hero[f]).length;
-      return filled / fields.length;
+      const fields = ['name', 'description', 'tagline', 'imageUrl', 'coverImage', 'cardImage'];
+      const filled = countFilledFields(hero, fields);
+      // name + at least 2 others = full score
+      if (filled >= 4) return 1;
+      if (filled >= 3) return 0.8;
+      if (filled >= 2) return 0.6;
+      return 0.3;
     }
 
-    // Tagline
     case 'tagline': {
       const hero = guideData.hero as Record<string, unknown> | undefined;
       return hero?.tagline ? 1 : 0;
     }
 
-    // Identity
     case 'identity': {
       const identity = guideData.identity as Record<string, unknown> | undefined;
       if (!identity) return 0;
-      const fields = ['missionStatement', 'visionStatement', 'brandPromise', 'personality', 'voiceTone'];
-      const { filledCount } = hasObjectContent(identity, fields);
-      return Math.min(filledCount / 2, 1); // At least mission + vision for full score
+      const fields = ['missionStatement', 'visionStatement', 'brandPromise', 'personality', 'voiceTone', 'archetype', 'brandStory'];
+      const filled = countFilledFields(identity, fields);
+      if (filled >= 4) return 1;
+      if (filled >= 3) return 0.8;
+      if (filled >= 2) return 0.6;
+      if (filled >= 1) return 0.3;
+      return 0;
     }
 
-    // Values
     case 'values': {
-      const values = (guideData.values as unknown[]) || [];
+      const values = safeArray(guideData.values);
       if (values.length === 0) return 0;
-      if (values.length >= 4) return 1;
-      if (values.length >= 2) return 0.7;
-      return 0.4;
+      // Check if values have descriptions (depth scoring)
+      const withDesc = values.filter((v: any) => v?.description).length;
+      const hasDepth = withDesc >= Math.ceil(values.length * 0.5);
+      if (values.length >= 4 && hasDepth) return 1;
+      if (values.length >= 4) return 0.85;
+      if (values.length >= 2) return 0.6;
+      return 0.3;
     }
 
-    // Services
     case 'services': {
-      const services = (guideData.services as unknown[]) || [];
+      const services = safeArray(guideData.services);
       if (services.length === 0) return 0;
-      if (services.length >= 4) return 1;
-      if (services.length >= 2) return 0.7;
-      return 0.4;
+      const withDesc = services.filter((s: any) => s?.description).length;
+      const hasDepth = withDesc >= Math.ceil(services.length * 0.5);
+      if (services.length >= 4 && hasDepth) return 1;
+      if (services.length >= 4) return 0.85;
+      if (services.length >= 2) return 0.6;
+      return 0.3;
     }
 
-    // Colors
+    // ─── Visual Identity ───
+
     case 'colors': {
-      const colors = (guideData.colors as unknown[]) || [];
+      const colors = safeArray(guideData.colors);
       if (colors.length === 0) return 0;
-      if (colors.length >= 5) return 1;
-      if (colors.length >= 3) return 0.7;
-      return 0.4;
+      if (colors.length >= 6) return 1;
+      if (colors.length >= 4) return 0.8;
+      if (colors.length >= 2) return 0.6;
+      return 0.3;
     }
 
-    // Typography
+    case 'colorCombinations': {
+      const combos = safeArray(guideData.colorCombinations);
+      return combos.length > 0 ? 1 : 0;
+    }
+
     case 'typography': {
-      const typography = (guideData.typography as unknown[]) || [];
+      const typography = safeArray(guideData.typography);
       if (typography.length === 0) return 0;
       if (typography.length >= 3) return 1;
       if (typography.length >= 2) return 0.7;
       return 0.5;
     }
 
-    // Logo
-    case 'logo': {
-      const logo = guideData.logo as Record<string, unknown> | undefined;
-      if (!logo?.primaryUrl) return 0;
-      const variants = ['primaryUrl', 'lightUrl', 'darkUrl', 'iconUrl', 'invertedUrl'];
-      const { filledCount } = hasObjectContent(logo, variants);
-      if (filledCount >= 3) return 1;
-      if (filledCount >= 2) return 0.7;
-      return 0.5;
+    case 'logos': {
+      // guide_data.logos is an ARRAY of logo objects (not a single object)
+      const logos = safeArray(guideData.logos);
+      if (logos.length === 0) return 0;
+      if (logos.length >= 4) return 1;
+      if (logos.length >= 2) return 0.7;
+      return 0.4;
     }
 
-    // Brand Icon
-    case 'brandicon': {
-      const brandIcon = guideData.brandIcon as Record<string, unknown> | undefined;
-      return brandIcon?.url ? 1 : 0;
+    case 'brandIcons': {
+      // guide_data.brandIcons is an ARRAY
+      const icons = safeArray(guideData.brandIcons);
+      return icons.length > 0 ? 1 : 0;
     }
 
-    // Array-based sections (simple check)
-    case 'gradients':
-    case 'patterns':
-    case 'socialicons':
-    case 'socialassets':
-    case 'templates':
-    case 'brochures':
-    case 'casestudies':
-    case 'awards':
-    case 'webinars':
-    case 'insights':
-    case 'events':
-    case 'eventsignage':
-    case 'clientlogos':
-    case 'sponsorlogos':
-    case 'products':
-    case 'videos':
-    case 'assets':
-    case 'imageassets': {
-      const fieldMap: Record<string, string> = {
-        gradients: 'gradients',
-        patterns: 'patterns',
-        socialicons: 'socialIcons',
-        socialassets: 'socialAssets',
-        templates: 'templates',
-        brochures: 'brochures',
-        casestudies: 'caseStudies',
-        awards: 'awards',
-        webinars: 'webinars',
-        insights: 'insights',
-        events: 'events',
-        eventsignage: 'eventSignage',
-        clientlogos: 'clientLogos',
-        sponsorlogos: 'sponsorLogos',
-        products: 'linkedGuides',
-        videos: 'videos',
-        assets: 'assets',
-        imageassets: 'imageAssets',
-      };
-      const arr = (guideData[fieldMap[section]] as unknown[]) || [];
-      if (arr.length === 0) return 0;
-      if (arr.length >= 3) return 1;
-      return 0.5;
+    case 'textstyles': {
+      const textStyles = safeArray(guideData.textStyles);
+      return textStyles.length > 0 ? 1 : 0;
     }
 
-    // Iconography
     case 'iconography': {
-      const icons = (guideData.icons as unknown[]) || [];
+      // guide_data.iconography is an array
+      const icons = safeArray(guideData.iconography);
       if (icons.length === 0) return 0;
       if (icons.length >= 5) return 1;
       if (icons.length >= 3) return 0.7;
       return 0.4;
     }
 
-    // Text Styles
-    case 'textstyles': {
-      const textStyles = (guideData.textStyles as unknown[]) || [];
-      return textStyles.length > 0 ? 1 : 0;
-    }
+    // ─── Digital Presence ───
 
-    // Social
     case 'social': {
-      const social = (guideData.social as unknown[]) || [];
+      const social = safeArray(guideData.social);
       if (social.length === 0) return 0;
-      if (social.length >= 3) return 1;
-      return 0.6;
+      if (social.length >= 4) return 1;
+      if (social.length >= 2) return 0.7;
+      return 0.4;
     }
 
-    // Website
-    case 'website': {
-      const website = guideData.website as Record<string, unknown> | undefined;
-      return website?.url ? 1 : 0;
+    case 'websites': {
+      // guide_data.websites is an ARRAY of website link objects
+      const websites = safeArray(guideData.websites);
+      return websites.length > 0 ? 1 : 0;
     }
 
-    // QR
     case 'qr': {
+      // guide_data.qr is an OBJECT with defaultUrl, fgColor, bgColor
       const qr = guideData.qr as Record<string, unknown> | undefined;
-      return (qr?.url || qr?.dataUrl) ? 1 : 0;
+      if (!qr) return 0;
+      return qr.defaultUrl ? 1 : 0;
     }
 
-    // Signatures
     case 'signatures': {
-      const signatures = (guideData.signatures as unknown[]) || [];
-      return signatures.length > 0 ? 1 : 0;
+      const sigs = safeArray(guideData.signatures);
+      if (sigs.length === 0) return 0;
+      // Check signature quality: has style config?
+      const withStyle = sigs.filter((s: any) => s?.style).length;
+      if (sigs.length >= 2 && withStyle >= 1) return 1;
+      if (sigs.length >= 1) return 0.7;
+      return 0.4;
     }
 
-    // Imagery
+    // ─── Content & Assets ───
+
     case 'imagery': {
-      const imagery = guideData.imagery as Record<string, unknown> | undefined;
-      const items = (imagery?.items as unknown[]) || [];
-      if (imagery?.style || imagery?.guidelines || items.length > 0) return 1;
-      return 0;
-    }
-
-    // Misuse
-    case 'misuse': {
-      const misuse = (guideData.misuse as unknown[]) || [];
-      return misuse.length > 0 ? 1 : 0;
-    }
-
-    // Template Specs
-    case 'templatespecs': {
-      const specs = (guideData.templateSpecs as unknown[]) || [];
-      return specs.length > 0 ? 1 : 0;
-    }
-
-    // Statistics (By The Numbers)
-    case 'bythenumbers': {
-      const stats = (guideData.statistics as unknown[]) || [];
-      if (stats.length === 0) return 0;
-      if (stats.length >= 4) return 1;
+      // guide_data.imagery is an ARRAY of imagery items
+      const imagery = safeArray(guideData.imagery);
+      if (imagery.length === 0) return 0;
+      if (imagery.length >= 3) return 1;
       return 0.5;
     }
 
-    // Revenue
-    case 'revenue': {
-      const revenue = (guideData.revenueData as unknown[]) || [];
+    case 'misuse': {
+      const misuse = safeArray(guideData.misuse);
+      return misuse.length > 0 ? 1 : 0;
+    }
+
+    // ─── Business & Events ───
+
+    case 'statistics': {
+      // was 'bythenumbers' but actual field is 'statistics'
+      const stats = safeArray(guideData.statistics);
+      if (stats.length === 0) return 0;
+      if (stats.length >= 4) return 1;
+      if (stats.length >= 2) return 0.6;
+      return 0.3;
+    }
+
+    case 'revenueData': {
+      const revenue = safeArray(guideData.revenueData);
       return revenue.length > 0 ? 1 : 0;
     }
 
-    // Locations
     case 'locations': {
-      const locations = (guideData.locations as unknown[]) || [];
+      const locations = safeArray(guideData.locations);
       const useShared = guideData.useSharedLocations;
       if (useShared) return 1;
       return locations.length > 0 ? 1 : 0;
     }
 
-    // Universe
-    case 'universe': {
-      const linkedGuides = (guideData.linkedGuides as unknown[]) || [];
-      return linkedGuides.length > 0 ? 1 : 0;
+    // ─── Generic array-based sections ───
+    // These all follow the same pattern: check the array length
+    case 'gradients':
+    case 'patterns':
+    case 'customShapes':
+    case 'socialIcons':
+    case 'socialAssets':
+    case 'templates':
+    case 'templateSpecs':
+    case 'presentationTemplates':
+    case 'brochures':
+    case 'displayBanners':
+    case 'caseStudies':
+    case 'awards':
+    case 'webinars':
+    case 'insights':
+    case 'eventSignage':
+    case 'clientLogos':
+    case 'sponsorLogos':
+    case 'linkedGuides':
+    case 'emailBanners':
+    case 'videos':
+    case 'assets':
+    case 'imageAssets': {
+      const arr = safeArray(guideData[section]);
+      return scoreArray(arr);
     }
 
     default:
@@ -377,13 +386,13 @@ export function calculateBrandHealth(guideData: GuideData | null | undefined): H
   // Calculate category scores
   const categories = [
     { name: 'Core Identity', sections: ['hero', 'tagline', 'identity', 'values', 'services'] },
-    { name: 'Visual Identity', sections: ['colors', 'typography', 'logo', 'gradients', 'patterns', 'iconography', 'textstyles', 'brandicon'] },
-    { name: 'Digital Presence', sections: ['social', 'socialicons', 'socialassets', 'website', 'qr', 'signatures'] },
-    { name: 'Content & Assets', sections: ['imagery', 'imageassets', 'videos', 'assets', 'misuse'] },
-    { name: 'Marketing Materials', sections: ['templates', 'templatespecs', 'brochures'] },
-    { name: 'Business & Events', sections: ['awards', 'casestudies', 'bythenumbers', 'revenue', 'locations', 'webinars', 'insights', 'events', 'eventsignage'] },
-    { name: 'Partnerships', sections: ['clientlogos', 'sponsorlogos'] },
-    { name: 'Extended Features', sections: ['products', 'universe'] },
+    { name: 'Visual Identity', sections: ['colors', 'colorCombinations', 'typography', 'logos', 'brandIcons', 'gradients', 'patterns', 'customShapes', 'iconography', 'textstyles'] },
+    { name: 'Digital Presence', sections: ['social', 'socialIcons', 'socialAssets', 'websites', 'qr', 'signatures'] },
+    { name: 'Content & Assets', sections: ['imagery', 'imageAssets', 'videos', 'assets', 'misuse'] },
+    { name: 'Marketing Materials', sections: ['templates', 'templateSpecs', 'presentationTemplates', 'brochures', 'displayBanners'] },
+    { name: 'Business & Events', sections: ['awards', 'caseStudies', 'statistics', 'revenueData', 'locations', 'webinars', 'insights', 'eventSignage'] },
+    { name: 'Partnerships', sections: ['clientLogos', 'sponsorLogos'] },
+    { name: 'Extended Features', sections: ['linkedGuides', 'emailBanners'] },
   ];
 
   const categoryScores = categories.map(cat => {
@@ -392,7 +401,7 @@ export function calculateBrandHealth(guideData: GuideData | null | undefined): H
     const score = sectionScores.reduce((sum, s) => sum + s.earned, 0);
     return {
       category: cat.name,
-      score: Math.round(score),
+      score: Math.round(score * 10) / 10,
       maxScore,
       sections: cat.sections,
     };
