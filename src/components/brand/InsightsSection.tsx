@@ -379,6 +379,42 @@ export const InsightsSection = ({
     }
   };
 
+  // Save/update website analysis as a persistent insight
+  const handleAnalysisComplete = (url: string, report: any) => {
+    if (!onInsightsChange) return;
+    const insightId = `site-analysis-${url.replace(/[^a-zA-Z0-9]/g, '-')}`;
+    const analysisInsight: InsightItem = {
+      id: insightId,
+      type: 'analytics',
+      title: `Website Analysis: ${url}`,
+      summary: report.summary || `Overall score: ${report.overallScore}/100 (Grade ${report.grade})`,
+      value: String(report.overallScore),
+      valueLabel: `Grade ${report.grade}`,
+      trend: report.overallScore >= 70 ? 'up' : report.overallScore >= 50 ? 'neutral' : 'down',
+      trendValue: `${report.overallScore}/100`,
+      date: new Date().toISOString(),
+      priority: report.overallScore >= 70 ? 'low' : report.overallScore >= 50 ? 'medium' : 'high',
+      category: 'Website Analysis',
+      // Store full report in content as JSON for restoration
+      content: JSON.stringify(report),
+    };
+    // Replace existing analysis for same URL or add new
+    const filtered = insights.filter(i => i.id !== insightId);
+    onInsightsChange([...filtered, analysisInsight]);
+  };
+
+  // Extract saved reports for WebsiteAnalysisCards
+  const getSavedReport = (url: string) => {
+    const insightId = `site-analysis-${url.replace(/[^a-zA-Z0-9]/g, '-')}`;
+    const saved = insights.find(i => i.id === insightId);
+    if (saved?.content) {
+      try {
+        return JSON.parse(saved.content);
+      } catch { return null; }
+    }
+    return null;
+  };
+
   const websitesWithUrls = (websites || []).filter(w => w.url);
   const hasWebsiteAnalysis = websitesWithUrls.length > 0;
 
@@ -455,43 +491,48 @@ export const InsightsSection = ({
         )}
 
         {/* Content based on layout */}
-        {allInsights.length > 0 && (
-          <>
-            {(layout === 'infographic' || layout === 'dashboard') ? (
-              <InfographicLayout insights={allInsights} />
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {allInsights.map((insight) => {
-                  const isCompetitive = insight.id.startsWith('competitive-');
-                  const isBrain = insight.id.startsWith('brain-');
-                  const competitiveItem = isCompetitive 
-                    ? competitiveInsights.find(ci => ci.id === insight.id)
-                    : undefined;
-                  return (
-                    <InsightCard
-                      key={insight.id}
-                      insight={insight}
-                      canEdit={canEdit && isEditing && !isCompetitive && !isBrain}
-                      onEdit={!isCompetitive && !isBrain ? () => handleEdit(insight) : undefined}
-                      onDelete={
-                        isCompetitive && competitiveItem
-                          ? () => deleteCompetitiveReport(competitiveItem.reportId)
-                          : !isCompetitive && !isBrain && canEdit && isEditing
-                            ? () => handleDelete(insight.id)
-                            : undefined
-                      }
-                      onClick={
-                        isCompetitive ? () => setCompetitiveDialogOpen(true) :
-                        isBrain ? () => setIntelligenceDialogOpen(true) :
-                        undefined
-                      }
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </>
-        )}
+        {(() => {
+          // Filter out site-analysis insights from the card grid (they're shown via WebsiteAnalysisCard)
+          const displayInsights = allInsights.filter(i => !i.id.startsWith('site-analysis-'));
+          if (displayInsights.length === 0) return null;
+          return (
+            <>
+              {(layout === 'infographic' || layout === 'dashboard') ? (
+                <InfographicLayout insights={displayInsights} />
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {displayInsights.map((insight) => {
+                    const isCompetitive = insight.id.startsWith('competitive-');
+                    const isBrain = insight.id.startsWith('brain-');
+                    const competitiveItem = isCompetitive 
+                      ? competitiveInsights.find(ci => ci.id === insight.id)
+                      : undefined;
+                    return (
+                      <InsightCard
+                        key={insight.id}
+                        insight={insight}
+                        canEdit={canEdit && isEditing && !isCompetitive && !isBrain}
+                        onEdit={!isCompetitive && !isBrain ? () => handleEdit(insight) : undefined}
+                        onDelete={
+                          isCompetitive && competitiveItem
+                            ? () => deleteCompetitiveReport(competitiveItem.reportId)
+                            : !isCompetitive && !isBrain && canEdit && isEditing
+                              ? () => handleDelete(insight.id)
+                              : undefined
+                        }
+                        onClick={
+                          isCompetitive ? () => setCompetitiveDialogOpen(true) :
+                          isBrain ? () => setIntelligenceDialogOpen(true) :
+                          undefined
+                        }
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          );
+        })()}
 
         {/* Website Analysis Cards - admin only */}
         {canEdit && (
@@ -509,6 +550,8 @@ export const InsightsSection = ({
                   entityType={entityType}
                   organizationId={organizationId}
                   brandContext={brandContext}
+                  onAnalysisComplete={handleAnalysisComplete}
+                  savedReport={getSavedReport(link.url)}
                 />
               ))}
               <WebsiteAnalysisCard
@@ -521,6 +564,7 @@ export const InsightsSection = ({
                 entityType={entityType}
                 organizationId={organizationId}
                 brandContext={brandContext}
+                onAnalysisComplete={handleAnalysisComplete}
               />
             </div>
           </div>

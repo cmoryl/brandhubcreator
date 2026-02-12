@@ -85,6 +85,10 @@ interface WebsiteAnalysisCardProps {
     tagline?: string;
     competitors?: string[];
   };
+  /** Callback to persist analysis report into insights */
+  onAnalysisComplete?: (url: string, report: WebsiteReport) => void;
+  /** Previously saved report to restore on mount */
+  savedReport?: WebsiteReport | null;
 }
 
 const SECTION_META: Record<string, { label: string; icon: typeof BarChart3 }> = {
@@ -135,9 +139,11 @@ export const WebsiteAnalysisCard = ({
   entityType = 'brand',
   organizationId,
   brandContext,
+  onAnalysisComplete,
+  savedReport,
 }: WebsiteAnalysisCardProps) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [report, setReport] = useState<WebsiteReport | null>(null);
+  const [report, setReport] = useState<WebsiteReport | null>(savedReport || null);
   const [showReport, setShowReport] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [urlInput, setUrlInput] = useState(initialUrl || '');
@@ -337,6 +343,9 @@ export const WebsiteAnalysisCard = ({
       
       // Feed results into brand brain in background
       feedIntoBrandBrain(data.report);
+      
+      // Persist to insights via callback
+      onAnalysisComplete?.(websiteUrl, data.report);
       
       toast.success('Website analysis complete — insights added to Brand Brain!');
     } catch (err) {
