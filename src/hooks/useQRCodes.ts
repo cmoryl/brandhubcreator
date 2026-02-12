@@ -79,8 +79,8 @@ const toFrontendQR = (record: DatabaseQRCode): QRCode => ({
 // Query key factory
 export const qrCodeKeys = {
   all: ['qr-codes'] as const,
-  entity: (entityType: string, entityId: string) => 
-    [...qrCodeKeys.all, entityType, entityId] as const,
+  entity: (entityType: string, entityId: string, orgId?: string) => 
+    [...qrCodeKeys.all, entityType, entityId, orgId || ''] as const,
 };
 
 export function useQRCodes(
@@ -92,7 +92,7 @@ export function useQRCodes(
 
   // Fetch QR codes for entity
   const { data: qrCodes = [], isLoading, error } = useQuery({
-    queryKey: qrCodeKeys.entity(entityType, entityId || ''),
+    queryKey: qrCodeKeys.entity(entityType, entityId || '', organization?.id),
     queryFn: async () => {
       if (!entityId || !organization?.id) return [];
       
@@ -158,7 +158,7 @@ export function useQRCodes(
       return toFrontendQR(data as DatabaseQRCode);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qrCodeKeys.entity(entityType, entityId || '') });
+      queryClient.invalidateQueries({ queryKey: qrCodeKeys.entity(entityType, entityId || '', organization?.id) });
       toast.success('QR code created');
     },
     onError: (error) => {
@@ -195,7 +195,7 @@ export function useQRCodes(
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qrCodeKeys.entity(entityType, entityId || '') });
+      queryClient.invalidateQueries({ queryKey: qrCodeKeys.entity(entityType, entityId || '', organization?.id) });
       toast.success('QR code updated');
     },
     onError: (error) => {
@@ -217,7 +217,7 @@ export function useQRCodes(
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qrCodeKeys.entity(entityType, entityId || '') });
+      queryClient.invalidateQueries({ queryKey: qrCodeKeys.entity(entityType, entityId || '', organization?.id) });
       toast.success('QR code deleted');
     },
     onError: (error) => {
