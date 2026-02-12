@@ -14,3 +14,5 @@ export { GlobalAssetOrbit } from './GlobalAssetOrbit';
 export { OrbitLegend } from './OrbitLegend';
 export { MobileStickyTabs } from './MobileStickyTabs';
 export { QuickFindLogo } from './QuickFindLogo';
+export { DemoUniverseCarousel } from './DemoUniverseCarousel';
+export { FeatureHighlightsStrip } from './FeatureHighlightsStrip';
