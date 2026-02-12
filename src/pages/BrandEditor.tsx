@@ -749,6 +749,15 @@ const BrandEditor = () => {
           onLayoutChange={canEdit ? (insightsLayout) => updateBrand({ insightsLayout }) : undefined}
           entityType="brand"
           entityId={brand.id}
+          websites={brand.websites}
+          entityName={brand.hero?.name}
+          organizationId={organization?.id}
+          brandContext={{
+            colors: brand.colors?.map(c => c.hex),
+            archetype: brand.identity?.archetype,
+            mission: brand.identity?.missionStatement,
+            tagline: brand.tagline?.primary,
+          }}
           insightsAccessCode={brand.insightsAccessCode}
           onAccessCodeChange={canEdit ? (insightsAccessCode) => updateBrand({ insightsAccessCode }) : undefined}
         />
