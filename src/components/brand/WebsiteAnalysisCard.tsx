@@ -140,7 +140,7 @@ export const WebsiteAnalysisCard = ({
   const [showReport, setShowReport] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
-  // Save analysis results into brand intelligence (the "brand brain")
+  // Save ALL analysis results into brand intelligence (the "brand brain")
   const feedIntoBrandBrain = async (analysisReport: WebsiteReport) => {
     if (!entityId || !entityType) return;
 
@@ -148,7 +148,7 @@ export const WebsiteAnalysisCard = ({
       // Get or create intelligence record
       let { data: intel } = await supabase
         .from('brand_intelligence')
-        .select('id, knowledge_entries, competitive_advantages, growth_recommendations, brand_summary')
+        .select('id, knowledge_entries, competitive_advantages, growth_recommendations, brand_voice_profile, cultural_insights, target_audience, competitive_landscape')
         .eq('entity_type', entityType)
         .eq('entity_id', entityId)
         .maybeSingle();
@@ -163,7 +163,7 @@ export const WebsiteAnalysisCard = ({
             knowledge_entries: [],
             semantic_hashes: [],
           })
-          .select('id, knowledge_entries, competitive_advantages, growth_recommendations, brand_summary')
+          .select('id, knowledge_entries, competitive_advantages, growth_recommendations, brand_voice_profile, cultural_insights, target_audience, competitive_landscape')
           .single();
         intel = newIntel;
       }
@@ -171,22 +171,21 @@ export const WebsiteAnalysisCard = ({
       if (!intel) return;
 
       const entries = Array.isArray(intel.knowledge_entries) ? intel.knowledge_entries : [];
+      const now = new Date().toISOString();
 
-      // Build comprehensive knowledge entry from website analysis
-      const sectionSummaries = Object.entries(analysisReport.sections || {})
-        .map(([key, section]) => {
-          const meta = SECTION_META[key];
-          return meta ? `${meta.label}: ${section.score}/100 - ${(section.findings || []).slice(0, 2).join('; ')}` : null;
-        })
-        .filter(Boolean);
+      // Filter out old website analysis entries to avoid unbounded growth
+      const filteredEntries = entries.filter(
+        (e: any) => e?.source !== 'website-analysis' || e?.metadata?.url !== websiteUrl
+      );
 
-      const knowledgeEntry = {
+      // 1. Master knowledge entry with full scores
+      const masterEntry = {
         id: crypto.randomUUID(),
         type: 'website_analysis',
         content: `Website Analysis (${websiteUrl}): Overall ${analysisReport.overallScore}/100 (Grade ${analysisReport.grade}). ${analysisReport.summary}`,
         source: 'website-analysis',
         category: 'digital-presence',
-        created_at: new Date().toISOString(),
+        created_at: now,
         confidence: 0.85,
         metadata: {
           url: websiteUrl,
@@ -198,66 +197,125 @@ export const WebsiteAnalysisCard = ({
         },
       };
 
-      // Extract competitive insights as knowledge
+      // 2. Per-section knowledge entries (ALL findings + recommendations)
+      const sectionEntries = Object.entries(analysisReport.sections || {}).flatMap(([key, section]) => {
+        const meta = SECTION_META[key];
+        if (!meta || !section) return [];
+        const findings = Array.isArray(section.findings) ? section.findings : [];
+        const recs = Array.isArray(section.recommendations) ? section.recommendations : [];
+        return [{
+          id: crypto.randomUUID(),
+          type: 'website_section_analysis',
+          content: `${meta.label} (${section.score}/100): Findings: ${findings.join(' | ')}. Recommendations: ${recs.join(' | ')}`,
+          source: 'website-analysis',
+          category: key === 'seoHealth' ? 'seo' 
+            : key === 'brandConsistency' ? 'brand-identity'
+            : key === 'competitivePosition' ? 'competitive-intelligence'
+            : key === 'industryTrends' ? 'market-trends'
+            : key === 'userExperience' ? 'user-experience'
+            : key === 'contentQuality' ? 'content-strategy'
+            : key === 'accessibilityCompliance' ? 'accessibility'
+            : key === 'conversionOptimization' ? 'conversion'
+            : key === 'technicalAudit' ? 'technical'
+            : 'digital-presence',
+          created_at: now,
+          confidence: 0.8,
+          metadata: { url: websiteUrl, section: key, score: section.score },
+        }];
+      });
+
+      // 3. Competitive insight entries
       const competitorEntries = (analysisReport.competitorComparison || []).map(comp => ({
         id: crypto.randomUUID(),
         type: 'competitive_insight',
         content: `Website competitive analysis vs ${comp.competitor}: Strengths: ${(comp.strengths || []).join(', ')}. Weaknesses: ${(comp.weaknesses || []).join(', ')}`,
         source: 'website-analysis',
         category: 'competitive-intelligence',
-        created_at: new Date().toISOString(),
+        created_at: now,
         confidence: 0.75,
       }));
 
-      // Extract priority actions as growth recommendations
+      // 4. Industry benchmark entry
+      const benchmarkEntries = analysisReport.industryBenchmarks ? [{
+        id: crypto.randomUUID(),
+        type: 'industry_benchmark',
+        content: `Industry benchmarks: Average score ${analysisReport.industryBenchmarks.averageScore}, top performer ${analysisReport.industryBenchmarks.topPerformerScore}, position percentile ${analysisReport.industryBenchmarks.positionPercentile}%`,
+        source: 'website-analysis',
+        category: 'market-trends',
+        created_at: now,
+        confidence: 0.7,
+        metadata: { url: websiteUrl, ...analysisReport.industryBenchmarks },
+      }] : [];
+
+      // 5. ALL priority actions as growth recommendations
       const existingRecs = Array.isArray(intel.growth_recommendations) ? intel.growth_recommendations : [];
-      const newRecs = (analysisReport.priorityActions || []).slice(0, 3).map(action => ({
+      // Remove old website-analysis recs for this URL
+      const filteredRecs = existingRecs.filter((r: any) => r?.source !== 'website-analysis');
+      const newRecs = (analysisReport.priorityActions || []).map(action => ({
         priority: action.impact === 'high' ? 'high' : action.impact === 'medium' ? 'medium' : 'low',
         recommendation: action.action,
         rationale: `Website audit finding (${action.impact} impact, ${action.effort} effort)`,
         confidence: 0.8,
         source: 'website-analysis',
       }));
+      const mergedRecs = [...filteredRecs, ...newRecs];
 
-      // Deduplicate recommendations
-      const mergedRecs = [...existingRecs];
-      for (const rec of newRecs) {
-        const isDup = mergedRecs.some(
-          (e: any) => typeof e?.recommendation === 'string' &&
-            e.recommendation.toLowerCase() === rec.recommendation.toLowerCase()
-        );
-        if (!isDup) mergedRecs.push(rec);
-      }
-
-      // Extract competitive advantages from analysis
+      // 6. Competitive advantages from high-scoring sections
       const existingAdvantages = Array.isArray(intel.competitive_advantages) ? intel.competitive_advantages : [];
       const websiteAdvantages: string[] = [];
-      const compSection = analysisReport.sections?.competitivePosition;
-      if (compSection && compSection.score >= 70) {
-        websiteAdvantages.push(...(compSection.findings || []).slice(0, 2));
-      }
-      const mergedAdvantages = [...existingAdvantages];
-      for (const adv of websiteAdvantages) {
-        if (!mergedAdvantages.some((e: any) => typeof e === 'string' && e.toLowerCase() === adv.toLowerCase())) {
-          mergedAdvantages.push(adv);
+      for (const [key, section] of Object.entries(analysisReport.sections || {})) {
+        if (section.score >= 75 && Array.isArray(section.findings)) {
+          const meta = SECTION_META[key];
+          if (meta) {
+            websiteAdvantages.push(...section.findings.slice(0, 1).map(f => `[${meta.label}] ${f}`));
+          }
         }
       }
+      const mergedAdvantages = [...existingAdvantages];
+      // Remove old website analysis advantages
+      const cleanAdvantages = mergedAdvantages.filter((a: any) => 
+        typeof a !== 'string' || !Object.values(SECTION_META).some(m => a.startsWith(`[${m.label}]`))
+      );
+      cleanAdvantages.push(...websiteAdvantages);
 
-      // Update intelligence record
+      // 7. Update competitive landscape with website competitor data
+      const existingLandscape = (intel.competitive_landscape && typeof intel.competitive_landscape === 'object') 
+        ? intel.competitive_landscape as Record<string, any> : {};
+      const websiteLandscape = {
+        ...existingLandscape,
+        website_audit: {
+          url: websiteUrl,
+          score: analysisReport.overallScore,
+          grade: analysisReport.grade,
+          analyzed_at: now,
+          competitors: (analysisReport.competitorComparison || []).map(c => ({
+            name: c.competitor,
+            strengths: c.strengths,
+            weaknesses: c.weaknesses,
+          })),
+          benchmarks: analysisReport.industryBenchmarks || null,
+        },
+      };
+
+      // Update intelligence record with ALL data
       await supabase
         .from('brand_intelligence')
         .update({
-          knowledge_entries: [...entries, knowledgeEntry, ...competitorEntries],
+          knowledge_entries: [...filteredEntries, masterEntry, ...sectionEntries, ...competitorEntries, ...benchmarkEntries],
           growth_recommendations: mergedRecs,
-          competitive_advantages: mergedAdvantages,
-          last_analyzed_at: new Date().toISOString(),
+          competitive_advantages: cleanAdvantages,
+          competitive_landscape: websiteLandscape,
+          last_analyzed_at: now,
         })
         .eq('id', intel.id);
 
-      console.log('[WebsiteAnalysis] Fed analysis results into brand intelligence');
+      console.log('[WebsiteAnalysis] Fed comprehensive analysis into brand intelligence:', {
+        knowledgeEntries: 1 + sectionEntries.length + competitorEntries.length + benchmarkEntries.length,
+        recommendations: newRecs.length,
+        advantages: websiteAdvantages.length,
+      });
     } catch (err) {
       console.error('[WebsiteAnalysis] Error feeding into brand brain:', err);
-      // Don't surface this error to user - the analysis itself succeeded
     }
   };
 
