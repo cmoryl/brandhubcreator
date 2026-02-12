@@ -35,7 +35,7 @@ export const MobileStickyTabs = ({
   ];
 
   return (
-    <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border safe-area-inset-top">
+    <div className="sm:hidden fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border safe-area-inset-top">
       <div className="flex items-center justify-around px-2 py-2 max-w-lg mx-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
