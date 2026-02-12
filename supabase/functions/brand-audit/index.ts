@@ -160,43 +160,20 @@ Deno.serve(async (req) => {
     
     console.log('Calling AI Gateway for brand analysis...');
     
-    const response = await fetch('https://ai.gateway.lovable.dev/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           {
             role: 'system',
-            content: `You are a brand cohesion expert and design consultant. Analyze brand guides for consistency, completeness, and best practices. 
-            
-Provide your analysis as a JSON object with this exact structure:
-{
-  "overallScore": <number 0-100>,
-  "categories": [
-    {
-      "name": "<category name>",
-      "score": <number 0-100>,
-      "findings": ["<finding 1>", "<finding 2>"],
-      "recommendations": ["<recommendation 1>", "<recommendation 2>"]
-    }
-  ],
-  "summary": "<2-3 sentence executive summary>",
-  "strengths": ["<strength 1>", "<strength 2>"],
-  "weaknesses": ["<weakness 1>", "<weakness 2>"],
-  "actionItems": ["<priority action 1>", "<priority action 2>", "<priority action 3>"]
-}
-
-Categories to evaluate:
-1. Visual Consistency - Color harmony, typography pairing, pattern usage
-2. Brand Identity - Mission clarity, values alignment, tone coherence
-3. Completeness - Missing elements, gaps in the guide
-4. Best Practices - Industry standards, accessibility, scalability
-
-Be specific and actionable in your recommendations.`
+            content: `You are a brand cohesion expert. Analyze brand guides and return JSON only:
+{"overallScore":<0-100>,"categories":[{"name":"<name>","score":<0-100>,"findings":["..."],"recommendations":["..."]}],"summary":"<2 sentences>","strengths":["..."],"weaknesses":["..."],"actionItems":["..."]}
+Categories: Visual Consistency, Brand Identity, Completeness, Best Practices. Be specific.`
           },
           {
             role: 'user',
@@ -204,7 +181,7 @@ Be specific and actionable in your recommendations.`
           }
         ],
         temperature: 0.3,
-        max_tokens: 2000,
+        max_tokens: 1500,
       }),
     });
 
