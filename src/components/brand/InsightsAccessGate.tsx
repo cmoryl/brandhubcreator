@@ -95,46 +95,96 @@ export const InsightsAccessGate = ({
 
       {/* Gate overlay for public users */}
       {shouldShowGate ? (
-        <div className="relative">
+        <div className="relative min-h-[420px] rounded-2xl overflow-hidden">
           {/* Blurred content preview */}
-          <div className="pointer-events-none select-none blur-md opacity-50" aria-hidden>
+          <div className="pointer-events-none select-none blur-lg opacity-30 scale-[1.02]" aria-hidden>
             {children}
           </div>
 
-          {/* Overlay */}
-          <div className="absolute inset-0 flex items-center justify-center z-10">
-            <div className="bg-card/95 backdrop-blur-sm border border-border rounded-2xl shadow-xl p-8 max-w-sm w-full mx-4 text-center space-y-4">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 text-primary mx-auto">
-                <Lock className="h-7 w-7" />
+          {/* Animated gradient backdrop */}
+          <div className="absolute inset-0 z-[1]">
+            <div 
+              className="absolute inset-0 opacity-60"
+              style={{
+                background: 'linear-gradient(135deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--accent) / 0.1) 30%, hsl(var(--muted) / 0.2) 60%, hsl(var(--primary) / 0.12) 100%)',
+                backgroundSize: '300% 300%',
+                animation: 'aurora 10s ease-in-out infinite',
+              }}
+            />
+            <div 
+              className="absolute inset-0"
+              style={{
+                background: 'radial-gradient(ellipse at 50% 40%, hsl(var(--background) / 0.85) 0%, hsl(var(--background) / 0.6) 50%, transparent 80%)',
+              }}
+            />
+          </div>
+
+          {/* Glass card */}
+          <div className="absolute inset-0 flex items-center justify-center z-10 p-4">
+            <div 
+              className="relative max-w-sm w-full text-center space-y-5 p-8 rounded-3xl border border-border/30"
+              style={{
+                background: 'hsl(var(--card) / 0.7)',
+                backdropFilter: 'blur(24px) saturate(1.4)',
+                boxShadow: '0 8px 32px hsl(var(--primary) / 0.08), 0 2px 8px hsl(var(--foreground) / 0.04), inset 0 1px 0 hsl(var(--background) / 0.5)',
+              }}
+            >
+              {/* Accent line */}
+              <div 
+                className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-16 rounded-full"
+                style={{ background: 'linear-gradient(90deg, transparent, hsl(var(--primary)), transparent)' }}
+              />
+
+              {/* Icon with glow */}
+              <div className="relative inline-flex items-center justify-center w-16 h-16 rounded-2xl mx-auto"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05))',
+                  boxShadow: '0 0 20px hsl(var(--primary) / 0.12)',
+                }}
+              >
+                <Lock className="h-7 w-7 text-primary" />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">Protected Content</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Enter the access code to view Insights & Updates.
+
+              <div className="space-y-1.5">
+                <h3 className="text-lg font-semibold text-foreground tracking-tight">Protected Insights</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Enter your access code to unlock analytics, intelligence reports, and brand insights.
                 </p>
               </div>
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <div className="relative">
+
+              <form onSubmit={handleSubmit} className="space-y-3 pt-1">
+                <div className="relative group">
                   <Input
                     type={showCode ? 'text' : 'password'}
-                    placeholder="Enter access code"
+                    placeholder="Access code"
                     value={codeInput}
                     onChange={(e) => { setCodeInput(e.target.value); setError(''); }}
-                    className={cn("pr-10", error && "border-destructive")}
+                    className={cn(
+                      "pr-10 h-11 rounded-xl bg-background/60 border-border/50 text-center text-sm tracking-widest font-medium placeholder:tracking-normal placeholder:font-normal transition-all duration-200 focus:bg-background/80 focus:border-primary/40 focus:shadow-[0_0_0_3px_hsl(var(--primary)/0.08)]",
+                      error && "border-destructive/60 focus:border-destructive/60 focus:shadow-[0_0_0_3px_hsl(var(--destructive)/0.1)]"
+                    )}
                     autoFocus
                   />
                   <button
                     type="button"
                     onClick={() => setShowCode(!showCode)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors"
                   >
                     {showCode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                {error && <p className="text-xs text-destructive">{error}</p>}
-                <Button type="submit" className="w-full gap-2">
+                {error && (
+                  <p className="text-xs text-destructive animate-fade-in-up">{error}</p>
+                )}
+                <Button 
+                  type="submit" 
+                  className="w-full gap-2 h-11 rounded-xl font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                  style={{
+                    background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.85))',
+                  }}
+                >
                   <Lock className="h-4 w-4" />
-                  Unlock
+                  Unlock Insights
                 </Button>
               </form>
             </div>
