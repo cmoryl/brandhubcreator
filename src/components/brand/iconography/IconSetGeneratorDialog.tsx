@@ -341,17 +341,47 @@ export const IconSetGeneratorDialog = ({
 
   // Render SVG icon safely
   const renderIcon = (svgPath: string, size: number = 24) => {
-    const sanitized = DOMPurify.sanitize(svgPath, {
-      USE_PROFILES: { svg: true, svgFilters: true },
-      FORBID_TAGS: ['script', 'foreignObject'],
-    });
+    const isFullSvg = svgPath.trim().startsWith('<svg') || svgPath.includes('<path') || svgPath.includes('<circle') || svgPath.includes('<rect') || svgPath.includes('<g');
+    
+    if (isFullSvg) {
+      const sanitized = DOMPurify.sanitize(svgPath, {
+        USE_PROFILES: { svg: true, svgFilters: true },
+        FORBID_TAGS: ['script', 'foreignObject'],
+      });
+      
+      const viewBoxMatch = svgPath.match(/viewBox="([^"]+)"/);
+      const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24';
+      const innerMatch = sanitized.match(/<svg[^>]*>([\s\S]*)<\/svg>/i);
+      const innerContent = innerMatch ? innerMatch[1] : sanitized;
+      
+      return (
+        <svg
+          viewBox={viewBox}
+          width={size}
+          height={size}
+          fill="currentColor"
+          stroke="currentColor"
+          className="flex-shrink-0"
+          style={{ overflow: 'visible' }}
+          dangerouslySetInnerHTML={{ __html: innerContent }}
+        />
+      );
+    }
     
     return (
-      <div 
-        className="flex items-center justify-center"
-        style={{ width: size, height: size }}
-        dangerouslySetInnerHTML={{ __html: sanitized }}
-      />
+      <svg
+        viewBox="0 0 24 24"
+        width={size}
+        height={size}
+        fill={iconStyle.fill ? 'currentColor' : 'none'}
+        stroke={!iconStyle.fill ? 'currentColor' : 'none'}
+        strokeWidth={iconStyle.strokeWidth}
+        strokeLinecap={iconStyle.cornerRadius === 'sharp' ? 'square' : 'round'}
+        strokeLinejoin={iconStyle.cornerRadius === 'sharp' ? 'miter' : 'round'}
+        className="flex-shrink-0"
+      >
+        <path d={svgPath} />
+      </svg>
     );
   };
 

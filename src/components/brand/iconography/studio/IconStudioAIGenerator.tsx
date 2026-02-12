@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
@@ -45,6 +46,8 @@ import {
   ShieldCheck,
   AlertTriangle,
   FileCheck,
+  Eye,
+  PlusCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
@@ -236,6 +239,7 @@ export const IconStudioAIGenerator = ({
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [selectedIcons, setSelectedIcons] = useState<Set<string>>(new Set());
+  const [previewIcon, setPreviewIcon] = useState<IconWithAudit | null>(null);
 
   // Extract brand hex colors for audit
   const brandHexColors = useMemo(() => brandColors.map(c => c.hex), [brandColors]);
@@ -447,16 +451,52 @@ export const IconStudioAIGenerator = ({
   }, [iconOptimizer, brandHexColors]);
 
   const renderIcon = (svgPath: string, size: number = 20) => {
-    const sanitized = DOMPurify.sanitize(svgPath, {
-      USE_PROFILES: { svg: true, svgFilters: true },
-      FORBID_TAGS: ['script', 'foreignObject'],
-    });
+    const isFullSvg = svgPath.trim().startsWith('<svg') || svgPath.includes('<path') || svgPath.includes('<circle') || svgPath.includes('<rect') || svgPath.includes('<g');
+    
+    if (isFullSvg) {
+      // Full SVG content - extract inner content and render as proper SVG
+      const sanitized = DOMPurify.sanitize(svgPath, {
+        USE_PROFILES: { svg: true, svgFilters: true },
+        FORBID_TAGS: ['script', 'foreignObject'],
+      });
+      
+      // Try to extract viewBox from full SVG
+      const viewBoxMatch = svgPath.match(/viewBox="([^"]+)"/);
+      const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24';
+      
+      // Extract inner content if it's a full <svg> tag
+      const innerMatch = sanitized.match(/<svg[^>]*>([\s\S]*)<\/svg>/i);
+      const innerContent = innerMatch ? innerMatch[1] : sanitized;
+      
+      return (
+        <svg
+          viewBox={viewBox}
+          width={size}
+          height={size}
+          fill="currentColor"
+          stroke="currentColor"
+          className="flex-shrink-0"
+          style={{ overflow: 'visible' }}
+          dangerouslySetInnerHTML={{ __html: innerContent }}
+        />
+      );
+    }
+    
+    // Simple path data
     return (
-      <div 
-        className="flex items-center justify-center"
-        style={{ width: size, height: size }}
-        dangerouslySetInnerHTML={{ __html: sanitized }}
-      />
+      <svg
+        viewBox="0 0 24 24"
+        width={size}
+        height={size}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={iconStyle.strokeWidth}
+        strokeLinecap={iconStyle.cornerRadius === 'rounded' ? 'round' : 'square'}
+        strokeLinejoin={iconStyle.cornerRadius === 'rounded' ? 'round' : 'miter'}
+        className="flex-shrink-0"
+      >
+        <path d={svgPath} />
+      </svg>
     );
   };
 
@@ -906,25 +946,50 @@ export const IconStudioAIGenerator = ({
                               <Tooltip key={icon.id}>
                                 <TooltipTrigger asChild>
                                   <button
-                                    onClick={() => toggleIconSelection(icon.id)}
-                                    className={cn(
-                                      'relative p-2 rounded-lg border flex flex-col items-center gap-1 transition-all group',
-                                      isSelected
-                                        ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
-                                        : 'border-border hover:border-primary/50 hover:bg-muted/50',
-                                      showAuditDetails && hasIssues && 'border-amber-400/50 bg-amber-50/30 dark:bg-amber-900/10'
-                                    )}
-                                  >
-                                    {renderIcon(icon.svgPath, 24)}
-                                    <span className="text-[9px] text-muted-foreground truncate max-w-full">
-                                      {icon.name.split(' ').slice(0, 2).join(' ')}
-                                    </span>
-                                    {isSelected && (
-                                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
-                                        <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                                      onClick={() => toggleIconSelection(icon.id)}
+                                      className={cn(
+                                        'relative p-3 rounded-lg border flex flex-col items-center gap-1.5 transition-all group min-h-[80px]',
+                                        isSelected
+                                          ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
+                                          : 'border-border hover:border-primary/50 hover:bg-muted/50',
+                                        showAuditDetails && hasIssues && 'border-amber-400/50 bg-amber-50/30 dark:bg-amber-900/10'
+                                      )}
+                                    >
+                                      <div className="flex items-center justify-center w-8 h-8">
+                                        {renderIcon(icon.svgPath, 28)}
                                       </div>
-                                    )}
-                                    {showAuditDetails && icon.audit?.qualityScore && (
+                                      <span className="text-[9px] text-muted-foreground truncate max-w-full">
+                                        {icon.name.split(' ').slice(0, 2).join(' ')}
+                                      </span>
+                                      {isSelected && (
+                                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                                          <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                                        </div>
+                                      )}
+                                      {/* Action buttons on hover */}
+                                      <div className="absolute bottom-1 left-1 right-1 flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); setPreviewIcon(icon); }}
+                                          className="p-1 rounded bg-background/90 border shadow-sm hover:bg-accent"
+                                          title="View larger"
+                                        >
+                                          <Eye className="h-3 w-3" />
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const cleanIcon: BrandIconography = { ...icon };
+                                            delete (cleanIcon as any).audit;
+                                            onSaveIcons([cleanIcon], selectedLibraryId || undefined);
+                                            toast.success(`Added "${icon.name}" to brand`);
+                                          }}
+                                          className="p-1 rounded bg-background/90 border shadow-sm hover:bg-accent"
+                                          title="Add to brand"
+                                        >
+                                          <PlusCircle className="h-3 w-3" />
+                                        </button>
+                                      </div>
+                                      {showAuditDetails && icon.audit?.qualityScore && (
                                       <div className={cn(
                                         'absolute -top-1.5 -left-1.5 w-5 h-5 rounded text-[9px] font-bold flex items-center justify-center',
                                         icon.audit.qualityScore.grade === 'A' ? 'bg-green-600 text-white' :
@@ -1024,6 +1089,83 @@ export const IconStudioAIGenerator = ({
           )}
         </div>
       </div>
+
+      {/* Icon Preview Dialog */}
+      {previewIcon && (
+        <Dialog open={!!previewIcon} onOpenChange={(open) => !open && setPreviewIcon(null)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {previewIcon.name}
+                {previewIcon.audit?.qualityScore && (
+                  <Badge variant="outline" className="text-xs">
+                    Score: {previewIcon.audit.qualityScore.overall}/100
+                  </Badge>
+                )}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {/* Large preview */}
+              <div className="flex items-center justify-center p-8 rounded-lg border bg-background min-h-[200px]">
+                {renderIcon(previewIcon.svgPath, 120)}
+              </div>
+
+              {/* Size variants */}
+              <div className="flex items-center justify-center gap-6 py-3 border rounded-lg bg-muted/30">
+                <div className="flex flex-col items-center gap-1">
+                  {renderIcon(previewIcon.svgPath, 16)}
+                  <span className="text-[9px] text-muted-foreground">16px</span>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  {renderIcon(previewIcon.svgPath, 24)}
+                  <span className="text-[9px] text-muted-foreground">24px</span>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  {renderIcon(previewIcon.svgPath, 32)}
+                  <span className="text-[9px] text-muted-foreground">32px</span>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  {renderIcon(previewIcon.svgPath, 48)}
+                  <span className="text-[9px] text-muted-foreground">48px</span>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  {renderIcon(previewIcon.svgPath, 64)}
+                  <span className="text-[9px] text-muted-foreground">64px</span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                <Button
+                  className="flex-1 gap-2"
+                  onClick={() => {
+                    const cleanIcon: BrandIconography = { ...previewIcon };
+                    delete (cleanIcon as any).audit;
+                    onSaveIcons([cleanIcon], selectedLibraryId || undefined);
+                    toast.success(`Added "${previewIcon.name}" to brand`);
+                    setPreviewIcon(null);
+                  }}
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  Add to Brand
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const svgString = previewIcon.svgPath.includes('<svg') 
+                      ? previewIcon.svgPath 
+                      : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${iconStyle.strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="${previewIcon.svgPath}"/></svg>`;
+                    navigator.clipboard.writeText(svgString);
+                    toast.success('SVG copied to clipboard');
+                  }}
+                >
+                  Copy SVG
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
