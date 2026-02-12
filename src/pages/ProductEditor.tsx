@@ -54,6 +54,7 @@ import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { ProductsSection } from '@/components/brand/ProductsSection';
 import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
 import { ClientLogosSection } from '@/components/brand/ClientLogosSection';
+import { InsightsSection } from '@/components/brand/InsightsSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
@@ -620,6 +621,16 @@ const ProductEditor = () => {
       case 'products': return <ProductsSection productId={currentProduct.id} linkedGuides={currentProduct.linkedGuides || []} onLinkedGuidesChange={editHandler((linkedGuides) => handleUpdateProduct({ linkedGuides }))} />;
       case 'sponsorlogos': return <SponsorLogosSection sponsors={currentProduct.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => handleUpdateProduct({ sponsorLogos }))} />;
       case 'clientlogos': return <ClientLogosSection clientLogos={currentProduct.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => handleUpdateProduct({ clientLogos }))} />;
+      case 'insights': return (
+        <InsightsSection
+          insights={(currentProduct as any).insights || []}
+          layout={(currentProduct as any).insightsLayout}
+          onInsightsChange={editHandler((insights) => handleUpdateProduct({ insights } as any))}
+          onLayoutChange={canEdit ? (insightsLayout) => handleUpdateProduct({ insightsLayout } as any) : undefined}
+          entityType="product"
+          entityId={currentProduct.id}
+        />
+      );
       default: return null;
     }
   };
