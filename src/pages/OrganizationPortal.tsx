@@ -34,7 +34,7 @@ import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, HierarchicalProductGrid, HierarchicalBrandGrid, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit, OrbitLegend, MobileStickyTabs, QuickFindLogo, DemoUniverseCarousel, FeatureHighlightsStrip } from '@/components/portal';
+import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, HierarchicalProductGrid, HierarchicalBrandGrid, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit, OrbitLegend, MobileStickyTabs, DemoUniverseCarousel } from '@/components/portal';
 import { toast } from 'sonner';
 
 // Lazy load admin components
@@ -502,34 +502,8 @@ const OrganizationPortal = () => {
                 )}
               </div>
 
-              {/* QuickFind Logo Widget */}
-              <div className="mt-4 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-                <QuickFindLogo
-                  brands={brands.map(b => ({
-                    id: b.id,
-                    name: b.hero?.name || b.name,
-                    slug: b.slug || undefined,
-                    logos: b.logos || [],
-                  }))}
-                  products={products.map(p => ({
-                    id: p.id,
-                    name: p.hero?.name || p.name,
-                    slug: p.slug || undefined,
-                    logos: p.logos || [],
-                  }))}
-                  events={events.map(e => ({
-                    id: e.id,
-                    name: e.hero?.name || e.name,
-                    slug: e.slug || undefined,
-                    logos: e.logos || [],
-                  }))}
-                  accentColor={organization.accentColor || orgColors.primary}
-                />
-              </div>
-
-
-              {/* Orbit Legend - replaces stats, shown on md+ screens */}
-              <div className="hidden md:block mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-border/50 animate-fade-in-up" style={{ animationDelay: '0.45s' }}>
+              {/* Orbit Legend - compact inline */}
+              <div className="hidden md:flex mt-6 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
                 <OrbitLegend
                   value={activeTab}
                   onValueChange={handleTabChange}
@@ -542,11 +516,10 @@ const OrganizationPortal = () => {
         </div>
       </div>
 
-      {/* Demo Universe Carousel */}
-      <DemoUniverseCarousel />
-
-      {/* Feature Highlights Strip */}
-      <FeatureHighlightsStrip />
+      {/* Demo Universe Carousel – inside hero flow */}
+      <div className="relative z-10 -mt-8 sm:-mt-12 pb-4">
+        <DemoUniverseCarousel />
+      </div>
 
       {/* Content Grid */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 safe-area-inset-bottom border-t border-border/50">
