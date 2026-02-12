@@ -8,12 +8,26 @@ interface UseBrandIntelligenceInsightsOptions {
   enabled?: boolean;
 }
 
+export interface BrandIntelligenceDetail {
+  brand_summary: string | null;
+  market_position: string | null;
+  target_audience: any;
+  competitive_advantages: string[];
+  brand_voice_profile: any;
+  growth_recommendations: any[];
+  analysis_count: number;
+  last_analyzed_at: string | null;
+  localization_readiness_score: number | null;
+  feedback_score: number | null;
+}
+
 /**
  * Fetches brand intelligence data for an entity and converts key stats
  * into InsightItem format for display in the Insights & Updates section.
  */
 export function useBrandIntelligenceInsights({ entityType, entityId, enabled = true }: UseBrandIntelligenceInsightsOptions) {
   const [intelligenceInsights, setIntelligenceInsights] = useState<InsightItem[]>([]);
+  const [intelligenceDetail, setIntelligenceDetail] = useState<BrandIntelligenceDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchIntelligence = useCallback(async () => {
@@ -31,8 +45,26 @@ export function useBrandIntelligenceInsights({ entityType, entityId, enabled = t
       if (error) throw error;
       if (!data || !data.last_analyzed_at) {
         setIntelligenceInsights([]);
+        setIntelligenceDetail(null);
         return;
       }
+
+      // Store full detail for the dialog
+      const advantages = Array.isArray(data.competitive_advantages) ? data.competitive_advantages as string[] : [];
+      const recommendations = Array.isArray(data.growth_recommendations) ? data.growth_recommendations as any[] : [];
+
+      setIntelligenceDetail({
+        brand_summary: data.brand_summary,
+        market_position: data.market_position,
+        target_audience: data.target_audience,
+        competitive_advantages: advantages,
+        brand_voice_profile: data.brand_voice_profile,
+        growth_recommendations: recommendations,
+        analysis_count: data.analysis_count,
+        last_analyzed_at: data.last_analyzed_at,
+        localization_readiness_score: data.localization_readiness_score,
+        feedback_score: data.feedback_score,
+      });
 
       const insights: InsightItem[] = [];
 
@@ -52,7 +84,6 @@ export function useBrandIntelligenceInsights({ entityType, entityId, enabled = t
       }
 
       // Competitive advantages
-      const advantages = Array.isArray(data.competitive_advantages) ? data.competitive_advantages as string[] : [];
       if (advantages.length > 0) {
         insights.push({
           id: `brain-advantages-${data.id}`,
@@ -86,7 +117,6 @@ export function useBrandIntelligenceInsights({ entityType, entityId, enabled = t
       }
 
       // Growth recommendations count
-      const recommendations = Array.isArray(data.growth_recommendations) ? data.growth_recommendations as any[] : [];
       if (recommendations.length > 0) {
         const highPriority = recommendations.filter((r: any) => r?.priority === 'high').length;
         insights.push({
@@ -132,5 +162,5 @@ export function useBrandIntelligenceInsights({ entityType, entityId, enabled = t
     fetchIntelligence();
   }, [fetchIntelligence]);
 
-  return { intelligenceInsights, isLoading, refetch: fetchIntelligence };
+  return { intelligenceInsights, intelligenceDetail, isLoading, refetch: fetchIntelligence };
 }

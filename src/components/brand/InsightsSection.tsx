@@ -17,6 +17,9 @@ import type { InsightItem, InsightsLayout } from '@/types/brand';
 const CompetitiveAnalysisDialog = lazy(() => 
   import('./CompetitiveAnalysisDialog').then(m => ({ default: m.CompetitiveAnalysisDialog }))
 );
+const BrandIntelligenceDetailDialog = lazy(() =>
+  import('./BrandIntelligenceDetailDialog').then(m => ({ default: m.BrandIntelligenceDetailDialog }))
+);
 
 interface InsightsSectionProps {
   insights: InsightItem[];
@@ -293,6 +296,7 @@ export const InsightsSection = ({
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingInsight, setEditingInsight] = useState<InsightItem | null>(null);
   const [competitiveDialogOpen, setCompetitiveDialogOpen] = useState(false);
+  const [intelligenceDialogOpen, setIntelligenceDialogOpen] = useState(false);
 
   // Auto-fetch competitive analysis reports when entity context is provided
   const { competitiveInsights, deleteReport: deleteCompetitiveReport } = useCompetitiveInsights({
@@ -302,7 +306,7 @@ export const InsightsSection = ({
   });
 
   // Auto-fetch brand intelligence stats when entity context is provided
-  const { intelligenceInsights } = useBrandIntelligenceInsights({
+  const { intelligenceInsights, intelligenceDetail } = useBrandIntelligenceInsights({
     entityType: entityType || 'brand',
     entityId: entityId || '',
     enabled: Boolean(entityType && entityId),
@@ -419,6 +423,7 @@ export const InsightsSection = ({
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {allInsights.map((insight) => {
                 const isCompetitive = insight.id.startsWith('competitive-');
+                const isBrain = insight.id.startsWith('brain-');
                 const competitiveItem = isCompetitive 
                   ? competitiveInsights.find(ci => ci.id === insight.id)
                   : undefined;
@@ -426,16 +431,20 @@ export const InsightsSection = ({
                   <InsightCard
                     key={insight.id}
                     insight={insight}
-                    canEdit={canEdit && isEditing && !isCompetitive}
-                    onEdit={!isCompetitive ? () => handleEdit(insight) : undefined}
+                    canEdit={canEdit && isEditing && !isCompetitive && !isBrain}
+                    onEdit={!isCompetitive && !isBrain ? () => handleEdit(insight) : undefined}
                     onDelete={
                       isCompetitive && competitiveItem
                         ? () => deleteCompetitiveReport(competitiveItem.reportId)
-                        : !isCompetitive && canEdit && isEditing
+                        : !isCompetitive && !isBrain && canEdit && isEditing
                           ? () => handleDelete(insight.id)
                           : undefined
                     }
-                    onClick={isCompetitive ? () => setCompetitiveDialogOpen(true) : undefined}
+                    onClick={
+                      isCompetitive ? () => setCompetitiveDialogOpen(true) :
+                      isBrain ? () => setIntelligenceDialogOpen(true) :
+                      undefined
+                    }
                   />
                 );
               })}
@@ -454,6 +463,11 @@ export const InsightsSection = ({
             entityId={entityId}
             entityName=""
             defaultTab="results"
+          />
+          <BrandIntelligenceDetailDialog
+            open={intelligenceDialogOpen}
+            onOpenChange={setIntelligenceDialogOpen}
+            detail={intelligenceDetail}
           />
         </Suspense>
       )}
