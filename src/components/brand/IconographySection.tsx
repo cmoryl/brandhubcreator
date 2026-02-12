@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp, Sparkles, Building2, Layers } from 'lucide-react';
+import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp, Sparkles, Building2, Layers, Eye } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SectionHeader } from './SectionHeader';
 import { IconStudio, IconUsageGuidelines, HierarchicalIconDisplay } from './iconography';
+import { IconPreviewDialog } from './iconography/IconPreviewDialog';
 import type { IconStudioTab } from './iconography';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
@@ -82,6 +83,7 @@ export const IconographySection = ({
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [showIconStudio, setShowIconStudio] = useState(false);
   const [iconStudioInitialTab, setIconStudioInitialTab] = useState<IconStudioTab>('library');
+  const [previewIcon, setPreviewIcon] = useState<BrandIconography | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const ICONS_PREVIEW_LIMIT = 8;
@@ -614,7 +616,7 @@ ${innerContent}
                     key={icon.id}
                     className={`group relative bg-card rounded-xl ${gridSizeConfig[gridSize].padding} shadow-sm border border-border animate-scale-in flex flex-col items-center cursor-pointer hover:border-primary/50 transition-colors`}
                     style={{ animationDelay: `${index * 50}ms` }}
-                    onClick={() => copySVG(icon)}
+                    onClick={() => setPreviewIcon(icon)}
                   >
                     {renderIcon(icon, gridSizeConfig[gridSize].iconSize)}
                     <p className={`${gridSizeConfig[gridSize].fontSize} text-muted-foreground text-center truncate w-full leading-tight`}>{icon.name}</p>
@@ -624,10 +626,23 @@ ${innerContent}
                         <Check className="h-5 w-5 text-white" />
                       ) : (
                         <>
-                          <Copy className="h-4 w-4 text-white" />
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setPreviewIcon(icon); }}
+                            className="p-1.5 rounded bg-white/20 hover:bg-white/30"
+                            title="View larger"
+                          >
+                            <Eye className="h-4 w-4 text-white" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); copySVG(icon); }}
+                            className="p-1.5 rounded bg-white/20 hover:bg-white/30"
+                            title="Copy SVG"
+                          >
+                            <Copy className="h-4 w-4 text-white" />
+                          </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); downloadIcon(icon); }}
-                            className="p-1 rounded bg-white/20 hover:bg-white/30"
+                            className="p-1.5 rounded bg-white/20 hover:bg-white/30"
                             title="Download SVG"
                           >
                             <Download className="h-4 w-4 text-white" />
@@ -765,6 +780,13 @@ ${innerContent}
         onIconsCreated={(newIcons) => {
           onIconographyChange([...iconography, ...newIcons]);
         }}
+      />
+
+      {/* Icon Preview Dialog */}
+      <IconPreviewDialog
+        icon={previewIcon}
+        open={!!previewIcon}
+        onOpenChange={(open) => !open && setPreviewIcon(null)}
       />
     </section>
   );
