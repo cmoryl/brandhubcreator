@@ -12,8 +12,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SectionHeader } from './SectionHeader';
 import { InsightEditorModal } from './InsightEditorModal';
+import { WebsiteAnalysisCard } from './WebsiteAnalysisCard';
 import { cn } from '@/lib/utils';
-import type { InsightItem, InsightsLayout } from '@/types/brand';
+import type { InsightItem, InsightsLayout, BrandWebsiteLink } from '@/types/brand';
 
 const CompetitiveAnalysisDialog = lazy(() => 
   import('./CompetitiveAnalysisDialog').then(m => ({ default: m.CompetitiveAnalysisDialog }))
@@ -32,6 +33,18 @@ interface InsightsSectionProps {
   /** Entity context for auto-fetching competitive analysis reports */
   entityType?: 'brand' | 'product' | 'event';
   entityId?: string;
+  /** Website links for analysis cards */
+  websites?: BrandWebsiteLink[];
+  entityName?: string;
+  industry?: string;
+  organizationId?: string | null;
+  brandContext?: {
+    colors?: string[];
+    archetype?: string;
+    mission?: string;
+    tagline?: string;
+    competitors?: string[];
+  };
 }
 
 const typeIcons = {
@@ -291,6 +304,11 @@ export const InsightsSection = ({
   onSubtitleChange,
   entityType,
   entityId,
+  websites,
+  entityName,
+  industry,
+  organizationId,
+  brandContext,
 }: InsightsSectionProps) => {
   const canEdit = Boolean(onInsightsChange);
   const [isEditing, setIsEditing] = useState(false);
@@ -355,7 +373,10 @@ export const InsightsSection = ({
     }
   };
 
-  if (allInsights.length === 0 && !canEdit) {
+  const websitesWithUrls = (websites || []).filter(w => w.url);
+  const hasWebsiteAnalysis = websitesWithUrls.length > 0;
+
+  if (allInsights.length === 0 && !canEdit && !hasWebsiteAnalysis) {
     return null;
   }
 
@@ -459,6 +480,28 @@ export const InsightsSection = ({
             </div>
           )}
         </>
+      )}
+
+      {/* Website Analysis Cards - admin only */}
+      {canEdit && websitesWithUrls.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Website Analysis</h3>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {websitesWithUrls.map((link) => (
+              <WebsiteAnalysisCard
+                key={`analysis-${link.id}`}
+                websiteUrl={link.url}
+                websiteLabel={link.label}
+                entityName={entityName}
+                industry={industry}
+                entityId={entityId}
+                entityType={entityType}
+                organizationId={organizationId}
+                brandContext={brandContext}
+              />
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Competitive Analysis Dialog */}

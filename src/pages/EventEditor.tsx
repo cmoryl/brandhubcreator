@@ -651,6 +651,11 @@ const EventEditor = () => {
             onLayoutChange={canEdit ? (insightsLayout) => updateEvent({ insightsLayout } as any) : undefined}
             entityType="event"
             entityId={event.id}
+            websites={(event as any).websites}
+            entityName={event.hero?.name}
+            industry={event.identity?.archetype}
+            organizationId={event.organizationId}
+            brandContext={{ colors: event.colors?.map?.((c: any) => c.hex) || [], archetype: event.identity?.archetype, mission: event.identity?.missionStatement, tagline: event.hero?.tagline }}
           />
         );
       default:
