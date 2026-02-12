@@ -294,6 +294,7 @@ export default function AdminDashboard() {
 
   const generateActivityLogs = async () => {
     const logs: ActivityLog[] = [];
+    const seenIds = new Set<string>();
     
     // Calculate date filter based on dateRange
     const now = new Date();
@@ -312,8 +313,7 @@ export default function AdminDashboard() {
         dateFilter = null;
     }
 
-    // Fetch real audit logs from the database (admin-only access via RLS)
-    // Only admins can access base audit_logs table which includes user_email
+    // Fetch real audit logs
     let auditQuery = supabase
       .from('audit_logs')
       .select('id, user_id, user_email, brand_id, entity_type, action_type, entity_name, details, created_at')
@@ -324,16 +324,56 @@ export default function AdminDashboard() {
       auditQuery = auditQuery.gte('created_at', dateFilter);
     }
 
-    const { data: auditLogs } = await auditQuery;
+    // Also fetch entity-derived activity in parallel
+    let brandsQuery = supabase
+      .from('brands')
+      .select('id, name, created_at, updated_at, is_public')
+      .order('updated_at', { ascending: false })
+      .limit(15);
 
-    // Convert audit logs to ActivityLog format
-    auditLogs?.forEach(log => {
+    let productsQuery = supabase
+      .from('products')
+      .select('id, name, created_at, updated_at, is_public')
+      .order('updated_at', { ascending: false })
+      .limit(10);
+
+    let eventsQuery = supabase
+      .from('events')
+      .select('id, name, created_at, updated_at, is_public')
+      .order('updated_at', { ascending: false })
+      .limit(10);
+
+    let profilesQuery = supabase
+      .from('profiles')
+      .select('user_id, email, created_at')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (dateFilter) {
+      brandsQuery = brandsQuery.gte('updated_at', dateFilter);
+      productsQuery = productsQuery.gte('updated_at', dateFilter);
+      eventsQuery = eventsQuery.gte('updated_at', dateFilter);
+      profilesQuery = profilesQuery.gte('created_at', dateFilter);
+    }
+
+    const [auditRes, brandsRes, productsRes, eventsRes, profilesRes] = await Promise.all([
+      auditQuery,
+      brandsQuery,
+      productsQuery,
+      eventsQuery,
+      profilesQuery,
+    ]);
+
+    // Convert audit logs
+    auditRes.data?.forEach(log => {
       const actionText = getActionDescription(log.action_type);
-      const entityName = log.entity_name || 'Unknown';
-      const userEmail = log.user_email || 'Unknown user';
+      const entityName = log.entity_name || log.entity_type;
+      const userEmail = log.user_email || 'System';
 
+      const id = `audit-${log.id}`;
+      seenIds.add(id);
       logs.push({
-        id: log.id,
+        id,
         type: log.action_type as ActivityLog['type'],
         entityType: log.entity_type,
         entityName,
@@ -344,24 +384,13 @@ export default function AdminDashboard() {
       });
     });
 
-    // If no audit logs exist yet, fall back to generated activity from entity creation dates
-    if (logs.length === 0) {
-      // Recent profiles (signups)
-      let profilesQuery = supabase
-        .from('profiles')
-        .select('user_id, email, created_at')
-        .order('created_at', { ascending: false })
-        .limit(10);
-      
-      if (dateFilter) {
-        profilesQuery = profilesQuery.gte('created_at', dateFilter);
-      }
-      
-      const { data: recentProfiles } = await profilesQuery;
-
-      recentProfiles?.forEach(p => {
+    // Add entity-derived activity (signups)
+    profilesRes.data?.forEach(p => {
+      const id = `signup-${p.user_id}`;
+      if (!seenIds.has(id)) {
+        seenIds.add(id);
         logs.push({
-          id: `signup-${p.user_id}`,
+          id,
           type: 'create',
           entityType: 'user',
           entityName: p.email || 'Unknown',
@@ -369,49 +398,30 @@ export default function AdminDashboard() {
           timestamp: p.created_at,
           user: p.email || undefined,
         });
-      });
-
-      // Recent brands
-      let brandsQuery = supabase
-        .from('brands')
-        .select('id, name, created_at, updated_at, is_public')
-        .order('updated_at', { ascending: false })
-        .limit(15);
-      
-      if (dateFilter) {
-        brandsQuery = brandsQuery.gte('updated_at', dateFilter);
       }
+    });
 
-      const { data: recentBrands } = await brandsQuery;
-
-      recentBrands?.forEach(b => {
-        // Check if this is a create or update based on timestamps
-        const isCreate = new Date(b.created_at).getTime() === new Date(b.updated_at).getTime();
-        
-        if (isCreate) {
+    // Add brands activity
+    brandsRes.data?.forEach(b => {
+      const isCreate = new Date(b.created_at).getTime() === new Date(b.updated_at).getTime();
+      const id = isCreate ? `brand-create-${b.id}` : `brand-update-${b.id}-${b.updated_at}`;
+      if (!seenIds.has(id)) {
+        seenIds.add(id);
+        logs.push({
+          id,
+          type: isCreate ? 'create' : 'update',
+          entityType: 'brand',
+          entityName: b.name,
+          description: `Brand ${isCreate ? 'created' : 'updated'}: ${b.name}`,
+          timestamp: isCreate ? b.created_at : b.updated_at,
+        });
+      }
+      if (b.is_public) {
+        const pubId = `brand-publish-${b.id}`;
+        if (!seenIds.has(pubId)) {
+          seenIds.add(pubId);
           logs.push({
-            id: `brand-create-${b.id}`,
-            type: 'create',
-            entityType: 'brand',
-            entityName: b.name,
-            description: `Brand created: ${b.name}`,
-            timestamp: b.created_at,
-          });
-        } else {
-          logs.push({
-            id: `brand-update-${b.id}-${b.updated_at}`,
-            type: 'update',
-            entityType: 'brand',
-            entityName: b.name,
-            description: `Brand updated: ${b.name}`,
-            timestamp: b.updated_at,
-          });
-        }
-
-        // If published, add a publish event
-        if (b.is_public) {
-          logs.push({
-            id: `brand-publish-${b.id}`,
+            id: pubId,
             type: 'publish',
             entityType: 'brand',
             entityName: b.name,
@@ -419,32 +429,42 @@ export default function AdminDashboard() {
             timestamp: b.updated_at,
           });
         }
-      });
-
-      // Recent organizations
-      let orgsQuery = supabase
-        .from('organizations')
-        .select('id, name, created_at')
-        .order('created_at', { ascending: false })
-        .limit(5);
-      
-      if (dateFilter) {
-        orgsQuery = orgsQuery.gte('created_at', dateFilter);
       }
+    });
 
-      const { data: recentOrgs } = await orgsQuery;
-
-      recentOrgs?.forEach(o => {
+    // Add products activity
+    productsRes.data?.forEach(p => {
+      const isCreate = new Date(p.created_at).getTime() === new Date(p.updated_at).getTime();
+      const id = isCreate ? `product-create-${p.id}` : `product-update-${p.id}-${p.updated_at}`;
+      if (!seenIds.has(id)) {
+        seenIds.add(id);
         logs.push({
-          id: `org-${o.id}`,
-          type: 'create',
-          entityType: 'organization',
-          entityName: o.name,
-          description: `Organization created: ${o.name}`,
-          timestamp: o.created_at,
+          id,
+          type: isCreate ? 'create' : 'update',
+          entityType: 'product',
+          entityName: p.name,
+          description: `Product ${isCreate ? 'created' : 'updated'}: ${p.name}`,
+          timestamp: isCreate ? p.created_at : p.updated_at,
         });
-      });
-    }
+      }
+    });
+
+    // Add events activity
+    eventsRes.data?.forEach(e => {
+      const isCreate = new Date(e.created_at).getTime() === new Date(e.updated_at).getTime();
+      const id = isCreate ? `event-create-${e.id}` : `event-update-${e.id}-${e.updated_at}`;
+      if (!seenIds.has(id)) {
+        seenIds.add(id);
+        logs.push({
+          id,
+          type: isCreate ? 'create' : 'update',
+          entityType: 'event',
+          entityName: e.name,
+          description: `Event ${isCreate ? 'created' : 'updated'}: ${e.name}`,
+          timestamp: isCreate ? e.created_at : e.updated_at,
+        });
+      }
+    });
 
     // Sort by timestamp
     logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());

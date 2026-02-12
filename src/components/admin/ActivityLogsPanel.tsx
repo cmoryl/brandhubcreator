@@ -151,6 +151,7 @@ export const ActivityLogsPanel = () => {
           break;
       }
 
+      // Build audit_logs query
       let query = supabase
         .from('audit_logs')
         .select('*')
@@ -177,20 +178,171 @@ export const ActivityLogsPanel = () => {
         query = query.eq('outcome', outcomeFilter);
       }
 
-      const { data, error } = await query;
+      // Also fetch entity-derived activity in parallel for richer data
+      let brandsQuery = supabase
+        .from('brands')
+        .select('id, name, created_at, updated_at, is_public, user_id')
+        .order('updated_at', { ascending: false })
+        .limit(50);
 
-      if (error) throw error;
+      let productsQuery = supabase
+        .from('products')
+        .select('id, name, created_at, updated_at, is_public, user_id')
+        .order('updated_at', { ascending: false })
+        .limit(30);
+
+      let eventsQuery = supabase
+        .from('events')
+        .select('id, name, created_at, updated_at, is_public, user_id')
+        .order('updated_at', { ascending: false })
+        .limit(30);
+
+      let profilesQuery = supabase
+        .from('profiles')
+        .select('user_id, email, created_at')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (dateFilter) {
+        brandsQuery = brandsQuery.gte('updated_at', dateFilter);
+        productsQuery = productsQuery.gte('updated_at', dateFilter);
+        eventsQuery = eventsQuery.gte('updated_at', dateFilter);
+        profilesQuery = profilesQuery.gte('created_at', dateFilter);
+      }
+
+      const [auditRes, brandsRes, productsRes, eventsRes, profilesRes] = await Promise.all([
+        query,
+        brandsQuery,
+        productsQuery,
+        eventsQuery,
+        profilesQuery,
+      ]);
+
+      if (auditRes.error) throw auditRes.error;
+
+      const allLogs: AuditLog[] = [...(auditRes.data || [])];
+      const seenIds = new Set(allLogs.map(l => l.id));
+
+      // Build a user email lookup from profiles
+      const emailLookup: Record<string, string> = {};
+      profilesRes.data?.forEach(p => {
+        if (p.email) emailLookup[p.user_id] = p.email;
+      });
+
+      // Add user signups as synthetic audit logs (only if not filtered to specific action/entity)
+      if ((entityFilter === 'all' || entityFilter === 'user') && (actionFilter === 'all' || actionFilter === 'create')) {
+        profilesRes.data?.forEach(p => {
+          const id = `signup-${p.user_id}`;
+          if (!seenIds.has(id)) {
+            seenIds.add(id);
+            allLogs.push({
+              id,
+              user_id: p.user_id,
+              user_email: p.email,
+              brand_id: null,
+              entity_type: 'user',
+              action_type: 'create',
+              entity_name: p.email || 'New User',
+              details: { source: 'registration' },
+              outcome: 'success',
+              browser: null,
+              device_type: null,
+              session_id: null,
+              target_user_id: null,
+              target_user_email: null,
+              organization_id: null,
+              old_value: null,
+              new_value: null,
+              created_at: p.created_at,
+            });
+          }
+        });
+      }
+
+      // Helper to add entity-derived logs
+      const addEntityLogs = (
+        entities: Array<{ id: string; name: string; created_at: string; updated_at: string; is_public: boolean | null; user_id: string }> | null,
+        entityType: string
+      ) => {
+        if (!entities) return;
+        if (entityFilter !== 'all' && entityFilter !== entityType) return;
+
+        entities.forEach(e => {
+          const isCreate = new Date(e.created_at).getTime() === new Date(e.updated_at).getTime();
+          
+          if (actionFilter === 'all' || actionFilter === (isCreate ? 'create' : 'update')) {
+            const id = isCreate ? `${entityType}-create-${e.id}` : `${entityType}-update-${e.id}-${e.updated_at}`;
+            if (!seenIds.has(id)) {
+              seenIds.add(id);
+              allLogs.push({
+                id,
+                user_id: e.user_id,
+                user_email: emailLookup[e.user_id] || null,
+                brand_id: entityType === 'brand' ? e.id : null,
+                entity_type: entityType,
+                action_type: isCreate ? 'create' : 'update',
+                entity_name: e.name,
+                details: null,
+                outcome: 'success',
+                browser: null,
+                device_type: null,
+                session_id: null,
+                target_user_id: null,
+                target_user_email: null,
+                organization_id: null,
+                old_value: null,
+                new_value: null,
+                created_at: isCreate ? e.created_at : e.updated_at,
+              });
+            }
+          }
+
+          if (e.is_public && (actionFilter === 'all' || actionFilter === 'publish')) {
+            const pubId = `${entityType}-publish-${e.id}`;
+            if (!seenIds.has(pubId)) {
+              seenIds.add(pubId);
+              allLogs.push({
+                id: pubId,
+                user_id: e.user_id,
+                user_email: emailLookup[e.user_id] || null,
+                brand_id: entityType === 'brand' ? e.id : null,
+                entity_type: entityType,
+                action_type: 'publish',
+                entity_name: e.name,
+                details: null,
+                outcome: 'success',
+                browser: null,
+                device_type: null,
+                session_id: null,
+                target_user_id: null,
+                target_user_email: null,
+                organization_id: null,
+                old_value: null,
+                new_value: null,
+                created_at: e.updated_at,
+              });
+            }
+          }
+        });
+      };
+
+      addEntityLogs(brandsRes.data, 'brand');
+      addEntityLogs(productsRes.data, 'product');
+      addEntityLogs(eventsRes.data, 'event');
+
+      // Sort all combined logs
+      allLogs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       
       // Save to persistent cache
       saveData({
-        logs: data || [],
+        logs: allLogs.slice(0, 500),
         dateRange,
         actionFilter,
         entityFilter,
         outcomeFilter,
       });
 
-      toast.success('Activity logs refreshed');
+      toast.success(`Activity logs refreshed — ${allLogs.length} events found`);
     } catch (error) {
       console.error('Failed to fetch logs:', error);
       toast.error('Failed to load activity logs');
