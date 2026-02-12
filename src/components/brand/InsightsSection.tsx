@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SectionHeader } from './SectionHeader';
 import { InsightEditorModal } from './InsightEditorModal';
+import { InsightsAccessGate } from './InsightsAccessGate';
 import { WebsiteAnalysisCard } from './WebsiteAnalysisCard';
 import { cn } from '@/lib/utils';
 import type { InsightItem, InsightsLayout, BrandWebsiteLink } from '@/types/brand';
@@ -45,6 +46,9 @@ interface InsightsSectionProps {
     tagline?: string;
     competitors?: string[];
   };
+  /** Access code to protect this section for public/anonymous users */
+  insightsAccessCode?: string;
+  onAccessCodeChange?: (code: string) => void;
 }
 
 const typeIcons = {
@@ -309,6 +313,8 @@ export const InsightsSection = ({
   industry,
   organizationId,
   brandContext,
+  insightsAccessCode,
+  onAccessCodeChange,
 }: InsightsSectionProps) => {
   const canEdit = Boolean(onInsightsChange);
   const [isEditing, setIsEditing] = useState(false);
@@ -391,107 +397,124 @@ export const InsightsSection = ({
         onEditToggle={() => setIsEditing(!isEditing)}
       />
 
-      {/* Layout controls for admins */}
-      {canEdit && isEditing && (
-        <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/30 border border-border/50">
-          <span className="text-sm font-medium text-muted-foreground">Layout:</span>
-          <div className="flex gap-2">
-            {(['cards', 'infographic', 'dashboard'] as InsightsLayout[]).map((l) => (
-              <Button
-                key={l}
-                variant={layout === l ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => onLayoutChange?.(l)}
-                className="gap-1.5 capitalize"
-              >
-                {l === 'cards' && <LayoutGrid className="h-3.5 w-3.5" />}
-                {l === 'infographic' && <BarChart2 className="h-3.5 w-3.5" />}
-                {l === 'dashboard' && <LayoutList className="h-3.5 w-3.5" />}
-                {l}
-              </Button>
-            ))}
-          </div>
-          <Button variant="outline" size="sm" onClick={handleAddNew} className="ml-auto gap-1.5">
-            <Plus className="h-3.5 w-3.5" />
-            Add Insight
-          </Button>
-        </div>
-      )}
-
-      {/* Editor Modal */}
-      <InsightEditorModal
-        open={editorOpen}
-        onOpenChange={setEditorOpen}
-        insight={editingInsight}
-        onSave={handleSaveInsight}
-      />
-
-      {/* Empty state */}
-      {allInsights.length === 0 && canEdit && (
-        <div className="text-center py-12 px-6 rounded-xl border-2 border-dashed border-border/50 bg-muted/10">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 text-accent mb-4">
-            <TrendingUp className="h-6 w-6" />
-          </div>
-          <h3 className="text-lg font-semibold mb-2">No Insights Yet</h3>
-          <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
-            Share reports, analytics, and important updates with your team and stakeholders.
-          </p>
-          <Button onClick={handleAddNew} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add First Insight
-          </Button>
-        </div>
-      )}
-
-      {/* Content based on layout */}
-      {allInsights.length > 0 && (
-        <>
-          {(layout === 'infographic' || layout === 'dashboard') ? (
-            <InfographicLayout insights={allInsights} />
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {allInsights.map((insight) => {
-                const isCompetitive = insight.id.startsWith('competitive-');
-                const isBrain = insight.id.startsWith('brain-');
-                const competitiveItem = isCompetitive 
-                  ? competitiveInsights.find(ci => ci.id === insight.id)
-                  : undefined;
-                return (
-                  <InsightCard
-                    key={insight.id}
-                    insight={insight}
-                    canEdit={canEdit && isEditing && !isCompetitive && !isBrain}
-                    onEdit={!isCompetitive && !isBrain ? () => handleEdit(insight) : undefined}
-                    onDelete={
-                      isCompetitive && competitiveItem
-                        ? () => deleteCompetitiveReport(competitiveItem.reportId)
-                        : !isCompetitive && !isBrain && canEdit && isEditing
-                          ? () => handleDelete(insight.id)
-                          : undefined
-                    }
-                    onClick={
-                      isCompetitive ? () => setCompetitiveDialogOpen(true) :
-                      isBrain ? () => setIntelligenceDialogOpen(true) :
-                      undefined
-                    }
-                  />
-                );
-              })}
+      <InsightsAccessGate
+        accessCode={insightsAccessCode}
+        onAccessCodeChange={canEdit ? onAccessCodeChange : undefined}
+        canEdit={canEdit}
+      >
+        {/* Layout controls for admins */}
+        {canEdit && isEditing && (
+          <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/30 border border-border/50">
+            <span className="text-sm font-medium text-muted-foreground">Layout:</span>
+            <div className="flex gap-2">
+              {(['cards', 'infographic', 'dashboard'] as InsightsLayout[]).map((l) => (
+                <Button
+                  key={l}
+                  variant={layout === l ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => onLayoutChange?.(l)}
+                  className="gap-1.5 capitalize"
+                >
+                  {l === 'cards' && <LayoutGrid className="h-3.5 w-3.5" />}
+                  {l === 'infographic' && <BarChart2 className="h-3.5 w-3.5" />}
+                  {l === 'dashboard' && <LayoutList className="h-3.5 w-3.5" />}
+                  {l}
+                </Button>
+              ))}
             </div>
-          )}
-        </>
-      )}
+            <Button variant="outline" size="sm" onClick={handleAddNew} className="ml-auto gap-1.5">
+              <Plus className="h-3.5 w-3.5" />
+              Add Insight
+            </Button>
+          </div>
+        )}
 
-      {/* Website Analysis Cards - admin only */}
-      {canEdit && (
-        <div className="space-y-4">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Website Analysis</h3>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {websitesWithUrls.map((link) => (
+        {/* Editor Modal */}
+        <InsightEditorModal
+          open={editorOpen}
+          onOpenChange={setEditorOpen}
+          insight={editingInsight}
+          onSave={handleSaveInsight}
+        />
+
+        {/* Empty state */}
+        {allInsights.length === 0 && canEdit && (
+          <div className="text-center py-12 px-6 rounded-xl border-2 border-dashed border-border/50 bg-muted/10">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 text-accent mb-4">
+              <TrendingUp className="h-6 w-6" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">No Insights Yet</h3>
+            <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+              Share reports, analytics, and important updates with your team and stakeholders.
+            </p>
+            <Button onClick={handleAddNew} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add First Insight
+            </Button>
+          </div>
+        )}
+
+        {/* Content based on layout */}
+        {allInsights.length > 0 && (
+          <>
+            {(layout === 'infographic' || layout === 'dashboard') ? (
+              <InfographicLayout insights={allInsights} />
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {allInsights.map((insight) => {
+                  const isCompetitive = insight.id.startsWith('competitive-');
+                  const isBrain = insight.id.startsWith('brain-');
+                  const competitiveItem = isCompetitive 
+                    ? competitiveInsights.find(ci => ci.id === insight.id)
+                    : undefined;
+                  return (
+                    <InsightCard
+                      key={insight.id}
+                      insight={insight}
+                      canEdit={canEdit && isEditing && !isCompetitive && !isBrain}
+                      onEdit={!isCompetitive && !isBrain ? () => handleEdit(insight) : undefined}
+                      onDelete={
+                        isCompetitive && competitiveItem
+                          ? () => deleteCompetitiveReport(competitiveItem.reportId)
+                          : !isCompetitive && !isBrain && canEdit && isEditing
+                            ? () => handleDelete(insight.id)
+                            : undefined
+                      }
+                      onClick={
+                        isCompetitive ? () => setCompetitiveDialogOpen(true) :
+                        isBrain ? () => setIntelligenceDialogOpen(true) :
+                        undefined
+                      }
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Website Analysis Cards - admin only */}
+        {canEdit && (
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Website Analysis</h3>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {websitesWithUrls.map((link) => (
+                <WebsiteAnalysisCard
+                  key={`analysis-${link.id}`}
+                  websiteUrl={link.url}
+                  websiteLabel={link.label}
+                  entityName={entityName}
+                  industry={industry}
+                  entityId={entityId}
+                  entityType={entityType}
+                  organizationId={organizationId}
+                  brandContext={brandContext}
+                />
+              ))}
               <WebsiteAnalysisCard
-                key={`analysis-${link.id}`}
-                websiteUrl={link.url}
-                websiteLabel={link.label}
+                key="analysis-custom"
+                websiteUrl=""
+                websiteLabel="Custom"
                 entityName={entityName}
                 industry={industry}
                 entityId={entityId}
@@ -499,22 +522,10 @@ export const InsightsSection = ({
                 organizationId={organizationId}
                 brandContext={brandContext}
               />
-            ))}
-            {/* Always show an empty card so admins can analyze any URL */}
-            <WebsiteAnalysisCard
-              key="analysis-custom"
-              websiteUrl=""
-              websiteLabel="Custom"
-              entityName={entityName}
-              industry={industry}
-              entityId={entityId}
-              entityType={entityType}
-              organizationId={organizationId}
-              brandContext={brandContext}
-            />
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </InsightsAccessGate>
 
       {/* Competitive Analysis Dialog */}
       {entityType && entityId && (

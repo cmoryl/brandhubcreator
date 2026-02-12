@@ -921,6 +921,8 @@ export interface BaseGuide {
   insights?: InsightItem[];
   // Insights section layout preference
   insightsLayout?: InsightsLayout;
+  // Access code to protect Insights section for public users (admins/authenticated users bypass)
+  insightsAccessCode?: string;
   // Locations (Global Presence Map)
   locations?: BrandLocation[];
   // Location Stats (for locations section infographic)

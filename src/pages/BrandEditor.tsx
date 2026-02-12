@@ -749,6 +749,8 @@ const BrandEditor = () => {
           onLayoutChange={canEdit ? (insightsLayout) => updateBrand({ insightsLayout }) : undefined}
           entityType="brand"
           entityId={brand.id}
+          insightsAccessCode={brand.insightsAccessCode}
+          onAccessCodeChange={canEdit ? (insightsAccessCode) => updateBrand({ insightsAccessCode }) : undefined}
         />
       );
       default: return null;

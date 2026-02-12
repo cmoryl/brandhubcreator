@@ -656,6 +656,8 @@ const EventEditor = () => {
             industry={event.identity?.archetype}
             organizationId={event.organizationId}
             brandContext={{ colors: event.colors?.map?.((c: any) => c.hex) || [], archetype: event.identity?.archetype, mission: event.identity?.missionStatement, tagline: event.hero?.tagline }}
+            insightsAccessCode={(event as any).insightsAccessCode}
+            onAccessCodeChange={canEdit ? (insightsAccessCode) => updateEvent({ insightsAccessCode } as any) : undefined}
           />
         );
       default:
