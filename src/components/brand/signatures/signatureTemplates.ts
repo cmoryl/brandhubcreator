@@ -10,16 +10,21 @@ export interface SignatureTemplate {
   style: SignatureStyle;
   includeConfidentiality?: boolean;
   includeSocialPlaceholders?: boolean;
+  /** Accent swatch shown on template card */
+  accentSwatch?: string;
 }
 
 export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
-  // ── Professional ──
+  // ═══════════════════════════════
+  // ── PROFESSIONAL (5) ──
+  // ═══════════════════════════════
   {
     id: 'pro-classic',
     name: 'Classic Professional',
     category: 'professional',
-    description: 'Traditional business signature with clean divider and logo',
+    description: 'Traditional business signature with clean divider and logo placement',
     variant: 'full',
+    accentSwatch: DEFAULT_ACCENT,
     style: {
       fontFamily: 'Arial, sans-serif',
       nameFontSize: 18,
@@ -39,10 +44,11 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
   },
   {
     id: 'pro-executive',
-    name: 'Executive',
+    name: 'Executive Gold',
     category: 'professional',
-    description: 'Premium executive style with bold typography',
+    description: 'Premium serif typography with elegant gold accents for C-suite',
     variant: 'full',
+    accentSwatch: '#8B6914',
     style: {
       fontFamily: 'Georgia, serif',
       nameFontSize: 20,
@@ -62,10 +68,11 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
   },
   {
     id: 'pro-consultant',
-    name: 'Consultant',
+    name: 'Consultant Blue',
     category: 'professional',
-    description: 'Refined look for consulting and advisory roles',
+    description: 'Refined look for consulting and advisory professionals',
     variant: 'full',
+    accentSwatch: '#3498DB',
     style: {
       fontFamily: "'Segoe UI', sans-serif",
       nameFontSize: 17,
@@ -83,14 +90,66 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
     },
     includeConfidentiality: false,
   },
+  {
+    id: 'pro-attorney',
+    name: 'Legal Authority',
+    category: 'professional',
+    description: 'Formal serif design for law firms and legal professionals',
+    variant: 'full',
+    accentSwatch: '#1C3A5F',
+    style: {
+      fontFamily: "'Times New Roman', serif",
+      nameFontSize: 19,
+      titleFontSize: 13,
+      textFontSize: 12,
+      nameColor: '#1C3A5F',
+      titleColor: '#4A6FA5',
+      textColor: '#555555',
+      linkColor: '#4A6FA5',
+      dividerStyle: 'double',
+      dividerColor: '#1C3A5F',
+      dividerWidth: 2,
+      spacing: 16,
+      layout: 'horizontal',
+    },
+    includeConfidentiality: true,
+  },
+  {
+    id: 'pro-healthcare',
+    name: 'Medical Professional',
+    category: 'professional',
+    description: 'Clean teal theme designed for healthcare and medical fields',
+    variant: 'full',
+    accentSwatch: '#0D9488',
+    style: {
+      fontFamily: "'Segoe UI', sans-serif",
+      nameFontSize: 17,
+      titleFontSize: 13,
+      textFontSize: 11,
+      nameColor: '#134E4A',
+      titleColor: '#0D9488',
+      textColor: '#64748B',
+      linkColor: '#0D9488',
+      dividerStyle: 'solid',
+      dividerColor: '#0D9488',
+      dividerWidth: 2,
+      spacing: 14,
+      layout: 'horizontal',
+    },
+    includeConfidentiality: true,
+    includeSocialPlaceholders: true,
+  },
 
-  // ── Modern ──
+  // ═══════════════════════════════
+  // ── MODERN (5) ──
+  // ═══════════════════════════════
   {
     id: 'mod-clean',
     name: 'Modern Clean',
     category: 'modern',
-    description: 'Sleek and minimal with accent color pops',
+    description: 'Sleek helvetica design with vibrant orange accent pops',
     variant: 'full',
+    accentSwatch: '#FF6B35',
     style: {
       fontFamily: 'Helvetica, Arial, sans-serif',
       nameFontSize: 16,
@@ -110,10 +169,11 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
   },
   {
     id: 'mod-gradient',
-    name: 'Gradient Accent',
+    name: 'Purple Haze',
     category: 'modern',
-    description: 'Contemporary design with vibrant accent colors',
+    description: 'Contemporary purple and blue contrast for creative agencies',
     variant: 'full',
+    accentSwatch: '#6C3483',
     style: {
       fontFamily: "'Segoe UI', sans-serif",
       nameFontSize: 18,
@@ -133,10 +193,11 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
   },
   {
     id: 'mod-tech',
-    name: 'Tech Startup',
+    name: 'Dev Stack',
     category: 'modern',
-    description: 'Silicon Valley style with monospace accents',
+    description: 'GitHub-inspired dark theme for engineers and tech teams',
     variant: 'full',
+    accentSwatch: '#58A6FF',
     style: {
       fontFamily: "'Segoe UI', sans-serif",
       nameFontSize: 16,
@@ -154,14 +215,65 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
     },
     includeSocialPlaceholders: true,
   },
+  {
+    id: 'mod-rose',
+    name: 'Rosé Minimal',
+    category: 'modern',
+    description: 'Soft rose and warm grey for beauty, fashion & lifestyle brands',
+    variant: 'full',
+    accentSwatch: '#E11D48',
+    style: {
+      fontFamily: 'Helvetica, Arial, sans-serif',
+      nameFontSize: 17,
+      titleFontSize: 12,
+      textFontSize: 11,
+      nameColor: '#1F2937',
+      titleColor: '#E11D48',
+      textColor: '#9CA3AF',
+      linkColor: '#E11D48',
+      dividerStyle: 'solid',
+      dividerColor: '#FECDD3',
+      dividerWidth: 2,
+      spacing: 14,
+      layout: 'vertical',
+    },
+    includeSocialPlaceholders: true,
+  },
+  {
+    id: 'mod-midnight',
+    name: 'Midnight Indigo',
+    category: 'modern',
+    description: 'Deep indigo with electric blue highlights for fintech & SaaS',
+    variant: 'full',
+    accentSwatch: '#4F46E5',
+    style: {
+      fontFamily: "'Segoe UI', sans-serif",
+      nameFontSize: 18,
+      titleFontSize: 13,
+      textFontSize: 11,
+      nameColor: '#1E1B4B',
+      titleColor: '#4F46E5',
+      textColor: '#6B7280',
+      linkColor: '#4F46E5',
+      dividerStyle: 'solid',
+      dividerColor: '#4F46E5',
+      dividerWidth: 2,
+      spacing: 15,
+      layout: 'horizontal',
+    },
+    includeSocialPlaceholders: true,
+  },
 
-  // ── Creative ──
+  // ═══════════════════════════════
+  // ── CREATIVE (5) ──
+  // ═══════════════════════════════
   {
     id: 'cre-bold',
-    name: 'Bold Creative',
+    name: 'Bold Impact',
     category: 'creative',
-    description: 'High-impact design with strong color contrast',
+    description: 'High-contrast red with bold typography for maximum visibility',
     variant: 'full',
+    accentSwatch: '#E74C3C',
     style: {
       fontFamily: 'Verdana, sans-serif',
       nameFontSize: 20,
@@ -181,10 +293,11 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
   },
   {
     id: 'cre-artistic',
-    name: 'Artistic',
+    name: 'Forest Studio',
     category: 'creative',
-    description: 'Elegant with serif typography and fine details',
+    description: 'Elegant organic greens with serif typography for artisans',
     variant: 'full',
+    accentSwatch: '#40916C',
     style: {
       fontFamily: 'Georgia, serif',
       nameFontSize: 19,
@@ -205,8 +318,9 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
     id: 'cre-neon',
     name: 'Neon Pop',
     category: 'creative',
-    description: 'Energetic and eye-catching with vivid colors',
+    description: 'Energetic magenta and purple for entertainment & gaming',
     variant: 'full',
+    accentSwatch: '#F72585',
     style: {
       fontFamily: 'Tahoma, sans-serif',
       nameFontSize: 18,
@@ -224,14 +338,64 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
     },
     includeSocialPlaceholders: true,
   },
+  {
+    id: 'cre-sunset',
+    name: 'Sunset Glow',
+    category: 'creative',
+    description: 'Warm amber and burnt orange for hospitality & travel brands',
+    variant: 'full',
+    accentSwatch: '#F59E0B',
+    style: {
+      fontFamily: 'Verdana, sans-serif',
+      nameFontSize: 18,
+      titleFontSize: 13,
+      textFontSize: 12,
+      nameColor: '#78350F',
+      titleColor: '#D97706',
+      textColor: '#92400E',
+      linkColor: '#D97706',
+      dividerStyle: 'solid',
+      dividerColor: '#F59E0B',
+      dividerWidth: 3,
+      spacing: 15,
+      layout: 'horizontal',
+    },
+    includeSocialPlaceholders: true,
+  },
+  {
+    id: 'cre-ocean',
+    name: 'Ocean Breeze',
+    category: 'creative',
+    description: 'Cool cyan gradients for marine, wellness & spa industries',
+    variant: 'full',
+    accentSwatch: '#06B6D4',
+    style: {
+      fontFamily: 'Helvetica, Arial, sans-serif',
+      nameFontSize: 17,
+      titleFontSize: 13,
+      textFontSize: 11,
+      nameColor: '#164E63',
+      titleColor: '#06B6D4',
+      textColor: '#6B7280',
+      linkColor: '#06B6D4',
+      dividerStyle: 'solid',
+      dividerColor: '#06B6D4',
+      dividerWidth: 2,
+      spacing: 14,
+      layout: 'vertical',
+    },
+  },
 
-  // ── Minimal ──
+  // ═══════════════════════════════
+  // ── MINIMAL (5) ──
+  // ═══════════════════════════════
   {
     id: 'min-simple',
-    name: 'Simple Text',
+    name: 'Pure Text',
     category: 'minimal',
-    description: 'Clean text-only signature, no graphics',
+    description: 'Clean text-only signature with zero graphics',
     variant: 'minimal',
+    accentSwatch: '#333333',
     style: {
       fontFamily: 'Arial, sans-serif',
       nameFontSize: 14,
@@ -247,10 +411,11 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
   },
   {
     id: 'min-reply',
-    name: 'Compact Reply',
+    name: 'Quick Reply',
     category: 'minimal',
-    description: 'Condensed signature for email replies',
+    description: 'Ultra-condensed for email thread replies',
     variant: 'reply',
+    accentSwatch: DEFAULT_ACCENT,
     style: {
       fontFamily: 'Arial, sans-serif',
       nameFontSize: 14,
@@ -268,8 +433,9 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
     id: 'min-oneline',
     name: 'One-Liner',
     category: 'minimal',
-    description: 'Ultra-compact single-line signature',
+    description: 'Single-line format for rapid internal communication',
     variant: 'minimal',
+    accentSwatch: '#222222',
     style: {
       fontFamily: 'Helvetica, Arial, sans-serif',
       nameFontSize: 13,
@@ -283,14 +449,58 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
       spacing: 4,
     },
   },
+  {
+    id: 'min-subtle',
+    name: 'Whisper Grey',
+    category: 'minimal',
+    description: 'Understated soft grey tones for minimal visual footprint',
+    variant: 'minimal',
+    accentSwatch: '#94A3B8',
+    style: {
+      fontFamily: "'Segoe UI', sans-serif",
+      nameFontSize: 13,
+      titleFontSize: 11,
+      textFontSize: 11,
+      nameColor: '#475569',
+      titleColor: '#94A3B8',
+      textColor: '#CBD5E1',
+      linkColor: '#94A3B8',
+      dividerStyle: 'none',
+      spacing: 6,
+    },
+  },
+  {
+    id: 'min-reply-branded',
+    name: 'Branded Reply',
+    category: 'minimal',
+    description: 'Compact reply variant with your brand accent color',
+    variant: 'reply',
+    accentSwatch: DEFAULT_ACCENT,
+    style: {
+      fontFamily: 'Helvetica, Arial, sans-serif',
+      nameFontSize: 15,
+      titleFontSize: 12,
+      textFontSize: 11,
+      nameColor: DEFAULT_DARK,
+      titleColor: DEFAULT_ACCENT,
+      textColor: '#777777',
+      linkColor: DEFAULT_ACCENT,
+      dividerStyle: 'none',
+      spacing: 8,
+    },
+    includeSocialPlaceholders: true,
+  },
 
-  // ── Corporate ──
+  // ═══════════════════════════════
+  // ── CORPORATE (5) ──
+  // ═══════════════════════════════
   {
     id: 'corp-enterprise',
-    name: 'Enterprise',
+    name: 'Enterprise Blue',
     category: 'corporate',
-    description: 'Formal corporate identity with structured layout',
+    description: 'Formal corporate identity for multinational organizations',
     variant: 'full',
+    accentSwatch: '#2E86AB',
     style: {
       fontFamily: "'Segoe UI', sans-serif",
       nameFontSize: 17,
@@ -310,10 +520,11 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
   },
   {
     id: 'corp-formal',
-    name: 'Formal',
+    name: 'Boardroom',
     category: 'corporate',
-    description: 'Traditional corporate format with double divider',
+    description: 'Traditional serif format with double divider for formal comms',
     variant: 'full',
+    accentSwatch: '#1C1C1C',
     style: {
       fontFamily: "'Times New Roman', serif",
       nameFontSize: 18,
@@ -335,8 +546,9 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
     id: 'corp-branded',
     name: 'Brand Forward',
     category: 'corporate',
-    description: 'Uses your brand accent color prominently throughout',
+    description: 'Prominently features your brand accent throughout the signature',
     variant: 'full',
+    accentSwatch: DEFAULT_ACCENT,
     style: {
       fontFamily: 'Arial, sans-serif',
       nameFontSize: 18,
@@ -350,6 +562,55 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
       dividerColor: DEFAULT_ACCENT,
       dividerWidth: 3,
       spacing: 15,
+      layout: 'horizontal',
+    },
+    includeConfidentiality: true,
+    includeSocialPlaceholders: true,
+  },
+  {
+    id: 'corp-vertical',
+    name: 'Tower Layout',
+    category: 'corporate',
+    description: 'Logo-on-top stacked layout for square logos and wide content',
+    variant: 'full',
+    accentSwatch: '#0369A1',
+    style: {
+      fontFamily: 'Arial, sans-serif',
+      nameFontSize: 17,
+      titleFontSize: 13,
+      textFontSize: 12,
+      nameColor: '#0C4A6E',
+      titleColor: '#0369A1',
+      textColor: '#64748B',
+      linkColor: '#0369A1',
+      dividerStyle: 'solid',
+      dividerColor: '#0369A1',
+      dividerWidth: 2,
+      spacing: 14,
+      layout: 'vertical',
+    },
+    includeConfidentiality: true,
+  },
+  {
+    id: 'corp-charcoal',
+    name: 'Charcoal Suite',
+    category: 'corporate',
+    description: 'Dark sophisticated palette for finance and private equity',
+    variant: 'full',
+    accentSwatch: '#374151',
+    style: {
+      fontFamily: "'Segoe UI', sans-serif",
+      nameFontSize: 18,
+      titleFontSize: 13,
+      textFontSize: 12,
+      nameColor: '#111827',
+      titleColor: '#374151',
+      textColor: '#6B7280',
+      linkColor: '#374151',
+      dividerStyle: 'solid',
+      dividerColor: '#D1D5DB',
+      dividerWidth: 1,
+      spacing: 16,
       layout: 'horizontal',
     },
     includeConfidentiality: true,
