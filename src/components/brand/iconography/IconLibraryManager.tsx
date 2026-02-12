@@ -96,13 +96,15 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
     if (!formName.trim()) return;
 
     try {
+      const parentId = formParentId && formParentId.trim() !== '' ? formParentId : null;
+
       if (editingLibrary) {
         await updateLibrary.mutateAsync({
           id: editingLibrary.id,
           updates: {
             name: formName,
             description: formDescription || undefined,
-            parent_library_id: formParentId,
+            parent_library_id: parentId,
           },
         });
       } else {
@@ -111,7 +113,7 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
           name: formName,
           level: formLevel,
           description: formDescription || undefined,
-          parent_library_id: formParentId,
+          parent_library_id: parentId,
           icons: [],
         });
       }
