@@ -102,8 +102,13 @@ export function GlobalMapThemeEditor() {
     }
   };
 
-  const handleSave = () => {
-    updateGlobalMapTheme(localTheme);
+  const handleSave = async () => {
+    try {
+      await updateGlobalMapTheme(localTheme);
+      setHasChanges(false);
+    } catch (err) {
+      // Error toast handled by the hook
+    }
   };
 
   const handleReset = () => {
