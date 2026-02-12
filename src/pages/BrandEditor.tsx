@@ -56,6 +56,7 @@ import { ProductsSection } from '@/components/brand/ProductsSection';
 import { WebinarSeriesSection } from '@/components/brand/WebinarSeriesSection';
 import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
 import { ClientLogosSection } from '@/components/brand/ClientLogosSection';
+import { InsightsSection } from '@/components/brand/InsightsSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
@@ -740,6 +741,16 @@ const BrandEditor = () => {
       case 'products': return <ProductsSection brandId={brand.id} />;
       case 'sponsorlogos': return <SponsorLogosSection sponsors={brand.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => updateBrand({ sponsorLogos }))} />;
       case 'clientlogos': return <ClientLogosSection clientLogos={brand.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => updateBrand({ clientLogos }))} />;
+      case 'insights': return (
+        <InsightsSection
+          insights={brand.insights || []}
+          layout={brand.insightsLayout}
+          onInsightsChange={editHandler((insights) => updateBrand({ insights }))}
+          onLayoutChange={canEdit ? (insightsLayout) => updateBrand({ insightsLayout }) : undefined}
+          entityType="brand"
+          entityId={brand.id}
+        />
+      );
       default: return null;
     }
   };

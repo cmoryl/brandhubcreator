@@ -52,6 +52,7 @@ import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
 import { ClientLogosSection } from '@/components/brand/ClientLogosSection';
+import { InsightsSection } from '@/components/brand/InsightsSection';
 import { ShareButton } from '@/components/brand/ShareButton';
 import { EventExportPdfButton } from '@/components/event/EventExportPdfButton';
 import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
@@ -641,6 +642,17 @@ const EventEditor = () => {
         return <SponsorLogosSection sponsors={event.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => updateEvent({ sponsorLogos }))} />;
       case 'clientlogos':
         return <ClientLogosSection clientLogos={event.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => updateEvent({ clientLogos }))} />;
+      case 'insights':
+        return (
+          <InsightsSection
+            insights={(event as any).insights || []}
+            layout={(event as any).insightsLayout}
+            onInsightsChange={editHandler((insights) => updateEvent({ insights } as any))}
+            onLayoutChange={canEdit ? (insightsLayout) => updateEvent({ insightsLayout } as any) : undefined}
+            entityType="event"
+            entityId={event.id}
+          />
+        );
       default:
         return null;
     }
