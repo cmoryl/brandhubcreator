@@ -165,6 +165,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
+        max_tokens: 8000,
         messages: [
           { role: "system", content: WEBSITE_ANALYSIS_PROMPT },
           { role: "user", content: userPrompt },
@@ -193,23 +194,46 @@ serve(async (req) => {
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
 
-    // Parse JSON response
+    // Parse JSON response - handle truncated/wrapped output
     let report;
     try {
       let cleanContent = content.trim();
+      // Strip markdown code fences
       if (cleanContent.startsWith('```json')) cleanContent = cleanContent.slice(7);
       else if (cleanContent.startsWith('```')) cleanContent = cleanContent.slice(3);
       if (cleanContent.endsWith('```')) cleanContent = cleanContent.slice(0, -3);
-      report = JSON.parse(cleanContent.trim());
+      cleanContent = cleanContent.trim();
+      report = JSON.parse(cleanContent);
     } catch (parseError) {
-      // Try extracting JSON from response
+      // Try extracting the largest JSON object from the response
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         try {
           report = JSON.parse(jsonMatch[0]);
         } catch {
-          console.error("[website-analysis] Parse failed:", content.substring(0, 500));
-          throw new Error("Failed to parse analysis results");
+          // Attempt to fix truncated JSON by closing open structures
+          let truncated = jsonMatch[0];
+          // Count open/close braces and brackets
+          const openBraces = (truncated.match(/\{/g) || []).length;
+          const closeBraces = (truncated.match(/\}/g) || []).length;
+          const openBrackets = (truncated.match(/\[/g) || []).length;
+          const closeBrackets = (truncated.match(/\]/g) || []).length;
+          
+          // Remove trailing partial values (incomplete strings, trailing commas)
+          truncated = truncated.replace(/,\s*$/, '');
+          truncated = truncated.replace(/"[^"]*$/, '""');
+          
+          // Close open structures
+          for (let i = 0; i < openBrackets - closeBrackets; i++) truncated += ']';
+          for (let i = 0; i < openBraces - closeBraces; i++) truncated += '}';
+          
+          try {
+            report = JSON.parse(truncated);
+            console.log("[website-analysis] Recovered truncated JSON response");
+          } catch {
+            console.error("[website-analysis] Parse failed even after recovery attempt:", content.substring(0, 500));
+            throw new Error("Failed to parse analysis results. The AI response was truncated — please try again.");
+          }
         }
       } else {
         throw new Error("Failed to parse analysis results");
