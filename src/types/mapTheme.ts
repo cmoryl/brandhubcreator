@@ -43,6 +43,18 @@ export interface MapUITheme {
   borderColor: string;
   /** Accent color for selected items */
   accentColor: string;
+  /** Button style variant */
+  buttonStyle?: 'rounded' | 'pill' | 'square' | 'ghost';
+  /** Button size */
+  buttonSize?: 'sm' | 'md' | 'lg';
+  /** Marker icon style */
+  markerStyle?: 'circle' | 'pin' | 'dot' | 'ring' | 'diamond';
+  /** Marker size in pixels */
+  markerSize?: number;
+  /** Show marker pulse animation */
+  markerPulse?: boolean;
+  /** Location card style */
+  cardStyle?: 'default' | 'minimal' | 'glass' | 'bordered';
 }
 
 export interface MapThemeConfig {
