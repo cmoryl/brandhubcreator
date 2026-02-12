@@ -24,6 +24,23 @@ interface BrandData {
   patterns: Array<{ name: string }>;
 }
 
+interface IntelligenceData {
+  brandSummary?: string;
+  marketPosition?: string;
+  competitiveAdvantages?: unknown[];
+  growthRecommendations?: unknown[];
+  competitiveLandscape?: Record<string, unknown>;
+  culturalInsights?: Record<string, unknown>;
+  localizationReadinessScore?: number;
+}
+
+interface WebsiteAnalysisData {
+  url: string;
+  overallScore: number;
+  grade: string;
+  summary: string;
+}
+
 interface AuditResult {
   overallScore: number;
   categories: {
@@ -39,16 +56,13 @@ interface AuditResult {
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // CRITICAL: Verify user authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.log('Authentication failed: No authorization header');
       return new Response(
         JSON.stringify({ error: 'Authentication required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -63,7 +77,6 @@ Deno.serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) {
-      console.log('Authentication failed: Invalid user', authError?.message);
       return new Response(
         JSON.stringify({ error: 'Invalid authentication' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -74,7 +87,6 @@ Deno.serve(async (req) => {
 
     const { brandId, entityType = 'brand' } = await req.json();
     
-    // Validate UUID format to prevent enumeration attacks
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!brandId || typeof brandId !== 'string' || !uuidRegex.test(brandId)) {
       return new Response(
@@ -83,7 +95,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Validate entityType to only allow expected values
     const validEntityTypes = ['brand', 'product'];
     if (!validEntityTypes.includes(entityType)) {
       return new Response(
@@ -92,7 +103,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Rate limiting: Check how many audits this user has performed in the last hour
+    // Rate limiting
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const { count: auditCount, error: countError } = await supabaseClient
       .from('audit_logs')
@@ -102,33 +113,40 @@ Deno.serve(async (req) => {
 
     if (countError) {
       console.error('Error checking rate limit:', countError.message);
-      // Continue without rate limiting if there's an error (fail open for now)
     } else if (auditCount !== null && auditCount >= 10) {
-      console.log(`Rate limit exceeded for user ${user.id}: ${auditCount} audits in last hour`);
       return new Response(
         JSON.stringify({ error: 'Rate limit exceeded. Maximum 10 audits per hour.' }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Fetch brand/product from database - RLS automatically enforces access control
+    // Fetch brand data + intelligence in parallel
     const tableName = entityType === 'product' ? 'products' : 'brands';
-    const { data: brandData, error: fetchError } = await supabaseClient
-      .from(tableName)
-      .select('id, name, guide_data, user_id, organization_id')
-      .eq('id', brandId)
-      .single();
+    
+    const [brandResult, intelligenceResult] = await Promise.all([
+      supabaseClient
+        .from(tableName)
+        .select('id, name, guide_data, user_id, organization_id')
+        .eq('id', brandId)
+        .single(),
+      supabaseClient
+        .from('brand_intelligence')
+        .select('brand_summary, market_position, competitive_advantages, growth_recommendations, competitive_landscape, cultural_insights, localization_readiness_score')
+        .eq('entity_id', brandId)
+        .eq('entity_type', entityType)
+        .maybeSingle(),
+    ]);
 
-    if (fetchError || !brandData) {
-      console.log(`Brand not found or access denied: ${brandId}`, fetchError?.message);
+    if (brandResult.error || !brandResult.data) {
       return new Response(
         JSON.stringify({ error: 'Brand not found or access denied' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Build brand object from database data
+    const brandData = brandResult.data;
     const guideData = brandData.guide_data as Record<string, unknown> || {};
+    
     const brand: BrandData = {
       id: brandData.id,
       type: entityType as 'brand' | 'product',
@@ -148,15 +166,45 @@ Deno.serve(async (req) => {
       patterns: (guideData.patterns as Array<{ name: string }>) || [],
     };
 
-    console.log(`Starting brand audit for: ${brand.hero.name} by user ${user.id}`);
+    // Extract intelligence data
+    const intel: IntelligenceData = {};
+    if (intelligenceResult.data) {
+      const d = intelligenceResult.data as Record<string, unknown>;
+      intel.brandSummary = d.brand_summary as string || undefined;
+      intel.marketPosition = d.market_position as string || undefined;
+      intel.competitiveAdvantages = Array.isArray(d.competitive_advantages) ? d.competitive_advantages : [];
+      intel.growthRecommendations = Array.isArray(d.growth_recommendations) ? d.growth_recommendations : [];
+      intel.competitiveLandscape = d.competitive_landscape as Record<string, unknown> || undefined;
+      intel.culturalInsights = d.cultural_insights as Record<string, unknown> || undefined;
+      intel.localizationReadinessScore = d.localization_readiness_score as number || undefined;
+    }
+
+    // Extract website analysis from insights array in guide_data
+    const insights = Array.isArray(guideData.insights) ? guideData.insights : [];
+    const websiteAnalyses: WebsiteAnalysisData[] = [];
+    for (const insight of insights) {
+      const ins = insight as Record<string, unknown>;
+      if (typeof ins.id === 'string' && ins.id.startsWith('site-analysis-') && ins.content) {
+        try {
+          const report = JSON.parse(ins.content as string);
+          websiteAnalyses.push({
+            url: (ins.title as string || '').replace('Website Analysis: ', ''),
+            overallScore: report.overallScore || 0,
+            grade: report.grade || 'N/A',
+            summary: report.summary || '',
+          });
+        } catch { /* skip unparseable */ }
+      }
+    }
+
+    console.log(`Starting brand audit for: ${brand.hero.name} (intel: ${!!intelligenceResult.data}, websites: ${websiteAnalyses.length})`);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    // Build the audit prompt
-    const auditPrompt = buildAuditPrompt(brand);
+    const auditPrompt = buildAuditPrompt(brand, intel, websiteAnalyses);
     
     console.log('Calling AI Gateway for brand analysis...');
     
@@ -171,9 +219,9 @@ Deno.serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a brand cohesion expert. Analyze brand guides and return JSON only:
-{"overallScore":<0-100>,"categories":[{"name":"<name>","score":<0-100>,"findings":["..."],"recommendations":["..."]}],"summary":"<2 sentences>","strengths":["..."],"weaknesses":["..."],"actionItems":["..."]}
-Categories: Visual Consistency, Brand Identity, Completeness, Best Practices. Be specific.`
+            content: `You are a brand cohesion expert. Analyze brand guides holistically — including website performance, competitive intelligence, and cultural readiness alongside visual/identity elements. Return JSON only:
+{"overallScore":<0-100>,"categories":[{"name":"<name>","score":<0-100>,"findings":["..."],"recommendations":["..."]}],"summary":"<2-3 sentences>","strengths":["..."],"weaknesses":["..."],"actionItems":["..."]}
+Categories: Visual Consistency, Brand Identity, Digital Presence, Completeness, Competitive Position, Best Practices. Be specific and actionable.`
           },
           {
             role: 'user',
@@ -181,7 +229,7 @@ Categories: Visual Consistency, Brand Identity, Completeness, Best Practices. Be
           }
         ],
         temperature: 0.3,
-        max_tokens: 1500,
+        max_tokens: 1800,
       }),
     });
 
@@ -200,26 +248,27 @@ Categories: Visual Consistency, Brand Identity, Completeness, Best Practices. Be
 
     console.log('AI response received, parsing...');
 
-    // Parse the JSON from the response
     let auditResult: AuditResult;
     try {
-      // Extract JSON from the response (handle markdown code blocks)
       const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
-      const jsonStr = jsonMatch[1] || content;
-      auditResult = JSON.parse(jsonStr.trim());
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', content);
-      // Return a fallback response
+      const jsonStr = (jsonMatch[1] || content).trim();
+      // Handle potential truncation - try to fix unclosed JSON
+      let fixedJson = jsonStr;
+      if (!fixedJson.endsWith('}')) {
+        const lastBrace = fixedJson.lastIndexOf('}');
+        if (lastBrace > 0) fixedJson = fixedJson.substring(0, lastBrace + 1);
+      }
+      auditResult = JSON.parse(fixedJson);
+    } catch {
+      console.error('Failed to parse AI response:', content.substring(0, 300));
       auditResult = {
         overallScore: 70,
-        categories: [
-          {
-            name: 'Analysis',
-            score: 70,
-            findings: ['Brand data was analyzed but structured parsing failed'],
-            recommendations: ['Please try again or provide more detailed brand information']
-          }
-        ],
+        categories: [{
+          name: 'Analysis',
+          score: 70,
+          findings: ['Brand data was analyzed but structured parsing failed'],
+          recommendations: ['Please try again']
+        }],
         summary: content.substring(0, 200),
         strengths: ['Brand guide exists'],
         weaknesses: ['Could not perform detailed analysis'],
@@ -229,26 +278,29 @@ Categories: Visual Consistency, Brand Identity, Completeness, Best Practices. Be
 
     console.log(`Audit complete. Overall score: ${auditResult.overallScore}`);
 
-    // Log this audit for rate limiting and monitoring
-    const { error: logError } = await supabaseClient
+    // Log audit
+    await supabaseClient
       .from('audit_logs')
       .insert({
         user_id: user.id,
         brand_id: brandId,
         entity_type: entityType
+      })
+      .then(({ error }) => {
+        if (error) console.error('Failed to log audit:', error.message);
       });
-
-    if (logError) {
-      console.error('Failed to log audit:', logError.message);
-      // Continue anyway - don't fail the audit due to logging issues
-    }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         audit: auditResult,
         brandName: brand.hero.name,
-        auditDate: new Date().toISOString()
+        auditDate: new Date().toISOString(),
+        dataSources: {
+          guideData: true,
+          brandIntelligence: !!intelligenceResult.data,
+          websiteAnalyses: websiteAnalyses.length,
+        }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -263,61 +315,89 @@ Categories: Visual Consistency, Brand Identity, Completeness, Best Practices. Be
   }
 });
 
-function buildAuditPrompt(brand: BrandData): string {
-  const sections = [];
+function buildAuditPrompt(brand: BrandData, intel: IntelligenceData, websiteAnalyses: WebsiteAnalysisData[]): string {
+  const s: string[] = [];
 
-  sections.push(`# Brand Audit Request: ${brand.hero?.name || 'Unnamed Brand'}`);
-  sections.push(`Type: ${brand.type || 'brand'}`);
+  s.push(`# Brand Cohesion Audit: ${brand.hero?.name || 'Unnamed Brand'}`);
+  s.push(`Type: ${brand.type || 'brand'}\n`);
   
-  if (brand.hero) {
-    sections.push(`\n## Identity`);
-    sections.push(`- Name: ${brand.hero.name}`);
-    sections.push(`- Tagline: ${brand.hero.tagline || 'Not defined'}`);
-  }
+  // Identity
+  s.push(`## Identity`);
+  s.push(`- Name: ${brand.hero.name}`);
+  s.push(`- Tagline: ${brand.hero.tagline || 'Not defined'}`);
+  s.push(`- Mission: ${brand.identity.missionStatement || 'Not defined'}`);
+  s.push(`- Archetype: ${brand.identity.archetype || 'Not defined'}`);
+  s.push(`- Tone: ${brand.identity.toneOfVoice?.join(', ') || 'Not defined'}`);
 
-  if (brand.identity) {
-    sections.push(`\n## Brand Narrative`);
-    sections.push(`- Mission: ${brand.identity.missionStatement || 'Not defined'}`);
-    sections.push(`- Archetype: ${brand.identity.archetype || 'Not defined'}`);
-    sections.push(`- Tone of Voice: ${brand.identity.toneOfVoice?.join(', ') || 'Not defined'}`);
-  }
-
-  if (brand.values && brand.values.length > 0) {
-    sections.push(`\n## Brand Values (${brand.values.length} defined)`);
-    brand.values.forEach((v, i) => {
-      sections.push(`${i + 1}. ${v.title}: ${v.description || 'No description'}`);
-    });
+  // Values
+  if (brand.values.length > 0) {
+    s.push(`\n## Values (${brand.values.length})`);
+    brand.values.slice(0, 6).forEach((v, i) => s.push(`${i + 1}. ${v.title}: ${v.description || '-'}`));
   } else {
-    sections.push(`\n## Brand Values: None defined`);
+    s.push(`\n## Values: None`);
   }
 
-  if (brand.colors && brand.colors.length > 0) {
-    sections.push(`\n## Color Palette (${brand.colors.length} colors)`);
-    brand.colors.forEach(c => {
-      sections.push(`- ${c.name}: ${c.hex} - ${c.usage || 'No usage defined'}`);
-    });
+  // Visual
+  if (brand.colors.length > 0) {
+    s.push(`\n## Colors (${brand.colors.length})`);
+    brand.colors.slice(0, 10).forEach(c => s.push(`- ${c.name}: ${c.hex} (${c.usage || '-'})`));
   } else {
-    sections.push(`\n## Color Palette: None defined`);
+    s.push(`\n## Colors: None`);
   }
 
-  if (brand.typography && brand.typography.length > 0) {
-    sections.push(`\n## Typography (${brand.typography.length} styles)`);
-    brand.typography.forEach(t => {
-      sections.push(`- ${t.name}: ${t.fontFamily} - ${t.usage || 'No usage defined'}`);
-    });
+  if (brand.typography.length > 0) {
+    s.push(`\n## Typography (${brand.typography.length})`);
+    brand.typography.slice(0, 6).forEach(t => s.push(`- ${t.name}: ${t.fontFamily} (${t.usage || '-'})`));
   } else {
-    sections.push(`\n## Typography: None defined`);
+    s.push(`\n## Typography: None`);
   }
 
-  if (brand.gradients && brand.gradients.length > 0) {
-    sections.push(`\n## Gradients: ${brand.gradients.length} defined`);
+  s.push(`\n## Other Assets: ${brand.gradients.length} gradients, ${brand.patterns.length} patterns`);
+
+  // Brand Intelligence
+  if (intel.brandSummary || intel.marketPosition) {
+    s.push(`\n## Brand Intelligence`);
+    if (intel.brandSummary) s.push(`Summary: ${intel.brandSummary.substring(0, 300)}`);
+    if (intel.marketPosition) s.push(`Market Position: ${intel.marketPosition}`);
+    if (intel.localizationReadinessScore) s.push(`Localization Readiness: ${intel.localizationReadinessScore}/100`);
   }
 
-  if (brand.patterns && brand.patterns.length > 0) {
-    sections.push(`\n## Patterns: ${brand.patterns.length} defined`);
+  // Competitive context
+  if (intel.competitiveAdvantages && intel.competitiveAdvantages.length > 0) {
+    s.push(`\n## Competitive Advantages (${intel.competitiveAdvantages.length})`);
+    intel.competitiveAdvantages.slice(0, 5).forEach(a => {
+      const adv = a as Record<string, unknown>;
+      s.push(`- ${adv.title || adv.advantage || JSON.stringify(a).substring(0, 80)}`);
+    });
   }
 
-  sections.push(`\n\nPlease analyze this brand guide for cohesion, completeness, and best practices. Return your analysis as JSON.`);
+  if (intel.competitiveLandscape) {
+    const cl = intel.competitiveLandscape;
+    if (cl.positioning_summary) s.push(`\nCompetitive Positioning: ${String(cl.positioning_summary).substring(0, 200)}`);
+    if (Array.isArray(cl.differentiation_opportunities) && cl.differentiation_opportunities.length > 0) {
+      s.push(`Differentiation Opportunities: ${cl.differentiation_opportunities.slice(0, 3).join('; ')}`);
+    }
+  }
 
-  return sections.join('\n');
+  // Website Analysis
+  if (websiteAnalyses.length > 0) {
+    s.push(`\n## Website Analysis Results`);
+    websiteAnalyses.forEach(wa => {
+      s.push(`- ${wa.url}: Score ${wa.overallScore}/100 (Grade ${wa.grade})`);
+      if (wa.summary) s.push(`  ${wa.summary.substring(0, 150)}`);
+    });
+  }
+
+  // Growth recommendations
+  if (intel.growthRecommendations && intel.growthRecommendations.length > 0) {
+    s.push(`\n## AI Growth Recommendations (${intel.growthRecommendations.length})`);
+    intel.growthRecommendations.slice(0, 4).forEach(r => {
+      const rec = r as Record<string, unknown>;
+      s.push(`- ${rec.title || rec.recommendation || JSON.stringify(r).substring(0, 80)}`);
+    });
+  }
+
+  s.push(`\n\nAnalyze this brand holistically for cohesion across guide content, digital presence, and competitive positioning. Return JSON.`);
+
+  return s.join('\n');
 }
