@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { TrendingUp, Plus, X, Loader2, Sparkles, BarChart3, Target, Lightbulb, FileText, Users, AlertTriangle, CheckCircle, Download, Wand2, Search, Star, Heart, Globe2, MapPin } from 'lucide-react';
 import {
   Dialog,
@@ -52,6 +52,8 @@ interface CompetitiveAnalysisDialogProps {
   entityId: string;
   entityName: string;
   organizationId?: string | null;
+  /** Which tab to show when the dialog opens */
+  defaultTab?: 'generate' | 'results';
 }
 
 export function CompetitiveAnalysisDialog({
@@ -61,10 +63,18 @@ export function CompetitiveAnalysisDialog({
   entityId,
   entityName,
   organizationId,
+  defaultTab = 'generate',
 }: CompetitiveAnalysisDialogProps) {
   const [competitors, setCompetitors] = useState<string[]>([]);
   const [newCompetitor, setNewCompetitor] = useState('');
-  const [activeTab, setActiveTab] = useState('generate');
+  const [activeTab, setActiveTab] = useState<string>(defaultTab);
+
+  // Sync activeTab when dialog opens with a specific defaultTab
+  useEffect(() => {
+    if (open) {
+      setActiveTab(defaultTab);
+    }
+  }, [open, defaultTab]);
   const [isExporting, setIsExporting] = useState(false);
   
   // AI Discovery state

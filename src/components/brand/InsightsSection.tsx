@@ -1,5 +1,6 @@
 import { useState, useMemo, lazy, Suspense } from 'react';
 import { useCompetitiveInsights, type CompetitiveInsightItem } from '@/hooks/useCompetitiveInsights';
+import { useBrandIntelligenceInsights } from '@/hooks/useBrandIntelligenceInsights';
 import { 
   TrendingUp, TrendingDown, Minus, FileText, BarChart2, Newspaper, 
   Bell, AlertCircle, Calendar, ExternalLink, Plus, Trash2, Pencil,
@@ -300,10 +301,17 @@ export const InsightsSection = ({
     enabled: Boolean(entityType && entityId),
   });
 
-  // Merge manual insights with auto-fetched competitive insights
+  // Auto-fetch brand intelligence stats when entity context is provided
+  const { intelligenceInsights } = useBrandIntelligenceInsights({
+    entityType: entityType || 'brand',
+    entityId: entityId || '',
+    enabled: Boolean(entityType && entityId),
+  });
+
+  // Merge manual insights with auto-fetched competitive and intelligence insights
   const allInsights = useMemo(() => {
-    return [...insights, ...competitiveInsights];
-  }, [insights, competitiveInsights]);
+    return [...insights, ...competitiveInsights, ...intelligenceInsights];
+  }, [insights, competitiveInsights, intelligenceInsights]);
 
   const handleDelete = (id: string) => {
     if (!onInsightsChange) return;
@@ -445,6 +453,7 @@ export const InsightsSection = ({
             entityType={entityType}
             entityId={entityId}
             entityName=""
+            defaultTab="results"
           />
         </Suspense>
       )}
