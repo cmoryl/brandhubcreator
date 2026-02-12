@@ -44,6 +44,8 @@ import {
   DEFAULT_PAGE_SETTINGS,
   ClientLogo,
   SponsorLogo,
+  InsightItem,
+  InsightsLayout,
 } from './brand';
 
 // Event-specific types
@@ -299,6 +301,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'casestudies',
   'templatespecs',
   'presentations',
+  'insights',
   'clientlogos',
   'assets',
   'imageassets',
@@ -378,6 +381,10 @@ export interface EventGuide {
   revenueData?: RevenueDataPoint[];
   statistics?: StatisticItem[];
   infographicLayout?: InfographicLayout;
+  
+  // Insights & Updates
+  insights?: InsightItem[];
+  insightsLayout?: InsightsLayout;
   
   // Partner assets
   sponsorLogos?: SponsorLogo[];

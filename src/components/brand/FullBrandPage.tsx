@@ -333,7 +333,9 @@ export const FullBrandPage = ({
           onInsightsChange={editHandler((insights) => onBrandUpdate({ insights }))} 
           onLayoutChange={canEdit ? (insightsLayout) => onBrandUpdate({ insightsLayout }) : undefined}
           customSubtitle={customSubtitle} 
-          onSubtitleChange={onSubtitleChange} 
+          onSubtitleChange={onSubtitleChange}
+          entityType={entityType}
+          entityId={brandId}
         />;
       case 'locations':
         return <LeafletLocationsSection 

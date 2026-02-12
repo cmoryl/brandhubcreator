@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useCompetitiveInsights } from '@/hooks/useCompetitiveInsights';
 import { 
   TrendingUp, TrendingDown, Minus, FileText, BarChart2, Newspaper, 
   Bell, AlertCircle, Calendar, ExternalLink, Plus, Trash2, Pencil,
@@ -19,6 +20,9 @@ interface InsightsSectionProps {
   onLayoutChange?: (layout: InsightsLayout) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  /** Entity context for auto-fetching competitive analysis reports */
+  entityType?: 'brand' | 'product' | 'event';
+  entityId?: string;
 }
 
 const typeIcons = {
@@ -265,11 +269,25 @@ export const InsightsSection = ({
   onLayoutChange,
   customSubtitle,
   onSubtitleChange,
+  entityType,
+  entityId,
 }: InsightsSectionProps) => {
   const canEdit = Boolean(onInsightsChange);
   const [isEditing, setIsEditing] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingInsight, setEditingInsight] = useState<InsightItem | null>(null);
+
+  // Auto-fetch competitive analysis reports when entity context is provided
+  const { competitiveInsights } = useCompetitiveInsights({
+    entityType: entityType || 'brand',
+    entityId: entityId || '',
+    enabled: Boolean(entityType && entityId),
+  });
+
+  // Merge manual insights with auto-fetched competitive insights
+  const allInsights = useMemo(() => {
+    return [...insights, ...competitiveInsights];
+  }, [insights, competitiveInsights]);
 
   const handleDelete = (id: string) => {
     if (!onInsightsChange) return;
@@ -301,7 +319,7 @@ export const InsightsSection = ({
     }
   };
 
-  if (insights.length === 0 && !canEdit) {
+  if (allInsights.length === 0 && !canEdit) {
     return null;
   }
 
@@ -352,7 +370,7 @@ export const InsightsSection = ({
       />
 
       {/* Empty state */}
-      {insights.length === 0 && canEdit && (
+      {allInsights.length === 0 && canEdit && (
         <div className="text-center py-12 px-6 rounded-xl border-2 border-dashed border-border/50 bg-muted/10">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 text-accent mb-4">
             <TrendingUp className="h-6 w-6" />
@@ -369,21 +387,24 @@ export const InsightsSection = ({
       )}
 
       {/* Content based on layout */}
-      {insights.length > 0 && (
+      {allInsights.length > 0 && (
         <>
           {(layout === 'infographic' || layout === 'dashboard') ? (
-            <InfographicLayout insights={insights} />
+            <InfographicLayout insights={allInsights} />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {insights.map((insight) => (
-                <InsightCard
-                  key={insight.id}
-                  insight={insight}
-                  canEdit={canEdit && isEditing}
-                  onEdit={() => handleEdit(insight)}
-                  onDelete={() => handleDelete(insight.id)}
-                />
-              ))}
+              {allInsights.map((insight) => {
+                const isCompetitive = insight.id.startsWith('competitive-');
+                return (
+                  <InsightCard
+                    key={insight.id}
+                    insight={insight}
+                    canEdit={canEdit && isEditing && !isCompetitive}
+                    onEdit={!isCompetitive ? () => handleEdit(insight) : undefined}
+                    onDelete={!isCompetitive ? () => handleDelete(insight.id) : undefined}
+                  />
+                );
+              })}
             </div>
           )}
         </>
