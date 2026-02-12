@@ -1,18 +1,21 @@
-import { useState, useRef, useCallback } from 'react';
-import { Plus, X, Pencil, Copy, Check, Code, LayoutTemplate, Mail, Phone, Globe, MapPin, Building2, Image, ExternalLink, ImagePlus, Upload, Link2, Loader2, Lock, Unlock, Maximize2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Plus, X, Pencil, Copy, Check, Mail, Image, ImagePlus, Upload, Link2, ExternalLink, Loader2, LayoutTemplate, Maximize2, Lock, Unlock } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { BrandSignature, BrandEmailBanner } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SectionHeader } from './SectionHeader';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { SectionHeader } from './SectionHeader';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { SignatureEditorPanel } from './signatures/SignatureEditorPanel';
+import { SignatureTemplateDialog } from './signatures/SignatureTemplateDialog';
+import { renderPreview } from './signatures/signatureRenderer';
+import { BANNER_SIZE_PRESETS, DEFAULT_CONFIDENTIALITY } from './signatures/signatureConstants';
+import { safeUUID } from '@/lib/safeUUID';
 
 interface SignaturesSectionProps {
   signatures: BrandSignature[];
@@ -23,290 +26,44 @@ interface SignaturesSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
 }
 
-// TransPerfect Blue brand colors
-const TP_BLUE_DARK = '#003b71';
-const TP_BLUE_LIGHT = '#139cd8';
-
-const signatureTemplates = {
-  full: {
-    name: 'Full Signature',
-    variant: 'full' as const,
-    description: 'Complete signature with logo, contact info, and banner area',
-    template: `<table cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; max-width: 550px;">
-  <tr>
-    <td style="padding-bottom: 12px; border-bottom: 2px solid ${TP_BLUE_LIGHT};">
-      <p style="margin: 0; font-size: 18px; font-weight: bold; color: ${TP_BLUE_DARK};">[NAME]</p>
-      <p style="margin: 4px 0 0 0; font-size: 14px; color: ${TP_BLUE_LIGHT}; font-weight: 500;">[ROLE]</p>
-    </td>
-  </tr>
-  <tr>
-    <td style="padding: 15px 0;">
-      <table cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="padding-right: 20px; vertical-align: top;">
-            <img src="[LOGO_URL]" alt="[COMPANY]" width="100" height="100" style="display: block;">
-          </td>
-          <td style="vertical-align: top;">
-            <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: ${TP_BLUE_DARK};">[COMPANY]</p>
-            <p style="margin: 0 0 4px 0; font-size: 12px; color: #666;">[ADDRESS]</p>
-            <p style="margin: 8px 0 2px 0; font-size: 12px; color: #666;"><span style="color: ${TP_BLUE_LIGHT}; font-weight: bold;">P:</span> [PHONE]</p>
-            <p style="margin: 2px 0; font-size: 12px; color: #666;"><span style="color: ${TP_BLUE_LIGHT}; font-weight: bold;">E:</span> [EMAIL]</p>
-            <p style="margin: 2px 0; font-size: 12px; color: #666;"><span style="color: ${TP_BLUE_LIGHT}; font-weight: bold;">W:</span> [WEBSITE]</p>
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-  <tr>
-    <td style="padding: 15px 0;">
-      <!-- EMAIL BANNER PLACEHOLDER -->
-    </td>
-  </tr>
-  <tr>
-    <td style="padding-top: 10px; border-top: 1px solid #eee;">
-      <p style="margin: 0; font-size: 9px; color: #999; line-height: 1.4;">[CONFIDENTIALITY]</p>
-    </td>
-  </tr>
-</table>`,
-  },
-  reply: {
-    name: 'Minimal Reply',
-    variant: 'reply' as const,
-    description: 'Compact signature for email replies',
-    template: `<table cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif;">
-  <tr>
-    <td style="padding-bottom: 10px;">
-      <img src="[LOGO_URL]" alt="[COMPANY]" width="80" height="80" style="display: block;">
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <p style="margin: 0; font-size: 14px; color: ${TP_BLUE_DARK};">
-        <strong>[NAME]</strong> <span style="color: #999;">|</span> <span style="color: ${TP_BLUE_LIGHT};">[ROLE]</span>
-      </p>
-      <p style="margin: 4px 0 0 0; font-size: 12px; color: #666;">[COMPANY] <span style="color: #999;">|</span> <a href="https://[WEBSITE]" style="color: ${TP_BLUE_LIGHT}; text-decoration: none;">[WEBSITE]</a></p>
-    </td>
-  </tr>
-</table>`,
-  },
-  minimal: {
-    name: 'Text Only',
-    variant: 'minimal' as const,
-    description: 'Simple text signature without graphics',
-    template: `<div style="font-family: Arial, sans-serif; font-size: 12px; color: #333;">
-  <p style="margin: 0; font-weight: bold;">[NAME]</p>
-  <p style="margin: 2px 0; color: #666;">[ROLE] | [COMPANY]</p>
-  <p style="margin: 8px 0 0 0; color: #999;">[EMAIL] | [PHONE]</p>
-</div>`,
-  },
-};
-
-const defaultConfidentiality = `CONFIDENTIALITY NOTICE: The content of this email is confidential and intended for the recipient specified in message only. It is strictly forbidden to share any part of this message with any third party, without a written consent of the sender. If you received this message by mistake, please reply to this message and follow with its deletion, so that we can ensure such a mistake does not occur in the future.`;
-
-const bannerSizePresets = [
-  { name: 'Standard Banner', width: 600, height: 150, description: 'Best for promotional campaigns' },
-  { name: 'Compact Banner', width: 550, height: 100, description: 'Subtle promotional space' },
-  { name: 'Wide Banner', width: 600, height: 200, description: 'High-impact visuals' },
-  { name: 'Square Feature', width: 300, height: 300, description: 'Product spotlight' },
-];
-
-const logoSizePresets = [
-  { name: 'Small', width: 60, height: 60 },
-  { name: 'Default', width: 100, height: 100 },
-  { name: 'Medium', width: 120, height: 120 },
-  { name: 'Large', width: 150, height: 150 },
-];
-
-// Logo Size Controls Component with Aspect Ratio Lock
-interface LogoSizeControlsProps {
-  width: number;
-  height: number;
-  onChange: (width: number, height: number) => void;
-}
-
-const LogoSizeControls = ({ width, height, onChange }: LogoSizeControlsProps) => {
-  const [aspectLocked, setAspectLocked] = useState(true);
-  const aspectRatio = width / height || 1;
-
-  const handleWidthChange = (newWidth: number) => {
-    if (aspectLocked) {
-      onChange(newWidth, Math.round(newWidth / aspectRatio));
-    } else {
-      onChange(newWidth, height);
-    }
-  };
-
-  const handleHeightChange = (newHeight: number) => {
-    if (aspectLocked) {
-      onChange(Math.round(newHeight * aspectRatio), newHeight);
-    } else {
-      onChange(width, newHeight);
-    }
-  };
-
+// ── Banner Size Controls ──
+const BannerSizeControls = ({ width, height, onChange }: { width: number; height: number; onChange: (w: number, h: number) => void }) => {
+  const [locked, setLocked] = useState(true);
+  const ratio = width / height || 4;
   return (
     <div className="space-y-3 p-3 bg-muted/30 rounded-lg border border-border">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Maximize2 className="h-4 w-4 text-muted-foreground" />
-          <span className="text-xs font-medium">Logo Size</span>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setAspectLocked(!aspectLocked)}
-          className="h-7 gap-1.5 text-xs"
-        >
-          {aspectLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
-          {aspectLocked ? 'Locked' : 'Unlocked'}
+        <div className="flex items-center gap-2"><Maximize2 className="h-4 w-4 text-muted-foreground" /><span className="text-xs font-medium">Banner Size</span></div>
+        <Button variant="ghost" size="sm" onClick={() => setLocked(!locked)} className="h-7 gap-1.5 text-xs">
+          {locked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}{locked ? 'Locked' : 'Unlocked'}
         </Button>
       </div>
-      
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <label className="text-xs text-muted-foreground">Width (px)</label>
-          <Input
-            type="number"
-            value={width}
-            onChange={(e) => handleWidthChange(parseInt(e.target.value) || 100)}
-            min={20}
-            max={300}
-            className="h-8 text-sm"
-          />
+          <Input type="number" value={width} onChange={e => { const w = parseInt(e.target.value) || 600; onChange(w, locked ? Math.round(w / ratio) : height); }} min={100} max={1200} className="h-8 text-sm" />
         </div>
         <div className="space-y-1.5">
           <label className="text-xs text-muted-foreground">Height (px)</label>
-          <Input
-            type="number"
-            value={height}
-            onChange={(e) => handleHeightChange(parseInt(e.target.value) || 100)}
-            min={20}
-            max={300}
-            className="h-8 text-sm"
-          />
+          <Input type="number" value={height} onChange={e => { const h = parseInt(e.target.value) || 150; onChange(locked ? Math.round(h * ratio) : width, h); }} min={50} max={600} className="h-8 text-sm" />
         </div>
       </div>
-      
       <div className="flex flex-wrap gap-1.5">
-        {logoSizePresets.map((preset) => (
-          <Button
-            key={preset.name}
-            variant={width === preset.width && height === preset.height ? "default" : "outline"}
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => onChange(preset.width, preset.height)}
-          >
-            {preset.name}
-          </Button>
+        {BANNER_SIZE_PRESETS.map(p => (
+          <Button key={p.name} variant={width === p.width && height === p.height ? 'default' : 'outline'} size="sm" className="h-7 text-xs" onClick={() => onChange(p.width, p.height)} title={p.description}>{p.name}</Button>
         ))}
       </div>
-      
-      <p className="text-xs text-muted-foreground">
-        {aspectLocked ? 'Aspect ratio locked - dimensions scale proportionally' : 'Aspect ratio unlocked - set custom dimensions'}
-      </p>
     </div>
   );
 };
 
-// Banner Size Controls Component with Aspect Ratio Lock
-interface BannerSizeControlsProps {
-  width: number;
-  height: number;
-  onChange: (width: number, height: number) => void;
-}
-
-const BannerSizeControls = ({ width, height, onChange }: BannerSizeControlsProps) => {
-  const [aspectLocked, setAspectLocked] = useState(true);
-  const aspectRatio = width / height || 4;
-
-  const handleWidthChange = (newWidth: number) => {
-    if (aspectLocked) {
-      onChange(newWidth, Math.round(newWidth / aspectRatio));
-    } else {
-      onChange(newWidth, height);
-    }
-  };
-
-  const handleHeightChange = (newHeight: number) => {
-    if (aspectLocked) {
-      onChange(Math.round(newHeight * aspectRatio), newHeight);
-    } else {
-      onChange(width, newHeight);
-    }
-  };
-
-  return (
-    <div className="space-y-3 p-3 bg-muted/30 rounded-lg border border-border">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Maximize2 className="h-4 w-4 text-muted-foreground" />
-          <span className="text-xs font-medium">Banner Size</span>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setAspectLocked(!aspectLocked)}
-          className="h-7 gap-1.5 text-xs"
-        >
-          {aspectLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
-          {aspectLocked ? 'Locked' : 'Unlocked'}
-        </Button>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <label className="text-xs text-muted-foreground">Width (px)</label>
-          <Input
-            type="number"
-            value={width}
-            onChange={(e) => handleWidthChange(parseInt(e.target.value) || 600)}
-            min={100}
-            max={1200}
-            className="h-8 text-sm"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-xs text-muted-foreground">Height (px)</label>
-          <Input
-            type="number"
-            value={height}
-            onChange={(e) => handleHeightChange(parseInt(e.target.value) || 150)}
-            min={50}
-            max={600}
-            className="h-8 text-sm"
-          />
-        </div>
-      </div>
-      
-      <div className="flex flex-wrap gap-1.5">
-        {bannerSizePresets.map((preset) => (
-          <Button
-            key={preset.name}
-            variant={width === preset.width && height === preset.height ? "default" : "outline"}
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => onChange(preset.width, preset.height)}
-            title={preset.description}
-          >
-            {preset.name}
-          </Button>
-        ))}
-      </div>
-      
-      <p className="text-xs text-muted-foreground">
-        {aspectLocked ? 'Aspect ratio locked - dimensions scale proportionally' : 'Aspect ratio unlocked - set custom dimensions'}
-      </p>
-    </div>
-  );
-};
-
-export const SignaturesSection = ({ 
-  signatures, 
-  onSignaturesChange, 
+export const SignaturesSection = ({
+  signatures,
+  onSignaturesChange,
   emailBanners = [],
   onEmailBannersChange,
-  customSubtitle, 
-  onSubtitleChange 
+  customSubtitle,
+  onSubtitleChange,
 }: SignaturesSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
@@ -314,33 +71,48 @@ export const SignaturesSection = ({
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'signatures' | 'banners'>('signatures');
-  const [uploadingLogoId, setUploadingLogoId] = useState<string | null>(null);
-  const [logoInputMode, setLogoInputMode] = useState<'url' | 'upload'>('url');
-  const logoFileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingBannerId, setUploadingBannerId] = useState<string | null>(null);
 
-  // Determine if editing is allowed
   const canEdit = !!onSignaturesChange;
 
-  const addSignature = (templateKey: keyof typeof signatureTemplates = 'full') => {
+  // ── Signature CRUD ──
+  const addSignatureFromTemplate = (sig: BrandSignature) => {
     if (!onSignaturesChange) return;
-    const template = signatureTemplates[templateKey];
-    const newSignature: BrandSignature = {
-      id: crypto.randomUUID(),
+    onSignaturesChange([...signatures, sig]);
+    setEditingId(sig.id);
+  };
+
+  const addDefaultSignature = () => {
+    const sig: BrandSignature = {
+      id: safeUUID(),
       name: 'John Doe',
       role: 'Global Account Lead',
-      html: template.template,
+      html: '',
       company: 'Your Company',
       email: 'jdoe@company.com',
       phone: '+1 212.555.0123',
       website: 'www.company.com',
       address: '1250 Broadway, New York, NY 10001',
       logoUrl: '',
-      variant: template.variant,
-      confidentialityNotice: templateKey === 'full' ? defaultConfidentiality : undefined,
+      variant: 'full',
+      style: {
+        fontFamily: 'Arial, sans-serif',
+        nameFontSize: 18,
+        titleFontSize: 14,
+        textFontSize: 12,
+        nameColor: '#003b71',
+        titleColor: '#139cd8',
+        textColor: '#666666',
+        linkColor: '#139cd8',
+        dividerStyle: 'solid',
+        dividerColor: '#139cd8',
+        dividerWidth: 2,
+        spacing: 15,
+        layout: 'horizontal',
+      },
+      confidentialityNotice: DEFAULT_CONFIDENTIALITY,
     };
-    onSignaturesChange([...signatures, newSignature]);
-    setEditingId(newSignature.id);
-    setTemplateDialogOpen(false);
+    addSignatureFromTemplate(sig);
   };
 
   const updateSignature = (id: string, updates: Partial<BrandSignature>) => {
@@ -354,10 +126,34 @@ export const SignaturesSection = ({
     if (editingId === id) setEditingId(null);
   };
 
-  const addEmailBanner = (preset?: typeof bannerSizePresets[0]) => {
+  const duplicateSignature = (sig: BrandSignature) => {
+    if (!onSignaturesChange) return;
+    const dup: BrandSignature = {
+      ...sig,
+      id: safeUUID(),
+      name: `${sig.name} (Copy)`,
+      socialLinks: sig.socialLinks?.map(l => ({ ...l, id: safeUUID() })),
+    };
+    onSignaturesChange([...signatures, dup]);
+    setEditingId(dup.id);
+  };
+
+  const copyHTML = async (html: string, id: string) => {
+    const sanitized = DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['table', 'tr', 'td', 'th', 'tbody', 'thead', 'p', 'img', 'a', 'strong', 'em', 'b', 'i', 'span', 'div', 'br', 'hr'],
+      ALLOWED_ATTR: ['style', 'src', 'alt', 'width', 'height', 'href', 'cellpadding', 'cellspacing', 'border', 'align', 'valign', 'target', 'rel', 'colspan'],
+    });
+    await navigator.clipboard.writeText(sanitized);
+    setCopiedId(id);
+    toast.success('HTML copied to clipboard');
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // ── Email Banner CRUD ──
+  const addEmailBanner = (preset?: typeof BANNER_SIZE_PRESETS[0]) => {
     if (!onEmailBannersChange) return;
-    const newBanner: BrandEmailBanner = {
-      id: crypto.randomUUID(),
+    const b: BrandEmailBanner = {
+      id: safeUUID(),
       name: preset?.name || 'Email Banner',
       imageUrl: '',
       linkUrl: '',
@@ -365,8 +161,8 @@ export const SignaturesSection = ({
       height: preset?.height || 150,
       description: preset?.description || '',
     };
-    onEmailBannersChange([...emailBanners, newBanner]);
-    setEditingBannerId(newBanner.id);
+    onEmailBannersChange([...emailBanners, b]);
+    setEditingBannerId(b.id);
   };
 
   const updateEmailBanner = (id: string, updates: Partial<BrandEmailBanner>) => {
@@ -380,167 +176,32 @@ export const SignaturesSection = ({
     if (editingBannerId === id) setEditingBannerId(null);
   };
 
-  const copyHTML = async (html: string, id: string) => {
-    await navigator.clipboard.writeText(html);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  // Convert file to base64 as a fallback when storage upload fails
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-    });
-  };
-
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, signatureId: string) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
-      return;
-    }
-
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image must be less than 2MB');
-      return;
-    }
-
-    setUploadingLogoId(signatureId);
-
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `signature-logos/${signatureId}-${Date.now()}.${fileExt}`;
-
-      const { data, error } = await supabase.storage
-        .from('organization-assets')
-        .upload(fileName, file, { upsert: true });
-
-      if (error) {
-        // Fallback to base64 if storage upload fails (bucket may not exist)
-        console.warn('Storage upload failed, falling back to base64:', error);
-        const base64Url = await fileToBase64(file);
-        updateSignature(signatureId, { logoUrl: base64Url });
-        toast.success('Logo saved successfully');
-        return;
-      }
-
-      const { data: urlData } = supabase.storage
-        .from('organization-assets')
-        .getPublicUrl(fileName);
-
-      updateSignature(signatureId, { logoUrl: urlData.publicUrl });
-      toast.success('Logo uploaded successfully');
-    } catch (error) {
-      console.error('Upload error:', error);
-      // Last resort fallback to base64
-      try {
-        const base64Url = await fileToBase64(file);
-        updateSignature(signatureId, { logoUrl: base64Url });
-        toast.success('Logo saved successfully');
-      } catch (fallbackError) {
-        toast.error('Failed to upload logo');
-      }
-    } finally {
-      setUploadingLogoId(null);
-      if (logoFileInputRef.current) {
-        logoFileInputRef.current.value = '';
-      }
-    }
-  };
-
-  const [uploadingBannerId, setUploadingBannerId] = useState<string | null>(null);
+  const fileToBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
+    const r = new FileReader(); r.readAsDataURL(file); r.onload = () => resolve(r.result as string); r.onerror = reject;
+  });
 
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>, bannerId: string) => {
     const file = e.target.files?.[0];
     if (!file || !onEmailBannersChange) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image must be less than 2MB');
-      return;
-    }
-
+    if (!file.type.startsWith('image/')) { toast.error('Please upload an image file'); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error('Image must be less than 2MB'); return; }
     setUploadingBannerId(bannerId);
-
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `email-banners/${bannerId}-${Date.now()}.${fileExt}`;
-
-      const { data, error } = await supabase.storage
-        .from('organization-assets')
-        .upload(fileName, file, { upsert: true });
-
+      const ext = file.name.split('.').pop();
+      const path = `email-banners/${bannerId}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('organization-assets').upload(path, file, { upsert: true });
       if (error) {
-        // Fallback to base64 if storage upload fails
-        console.warn('Storage upload failed, falling back to base64:', error);
-        const base64Url = await fileToBase64(file);
-        updateEmailBanner(bannerId, { imageUrl: base64Url });
-        toast.success('Banner saved successfully');
+        const b64 = await fileToBase64(file);
+        updateEmailBanner(bannerId, { imageUrl: b64 });
+        toast.success('Banner saved');
         return;
       }
-
-      const { data: urlData } = supabase.storage
-        .from('organization-assets')
-        .getPublicUrl(fileName);
-
+      const { data: urlData } = supabase.storage.from('organization-assets').getPublicUrl(path);
       updateEmailBanner(bannerId, { imageUrl: urlData.publicUrl });
-      toast.success('Banner uploaded successfully');
-    } catch (error) {
-      console.error('Upload error:', error);
-      // Last resort fallback to base64
-      try {
-        const base64Url = await fileToBase64(file);
-        updateEmailBanner(bannerId, { imageUrl: base64Url });
-        toast.success('Banner saved successfully');
-      } catch (fallbackError) {
-        toast.error('Failed to upload banner');
-      }
-    } finally {
-      setUploadingBannerId(null);
-    }
-  };
-
-  const renderPreview = (signature: BrandSignature) => {
-    // Use custom accent color or default TransPerfect Blues
-    const accentColor = signature.accentColor || TP_BLUE_LIGHT;
-    const darkColor = signature.accentColor ? signature.accentColor : TP_BLUE_DARK;
-    
-    // Get logo dimensions with defaults
-    const logoWidth = signature.logoWidth || 100;
-    const logoHeight = signature.logoHeight || 100;
-    
-    let html = signature.html
-      .replace(/\[NAME\]/g, signature.name)
-      .replace(/\[ROLE\]/g, signature.role)
-      .replace(/\[COMPANY\]/g, signature.company || 'Company')
-      .replace(/\[EMAIL\]/g, signature.email || 'email@company.com')
-      .replace(/\[PHONE\]/g, signature.phone || '+1 234 567 890')
-      .replace(/\[WEBSITE\]/g, signature.website || 'www.company.com')
-      .replace(/\[ADDRESS\]/g, signature.address || '123 Business St, City')
-      .replace(/\[CONFIDENTIALITY\]/g, signature.confidentialityNotice || '')
-      .replace(/\[LOGO_URL\]/g, signature.logoUrl || `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="${logoWidth}" height="${logoHeight}"><rect fill="%23f0f0f0" width="${logoWidth}" height="${logoHeight}" rx="4"/><text x="${logoWidth/2}" y="${logoHeight/2 + 5}" text-anchor="middle" fill="%23999" font-family="Arial" font-size="10">Logo</text></svg>`)
-      // Replace logo dimensions in template
-      .replace(/width="100" height="100"/g, `width="${logoWidth}" height="${logoHeight}"`)
-      .replace(/width="80" height="80"/g, `width="${Math.round(logoWidth * 0.8)}" height="${Math.round(logoHeight * 0.8)}"`)
-      // Replace accent colors in template with custom color
-      .replace(new RegExp(TP_BLUE_LIGHT, 'gi'), accentColor)
-      .replace(new RegExp(TP_BLUE_DARK, 'gi'), darkColor);
-    
-    return DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: ['table', 'tr', 'td', 'th', 'tbody', 'thead', 'p', 'img', 'a', 'strong', 'em', 'b', 'i', 'span', 'div', 'br', 'hr'],
-      ALLOWED_ATTR: ['style', 'src', 'alt', 'width', 'height', 'href', 'cellpadding', 'cellspacing', 'border', 'align', 'valign', 'class', 'target', 'rel', 'colspan']
-    });
+      toast.success('Banner uploaded');
+    } catch {
+      try { const b64 = await fileToBase64(file); updateEmailBanner(bannerId, { imageUrl: b64 }); toast.success('Banner saved'); } catch { toast.error('Upload failed'); }
+    } finally { setUploadingBannerId(null); }
   };
 
   const getVariantBadge = (variant?: string) => {
@@ -567,652 +228,193 @@ export const SignaturesSection = ({
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'signatures' | 'banners')} className="space-y-4">
+      <Tabs value={activeTab} onValueChange={v => setActiveTab(v as 'signatures' | 'banners')} className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <TabsList>
-            <TabsTrigger value="signatures" className="gap-2">
-              <Mail className="h-4 w-4" />
-              Signatures
-            </TabsTrigger>
-            <TabsTrigger value="banners" className="gap-2">
-              <Image className="h-4 w-4" />
-              Email Banners
-            </TabsTrigger>
+            <TabsTrigger value="signatures" className="gap-2"><Mail className="h-4 w-4" />Signatures</TabsTrigger>
+            <TabsTrigger value="banners" className="gap-2"><Image className="h-4 w-4" />Email Banners</TabsTrigger>
           </TabsList>
-          
+
           {activeTab === 'signatures' && canEdit && (
             <div className="flex gap-2">
-              <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <LayoutTemplate className="h-4 w-4" />
-                    Templates
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-3xl">
-                  <DialogHeader>
-                    <DialogTitle>Choose a Signature Template</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
-                    {Object.entries(signatureTemplates).map(([key, template]) => (
-                      <button
-                        key={key}
-                        onClick={() => addSignature(key as keyof typeof signatureTemplates)}
-                        className="text-left p-4 border border-border rounded-lg hover:border-primary hover:bg-accent/50 transition-colors"
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <h4 className="font-medium">{template.name}</h4>
-                          {getVariantBadge(template.variant)}
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-3">{template.description}</p>
-                        <div className="bg-white p-2 rounded text-[10px] h-16 overflow-hidden border border-border/50">
-                          <div className="font-semibold">John Doe</div>
-                          <div className="text-primary text-[9px]">Director</div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </DialogContent>
-              </Dialog>
-              <Button onClick={() => addSignature('full')} size="sm" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add Signature
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => setTemplateDialogOpen(true)}>
+                <LayoutTemplate className="h-4 w-4" />Templates
+                <Badge variant="secondary" className="text-[10px] ml-1">15+</Badge>
+              </Button>
+              <Button onClick={addDefaultSignature} size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />Add Signature
               </Button>
             </div>
           )}
-          
+
           {activeTab === 'banners' && onEmailBannersChange && (
             <div className="flex gap-2">
-              <Select onValueChange={(name) => {
-                const preset = bannerSizePresets.find(p => p.name === name);
-                if (preset) addEmailBanner(preset);
-              }}>
-                <SelectTrigger className="w-[180px] h-9 text-sm">
-                  <SelectValue placeholder="Add preset..." />
-                </SelectTrigger>
+              <Select onValueChange={name => { const p = BANNER_SIZE_PRESETS.find(x => x.name === name); if (p) addEmailBanner(p); }}>
+                <SelectTrigger className="w-[180px] h-9 text-sm"><SelectValue placeholder="Add preset..." /></SelectTrigger>
                 <SelectContent>
-                  {bannerSizePresets.map((preset) => (
-                    <SelectItem key={preset.name} value={preset.name}>
-                      <div className="flex flex-col">
-                        <span>{preset.name}</span>
-                        <span className="text-xs text-muted-foreground">{preset.width} × {preset.height}px</span>
-                      </div>
+                  {BANNER_SIZE_PRESETS.map(p => (
+                    <SelectItem key={p.name} value={p.name}>
+                      <div className="flex flex-col"><span>{p.name}</span><span className="text-xs text-muted-foreground">{p.width} × {p.height}px</span></div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Button onClick={() => addEmailBanner()} size="sm" className="gap-2">
-                <ImagePlus className="h-4 w-4" />
-                Add Banner
-              </Button>
+              <Button onClick={() => addEmailBanner()} size="sm" className="gap-2"><ImagePlus className="h-4 w-4" />Add Banner</Button>
             </div>
           )}
         </div>
 
-        {/* Signatures Tab */}
+        {/* ═══ Signatures Tab ═══ */}
         <TabsContent value="signatures" className="space-y-4 mt-0">
-          {signatures.map((signature, index) => (
-            <div
-              key={signature.id}
-              className="group relative bg-card rounded-xl shadow-sm border border-border animate-slide-up overflow-hidden"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              {/* Header bar styled like email client */}
-              <div className="bg-muted/50 px-4 py-2 border-b border-border flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Internal Mail Client Preview
-                  </span>
+          {signatures.map((sig, index) => {
+            const previewHtml = renderPreview(sig);
+            const sanitized = DOMPurify.sanitize(previewHtml, {
+              ALLOWED_TAGS: ['table', 'tr', 'td', 'th', 'tbody', 'thead', 'p', 'img', 'a', 'strong', 'em', 'b', 'i', 'span', 'div', 'br', 'hr'],
+              ALLOWED_ATTR: ['style', 'src', 'alt', 'width', 'height', 'href', 'cellpadding', 'cellspacing', 'border', 'align', 'valign', 'target', 'rel', 'colspan'],
+            });
+
+            return (
+              <div key={sig.id} className="group relative bg-card rounded-xl shadow-sm border border-border animate-slide-up overflow-hidden" style={{ animationDelay: `${index * 50}ms` }}>
+                {/* Email client chrome header */}
+                <div className="bg-muted/50 px-4 py-2 border-b border-border flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1.5">
+                      <div className="w-2.5 h-2.5 rounded-full bg-red-400/70" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/70" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-green-400/70" />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider ml-2">Internal Mail Client Preview</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {getVariantBadge(sig.variant)}
+                    <Button variant="ghost" size="sm" onClick={() => copyHTML(previewHtml, sig.id)} className="h-7 gap-1.5 text-xs">
+                      {copiedId === sig.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                      {copiedId === sig.id ? 'Copied!' : 'Copy HTML'}
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {getVariantBadge(signature.variant)}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => copyHTML(renderPreview(signature), signature.id)}
-                    className="h-7 gap-1.5 text-xs"
-                  >
-                    {copiedId === signature.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                    {copiedId === signature.id ? 'Copied!' : 'Copy HTML'}
-                  </Button>
-                </div>
-              </div>
 
-              {editingId === signature.id ? (
-                <div className="p-6 space-y-6">
-                  {/* Section label */}
-                  <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                    Contact Information
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground">Full Name</label>
-                      <Input
-                        value={signature.name}
-                        onChange={(e) => updateSignature(signature.id, { name: e.target.value })}
-                        placeholder="John Doe"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground">Job Title</label>
-                      <Input
-                        value={signature.role}
-                        onChange={(e) => updateSignature(signature.id, { role: e.target.value })}
-                        placeholder="Global Account Lead"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                        <Building2 className="h-3 w-3" /> Company
-                      </label>
-                      <Input
-                        value={signature.company || ''}
-                        onChange={(e) => updateSignature(signature.id, { company: e.target.value })}
-                        placeholder="Company Name"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                        <MapPin className="h-3 w-3" /> Address
-                      </label>
-                      <Input
-                        value={signature.address || ''}
-                        onChange={(e) => updateSignature(signature.id, { address: e.target.value })}
-                        placeholder="1250 Broadway, New York, NY 10001"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                        <Phone className="h-3 w-3" /> Phone
-                      </label>
-                      <Input
-                        value={signature.phone || ''}
-                        onChange={(e) => updateSignature(signature.id, { phone: e.target.value })}
-                        placeholder="+1 212.555.0123"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                        <Mail className="h-3 w-3" /> Email
-                      </label>
-                      <Input
-                        value={signature.email || ''}
-                        onChange={(e) => updateSignature(signature.id, { email: e.target.value })}
-                        placeholder="jdoe@company.com"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                        <Globe className="h-3 w-3" /> Website
-                      </label>
-                      <Input
-                        value={signature.website || ''}
-                        onChange={(e) => updateSignature(signature.id, { website: e.target.value })}
-                        placeholder="www.company.com"
-                      />
-                    </div>
-                    <div className="space-y-2 sm:col-span-2">
-                      <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                        <Image className="h-3 w-3" /> Signature Logo
-                      </label>
-                      <div className="space-y-3">
-                        {/* Logo Preview */}
-                        {signature.logoUrl && (
-                          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border border-border">
-                            <img 
-                              src={signature.logoUrl} 
-                              alt="Logo preview" 
-                              className="h-12 w-12 object-contain rounded bg-white p-1"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = 'none';
-                              }}
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs text-muted-foreground truncate">{signature.logoUrl}</p>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => updateSignature(signature.id, { logoUrl: '' })}
-                              className="text-destructive hover:text-destructive h-8"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
-                        
-                        {/* Drag & Drop Zone for Logo */}
-                        {!signature.logoUrl && (
-                          <div 
-                            className="relative border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary/50 transition-colors"
-                            onDragOver={(e) => {
-                              e.preventDefault();
-                              e.currentTarget.classList.add('border-primary', 'bg-primary/5');
-                            }}
-                            onDragLeave={(e) => {
-                              e.preventDefault();
-                              e.currentTarget.classList.remove('border-primary', 'bg-primary/5');
-                            }}
-                            onDrop={async (e) => {
-                              e.preventDefault();
-                              e.currentTarget.classList.remove('border-primary', 'bg-primary/5');
-                              const file = e.dataTransfer.files?.[0];
-                              if (file && file.type.startsWith('image/')) {
-                                const fakeEvent = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
-                                handleLogoUpload(fakeEvent, signature.id);
-                              }
-                            }}
-                          >
-                            <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
-                            <p className="text-xs text-muted-foreground">
-                              Drag & drop logo here, or use buttons below
-                            </p>
-                          </div>
-                        )}
-                        
-                        {/* Upload/Link Options */}
-                        <div className="flex gap-2">
-                          {/* Upload Button */}
-                          <div className="relative">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => handleLogoUpload(e, signature.id)}
-                              className="absolute inset-0 opacity-0 cursor-pointer"
-                              disabled={uploadingLogoId === signature.id}
-                            />
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="gap-2 pointer-events-none"
-                              disabled={uploadingLogoId === signature.id}
-                            >
-                              {uploadingLogoId === signature.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Upload className="h-4 w-4" />
-                              )}
-                              Upload Logo
-                            </Button>
-                          </div>
-                          
-                          {/* URL Input with Popover */}
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="outline" size="sm" className="gap-2">
-                                <Link2 className="h-4 w-4" />
-                                Link URL
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-80" align="start">
-                              <div className="space-y-3">
-                                <div className="space-y-1">
-                                  <label className="text-xs font-medium">Logo URL</label>
-                                  <Input
-                                    value={signature.logoUrl || ''}
-                                    onChange={(e) => updateSignature(signature.id, { logoUrl: e.target.value })}
-                                    placeholder="https://example.com/logo.png"
-                                  />
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                  Enter a direct link to your logo image (PNG, JPG, SVG)
-                                </p>
-                              </div>
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                        
-                        <p className="text-xs text-muted-foreground">
-                          Recommended: 100×100px, PNG or SVG with transparent background
-                        </p>
-                        
-                        {/* Logo Size Controls */}
-                        {signature.logoUrl && (
-                          <LogoSizeControls 
-                            width={signature.logoWidth || 100}
-                            height={signature.logoHeight || 100}
-                            onChange={(width, height) => updateSignature(signature.id, { logoWidth: width, logoHeight: height })}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Accent Color */}
-                  <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider pt-4">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                    Brand Accent Color
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={signature.accentColor || TP_BLUE_LIGHT}
-                      onChange={(e) => updateSignature(signature.id, { accentColor: e.target.value })}
-                      className="w-10 h-10 rounded border border-input cursor-pointer"
-                    />
-                    <div className="flex-1">
-                      <Input
-                        value={signature.accentColor || ''}
-                        onChange={(e) => updateSignature(signature.id, { accentColor: e.target.value })}
-                        placeholder={`Default: ${TP_BLUE_LIGHT}`}
-                        className="font-mono text-sm uppercase"
-                      />
-                    </div>
-                    {signature.accentColor && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => updateSignature(signature.id, { accentColor: undefined })}
-                        className="text-xs"
-                      >
-                        Reset
-                      </Button>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Override the default TransPerfect Blue accent color for this signature
-                  </p>
-
-                  {/* Confidentiality Notice */}
-                  {signature.variant === 'full' && (
-                    <>
-                      <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider pt-4">
-                        <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-                        Confidentiality Notice
-                      </div>
-                      <Textarea
-                        value={signature.confidentialityNotice || ''}
-                        onChange={(e) => updateSignature(signature.id, { confidentialityNotice: e.target.value })}
-                        placeholder="Enter confidentiality notice..."
-                        className="text-xs min-h-[80px]"
-                      />
-                    </>
-                  )}
-
-                  {/* HTML Template */}
-                  <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider pt-4">
-                    <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
-                    HTML Template (Advanced)
-                  </div>
-                  <Textarea
-                    value={signature.html}
-                    onChange={(e) => updateSignature(signature.id, { html: e.target.value })}
-                    placeholder="HTML signature template"
-                    className="font-mono text-xs min-h-[150px]"
+                {editingId === sig.id ? (
+                  <SignatureEditorPanel
+                    signature={sig}
+                    onUpdate={updates => updateSignature(sig.id, updates)}
+                    onDelete={() => deleteSignature(sig.id)}
+                    onDone={() => setEditingId(null)}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Placeholders: [NAME], [ROLE], [COMPANY], [EMAIL], [PHONE], [WEBSITE], [ADDRESS], [LOGO_URL], [CONFIDENTIALITY]
-                  </p>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button size="sm" variant="secondary" onClick={() => setEditingId(null)}>
-                      Done
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => deleteSignature(signature.id)} className="text-destructive hover:text-destructive">
-                      <X className="h-4 w-4 mr-1" /> Delete
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {/* Signature Preview */}
-                  <div className="p-6">
-                    <div
-                      className="bg-white p-6 rounded-lg border border-border/50"
-                      dangerouslySetInnerHTML={{ __html: renderPreview(signature) }}
-                    />
-                  </div>
-                  
-                  {/* Action buttons */}
-                  {canEdit && (
-                    <div className="px-6 pb-4 flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => setEditingId(signature.id)}
-                        className="p-2 rounded-md hover:bg-secondary transition-colors"
-                      >
-                        <Pencil className="h-4 w-4 text-muted-foreground" />
-                      </button>
-                      <button
-                        onClick={() => deleteSignature(signature.id)}
-                        className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
+                ) : (
+                  <>
+                    {/* Live Preview */}
+                    <div className="p-6">
+                      <div className="bg-white p-6 rounded-lg border border-border/50" dangerouslySetInnerHTML={{ __html: sanitized }} />
                     </div>
-                  )}
-                </>
-              )}
-            </div>
-          ))}
+
+                    {/* Action buttons */}
+                    {canEdit && (
+                      <div className="px-6 pb-4 flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => duplicateSignature(sig)} className="p-2 rounded-md hover:bg-secondary transition-colors" title="Duplicate">
+                          <Copy className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                        <button onClick={() => setEditingId(sig.id)} className="p-2 rounded-md hover:bg-secondary transition-colors" title="Edit">
+                          <Pencil className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                        <button onClick={() => deleteSignature(sig.id)} className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors" title="Delete">
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            );
+          })}
 
           {signatures.length === 0 && canEdit && (
-            <button
-              onClick={() => addSignature('full')}
-              className="w-full h-40 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-            >
+            <button onClick={() => setTemplateDialogOpen(true)} className="w-full h-40 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors">
               <Mail className="h-8 w-8" />
               <span className="text-sm font-medium">Create email signature template</span>
-              <span className="text-xs text-muted-foreground">Choose from Full, Reply, or Minimal variants</span>
+              <span className="text-xs text-muted-foreground">Choose from 15+ templates across 5 categories</span>
             </button>
           )}
         </TabsContent>
 
-        {/* Email Banners Tab */}
+        {/* ═══ Email Banners Tab ═══ */}
         <TabsContent value="banners" className="space-y-6 mt-0">
-          {/* Info callout */}
           <div className="bg-muted/50 rounded-lg p-4 border border-border/50">
             <h4 className="font-medium text-sm mb-1">Email Banner Guidelines</h4>
-            <p className="text-xs text-muted-foreground">
-              Email banners appear below signatures for promotional campaigns, events, or announcements. 
-              Keep file sizes under 100KB and use standard widths (550-600px) for best compatibility.
-            </p>
+            <p className="text-xs text-muted-foreground">Email banners appear below signatures for promotional campaigns, events, or announcements. Keep file sizes under 100KB and use standard widths (550-600px) for best compatibility.</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {emailBanners.map((banner, index) => {
               const isEditing = editingBannerId === banner.id;
               const aspectRatio = banner.width / banner.height;
-
               return (
-                <div
-                  key={banner.id}
-                  className="group relative bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 overflow-hidden animate-scale-in hover:border-primary/30 transition-colors"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  {/* Header */}
+                <div key={banner.id} className="group relative bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 overflow-hidden animate-scale-in hover:border-primary/30 transition-colors" style={{ animationDelay: `${index * 50}ms` }}>
                   <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Image className="h-4 w-4 text-primary" />
-                      </div>
-                      {isEditing ? (
-                        <Input
-                          value={banner.name}
-                          onChange={(e) => updateEmailBanner(banner.id, { name: e.target.value })}
-                          className="h-7 text-xs w-[140px]"
-                        />
-                      ) : (
-                        <span className="font-semibold text-sm text-foreground">
-                          {banner.name}
-                        </span>
-                      )}
+                      <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center"><Image className="h-4 w-4 text-primary" /></div>
+                      {isEditing ? <Input value={banner.name} onChange={e => updateEmailBanner(banner.id, { name: e.target.value })} className="h-7 text-xs w-[140px]" /> : <span className="font-semibold text-sm">{banner.name}</span>}
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-mono bg-muted/80 px-2 py-0.5 rounded text-muted-foreground">
-                        {banner.width} × {banner.height}
-                      </span>
+                      <span className="text-[10px] font-mono bg-muted/80 px-2 py-0.5 rounded text-muted-foreground">{banner.width} × {banner.height}</span>
                       {canEdit && (
                         <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => setEditingBannerId(isEditing ? null : banner.id)}
-                            className="p-1 rounded hover:bg-secondary transition-colors"
-                          >
-                            <Pencil className="h-3 w-3 text-muted-foreground" />
-                          </button>
-                          <button
-                            onClick={() => deleteEmailBanner(banner.id)}
-                            className="p-1 rounded hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
+                          <button onClick={() => setEditingBannerId(isEditing ? null : banner.id)} className="p-1 rounded hover:bg-secondary transition-colors"><Pencil className="h-3 w-3 text-muted-foreground" /></button>
+                          <button onClick={() => deleteEmailBanner(banner.id)} className="p-1 rounded hover:bg-destructive hover:text-destructive-foreground transition-colors"><X className="h-3 w-3" /></button>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Banner Preview with Drag & Drop */}
                   <div className="px-4 py-4">
-                    <div 
-                      className="relative bg-muted/30 rounded-lg border-2 border-dashed border-primary/30 flex items-center justify-center overflow-hidden transition-colors"
-                      style={{ 
-                        aspectRatio: aspectRatio > 3 ? 4 : aspectRatio,
-                        maxHeight: '200px'
-                      }}
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        e.currentTarget.classList.add('border-primary', 'bg-primary/10');
-                      }}
-                      onDragLeave={(e) => {
-                        e.preventDefault();
-                        e.currentTarget.classList.remove('border-primary', 'bg-primary/10');
-                      }}
-                      onDrop={async (e) => {
-                        e.preventDefault();
-                        e.currentTarget.classList.remove('border-primary', 'bg-primary/10');
-                        const file = e.dataTransfer.files?.[0];
-                        if (file && file.type.startsWith('image/') && onEmailBannersChange) {
-                          const fakeEvent = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
-                          handleBannerUpload(fakeEvent, banner.id);
-                        }
-                      }}
-                    >
-                      {banner.imageUrl ? (
-                        <img 
-                          src={banner.imageUrl} 
-                          alt={banner.name}
-                          className="w-full h-full object-cover rounded"
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                          <ImagePlus className="h-8 w-8 opacity-50" />
-                          <span className="text-xs">Drop image here or click edit</span>
-                        </div>
+                    <div className="relative bg-muted/30 rounded-lg border-2 border-dashed border-primary/30 flex items-center justify-center overflow-hidden transition-colors"
+                      style={{ aspectRatio: aspectRatio > 3 ? 4 : aspectRatio, maxHeight: '200px' }}
+                      onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-primary', 'bg-primary/10'); }}
+                      onDragLeave={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary', 'bg-primary/10'); }}
+                      onDrop={e => {
+                        e.preventDefault(); e.currentTarget.classList.remove('border-primary', 'bg-primary/10');
+                        const f = e.dataTransfer.files?.[0];
+                        if (f?.type.startsWith('image/') && onEmailBannersChange) handleBannerUpload({ target: { files: [f] } } as unknown as React.ChangeEvent<HTMLInputElement>, banner.id);
+                      }}>
+                      {banner.imageUrl ? <img src={banner.imageUrl} alt={banner.name} className="w-full h-full object-cover rounded" /> : (
+                        <div className="flex flex-col items-center gap-2 text-muted-foreground"><ImagePlus className="h-8 w-8 opacity-50" /><span className="text-xs">Drop image here or click edit</span></div>
                       )}
                     </div>
                   </div>
 
-                  {/* Specs / Edit Form */}
                   <div className="px-4 pb-4 space-y-3">
                     {isEditing ? (
                       <>
-                        <BannerSizeControls
-                          width={banner.width}
-                          height={banner.height}
-                          onChange={(width, height) => updateEmailBanner(banner.id, { width, height })}
-                        />
+                        <BannerSizeControls width={banner.width} height={banner.height} onChange={(w, h) => updateEmailBanner(banner.id, { width: w, height: h })} />
                         <div className="space-y-2">
                           <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Banner Image</label>
                           <div className="flex gap-2">
-                            {/* Upload Button */}
                             <div className="relative flex-1">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => handleBannerUpload(e, banner.id)}
-                                className="absolute inset-0 opacity-0 cursor-pointer"
-                                disabled={uploadingBannerId === banner.id}
-                              />
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full gap-2 pointer-events-none h-8 text-xs"
-                                disabled={uploadingBannerId === banner.id}
-                              >
-                                {uploadingBannerId === banner.id ? (
-                                  <Loader2 className="h-3 w-3 animate-spin" />
-                                ) : (
-                                  <Upload className="h-3 w-3" />
-                                )}
-                                Upload
+                              <input type="file" accept="image/*" onChange={e => handleBannerUpload(e, banner.id)} className="absolute inset-0 opacity-0 cursor-pointer" disabled={uploadingBannerId === banner.id} />
+                              <Button variant="outline" size="sm" className="w-full gap-2 pointer-events-none h-8 text-xs" disabled={uploadingBannerId === banner.id}>
+                                {uploadingBannerId === banner.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}Upload
                               </Button>
                             </div>
-                            
-                            {/* URL Input with Popover */}
                             <Popover>
-                              <PopoverTrigger asChild>
-                                <Button variant="outline" size="sm" className="gap-2 h-8 text-xs">
-                                  <Link2 className="h-3 w-3" />
-                                  URL
-                                </Button>
-                              </PopoverTrigger>
+                              <PopoverTrigger asChild><Button variant="outline" size="sm" className="gap-2 h-8 text-xs"><Link2 className="h-3 w-3" />URL</Button></PopoverTrigger>
                               <PopoverContent className="w-80" align="start">
-                                <div className="space-y-3">
-                                  <div className="space-y-1">
-                                    <label className="text-xs font-medium">Image URL</label>
-                                    <Input
-                                      value={banner.imageUrl}
-                                      onChange={(e) => updateEmailBanner(banner.id, { imageUrl: e.target.value })}
-                                      placeholder="https://example.com/banner.jpg"
-                                    />
-                                  </div>
-                                </div>
+                                <div className="space-y-2"><label className="text-xs font-medium">Image URL</label><Input value={banner.imageUrl} onChange={e => updateEmailBanner(banner.id, { imageUrl: e.target.value })} placeholder="https://example.com/banner.jpg" /></div>
                               </PopoverContent>
                             </Popover>
                           </div>
-                          {banner.imageUrl && (
-                            <p className="text-[10px] text-muted-foreground truncate">{banner.imageUrl}</p>
-                          )}
                         </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Link URL (optional)</label>
-                          <Input
-                            value={banner.linkUrl || ''}
-                            onChange={(e) => updateEmailBanner(banner.id, { linkUrl: e.target.value })}
-                            placeholder="https://..."
-                            className="h-8 text-xs"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Description</label>
-                          <Input
-                            value={banner.description || ''}
-                            onChange={(e) => updateEmailBanner(banner.id, { description: e.target.value })}
-                            placeholder="Campaign or usage notes..."
-                            className="h-8 text-xs"
-                          />
-                        </div>
-                        <Button size="sm" variant="secondary" onClick={() => setEditingBannerId(null)} className="mt-2">
-                          Done
-                        </Button>
+                        <div className="space-y-1"><label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Link URL (optional)</label><Input value={banner.linkUrl || ''} onChange={e => updateEmailBanner(banner.id, { linkUrl: e.target.value })} placeholder="https://..." className="h-8 text-xs" /></div>
+                        <div className="space-y-1"><label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Description</label><Input value={banner.description || ''} onChange={e => updateEmailBanner(banner.id, { description: e.target.value })} placeholder="Campaign or usage notes..." className="h-8 text-xs" /></div>
+                        <Button size="sm" variant="secondary" onClick={() => setEditingBannerId(null)} className="mt-2">Done</Button>
                       </>
                     ) : (
                       <div className="bg-muted/50 rounded-lg p-3">
                         <div className="grid grid-cols-2 gap-4 text-xs mb-2">
-                          <div>
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">Dimensions</p>
-                            <p className="font-medium">{banner.width} × {banner.height} px</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">Aspect Ratio</p>
-                            <p className="font-medium">{aspectRatio.toFixed(2)}:1</p>
-                          </div>
+                          <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">Dimensions</p><p className="font-medium">{banner.width} × {banner.height} px</p></div>
+                          <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">Aspect Ratio</p><p className="font-medium">{aspectRatio.toFixed(2)}:1</p></div>
                         </div>
-                        {banner.description && (
-                          <p className="text-xs text-muted-foreground">{banner.description}</p>
-                        )}
-                        {banner.linkUrl && (
-                          <a 
-                            href={banner.linkUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-xs text-primary hover:underline flex items-center gap-1 mt-2"
-                          >
-                            <ExternalLink className="h-3 w-3" /> View link
-                          </a>
-                        )}
+                        {banner.description && <p className="text-xs text-muted-foreground">{banner.description}</p>}
+                        {banner.linkUrl && <a href={banner.linkUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-2"><ExternalLink className="h-3 w-3" />View link</a>}
                       </div>
                     )}
                   </div>
@@ -1221,10 +423,7 @@ export const SignaturesSection = ({
             })}
 
             {emailBanners.length === 0 && (
-              <button
-                onClick={() => addEmailBanner(bannerSizePresets[0])}
-                className="h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors col-span-full"
-              >
+              <button onClick={() => addEmailBanner(BANNER_SIZE_PRESETS[0])} className="h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors col-span-full">
                 <ImagePlus className="h-8 w-8" />
                 <span className="text-sm font-medium">Add email banner specification</span>
                 <span className="text-xs text-muted-foreground">Standard sizes: 600×150, 550×100, 600×200</span>
@@ -1233,6 +432,9 @@ export const SignaturesSection = ({
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Template Dialog */}
+      <SignatureTemplateDialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen} onSelect={addSignatureFromTemplate} />
     </section>
   );
 };

@@ -241,6 +241,30 @@ export interface BrandWebsiteLink {
   screenshotUrl?: string; // Optional screenshot preview of the website
 }
 
+// SIGNATURES - Social Links
+export interface SignatureSocialLink {
+  id: string;
+  platform: string;
+  url: string;
+}
+
+// SIGNATURES - Advanced Styling
+export interface SignatureStyle {
+  fontFamily?: string;
+  nameFontSize?: number;
+  titleFontSize?: number;
+  textFontSize?: number;
+  nameColor?: string;
+  titleColor?: string;
+  textColor?: string;
+  linkColor?: string;
+  dividerStyle?: 'solid' | 'dashed' | 'dotted' | 'double' | 'none';
+  dividerColor?: string;
+  dividerWidth?: number;
+  spacing?: number;
+  layout?: 'horizontal' | 'vertical';
+}
+
 // SIGNATURES - Signature Protocol
 export interface BrandSignature {
   id: string;
@@ -261,6 +285,17 @@ export interface BrandSignature {
   confidentialityNotice?: string;
   // Custom accent color (overrides default TransPerfect Blue)
   accentColor?: string;
+  // Social media links
+  socialLinks?: SignatureSocialLink[];
+  // Advanced styling
+  style?: SignatureStyle;
+  // Inline banner
+  bannerUrl?: string;
+  bannerLinkUrl?: string;
+  bannerWidth?: number;
+  bannerHeight?: number;
+  // Template ID reference
+  templateId?: string;
 }
 
 // EMAIL BANNERS - Promotional banners below signatures
