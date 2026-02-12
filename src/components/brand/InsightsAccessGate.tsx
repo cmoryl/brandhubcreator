@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
+const UNIVERSAL_ACCESS_CODE = 'MarComm';
+
 interface InsightsAccessGateProps {
   accessCode?: string;
   onAccessCodeChange?: (code: string) => void;
@@ -44,7 +46,7 @@ export const InsightsAccessGate = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (codeInput.trim() === accessCode) {
+    if (codeInput.trim() === accessCode || codeInput.trim() === UNIVERSAL_ACCESS_CODE) {
       setIsUnlocked(true);
       setError('');
     } else {
