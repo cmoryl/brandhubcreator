@@ -34,6 +34,7 @@ import { SharedAssetsSection, SharedAsset } from './SharedAssetsSection';
 import { EventPatternsSection } from './EventPatternsSection';
 import { PresentationTemplatesSection } from '@/components/brand/PresentationTemplatesSection';
 import { Separator } from '@/components/ui/separator';
+import { InsightsSection } from '@/components/brand/InsightsSection';
 
 export interface FullEventPageProps {
   event: EventGuide;
@@ -439,6 +440,17 @@ export const FullEventPage = ({
             isEditable={canEdit}
             entityId={eventId}
             entityType="event"
+          />
+        );
+      case 'insights':
+        return (
+          <InsightsSection
+            insights={(event as any).insights || []}
+            layout={(event as any).insightsLayout}
+            onInsightsChange={editHandler((insights) => updateEvent({ insights } as any))}
+            onLayoutChange={canEdit ? (insightsLayout) => updateEvent({ insightsLayout } as any) : undefined}
+            entityType="event"
+            entityId={eventId}
           />
         );
       default:
