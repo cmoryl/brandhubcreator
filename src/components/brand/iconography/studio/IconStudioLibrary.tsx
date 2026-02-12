@@ -191,28 +191,34 @@ export const IconStudioLibrary = ({
   const handleSaveLibrary = async () => {
     if (!formName.trim()) return;
 
-    if (editingLibrary) {
-      await updateLibrary.mutateAsync({
-        id: editingLibrary.id,
-        updates: {
-          name: formName,
-          description: formDescription || undefined,
-          parent_library_id: formParentId,
-        },
-      });
-    } else {
-      await createLibrary.mutateAsync({
-        organization_id: organizationId,
-        name: formName,
-        level: formLevel,
-        description: formDescription || undefined,
-        parent_library_id: formParentId,
-        icons: [],
-      });
-    }
+    try {
+      const parentId = formParentId && formParentId.trim() !== '' ? formParentId : null;
 
-    setShowCreateDialog(false);
-    resetForm();
+      if (editingLibrary) {
+        await updateLibrary.mutateAsync({
+          id: editingLibrary.id,
+          updates: {
+            name: formName,
+            description: formDescription || undefined,
+            parent_library_id: parentId,
+          },
+        });
+      } else {
+        await createLibrary.mutateAsync({
+          organization_id: organizationId,
+          name: formName,
+          level: formLevel,
+          description: formDescription || undefined,
+          parent_library_id: parentId,
+          icons: [],
+        });
+      }
+
+      setShowCreateDialog(false);
+      resetForm();
+    } catch (error) {
+      console.error('Save library failed:', error);
+    }
   };
 
   const renderIcon = (icon: BrandIconography, size: number = 20) => {

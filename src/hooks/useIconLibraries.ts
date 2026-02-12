@@ -76,6 +76,7 @@ export const useIconLibraries = (organizationId: string | undefined) => {
         .insert({
           ...library,
           icons: JSON.parse(JSON.stringify(library.icons || [])),
+          parent_library_id: library.parent_library_id || null,
         })
         .select()
         .single();
