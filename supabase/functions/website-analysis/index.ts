@@ -83,20 +83,70 @@ Return a JSON object with these sections:
 
 ## Analysis Guidelines
 
-For each section provide 3-5 specific, actionable findings and 2-4 concrete recommendations.
-- Brand Consistency: Logo usage, color palette adherence, typography, tone of voice, messaging alignment
-- User Experience: Navigation, information architecture, mobile responsiveness, load times, interaction patterns
-- Content Quality: Writing quality, freshness, depth, multimedia usage, content gaps
-- SEO Health: Meta tags, heading structure, keyword optimization, internal linking, structured data
-- Performance: Core Web Vitals estimation, image optimization, resource loading, caching
-- Competitive Position: Market positioning vs competitors, unique value proposition clarity, differentiation
-- Industry Trends: Alignment with current industry design/content trends, innovation opportunities
-- Technical Audit: Security headers, HTTPS, modern frameworks, API patterns, code quality signals
-- Accessibility: WCAG compliance signals, contrast, alt text, keyboard navigation, ARIA usage
-- Conversion Optimization: CTAs, funnel clarity, trust signals, social proof, form optimization
+For each section provide 2-3 specific findings and 2 concrete recommendations. Keep findings concise (one sentence each).
+- Brand Consistency: Logo, colors, typography, messaging
+- User Experience: Navigation, mobile, interaction patterns
+- Content Quality: Writing, freshness, multimedia
+- SEO Health: Meta tags, headings, keywords, linking
+- Performance: Core Web Vitals, images, caching
+- Competitive Position: Market positioning, differentiation
+- Industry Trends: Design/content trends, innovation
+- Technical Audit: Security, HTTPS, frameworks
+- Accessibility: WCAG, contrast, alt text, ARIA
+- Conversion Optimization: CTAs, trust signals, forms
 
-Be specific and data-driven. Reference specific pages, elements, or patterns you observe.
-Output ONLY valid JSON. No markdown, no explanation.`;
+Be specific. Output ONLY valid JSON. No markdown, no explanation. Keep total output under 3000 tokens.`;
+
+/** Extract and recover JSON from potentially truncated/wrapped AI responses */
+function extractJsonFromResponse(raw: string): unknown {
+  let cleaned = raw.trim();
+  // Strip markdown fences
+  cleaned = cleaned.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```\s*$/, '').trim();
+
+  // Try direct parse first
+  try { return JSON.parse(cleaned); } catch {}
+
+  // Find the outermost JSON object
+  const jsonStart = cleaned.indexOf('{');
+  if (jsonStart === -1) throw new Error("No JSON object found in response");
+  
+  let candidate = cleaned.substring(jsonStart);
+  
+  // Try parsing as-is
+  try { return JSON.parse(candidate); } catch {}
+
+  // Remove trailing garbage after last }
+  const lastBrace = candidate.lastIndexOf('}');
+  if (lastBrace > 0) {
+    try { return JSON.parse(candidate.substring(0, lastBrace + 1)); } catch {}
+  }
+
+  // Truncation recovery: fix trailing commas, incomplete strings, close brackets/braces
+  candidate = candidate
+    .replace(/,\s*([}\]])/g, '$1')   // trailing commas before closers
+    .replace(/,\s*$/, '')             // trailing comma at end
+    .replace(/"[^"]*$/, '""')         // incomplete string at end
+    .replace(/:\s*$/, ': null')       // incomplete value
+    .replace(/,\s*"[^"]*$/, '');      // incomplete key at end
+
+  const openBraces = (candidate.match(/{/g) || []).length;
+  const closeBraces = (candidate.match(/}/g) || []).length;
+  const openBrackets = (candidate.match(/\[/g) || []).length;
+  const closeBrackets = (candidate.match(/]/g) || []).length;
+
+  for (let i = 0; i < openBrackets - closeBrackets; i++) candidate += ']';
+  for (let i = 0; i < openBraces - closeBraces; i++) candidate += '}';
+
+  try {
+    const result = JSON.parse(candidate);
+    console.log("[website-analysis] Recovered truncated JSON response");
+    return result;
+  } catch {
+    // Last resort: remove all control characters
+    candidate = candidate.replace(/[\x00-\x1F\x7F]/g, ' ');
+    return JSON.parse(candidate);
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -164,8 +214,9 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        max_tokens: 8000,
+        model: "google/gemini-2.5-flash-lite",
+        max_tokens: 4500,
+        temperature: 0.3,
         messages: [
           { role: "system", content: WEBSITE_ANALYSIS_PROMPT },
           { role: "user", content: userPrompt },
@@ -197,47 +248,10 @@ serve(async (req) => {
     // Parse JSON response - handle truncated/wrapped output
     let report;
     try {
-      let cleanContent = content.trim();
-      // Strip markdown code fences
-      if (cleanContent.startsWith('```json')) cleanContent = cleanContent.slice(7);
-      else if (cleanContent.startsWith('```')) cleanContent = cleanContent.slice(3);
-      if (cleanContent.endsWith('```')) cleanContent = cleanContent.slice(0, -3);
-      cleanContent = cleanContent.trim();
-      report = JSON.parse(cleanContent);
+      report = extractJsonFromResponse(content);
     } catch (parseError) {
-      // Try extracting the largest JSON object from the response
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        try {
-          report = JSON.parse(jsonMatch[0]);
-        } catch {
-          // Attempt to fix truncated JSON by closing open structures
-          let truncated = jsonMatch[0];
-          // Count open/close braces and brackets
-          const openBraces = (truncated.match(/\{/g) || []).length;
-          const closeBraces = (truncated.match(/\}/g) || []).length;
-          const openBrackets = (truncated.match(/\[/g) || []).length;
-          const closeBrackets = (truncated.match(/\]/g) || []).length;
-          
-          // Remove trailing partial values (incomplete strings, trailing commas)
-          truncated = truncated.replace(/,\s*$/, '');
-          truncated = truncated.replace(/"[^"]*$/, '""');
-          
-          // Close open structures
-          for (let i = 0; i < openBrackets - closeBrackets; i++) truncated += ']';
-          for (let i = 0; i < openBraces - closeBraces; i++) truncated += '}';
-          
-          try {
-            report = JSON.parse(truncated);
-            console.log("[website-analysis] Recovered truncated JSON response");
-          } catch {
-            console.error("[website-analysis] Parse failed even after recovery attempt:", content.substring(0, 500));
-            throw new Error("Failed to parse analysis results. The AI response was truncated — please try again.");
-          }
-        }
-      } else {
-        throw new Error("Failed to parse analysis results");
-      }
+      console.error("[website-analysis] Parse failed:", (parseError as Error).message, "Content preview:", content.substring(0, 300));
+      throw new Error("Failed to parse analysis results. Please try again.");
     }
 
     console.log(`[website-analysis] Analysis complete. Score: ${report.overallScore}`);
