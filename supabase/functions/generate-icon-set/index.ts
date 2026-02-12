@@ -75,45 +75,59 @@ const ICON_TAXONOMY: Record<string, { name: string; description: string; section
  * Layer 1: Semantic Prompting - SVG Architect System Prompt
  * Enforces strict geometric precision for robust, consistent icon generation.
  */
-const SVG_ARCHITECT_PROMPT = `You are a Senior SVG Architect and Brand Systems Designer generating a cohesive 100-icon brand library. You specialize in "Iconic Simplicity"—creating symbols legible at 16px yet detailed enough for marketing at 1024px.
+const SVG_ARCHITECT_PROMPT = `You are a world-class SVG icon designer producing a cohesive brand icon library that rivals Lucide, Phosphor, and SF Symbols in quality. Every icon must be portfolio-worthy.
 
-## Core Directives
+## GOLDEN RULES — Violating any is unacceptable
 
-1. **Geometric Precision**: 24x24 pixel grid. Whole numbers for coordinates. No sub-pixel values.
-2. **Structural Consistency**: Uniform visual weight across all icons. A "Home" icon and a "Plus" icon must have the same optical volume.
-3. **Path Logic**: Single, clean paths. No overlapping or messy intersections. Paths must merge cleanly for CSS stroke control.
-4. **Cohesive Set**: All icons must feel like they belong to the same family.
-5. **Safe Zone**: Center all elements within a 20px content zone (2px padding on all sides).
+1. **Keyline Geometry**: Every icon on a 24×24 grid using invisible scaffolding:
+   - Square content: 18×18 centered (3,3 to 21,21)
+   - Circle content: 20px diameter at center 12,12
+   - Vertical rect: 14×20 centered | Horizontal rect: 20×14 centered
+   Choose the keyline fitting the subject. ALL icons in a set must use consistent keylines for their type.
 
-## Technical Standards
+2. **Optical Weight**: Every icon must have EQUAL perceived visual mass. Simple icons (plus, minus) need slightly larger/thicker forms. Complex icons (gear, chart) can be slightly thinner. The set must look uniform at a glance.
 
-- ViewBox: Always \`0 0 24 24\`
-- Use \`<path>\` elements (not basic shapes like circle, rect) for universal CSS stroke control
-- No raster data, no base64, no embedded images
-- Closed paths for fill compatibility
-- Optimized, clean SVG code - strip metadata, comments, editor tags
-- All coordinates must be whole numbers or at most 2 decimal places
+3. **Pixel-Perfect Construction**:
+   - ALL coordinates: whole pixels or .5 increments only
+   - Horizontal/vertical lines: integer coordinates ONLY
+   - NEVER use coordinates like 3.73 or 17.291
+   - Curves: control points on whole or .5 pixels
 
-## The 6-Category Taxonomy
+4. **Path Craftsmanship**:
+   - MINIMUM segments possible. Simplicity = quality
+   - Every path CLOSED (Z) for fill compatibility
+   - Maximum 3 <path> elements per icon (prefer 1-2)
+   - No tiny segments under 1px
 
-Categorize icons into one of these buckets:
-1. **Foundation**: Navigation, UI states, basic logic (arrows, menus, toggles)
-2. **Communication**: Email, social, feedback, support (chat, notifications, mail)
-3. **SaaS/Data**: Analytics, security, settings, workflows (charts, locks, gears)
-4. **E-Commerce**: Payments, shipping, storefront, loyalty (carts, cards, packages)
-5. **Marketing Hero**: Growth, trophies, "trust" signals, abstract concepts (stars, badges, rockets)
-6. **Industry Specific**: Custom symbols based on context (medical, legal, AI, etc.)
+5. **Distinctive Silhouettes**: Each icon instantly recognizable as a filled shape at 16×16px.
 
-## Output Format
+6. **Set Cohesion**: All icons in this batch must feel like siblings — same stroke weight, same corner treatment, same level of detail, same optical density.
 
-Return a JSON array of icon objects. Each must have:
-- \`name\`: Descriptive, unique name (e.g., "Dashboard Overview")
-- \`svg\`: Complete, valid SVG code with xmlns attribute
+## TECHNICAL REQUIREMENTS
 
-CRITICAL: Output ONLY the JSON array. No markdown code blocks. No explanation. No extra text.
+- ViewBox: ALWAYS "0 0 24 24"
+- Use <path> elements ONLY — no circle, rect, line, polygon, ellipse
+- Convert ALL shapes to optimized path data
+- No image, base64, text, use, clipPath, transforms, IDs, classes, or metadata
+- Strip all whitespace between elements
 
-Example output:
-[{"name": "Home Base", "svg": "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 24 24\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\"><path d=\\"M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10\\"/></svg>"}]`;
+## WHAT MAKES A BAD ICON (NEVER DO THESE)
+
+- 20+ path segments (clip art, not icon)
+- Inconsistent stroke widths within one icon
+- Off-grid coords causing blur
+- More than 5 distinct visual elements (over-detailed)
+- Paths that don't close (gaps in fill mode)
+- Generic boring shapes — each icon needs personality
+- Varying levels of complexity across the set (some simple, some ornate)
+
+## OUTPUT FORMAT
+
+Return ONLY a JSON array. No markdown. No code blocks. No explanation.
+Each item: {"name": "Descriptive Name", "svg": "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 24 24\\" ...>...</svg>"}
+
+Example:
+[{"name": "Home Base", "svg": "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 24 24\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"><path d=\\"M3 12L12 3L21 12M5 10V20H10V14H14V14H14V20H19V10Z\\"/></svg>"}]`;
 
 interface IconResult {
   id: string;
@@ -205,32 +219,36 @@ serve(async (req) => {
     const linejoin = cornerStyle === 'sharp' ? 'miter' : 'round';
 
     // Build contextual prompt with Layer 1 semantic constraints
-    const contextPrompt = `Generate ${currentSection.count} unique icons for the "${currentSection.name}" section.
+    const contextPrompt = `Generate exactly ${currentSection.count} unique, high-quality icons for the "${currentSection.name}" section.
 
-## Context
-- Section: ${currentSection.name}
-- Description: ${currentSection.description}
-- Brand/Entity: ${entityName}${industry ? ` (${industry} industry)` : ''}
-- Category: ${taxonomyCategory.name} - ${taxonomyCategory.description}
+## Design Brief
+- Section: ${currentSection.name} — ${currentSection.description}
+- Brand: "${entityName}"${industry ? ` in the ${industry} industry` : ''}
+- Category: ${taxonomyCategory.name} (${taxonomyCategory.description})
 
-## Style Requirements (STRICT)
-- Preset: ${preset}
-- stroke-width: ${strokeWidth}px (EXACT - do not vary)
-- stroke-linecap: ${linecap}
-- stroke-linejoin: ${linejoin}
-- stroke: ${isFilled ? 'none' : 'currentColor'}
-- fill: ${isFilled ? 'currentColor' : 'none'}
-- Corner radius: ${cornerStyle === 'rounded' ? '4px rounded corners' : 'Sharp 90° corners only'}
+## Style Specification (MANDATORY — apply to every icon)
+- Preset: "${preset}"
+- stroke-width: ${strokeWidth}px (EXACT — do not vary between icons)
+- stroke-linecap: "${linecap}"
+- stroke-linejoin: "${linejoin}"
+- stroke: "${isFilled ? 'none' : 'currentColor'}"
+- fill: "${isFilled ? 'currentColor' : 'none'}"
+${cornerStyle === 'sharp' ? '- ALL corners must be sharp 90° angles. No rounded corners anywhere.' : '- Use smooth rounded corners consistently.'}
 
-## Geometric Constraints
-- All icons must fit within a 20px content zone (2px padding on all sides)
-- Use only whole numbers for coordinates (no decimals)
-- Center all elements both horizontally and vertically
-- Maintain consistent stroke weight across all icons
+## Design Direction
+- Each icon must be CONCEPTUALLY DISTINCT — no two icons should look similar
+- Names should be descriptive and specific (e.g., "Trending Analytics" not "Chart 1")
+- For "${entityName}": infuse subtle brand personality while keeping icons universally readable
+- Think about what a designer at ${entityName} would actually need for their ${currentSection.name.toLowerCase()} icons
 
-Make icons specifically relevant to "${entityName}" while maintaining cohesion with the ${taxonomyCategory.name} category visual language.
+## Quality Checklist (verify each icon)
+✓ Recognizable at 16px as a filled silhouette
+✓ All coordinates on whole pixels or .5
+✓ Consistent visual weight across all ${currentSection.count} icons
+✓ Clean closed paths (end with Z)
+✓ No more than 3 <path> elements
 
-Return ONLY a JSON array like this (no markdown, no explanation):
+Return ONLY the JSON array — no markdown, no explanation:
 [{"name": "Icon Name", "svg": "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 24 24\\" ...>...</svg>"}]`;
 
     console.log(`[generate-icon-set] Generating ${currentSection.count} icons for ${category}/${currentSection.name}`);

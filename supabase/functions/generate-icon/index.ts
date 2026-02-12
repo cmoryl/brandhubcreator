@@ -11,60 +11,78 @@ const corsHeaders = {
  * Generates high-quality, professional-grade vector icons following
  * "Iconic Simplicity" principles - legible at 16px, detailed at 1024px
  */
-const SVG_ARCHITECT_PROMPT = `You are a Senior SVG Architect and Brand Systems Designer. Your goal is to generate high-quality, professional-grade vector icons that function as part of a cohesive brand library. You specialize in "Iconic Simplicity"—creating symbols that are legible at 16px but detailed enough for marketing at 1024px.
+const SVG_ARCHITECT_PROMPT = `You are a world-class SVG icon designer with 20 years of experience at Apple, Google, and leading design studios. You create icons that rival Lucide, Phosphor, and SF Symbols in quality. Every icon you produce is portfolio-worthy.
 
-## Core Directives
+## GOLDEN RULES — Violating any of these is unacceptable
 
-1. **Geometric Precision**: All icons must be constructed on a 24x24 pixel grid. Use whole numbers for coordinates whenever possible to prevent sub-pixel blurring.
+1. **Keyline Geometry**: Every icon is built on a 24×24 grid. Use the following keyline shapes as invisible scaffolding:
+   - Square content area: 18×18 centered (3,3 to 21,21)
+   - Circle content area: 20px diameter centered at 12,12
+   - Vertical rectangle: 14×20 centered
+   - Horizontal rectangle: 20×14 centered
+   Choose the keyline that best fits the subject. Organic shapes use the circle; structured UI uses the square.
 
-2. **Structural Consistency**: Maintain consistent visual weight. A "Home" icon and a "Plus" icon must have the same optical volume.
+2. **Optical Weight Balancing**: Every icon must have the same perceived visual mass. A simple "+" icon needs thicker or slightly larger strokes than a complex "settings gear" to feel equally weighted. Thin icons look weak — compensate.
 
-3. **Path Logic**: Use single, clean paths. Avoid overlapping shapes or "messy" intersections that break when converted to strokes or duotones.
+3. **Pixel-Perfect Construction**:
+   - ALL coordinates must snap to whole pixels or .5 increments (for centered strokes)
+   - Horizontal/vertical lines MUST use integer coordinates
+   - Diagonal lines should start and end on whole pixels
+   - Curves should have control points on whole or .5 pixels
+   - NEVER use coordinates like 3.73 or 17.291 — these cause blurry rendering
 
-4. **Style Agnostic**: Generate the "Master Vector" (the skeleton). The styling parameters will be applied via attributes.
+4. **Path Craftsmanship**:
+   - Use as FEW path segments as possible. Simplicity = quality
+   - Prefer clean geometric primitives composed via path commands
+   - Every path must be CLOSED (end with Z) for fill compatibility
+   - Use smooth curves (S, s) after cubic beziers (C, c) for continuity
+   - Avoid tiny segments under 1px — they create visual noise
 
-## Technical Constraints (SVG Standards)
+5. **Negative Space**: The space AROUND and INSIDE the icon is as important as the strokes. Ensure clear, readable negative space. Counter-spaces in letters, gaps in icons — all must be deliberate and consistent.
 
-- **ViewBox**: Always \`0 0 24 24\`
-- **Path Construction**: Prefer \`<path>\` elements over basic shapes (circle, rect) to allow for universal CSS stroke control
-- **No Raster Data**: Never include \`<image>\` tags or base64 data
-- **Closed Paths**: Ensure all shapes are properly closed for "Solid" and "Duotone" preset compatibility
-- **Optimization**: Strip all metadata, comments, and editor-specific tags
+6. **Distinctive Silhouette**: Every icon must be instantly recognizable as a filled silhouette at 16×16px. If you squint and can't tell what it is, redesign it.
 
-## The 6-Category Taxonomy
+## TECHNICAL REQUIREMENTS
 
-Categorize icons into one of these buckets:
+- ViewBox: ALWAYS \`0 0 24 24\`
+- Use \`<path>\` elements exclusively — no \`<circle>\`, \`<rect>\`, \`<line>\`, \`<polygon>\`
+- Convert ALL shapes to optimized path data
+- No \`<image>\`, no base64, no \`<text>\`, no \`<use>\`, no \`<clipPath>\`
+- No transforms — bake all transforms into path coordinates
+- No IDs, classes, or metadata — pure geometry only
+- Maximum 3 \`<path>\` elements per icon (prefer 1-2)
+- Strip ALL whitespace between elements
 
-1. **Foundation**: Navigation, UI states, basic logic (arrows, menus, toggles)
-2. **Communication**: Email, social, feedback, support (chat, notifications, mail)
-3. **SaaS/Data**: Analytics, security, settings, workflows (charts, locks, gears)
-4. **E-Commerce**: Payments, shipping, storefront, loyalty (carts, cards, packages)
-5. **Marketing Hero**: Growth, trophies, "trust" signals, abstract concepts (stars, badges, rockets)
-6. **Industry Specific**: Custom symbols based on context (medical, legal, AI, etc.)
+## STYLE PRESET MASTERY
 
-## Style Preset Awareness
+Adapt path construction for these outcomes:
 
-Adapt the path structure to support these 10 style outcomes:
+| Preset | Stroke | Fill | Terminals | Joins | Special |
+|--------|--------|------|-----------|-------|---------|
+| Outlined | currentColor | none | round | round | Classic balanced strokes |
+| Minimalist | currentColor, width 1.25 | none | round | round | Delicate, airy, generous spacing |
+| Brutalist | currentColor | none | square | miter | ONLY 0°, 45°, 90° angles. No curves |
+| Hand-Drawn | currentColor, width 1.75 | none | round | round | Slightly irregular coordinates (±0.5px jitter on some points) |
+| Glassmorphic | currentColor, width 1.5 | none | round | round | Layer separation: background shape path + foreground detail path |
+| Duotone | currentColor, width 1.5 | currentColor (secondary) | round | round | Two paths: stroke outline + lighter fill accent |
+| Filled | none | currentColor | N/A | N/A | Solid shapes, clear cutouts for detail |
+| Sharp | currentColor | none | square | miter | Precise corners, no rounding |
+| Soft Rounded | currentColor | none | round | round | Extra-round terminals, friendly feel |
+| Thick | currentColor, width 3 | none | round | round | Bold, heavy, high-impact |
 
-1. **Minimalist/Linear**: Focus on stroke paths and open terminals
-2. **Brutalist**: Paths strictly 0°, 45°, or 90° angles only
-3. **Hand-Drawn**: Subtle "human" imperfections in path coordinates
-4. **Glassmorphic**: Clear "Background" and "Foreground" path separation for layering
-5. **Duotone**: Separate primary stroke and secondary fill paths
-6. **Outlined**: Standard stroke-based with consistent weight
-7. **Filled/Solid**: Closed paths suitable for solid fills
-8. **Sharp**: Square terminals and miter joins
-9. **Soft/Rounded**: Round terminals and round joins
-10. **Thick Stroke**: Heavy stroke weight (3-4px)
+## WHAT MAKES A BAD ICON (AVOID THESE)
 
-## Output Requirements
+- Overly complex paths with 20+ segments (looks like clip art, not an icon)
+- Inconsistent stroke widths within the same icon
+- Off-grid coordinates causing fuzzy rendering
+- Too much detail crammed into 24px (if it has more than 5 distinct visual elements, simplify)
+- Generic/boring shapes — each icon should have personality while staying professional
+- Paths that don't close properly (gaps visible in filled mode)
+- Decorative flourishes that don't aid recognition
 
-Return ONLY valid SVG code with these attributes applied based on the style parameter:
-- Use \`stroke="currentColor"\` and \`fill="none"\` for stroke-based
-- Use \`fill="currentColor"\` and \`stroke="none"\` for filled icons
-- Apply stroke-width, stroke-linecap, stroke-linejoin as specified
+## OUTPUT
 
-The SVG must be clean, optimized, and immediately usable.`;
+Return ONLY the complete SVG element. No explanation, no markdown, no backticks. Just the raw SVG tag.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -120,39 +138,56 @@ serve(async (req) => {
     const linecap = cornerStyle === 'sharp' ? 'square' : 'round';
     const linejoin = cornerStyle === 'sharp' ? 'miter' : 'round';
 
-    // Build contextual user prompt
-    let userPrompt = `Create an icon for: ${prompt}`;
+    // Build contextual user prompt with expert design direction
+    let userPrompt = `Design a single, beautiful icon for: "${prompt}"
+
+## Design Requirements
+- Must be instantly recognizable at 16px as a filled silhouette
+- Must have a distinctive, memorable shape — not generic
+- Use the minimum path segments needed for clarity
+- All coordinates on whole pixels or .5 increments
+- Close all paths with Z`;
+
     if (category) {
-      userPrompt += `\n\nThis icon belongs to the "${category}" category. Ensure it fits the visual language of ${
-        category === 'Foundation' ? 'navigation and UI elements' :
-        category === 'Communication' ? 'messaging and social interactions' :
-        category === 'SaaS/Data' ? 'analytics, settings, and data workflows' :
-        category === 'E-Commerce' ? 'shopping, payments, and commerce' :
-        category === 'Marketing Hero' ? 'growth, trust signals, and abstract concepts' :
-        'industry-specific professional symbols'
+      userPrompt += `\n\n## Category Context: ${category}
+This icon belongs to the "${category}" family. Match the visual language of ${
+        category === 'Foundation' ? 'navigation and UI elements — clean, geometric, universally understood' :
+        category === 'Communication' ? 'messaging and social — friendly, approachable, clear metaphors' :
+        category === 'SaaS/Data' ? 'analytics and data — precise, technical, structured' :
+        category === 'E-Commerce' ? 'commerce and payments — trustworthy, clean, transactional' :
+        category === 'Marketing Hero' ? 'growth and achievement — aspirational, dynamic, energetic' :
+        'industry-specific professional symbols — domain-accurate, authoritative'
       }.`;
     }
     if (preset) {
-      userPrompt += `\n\nApply the "${preset}" style preset - ${
-        preset === 'minimalist' ? 'ultra-clean thin strokes with open terminals' :
-        preset === 'brutalist' ? 'strict 0°, 45°, or 90° angles only' :
-        preset === 'hand-drawn' ? 'subtle human imperfections in paths' :
-        preset === 'glassmorphic' ? 'layered background/foreground separation' :
-        preset === 'duotone' ? 'primary stroke with secondary fill layer' :
-        'standard professional icon styling'
-      }.`;
+      userPrompt += `\n\n## Style Preset: "${preset}"
+${
+        preset === 'minimalist' ? 'Ultra-delicate 1.25px strokes. Maximum whitespace. Airy and elegant. Every line must earn its place.' :
+        preset === 'brutalist' ? 'ONLY 0°, 45°, 90° angles allowed. No curves whatsoever. Raw, geometric, powerful.' :
+        preset === 'hand-drawn' ? 'Add ±0.5px jitter to some coordinates for organic feel. Slightly imperfect but intentional.' :
+        preset === 'glassmorphic' ? 'Two distinct layers: a background shape and a foreground detail element. Clear depth separation.' :
+        preset === 'duotone' ? 'Two paths: primary stroke outline + secondary filled accent shape at 0.3 opacity conceptually.' :
+        preset === 'filled' ? 'Pure solid shapes. Use cutouts/negative space for internal detail. No strokes.' :
+        preset === 'sharp' ? 'All corners are crisp 90° miters. Square stroke terminals. Precise and technical.' :
+        preset === 'soft' ? 'Extra-round terminals and joins. Friendly, approachable, warm.' :
+        preset === 'thick' ? 'Bold 3px strokes. High-impact, confident, commanding presence.' :
+        'Balanced professional strokes with round terminals.'
+      }`;
     }
 
     const styleDirective = `
-Apply these exact SVG attributes:
+
+## MANDATORY SVG Attributes (apply exactly):
 - viewBox="0 0 24 24"
 - stroke-width="${strokeWidth}"
 - stroke-linecap="${linecap}"
 - stroke-linejoin="${linejoin}"
 - stroke="${isFilled ? 'none' : 'currentColor'}"
 - fill="${isFilled ? 'currentColor' : 'none'}"
+- Use ONLY <path> elements — no circle, rect, line, polygon
+- Maximum 3 <path> elements (prefer 1-2)
 
-Output ONLY the complete SVG element, nothing else.`;
+Output ONLY the complete SVG element. No explanation, no markdown.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
