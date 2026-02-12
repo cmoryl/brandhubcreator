@@ -90,16 +90,20 @@ export function renderSignatureHtml(sig: BrandSignature): string {
     </td></tr>`);
   }
 
-  // -- Social Links --
+  // -- Social Links (only render links with valid URLs) --
   if (sig.socialLinks && sig.socialLinks.length > 0) {
-    const icons = sig.socialLinks.map(link => {
-      const platform = SOCIAL_PLATFORMS.find(p => p.id === link.platform);
-      const bgColor = platform?.color || linkColor;
-      const letter = platform?.letter || '•';
-      return `<a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;width:24px;height:24px;border-radius:50%;background:${bgColor};color:#ffffff;text-align:center;line-height:24px;font-size:11px;text-decoration:none;margin-right:6px;font-family:${font};">${letter}</a>`;
-    }).join('');
+    const validLinks = sig.socialLinks.filter(link => link.url && link.url.trim().length > 0);
+    if (validLinks.length > 0) {
+      const icons = validLinks.map(link => {
+        const platform = SOCIAL_PLATFORMS.find(p => p.id === link.platform);
+        const bgColor = platform?.color || linkColor;
+        const letter = platform?.letter || '•';
+        const href = link.url.startsWith('http') ? esc(link.url) : `https://${esc(link.url)}`;
+        return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="display:inline-block;width:24px;height:24px;border-radius:50%;background:${bgColor};color:#ffffff;text-align:center;line-height:24px;font-size:11px;text-decoration:none;margin-right:6px;font-family:${font};">${letter}</a>`;
+      }).join('');
 
-    rows.push(`<tr><td style="padding:${spacing}px 0 0 0;">${icons}</td></tr>`);
+      rows.push(`<tr><td style="padding:${spacing}px 0 0 0;">${icons}</td></tr>`);
+    }
   }
 
   // -- Inline Banner --
@@ -152,10 +156,16 @@ export function renderLegacyHtml(sig: BrandSignature): string {
 
 /** Render a signature, picking the right rendering path */
 export function renderPreview(sig: BrandSignature): string {
+  // Prefer structured renderer when style exists
   if (sig.style) {
     return renderSignatureHtml(sig);
   }
-  return renderLegacyHtml(sig);
+  // Only use legacy renderer if html template is non-empty
+  if (sig.html && sig.html.trim().length > 0) {
+    return renderLegacyHtml(sig);
+  }
+  // Fallback: generate structured HTML even without style config
+  return renderSignatureHtml(sig);
 }
 
 function esc(str: string): string {
