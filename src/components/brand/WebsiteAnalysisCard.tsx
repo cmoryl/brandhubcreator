@@ -18,6 +18,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -126,7 +127,7 @@ const getImpactBadge = (impact: string) => {
 };
 
 export const WebsiteAnalysisCard = ({
-  websiteUrl,
+  websiteUrl: initialUrl,
   websiteLabel,
   entityName,
   industry,
@@ -139,6 +140,8 @@ export const WebsiteAnalysisCard = ({
   const [report, setReport] = useState<WebsiteReport | null>(null);
   const [showReport, setShowReport] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [urlInput, setUrlInput] = useState(initialUrl || '');
+  const websiteUrl = urlInput.trim();
 
   // Save ALL analysis results into brand intelligence (the "brand brain")
   const feedIntoBrandBrain = async (analysisReport: WebsiteReport) => {
@@ -380,13 +383,20 @@ export const WebsiteAnalysisCard = ({
         </div>
         <div className="p-4 space-y-3">
           <h3 className="font-medium text-foreground text-sm truncate">
-            {websiteLabel} Analysis
+            {websiteLabel || 'Website'} Analysis
           </h3>
+          <Input
+            type="url"
+            placeholder="Enter URL to analyze..."
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            className="h-8 text-xs"
+          />
           <div className="flex gap-2">
             <Button
               size="sm"
               onClick={runAnalysis}
-              disabled={isAnalyzing}
+              disabled={isAnalyzing || !websiteUrl}
               className="flex-1 gap-2"
             >
               {isAnalyzing ? (

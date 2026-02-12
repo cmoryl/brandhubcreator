@@ -483,7 +483,7 @@ export const InsightsSection = ({
       )}
 
       {/* Website Analysis Cards - admin only */}
-      {canEdit && websitesWithUrls.length > 0 && (
+      {canEdit && (
         <div className="space-y-4">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Website Analysis</h3>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -500,6 +500,18 @@ export const InsightsSection = ({
                 brandContext={brandContext}
               />
             ))}
+            {/* Always show an empty card so admins can analyze any URL */}
+            <WebsiteAnalysisCard
+              key="analysis-custom"
+              websiteUrl=""
+              websiteLabel="Custom"
+              entityName={entityName}
+              industry={industry}
+              entityId={entityId}
+              entityType={entityType}
+              organizationId={organizationId}
+              brandContext={brandContext}
+            />
           </div>
         </div>
       )}
