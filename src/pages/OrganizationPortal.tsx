@@ -34,7 +34,7 @@ import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, HierarchicalProductGrid, HierarchicalBrandGrid, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit, OrbitLegend, MobileStickyTabs, QuickFindLogo } from '@/components/portal';
+import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, HierarchicalProductGrid, HierarchicalBrandGrid, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit, OrbitLegend, MobileStickyTabs, QuickFindLogo, DemoUniverseCarousel, FeatureHighlightsStrip } from '@/components/portal';
 import { toast } from 'sonner';
 
 // Lazy load admin components
@@ -542,8 +542,14 @@ const OrganizationPortal = () => {
         </div>
       </div>
 
+      {/* Demo Universe Carousel */}
+      <DemoUniverseCarousel />
+
+      {/* Feature Highlights Strip */}
+      <FeatureHighlightsStrip />
+
       {/* Content Grid */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 safe-area-inset-bottom">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 safe-area-inset-bottom border-t border-border/50">
         <Tabs value={activeTab} onValueChange={(v) => handleTabChange(v as typeof activeTab)} className="w-full">
           {/* Desktop tabs - hidden on mobile where we use sticky tabs */}
           <div className="hidden sm:flex items-center justify-between mb-6 sm:mb-8 gap-4">
