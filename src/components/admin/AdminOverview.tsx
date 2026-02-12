@@ -418,7 +418,17 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
                         <p className="text-sm font-medium text-foreground/90 truncate group-hover:text-foreground">
                           {log.description}
                         </p>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          {log.userEmail && (
+                            <span className="text-[11px] text-primary font-medium truncate max-w-[180px]" title={log.userEmail}>
+                              {log.userEmail}
+                            </span>
+                          )}
+                          {log.userId && (
+                            <span className="text-[10px] font-mono text-muted-foreground/70 bg-muted px-1.5 py-0.5 rounded" title={log.userId}>
+                              {log.userId.slice(0, 8)}…
+                            </span>
+                          )}
                           <Clock className="h-3 w-3 text-muted-foreground/60" />
                           <span className="text-[11px] text-muted-foreground">
                             {format(new Date(log.timestamp), 'MMM d, h:mm a')}

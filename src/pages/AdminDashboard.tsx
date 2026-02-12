@@ -327,19 +327,19 @@ export default function AdminDashboard() {
     // Also fetch entity-derived activity in parallel
     let brandsQuery = supabase
       .from('brands')
-      .select('id, name, created_at, updated_at, is_public')
+      .select('id, name, created_at, updated_at, is_public, user_id')
       .order('updated_at', { ascending: false })
       .limit(15);
 
     let productsQuery = supabase
       .from('products')
-      .select('id, name, created_at, updated_at, is_public')
+      .select('id, name, created_at, updated_at, is_public, user_id')
       .order('updated_at', { ascending: false })
       .limit(10);
 
     let eventsQuery = supabase
       .from('events')
-      .select('id, name, created_at, updated_at, is_public')
+      .select('id, name, created_at, updated_at, is_public, user_id')
       .order('updated_at', { ascending: false })
       .limit(10);
 
@@ -364,11 +364,17 @@ export default function AdminDashboard() {
       profilesQuery,
     ]);
 
+    // Build email lookup from profiles
+    const emailLookup: Record<string, string> = {};
+    profilesRes.data?.forEach(p => {
+      if (p.email) emailLookup[p.user_id] = p.email;
+    });
+
     // Convert audit logs
     auditRes.data?.forEach(log => {
       const actionText = getActionDescription(log.action_type);
       const entityName = log.entity_name || log.entity_type;
-      const userEmail = log.user_email || 'System';
+      const userEmail = log.user_email || emailLookup[log.user_id] || 'System';
 
       const id = `audit-${log.id}`;
       seenIds.add(id);
@@ -380,6 +386,8 @@ export default function AdminDashboard() {
         description: `${userEmail} ${actionText} ${log.entity_type}: ${entityName}`,
         timestamp: log.created_at,
         user: userEmail,
+        userEmail,
+        userId: log.user_id,
         details: typeof log.details === 'object' ? log.details as Record<string, unknown> : {},
       });
     });
@@ -397,6 +405,8 @@ export default function AdminDashboard() {
           description: `New user registered: ${p.email}`,
           timestamp: p.created_at,
           user: p.email || undefined,
+          userEmail: p.email || undefined,
+          userId: p.user_id,
         });
       }
     });
@@ -414,6 +424,8 @@ export default function AdminDashboard() {
           entityName: b.name,
           description: `Brand ${isCreate ? 'created' : 'updated'}: ${b.name}`,
           timestamp: isCreate ? b.created_at : b.updated_at,
+          userEmail: emailLookup[b.user_id] || undefined,
+          userId: b.user_id,
         });
       }
       if (b.is_public) {
@@ -427,6 +439,8 @@ export default function AdminDashboard() {
             entityName: b.name,
             description: `Brand published: ${b.name}`,
             timestamp: b.updated_at,
+            userEmail: emailLookup[b.user_id] || undefined,
+            userId: b.user_id,
           });
         }
       }
@@ -445,6 +459,8 @@ export default function AdminDashboard() {
           entityName: p.name,
           description: `Product ${isCreate ? 'created' : 'updated'}: ${p.name}`,
           timestamp: isCreate ? p.created_at : p.updated_at,
+          userEmail: emailLookup[p.user_id] || undefined,
+          userId: p.user_id,
         });
       }
     });
@@ -462,6 +478,8 @@ export default function AdminDashboard() {
           entityName: e.name,
           description: `Event ${isCreate ? 'created' : 'updated'}: ${e.name}`,
           timestamp: isCreate ? e.created_at : e.updated_at,
+          userEmail: emailLookup[e.user_id] || undefined,
+          userId: e.user_id,
         });
       }
     });
