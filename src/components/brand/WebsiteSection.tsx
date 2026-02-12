@@ -13,6 +13,9 @@ interface WebsiteSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   entityName?: string;
   industry?: string;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
+  organizationId?: string | null;
   brandContext?: {
     colors?: string[];
     archetype?: string;
@@ -22,7 +25,7 @@ interface WebsiteSectionProps {
   };
 }
 
-export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onSubtitleChange, entityName, industry, brandContext }: WebsiteSectionProps) => {
+export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onSubtitleChange, entityName, industry, entityId, entityType, organizationId, brandContext }: WebsiteSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -214,6 +217,9 @@ export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onS
                 websiteLabel={link.label}
                 entityName={entityName}
                 industry={industry}
+                entityId={entityId}
+                entityType={entityType}
+                organizationId={organizationId}
                 brandContext={brandContext}
               />
             )}

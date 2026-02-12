@@ -74,6 +74,9 @@ interface WebsiteAnalysisCardProps {
   websiteLabel: string;
   entityName?: string;
   industry?: string;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
+  organizationId?: string | null;
   brandContext?: {
     colors?: string[];
     archetype?: string;
@@ -127,12 +130,136 @@ export const WebsiteAnalysisCard = ({
   websiteLabel,
   entityName,
   industry,
+  entityId,
+  entityType = 'brand',
+  organizationId,
   brandContext,
 }: WebsiteAnalysisCardProps) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [report, setReport] = useState<WebsiteReport | null>(null);
   const [showReport, setShowReport] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+
+  // Save analysis results into brand intelligence (the "brand brain")
+  const feedIntoBrandBrain = async (analysisReport: WebsiteReport) => {
+    if (!entityId || !entityType) return;
+
+    try {
+      // Get or create intelligence record
+      let { data: intel } = await supabase
+        .from('brand_intelligence')
+        .select('id, knowledge_entries, competitive_advantages, growth_recommendations, brand_summary')
+        .eq('entity_type', entityType)
+        .eq('entity_id', entityId)
+        .maybeSingle();
+
+      if (!intel) {
+        const { data: newIntel } = await supabase
+          .from('brand_intelligence')
+          .insert({
+            entity_type: entityType,
+            entity_id: entityId,
+            organization_id: organizationId || null,
+            knowledge_entries: [],
+            semantic_hashes: [],
+          })
+          .select('id, knowledge_entries, competitive_advantages, growth_recommendations, brand_summary')
+          .single();
+        intel = newIntel;
+      }
+
+      if (!intel) return;
+
+      const entries = Array.isArray(intel.knowledge_entries) ? intel.knowledge_entries : [];
+
+      // Build comprehensive knowledge entry from website analysis
+      const sectionSummaries = Object.entries(analysisReport.sections || {})
+        .map(([key, section]) => {
+          const meta = SECTION_META[key];
+          return meta ? `${meta.label}: ${section.score}/100 - ${(section.findings || []).slice(0, 2).join('; ')}` : null;
+        })
+        .filter(Boolean);
+
+      const knowledgeEntry = {
+        id: crypto.randomUUID(),
+        type: 'website_analysis',
+        content: `Website Analysis (${websiteUrl}): Overall ${analysisReport.overallScore}/100 (Grade ${analysisReport.grade}). ${analysisReport.summary}`,
+        source: 'website-analysis',
+        category: 'digital-presence',
+        created_at: new Date().toISOString(),
+        confidence: 0.85,
+        metadata: {
+          url: websiteUrl,
+          score: analysisReport.overallScore,
+          grade: analysisReport.grade,
+          sectionScores: Object.fromEntries(
+            Object.entries(analysisReport.sections || {}).map(([k, v]) => [k, v.score])
+          ),
+        },
+      };
+
+      // Extract competitive insights as knowledge
+      const competitorEntries = (analysisReport.competitorComparison || []).map(comp => ({
+        id: crypto.randomUUID(),
+        type: 'competitive_insight',
+        content: `Website competitive analysis vs ${comp.competitor}: Strengths: ${(comp.strengths || []).join(', ')}. Weaknesses: ${(comp.weaknesses || []).join(', ')}`,
+        source: 'website-analysis',
+        category: 'competitive-intelligence',
+        created_at: new Date().toISOString(),
+        confidence: 0.75,
+      }));
+
+      // Extract priority actions as growth recommendations
+      const existingRecs = Array.isArray(intel.growth_recommendations) ? intel.growth_recommendations : [];
+      const newRecs = (analysisReport.priorityActions || []).slice(0, 3).map(action => ({
+        priority: action.impact === 'high' ? 'high' : action.impact === 'medium' ? 'medium' : 'low',
+        recommendation: action.action,
+        rationale: `Website audit finding (${action.impact} impact, ${action.effort} effort)`,
+        confidence: 0.8,
+        source: 'website-analysis',
+      }));
+
+      // Deduplicate recommendations
+      const mergedRecs = [...existingRecs];
+      for (const rec of newRecs) {
+        const isDup = mergedRecs.some(
+          (e: any) => typeof e?.recommendation === 'string' &&
+            e.recommendation.toLowerCase() === rec.recommendation.toLowerCase()
+        );
+        if (!isDup) mergedRecs.push(rec);
+      }
+
+      // Extract competitive advantages from analysis
+      const existingAdvantages = Array.isArray(intel.competitive_advantages) ? intel.competitive_advantages : [];
+      const websiteAdvantages: string[] = [];
+      const compSection = analysisReport.sections?.competitivePosition;
+      if (compSection && compSection.score >= 70) {
+        websiteAdvantages.push(...(compSection.findings || []).slice(0, 2));
+      }
+      const mergedAdvantages = [...existingAdvantages];
+      for (const adv of websiteAdvantages) {
+        if (!mergedAdvantages.some((e: any) => typeof e === 'string' && e.toLowerCase() === adv.toLowerCase())) {
+          mergedAdvantages.push(adv);
+        }
+      }
+
+      // Update intelligence record
+      await supabase
+        .from('brand_intelligence')
+        .update({
+          knowledge_entries: [...entries, knowledgeEntry, ...competitorEntries],
+          growth_recommendations: mergedRecs,
+          competitive_advantages: mergedAdvantages,
+          last_analyzed_at: new Date().toISOString(),
+        })
+        .eq('id', intel.id);
+
+      console.log('[WebsiteAnalysis] Fed analysis results into brand intelligence');
+    } catch (err) {
+      console.error('[WebsiteAnalysis] Error feeding into brand brain:', err);
+      // Don't surface this error to user - the analysis itself succeeded
+    }
+  };
 
   const runAnalysis = async () => {
     setIsAnalyzing(true);
@@ -146,7 +273,11 @@ export const WebsiteAnalysisCard = ({
 
       setReport(data.report);
       setShowReport(true);
-      toast.success('Website analysis complete!');
+      
+      // Feed results into brand brain in background
+      feedIntoBrandBrain(data.report);
+      
+      toast.success('Website analysis complete — insights added to Brand Brain!');
     } catch (err) {
       console.error('Website analysis error:', err);
       toast.error(err instanceof Error ? err.message : 'Analysis failed');
