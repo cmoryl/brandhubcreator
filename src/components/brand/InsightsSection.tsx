@@ -1,6 +1,7 @@
 import { useState, useMemo, lazy, Suspense } from 'react';
 import { useCompetitiveInsights, type CompetitiveInsightItem } from '@/hooks/useCompetitiveInsights';
 import { useBrandIntelligenceInsights } from '@/hooks/useBrandIntelligenceInsights';
+import { useComplianceAuditInsights } from '@/hooks/useComplianceAuditInsights';
 import { 
   TrendingUp, TrendingDown, Minus, FileText, BarChart2, Newspaper, 
   Bell, AlertCircle, Calendar, ExternalLink, Plus, Trash2, Pencil,
@@ -312,10 +313,17 @@ export const InsightsSection = ({
     enabled: Boolean(entityType && entityId),
   });
 
-  // Merge manual insights with auto-fetched competitive and intelligence insights
+  // Auto-fetch compliance audit data when entity context is provided
+  const { complianceInsights } = useComplianceAuditInsights({
+    entityType: entityType || 'brand',
+    entityId: entityId || '',
+    enabled: Boolean(entityType && entityId),
+  });
+
+  // Merge manual insights with auto-fetched competitive, intelligence, and compliance insights
   const allInsights = useMemo(() => {
-    return [...insights, ...competitiveInsights, ...intelligenceInsights];
-  }, [insights, competitiveInsights, intelligenceInsights]);
+    return [...insights, ...competitiveInsights, ...intelligenceInsights, ...complianceInsights];
+  }, [insights, competitiveInsights, intelligenceInsights, complianceInsights]);
 
   const handleDelete = (id: string) => {
     if (!onInsightsChange) return;
