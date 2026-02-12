@@ -171,13 +171,24 @@ export const OrganizationAnalytics = () => {
         { name: 'Events', value: events.length, color: PIE_COLORS[2] },
       ].filter(item => item.value > 0));
 
-      // Fetch audit logs for activity data using safe view (excludes PII like email/IP)
-      const { data: auditLogs } = await supabase
-        .from('audit_logs_safe' as 'audit_logs')
-        .select('id, action_type, entity_type, entity_name, created_at')
-        .gte('created_at', startDate.toISOString())
-        .order('created_at', { ascending: false })
-        .limit(100);
+      // Fetch page_views for real view counts and audit_logs for edits/exports
+      const [pageViewsRes, auditLogsRes] = await Promise.all([
+        supabase
+          .from('page_views')
+          .select('id, entity_type, entity_name, created_at')
+          .gte('created_at', startDate.toISOString())
+          .order('created_at', { ascending: false })
+          .limit(1000),
+        supabase
+          .from('audit_logs_safe' as 'audit_logs')
+          .select('id, action_type, entity_type, entity_name, created_at')
+          .gte('created_at', startDate.toISOString())
+          .order('created_at', { ascending: false })
+          .limit(500),
+      ]);
+
+      const pageViews = pageViewsRes.data || [];
+      const auditLogs = auditLogsRes.data || [];
 
       // Process activity data by date
       const dateInterval = eachDayOfInterval({
@@ -187,14 +198,20 @@ export const OrganizationAnalytics = () => {
 
       const activityByDate = dateInterval.map(date => {
         const dateStr = format(date, 'MMM dd');
-        const dayLogs = auditLogs?.filter(log => {
+        
+        const dayViews = pageViews.filter(pv => {
+          const pvDate = format(parseISO(pv.created_at), 'MMM dd');
+          return pvDate === dateStr;
+        });
+        
+        const dayLogs = auditLogs.filter(log => {
           const logDate = format(parseISO(log.created_at), 'MMM dd');
           return logDate === dateStr;
-        }) || [];
+        });
 
         return {
           date: dateStr,
-          views: dayLogs.filter(l => l.action_type === 'view').length,
+          views: dayViews.length,
           edits: dayLogs.filter(l => l.action_type === 'update' || l.action_type === 'create').length,
           exports: dayLogs.filter(l => l.action_type === 'export').length,
         };
@@ -202,16 +219,25 @@ export const OrganizationAnalytics = () => {
 
       setActivityData(activityByDate.slice(-14)); // Last 14 days for chart
 
-      // Recent activity
-      const formattedActivity: RecentActivity[] = (auditLogs || []).slice(0, 10).map(log => ({
-        id: log.id,
-        actionType: log.action_type,
-        entityType: log.entity_type,
-        entityName: log.entity_name || 'Unknown',
-        createdAt: log.created_at,
-        // userEmail intentionally excluded for privacy - only visible in admin dashboard
-      }));
-      setRecentActivity(formattedActivity);
+      // Recent activity - combine page views and audit logs
+      const combinedActivity: RecentActivity[] = [
+        ...pageViews.slice(0, 20).map(pv => ({
+          id: pv.id,
+          actionType: 'view',
+          entityType: pv.entity_type,
+          entityName: pv.entity_name || 'Page',
+          createdAt: pv.created_at,
+        })),
+        ...auditLogs.slice(0, 20).map(log => ({
+          id: log.id,
+          actionType: log.action_type,
+          entityType: log.entity_type,
+          entityName: log.entity_name || 'Unknown',
+          createdAt: log.created_at,
+        })),
+      ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10);
+      
+      setRecentActivity(combinedActivity);
 
       // Growth data - cumulative content creation
       const allContent = [...brands, ...products, ...events].sort((a, b) => 
