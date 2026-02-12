@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,44 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
 const UNIVERSAL_ACCESS_CODE = 'MarComm';
+
+// Floating luminous particles for the gate backdrop
+const GateParticles = () => {
+  const particles = useMemo(() =>
+    Array.from({ length: 24 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 5 + 2,
+      duration: Math.random() * 6 + 4,
+      delay: Math.random() * 5,
+      opacity: Math.random() * 0.35 + 0.1,
+      drift: (Math.random() - 0.5) * 30,
+    })), []
+  );
+
+  return (
+    <div className="absolute inset-0 z-[2] pointer-events-none overflow-hidden">
+      {particles.map((p) => (
+        <div
+          key={p.id}
+          className="absolute rounded-full"
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            background: `radial-gradient(circle, hsl(var(--primary) / 0.6), transparent)`,
+            boxShadow: `0 0 ${p.size * 3}px hsl(var(--primary) / 0.25)`,
+            opacity: p.opacity,
+            animation: `particle-float ${p.duration}s ease-in-out infinite`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 interface InsightsAccessGateProps {
   accessCode?: string;
@@ -118,6 +156,9 @@ export const InsightsAccessGate = ({
               }}
             />
           </div>
+
+          {/* Floating particles */}
+          <GateParticles />
 
           {/* Glass card */}
           <div className="absolute inset-0 flex items-center justify-center z-10 p-4">
