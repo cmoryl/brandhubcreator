@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
-import { useCompetitiveInsights } from '@/hooks/useCompetitiveInsights';
+import { useState, useMemo, lazy, Suspense } from 'react';
+import { useCompetitiveInsights, type CompetitiveInsightItem } from '@/hooks/useCompetitiveInsights';
 import { 
   TrendingUp, TrendingDown, Minus, FileText, BarChart2, Newspaper, 
   Bell, AlertCircle, Calendar, ExternalLink, Plus, Trash2, Pencil,
-  LayoutGrid, LayoutList, Sparkles
+  LayoutGrid, LayoutList, Sparkles, Eye
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,10 @@ import { SectionHeader } from './SectionHeader';
 import { InsightEditorModal } from './InsightEditorModal';
 import { cn } from '@/lib/utils';
 import type { InsightItem, InsightsLayout } from '@/types/brand';
+
+const CompetitiveAnalysisDialog = lazy(() => 
+  import('./CompetitiveAnalysisDialog').then(m => ({ default: m.CompetitiveAnalysisDialog }))
+);
 
 interface InsightsSectionProps {
   insights: InsightItem[];
@@ -51,18 +55,26 @@ const InsightCard = ({
   insight, 
   onEdit, 
   onDelete,
+  onClick,
   canEdit 
 }: { 
   insight: InsightItem; 
   onEdit?: () => void;
   onDelete?: () => void;
+  onClick?: () => void;
   canEdit?: boolean;
 }) => {
   const Icon = typeIcons[insight.type] || FileText;
   const TrendIcon = insight.trend === 'up' ? TrendingUp : insight.trend === 'down' ? TrendingDown : Minus;
 
   return (
-    <Card className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 border-border/50 hover:border-accent/30">
+    <Card 
+      className={cn(
+        "group relative overflow-hidden hover:shadow-lg transition-all duration-300 border-border/50 hover:border-accent/30",
+        onClick && "cursor-pointer"
+      )}
+      onClick={onClick}
+    >
       {/* Accent top bar */}
       <div className={cn(
         "absolute top-0 left-0 right-0 h-1",
@@ -73,21 +85,24 @@ const InsightCard = ({
         insight.type === 'alert' && "bg-gradient-to-r from-red-500 to-red-400",
       )} />
 
-      {/* Edit/Delete controls */}
-      {canEdit && (
-        <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-          {onEdit && (
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEdit}>
-              <Pencil className="h-3.5 w-3.5" />
-            </Button>
-          )}
-          {onDelete && (
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={onDelete}>
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          )}
-        </div>
-      )}
+      {/* Edit/Delete/View controls */}
+      <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        {onClick && (
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onClick(); }}>
+            <Eye className="h-3.5 w-3.5" />
+          </Button>
+        )}
+        {canEdit && onEdit && (
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onEdit(); }}>
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+        )}
+        {onDelete && (
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(); }}>
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
 
       <CardHeader className="pb-2 pt-5">
         <div className="flex items-start gap-3">
@@ -276,9 +291,10 @@ export const InsightsSection = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingInsight, setEditingInsight] = useState<InsightItem | null>(null);
+  const [competitiveDialogOpen, setCompetitiveDialogOpen] = useState(false);
 
   // Auto-fetch competitive analysis reports when entity context is provided
-  const { competitiveInsights } = useCompetitiveInsights({
+  const { competitiveInsights, deleteReport: deleteCompetitiveReport } = useCompetitiveInsights({
     entityType: entityType || 'brand',
     entityId: entityId || '',
     enabled: Boolean(entityType && entityId),
@@ -395,19 +411,42 @@ export const InsightsSection = ({
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {allInsights.map((insight) => {
                 const isCompetitive = insight.id.startsWith('competitive-');
+                const competitiveItem = isCompetitive 
+                  ? competitiveInsights.find(ci => ci.id === insight.id)
+                  : undefined;
                 return (
                   <InsightCard
                     key={insight.id}
                     insight={insight}
                     canEdit={canEdit && isEditing && !isCompetitive}
                     onEdit={!isCompetitive ? () => handleEdit(insight) : undefined}
-                    onDelete={!isCompetitive ? () => handleDelete(insight.id) : undefined}
+                    onDelete={
+                      isCompetitive && competitiveItem
+                        ? () => deleteCompetitiveReport(competitiveItem.reportId)
+                        : !isCompetitive && canEdit && isEditing
+                          ? () => handleDelete(insight.id)
+                          : undefined
+                    }
+                    onClick={isCompetitive ? () => setCompetitiveDialogOpen(true) : undefined}
                   />
                 );
               })}
             </div>
           )}
         </>
+      )}
+
+      {/* Competitive Analysis Dialog */}
+      {entityType && entityId && (
+        <Suspense fallback={null}>
+          <CompetitiveAnalysisDialog
+            open={competitiveDialogOpen}
+            onOpenChange={setCompetitiveDialogOpen}
+            entityType={entityType}
+            entityId={entityId}
+            entityName=""
+          />
+        </Suspense>
       )}
     </section>
   );
