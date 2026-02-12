@@ -634,6 +634,8 @@ const ProductEditor = () => {
           industry={currentProduct.identity?.archetype}
           organizationId={currentProduct.organizationId}
           brandContext={{ colors: currentProduct.colors?.map?.((c: any) => c.hex) || [], archetype: currentProduct.identity?.archetype, mission: currentProduct.identity?.missionStatement, tagline: currentProduct.hero?.tagline }}
+          insightsAccessCode={(currentProduct as any).insightsAccessCode}
+          onAccessCodeChange={canEdit ? (insightsAccessCode) => handleUpdateProduct({ insightsAccessCode } as any) : undefined}
         />
       );
       default: return null;

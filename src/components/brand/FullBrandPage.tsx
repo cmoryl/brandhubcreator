@@ -341,6 +341,8 @@ export const FullBrandPage = ({
           industry={brand.identity?.archetype}
           organizationId={organizationId}
           brandContext={{ colors: brand.colors?.map?.((c: any) => c.hex) || [], archetype: brand.identity?.archetype, mission: brand.identity?.missionStatement, tagline: brand.hero?.tagline }}
+          insightsAccessCode={brand.insightsAccessCode}
+          onAccessCodeChange={canEdit ? (insightsAccessCode) => onBrandUpdate({ insightsAccessCode }) : undefined}
         />;
       case 'locations':
         return <LeafletLocationsSection 
