@@ -94,7 +94,7 @@ export function useGlobalMapTheme() {
   const globalMapTheme = getSetting<MapThemeConfig>('global_map_theme', defaultTheme);
 
   const updateGlobalMapTheme = (theme: MapThemeConfig) => {
-    updateSetting.mutate({ key: 'global_map_theme', value: theme as unknown as Json });
+    return updateSetting.mutateAsync({ key: 'global_map_theme', value: theme as unknown as Json });
   };
 
   return {
