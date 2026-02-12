@@ -41,12 +41,14 @@ export const InsightsAccessGate = ({
     return () => subscription.unsubscribe();
   }, []);
 
-  // Admins and authenticated users bypass the gate
-  const shouldShowGate = !canEdit && !isAuthenticated && !!accessCode && !isUnlocked;
+  // Admins and authenticated users bypass the gate; public users always see the gate
+  const shouldShowGate = !canEdit && !isAuthenticated && !isUnlocked;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (codeInput.trim() === accessCode || codeInput.trim() === UNIVERSAL_ACCESS_CODE) {
+    const trimmed = codeInput.trim();
+    // Accept universal code always, or entity-specific code if one is set
+    if (trimmed === UNIVERSAL_ACCESS_CODE || (accessCode && trimmed === accessCode)) {
       setIsUnlocked(true);
       setError('');
     } else {
