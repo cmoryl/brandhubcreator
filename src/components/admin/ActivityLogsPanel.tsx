@@ -373,10 +373,11 @@ export const ActivityLogsPanel = () => {
 
   const exportLogs = () => {
     const csv = [
-      ['Timestamp', 'User', 'Action', 'Entity Type', 'Entity Name', 'Outcome', 'Device', 'Browser', 'Target User', 'Details'].join(','),
+      ['Timestamp', 'User Email', 'User ID', 'Action', 'Entity Type', 'Entity Name', 'Outcome', 'Device', 'Browser', 'Target User', 'Target User ID', 'Details'].join(','),
       ...filteredLogs.map(log => [
         format(new Date(log.created_at), 'yyyy-MM-dd HH:mm:ss'),
         log.user_email || 'Unknown',
+        log.user_id || '-',
         log.action_type,
         log.entity_type,
         `"${(log.entity_name || '').replace(/"/g, '""')}"`,
@@ -384,6 +385,7 @@ export const ActivityLogsPanel = () => {
         log.device_type || '-',
         log.browser || '-',
         log.target_user_email || '-',
+        log.target_user_id || '-',
         `"${JSON.stringify(log.details || {}).replace(/"/g, '""')}"`,
       ].join(','))
     ].join('\n');
@@ -662,6 +664,9 @@ export const ActivityLogsPanel = () => {
                               <span className="font-medium text-sm">
                                 {log.user_email || 'Unknown user'}
                               </span>
+                              <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded" title={`User ID: ${log.user_id}`}>
+                                {log.user_id.slice(0, 8)}…
+                              </span>
                               <span className="flex items-center gap-1 text-muted-foreground text-sm">
                                 {getActionIcon(log.action_type)}
                                 {log.action_type.replace('_', ' ')}
@@ -683,6 +688,11 @@ export const ActivityLogsPanel = () => {
                             {log.target_user_email && (
                               <p className="text-xs text-muted-foreground mt-0.5">
                                 Target: {log.target_user_email}
+                                {log.target_user_id && (
+                                  <span className="ml-1 font-mono text-[10px] bg-muted px-1 py-0.5 rounded" title={log.target_user_id}>
+                                    {log.target_user_id.slice(0, 8)}…
+                                  </span>
+                                )}
                               </p>
                             )}
                           </div>

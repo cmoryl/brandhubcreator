@@ -51,6 +51,8 @@ export interface ActivityLog {
   description: string;
   timestamp: string;
   user?: string;
+  userEmail?: string;
+  userId?: string;
   details?: Record<string, unknown>;
 }
 
