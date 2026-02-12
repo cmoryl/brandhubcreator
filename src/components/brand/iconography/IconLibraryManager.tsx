@@ -95,28 +95,33 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
   const handleSaveLibrary = async () => {
     if (!formName.trim()) return;
 
-    if (editingLibrary) {
-      await updateLibrary.mutateAsync({
-        id: editingLibrary.id,
-        updates: {
+    try {
+      if (editingLibrary) {
+        await updateLibrary.mutateAsync({
+          id: editingLibrary.id,
+          updates: {
+            name: formName,
+            description: formDescription || undefined,
+            parent_library_id: formParentId,
+          },
+        });
+      } else {
+        await createLibrary.mutateAsync({
+          organization_id: organizationId,
           name: formName,
+          level: formLevel,
           description: formDescription || undefined,
           parent_library_id: formParentId,
-        },
-      });
-    } else {
-      await createLibrary.mutateAsync({
-        organization_id: organizationId,
-        name: formName,
-        level: formLevel,
-        description: formDescription || undefined,
-        parent_library_id: formParentId,
-        icons: [],
-      });
-    }
+          icons: [],
+        });
+      }
 
-    setShowCreateDialog(false);
-    resetForm();
+      setShowCreateDialog(false);
+      resetForm();
+    } catch (error) {
+      // Error toast is already shown by the mutation's onError handler
+      console.error('Save library failed:', error);
+    }
   };
 
   const handleAddIcons = (library: IconLibrary) => {
