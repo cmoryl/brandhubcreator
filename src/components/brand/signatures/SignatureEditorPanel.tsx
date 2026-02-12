@@ -62,11 +62,13 @@ const LogoSizeControls = ({ width, height, onChange }: { width: number; height: 
 export const SignatureEditorPanel = ({ signature: sig, onUpdate, onDelete, onDone }: SignatureEditorPanelProps) => {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const style = sig.style || {};
 
+  // Use functional update pattern to avoid stale closure on style object
   const updateStyle = useCallback((updates: Partial<SignatureStyle>) => {
-    onUpdate({ style: { ...style, ...updates } });
-  }, [style, onUpdate]);
+    onUpdate({ style: { ...(sig.style || {}), ...updates } });
+  }, [sig.style, onUpdate]);
 
   const fileToBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
     const r = new FileReader(); r.readAsDataURL(file); r.onload = () => resolve(r.result as string); r.onerror = reject;
@@ -436,7 +438,15 @@ export const SignatureEditorPanel = ({ signature: sig, onUpdate, onDelete, onDon
 
       <div className="flex gap-2 pt-2 border-t border-border">
         <Button size="sm" variant="secondary" onClick={onDone}>Done</Button>
-        <Button size="sm" variant="ghost" onClick={onDelete} className="text-destructive hover:text-destructive"><X className="h-4 w-4 mr-1" />Delete</Button>
+        {confirmDelete ? (
+          <div className="flex items-center gap-2 ml-auto">
+            <span className="text-xs text-destructive font-medium">Delete this signature?</span>
+            <Button size="sm" variant="destructive" onClick={onDelete} className="h-7 text-xs">Yes, Delete</Button>
+            <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)} className="h-7 text-xs">Cancel</Button>
+          </div>
+        ) : (
+          <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(true)} className="text-destructive hover:text-destructive ml-auto"><X className="h-4 w-4 mr-1" />Delete</Button>
+        )}
       </div>
     </div>
   );

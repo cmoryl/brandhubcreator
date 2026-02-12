@@ -317,7 +317,7 @@ export const SignaturesSection = ({
                         <button onClick={() => setEditingId(sig.id)} className="p-2 rounded-md hover:bg-secondary transition-colors" title="Edit">
                           <Pencil className="h-4 w-4 text-muted-foreground" />
                         </button>
-                        <button onClick={() => deleteSignature(sig.id)} className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors" title="Delete">
+                        <button onClick={() => { if (window.confirm('Delete this signature?')) deleteSignature(sig.id); }} className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors" title="Delete">
                           <X className="h-4 w-4" />
                         </button>
                       </div>
