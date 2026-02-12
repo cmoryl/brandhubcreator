@@ -239,7 +239,7 @@ export const SignaturesSection = ({
             <div className="flex gap-2">
               <Button variant="outline" size="sm" className="gap-2" onClick={() => setTemplateDialogOpen(true)}>
                 <LayoutTemplate className="h-4 w-4" />Templates
-                <Badge variant="secondary" className="text-[10px] ml-1">15+</Badge>
+                <Badge variant="secondary" className="text-[10px] ml-1">25</Badge>
               </Button>
               <Button onClick={addDefaultSignature} size="sm" className="gap-2">
                 <Plus className="h-4 w-4" />Add Signature
@@ -332,7 +332,7 @@ export const SignaturesSection = ({
             <button onClick={() => setTemplateDialogOpen(true)} className="w-full h-40 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors">
               <Mail className="h-8 w-8" />
               <span className="text-sm font-medium">Create email signature template</span>
-              <span className="text-xs text-muted-foreground">Choose from 15+ templates across 5 categories</span>
+              <span className="text-xs text-muted-foreground">Choose from 25 templates across 5 categories</span>
             </button>
           )}
         </TabsContent>
