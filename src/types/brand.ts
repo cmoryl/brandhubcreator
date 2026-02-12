@@ -263,6 +263,8 @@ export interface SignatureStyle {
   dividerWidth?: number;
   spacing?: number;
   layout?: 'horizontal' | 'vertical';
+  /** Structural layout template for different signature architectures */
+  layoutTemplate?: 'classic' | 'centered' | 'side-banner' | 'card' | 'inline' | 'stacked' | 'two-column' | 'banner-top';
 }
 
 // SIGNATURES - Signature Protocol

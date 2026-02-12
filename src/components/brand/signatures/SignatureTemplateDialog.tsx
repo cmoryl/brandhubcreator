@@ -74,6 +74,17 @@ const VARIANT_LABELS: Record<string, string> = {
   minimal: 'Text Only',
 };
 
+const LAYOUT_TEMPLATE_LABELS: Record<string, string> = {
+  classic: '⬜ Classic',
+  centered: '⊞ Centered',
+  'side-banner': '▐ Side Banner',
+  card: '▣ Card',
+  inline: '━ Inline',
+  stacked: '▤ Stacked',
+  'two-column': '▥ Two Column',
+  'banner-top': '▀ Banner Top',
+};
+
 export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect }: SignatureTemplateDialogProps) => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -141,7 +152,7 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect }: Signat
         </div>
 
         {/* Template Grid */}
-        <ScrollArea className="flex-1 px-6 py-4">
+        <ScrollArea className="flex-1 px-6 py-4" style={{ maxHeight: 'calc(90vh - 180px)' }}>
           <div className={
             viewMode === 'grid'
               ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5'
@@ -200,6 +211,11 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect }: Signat
                       <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-[18px] text-muted-foreground border-border">
                         {VARIANT_LABELS[template.variant] || template.variant}
                       </Badge>
+                      {template.style.layoutTemplate && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-[18px] bg-primary/5 text-primary border-primary/20">
+                          {LAYOUT_TEMPLATE_LABELS[template.style.layoutTemplate] || template.style.layoutTemplate}
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">{template.description}</p>
 
