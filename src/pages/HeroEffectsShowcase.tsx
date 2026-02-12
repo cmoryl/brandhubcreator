@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Sparkles, Settings2, Eye, MousePointer2, Hand, Move, Maximize2 } from 'lucide-react';
+import { ArrowLeft, Sparkles, Settings2, Eye, MousePointer2, Hand, Move, Maximize2, Download, Image, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,12 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { GradientBarsHero } from '@/components/backgrounds/GradientBarsHero';
 import { HorizonGlowHero } from '@/components/backgrounds/HorizonGlowHero';
 import { FloatingOrbsHero } from '@/components/backgrounds/FloatingOrbsHero';
 import { GradientSpheresHero } from '@/components/backgrounds/GradientSpheresHero';
 import { ImageOrbsHero } from '@/components/backgrounds/ImageOrbsHero';
 import { ImagePanelsHero } from '@/components/backgrounds/ImagePanelsHero';
+import { captureEffectAsPng, recordEffectAsVideo, VideoRecordingState } from '@/lib/heroEffectExport';
 
 type EffectType = 'gradient-bars' | 'horizon-glow' | 'floating-orbs' | 'gradient-spheres' | 'image-orbs' | 'image-panels';
 
@@ -96,8 +98,23 @@ const HeroEffectsShowcase = () => {
   const [speed, setSpeed] = useState<'slow' | 'normal' | 'fast' | 'very-fast'>('normal');
   const [intensity, setIntensity] = useState<'subtle' | 'medium' | 'bold'>('medium');
   const [colorScheme, setColorScheme] = useState<string>('cyan-purple');
+  const [recordingState, setRecordingState] = useState<VideoRecordingState>({ isRecording: false, progress: 0 });
+
+  // Refs for export capture – gallery cards and fullscreen container
+  const effectCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const fullscreenEffectRef = useRef<HTMLDivElement>(null);
 
   const selectedConfig = EFFECTS.find(e => e.id === selectedEffect);
+
+  const handleExportPng = useCallback((effectId: string, container: HTMLDivElement | null) => {
+    if (!container) return;
+    captureEffectAsPng(container, `hero-effect-${effectId}`);
+  }, []);
+
+  const handleExportVideo = useCallback((effectId: string, container: HTMLDivElement | null) => {
+    if (!container || recordingState.isRecording) return;
+    recordEffectAsVideo(container, `hero-effect-${effectId}`, 5000, setRecordingState);
+  }, [recordingState.isRecording]);
 
   const renderEffect = (effectId: EffectType, config: { colorScheme: string; mode: 'dark' | 'light'; brightness: number; density?: string; speed?: string; intensity?: string }) => {
     const commonProps = {
@@ -129,7 +146,7 @@ const HeroEffectsShowcase = () => {
     return (
       <div className="relative min-h-screen">
         {/* Effect Background */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0" ref={fullscreenEffectRef}>
           {renderEffect(selectedEffect, { colorScheme, mode, brightness, density, speed, intensity })}
         </div>
 
@@ -145,6 +162,24 @@ const HeroEffectsShowcase = () => {
               <Badge variant="secondary" className="bg-white/20 text-white border-0">
                 {selectedConfig?.name}
               </Badge>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="secondary" size="sm" className="gap-2 bg-white/20 text-white border-0 hover:bg-white/30" disabled={recordingState.isRecording}>
+                    <Download className="h-4 w-4" />
+                    {recordingState.isRecording ? `Recording ${recordingState.progress}%` : 'Export for PowerPoint'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleExportPng(selectedEffect!, fullscreenEffectRef.current)}>
+                    <Image className="h-4 w-4 mr-2" />
+                    Download as PNG (static background)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportVideo(selectedEffect!, fullscreenEffectRef.current)}>
+                    <Video className="h-4 w-4 mr-2" />
+                    Download as Video (animated background)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
 
@@ -321,7 +356,10 @@ const HeroEffectsShowcase = () => {
               }}
             >
               {/* Effect Preview - Large interactive area */}
-              <div className="relative h-56 sm:h-64 md:h-72 lg:h-80 overflow-hidden">
+              <div 
+                className="relative h-56 sm:h-64 md:h-72 lg:h-80 overflow-hidden"
+                ref={(el) => { effectCardRefs.current[effect.id] = el; }}
+              >
                 {renderEffect(effect.id, { 
                   colorScheme: effect.defaultColorScheme, 
                   mode: 'dark', 
@@ -399,7 +437,32 @@ const HeroEffectsShowcase = () => {
                       </Badge>
                     )}
                   </div>
-                  <div className="flex gap-1">
+                   <div className="flex gap-1 items-center">
+                    {/* Export for PowerPoint dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2 text-xs gap-1"
+                          onClick={(e) => e.stopPropagation()}
+                          disabled={recordingState.isRecording}
+                        >
+                          <Download className="h-3 w-3" />
+                          Export
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem onClick={() => handleExportPng(effect.id, effectCardRefs.current[effect.id])}>
+                          <Image className="h-4 w-4 mr-2" />
+                          PNG (static slide background)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExportVideo(effect.id, effectCardRefs.current[effect.id])}>
+                          <Video className="h-4 w-4 mr-2" />
+                          Video (animated background)
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     {effect.hasDensity && (
                       <Tooltip>
                         <TooltipTrigger>
