@@ -850,13 +850,15 @@ const EventEditor = () => {
                     className="hidden md:flex"
                   />
                 )}
-                {/* Language Selector */}
-                <GuideLanguageSelector
-                  entityType="event"
-                  entityId={event.id}
-                  entityName={event.hero.name}
-                  onOpenLocalizationPanel={() => setTranslationHubOpen(true)}
-                />
+                {/* Language Selector (admin only) */}
+                {isGuideAdmin && (
+                  <GuideLanguageSelector
+                    entityType="event"
+                    entityId={event.id}
+                    entityName={event.hero.name}
+                    onOpenLocalizationPanel={() => setTranslationHubOpen(true)}
+                  />
+                )}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
@@ -1079,8 +1081,8 @@ const EventEditor = () => {
       {/* Back to top button */}
       <BackToTopButton />
 
-      {/* Regional Analysis Panel */}
-      {event.organizationId && (
+      {/* Regional Analysis Panel (admin only) */}
+      {isGuideAdmin && event.organizationId && (
         <RegionalAnalysisPanel
           entityType="event"
           entityId={event.id}

@@ -889,13 +889,15 @@ const BrandEditor = () => {
                     className="hidden md:flex"
                   />
                 )}
-                {/* Language Selector - Globe icon for translations */}
-                <GuideLanguageSelector
-                  entityType="brand"
-                  entityId={brand.id}
-                  entityName={brand.hero.name}
-                  onOpenLocalizationPanel={() => setTranslationHubOpen(true)}
-                />
+                {/* Language Selector - Globe icon for translations (admin only) */}
+                {isGuideAdmin && (
+                  <GuideLanguageSelector
+                    entityType="brand"
+                    entityId={brand.id}
+                    entityName={brand.hero.name}
+                    onOpenLocalizationPanel={() => setTranslationHubOpen(true)}
+                  />
+                )}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
@@ -1193,8 +1195,8 @@ const BrandEditor = () => {
       {/* Back to top button */}
       <BackToTopButton />
 
-      {/* Regional Analysis Panel */}
-      {brand.organizationId && (
+      {/* Regional Analysis Panel (admin only) */}
+      {isGuideAdmin && brand.organizationId && (
         <RegionalAnalysisPanel
           entityType="brand"
           entityId={brand.id}

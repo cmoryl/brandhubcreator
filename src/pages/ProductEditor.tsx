@@ -755,13 +755,15 @@ const ProductEditor = () => {
                     className="hidden md:flex"
                   />
                 )}
-                {/* Language Selector */}
-                <GuideLanguageSelector
-                  entityType="product"
-                  entityId={currentProduct.id}
-                  entityName={currentProduct.hero.name}
-                  onOpenLocalizationPanel={() => setTranslationHubOpen(true)}
-                />
+                {/* Language Selector (admin only) */}
+                {isGuideAdmin && (
+                  <GuideLanguageSelector
+                    entityType="product"
+                    entityId={currentProduct.id}
+                    entityName={currentProduct.hero.name}
+                    onOpenLocalizationPanel={() => setTranslationHubOpen(true)}
+                  />
+                )}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
@@ -1012,8 +1014,8 @@ const ProductEditor = () => {
       {/* Back to top button */}
       <BackToTopButton />
 
-      {/* Regional Analysis Panel */}
-      {currentProduct.organizationId && (
+      {/* Regional Analysis Panel (admin only) */}
+      {isGuideAdmin && currentProduct.organizationId && (
         <RegionalAnalysisPanel
           entityType="product"
           entityId={currentProduct.id}
