@@ -3,6 +3,9 @@ project_id = "nhxaijbyqfkkhhoornzy"
 [functions.brand-audit]
 verify_jwt = false
 
+[functions.brand-audit-worker]
+verify_jwt = false
+
 [functions.market-analysis]
 verify_jwt = false
 

@@ -36,24 +36,46 @@ export const BrandAuditButton = ({ brand }: BrandAuditButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
 
+  const pollJob = async (jobId: string): Promise<AuditResult> => {
+    const maxAttempts = 30;
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise(r => setTimeout(r, 2000));
+      const { data, error } = await supabase
+        .from('brand_intelligence_jobs')
+        .select('status, result, error_message')
+        .eq('id', jobId)
+        .single();
+
+      if (error) throw error;
+      if (data.status === 'completed' && data.result) {
+        const result = data.result as Record<string, unknown>;
+        return result.audit as AuditResult;
+      }
+      if (data.status === 'failed') {
+        throw new Error(data.error_message || 'Audit failed');
+      }
+    }
+    throw new Error('Audit timed out');
+  };
+
   const runAudit = async () => {
     setIsLoading(true);
     setIsOpen(true);
     setAuditResult(null);
 
     try {
-      // Send only brandId - the edge function fetches from DB with RLS enforcement
       const { data, error } = await supabase.functions.invoke('brand-audit', {
         body: { brandId: brand.id, entityType: brand.type || 'brand' }
       });
 
       if (error) throw error;
 
-      if (data?.audit) {
-        setAuditResult(data.audit);
+      if (data?.jobId) {
+        const audit = await pollJob(data.jobId);
+        setAuditResult(audit);
         toast.success('Brand audit complete!');
       } else {
-        throw new Error('No audit data received');
+        throw new Error('No job created');
       }
     } catch (error) {
       console.error('Audit error:', error);
