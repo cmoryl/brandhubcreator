@@ -120,10 +120,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch brand data + intelligence in parallel
+    // Fetch brand data + intelligence + social metrics in parallel
     const tableName = entityType === 'product' ? 'products' : 'brands';
     
-    const [brandResult, intelligenceResult] = await Promise.all([
+    const [brandResult, intelligenceResult, socialMetricsResult] = await Promise.all([
       supabaseClient
         .from(tableName)
         .select('id, name, guide_data, user_id, organization_id')
@@ -135,6 +135,13 @@ Deno.serve(async (req) => {
         .eq('entity_id', brandId)
         .eq('entity_type', entityType)
         .maybeSingle(),
+      supabaseClient
+        .from('social_metrics_snapshots')
+        .select('platform, followers_count, engagement_rate, follower_growth_percent, reach_count, sentiment_score, brand_mentions_count, share_of_voice_percent, earned_media_value')
+        .eq('entity_id', brandId)
+        .eq('entity_type', entityType)
+        .order('snapshot_date', { ascending: false })
+        .limit(30),
     ]);
 
     if (brandResult.error || !brandResult.data) {
@@ -197,14 +204,26 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`Starting brand audit for: ${brand.hero.name} (intel: ${!!intelligenceResult.data}, websites: ${websiteAnalyses.length})`);
+    // Deduplicate social metrics to latest per platform
+    const socialSnapshots: Array<Record<string, unknown>> = [];
+    if (socialMetricsResult.data && socialMetricsResult.data.length > 0) {
+      const seen = new Set<string>();
+      for (const s of socialMetricsResult.data) {
+        if (!seen.has(s.platform)) {
+          seen.add(s.platform);
+          socialSnapshots.push(s as Record<string, unknown>);
+        }
+      }
+    }
+
+    console.log(`Starting brand audit for: ${brand.hero.name} (intel: ${!!intelligenceResult.data}, websites: ${websiteAnalyses.length}, social: ${socialSnapshots.length} platforms)`);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const auditPrompt = buildAuditPrompt(brand, intel, websiteAnalyses);
+    const auditPrompt = buildAuditPrompt(brand, intel, websiteAnalyses, socialSnapshots);
     
     console.log('Calling AI Gateway for brand analysis...');
     
@@ -300,6 +319,7 @@ Categories: Visual Consistency, Brand Identity, Digital Presence, Completeness, 
           guideData: true,
           brandIntelligence: !!intelligenceResult.data,
           websiteAnalyses: websiteAnalyses.length,
+          socialMetrics: socialSnapshots.length,
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -315,7 +335,7 @@ Categories: Visual Consistency, Brand Identity, Digital Presence, Completeness, 
   }
 });
 
-function buildAuditPrompt(brand: BrandData, intel: IntelligenceData, websiteAnalyses: WebsiteAnalysisData[]): string {
+function buildAuditPrompt(brand: BrandData, intel: IntelligenceData, websiteAnalyses: WebsiteAnalysisData[], socialSnapshots: Array<Record<string, unknown>>): string {
   const s: string[] = [];
 
   s.push(`# Brand Cohesion Audit: ${brand.hero?.name || 'Unnamed Brand'}`);
@@ -397,7 +417,32 @@ function buildAuditPrompt(brand: BrandData, intel: IntelligenceData, websiteAnal
     });
   }
 
-  s.push(`\n\nAnalyze this brand holistically for cohesion across guide content, digital presence, and competitive positioning. Return JSON.`);
+  // Social Metrics
+  if (socialSnapshots.length > 0) {
+    s.push(`\n## Social Media Performance (${socialSnapshots.length} platforms)`);
+    let totalFollowers = 0;
+    let engagementSum = 0;
+    for (const snap of socialSnapshots) {
+      totalFollowers += (snap.followers_count as number) || 0;
+      engagementSum += (snap.engagement_rate as number) || 0;
+      const metrics: string[] = [];
+      if (snap.followers_count) metrics.push(`${formatAuditNum(snap.followers_count as number)} followers`);
+      if (snap.engagement_rate) metrics.push(`${(snap.engagement_rate as number).toFixed(2)}% engagement`);
+      if (snap.follower_growth_percent) metrics.push(`${(snap.follower_growth_percent as number) > 0 ? '+' : ''}${(snap.follower_growth_percent as number).toFixed(1)}% growth`);
+      if (snap.sentiment_score) metrics.push(`sentiment: ${(snap.sentiment_score as number) > 0 ? '+' : ''}${snap.sentiment_score}`);
+      s.push(`- ${snap.platform}: ${metrics.join(', ')}`);
+    }
+    const avgEng = socialSnapshots.length > 0 ? (engagementSum / socialSnapshots.length).toFixed(2) : '0';
+    s.push(`Total: ${formatAuditNum(totalFollowers)} followers across ${socialSnapshots.length} platforms, avg ${avgEng}% engagement`);
+  }
+
+  s.push(`\n\nAnalyze this brand holistically for cohesion across guide content, digital presence, social media performance, and competitive positioning. Return JSON.`);
 
   return s.join('\n');
+}
+
+function formatAuditNum(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return n.toString();
 }
