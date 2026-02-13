@@ -98,10 +98,11 @@ serve(async (req) => {
       10,
     );
 
-    // Fetch document-based content (PDFs, PPTXs, slide text, etc.)
-    const [docResult, socialResult] = await Promise.all([
+    // Fetch document-based content, social metrics, AND Oracle context in parallel
+    const [docResult, socialResult, oracleResult] = await Promise.all([
       fetchDocumentContext(supabase, job.entity_id, job.entity_type, guideData, 1500),
       fetchSocialMetricsContext(supabase, job.entity_id, job.entity_type),
+      fetchOracleContext(supabase, job.organization_id),
     ]);
     const { text: docContext, imageUrls: docImages, documentCount } = docResult;
     const { text: socialContext, platformCount: socialPlatformCount, hasMetrics: hasSocialMetrics } = socialResult;
@@ -111,17 +112,20 @@ serve(async (req) => {
       if (imageUrls.length < 15) imageUrls.push(di);
     }
 
-    const prompt = `Analyze "${entity.name}" brand using ALL the following data including visual assets, documents, and social media performance. Return compact JSON:
+    const oracleContext = oracleResult ? `\nORACLE BRAIN CONTEXT (Org-Level Intelligence):\n${oracleResult}` : '';
+
+    const prompt = `Analyze "${entity.name}" brand using ALL the following data including visual assets, documents, social media performance, and organization-level Oracle intelligence. Return compact JSON:
 ${brandContext}
 ${docContext ? `\nDOCUMENT CONTENT:\n${docContext}` : ''}
 ${socialContext || ''}
+${oracleContext}
 
 Sections with data: ${sectionsWithData.join(', ')}
 Documents analyzed: ${documentCount} files
 Visual assets included: ${imageUrls.length} images from ${[...new Set(imageUrls.map(i => i.section))].join(', ')}
 ${hasSocialMetrics ? `Social platforms tracked: ${socialPlatformCount}` : 'No social metrics data available'}
 
-Analyze provided images and document content for visual consistency, content quality, messaging alignment, and brand coherence.${hasSocialMetrics ? ' Incorporate social media performance data into your competitive positioning, growth recommendations, and digital presence assessment.' : ''} Return ONLY valid JSON:
+Analyze provided images and document content for visual consistency, content quality, messaging alignment, and brand coherence.${hasSocialMetrics ? ' Incorporate social media performance data into your competitive positioning, growth recommendations, and digital presence assessment.' : ''}${oracleResult ? ' Incorporate Oracle org-level intelligence for strategic alignment and portfolio-level context.' : ''} Return ONLY valid JSON:
 {"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"visual_analysis":{"consistency":"1 sentence","quality":"1 sentence","alignment":"1 sentence"},"document_analysis":{"content_quality":"1 sentence","messaging_consistency":"1 sentence","asset_coverage":"1 sentence"},"social_performance":{"overall_assessment":"1 sentence","strongest_platform":"platform name","growth_opportunity":"1 sentence","engagement_quality":"1 sentence"},"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]}`;
 
     // Build multimodal content with images for vision analysis
@@ -395,3 +399,52 @@ Analyze provided images and document content for visual consistency, content qua
     });
   }
 });
+
+/**
+ * Fetch Oracle Brain context for org-level intelligence injection
+ */
+async function fetchOracleContext(supabase: any, organizationId: string | null): Promise<string | null> {
+  if (!organizationId) return null;
+  
+  try {
+    const [{ data: oracle }, { data: knowledge }] = await Promise.all([
+      supabase.from('oracle_intelligence')
+        .select('org_summary, portfolio_analysis, strategic_recommendations, unified_voice_profile, competitive_overview, cultural_readiness')
+        .eq('organization_id', organizationId)
+        .maybeSingle(),
+      supabase.from('oracle_knowledge_base')
+        .select('title, content')
+        .eq('organization_id', organizationId)
+        .eq('is_active', true)
+        .order('updated_at', { ascending: false })
+        .limit(5),
+    ]);
+
+    if (!oracle?.org_summary && (!knowledge || knowledge.length === 0)) return null;
+
+    const parts: string[] = [];
+    
+    if (oracle?.org_summary) {
+      parts.push(`Org Summary: ${oracle.org_summary}`);
+    }
+    if (oracle?.unified_voice_profile?.primary_tone) {
+      parts.push(`Org Voice: ${oracle.unified_voice_profile.primary_tone}`);
+    }
+    if (oracle?.competitive_overview?.market_position) {
+      parts.push(`Org Market Position: ${oracle.competitive_overview.market_position}`);
+    }
+    const recs = Array.isArray(oracle?.strategic_recommendations) ? oracle.strategic_recommendations : [];
+    if (recs.length > 0) {
+      parts.push(`Strategic Priorities: ${recs.slice(0, 3).map((r: any) => r.recommendation).join('; ')}`);
+    }
+    
+    if (knowledge && knowledge.length > 0) {
+      parts.push(`Knowledge Base Highlights: ${knowledge.map((k: any) => `${k.title}: ${k.content.slice(0, 150)}`).join(' | ')}`);
+    }
+
+    return parts.join('\n');
+  } catch (err) {
+    console.warn('[worker] Oracle context fetch failed:', err);
+    return null;
+  }
+}

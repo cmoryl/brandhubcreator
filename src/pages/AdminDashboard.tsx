@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Users, Building2, Palette, Package, Activity, Shield, 
-  TrendingUp, TrendingDown, BarChart3, Clock,
+  TrendingUp, TrendingDown, BarChart3, Clock, Brain,
   UserPlus, LogIn, Eye, Edit, Trash2, Download, RefreshCw,
   HardDrive, Crown, Search, MoreHorizontal, ArrowUpRight, Calendar,
   CalendarDays
@@ -60,6 +60,7 @@ import { GlobalLinkAdminSection } from '@/components/admin/globallink';
 import { ResearchBriefingsPanel } from '@/components/admin/ResearchBriefingsPanel';
 import { MulticulturalIntelligencePanel } from '@/components/admin/MulticulturalIntelligencePanel';
 import { DataForceAdminPanel } from '@/components/admin/DataForceAdminPanel';
+import { OracleBrainPanel } from '@/components/admin/OracleBrainPanel';
 import { 
   DashboardStats, 
   ActivityLog, 
@@ -811,8 +812,12 @@ export default function AdminDashboard() {
 
           {/* Intelligence Hub Tab */}
           <TabsContent value="intelligence" className="space-y-6">
-            <Tabs defaultValue="ai-analysis" className="w-full">
-              <TabsList className="mb-4">
+            <Tabs defaultValue="oracle" className="w-full">
+              <TabsList className="mb-4 flex-wrap">
+                <TabsTrigger value="oracle" className="gap-2">
+                  <Brain className="h-4 w-4" />
+                  Oracle Brain
+                </TabsTrigger>
                 <TabsTrigger value="ai-analysis" className="gap-2">
                   <BarChart3 className="h-4 w-4" />
                   AI Analysis
@@ -830,6 +835,9 @@ export default function AdminDashboard() {
                   DataForce AI
                 </TabsTrigger>
               </TabsList>
+              <TabsContent value="oracle">
+                <OracleBrainPanel organizationId={organizations[0]?.id} />
+              </TabsContent>
               <TabsContent value="ai-analysis">
                 <AIMarketAnalysis />
               </TabsContent>
