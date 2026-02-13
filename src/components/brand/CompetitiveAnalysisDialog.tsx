@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { TrendingUp, Plus, X, Loader2, Sparkles, BarChart3, Target, Lightbulb, FileText, Users, AlertTriangle, CheckCircle, Download, Wand2, Search, Star, Heart, Globe2, MapPin } from 'lucide-react';
+import { TrendingUp, Plus, X, Loader2, Sparkles, BarChart3, Target, Lightbulb, FileText, Users, AlertTriangle, CheckCircle, Download, Wand2, Search, Star, Heart, Globe2, MapPin, Shield, Swords, Eye, MessageSquare, Zap } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -733,6 +733,22 @@ export function CompetitiveAnalysisDialog({
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-primary" />
+                    SWOT Analysis
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    Per-Competitor Profiles
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    Content & Messaging Audit
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    Market Trends & Innovation
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
                     Strengths & Weaknesses
                   </li>
                   <li className="flex items-center gap-2">
@@ -784,11 +800,35 @@ export function CompetitiveAnalysisDialog({
               <ScrollArea className="h-[calc(90vh-200px)]">
                 <Tabs defaultValue="summary" className="w-full">
                   <div className="flex items-center justify-between mb-4 gap-4">
-                    <TabsList className={`grid flex-1 ${reportData.regionalInsights ? 'grid-cols-5' : 'grid-cols-4'}`}>
+                    <TabsList className="grid flex-1" style={{ gridTemplateColumns: `repeat(${4 + (reportData.swotAnalysis ? 1 : 0) + (reportData.competitorProfiles?.length ? 1 : 0) + (reportData.contentMessaging ? 1 : 0) + (reportData.marketTrends ? 1 : 0) + (reportData.regionalInsights ? 1 : 0)}, 1fr)` }}>
                       <TabsTrigger value="summary" className="text-xs">Summary</TabsTrigger>
                       <TabsTrigger value="positioning" className="text-xs">Positioning</TabsTrigger>
+                      {reportData.swotAnalysis && (
+                        <TabsTrigger value="swot" className="text-xs gap-1">
+                          <Shield className="w-3 h-3" />
+                          SWOT
+                        </TabsTrigger>
+                      )}
+                      {reportData.competitorProfiles && reportData.competitorProfiles.length > 0 && (
+                        <TabsTrigger value="profiles" className="text-xs gap-1">
+                          <Eye className="w-3 h-3" />
+                          Competitors
+                        </TabsTrigger>
+                      )}
+                      {reportData.contentMessaging && (
+                        <TabsTrigger value="content" className="text-xs gap-1">
+                          <MessageSquare className="w-3 h-3" />
+                          Content
+                        </TabsTrigger>
+                      )}
                       <TabsTrigger value="recommendations" className="text-xs">Recommendations</TabsTrigger>
                       <TabsTrigger value="action-plan" className="text-xs">Action Plan</TabsTrigger>
+                      {reportData.marketTrends && (
+                        <TabsTrigger value="trends" className="text-xs gap-1">
+                          <Zap className="w-3 h-3" />
+                          Trends
+                        </TabsTrigger>
+                      )}
                       {reportData.regionalInsights && (
                         <TabsTrigger value="regional" className="text-xs gap-1">
                           <Globe2 className="w-3 h-3" />
@@ -937,6 +977,203 @@ export function CompetitiveAnalysisDialog({
                     </Card>
                   </TabsContent>
 
+                  {/* SWOT Analysis Tab */}
+                  {reportData.swotAnalysis && (
+                    <TabsContent value="swot" className="space-y-6">
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <Card className="border-green-500/20">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                              Strengths
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-1.5 text-sm">
+                              {reportData.swotAnalysis.strengths.map((s, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2 shrink-0" />
+                                  {s}
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="border-destructive/20">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <AlertTriangle className="w-4 h-4 text-destructive" />
+                              Weaknesses
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-1.5 text-sm">
+                              {reportData.swotAnalysis.weaknesses.map((w, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-destructive mt-2 shrink-0" />
+                                  {w}
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="border-primary/20">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <Lightbulb className="w-4 h-4 text-primary" />
+                              Opportunities
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-1.5 text-sm">
+                              {reportData.swotAnalysis.opportunities.map((o, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                                  {o}
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="border-amber-500/20">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <Swords className="w-4 h-4 text-amber-500" />
+                              Threats
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-1.5 text-sm">
+                              {reportData.swotAnalysis.threats.map((t, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
+                                  {t}
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </TabsContent>
+                  )}
+
+                  {/* Competitor Profiles Tab */}
+                  {reportData.competitorProfiles && reportData.competitorProfiles.length > 0 && (
+                    <TabsContent value="profiles" className="space-y-4">
+                      {reportData.competitorProfiles.map((profile, i) => (
+                        <Card key={i}>
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <CardTitle className="text-base flex items-center gap-2">
+                                {profile.name}
+                                <Badge variant={profile.type === 'direct' ? 'destructive' : profile.type === 'emerging' ? 'default' : 'secondary'} className="text-xs">
+                                  {profile.type}
+                                </Badge>
+                              </CardTitle>
+                              <div className="flex items-center gap-2">
+                                <Badge variant={profile.threatLevel === 'high' ? 'destructive' : profile.threatLevel === 'medium' ? 'default' : 'secondary'} className="text-xs">
+                                  {profile.threatLevel} threat
+                                </Badge>
+                                <span className="text-sm font-semibold">{profile.overallScore}/10</span>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid md:grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <p className="font-medium mb-1">Brand Strength</p>
+                                <p className="text-muted-foreground">{profile.brandStrength}</p>
+                              </div>
+                              <div>
+                                <p className="font-medium mb-1">Visual Identity</p>
+                                <p className="text-muted-foreground">{profile.visualIdentitySummary}</p>
+                              </div>
+                              <div>
+                                <p className="font-medium mb-1">Key Differentiator</p>
+                                <p className="text-muted-foreground">{profile.keyDifferentiator}</p>
+                              </div>
+                              <div>
+                                <p className="font-medium mb-1">Biggest Weakness</p>
+                                <p className="text-muted-foreground">{profile.biggestWeakness}</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </TabsContent>
+                  )}
+
+                  {/* Content & Messaging Tab */}
+                  {reportData.contentMessaging && (
+                    <TabsContent value="content" className="space-y-6">
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4" />
+                            Brand Tone & Voice
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-muted-foreground">{reportData.contentMessaging.toneSummary}</p>
+                        </CardContent>
+                      </Card>
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm">Messaging Pillars</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex flex-wrap gap-2">
+                              {reportData.contentMessaging.messagingPillars.map((p, i) => (
+                                <Badge key={i} variant="outline">{p}</Badge>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm">Content Gaps</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-1 text-sm">
+                              {reportData.contentMessaging.contentGaps.map((g, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
+                                  {g}
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm">Content Strategy</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3 text-sm">
+                          <div>
+                            <span className="font-medium">Strategy Assessment:</span>
+                            <p className="text-muted-foreground">{reportData.contentMessaging.contentStrategy}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium">Social Media:</span>
+                            <p className="text-muted-foreground">{reportData.contentMessaging.socialMediaApproach}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium">Thought Leadership:</span>
+                            <p className="text-muted-foreground">{reportData.contentMessaging.thoughtLeadership}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+                  )}
+
                   <TabsContent value="recommendations" className="space-y-6">
                     <Card>
                       <CardHeader>
@@ -1029,6 +1266,98 @@ export function CompetitiveAnalysisDialog({
                       </CardContent>
                     </Card>
                   </TabsContent>
+
+                  {/* Market Trends & Innovation Tab */}
+                  {reportData.marketTrends && (
+                    <TabsContent value="trends" className="space-y-6">
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <Zap className="w-4 h-4 text-primary" />
+                              Industry Trends
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-1.5 text-sm">
+                              {reportData.marketTrends.industryTrends.map((t, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                                  {t}
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <Lightbulb className="w-4 h-4 text-amber-500" />
+                              Emerging Opportunities
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-1.5 text-sm">
+                              {reportData.marketTrends.emergingOpportunities.map((o, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
+                                  {o}
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <AlertTriangle className="w-4 h-4 text-destructive" />
+                              Innovation Gaps
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-1.5 text-sm">
+                              {reportData.marketTrends.innovationGaps.map((g, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-destructive mt-2 shrink-0" />
+                                  {g}
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <Swords className="w-4 h-4 text-destructive" />
+                              Disruption Risks
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-1.5 text-sm">
+                              {reportData.marketTrends.disruptionRisks.map((r, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-destructive mt-2 shrink-0" />
+                                  {r}
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm">Technology Adoption</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-muted-foreground">{reportData.marketTrends.technologyAdoption}</p>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+                  )}
 
                   {/* Regional Insights Tab */}
                   {reportData.regionalInsights && (

@@ -141,6 +141,40 @@ Provide a comprehensive analysis using the following structure. Return ONLY vali
     "keyStrengths": ["array", "of", "strengths"],
     "criticalGaps": ["array", "of", "gaps"],
     "risks": ["array", "of", "risks"]
+  },
+  "swotAnalysis": {
+    "strengths": ["3-5 internal brand strengths relative to competitors"],
+    "weaknesses": ["3-5 internal brand weaknesses or limitations"],
+    "opportunities": ["3-5 external market opportunities to exploit"],
+    "threats": ["3-5 external threats from competitors or market shifts"]
+  },
+  "competitorProfiles": [
+    {
+      "name": "Competitor Name",
+      "type": "direct|indirect|emerging",
+      "overallScore": 7,
+      "brandStrength": "2-3 sentence brand strength assessment",
+      "visualIdentitySummary": "summary of their visual identity quality",
+      "digitalPresenceSummary": "summary of their digital presence",
+      "keyDifferentiator": "what sets them apart",
+      "biggestWeakness": "their main vulnerability you can exploit",
+      "threatLevel": "low|medium|high"
+    }
+  ],
+  "contentMessaging": {
+    "toneSummary": "description of overall brand tone vs competitors",
+    "messagingPillars": ["3-5 core messaging themes used"],
+    "contentStrategy": "assessment of content strategy effectiveness",
+    "socialMediaApproach": "evaluation of social media presence and engagement",
+    "thoughtLeadership": "assessment of thought leadership and authority",
+    "contentGaps": ["gaps in content strategy compared to competitors"]
+  },
+  "marketTrends": {
+    "industryTrends": ["3-5 key industry trends affecting competitive landscape"],
+    "innovationGaps": ["areas where innovation is needed"],
+    "emergingOpportunities": ["new opportunities from market shifts"],
+    "disruptionRisks": ["potential disruptions that could change competitive dynamics"],
+    "technologyAdoption": "assessment of technology adoption vs competitors"
   },${regionalContext?.country || regionalContext?.region ? `
   "regionalInsights": {
     "marketContext": "string describing the regional market context and competitive landscape",
@@ -169,7 +203,7 @@ Provide a comprehensive analysis using the following structure. Return ONLY vali
   "country": "${regionalContext.country || ''}"` : ''}
 }
 
-Scores should be 1-10 integers. Be specific, actionable, and insightful. Base your analysis on the entity's brand data provided and your knowledge of the competitors listed.${regionalContext?.country || regionalContext?.region ? ' Pay special attention to regional competitive dynamics and localization opportunities.' : ''}`;
+IMPORTANT: For competitorProfiles, create one profile per competitor listed above. Scores should be 1-10 integers. Be specific, actionable, and insightful. Base your analysis on the entity's brand data provided and your knowledge of the competitors listed. Provide genuine competitive intelligence, not generic filler.${regionalContext?.country || regionalContext?.region ? ' Pay special attention to regional competitive dynamics and localization opportunities.' : ''}`;
 }
 
 serve(async (req) => {
@@ -336,7 +370,7 @@ serve(async (req) => {
             content: competitiveUserContent
           }
         ],
-        max_tokens: 8000,
+        max_tokens: 12000,
         temperature: 0.7,
       }),
     });
@@ -360,7 +394,7 @@ serve(async (req) => {
             },
             { role: "user", content: prompt }
           ],
-          max_tokens: 8000,
+          max_tokens: 12000,
           temperature: 0.7,
         }),
       });
