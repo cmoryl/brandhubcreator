@@ -777,6 +777,99 @@ export async function fetchDocumentContext(
 }
 
 /**
+ * Fetch social metrics snapshots for an entity and return a concise text summary
+ * for AI consumption in audits, intelligence, and research.
+ */
+export async function fetchSocialMetricsContext(
+  supabase: any,
+  entityId: string,
+  entityType: string,
+  maxPlatforms: number = 10,
+): Promise<{ text: string; platformCount: number; hasMetrics: boolean }> {
+  const parts: string[] = [];
+  let platformCount = 0;
+
+  try {
+    const { data: snapshots, error } = await supabase
+      .from('social_metrics_snapshots')
+      .select('platform, followers_count, engagement_rate, follower_growth_percent, reach_count, impressions_count, sentiment_score, brand_mentions_count, share_of_voice_percent, organic_reach_count, earned_media_value, viral_coefficient, positive_mentions, negative_mentions, neutral_mentions, referral_traffic_count, posts_count, avg_likes_per_post, avg_comments_per_post, avg_shares_per_post, period_type, data_source, snapshot_date, notes')
+      .eq('entity_id', entityId)
+      .eq('entity_type', entityType)
+      .order('snapshot_date', { ascending: false })
+      .limit(50);
+
+    if (error || !snapshots || snapshots.length === 0) {
+      return { text: '', platformCount: 0, hasMetrics: false };
+    }
+
+    // Deduplicate to latest per platform
+    const latestByPlatform = new Map<string, any>();
+    for (const s of snapshots) {
+      if (!latestByPlatform.has(s.platform)) {
+        latestByPlatform.set(s.platform, s);
+      }
+    }
+
+    const platforms = Array.from(latestByPlatform.values()).slice(0, maxPlatforms);
+    platformCount = platforms.length;
+
+    // Aggregate totals
+    let totalFollowers = 0;
+    let totalMentions = 0;
+    let totalReach = 0;
+    let engagementSum = 0;
+    let sentimentSum = 0;
+    let growthSum = 0;
+
+    parts.push(`\nSOCIAL MEDIA METRICS (${platformCount} platforms tracked):`);
+
+    for (const s of platforms) {
+      totalFollowers += s.followers_count || 0;
+      totalMentions += s.brand_mentions_count || 0;
+      totalReach += s.reach_count || 0;
+      engagementSum += s.engagement_rate || 0;
+      sentimentSum += s.sentiment_score || 0;
+      growthSum += s.follower_growth_percent || 0;
+
+      const metrics: string[] = [];
+      if (s.followers_count) metrics.push(`${formatNum(s.followers_count)} followers`);
+      if (s.engagement_rate) metrics.push(`${s.engagement_rate.toFixed(2)}% engagement`);
+      if (s.follower_growth_percent) metrics.push(`${s.follower_growth_percent > 0 ? '+' : ''}${s.follower_growth_percent.toFixed(1)}% growth`);
+      if (s.reach_count) metrics.push(`${formatNum(s.reach_count)} reach`);
+      if (s.sentiment_score) metrics.push(`sentiment: ${s.sentiment_score > 0 ? '+' : ''}${s.sentiment_score}`);
+      if (s.brand_mentions_count) metrics.push(`${formatNum(s.brand_mentions_count)} mentions`);
+      if (s.share_of_voice_percent) metrics.push(`${s.share_of_voice_percent.toFixed(1)}% SoV`);
+      if (s.earned_media_value) metrics.push(`$${formatNum(s.earned_media_value)} EMV`);
+
+      parts.push(`  • ${s.platform}: ${metrics.join(', ')}`);
+      if (s.notes) parts.push(`    Notes: ${String(s.notes).slice(0, 100)}`);
+    }
+
+    // Summary line
+    const avgEngagement = platformCount > 0 ? (engagementSum / platformCount).toFixed(2) : '0';
+    const avgSentiment = platformCount > 0 ? Math.round(sentimentSum / platformCount) : 0;
+    const avgGrowth = platformCount > 0 ? (growthSum / platformCount).toFixed(1) : '0';
+    parts.push(`  TOTALS: ${formatNum(totalFollowers)} followers, ${formatNum(totalReach)} reach, ${formatNum(totalMentions)} mentions`);
+    parts.push(`  AVERAGES: ${avgEngagement}% engagement, ${avgGrowth}% growth, sentiment ${avgSentiment > 0 ? '+' : ''}${avgSentiment}`);
+
+  } catch (err) {
+    console.error('[extractFullBrandContext] Social metrics fetch error:', err);
+  }
+
+  return {
+    text: parts.join('\n'),
+    platformCount,
+    hasMetrics: platformCount > 0,
+  };
+}
+
+function formatNum(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return n.toString();
+}
+
+/**
  * Build a compatibility summary showing which sections have data.
  * Useful for showing integration coverage in the UI.
  */
