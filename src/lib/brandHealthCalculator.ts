@@ -343,6 +343,29 @@ function calculateSectionCompleteness(
 }
 
 /**
+ * Maps SectionId values (used in hiddenSections) to SECTION_WEIGHTS keys (guide_data JSONB keys).
+ * Only entries where the two differ need to be listed here.
+ */
+const SECTION_ID_TO_WEIGHT_KEY: Record<string, string> = {
+  brandicon: 'brandIcons',
+  socialicons: 'socialIcons',
+  socialassets: 'socialAssets',
+  socialmetrics: 'socialMetrics',
+  website: 'websites',
+  imageassets: 'imageAssets',
+  bythenumbers: 'statistics',
+  templatespecs: 'templateSpecs',
+  presentations: 'presentationTemplates',
+  brochures: 'brochures',
+  casestudies: 'caseStudies',
+  sponsorlogos: 'sponsorLogos',
+  clientlogos: 'clientLogos',
+  eventsignage: 'eventSignage',
+  universe: 'linkedGuides',
+  // 'products' and 'events' are nav-only sections with no weight key
+};
+
+/**
  * Calculate brand health score from guide_data
  * @param hiddenSections - sections hidden by the admin; excluded from scoring
  */
@@ -350,10 +373,13 @@ export function calculateBrandHealth(
   guideData: GuideData | null | undefined,
   hiddenSections?: string[] | null
 ): HealthScoreResult {
-  const hiddenSet = new Set(hiddenSections ?? []);
+  // Build the set of WEIGHT keys that correspond to hidden SectionIds
+  const hiddenWeightKeys = new Set(
+    (hiddenSections ?? []).map(id => SECTION_ID_TO_WEIGHT_KEY[id] ?? id)
+  );
   // Only count sections that are NOT hidden
   const activeSections = Object.entries(SECTION_WEIGHTS).filter(
-    ([key]) => !hiddenSet.has(key)
+    ([key]) => !hiddenWeightKeys.has(key)
   );
   const totalSections = activeSections.length;
 
