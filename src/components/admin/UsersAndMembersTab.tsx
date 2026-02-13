@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
 
 // ── Types ──────────────────────────────────────────────
 
@@ -93,6 +94,7 @@ const roleColors: Record<string, string> = {
 
 export function UsersAndMembersTab() {
   const navigate = useNavigate();
+  const { isSuperAdmin, user } = useAuth();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
   const [organizations, setOrganizations] = useState<OrgOption[]>([]);
@@ -205,6 +207,20 @@ export function UsersAndMembersTab() {
     const { error } = await supabase.from('user_roles').delete().eq('user_id', userId);
     if (error) { toast.error('Failed to demote user'); return; }
     toast.success('User demoted to regular user');
+    fetchUsersAndMembers();
+  };
+
+  const promoteToSuperAdmin = async (userId: string) => {
+    const { error } = await supabase.from('user_roles').upsert({ user_id: userId, role: 'super_admin' }, { onConflict: 'user_id' });
+    if (error) { toast.error('Failed to promote to super admin'); return; }
+    toast.success('User promoted to Super Admin');
+    fetchUsersAndMembers();
+  };
+
+  const demoteFromSuperAdmin = async (userId: string) => {
+    const { error } = await supabase.from('user_roles').upsert({ user_id: userId, role: 'admin' }, { onConflict: 'user_id' });
+    if (error) { toast.error('Failed to demote from super admin'); return; }
+    toast.success('User demoted to Admin');
     fetchUsersAndMembers();
   };
 
@@ -411,6 +427,18 @@ export function UsersAndMembersTab() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                {isSuperAdmin && u.role === 'admin' && (
+                                  <DropdownMenuItem onClick={() => promoteToSuperAdmin(u.id)}>
+                                    <Shield className="h-4 w-4 mr-2" />
+                                    Promote to Super Admin
+                                  </DropdownMenuItem>
+                                )}
+                                {isSuperAdmin && u.role === 'super_admin' && u.id !== user?.id && (
+                                  <DropdownMenuItem onClick={() => demoteFromSuperAdmin(u.id)}>
+                                    <TrendingDown className="h-4 w-4 mr-2" />
+                                    Demote to Admin
+                                  </DropdownMenuItem>
+                                )}
                                 {u.role === 'admin' || u.role === 'super_admin' ? (
                                   u.role !== 'super_admin' && (
                                     <DropdownMenuItem onClick={() => demoteFromAdmin(u.id)}>

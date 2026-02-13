@@ -43,7 +43,7 @@ const AppSettingsEditor = lazy(() => import('@/components/admin/AppSettingsEdito
 const OrganizationPortal = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, isSuperAdmin, signOut } = useAuth();
   const { userRole, organization: contextOrg } = useOrganization();
   const { addEvent } = useEvents();
   
@@ -282,7 +282,7 @@ const OrganizationPortal = () => {
               </span>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-              {canEdit && (
+              {isSuperAdmin && (
                 <Suspense fallback={null}>
                   <AppSettingsEditor />
                 </Suspense>
