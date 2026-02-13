@@ -35,7 +35,7 @@ export const useStorageUpload = ({ entityType, entityId }: UseStorageUploadOptio
    */
   const uploadFile = useCallback(async (
     file: File,
-    fileType: 'hero' | 'logo' | 'cover' | 'asset' | 'award',
+    fileType: 'hero' | 'logo' | 'cover' | 'asset' | 'award' | 'screenshot',
     customFileName?: string
   ): Promise<UploadResult | null> => {
     if (!organization?.id) {
