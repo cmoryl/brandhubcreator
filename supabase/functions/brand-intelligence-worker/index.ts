@@ -124,27 +124,54 @@ serve(async (req) => {
       progress: 10,
     });
 
-    // Fetch entity data
+    // Fetch entity data — ONLY text fields, no binary/image data
+    // This prevents loading 70-126MB guide_data blobs into memory
     const table = job.entity_type === 'brand' ? 'brands' : job.entity_type === 'product' ? 'products' : 'events';
-    const entity = await db.selectSingle(table, `id=eq.${job.entity_id}&select=name,guide_data`);
+    const textFields = [
+      'name',
+      'guide_data->hero->>name',
+      'guide_data->hero->>tagline',
+      'guide_data->identity->>missionStatement',
+      'guide_data->identity->>archetype',
+      'guide_data->identity->>toneOfVoice',
+      'guide_data->tagline->>primary',
+      'guide_data->>industry',
+    ].join(',');
+    
+    // Use PostgREST to extract only specific JSONB keys (avoids loading full guide_data)
+    const entityRes = await fetch(
+      `${supabaseUrl}/rest/v1/${table}?id=eq.${job.entity_id}&select=name,guide_data`,
+      {
+        headers: {
+          apikey: supabaseServiceKey,
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          "Content-Type": "application/json",
+          Accept: "application/vnd.pgrst.object+json",
+          Range: "0-0",
+        },
+      }
+    );
 
-    if (!entity) {
+    if (!entityRes.ok || entityRes.status === 406) {
+      throw new Error(`Entity not found`);
+    }
+
+    // Parse response but immediately extract ONLY text fields to minimize memory
+    const entityRaw = await entityRes.json();
+    const entityName = entityRaw?.name || 'Unknown';
+    const guideData = (entityRaw?.guide_data || {}) as Record<string, unknown>;
+    
+    // Extract ONLY lightweight text context — skip all binary/image fields entirely
+    const brandContext = extractLightweightContext(guideData, entityName, job.entity_type);
+    
+    // Release the heavy object immediately
+    delete entityRaw.guide_data;
+
+    if (!entityName) {
       throw new Error(`Entity not found`);
     }
 
     await db.update('brand_intelligence_jobs', `id=eq.${jobId}`, { progress: 30 });
-
-    // Extract brand context — use REDUCED limits to save memory
-    const { extractFullBrandContext, buildMultimodalContent } = await import('../_shared/extractFullBrandContext.ts');
-    const guideData = (entity.guide_data || {}) as Record<string, unknown>;
-    const { text: brandContext, sectionsWithData, imageUrls } = extractFullBrandContext(
-      guideData,
-      entity.name,
-      job.entity_type,
-      1200, // Tight limit to stay under 150MB
-      true,
-      4,    // Max 4 images
-    );
 
     // Skip document context entirely — the SDK import causes memory crashes
     // Documents are still analyzed during brand-audit and research briefings
@@ -153,23 +180,14 @@ serve(async (req) => {
     // Fetch Oracle context directly via REST (no SDK)
     const oracleContext = await fetchOracleContextRest(db, job.organization_id);
 
-    const prompt = `Analyze "${entity.name}" brand. Return compact JSON:
+    const prompt = `Analyze "${entityName}" brand. Return compact JSON:
 ${brandContext}
 ${oracleContext ? `\nORACLE BRAIN CONTEXT:\n${oracleContext}` : ''}
-
-Sections with data: ${sectionsWithData.join(', ')}
-Visual assets: ${imageUrls.length} images
 
 Analyze for brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''} Return ONLY valid JSON:
 {"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]}`;
 
-    // Build multimodal content — limit to 4 images max
-    const safeImages = imageUrls.slice(0, 4);
-    const messageContent = safeImages.length > 0
-      ? buildMultimodalContent(prompt, safeImages, 4)
-      : prompt;
-
-    // Use lighter model for all cases to reduce response memory
+    // Text-only analysis — no multimodal to save memory on large brands
     let aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -177,31 +195,12 @@ Analyze for brand coherence and market positioning.${oracleContext ? ' Align wit
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: safeImages.length > 0 ? "google/gemini-2.5-flash-lite" : "google/gemini-2.5-flash-lite",
-        messages: [{ role: "user", content: messageContent }],
+        model: "google/gemini-2.5-flash-lite",
+        messages: [{ role: "user", content: prompt }],
         temperature: 0.3,
         max_tokens: 800,
       }),
     });
-
-    // If multimodal fails, retry text-only
-    if (!aiResponse.ok && safeImages.length > 0) {
-      const errText = await aiResponse.text();
-      console.warn("[worker] Multimodal AI failed, retrying text-only:", aiResponse.status, errText.slice(0, 150));
-      aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${lovableApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.3,
-          max_tokens: 800,
-        }),
-      });
-    }
 
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
@@ -374,7 +373,7 @@ Analyze for brand coherence and market positioning.${oracleContext ? ' Align wit
     // Auto-feed to Oracle Knowledge Base
     if (job.organization_id && analysis.summary) {
       try {
-        const entityName = (guideData as any)?.hero?.name || entity.name || job.entity_type;
+        const oracleName = (guideData as any)?.hero?.name || entityName || job.entity_type;
         const insightContent = [
           analysis.summary,
           analysis.position ? `\nMarket Position: ${analysis.position}` : '',
@@ -384,7 +383,7 @@ Analyze for brand coherence and market positioning.${oracleContext ? ' Align wit
 
         await db.upsert('oracle_knowledge_base', {
           organization_id: job.organization_id,
-          title: `🧠 ${job.entity_type.charAt(0).toUpperCase() + job.entity_type.slice(1)} Intelligence: ${entityName}`,
+          title: `🧠 ${job.entity_type.charAt(0).toUpperCase() + job.entity_type.slice(1)} Intelligence: ${oracleName}`,
           content: insightContent,
           content_type: 'intelligence',
           source_type: 'entity_brain',
@@ -473,4 +472,104 @@ async function fetchOracleContextRest(db: ReturnType<typeof dbFetch>, organizati
     console.warn('[worker] Oracle context fetch failed:', err);
     return null;
   }
+}
+
+/**
+ * Ultra-lightweight context extraction — text fields only, no images/binary
+ * Designed to work even with 126MB guide_data by only reading small string fields
+ */
+function extractLightweightContext(
+  guideData: Record<string, unknown>,
+  entityName: string,
+  entityType: string,
+): string {
+  const parts: string[] = [`Name: ${entityName}`, `Type: ${entityType}`];
+
+  // Safe string extraction with size cap
+  const safeStr = (obj: any, ...keys: string[]): string | null => {
+    let val = obj;
+    for (const k of keys) {
+      if (!val || typeof val !== 'object') return null;
+      val = val[k];
+    }
+    if (typeof val !== 'string') return null;
+    // Skip base64 data URIs entirely
+    if (val.startsWith('data:')) return null;
+    return val.length > 500 ? val.slice(0, 500) : val;
+  };
+
+  // Hero
+  const hero = guideData.hero as Record<string, unknown> | undefined;
+  if (hero) {
+    const tagline = safeStr(hero, 'tagline');
+    const name = safeStr(hero, 'name');
+    if (name) parts.push(`Brand Name: ${name}`);
+    if (tagline) parts.push(`Tagline: ${tagline}`);
+  }
+
+  // Identity
+  const identity = guideData.identity as Record<string, unknown> | undefined;
+  if (identity) {
+    const mission = safeStr(identity, 'missionStatement');
+    const archetype = safeStr(identity, 'archetype');
+    const tone = identity.toneOfVoice;
+    if (mission) parts.push(`Mission: ${mission}`);
+    if (archetype) parts.push(`Archetype: ${archetype}`);
+    if (Array.isArray(tone) && tone.length > 0) parts.push(`Tone: ${tone.slice(0, 5).join(', ')}`);
+    else if (typeof tone === 'string') parts.push(`Tone: ${tone}`);
+  }
+
+  // Industry
+  const industry = safeStr(guideData, 'industry');
+  if (industry) parts.push(`Industry: ${industry}`);
+
+  // Tagline
+  const taglineObj = guideData.tagline as Record<string, unknown> | undefined;
+  if (taglineObj) {
+    const primary = safeStr(taglineObj, 'primary');
+    if (primary) parts.push(`Primary Tagline: ${primary}`);
+  }
+
+  // Colors — just names and hex, very lightweight
+  const colors = guideData.colors;
+  if (Array.isArray(colors) && colors.length > 0) {
+    const colorSummary = colors.slice(0, 8).map((c: any) => 
+      `${c.name || c.role || ''}:${c.hex || ''}`
+    ).filter(Boolean).join(', ');
+    if (colorSummary) parts.push(`Colors: ${colorSummary}`);
+  }
+
+  // Values — text only
+  const values = guideData.values;
+  if (Array.isArray(values) && values.length > 0) {
+    const valueTexts = values.slice(0, 5).map((v: any) => v.text || v.name).filter(Boolean);
+    if (valueTexts.length > 0) parts.push(`Values: ${valueTexts.join(', ')}`);
+  }
+
+  // Services — names only
+  const services = guideData.services;
+  if (Array.isArray(services) && services.length > 0) {
+    const serviceNames = services.slice(0, 5).map((s: any) => s.name).filter(Boolean);
+    if (serviceNames.length > 0) parts.push(`Services: ${serviceNames.join(', ')}`);
+  }
+
+  // Typography — family names only
+  const typography = guideData.typography;
+  if (Array.isArray(typography) && typography.length > 0) {
+    const fontFamilies = typography.slice(0, 4).map((t: any) => t.fontFamily || t.family).filter(Boolean);
+    if (fontFamilies.length > 0) parts.push(`Fonts: ${fontFamilies.join(', ')}`);
+  }
+
+  // Section counts for context
+  const sectionCounts: string[] = [];
+  const countable = ['logos', 'imagery', 'patterns', 'gradients', 'brandIcons', 'sponsorLogos', 'brochures'];
+  for (const key of countable) {
+    const arr = guideData[key];
+    if (Array.isArray(arr) && arr.length > 0) {
+      sectionCounts.push(`${key}: ${arr.length}`);
+    }
+  }
+  if (sectionCounts.length > 0) parts.push(`Asset counts: ${sectionCounts.join(', ')}`);
+
+  return parts.join('\n');
 }

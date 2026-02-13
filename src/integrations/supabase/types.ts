@@ -3500,6 +3500,15 @@ export type Database = {
         }[]
       }
       org_has_public_brands: { Args: { _org_id: string }; Returns: boolean }
+      update_guide_section: {
+        Args: {
+          p_data: string
+          p_id: string
+          p_section: string
+          p_table: string
+        }
+        Returns: undefined
+      }
       validate_and_accept_invite: {
         Args: { p_invite_token: string; p_user_id: string }
         Returns: {
