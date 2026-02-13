@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense } from 'react';
+import { useState, useMemo, lazy, Suspense, useCallback } from 'react';
 import { useCompetitiveInsights, type CompetitiveInsightItem } from '@/hooks/useCompetitiveInsights';
 import { useBrandIntelligenceInsights } from '@/hooks/useBrandIntelligenceInsights';
 import { useComplianceAuditInsights } from '@/hooks/useComplianceAuditInsights';
@@ -22,6 +22,9 @@ const CompetitiveAnalysisDialog = lazy(() =>
 );
 const BrandIntelligenceDetailDialog = lazy(() =>
   import('./BrandIntelligenceDetailDialog').then(m => ({ default: m.BrandIntelligenceDetailDialog }))
+);
+const WebsiteReportDetailDialog = lazy(() =>
+  import('./WebsiteReportDetailDialog').then(m => ({ default: m.WebsiteReportDetailDialog }))
 );
 
 interface InsightsSectionProps {
@@ -322,6 +325,8 @@ export const InsightsSection = ({
   const [editingInsight, setEditingInsight] = useState<InsightItem | null>(null);
   const [competitiveDialogOpen, setCompetitiveDialogOpen] = useState(false);
   const [intelligenceDialogOpen, setIntelligenceDialogOpen] = useState(false);
+  const [websiteReportOpen, setWebsiteReportOpen] = useState(false);
+  const [selectedWebsiteReport, setSelectedWebsiteReport] = useState<{ url: string; report: any } | null>(null);
 
   // Auto-fetch competitive analysis reports when entity context is provided
   const { competitiveInsights, deleteReport: deleteCompetitiveReport } = useCompetitiveInsights({
@@ -543,6 +548,16 @@ export const InsightsSection = ({
                         onClick={
                           isCompetitive ? () => setCompetitiveDialogOpen(true) :
                           isBrain ? () => setIntelligenceDialogOpen(true) :
+                          insight.id.startsWith('site-analysis-') ? () => {
+                            try {
+                              const report = insight.content ? JSON.parse(insight.content) : null;
+                              if (report) {
+                                const url = insight.title?.replace('Website Analysis: ', '') || '';
+                                setSelectedWebsiteReport({ url, report });
+                                setWebsiteReportOpen(true);
+                              }
+                            } catch { /* ignore parse errors */ }
+                          } :
                           undefined
                         }
                       />
@@ -606,6 +621,18 @@ export const InsightsSection = ({
             open={intelligenceDialogOpen}
             onOpenChange={setIntelligenceDialogOpen}
             detail={intelligenceDetail}
+          />
+        </Suspense>
+      )}
+
+      {/* Website Analysis Detail Dialog */}
+      {websiteReportOpen && selectedWebsiteReport && (
+        <Suspense fallback={null}>
+          <WebsiteReportDetailDialog
+            open={websiteReportOpen}
+            onOpenChange={setWebsiteReportOpen}
+            url={selectedWebsiteReport.url}
+            report={selectedWebsiteReport.report}
           />
         </Suspense>
       )}
