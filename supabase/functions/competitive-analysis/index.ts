@@ -1,601 +1,136 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-import { extractFullBrandContext, buildMultimodalContent, fetchDocumentContext, fetchSocialMetricsContext, type ImageReference } from '../_shared/extractFullBrandContext.ts';
-
-function extractEntityContext(guideData: Record<string, unknown>, name: string): { text: string; imageUrls: ImageReference[] } {
-  const { text, imageUrls } = extractFullBrandContext(guideData, name, 'brand', 3000, true, 10);
-  return { text, imageUrls };
-}
-
-function buildCompetitiveAnalysisPrompt(
-  entityName: string, 
-  entityContext: string, 
-  competitors: string[],
-  regionalContext?: { region?: string; country?: string }
-): string {
-  const competitorList = competitors.slice(0, 5).map((c, i) => `${i + 1}. ${c}`).join('\n');
-  
-  const regionalNote = regionalContext?.country || regionalContext?.region
-    ? `\n\nREGIONAL FOCUS: This analysis should be tailored for the ${regionalContext.country || ''} ${regionalContext.region ? `(${regionalContext.region} region)` : ''} market. Consider:
-- Local competitors that operate primarily in this region
-- Cultural factors that affect brand perception in this market
-- Regional market dynamics and consumer preferences
-- Localization requirements for brand positioning
-- Regional regulatory or business environment considerations`
-    : '';
-
-  return `You are a brand strategy and design consultant conducting a comprehensive competitive analysis. Analyze the visual identity, design assets, and brand positioning of ${entityName} against its competitors from a design and perception perspective.${regionalNote}
-
-ENTITY TO ANALYZE:
-${entityContext}
-
-TOP COMPETITORS:
-${competitorList}
-
-Provide a comprehensive analysis using the following structure. Return ONLY valid JSON matching this exact schema:
-
-{
-  "visualIdentityAudit": {
-    "logoAnalysis": {
-      "style": "string describing logo style (wordmark, symbol, combination, emblem)",
-      "typography": "string describing typography choices and personality",
-      "symbolism": "string describing iconography and symbolism",
-      "scalability": "string describing scalability across applications",
-      "memorability": "string describing distinctiveness in category"
-    },
-    "colorPalette": {
-      "primary": ["array", "of", "primary", "colors"],
-      "secondary": ["array", "of", "secondary", "colors"],
-      "psychology": "string describing color psychology and emotions",
-      "accessibility": "string describing accessibility considerations",
-      "consistency": "string describing consistency across touchpoints"
-    },
-    "typographySystem": {
-      "fonts": ["array", "of", "font", "families"],
-      "hierarchy": "string describing hierarchy and readability",
-      "personality": "string describing personality conveyed"
-    },
-    "visualStyle": {
-      "photographyStyle": "string describing photography approach",
-      "illustrationApproach": "string describing illustration style",
-      "iconography": "string describing icon usage",
-      "aesthetic": "string describing overall aesthetic"
-    },
-    "designPatterns": {
-      "uiElements": "string describing UI patterns",
-      "whitespace": "string describing whitespace usage",
-      "interactions": "string describing interactions"
-    }
-  },
-  "digitalPresence": {
-    "homepageImpression": {
-      "heroImpact": "string describing hero section impact",
-      "hierarchy": "string describing visual hierarchy",
-      "ctaDesign": "string describing CTA prominence",
-      "effectiveness": "string describing overall effectiveness"
-    },
-    "uxAnalysis": {
-      "navigation": "string describing navigation intuitiveness",
-      "contentOrganization": "string describing content organization",
-      "mobileResponsive": "string describing mobile responsiveness",
-      "overallPolish": "string describing overall polish"
-    },
-    "contentPresentation": {
-      "videoUsage": "string describing video usage",
-      "dataVisualization": "string describing data viz approaches",
-      "caseStudyDesign": "string describing case study presentation"
-    }
-  },
-  "marketingCollateral": {
-    "materialQuality": ["array", "of", "material", "assessments"],
-    "productMarketing": ["array", "of", "product", "marketing", "notes"],
-    "socialConsistency": "string describing social media consistency"
-  },
-  "brandPositioning": {
-    "personalityMatrix": {
-      "innovationScore": 8,
-      "approachabilityScore": 7,
-      "technicalScore": 9,
-      "boldnessScore": 6,
-      "enterpriseScore": 8,
-      "globalScore": 9
-    },
-    "targetAudienceSignals": ["array", "of", "audience", "signals"],
-    "trustIndicators": ["array", "of", "trust", "indicators"],
-    "differentiation": ["array", "of", "differentiation", "factors"]
-  },
-  "strengthsWeaknesses": {
-    "designSophistication": 8,
-    "visualConsistency": 7,
-    "userCentricity": 8,
-    "innovation": 7,
-    "clarity": 8,
-    "emotionalConnection": 6,
-    "professionalPolish": 9
-  },
-  "recommendations": {
-    "positioningOpportunities": ["array", "of", "opportunities"],
-    "designPriorities": [
-      {"title": "Priority 1", "impact": "High", "effort": "Medium"},
-      {"title": "Priority 2", "impact": "Medium", "effort": "Low"}
-    ],
-    "brandRefinements": {
-      "logo": "string with logo recommendations",
-      "colors": "string with color recommendations",
-      "typography": "string with typography recommendations",
-      "imagery": "string with imagery recommendations"
-    },
-    "digitalImprovements": ["array", "of", "digital", "improvements"],
-    "assetOptimization": ["array", "of", "asset", "optimizations"]
-  },
-  "marketPerception": {
-    "categoryMaturity": "string describing market maturity",
-    "dominantTrends": ["array", "of", "trends"],
-    "currentRanking": 7,
-    "keyStrengths": ["array", "of", "strengths"],
-    "criticalGaps": ["array", "of", "gaps"],
-    "risks": ["array", "of", "risks"]
-  },
-  "swotAnalysis": {
-    "strengths": ["3-5 internal brand strengths relative to competitors"],
-    "weaknesses": ["3-5 internal brand weaknesses or limitations"],
-    "opportunities": ["3-5 external market opportunities to exploit"],
-    "threats": ["3-5 external threats from competitors or market shifts"]
-  },
-  "competitorProfiles": [
-    {
-      "name": "Competitor Name",
-      "type": "direct|indirect|emerging",
-      "overallScore": 7,
-      "brandStrength": "2-3 sentence brand strength assessment",
-      "visualIdentitySummary": "summary of their visual identity quality",
-      "digitalPresenceSummary": "summary of their digital presence",
-      "keyDifferentiator": "what sets them apart",
-      "biggestWeakness": "their main vulnerability you can exploit",
-      "threatLevel": "low|medium|high"
-    }
-  ],
-  "contentMessaging": {
-    "toneSummary": "description of overall brand tone vs competitors",
-    "messagingPillars": ["3-5 core messaging themes used"],
-    "contentStrategy": "assessment of content strategy effectiveness",
-    "socialMediaApproach": "evaluation of social media presence and engagement",
-    "thoughtLeadership": "assessment of thought leadership and authority",
-    "contentGaps": ["gaps in content strategy compared to competitors"]
-  },
-  "marketTrends": {
-    "industryTrends": ["3-5 key industry trends affecting competitive landscape"],
-    "innovationGaps": ["areas where innovation is needed"],
-    "emergingOpportunities": ["new opportunities from market shifts"],
-    "disruptionRisks": ["potential disruptions that could change competitive dynamics"],
-    "technologyAdoption": "assessment of technology adoption vs competitors"
-  },${regionalContext?.country || regionalContext?.region ? `
-  "regionalInsights": {
-    "marketContext": "string describing the regional market context and competitive landscape",
-    "localCompetitors": ["array", "of", "local", "competitors", "specific", "to", "this", "region"],
-    "culturalConsiderations": ["array", "of", "cultural", "factors", "for", "brand", "localization"],
-    "localizationPriorities": ["array", "of", "localization", "recommendations"],
-    "regulatoryConsiderations": "string describing any regional regulatory or compliance factors",
-    "marketOpportunities": ["array", "of", "regional", "market", "opportunities"],
-    "entryBarriers": ["array", "of", "potential", "barriers", "in", "this", "market"]
-  },` : ''}
-  "executiveSummary": {
-    "overview": "2-3 paragraph executive summary",
-    "currentPosition": "string describing current market position",
-    "topPriorities": ["priority 1", "priority 2", "priority 3"],
-    "actionPlan": {
-      "thirtyDay": ["30-day action 1", "30-day action 2"],
-      "sixtyDay": ["60-day action 1", "60-day action 2"],
-      "ninetyDay": ["90-day action 1", "90-day action 2"]
-    },
-    "successMetrics": ["metric 1", "metric 2", "metric 3"]
-  },
-  "score": 75,
-  "generatedAt": "${new Date().toISOString()}",
-  "competitors": ${JSON.stringify(competitors.slice(0, 5))}${regionalContext?.country || regionalContext?.region ? `,
-  "region": "${regionalContext.region || ''}",
-  "country": "${regionalContext.country || ''}"` : ''}
-}
-
-IMPORTANT: For competitorProfiles, create one profile per competitor listed above. Scores should be 1-10 integers. Be specific, actionable, and insightful. Base your analysis on the entity's brand data provided and your knowledge of the competitors listed. Provide genuine competitive intelligence, not generic filler.${regionalContext?.country || regionalContext?.region ? ' Pay special attention to regional competitive dynamics and localization opportunities.' : ''}`;
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+  const svcHeaders = {
+    "apikey": serviceKey,
+    "Authorization": `Bearer ${serviceKey}`,
+    "Content-Type": "application/json",
+  };
+
   try {
-    // Verify authentication
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
+        JSON.stringify({ error: "Authentication required" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const { entityType, entityId, organizationId, competitors, region, country } = await req.json();
 
-    // Validate inputs
-    if (!entityType || !['brand', 'product', 'event'].includes(entityType)) {
+    if (!entityType || !["brand", "product", "event"].includes(entityType)) {
       return new Response(
-        JSON.stringify({ error: 'Invalid entityType. Must be brand, product, or event.' }),
+        JSON.stringify({ error: "Invalid entityType" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!entityId || !uuidRegex.test(entityId)) {
+    if (!entityId || !competitors || !Array.isArray(competitors) || competitors.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Invalid entityId format' }),
+        JSON.stringify({ error: "entityId and competitors are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (!competitors || !Array.isArray(competitors) || competitors.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'At least one competitor is required' }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-
-    if (!lovableApiKey) {
-      return new Response(
-        JSON.stringify({ error: 'AI service not configured' }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Verify user authentication
-    const userSupabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
+    // Verify user via REST
+    const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: { "apikey": anonKey, "Authorization": authHeader },
     });
-
-    const { data: { user }, error: authError } = await userSupabase.auth.getUser();
-    if (authError || !user) {
+    if (!userRes.ok) {
       return new Response(
-        JSON.stringify({ error: 'Invalid authentication token' }),
+        JSON.stringify({ error: "Invalid authentication" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    const user = await userRes.json();
 
-    console.log("[competitive-analysis] User authenticated:", user.id);
-
-    // Service client for DB operations
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Check if user has permission to use AI features (org admin or higher)
-    const { data: canUseAI } = await supabase.rpc('can_use_ai_features', {
-      _user_id: user.id,
-      _entity_id: entityId,
-      _entity_type: entityType
-    });
-
-    if (!canUseAI) {
-      console.log("[competitive-analysis] User lacks AI permissions:", user.id);
+    // Rate limit check (5 per hour)
+    const oneHourAgo = new Date(Date.now() - 3600000).toISOString();
+    const rlRes = await fetch(
+      `${supabaseUrl}/rest/v1/competitive_analysis_reports?created_by=eq.${user.id}&created_at=gte.${oneHourAgo}&select=id`,
+      { headers: { ...svcHeaders, "Prefer": "count=exact" } }
+    );
+    const countHeader = rlRes.headers.get("content-range");
+    const count = countHeader ? parseInt(countHeader.split("/")[1] || "0") : 0;
+    if (count >= 5) {
       return new Response(
-        JSON.stringify({ error: 'Organization admin role required for competitive analysis' }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Fetch entity data
-    const tableName = entityType === 'brand' ? 'brands' : entityType === 'product' ? 'products' : 'events';
-    
-    const { data: entityData, error: entityError } = await supabase
-      .from(tableName)
-      .select('id, name, guide_data, organization_id')
-      .eq('id', entityId)
-      .single();
-
-    if (entityError || !entityData) {
-      console.error("[competitive-analysis] Entity not found:", entityError);
-      return new Response(
-        JSON.stringify({ error: 'Entity not found' }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Rate limiting check (5 reports per hour per user)
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { count: recentReports } = await supabase
-      .from('competitive_analysis_reports')
-      .select('id', { count: 'exact', head: true })
-      .eq('created_by', user.id)
-      .gte('created_at', oneHourAgo);
-
-    if ((recentReports || 0) >= 5) {
-      return new Response(
-        JSON.stringify({ error: 'Rate limit exceeded. Maximum 5 reports per hour.' }),
+        JSON.stringify({ error: "Rate limit exceeded. Maximum 5 reports per hour." }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Extract entity context with images
-    const guideData = (entityData.guide_data || {}) as EntityGuideData;
-    const { text: entityContext, imageUrls: compEntityImages } = extractEntityContext(guideData, entityData.name);
-    
-    // Fetch document content and social metrics for competitive analysis
-    const [docResult, socialResult] = await Promise.all([
-      fetchDocumentContext(supabase, entityId, entityType, guideData as Record<string, unknown>, 1000),
-      fetchSocialMetricsContext(supabase, entityId, entityType),
-    ]);
-    const { text: docContext, imageUrls: docImages, documentCount } = docResult;
-    const { text: socialContext } = socialResult;
-    const enrichedContext = [entityContext, docContext, socialContext].filter(Boolean).join('\n');
-    for (const di of docImages.slice(0, 4)) {
-      if (compEntityImages.length < 12) compEntityImages.push(di);
-    }
-
-    const regionalContext = region || country ? { region, country } : undefined;
-    const prompt = buildCompetitiveAnalysisPrompt(entityData.name, enrichedContext, competitors, regionalContext);
-
-    console.log("[competitive-analysis] Calling AI Gateway for entity:", entityData.name, regionalContext ? `(${country || region})` : '');
-
-    console.log("[competitive-analysis] Calling AI Gateway for entity:", entityData.name);
-
-    // Build multimodal content with brand images for visual competitive analysis
-    const competitiveUserContent = compEntityImages.length > 0
-      ? buildMultimodalContent(prompt, compEntityImages, 8)
-      : prompt;
-
-    // Call Lovable AI Gateway with multimodal support
-    let aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Create job record
+    const jobRes = await fetch(`${supabaseUrl}/rest/v1/brand_intelligence_jobs`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: { ...svcHeaders, "Prefer": "return=representation" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
-        messages: [
-          {
-            role: "system",
-            content: "You are an expert brand strategist and competitive analyst. Provide detailed, actionable insights based on the brand data provided." + (compEntityImages.length > 0 ? " You will also receive brand visual assets. Analyze logos, imagery, patterns, and design elements to strengthen your visual identity audit and competitive positioning analysis." : "") + " Always respond with valid JSON matching the requested schema exactly."
-          },
-          {
-            role: "user",
-            content: competitiveUserContent
-          }
-        ],
-        max_tokens: 12000,
-        temperature: 0.7,
+        entity_id: entityId,
+        entity_type: entityType,
+        user_id: user.id,
+        organization_id: organizationId || null,
+        status: "processing",
+        progress: 0,
       }),
     });
+    const jobs = await jobRes.json();
+    const jobId = jobs?.[0]?.id;
+    if (!jobId) throw new Error("Failed to create job");
 
-    // If multimodal fails (broken image URLs), retry text-only
-    if (!aiResponse.ok && compEntityImages.length > 0 && aiResponse.status !== 429 && aiResponse.status !== 402) {
-      console.warn("[competitive-analysis] Multimodal failed, retrying text-only:", aiResponse.status);
-      await aiResponse.text(); // consume body
-      aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Fire worker in background
+    // @ts-ignore EdgeRuntime available in Supabase
+    EdgeRuntime.waitUntil(
+      fetch(`${supabaseUrl}/functions/v1/competitive-analysis-worker`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${lovableApiKey}`,
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${serviceKey}`,
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-pro",
-          messages: [
-            {
-              role: "system",
-              content: "You are an expert brand strategist and competitive analyst. Provide detailed, actionable insights based on the brand data provided. Always respond with valid JSON matching the requested schema exactly."
-            },
-            { role: "user", content: prompt }
-          ],
-          max_tokens: 12000,
-          temperature: 0.7,
+          jobId,
+          entityType,
+          entityId,
+          organizationId,
+          competitors: competitors.slice(0, 10),
+          region,
+          country,
+          userId: user.id,
+          userAuth: authHeader,
         }),
-      });
-    }
-
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error("[competitive-analysis] AI Gateway error:", aiResponse.status, errorText);
-      
-      if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limits exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'API credits exhausted. Please add credits.' }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      throw new Error(`AI Gateway error: ${aiResponse.status}`);
-    }
-
-    const aiResult = await aiResponse.json();
-    const content = aiResult.choices?.[0]?.message?.content;
-
-    if (!content) {
-      throw new Error("No content in AI response");
-    }
-
-    // Parse the JSON response
-    let reportData;
-    try {
-      reportData = JSON.parse(content.trim());
-    } catch {
-      try {
-        const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) ||
-                          content.match(/```(?:json)?\s*([\s\S]*)/) ||
-                          content.match(/\{[\s\S]*\}/);
-        const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]).trim() : content.trim();
-        reportData = JSON.parse(jsonStr);
-      } catch (parseError) {
-        console.error("[competitive-analysis] Failed to parse AI response:", parseError);
-        console.error("[competitive-analysis] Raw content:", content.substring(0, 500));
-        throw new Error("Failed to parse analysis results");
-      }
-    }
-
-    // Calculate overall score from the analysis
-    const strengthsScores = reportData.strengthsWeaknesses || {};
-    const avgScore = Math.round(
-      (
-        (strengthsScores.designSophistication || 5) +
-        (strengthsScores.visualConsistency || 5) +
-        (strengthsScores.userCentricity || 5) +
-        (strengthsScores.innovation || 5) +
-        (strengthsScores.clarity || 5) +
-        (strengthsScores.emotionalConnection || 5) +
-        (strengthsScores.professionalPolish || 5)
-      ) / 7 * 10
-    );
-
-    // Store the report
-    const { data: savedReport, error: saveError } = await supabase
-      .from('competitive_analysis_reports')
-      .insert({
-        entity_type: entityType,
-        entity_id: entityId,
-        organization_id: organizationId || entityData.organization_id,
-        report_type: 'competitive',
-        report_data: reportData,
-        competitors: competitors.slice(0, 10),
-        score: avgScore,
-        status: 'completed',
-        created_by: user.id,
-      })
-      .select()
-      .single();
-
-    if (saveError) {
-      console.error("[competitive-analysis] Failed to save report:", saveError);
-      throw new Error("Failed to save report");
-    }
-
-    console.log("[competitive-analysis] Report saved successfully:", savedReport.id);
-
-    // Sync competitive insights to brand intelligence for AI advancement
-    const competitiveLandscape = {
-      last_updated: new Date().toISOString(),
-      overall_score: avgScore,
-      competitors_analyzed: competitors.slice(0, 5),
-      market_position: {
-        ranking: reportData.marketPerception?.currentRanking || null,
-        category_maturity: reportData.marketPerception?.categoryMaturity || null,
-        dominant_trends: reportData.marketPerception?.dominantTrends || [],
-      },
-      positioning: {
-        key_strengths: reportData.marketPerception?.keyStrengths || [],
-        critical_gaps: reportData.marketPerception?.criticalGaps || [],
-        differentiation: reportData.brandPositioning?.differentiation || [],
-        risks: reportData.marketPerception?.risks || [],
-      },
-      personality_matrix: reportData.brandPositioning?.personalityMatrix || null,
-      strengths_weaknesses: reportData.strengthsWeaknesses || null,
-      recommendations_summary: {
-        positioning_opportunities: reportData.recommendations?.positioningOpportunities?.slice(0, 3) || [],
-        design_priorities: reportData.recommendations?.designPriorities?.slice(0, 3) || [],
-        digital_improvements: reportData.recommendations?.digitalImprovements?.slice(0, 3) || [],
-      },
-      action_plan: reportData.executiveSummary?.actionPlan || null,
-      report_id: savedReport.id,
-    };
-
-    // Update or create brand intelligence record with competitive landscape
-    const { data: existingIntel } = await supabase
-      .from('brand_intelligence')
-      .select('id, competitive_landscape, knowledge_entries, analysis_count')
-      .eq('entity_id', entityId)
-      .eq('entity_type', entityType)
-      .single();
-
-    const now = new Date().toISOString();
-
-    // Create knowledge entry from competitive analysis
-    const competitiveInsightEntry = {
-      id: `competitive-${savedReport.id}`,
-      type: 'competitive_analysis',
-      content: `Competitive analysis completed against ${competitors.slice(0, 3).join(', ')}${competitors.length > 3 ? ` and ${competitors.length - 3} others` : ''}. Overall score: ${avgScore}/100. Key strengths: ${(reportData.marketPerception?.keyStrengths || []).slice(0, 2).join(', ') || 'N/A'}. Critical gaps: ${(reportData.marketPerception?.criticalGaps || []).slice(0, 2).join(', ') || 'N/A'}.`,
-      source: 'competitive_analysis',
-      category: 'competitive',
-      created_at: now,
-      metadata: {
-        report_id: savedReport.id,
-        competitors: competitors.slice(0, 5),
-        score: avgScore,
-      }
-    };
-
-    if (existingIntel?.id) {
-      // Update existing intelligence record
-      const existingEntries = (existingIntel.knowledge_entries || []) as Array<Record<string, unknown>>;
-      // Remove old competitive analysis entries (keep only the 3 most recent after adding new one)
-      const nonCompetitiveEntries = existingEntries.filter((e) => e.type !== 'competitive_analysis');
-      const competitiveEntries = existingEntries
-        .filter((e) => e.type === 'competitive_analysis')
-        .slice(0, 2); // Keep 2 most recent, new one will make 3
-      
-      const updatedEntries = [...nonCompetitiveEntries, ...competitiveEntries, competitiveInsightEntry];
-
-      const { error: updateIntelError } = await supabase
-        .from('brand_intelligence')
-        .update({
-          competitive_landscape: competitiveLandscape,
-          knowledge_entries: updatedEntries,
-          updated_at: now,
-        })
-        .eq('id', existingIntel.id);
-
-      if (updateIntelError) {
-        console.error("[competitive-analysis] Failed to update brand intelligence:", updateIntelError);
-        // Non-fatal - report is already saved
-      } else {
-        console.log("[competitive-analysis] Brand intelligence updated with competitive landscape");
-      }
-    } else {
-      // Create new intelligence record
-      const { error: createIntelError } = await supabase
-        .from('brand_intelligence')
-        .insert({
-          entity_type: entityType,
-          entity_id: entityId,
-          organization_id: organizationId || entityData.organization_id,
-          competitive_landscape: competitiveLandscape,
-          knowledge_entries: [competitiveInsightEntry],
-          analysis_count: 0,
-          created_at: now,
-          updated_at: now,
+      }).catch(async (error) => {
+        console.error(`Worker call failed for job ${jobId}:`, error);
+        await fetch(`${supabaseUrl}/rest/v1/brand_intelligence_jobs?id=eq.${jobId}`, {
+          method: "PATCH",
+          headers: { ...svcHeaders, "Prefer": "return=minimal" },
+          body: JSON.stringify({
+            status: "failed",
+            error_message: error.message || "Worker invocation failed",
+            completed_at: new Date().toISOString(),
+          }),
         });
-
-      if (createIntelError) {
-        console.error("[competitive-analysis] Failed to create brand intelligence:", createIntelError);
-        // Non-fatal - report is already saved
-      } else {
-        console.log("[competitive-analysis] Brand intelligence created with competitive landscape");
-      }
-    }
+      })
+    );
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        report: savedReport 
-      }),
+      JSON.stringify({ jobId, status: "processing" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-
   } catch (error) {
     console.error("[competitive-analysis] Error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "An unexpected error occurred" }),
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

@@ -1,0 +1,228 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+serve(async (req) => {
+  let jobId: string | null = null;
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const headers = {
+    "apikey": serviceKey,
+    "Authorization": `Bearer ${serviceKey}`,
+    "Content-Type": "application/json",
+  };
+
+  const updateJob = async (updates: Record<string, unknown>) => {
+    if (!jobId) return;
+    await fetch(`${supabaseUrl}/rest/v1/brand_intelligence_jobs?id=eq.${jobId}`, {
+      method: "PATCH",
+      headers: { ...headers, "Prefer": "return=minimal" },
+      body: JSON.stringify(updates),
+    });
+  };
+
+  try {
+    const body = await req.json();
+    jobId = body.jobId;
+    const { entityType, entityId, organizationId, competitors, region, country, userId } = body;
+
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+    // Fetch entity name + intelligence context (skip guide_data to save memory)
+    const tableName = entityType === "brand" ? "brands" : entityType === "product" ? "products" : "events";
+
+    const [entityRes, intelRes] = await Promise.all([
+      fetch(`${supabaseUrl}/rest/v1/${tableName}?id=eq.${entityId}&select=id,name,organization_id&limit=1`, { headers }),
+      fetch(`${supabaseUrl}/rest/v1/brand_intelligence?entity_id=eq.${entityId}&entity_type=eq.${entityType}&select=brand_summary,market_position,competitive_advantages,brand_voice_profile,target_audience&limit=1`, { headers }),
+    ]);
+
+    const entityRows = await entityRes.json();
+    const intelRows = await intelRes.json();
+
+    if (!Array.isArray(entityRows) || entityRows.length === 0) {
+      throw new Error("Entity not found");
+    }
+
+    const entity = entityRows[0];
+    const intel = Array.isArray(intelRows) && intelRows.length > 0 ? intelRows[0] : null;
+
+    await updateJob({ progress: 20 });
+
+    // Build context from intelligence data (not guide_data)
+    const contextParts: string[] = [`Brand: ${entity.name}`, `Type: ${entityType}`];
+    if (intel) {
+      if (intel.brand_summary) contextParts.push(`Summary: ${String(intel.brand_summary).substring(0, 400)}`);
+      if (intel.market_position) contextParts.push(`Market Position: ${String(intel.market_position).substring(0, 200)}`);
+      if (intel.competitive_advantages) {
+        const adv = Array.isArray(intel.competitive_advantages)
+          ? intel.competitive_advantages.slice(0, 5).join(", ")
+          : String(intel.competitive_advantages).substring(0, 200);
+        contextParts.push(`Advantages: ${adv}`);
+      }
+      if (intel.target_audience) {
+        const ta = typeof intel.target_audience === "string" ? intel.target_audience : JSON.stringify(intel.target_audience);
+        contextParts.push(`Audience: ${ta.substring(0, 200)}`);
+      }
+      if (intel.brand_voice_profile) {
+        const voice = typeof intel.brand_voice_profile === "string" ? intel.brand_voice_profile : JSON.stringify(intel.brand_voice_profile);
+        contextParts.push(`Voice: ${voice.substring(0, 200)}`);
+      }
+    }
+
+    const entityContext = contextParts.join(". ");
+    const competitorList = competitors.slice(0, 5).map((c: string, i: number) => `${i + 1}. ${c}`).join("\n");
+
+    const regionalNote = country || region
+      ? `\nREGIONAL FOCUS: Tailor analysis for ${country || ""} ${region ? `(${region})` : ""} market.`
+      : "";
+
+    await updateJob({ progress: 40 });
+
+    const prompt = `Competitive analysis for ${entity.name} against competitors.${regionalNote}
+
+ENTITY: ${entityContext}
+
+COMPETITORS:
+${competitorList}
+
+Return ONLY valid JSON:
+{
+  "visualIdentityAudit":{"logoAnalysis":{"style":"","typography":"","symbolism":"","scalability":"","memorability":""},"colorPalette":{"primary":[],"secondary":[],"psychology":"","accessibility":"","consistency":""},"typographySystem":{"fonts":[],"hierarchy":"","personality":""},"visualStyle":{"photographyStyle":"","illustrationApproach":"","iconography":"","aesthetic":""},"designPatterns":{"uiElements":"","whitespace":"","interactions":""}},
+  "digitalPresence":{"homepageImpression":{"heroImpact":"","hierarchy":"","ctaDesign":"","effectiveness":""},"uxAnalysis":{"navigation":"","contentOrganization":"","mobileResponsive":"","overallPolish":""},"contentPresentation":{"videoUsage":"","dataVisualization":"","caseStudyDesign":""}},
+  "marketingCollateral":{"materialQuality":[],"productMarketing":[],"socialConsistency":""},
+  "brandPositioning":{"personalityMatrix":{"innovationScore":7,"approachabilityScore":7,"technicalScore":7,"boldnessScore":7,"enterpriseScore":7,"globalScore":7},"targetAudienceSignals":[],"trustIndicators":[],"differentiation":[]},
+  "strengthsWeaknesses":{"designSophistication":7,"visualConsistency":7,"userCentricity":7,"innovation":7,"clarity":7,"emotionalConnection":7,"professionalPolish":7},
+  "recommendations":{"positioningOpportunities":[],"designPriorities":[{"title":"","impact":"","effort":""}],"brandRefinements":{"logo":"","colors":"","typography":"","imagery":""},"digitalImprovements":[],"assetOptimization":[]},
+  "marketPerception":{"categoryMaturity":"","dominantTrends":[],"currentRanking":7,"keyStrengths":[],"criticalGaps":[],"risks":[]},
+  "swotAnalysis":{"strengths":[],"weaknesses":[],"opportunities":[],"threats":[]},
+  "competitorProfiles":[{"name":"","type":"direct","overallScore":7,"brandStrength":"","visualIdentitySummary":"","digitalPresenceSummary":"","keyDifferentiator":"","biggestWeakness":"","threatLevel":"medium"}],
+  "contentMessaging":{"toneSummary":"","messagingPillars":[],"contentStrategy":"","socialMediaApproach":"","thoughtLeadership":"","contentGaps":[]},
+  "marketTrends":{"industryTrends":[],"innovationGaps":[],"emergingOpportunities":[],"disruptionRisks":[],"technologyAdoption":""},
+  "executiveSummary":{"overview":"","currentPosition":"","topPriorities":[],"actionPlan":{"thirtyDay":[],"sixtyDay":[],"ninetyDay":[]},"successMetrics":[]},
+  "score":75,
+  "competitors":${JSON.stringify(competitors.slice(0, 5))}
+}
+
+Create one competitorProfile per competitor. Scores 1-10 integers. Be specific and actionable.`;
+
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [
+          { role: "system", content: "You are an expert brand strategist. Return valid JSON only matching the schema exactly." },
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.5,
+        max_tokens: 6000,
+      }),
+    });
+
+    if (!aiResponse.ok) {
+      const errText = await aiResponse.text();
+      throw new Error(`AI Gateway error: ${aiResponse.status} - ${errText.slice(0, 200)}`);
+    }
+
+    await updateJob({ progress: 70 });
+
+    const aiResult = await aiResponse.json();
+    const content = aiResult.choices?.[0]?.message?.content;
+    if (!content) throw new Error("No AI response content");
+
+    // Parse JSON
+    let reportData;
+    try {
+      reportData = JSON.parse(content.trim());
+    } catch {
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/\{[\s\S]*\}/);
+      const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]).trim() : content.trim();
+      // Fix truncated JSON
+      let fixed = jsonStr;
+      if (!fixed.endsWith("}")) {
+        const lastBrace = fixed.lastIndexOf("}");
+        if (lastBrace > 0) fixed = fixed.substring(0, lastBrace + 1);
+      }
+      reportData = JSON.parse(fixed);
+    }
+
+    await updateJob({ progress: 85 });
+
+    // Calculate score
+    const sw = reportData.strengthsWeaknesses || {};
+    const avgScore = Math.round(
+      ((sw.designSophistication || 5) + (sw.visualConsistency || 5) + (sw.userCentricity || 5) +
+        (sw.innovation || 5) + (sw.clarity || 5) + (sw.emotionalConnection || 5) + (sw.professionalPolish || 5)) / 7 * 10
+    );
+
+    // Save report via REST
+    const saveRes = await fetch(`${supabaseUrl}/rest/v1/competitive_analysis_reports`, {
+      method: "POST",
+      headers: { ...headers, "Prefer": "return=representation" },
+      body: JSON.stringify({
+        entity_type: entityType,
+        entity_id: entityId,
+        organization_id: organizationId || entity.organization_id,
+        report_type: "competitive",
+        report_data: reportData,
+        competitors: competitors.slice(0, 10),
+        score: avgScore,
+        status: "completed",
+        created_by: userId,
+      }),
+    });
+
+    const savedReports = await saveRes.json();
+    const savedReport = savedReports?.[0];
+    if (!savedReport?.id) throw new Error("Failed to save report");
+
+    // Update brand intelligence competitive_landscape
+    const landscape = {
+      last_updated: new Date().toISOString(),
+      overall_score: avgScore,
+      competitors_analyzed: competitors.slice(0, 5),
+      report_id: savedReport.id,
+    };
+
+    const existingIntelRes = await fetch(
+      `${supabaseUrl}/rest/v1/brand_intelligence?entity_id=eq.${entityId}&entity_type=eq.${entityType}&select=id&limit=1`,
+      { headers }
+    );
+    const existingIntel = await existingIntelRes.json();
+
+    if (Array.isArray(existingIntel) && existingIntel.length > 0) {
+      await fetch(`${supabaseUrl}/rest/v1/brand_intelligence?id=eq.${existingIntel[0].id}`, {
+        method: "PATCH",
+        headers: { ...headers, "Prefer": "return=minimal" },
+        body: JSON.stringify({ competitive_landscape: landscape, updated_at: new Date().toISOString() }),
+      });
+    }
+
+    // Complete job with report reference
+    await updateJob({
+      status: "completed",
+      progress: 100,
+      result: { reportId: savedReport.id, score: avgScore, entityName: entity.name },
+      completed_at: new Date().toISOString(),
+    });
+
+    console.log(`Competitive analysis complete for ${entity.name}. Score: ${avgScore}`);
+
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("Worker error:", error);
+    await updateJob({
+      status: "failed",
+      error_message: error instanceof Error ? error.message : "Unknown error",
+      completed_at: new Date().toISOString(),
+    });
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+});
