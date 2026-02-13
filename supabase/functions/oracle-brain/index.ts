@@ -1,37 +1,69 @@
 /**
  * Oracle Brain - Master Organization Intelligence
- * Acts as a strategic router that synthesizes all entity brains
- * into unified org-level intelligence
+ * Lightweight orchestrator using direct REST calls instead of heavy SDK
  */
-
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+function restHeaders() {
+  return {
+    apikey: SUPABASE_SERVICE_KEY,
+    Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+    "Content-Type": "application/json",
+    Prefer: "return=representation",
+  };
+}
+
+async function restQuery(table: string, query: string, method = "GET", body?: any) {
+  const url = `${SUPABASE_URL}/rest/v1/${table}?${query}`;
+  const opts: RequestInit = { method, headers: restHeaders() };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`REST ${method} ${table}: ${res.status} ${err.slice(0, 200)}`);
+  }
+  return method === "DELETE" ? null : res.json();
+}
+
+async function verifyUser(authHeader: string) {
+  const token = authHeader.replace("Bearer ", "");
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: { Authorization: `Bearer ${token}`, apikey: SUPABASE_SERVICE_KEY },
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+async function checkAiPerms(userId: string) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/can_use_ai_features`, {
+    method: "POST",
+    headers: restHeaders(),
+    body: JSON.stringify({ _user_id: userId }),
+  });
+  if (!res.ok) return false;
+  return res.json();
+}
+
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-
   if (!lovableApiKey) {
     return new Response(JSON.stringify({ error: "LOVABLE_API_KEY not configured" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
   try {
-    // Verify JWT manually
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Authorization required" }), {
@@ -39,19 +71,14 @@ serve(async (req) => {
       });
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace("Bearer ", "")
-    );
-    if (authError || !user) {
+    const user = await verifyUser(authHeader);
+    if (!user?.id) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Check AI permissions
-    const { data: canUse } = await supabase.rpc("can_use_ai_features", {
-      _user_id: user.id,
-    });
+    const canUse = await checkAiPerms(user.id);
     if (!canUse) {
       return new Response(JSON.stringify({ error: "Insufficient permissions" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -75,19 +102,15 @@ serve(async (req) => {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-
-      const { data, error } = await supabase.from("oracle_knowledge_base").insert({
+      const data = await restQuery("oracle_knowledge_base", "", "POST", {
         organization_id: organizationId,
-        title,
-        content,
+        title, content,
         content_type: contentType || "text",
         source_type: "manual",
         tags: tags || [],
         created_by: user.id,
-      }).select("id").single();
-
-      if (error) throw error;
-      return new Response(JSON.stringify({ success: true, id: data.id }), {
+      });
+      return new Response(JSON.stringify({ success: true, id: data[0]?.id }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -95,32 +118,25 @@ serve(async (req) => {
     // ---- ACTION: Delete Knowledge Entry ----
     if (action === "delete_knowledge") {
       const { knowledgeId } = body;
-      const { error } = await supabase.from("oracle_knowledge_base")
-        .delete().eq("id", knowledgeId).eq("organization_id", organizationId);
-      if (error) throw error;
+      await restQuery(
+        "oracle_knowledge_base",
+        `id=eq.${knowledgeId}&organization_id=eq.${organizationId}`,
+        "DELETE"
+      );
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // ---- ACTION: Get Oracle Context (Router) ----
+    // ---- ACTION: Get Oracle Context ----
     if (action === "get_context") {
       const { entityId, entityType } = body;
-      
-      // Fetch oracle intelligence
-      const { data: oracle } = await supabase.from("oracle_intelligence")
-        .select("*").eq("organization_id", organizationId).maybeSingle();
-
-      // Fetch relevant knowledge entries
-      const { data: knowledge } = await supabase.from("oracle_knowledge_base")
-        .select("title, content, tags, content_type")
-        .eq("organization_id", organizationId)
-        .eq("is_active", true)
-        .order("updated_at", { ascending: false })
-        .limit(20);
-
+      const [oracleArr, knowledge] = await Promise.all([
+        restQuery("oracle_intelligence", `organization_id=eq.${organizationId}&limit=1`),
+        restQuery("oracle_knowledge_base", `organization_id=eq.${organizationId}&is_active=eq.true&order=updated_at.desc&limit=20`),
+      ]);
       return new Response(JSON.stringify({
-        oracle: oracle || null,
+        oracle: oracleArr?.[0] || null,
         knowledge: knowledge || [],
         entityContext: { entityId, entityType },
       }), {
@@ -128,25 +144,23 @@ serve(async (req) => {
       });
     }
 
-    // ---- ACTION: Synthesize (Full Oracle Analysis) ----
+    // ---- ACTION: Synthesize ----
     if (action === "synthesize") {
-      // Create a job
-      const { data: job, error: jobError } = await supabase.from("oracle_jobs").insert({
+      const jobData = await restQuery("oracle_jobs", "", "POST", {
         organization_id: organizationId,
         job_type: "synthesis",
         status: "pending",
         triggered_by: user.id,
-      }).select("id").single();
+      });
+      const jobId = jobData[0]?.id;
+      if (!jobId) throw new Error("Failed to create job");
 
-      if (jobError) throw jobError;
-
-      // Trigger background worker
-      // @ts-ignore - EdgeRuntime is available in Supabase Edge Functions
+      // @ts-ignore
       EdgeRuntime.waitUntil(
-        processOracleSynthesis(supabase, lovableApiKey, job.id, organizationId)
+        processOracleSynthesis(lovableApiKey, jobId, organizationId)
       );
 
-      return new Response(JSON.stringify({ success: true, job_id: job.id }), {
+      return new Response(JSON.stringify({ success: true, job_id: jobId }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -154,43 +168,31 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: "Unknown action" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-
   } catch (error) {
     console.error("[oracle-brain] Error:", error);
     const status = (error as any)?.status === 429 ? 429 : (error as any)?.status === 402 ? 402 : 500;
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : "Unknown error" 
+    return new Response(JSON.stringify({
+      error: error instanceof Error ? error.message : "Unknown error",
     }), {
-      status,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
 
-/**
- * Background synthesis processor
- */
-async function processOracleSynthesis(
-  supabase: any,
-  apiKey: string,
-  jobId: string,
-  organizationId: string
-) {
+async function updateJob(jobId: string, data: Record<string, any>) {
+  await restQuery("oracle_jobs", `id=eq.${jobId}`, "PATCH", data);
+}
+
+async function processOracleSynthesis(apiKey: string, jobId: string, organizationId: string) {
   try {
-    await supabase.from("oracle_jobs").update({
-      status: "processing", started_at: new Date().toISOString(), progress: 10
-    }).eq("id", jobId);
+    await updateJob(jobId, { status: "processing", started_at: new Date().toISOString(), progress: 10 });
 
-    // 1. Gather all entity brains for this org
-    const { data: brains } = await supabase.from("brand_intelligence")
-      .select("entity_type, entity_id, brand_summary, market_position, target_audience, competitive_advantages, brand_voice_profile, growth_recommendations, cultural_insights, localization_readiness_score, competitive_landscape, learning_context")
-      .eq("organization_id", organizationId);
-
-    // 2. Gather entity names
-    const [{ data: brands }, { data: products }, { data: events }] = await Promise.all([
-      supabase.from("brands").select("id, name").eq("organization_id", organizationId),
-      supabase.from("products").select("id, name").eq("organization_id", organizationId),
-      supabase.from("events").select("id, name").eq("organization_id", organizationId),
+    const [brains, brands, products, events, knowledge] = await Promise.all([
+      restQuery("brand_intelligence", `organization_id=eq.${organizationId}&select=entity_type,entity_id,brand_summary,market_position,competitive_advantages,brand_voice_profile,localization_readiness_score`),
+      restQuery("brands", `organization_id=eq.${organizationId}&select=id,name`),
+      restQuery("products", `organization_id=eq.${organizationId}&select=id,name`),
+      restQuery("events", `organization_id=eq.${organizationId}&select=id,name`),
+      restQuery("oracle_knowledge_base", `organization_id=eq.${organizationId}&is_active=eq.true&order=updated_at.desc&limit=30&select=title,content,content_type,tags`),
     ]);
 
     const nameMap: Record<string, string> = {};
@@ -198,57 +200,33 @@ async function processOracleSynthesis(
     for (const p of (products || [])) nameMap[p.id] = p.name;
     for (const e of (events || [])) nameMap[e.id] = e.name;
 
-    // 3. Gather knowledge base
-    const { data: knowledge } = await supabase.from("oracle_knowledge_base")
-      .select("title, content, content_type, tags")
-      .eq("organization_id", organizationId)
-      .eq("is_active", true)
-      .limit(30);
+    await updateJob(jobId, { progress: 30 });
 
-    await supabase.from("oracle_jobs").update({ progress: 30 }).eq("id", jobId);
-
-    // 4. Compile context for AI
     const brainSummaries = (brains || []).map((b: any) => {
       const name = nameMap[b.entity_id] || "Unknown";
-      return `${b.entity_type.toUpperCase()}: ${name}
-Summary: ${b.brand_summary || "N/A"}
-Position: ${b.market_position || "N/A"}
-Advantages: ${Array.isArray(b.competitive_advantages) ? b.competitive_advantages.join(", ") : "N/A"}
-Voice: ${b.brand_voice_profile?.communication_style || b.brand_voice_profile?.style || "N/A"}
-Readiness: ${b.localization_readiness_score || "N/A"}%`;
+      return `${b.entity_type?.toUpperCase()}: ${name}\nSummary: ${b.brand_summary || "N/A"}\nPosition: ${b.market_position || "N/A"}\nAdvantages: ${Array.isArray(b.competitive_advantages) ? b.competitive_advantages.join(", ") : "N/A"}\nReadiness: ${b.localization_readiness_score || "N/A"}%`;
     }).join("\n\n");
 
-    const knowledgeContext = (knowledge || []).map((k: any) => 
-      `[${k.content_type}] ${k.title}: ${k.content.slice(0, 300)}`
+    const knowledgeCtx = (knowledge || []).map((k: any) =>
+      `[${k.content_type}] ${k.title}: ${(k.content || "").slice(0, 300)}`
     ).join("\n");
 
-    const entityCounts = {
-      brands: (brands || []).length,
-      products: (products || []).length,
-      events: (events || []).length,
-      brains: (brains || []).length,
-    };
+    await updateJob(jobId, { progress: 40 });
 
-    await supabase.from("oracle_jobs").update({ progress: 40 }).eq("id", jobId);
+    const prompt = `You are the Master Oracle Brain. Synthesize ALL entity intelligence into unified org-level strategic insights.
 
-    // 5. AI Synthesis
-    const prompt = `You are the Master Oracle Brain for an organization. Synthesize ALL entity intelligence into unified org-level strategic insights.
+PORTFOLIO (${(brands||[]).length} brands, ${(products||[]).length} products, ${(events||[]).length} events, ${(brains||[]).length} analyzed):
+${brainSummaries || "No entity brains yet."}
 
-ENTITY PORTFOLIO (${entityCounts.brands} brands, ${entityCounts.products} products, ${entityCounts.events} events, ${entityCounts.brains} analyzed):
-${brainSummaries || "No entity brains available yet."}
+KNOWLEDGE (${(knowledge||[]).length} entries):
+${knowledgeCtx || "None."}
 
-KNOWLEDGE BASE (${(knowledge || []).length} entries):
-${knowledgeContext || "No knowledge entries yet."}
+Return ONLY valid JSON:
+{"org_summary":"3-4 sentences","portfolio_analysis":{"synergies":["up to 4"],"gaps":["up to 3"],"conflicts":["risks"],"recommendations":["up to 3"]},"market_landscape":{"overall_position":"1-2 sentences","market_opportunities":["up to 3"],"threats":["up to 2"]},"strategic_recommendations":[{"priority":"high|medium|low","recommendation":"rec","rationale":"why","impact":"impact"}],"cross_entity_patterns":{"voice_consistency":"1 sentence","audience_overlap":"1 sentence","visual_coherence":"1 sentence"},"unified_voice_profile":{"primary_tone":"1-2 words","secondary_tones":["up to 3"],"communication_style":"1 sentence","personality_traits":["up to 4"]},"unified_audience_map":{"primary_segment":"1 sentence","secondary_segments":["up to 3"],"underserved_segments":["up to 2"]},"competitive_overview":{"market_position":"1 sentence","key_competitors":["up to 3"],"competitive_moat":"1 sentence"},"cultural_readiness":{"overall_score":50,"strongest_markets":["up to 3"],"expansion_opportunities":["up to 3"]}}`;
 
-Analyze portfolio synergies, gaps, conflicts, and strategic opportunities. Return ONLY valid JSON:
-{"org_summary":"3-4 sentences synthesizing org identity and strategic direction","portfolio_analysis":{"synergies":["up to 4 cross-entity synergies"],"gaps":["up to 3 portfolio gaps"],"conflicts":["brand conflicts or cannibalization risks"],"recommendations":["up to 3 portfolio-level recs"]},"market_landscape":{"overall_position":"1-2 sentences","market_opportunities":["up to 3"],"threats":["up to 2"],"differentiation":"1 sentence"},"strategic_recommendations":[{"priority":"high|medium|low","recommendation":"actionable rec","rationale":"why","impact":"expected impact"}],"cross_entity_patterns":{"voice_consistency":"1 sentence assessment","audience_overlap":"1 sentence","visual_coherence":"1 sentence","messaging_alignment":"1 sentence"},"unified_voice_profile":{"primary_tone":"1-2 words","secondary_tones":["up to 3"],"communication_style":"1 sentence","personality_traits":["up to 4"]},"unified_audience_map":{"primary_segment":"1 sentence","secondary_segments":["up to 3"],"underserved_segments":["up to 2"]},"competitive_overview":{"market_position":"1 sentence","key_competitors":["up to 3"],"competitive_moat":"1 sentence"},"cultural_readiness":{"overall_score":50,"strongest_markets":["up to 3"],"expansion_opportunities":["up to 3"],"localization_gaps":["up to 2"]}}`;
-
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [{ role: "user", content: prompt }],
@@ -257,52 +235,31 @@ Analyze portfolio synergies, gaps, conflicts, and strategic opportunities. Retur
       }),
     });
 
-    if (!aiResponse.ok) {
-      const errText = await aiResponse.text();
-      console.error("[oracle] AI error:", aiResponse.status, errText.slice(0, 200));
-      throw new Error(`AI synthesis failed: ${aiResponse.status}`);
+    if (!aiRes.ok) {
+      throw new Error(`AI synthesis failed: ${aiRes.status}`);
     }
 
-    await supabase.from("oracle_jobs").update({ progress: 70 }).eq("id", jobId);
+    await updateJob(jobId, { progress: 70 });
 
-    const responseText = await aiResponse.text();
-    let content = "";
-    try {
-      const parsed = JSON.parse(responseText);
-      content = parsed.choices?.[0]?.message?.content || "";
-    } catch {
-      throw new Error("Failed to parse AI response");
-    }
+    const parsed = await aiRes.json();
+    const content = parsed.choices?.[0]?.message?.content || "";
 
-    // Extract JSON
     let synthesis: any;
     try {
       synthesis = JSON.parse(content.trim());
     } catch {
       try {
-        const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/\{[\s\S]*\}/);
-        synthesis = JSON.parse((jsonMatch?.[1] || jsonMatch?.[0] || content).trim());
+        const m = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/\{[\s\S]*\}/);
+        synthesis = JSON.parse((m?.[1] || m?.[0] || content).trim());
       } catch {
-        console.error("[oracle] JSON parse error:", content.slice(0, 200));
-        synthesis = {
-          org_summary: "Organization intelligence synthesis completed.",
-          portfolio_analysis: { synergies: [], gaps: [], conflicts: [], recommendations: [] },
-          strategic_recommendations: [],
-          cross_entity_patterns: {},
-          unified_voice_profile: {},
-          unified_audience_map: {},
-          competitive_overview: {},
-          cultural_readiness: { overall_score: 50 },
-          market_landscape: {},
-        };
+        synthesis = { org_summary: "Synthesis completed.", portfolio_analysis: {}, strategic_recommendations: [], cross_entity_patterns: {}, unified_voice_profile: {}, unified_audience_map: {}, competitive_overview: {}, cultural_readiness: { overall_score: 50 }, market_landscape: {} };
       }
     }
 
-    await supabase.from("oracle_jobs").update({ progress: 85 }).eq("id", jobId);
+    await updateJob(jobId, { progress: 85 });
 
-    // 6. Upsert oracle intelligence
-    const { data: existing } = await supabase.from("oracle_intelligence")
-      .select("id, synthesis_count").eq("organization_id", organizationId).maybeSingle();
+    const existingArr = await restQuery("oracle_intelligence", `organization_id=eq.${organizationId}&select=id,synthesis_count&limit=1`);
+    const existing = existingArr?.[0];
 
     const oracleData = {
       organization_id: organizationId,
@@ -322,25 +279,21 @@ Analyze portfolio synergies, gaps, conflicts, and strategic opportunities. Retur
     };
 
     if (existing) {
-      await supabase.from("oracle_intelligence").update(oracleData).eq("id", existing.id);
+      await restQuery("oracle_intelligence", `id=eq.${existing.id}`, "PATCH", oracleData);
     } else {
-      await supabase.from("oracle_intelligence").insert(oracleData);
+      await restQuery("oracle_intelligence", "", "POST", oracleData);
     }
 
-    // Mark job complete
-    await supabase.from("oracle_jobs").update({
-      status: "completed",
-      progress: 100,
+    await updateJob(jobId, {
+      status: "completed", progress: 100,
       completed_at: new Date().toISOString(),
       result: { success: true, summary: synthesis.org_summary?.slice(0, 200) },
-    }).eq("id", jobId);
-
+    });
   } catch (error) {
     console.error("[oracle] Synthesis error:", error);
-    await supabase.from("oracle_jobs").update({
-      status: "failed",
-      completed_at: new Date().toISOString(),
+    await updateJob(jobId, {
+      status: "failed", completed_at: new Date().toISOString(),
       error_message: error instanceof Error ? error.message : "Unknown error",
-    }).eq("id", jobId);
+    });
   }
 }
