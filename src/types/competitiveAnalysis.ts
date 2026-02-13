@@ -155,6 +155,42 @@ export interface ExecutiveSummary {
   successMetrics: string[];
 }
 
+export interface SwotAnalysis {
+  strengths: string[];
+  weaknesses: string[];
+  opportunities: string[];
+  threats: string[];
+}
+
+export interface CompetitorProfile {
+  name: string;
+  type: 'direct' | 'indirect' | 'emerging';
+  overallScore: number;
+  brandStrength: string;
+  visualIdentitySummary: string;
+  digitalPresenceSummary: string;
+  keyDifferentiator: string;
+  biggestWeakness: string;
+  threatLevel: 'low' | 'medium' | 'high';
+}
+
+export interface ContentMessagingAnalysis {
+  toneSummary: string;
+  messagingPillars: string[];
+  contentStrategy: string;
+  socialMediaApproach: string;
+  thoughtLeadership: string;
+  contentGaps: string[];
+}
+
+export interface MarketTrendsInnovation {
+  industryTrends: string[];
+  innovationGaps: string[];
+  emergingOpportunities: string[];
+  disruptionRisks: string[];
+  technologyAdoption: string;
+}
+
 export interface CompetitiveAnalysisReportData {
   visualIdentityAudit: VisualIdentityAudit;
   digitalPresence: DigitalPresenceAnalysis;
@@ -164,6 +200,10 @@ export interface CompetitiveAnalysisReportData {
   recommendations: RecommendationsSection;
   marketPerception: MarketPerceptionSummary;
   executiveSummary: ExecutiveSummary;
+  swotAnalysis?: SwotAnalysis;
+  competitorProfiles?: CompetitorProfile[];
+  contentMessaging?: ContentMessagingAnalysis;
+  marketTrends?: MarketTrendsInnovation;
   regionalInsights?: RegionalInsights;
   score: number;
   generatedAt: string;
