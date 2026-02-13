@@ -2958,12 +2958,14 @@ export type Database = {
           brand_id: string | null
           created_at: string | null
           details: Json | null
-          device_type: string | null
           entity_name: string | null
           entity_type: string | null
           id: string | null
+          new_value: Json | null
+          old_value: Json | null
           organization_id: string | null
           outcome: string | null
+          user_email: string | null
           user_id: string | null
         }
         Insert: {
@@ -2971,12 +2973,14 @@ export type Database = {
           brand_id?: string | null
           created_at?: string | null
           details?: Json | null
-          device_type?: string | null
           entity_name?: string | null
           entity_type?: string | null
           id?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
           organization_id?: string | null
           outcome?: string | null
+          user_email?: string | null
           user_id?: string | null
         }
         Update: {
@@ -2984,12 +2988,14 @@ export type Database = {
           brand_id?: string | null
           created_at?: string | null
           details?: Json | null
-          device_type?: string | null
           entity_name?: string | null
           entity_type?: string | null
           id?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
           organization_id?: string | null
           outcome?: string | null
+          user_email?: string | null
           user_id?: string | null
         }
         Relationships: [
