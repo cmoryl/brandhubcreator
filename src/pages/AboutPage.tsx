@@ -163,23 +163,23 @@ export default function AboutPage() {
               <div className="grid grid-cols-2 gap-4">
                 <Card className="p-5 border-border/50 bg-gradient-to-br from-accent/5 to-transparent">
                   <Sparkles className="h-6 w-6 text-accent mb-3" />
-                  <p className="text-sm font-medium text-foreground">Brand Health</p>
-                  <p className="text-xs text-muted-foreground mt-1">Real-time scoring</p>
+                  <p className="text-sm font-medium text-foreground">Oracle Brain</p>
+                  <p className="text-xs text-muted-foreground mt-1">Strategic intelligence backbone</p>
                 </Card>
                 <Card className="p-5 border-border/50 bg-gradient-to-br from-primary/5 to-transparent">
                   <Lightbulb className="h-6 w-6 text-primary mb-3" />
-                  <p className="text-sm font-medium text-foreground">Smart Insights</p>
-                  <p className="text-xs text-muted-foreground mt-1">Market intelligence</p>
+                  <p className="text-sm font-medium text-foreground">Brand Intelligence</p>
+                  <p className="text-xs text-muted-foreground mt-1">Cumulative AI learning</p>
                 </Card>
                 <Card className="p-5 border-border/50 bg-gradient-to-br from-green-500/5 to-transparent">
                   <Target className="h-6 w-6 text-green-500 mb-3" />
-                  <p className="text-sm font-medium text-foreground">Growth Tips</p>
-                  <p className="text-xs text-muted-foreground mt-1">Recommendations</p>
+                  <p className="text-sm font-medium text-foreground">DataForce AI</p>
+                  <p className="text-xs text-muted-foreground mt-1">Compliance & validation</p>
                 </Card>
                 <Card className="p-5 border-border/50 bg-gradient-to-br from-sky-500/5 to-transparent">
                   <Rocket className="h-6 w-6 text-sky-500 mb-3" />
                   <p className="text-sm font-medium text-foreground">Competitor Intel</p>
-                  <p className="text-xs text-muted-foreground mt-1">Stay ahead</p>
+                  <p className="text-xs text-muted-foreground mt-1">10-section AI reports</p>
                 </Card>
               </div>
             </div>
@@ -192,14 +192,14 @@ export default function AboutPage() {
                 Intelligence That Serves You
               </h2>
               <p className="text-muted-foreground mb-4">
-                We believe AI should enhance human creativity, not replace it. Our Brand Brain is 
-                your tireless assistant—analyzing, learning, and suggesting—while you remain 
-                firmly in the creative driver's seat.
+                We believe AI should enhance human creativity, not replace it. Our Oracle Brain is 
+                your organization's strategic backbone—aggregating institutional knowledge and aligning 
+                every AI function from compliance to competitive analysis.
               </p>
               <p className="text-muted-foreground mb-4">
-                Every recommendation comes with context. Every insight is actionable. 
-                The AI learns your brand's unique voice and provides personalized guidance 
-                that gets smarter with every update.
+                Entity-level Brand Brains learn and evolve with feedback, while insights automatically 
+                bubble up to the Oracle. DataForce AI enforces compliance, and Research Briefings 
+                deliver deep-dive cultural analysis—all strategically aligned.
               </p>
               <p className="text-sm text-accent font-medium">
                 You create. AI supports. Together, brands thrive.
@@ -222,7 +222,7 @@ export default function AboutPage() {
               <p className="text-sm text-muted-foreground">Organizations</p>
             </div>
             <div>
-              <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">25+</div>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">35+</div>
               <p className="text-sm text-muted-foreground">Sections Available</p>
             </div>
             <div>

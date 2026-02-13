@@ -343,7 +343,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-semibold mb-3">Automated Brand Guides</h3>
               <p className="text-muted-foreground">
-                AI generates patterns, gradients, and color specs automatically. Upload your logo and watch your brand guide build itself.
+                AI generates patterns, gradients, and color specs automatically. Oracle Brain aligns all intelligence across your portfolio for strategic consistency.
               </p>
             </div>
 
@@ -353,7 +353,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-semibold mb-3">Smart Product Lines</h3>
               <p className="text-muted-foreground">
-                Automatically inherit parent brand assets. Create sub-brands and product guides with one click while maintaining consistency.
+                Automatically inherit parent brand assets. DataForce AI enforces compliance, while Brand Intelligence learns and evolves with your team's feedback.
               </p>
             </div>
 
@@ -363,7 +363,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-semibold mb-3">Instant Event Kits</h3>
               <p className="text-muted-foreground">
-                Generate complete event branding packages in minutes. Signage specs, digital banners, and sponsor materials—all automated.
+                Generate complete event branding packages in minutes. Competitive Intelligence, Research Briefings, and GlobalLink localization—all AI-aligned.
               </p>
             </div>
           </div>

@@ -1211,49 +1211,199 @@ export const helpSections: HelpSection[] = [
   {
     id: 'brand-intelligence',
     title: 'Brand Intelligence',
-    description: 'AI-powered learning system that builds knowledge about your brand over time.',
+    description: 'AI-powered learning system that builds knowledge about your brand over time, aligned with the Oracle Brain.',
     icon: 'Brain',
     category: 'advanced',
-    keywords: ['intelligence', 'ai', 'learning', 'knowledge', 'analysis', 'insights', 'history'],
+    keywords: ['intelligence', 'ai', 'learning', 'knowledge', 'analysis', 'insights', 'history', 'oracle'],
     steps: [
       {
         id: 'step-1',
         title: 'Understand Brand Intelligence',
-        description: 'Brand Intelligence is an AI system that learns from your brand guide content and usage patterns.',
+        description: 'Brand Intelligence is an AI system that learns from your brand guide content and usage patterns. It uses cumulative merging—new insights merge with existing data, never overwriting—and is grounded in Oracle Brain strategic context.',
         tips: [
           'Intelligence improves with more complete brand guides',
-          'It tracks analysis history and confidence scores',
+          'It tracks analysis history, confidence scores, and cultural insights',
+          'All analysis is aligned with organization-level strategic priorities via Oracle Brain',
         ],
       },
       {
         id: 'step-2',
         title: 'View Intelligence Profile',
-        description: 'Access your brand\'s intelligence profile to see accumulated knowledge entries and insights.',
+        description: 'Access your brand\'s intelligence profile to see accumulated knowledge entries, competitive landscape, and cultural readiness scores.',
         tips: [
           'Knowledge entries represent learned brand attributes',
-          'The system identifies patterns and relationships',
+          'Competitive context from favorite competitors feeds into intelligence',
+          'Product/event intelligence links to parent brands for context inheritance',
         ],
       },
       {
         id: 'step-3',
         title: 'Provide Feedback',
-        description: 'Rate insights and recommendations to help the AI learn your preferences.',
+        description: 'Rate insights and recommendations via insight actions to calibrate the AI. Feedback is tracked in confidence history.',
         tips: [
           'Feedback improves future recommendations',
-          'The more feedback, the more personalized insights become',
+          'Confidence scores use a 30-day half-life temporal decay',
+          'Semantic hashes (Jaccard deduplication) prevent duplicate insights',
         ],
       },
       {
         id: 'step-4',
-        title: 'Track Confidence Over Time',
-        description: 'Monitor how the AI\'s confidence in brand understanding grows with more data.',
+        title: 'Knowledge Base Integration',
+        description: 'Import reports (PDF, text, markdown) via the Knowledge Base to feed additional context into Brand Intelligence.',
         tips: [
+          'Imported content is processed by AI for extraction',
+          'Strategic learnings automatically bubble up to the Oracle Brain',
           'Higher confidence means more reliable recommendations',
-          'Confidence can decay if brand content becomes stale',
         ],
       },
     ],
-    relatedSections: ['market-analysis', 'ai-patterns-gradients'],
+    relatedSections: ['market-analysis', 'oracle-brain', 'competitive-intelligence'],
+  },
+
+  {
+    id: 'oracle-brain',
+    title: 'Oracle Brain (Master Intelligence)',
+    description: 'Organization-level strategic intelligence backbone that aligns all AI analysis across the platform.',
+    icon: 'Brain',
+    category: 'advanced',
+    keywords: ['oracle', 'master', 'strategic', 'intelligence', 'organization', 'portfolio', 'alignment', 'brain'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Understand the Oracle Brain',
+        description: 'The Oracle Brain is the platform\'s foundational research backbone, aggregating institutional knowledge and strategic research across all entities (brands, products, events).',
+        tips: [
+          'It provides top-down strategic context to all AI functions',
+          'Entity-level insights automatically bubble up into Oracle knowledge',
+          'Think of it as your organization\'s collective brand intelligence',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Add Strategic Entries',
+        description: 'Manually add strategic priorities, unified voice guidelines, and market intelligence. Import PDF/documents for AI-powered extraction.',
+        tips: [
+          'Entries are categorized: Brand Theory, Market Research, etc.',
+          'Full view/edit capabilities for administrators',
+          'Imported documents are analyzed by AI for key insights',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Bidirectional Intelligence Flow',
+        description: 'Oracle context feeds into all AI functions (Brand Intelligence, Competitive Analysis, Research Briefings, DataForce Compliance, AI Assistant). Insights from entity analysis bubble back up.',
+        tips: [
+          'Every AI action is grounded in organization-wide strategic context',
+          'Entity brains contribute learnings back to Oracle',
+          'Competitive reports factor in Oracle strategic priorities',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Monitor Strategic Alignment',
+        description: 'Review how well individual brands align with organization strategy through compliance scores and intelligence reports.',
+        tips: [
+          'DataForce Compliance includes a Strategic Alignment dimension',
+          'Brand Intelligence shows portfolio-level context inheritance',
+          'Use Research Briefings for deep-dive strategic analysis',
+        ],
+      },
+    ],
+    relatedSections: ['brand-intelligence', 'competitive-intelligence', 'dataforce-ai'],
+  },
+
+  {
+    id: 'dataforce-ai',
+    title: 'DataForce AI Suite',
+    description: 'Enterprise-grade AI services: Compliance, Brand Assistant, Cultural Validation, and GenAI Training.',
+    icon: 'Shield',
+    category: 'advanced',
+    keywords: ['dataforce', 'compliance', 'assistant', 'cultural', 'validation', 'training', 'ai', 'enterprise'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Access DataForce AI',
+        description: 'DataForce AI is managed via the Admin Dashboard under the DataForce AI tab. Configure services, view monitoring, and manage settings.',
+        tips: [
+          'Four core services: Compliance AI, Brand Assistant, Cultural Validation, GenAI Training',
+          'Supports Live mode (API keys) and Demo mode (simulated responses)',
+          'Configuration stored in dataforce_config table per organization',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Brand Compliance AI',
+        description: 'Automated guideline enforcement that scans brands across 6 dimensions including strategic alignment with the Oracle Brain. Compliance badges appear on portal cards, editor heroes, and admin analytics.',
+        tips: [
+          'Color-coded thresholds: Green (80+), Yellow (60-79), Red (<60)',
+          'Auto-compliance triggers on every brand save (5s debounce)',
+          'Shows N/A placeholder when no scan data exists',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'AI-Powered Brand Assistant',
+        description: 'Multilingual chatbot supporting 15+ languages. It uses entity context and Oracle strategic alignment to provide brand-aware responses.',
+        tips: [
+          'Customize persona and available languages',
+          'Assistant responses are grounded in your brand guide content',
+          'Oracle context ensures answers align with strategic priorities',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Cultural Validation & GenAI Training',
+        description: 'Cultural Validation provides human-in-the-loop regional feedback panels. GenAI Training fine-tunes models on your brand\'s unique voice.',
+        tips: [
+          'Set panel size and target regions for validation',
+          'Training tracks voice samples and sync history',
+          'Both services feed insights back into Brand Intelligence',
+        ],
+      },
+    ],
+    relatedSections: ['oracle-brain', 'brand-intelligence', 'admin-analytics'],
+  },
+
+  {
+    id: 'research-briefings',
+    title: 'Research Briefings',
+    description: 'AI-generated deep-dive research reports with Oracle strategic alignment.',
+    icon: 'FileText',
+    category: 'advanced',
+    keywords: ['research', 'briefing', 'report', 'analysis', 'deep-dive', 'cultural', 'oracle'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Access Research Briefings',
+        description: 'Research Briefings are available in the Brand Intelligence panel for brands, products, and events. Admins can trigger new briefings from the intelligence interface.',
+        tips: [
+          'Briefings use background job processing for complex analysis',
+          'Frontend polls job status via useResearchBriefings hook',
+          'Scoped to active organization_id for tenant isolation',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Generate a Briefing',
+        description: 'Click "Generate Research Briefing" to start an AI analysis. The system fetches entity context, social metrics, document context, and Oracle strategic intelligence.',
+        tips: [
+          'Uses Gemini AI for balanced speed and quality',
+          'Oracle context grounds research in organization strategy',
+          'Processing happens asynchronously to handle large analyses',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Review Results',
+        description: 'View the completed briefing with market insights, cultural considerations, and strategic recommendations.',
+        tips: [
+          'Findings are automatically fed back as learned knowledge',
+          'Cultural Analysis Generator orchestrates multi-function analysis',
+          'Research insights bubble up to the Oracle Brain knowledge base',
+        ],
+      },
+    ],
+    relatedSections: ['oracle-brain', 'brand-intelligence', 'market-analysis'],
   },
 
   {
