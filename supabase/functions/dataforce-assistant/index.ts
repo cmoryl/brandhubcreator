@@ -133,17 +133,21 @@ serve(async (req) => {
         const guideData = entity.guide_data || {};
         entityContext = buildEntityContext(guideData, entity.name);
 
-        // Enrich with document content (PDFs, PPTXs, slide text)
+        // Enrich with document content and social metrics
         try {
-          const { fetchDocumentContext } = await import('../_shared/extractFullBrandContext.ts');
-          const { text: docContext, documentCount } = await fetchDocumentContext(
-            supabase, entity_id, entity_type, guideData as Record<string, unknown>, 1500
-          );
-          if (docContext) {
-            entityContext += `\n${docContext}`;
+          const { fetchDocumentContext, fetchSocialMetricsContext } = await import('../_shared/extractFullBrandContext.ts');
+          const [docResult, socialResult] = await Promise.all([
+            fetchDocumentContext(supabase, entity_id, entity_type, guideData as Record<string, unknown>, 1500),
+            fetchSocialMetricsContext(supabase, entity_id, entity_type),
+          ]);
+          if (docResult.text) {
+            entityContext += `\n${docResult.text}`;
+          }
+          if (socialResult.text) {
+            entityContext += `\n${socialResult.text}`;
           }
         } catch (e) {
-          console.error('[dataforce-assistant] Document fetch error:', e);
+          console.error('[dataforce-assistant] Data enrichment error:', e);
         }
       }
     }

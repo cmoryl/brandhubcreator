@@ -106,12 +106,16 @@ serve(async (req) => {
     const isDemo = !config || config.api_mode === 'demo';
 
     // Extract full brand context for comprehensive compliance analysis (with images)
-    const { extractFullBrandContext: extractCtx, buildMultimodalContent: buildMM, fetchDocumentContext: fetchDocs } = await import('../_shared/extractFullBrandContext.ts');
+    const { extractFullBrandContext: extractCtx, buildMultimodalContent: buildMM, fetchDocumentContext: fetchDocs, fetchSocialMetricsContext: fetchSocial } = await import('../_shared/extractFullBrandContext.ts');
     const { text: fullContext, imageUrls: complianceImages } = extractCtx(guide_data, entity_name, entity_type, 3000, true, 15);
 
-    // Fetch document content for compliance checking
-    const { text: docContext, imageUrls: docImages, documentCount } = await fetchDocs(supabase, entity_id, entity_type, guide_data, 1000);
-    const combinedContext = docContext ? `${fullContext}\n${docContext}` : fullContext;
+    // Fetch document content and social metrics for compliance checking
+    const [docResult, socialResult] = await Promise.all([
+      fetchDocs(supabase, entity_id, entity_type, guide_data, 1000),
+      fetchSocial(supabase, entity_id, entity_type),
+    ]);
+    const { text: docContext, imageUrls: docImages, documentCount } = docResult;
+    const combinedContext = [fullContext, docContext, socialResult.text].filter(Boolean).join('\n');
     for (const di of docImages.slice(0, 5)) {
       if (complianceImages.length < 20) complianceImages.push(di);
     }
