@@ -170,7 +170,7 @@ const Index = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center md:justify-start">
-                <Button size="lg" onClick={handleSignInClick} className="gap-2">
+                <Button size="lg" onClick={() => setShowSurveyModal(true)} className="gap-2">
                   Start Building
                   <ArrowRight className="h-4 w-4" />
                 </Button>
