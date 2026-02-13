@@ -51,6 +51,46 @@ const faqs = [
     question: "What is Multicultural Intelligence?",
     answer: "AI-powered cultural insights with localization readiness scores and regional market analysis."
   },
+  {
+    question: "How does Brand Health scoring work?",
+    answer: "A weighted algorithm evaluates completeness across identity, visuals, digital presence, and marketing assets."
+  },
+  {
+    question: "What is the Icon Studio?",
+    answer: "A 7-tab hub for generating, stylizing, and managing brand icons with AI-powered batch creation."
+  },
+  {
+    question: "Can I export brand assets?",
+    answer: "Yes — export design tokens as CSS, JSON, or Tailwind config, plus PDF reports and icon packs."
+  },
+  {
+    question: "What is DataForce AI?",
+    answer: "Enterprise AI services including compliance scanning, brand assistant, and cultural validation."
+  },
+  {
+    question: "How do regional variants work?",
+    answer: "Override colors, logos, typography, and messaging per region while inheriting from the global brand."
+  },
+  {
+    question: "What is Brand DNA Lock?",
+    answer: "Enforces global stroke, cap, and corner rules across all sub-brand icons for visual consistency."
+  },
+  {
+    question: "Can I track brand compliance?",
+    answer: "Auto-compliance scans run on every save, with color-coded scores visible across the platform."
+  },
+  {
+    question: "What are Event Kits?",
+    answer: "Dedicated brand guides for events with schedules, signage specs, and sponsor management."
+  },
+  {
+    question: "How does competitive analysis work?",
+    answer: "AI-generated reports with radar charts, personality mapping, and strategic positioning insights."
+  },
+  {
+    question: "What is the Creative Studio?",
+    answer: "AI-powered imagery generation using your brand context — colors, archetype, and industry."
+  },
 ];
 
 // Helper to get display text for loading screen
@@ -89,7 +129,7 @@ export const PublicLoadingScreen = forwardRef<HTMLDivElement, PublicLoadingScree
   
   // Shuffle tips on mount for variety
   const [shuffledTips] = useState(() => [...loadingTips].sort(() => Math.random() - 0.5));
-  const [shuffledFaqs] = useState(() => [...faqs].sort(() => Math.random() - 0.5));
+  const [shuffledFaqs] = useState(() => [...faqs].sort(() => Math.random() - 0.5).slice(0, 5));
 
   // Rotate tips every 3 seconds
   useEffect(() => {
