@@ -11,6 +11,7 @@ import { SocialMetricsEditor } from './SocialMetricsEditor';
 import { SocialMetricsSummary } from './SocialMetricsSummary';
 import { SocialMetricsComparison } from './SocialMetricsComparison';
 import { SocialMetricsOnboarding } from './SocialMetricsOnboarding';
+import { SocialMetricsDetail } from './SocialMetricsDetail';
 import { cn } from '@/lib/utils';
 
 interface SocialSectionProps {
@@ -55,6 +56,7 @@ export const SocialSection = ({
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [showMetrics, setShowMetrics] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [expandedPlatform, setExpandedPlatform] = useState<string | null>(null);
 
   // Social metrics hook - only active if entityId is provided
   const {
@@ -260,10 +262,20 @@ export const SocialSection = ({
                           className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 transition-colors"
                         >
                           <BarChart3 className="h-3 w-3" />
-                          {hasMetrics ? 'Update' : 'Add'} metrics
+                       {hasMetrics ? 'Update' : 'Add'} metrics
                         </button>
                       )}
                     </div>
+                    {/* Expandable metrics detail */}
+                    {hasMetrics && (
+                      <SocialMetricsDetail
+                        snapshot={hasMetrics}
+                        expanded={expandedPlatform === profile.platform}
+                        onToggle={() => setExpandedPlatform(
+                          expandedPlatform === profile.platform ? null : profile.platform
+                        )}
+                      />
+                    )}
                   </div>
                   {canEdit && (
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
