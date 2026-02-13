@@ -39,7 +39,8 @@ import type { EntityType, CompetitiveAnalysisReportData } from '@/types/competit
 import { STANDARD_REGIONS, COMMON_COUNTRIES } from '@/types/regionalBranding';
 
 // Defensive helper: ensures AI response fields are always arrays before .map()
-const safeArr = (v: unknown): string[] => Array.isArray(v) ? v : [];
+// AI sometimes returns strings instead of arrays — coerce gracefully
+const safeArr = (v: unknown): string[] => Array.isArray(v) ? v : typeof v === 'string' && v ? [v] : [];
 const safeObjArr = <T,>(v: unknown): T[] => Array.isArray(v) ? v : [];
 
 interface DiscoveredCompetitor {
@@ -1065,7 +1066,7 @@ export function CompetitiveAnalysisDialog({
                   )}
 
                   {/* Competitor Profiles Tab */}
-                  {reportData.competitorProfiles && reportData.competitorProfiles.length > 0 && (
+                  {Array.isArray(reportData.competitorProfiles) && reportData.competitorProfiles.length > 0 && (
                     <TabsContent value="profiles" className="space-y-4">
                       {reportData.competitorProfiles.map((profile, i) => (
                         <Card key={i}>
@@ -1190,7 +1191,7 @@ export function CompetitiveAnalysisDialog({
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <DesignPriorityTable priorities={reportData.recommendations.designPriorities} />
+                        <DesignPriorityTable priorities={safeObjArr(reportData.recommendations?.designPriorities)} />
                       </CardContent>
                     </Card>
 
@@ -1252,7 +1253,9 @@ export function CompetitiveAnalysisDialog({
                       ))}
                     </div>
 
-                    <ActionPlanTimeline actionPlan={reportData.executiveSummary.actionPlan} />
+                    {reportData.executiveSummary?.actionPlan && (
+                      <ActionPlanTimeline actionPlan={reportData.executiveSummary.actionPlan} />
+                    )}
 
                     <Card>
                       <CardHeader className="pb-2">
