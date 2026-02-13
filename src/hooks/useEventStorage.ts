@@ -369,8 +369,29 @@ export const useEventStorage = () => {
     pendingUpdatesRef.current.clear();
     
     for (const [id, changes] of updates) {
-      const currentEvent = eventsRef.current.find(e => e.id === id);
-      if (!currentEvent) continue;
+      let currentEvent = eventsRef.current.find(e => e.id === id);
+      
+      // If event not in local state, fetch from DB and merge pending updates
+      if (!currentEvent) {
+        console.log('[EVENTS SYNC] Event not in local state, fetching from DB:', id);
+        try {
+          const { data: dbEvent, error: fetchError } = await supabase
+            .from('events')
+            .select('*')
+            .eq('id', id)
+            .maybeSingle();
+          
+          if (fetchError || !dbEvent) {
+            console.error('[EVENTS SYNC] Failed to fetch event from DB:', fetchError);
+            continue;
+          }
+          
+          currentEvent = { ...dbToEventGuide(dbEvent as DbEvent), ...changes };
+        } catch (fetchErr) {
+          console.error('[EVENTS SYNC] Error fetching event:', fetchErr);
+          continue;
+        }
+      }
       
       const merged = { ...currentEvent, ...changes };
       const dbPayload = eventGuideToDb(merged, user.id, organization?.id);

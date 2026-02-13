@@ -1265,9 +1265,22 @@ export const useBrandStorage = () => {
       clearTimeout(timeout);
       const brand = brandsRef.current.find(b => b.id === id);
       const pending = pendingBrandUpdates.current.get(id);
-      if (brand && pending && user) {
-        const merged = { ...brand, ...pending } as BrandGuide;
-        brandPromises.push(syncBrandToDb(id, merged));
+      if (pending && user) {
+        if (brand) {
+          const merged = { ...brand, ...pending } as BrandGuide;
+          brandPromises.push(syncBrandToDb(id, merged));
+        } else {
+          // Brand not in local state - fetch from DB then merge
+          brandPromises.push(
+            Promise.resolve(supabase.from('brands').select('*').eq('id', id).maybeSingle())
+              .then(({ data }) => {
+                if (data) {
+                  const merged = { ...dbToBrandGuide(data as DbBrand), ...pending } as BrandGuide;
+                  return syncBrandToDb(id, merged);
+                }
+              })
+          );
+        }
       }
     });
     brandSyncTimeouts.current.clear();
@@ -1276,9 +1289,22 @@ export const useBrandStorage = () => {
       clearTimeout(timeout);
       const product = productsRef.current.find(p => p.id === id);
       const pending = pendingProductUpdates.current.get(id);
-      if (product && pending && user) {
-        const merged = { ...product, ...pending } as ProductGuide;
-        productPromises.push(syncProductToDb(id, merged));
+      if (pending && user) {
+        if (product) {
+          const merged = { ...product, ...pending } as ProductGuide;
+          productPromises.push(syncProductToDb(id, merged));
+        } else {
+          // Product not in local state - fetch from DB then merge
+          productPromises.push(
+            Promise.resolve(supabase.from('products').select('*').eq('id', id).maybeSingle())
+              .then(({ data }) => {
+                if (data) {
+                  const merged = { ...dbToProductGuide(data as DbProduct), ...pending } as ProductGuide;
+                  return syncProductToDb(id, merged);
+                }
+              })
+          );
+        }
       }
     });
     productSyncTimeouts.current.clear();
