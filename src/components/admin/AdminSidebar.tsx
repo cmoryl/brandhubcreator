@@ -64,7 +64,8 @@ function SidebarContent({
     { id: 'globallink', label: 'GlobalLink', icon: <Globe2 className="h-4 w-4" />, group: 'localization' },
   ];
 
-  const navItems = isSuperAdmin ? allNavItems : allNavItems.filter(item => item.id !== 'repair');
+  const superAdminOnly = ['repair', 'demo-pages'];
+  const navItems = isSuperAdmin ? allNavItems : allNavItems.filter(item => !superAdminOnly.includes(item.id));
 
   const handleItemClick = (id: string) => {
     onTabChange(id);
