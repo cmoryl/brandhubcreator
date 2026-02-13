@@ -885,6 +885,7 @@ const BrandEditor = () => {
                     entityType="brand"
                     entityId={brand.id}
                     organizationId={brand.organizationId}
+                    isAdmin={isGuideAdmin}
                     onOpenAnalysis={() => setRegionalAnalysisOpen(true)}
                     className="hidden md:flex"
                   />

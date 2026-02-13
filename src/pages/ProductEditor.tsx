@@ -751,6 +751,7 @@ const ProductEditor = () => {
                     entityType="product"
                     entityId={currentProduct.id}
                     organizationId={currentProduct.organizationId}
+                    isAdmin={isGuideAdmin}
                     onOpenAnalysis={() => setRegionalAnalysisOpen(true)}
                     className="hidden md:flex"
                   />

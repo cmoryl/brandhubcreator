@@ -29,6 +29,7 @@ interface GlobalBrandToolbarProps {
   entityType: 'brand' | 'product' | 'event';
   entityId: string;
   organizationId?: string;
+  isAdmin?: boolean;
   onOpenAnalysis?: () => void;
   onLocaleChange?: (locale: { region?: string; country?: string }) => void;
   className?: string;
@@ -38,6 +39,7 @@ export const GlobalBrandToolbar: React.FC<GlobalBrandToolbarProps> = ({
   entityType,
   entityId,
   organizationId,
+  isAdmin = false,
   onOpenAnalysis,
   onLocaleChange,
   className,
@@ -197,23 +199,25 @@ export const GlobalBrandToolbar: React.FC<GlobalBrandToolbarProps> = ({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Regional Analysis Button */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onOpenAnalysis}
-              className="gap-2 h-8"
-            >
-              <Sparkles className="h-4 w-4" />
-              <span className="hidden sm:inline">Regional Analysis</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>AI-powered cultural adaptation analysis</p>
-          </TooltipContent>
-        </Tooltip>
+        {/* Regional Analysis Button - Admin only */}
+        {isAdmin && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onOpenAnalysis}
+                className="gap-2 h-8"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span className="hidden sm:inline">Regional Analysis</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>AI-powered cultural adaptation analysis</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
 
         {/* Variant Count Badge */}
         {hasVariants && (
