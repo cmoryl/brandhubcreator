@@ -158,6 +158,7 @@ export function CompetitiveAnalysisDialog({
     setDiscoveredCompetitors([]);
 
     try {
+      // Start the async job
       const { data, error } = await supabase.functions.invoke('discover-competitors', {
         body: {
           entityType,
@@ -168,28 +169,54 @@ export function CompetitiveAnalysisDialog({
         },
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
+      if (data?.error) { toast.error(data.error); setIsDiscovering(false); return; }
 
-      if (data?.error) {
-        toast.error(data.error);
-        return;
-      }
+      const jobId = data?.jobId;
+      if (!jobId) { toast.error('Failed to start discovery'); setIsDiscovering(false); return; }
 
-      if (data?.competitors && Array.isArray(data.competitors)) {
-        setDiscoveredCompetitors(
-          data.competitors.map((c: any) => ({
-            ...c,
-            selected: true, // Pre-select all discovered competitors
-          }))
-        );
-        toast.success(`Found ${data.competitors.length} potential competitors`);
-      }
+      // Poll for results
+      const pollInterval = setInterval(async () => {
+        try {
+          const { data: pollData, error: pollError } = await supabase.functions.invoke('discover-competitors', {
+            body: { action: 'poll', jobId },
+          });
+
+          if (pollError) throw pollError;
+
+          if (pollData?.status === 'completed' && pollData?.result) {
+            clearInterval(pollInterval);
+            const competitors = pollData.result.competitors || [];
+            setDiscoveredCompetitors(
+              competitors.map((c: any) => ({ ...c, selected: true }))
+            );
+            toast.success(`Found ${competitors.length} potential competitors`);
+            setIsDiscovering(false);
+          } else if (pollData?.status === 'failed') {
+            clearInterval(pollInterval);
+            toast.error(pollData.error || 'Discovery failed');
+            setIsDiscovering(false);
+          }
+        } catch (pollErr) {
+          console.error('Poll error:', pollErr);
+          clearInterval(pollInterval);
+          toast.error('Failed to check discovery status');
+          setIsDiscovering(false);
+        }
+      }, 2000);
+
+      // Safety timeout after 60s
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        if (isDiscovering) {
+          setIsDiscovering(false);
+          toast.error('Discovery timed out. Please try again.');
+        }
+      }, 60000);
+
     } catch (error) {
       console.error('Error discovering competitors:', error);
       toast.error('Failed to discover competitors. Please try again.');
-    } finally {
       setIsDiscovering(false);
     }
   };
