@@ -116,9 +116,36 @@ serve(async (req) => {
       conversation = data;
     }
 
-    // Fetch entity data for context
+    // Fetch entity data and Oracle context for rich assistant knowledge
     let entityContext = '';
     let entityName = 'your organization';
+    
+    // Fetch Oracle context in parallel with entity data
+    let oracleContext = '';
+    try {
+      const [{ data: oracle }, { data: oracleKb }] = await Promise.all([
+        supabase.from('oracle_intelligence')
+          .select('org_summary, unified_voice_profile, strategic_recommendations, competitive_overview')
+          .eq('organization_id', organization_id)
+          .maybeSingle(),
+        supabase.from('oracle_knowledge_base')
+          .select('title, content')
+          .eq('organization_id', organization_id)
+          .eq('is_active', true)
+          .order('updated_at', { ascending: false })
+          .limit(5),
+      ]);
+      const parts: string[] = [];
+      if (oracle?.org_summary) parts.push(`Organization Strategy: ${oracle.org_summary}`);
+      if (oracle?.unified_voice_profile?.primary_tone) parts.push(`Organization Voice: ${oracle.unified_voice_profile.primary_tone}`);
+      if (oracle?.competitive_overview?.market_position) parts.push(`Market Position: ${oracle.competitive_overview.market_position}`);
+      const recs = Array.isArray(oracle?.strategic_recommendations) ? oracle.strategic_recommendations : [];
+      if (recs.length > 0) parts.push(`Strategic Priorities: ${recs.slice(0, 3).map((r: any) => r.recommendation).join('; ')}`);
+      if (oracleKb?.length) parts.push(`Institutional Knowledge:\n${oracleKb.map((k: any) => `- ${k.title}: ${(k.content || '').slice(0, 200)}`).join('\n')}`);
+      if (parts.length > 0) oracleContext = `\n\nORGANIZATION INTELLIGENCE (Oracle Brain):\n${parts.join('\n')}`;
+    } catch (e) {
+      console.warn('[dataforce-assistant] Oracle context failed (non-critical):', e);
+    }
     
     if (entity_type && entity_id) {
       const tableName = entity_type === 'brand' ? 'brands' : entity_type === 'product' ? 'products' : 'events';
@@ -203,7 +230,7 @@ serve(async (req) => {
 
     const systemPrompt = `${persona}
 
-${entityContext}
+${entityContext}${oracleContext}
 ${languageInstruction}
 
 Guidelines for responses:

@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
       .eq('user_id', user.id)
       .single();
 
-    const isAdmin = roleData?.role === 'admin';
+    const isAdmin = roleData?.role === 'admin' || roleData?.role === 'super_admin';
     
     const { type, entityId, analysisType } = await req.json() as MarketAnalysisRequest;
 
@@ -263,12 +263,44 @@ Respond with a JSON object (no markdown, just raw JSON):
   "score": <0-100 based on brand completeness and market readiness>
 }`;
 
+    // Fetch Oracle context for org-level strategic grounding
+    let oracleContext = '';
+    if (type !== 'platform') {
+      try {
+        const orgId = type === 'organization' ? entityId : null;
+        // For brand/product, get org_id from entity
+        let resolvedOrgId = orgId;
+        if (!resolvedOrgId && entityId && (type === 'brand' || type === 'product')) {
+          const tbl = type === 'brand' ? 'brands' : 'products';
+          const { data: ent } = await supabaseClient.from(tbl).select('organization_id').eq('id', entityId).single();
+          resolvedOrgId = ent?.organization_id || null;
+        }
+        if (resolvedOrgId) {
+          const adminSupa = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
+          const [{ data: oracle }, { data: oracleKb }] = await Promise.all([
+            adminSupa.from('oracle_intelligence').select('org_summary, unified_voice_profile, strategic_recommendations, market_landscape, competitive_overview').eq('organization_id', resolvedOrgId).maybeSingle(),
+            adminSupa.from('oracle_knowledge_base').select('title, content').eq('organization_id', resolvedOrgId).eq('is_active', true).neq('source_type', 'entity_brain').order('updated_at', { ascending: false }).limit(5),
+          ]);
+          const parts: string[] = [];
+          if (oracle?.org_summary) parts.push(`Org Strategy: ${oracle.org_summary}`);
+          if (oracle?.market_landscape?.overall_position) parts.push(`Market Landscape: ${oracle.market_landscape.overall_position}`);
+          if (oracle?.competitive_overview?.market_position) parts.push(`Competitive Position: ${oracle.competitive_overview.market_position}`);
+          const recs = Array.isArray(oracle?.strategic_recommendations) ? oracle.strategic_recommendations : [];
+          if (recs.length > 0) parts.push(`Strategic Priorities: ${recs.slice(0, 3).map((r: any) => r.recommendation).join('; ')}`);
+          if (oracleKb?.length) parts.push(`Knowledge: ${oracleKb.map((k: any) => `${k.title}: ${(k.content || '').slice(0, 120)}`).join(' | ')}`);
+          if (parts.length > 0) oracleContext = `\n\nORACLE BRAIN (Org-Level Intelligence):\n${parts.join('\n')}`;
+        }
+      } catch (e) {
+        console.warn('[market-analysis] Oracle context failed (non-critical):', e);
+      }
+    }
+
     const userPrompt = `Perform a ${analysisType} analysis for: ${entityName}
 
 Brand/Company Data:
-${contextData}
+${contextData}${oracleContext}
 
-Provide insights that are specific to this brand's positioning, values, and market context. Make recommendations actionable and aligned with the brand's identity.`;
+Provide insights that are specific to this brand's positioning, values, and market context.${oracleContext ? ' Incorporate organizational strategic intelligence for broader portfolio context.' : ''} Make recommendations actionable and aligned with the brand's identity.`;
 
     console.log(`Running ${analysisType} analysis for ${entityName}`);
 
