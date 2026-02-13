@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Video, Calendar, Users, ExternalLink, Trash2, Edit2, X, Link2 } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Plus, Video, Calendar, Users, ExternalLink, Trash2, Edit2, X, Link2, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -37,6 +37,8 @@ export const WebinarSeriesSection = ({
 }: WebinarSeriesSectionProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAll, setShowAll] = useState(false);
   const [newWebinar, setNewWebinar] = useState<Partial<WebinarItem>>({
     title: '',
     description: '',
@@ -44,6 +46,22 @@ export const WebinarSeriesSection = ({
   });
 
   const canEdit = !!onWebinarsChange;
+
+  // 3 columns × 2 rows = 6 items visible by default
+  const INITIAL_VISIBLE = 6;
+
+  const filteredWebinars = useMemo(() => {
+    if (!searchQuery.trim()) return webinars;
+    const q = searchQuery.toLowerCase();
+    return webinars.filter(w =>
+      w.title.toLowerCase().includes(q) ||
+      w.description?.toLowerCase().includes(q) ||
+      w.date?.includes(q)
+    );
+  }, [webinars, searchQuery]);
+
+  const visibleWebinars = showAll ? filteredWebinars : filteredWebinars.slice(0, INITIAL_VISIBLE);
+  const hasMore = filteredWebinars.length > INITIAL_VISIBLE;
 
   const addWebinar = () => {
     if (!onWebinarsChange || !newWebinar.title?.trim()) {
@@ -101,9 +119,30 @@ export const WebinarSeriesSection = ({
         onEditToggle={canEdit ? () => setIsHeaderEditing(!isHeaderEditing) : undefined}
       />
 
+      {/* Search bar */}
+      {webinars.length > INITIAL_VISIBLE && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setShowAll(true); }}
+            placeholder="Search webinars..."
+            className="pl-9 h-9"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Webinar grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {webinars.map((webinar, index) => (
+        {visibleWebinars.map((webinar, index) => (
           <Card
             key={webinar.id}
             className="group overflow-hidden hover:border-primary/50 transition-colors animate-scale-in"
@@ -301,7 +340,25 @@ export const WebinarSeriesSection = ({
                     {status.charAt(0).toUpperCase() + status.slice(1)}
                   </Button>
                 ))}
-              </div>
+      </div>
+
+      {/* View More / View Less */}
+      {hasMore && !searchQuery && (
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAll(!showAll)}
+            className="gap-2"
+          >
+            {showAll ? (
+              <>Show Less <ChevronUp className="h-4 w-4" /></>
+            ) : (
+              <>View All {filteredWebinars.length} Webinars <ChevronDown className="h-4 w-4" /></>
+            )}
+          </Button>
+        </div>
+      )}
               <Button onClick={addWebinar} size="sm" className="w-full">
                 <Plus className="h-4 w-4 mr-1" />
                 Add Webinar
