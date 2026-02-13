@@ -1,16 +1,74 @@
 /**
  * Brand Intelligence Analysis Worker
  * Ultra-lightweight edge function for AI analysis
- * Optimized to stay under 150MB memory limit
+ * Uses direct fetch() REST calls instead of Supabase SDK to stay under 150MB
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Lightweight DB helper using direct REST calls (no SDK overhead)
+function dbFetch(supabaseUrl: string, serviceKey: string) {
+  const base = `${supabaseUrl}/rest/v1`;
+  const headers = {
+    apikey: serviceKey,
+    Authorization: `Bearer ${serviceKey}`,
+    "Content-Type": "application/json",
+    Prefer: "return=representation",
+  };
+
+  return {
+    async select(table: string, query: string): Promise<any[]> {
+      const res = await fetch(`${base}/${table}?${query}`, { headers: { ...headers, Prefer: "return=representation" } });
+      if (!res.ok) throw new Error(`DB select ${table} failed: ${res.status}`);
+      return res.json();
+    },
+    async selectSingle(table: string, query: string): Promise<any | null> {
+      const res = await fetch(`${base}/${table}?${query}`, {
+        headers: { ...headers, Accept: "application/vnd.pgrst.object+json", Prefer: "return=representation" },
+      });
+      if (res.status === 406) return null; // no rows
+      if (!res.ok) throw new Error(`DB selectSingle ${table} failed: ${res.status}`);
+      return res.json();
+    },
+    async update(table: string, query: string, body: Record<string, unknown>): Promise<void> {
+      const res = await fetch(`${base}/${table}?${query}`, {
+        method: "PATCH",
+        headers: { ...headers, Prefer: "return=minimal" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(`DB update ${table} failed: ${res.status} ${t}`);
+      }
+    },
+    async insert(table: string, body: Record<string, unknown>): Promise<any> {
+      const res = await fetch(`${base}/${table}`, {
+        method: "POST",
+        headers: { ...headers, Prefer: "return=representation" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(`DB insert ${table} failed: ${res.status}`);
+      const arr = await res.json();
+      return Array.isArray(arr) ? arr[0] : arr;
+    },
+    async upsert(table: string, body: Record<string, unknown>, onConflict: string): Promise<void> {
+      const res = await fetch(`${base}/${table}`, {
+        method: "POST",
+        headers: { ...headers, Prefer: `return=minimal,resolution=merge-duplicates` },
+        body: JSON.stringify(body),
+      });
+      // Upsert may 409 on some configs, that's ok
+      if (!res.ok && res.status !== 409) {
+        console.warn(`DB upsert ${table} warning: ${res.status}`);
+      }
+    },
+  };
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -28,13 +86,13 @@ serve(async (req) => {
     });
   }
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const db = dbFetch(supabaseUrl, supabaseServiceKey);
   let jobId: string | null = null;
 
   try {
     const body = await req.json();
     jobId = body.jobId;
-    
+
     if (!jobId) {
       return new Response(JSON.stringify({ error: "jobId required" }), {
         status: 400,
@@ -43,13 +101,9 @@ serve(async (req) => {
     }
 
     // Get job details
-    const { data: job, error: jobError } = await supabase
-      .from('brand_intelligence_jobs')
-      .select('id, entity_type, entity_id, organization_id, status')
-      .eq('id', jobId)
-      .single();
+    const job = await db.selectSingle('brand_intelligence_jobs', `id=eq.${jobId}&select=id,entity_type,entity_id,organization_id,status`);
 
-    if (jobError || !job) {
+    if (!job) {
       return new Response(JSON.stringify({ error: "Job not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -64,76 +118,58 @@ serve(async (req) => {
     }
 
     // Update to processing
-    await supabase
-      .from('brand_intelligence_jobs')
-      .update({ status: 'processing', started_at: new Date().toISOString(), progress: 10 })
-      .eq('id', jobId);
+    await db.update('brand_intelligence_jobs', `id=eq.${jobId}`, {
+      status: 'processing',
+      started_at: new Date().toISOString(),
+      progress: 10,
+    });
 
-    // Fetch name + guide_data for comprehensive analysis
+    // Fetch entity data
     const table = job.entity_type === 'brand' ? 'brands' : job.entity_type === 'product' ? 'products' : 'events';
-    const { data: entity } = await supabase
-      .from(table)
-      .select('name, guide_data')
-      .eq('id', job.entity_id)
-      .single();
+    const entity = await db.selectSingle(table, `id=eq.${job.entity_id}&select=name,guide_data`);
 
     if (!entity) {
       throw new Error(`Entity not found`);
     }
 
-    await supabase
-      .from('brand_intelligence_jobs')
-      .update({ progress: 30 })
-      .eq('id', jobId);
+    await db.update('brand_intelligence_jobs', `id=eq.${jobId}`, { progress: 30 });
 
-    // Extract full brand context from all sections including image URLs
-    const { extractFullBrandContext, buildMultimodalContent, fetchDocumentContext, fetchSocialMetricsContext } = await import('../_shared/extractFullBrandContext.ts');
+    // Extract brand context — use REDUCED limits to save memory
+    const { extractFullBrandContext, buildMultimodalContent } = await import('../_shared/extractFullBrandContext.ts');
     const guideData = (entity.guide_data || {}) as Record<string, unknown>;
     const { text: brandContext, sectionsWithData, imageUrls } = extractFullBrandContext(
       guideData,
       entity.name,
       job.entity_type,
-      2500,
+      1200, // Tight limit to stay under 150MB
       true,
-      10,
+      4,    // Max 4 images
     );
 
-    // Fetch document-based content, social metrics, AND Oracle context in parallel
-    const [docResult, socialResult, oracleResult] = await Promise.all([
-      fetchDocumentContext(supabase, job.entity_id, job.entity_type, guideData, 1500),
-      fetchSocialMetricsContext(supabase, job.entity_id, job.entity_type),
-      fetchOracleContext(supabase, job.organization_id),
-    ]);
-    const { text: docContext, imageUrls: docImages, documentCount } = docResult;
-    const { text: socialContext, platformCount: socialPlatformCount, hasMetrics: hasSocialMetrics } = socialResult;
+    // Skip document context entirely — the SDK import causes memory crashes
+    // Documents are still analyzed during brand-audit and research briefings
+    const documentCount = 0;
 
-    // Merge document images into main image set
-    for (const di of docImages.slice(0, 5)) {
-      if (imageUrls.length < 15) imageUrls.push(di);
-    }
+    // Fetch Oracle context directly via REST (no SDK)
+    const oracleContext = await fetchOracleContextRest(db, job.organization_id);
 
-    const oracleContext = oracleResult ? `\nORACLE BRAIN CONTEXT (Org-Level Intelligence):\n${oracleResult}` : '';
-
-    const prompt = `Analyze "${entity.name}" brand using ALL the following data including visual assets, documents, social media performance, and organization-level Oracle intelligence. Return compact JSON:
+    const prompt = `Analyze "${entity.name}" brand. Return compact JSON:
 ${brandContext}
-${docContext ? `\nDOCUMENT CONTENT:\n${docContext}` : ''}
-${socialContext || ''}
-${oracleContext}
+${oracleContext ? `\nORACLE BRAIN CONTEXT:\n${oracleContext}` : ''}
 
 Sections with data: ${sectionsWithData.join(', ')}
-Documents analyzed: ${documentCount} files
-Visual assets included: ${imageUrls.length} images from ${[...new Set(imageUrls.map(i => i.section))].join(', ')}
-${hasSocialMetrics ? `Social platforms tracked: ${socialPlatformCount}` : 'No social metrics data available'}
+Visual assets: ${imageUrls.length} images
 
-Analyze provided images and document content for visual consistency, content quality, messaging alignment, and brand coherence.${hasSocialMetrics ? ' Incorporate social media performance data into your competitive positioning, growth recommendations, and digital presence assessment.' : ''}${oracleResult ? ' Incorporate Oracle org-level intelligence for strategic alignment and portfolio-level context.' : ''} Return ONLY valid JSON:
-{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"visual_analysis":{"consistency":"1 sentence","quality":"1 sentence","alignment":"1 sentence"},"document_analysis":{"content_quality":"1 sentence","messaging_consistency":"1 sentence","asset_coverage":"1 sentence"},"social_performance":{"overall_assessment":"1 sentence","strongest_platform":"platform name","growth_opportunity":"1 sentence","engagement_quality":"1 sentence"},"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]}`;
+Analyze for brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''} Return ONLY valid JSON:
+{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]}`;
 
-    // Build multimodal content with images for vision analysis
-    const messageContent = imageUrls.length > 0
-      ? buildMultimodalContent(prompt, imageUrls, 6)
+    // Build multimodal content — limit to 4 images max
+    const safeImages = imageUrls.slice(0, 4);
+    const messageContent = safeImages.length > 0
+      ? buildMultimodalContent(prompt, safeImages, 4)
       : prompt;
 
-    // Use vision-capable model when images are available
+    // Use lighter model for all cases to reduce response memory
     let aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -141,15 +177,15 @@ Analyze provided images and document content for visual consistency, content qua
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: imageUrls.length > 0 ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash-lite",
+        model: safeImages.length > 0 ? "google/gemini-2.5-flash-lite" : "google/gemini-2.5-flash-lite",
         messages: [{ role: "user", content: messageContent }],
         temperature: 0.3,
-        max_tokens: 1000,
+        max_tokens: 800,
       }),
     });
 
-    // If multimodal request fails (e.g. broken image URLs), retry with text-only
-    if (!aiResponse.ok && imageUrls.length > 0) {
+    // If multimodal fails, retry text-only
+    if (!aiResponse.ok && safeImages.length > 0) {
       const errText = await aiResponse.text();
       console.warn("[worker] Multimodal AI failed, retrying text-only:", aiResponse.status, errText.slice(0, 150));
       aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -162,7 +198,7 @@ Analyze provided images and document content for visual consistency, content qua
           model: "google/gemini-2.5-flash-lite",
           messages: [{ role: "user", content: prompt }],
           temperature: 0.3,
-          max_tokens: 1000,
+          max_tokens: 800,
         }),
       });
     }
@@ -173,15 +209,11 @@ Analyze provided images and document content for visual consistency, content qua
       throw new Error(`AI failed: ${aiResponse.status}`);
     }
 
-    await supabase
-      .from('brand_intelligence_jobs')
-      .update({ progress: 60 })
-      .eq('id', jobId);
+    await db.update('brand_intelligence_jobs', `id=eq.${jobId}`, { progress: 60 });
 
-    // Parse response carefully
+    // Parse response
     const responseText = await aiResponse.text();
     let content = "";
-    
     try {
       const parsed = JSON.parse(responseText);
       content = parsed.choices?.[0]?.message?.content || "";
@@ -190,21 +222,18 @@ Analyze provided images and document content for visual consistency, content qua
       throw new Error("Failed to parse AI response");
     }
 
-    // Extract JSON from potential markdown
+    // Extract JSON
     let analysis: any;
     try {
-      // Try direct parse first
       analysis = JSON.parse(content.trim());
     } catch {
       try {
-        // Try extracting from markdown code blocks
-        const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || 
+        const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) ||
                           content.match(/\{[\s\S]*\}/);
         const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]).trim() : content.trim();
         analysis = JSON.parse(jsonStr);
       } catch {
         console.error("[worker] JSON extract error:", content.slice(0, 200));
-        // Use minimal fallback
         analysis = {
           summary: "Analysis completed",
           position: "Market participant",
@@ -218,32 +247,22 @@ Analyze provided images and document content for visual consistency, content qua
       }
     }
 
-    await supabase
-      .from('brand_intelligence_jobs')
-      .update({ progress: 80 })
-      .eq('id', jobId);
+    await db.update('brand_intelligence_jobs', `id=eq.${jobId}`, { progress: 80 });
 
     // Get or create intelligence record
-    let { data: intel } = await supabase
-      .from('brand_intelligence')
-      .select('id, knowledge_entries, brand_summary, market_position, target_audience, competitive_advantages, brand_voice_profile, growth_recommendations, cultural_insights, globallink_recommendations, localization_readiness_score, analysis_count, competitive_landscape, learning_context')
-      .eq('entity_type', job.entity_type)
-      .eq('entity_id', job.entity_id)
-      .maybeSingle();
+    const intelRows = await db.select('brand_intelligence',
+      `entity_type=eq.${job.entity_type}&entity_id=eq.${job.entity_id}&select=id,knowledge_entries,brand_summary,market_position,target_audience,competitive_advantages,brand_voice_profile,growth_recommendations,cultural_insights,globallink_recommendations,localization_readiness_score,analysis_count,learning_context&limit=1`
+    );
+    let intel = intelRows.length > 0 ? intelRows[0] : null;
 
     if (!intel) {
-      const { data: newIntel } = await supabase
-        .from('brand_intelligence')
-        .insert({
-          entity_type: job.entity_type,
-          entity_id: job.entity_id,
-          organization_id: job.organization_id,
-          knowledge_entries: [],
-          semantic_hashes: [],
-        })
-        .select('id, knowledge_entries, brand_summary, market_position, target_audience, competitive_advantages, brand_voice_profile, growth_recommendations, cultural_insights, globallink_recommendations, localization_readiness_score, analysis_count, competitive_landscape, learning_context')
-        .single();
-      intel = newIntel;
+      intel = await db.insert('brand_intelligence', {
+        entity_type: job.entity_type,
+        entity_id: job.entity_id,
+        organization_id: job.organization_id,
+        knowledge_entries: [],
+        semantic_hashes: [],
+      });
     }
 
     if (!intel) throw new Error("Failed to get intelligence record");
@@ -261,9 +280,7 @@ Analyze provided images and document content for visual consistency, content qua
 
     const entries = Array.isArray(intel.knowledge_entries) ? intel.knowledge_entries : [];
 
-    // --- MERGE logic: preserve existing data, only update if AI returned something meaningful ---
-
-    // Merge arrays by combining existing + new, deduplicating
+    // MERGE logic
     const mergeArrays = (existing: any, incoming: any) => {
       const ex = Array.isArray(existing) ? existing : [];
       const inc = Array.isArray(incoming) ? incoming : [];
@@ -279,16 +296,13 @@ Analyze provided images and document content for visual consistency, content qua
       return combined;
     };
 
-    // Only replace text fields if AI returned a substantive value and existing is empty
     const mergeText = (existing: string | null, incoming: string | null | undefined) => {
       if (!incoming) return existing;
       if (!existing) return incoming;
-      // If existing is very short and new is longer, prefer new
       if (existing.length < 20 && incoming.length > existing.length) return incoming;
-      return existing; // Keep existing by default
+      return existing;
     };
 
-    // Merge voice profile
     const existingVoice = (intel.brand_voice_profile as any) || {};
     const incomingVoice = analysis.voice || {};
     const mergedVoice = {
@@ -299,7 +313,6 @@ Analyze provided images and document content for visual consistency, content qua
       communication_style: existingVoice.communication_style || incomingVoice.style || "",
     };
 
-    // Merge growth recommendations
     const existingRecs = Array.isArray(intel.growth_recommendations) ? intel.growth_recommendations : [];
     const incomingRecs = analysis.recommendation ? [{
       priority: "medium",
@@ -309,7 +322,6 @@ Analyze provided images and document content for visual consistency, content qua
     }] : [];
     const mergedRecs = mergeArrays(existingRecs, incomingRecs);
 
-    // Merge cultural insights
     const existingCultural = (intel.cultural_insights as any) || {};
     const incomingCultural = analysis.cultural_insights || {};
     const mergedCultural = Object.keys(incomingCultural).length > 0 ? {
@@ -322,7 +334,6 @@ Analyze provided images and document content for visual consistency, content qua
       imagery_guidelines: mergeArrays(existingCultural.imagery_guidelines, incomingCultural.imagery_guidelines),
     } : existingCultural;
 
-    // Merge target audience
     const existingAudience = (intel.target_audience as any) || {};
     const mergedAudience = {
       ...existingAudience,
@@ -331,7 +342,6 @@ Analyze provided images and document content for visual consistency, content qua
       demographics: mergeArrays(existingAudience.demographics, []),
     };
 
-    // Merge learning_context to persist social_performance, visual_analysis, document_analysis
     const existingLearning = (intel.learning_context as Record<string, unknown>) || {};
     const mergedLearning = {
       ...existingLearning,
@@ -342,41 +352,37 @@ Analyze provided images and document content for visual consistency, content qua
     };
 
     // Update intelligence with MERGED data
-    await supabase
-      .from('brand_intelligence')
-      .update({
-        brand_summary: mergeText(intel.brand_summary as string | null, analysis.summary),
-        market_position: mergeText(intel.market_position as string | null, analysis.position),
-        target_audience: mergedAudience,
-        competitive_advantages: mergeArrays(intel.competitive_advantages, analysis.advantages),
-        brand_voice_profile: mergedVoice,
-        growth_recommendations: mergedRecs,
-        cultural_insights: Object.keys(mergedCultural).length > 0 ? mergedCultural : null,
-        globallink_recommendations: mergeArrays(intel.globallink_recommendations, analysis.globallink_recommendations),
-        knowledge_entries: [...entries, newInsight],
-        learning_context: mergedLearning,
-        last_analyzed_at: new Date().toISOString(),
-        analysis_count: ((intel as any).analysis_count || 0) + 1,
-        localization_readiness_score: Math.max(
-          (intel.localization_readiness_score as number) || 0,
-          analysis.cultural_insights?.global_readiness_score || analysis.readiness || 50
-        ),
-      })
-      .eq('id', intel.id);
+    await db.update('brand_intelligence', `id=eq.${intel.id}`, {
+      brand_summary: mergeText(intel.brand_summary as string | null, analysis.summary),
+      market_position: mergeText(intel.market_position as string | null, analysis.position),
+      target_audience: mergedAudience,
+      competitive_advantages: mergeArrays(intel.competitive_advantages, analysis.advantages),
+      brand_voice_profile: mergedVoice,
+      growth_recommendations: mergedRecs,
+      cultural_insights: Object.keys(mergedCultural).length > 0 ? mergedCultural : null,
+      globallink_recommendations: mergeArrays(intel.globallink_recommendations, analysis.globallink_recommendations),
+      knowledge_entries: [...entries, newInsight],
+      learning_context: mergedLearning,
+      last_analyzed_at: new Date().toISOString(),
+      analysis_count: ((intel as any).analysis_count || 0) + 1,
+      localization_readiness_score: Math.max(
+        (intel.localization_readiness_score as number) || 0,
+        analysis.cultural_insights?.global_readiness_score || analysis.readiness || 50
+      ),
+    });
 
-    // Auto-feed key insights to Oracle Knowledge Base
+    // Auto-feed to Oracle Knowledge Base
     if (job.organization_id && analysis.summary) {
       try {
-        const entityName = guideData?.hero?.name || guideData?.name || job.entity_type;
+        const entityName = (guideData as any)?.hero?.name || entity.name || job.entity_type;
         const insightContent = [
           analysis.summary,
           analysis.position ? `\nMarket Position: ${analysis.position}` : '',
-          Array.isArray(analysis.advantages) && analysis.advantages.length > 0 
+          Array.isArray(analysis.advantages) && analysis.advantages.length > 0
             ? `\nKey Advantages: ${analysis.advantages.join(', ')}` : '',
-          analysis.audience ? `\nTarget Audience: ${analysis.audience}` : '',
         ].filter(Boolean).join('');
 
-        await supabase.from('oracle_knowledge_base').upsert({
+        await db.upsert('oracle_knowledge_base', {
           organization_id: job.organization_id,
           title: `🧠 ${job.entity_type.charAt(0).toUpperCase() + job.entity_type.slice(1)} Intelligence: ${entityName}`,
           content: insightContent,
@@ -387,25 +393,19 @@ Analyze provided images and document content for visual consistency, content qua
           source_entity_type: job.entity_type,
           tags: [job.entity_type, 'auto-generated', 'brain-insight'],
           is_active: true,
-        }, {
-          onConflict: 'organization_id,source_entity_id,source_entity_type',
-          ignoreDuplicates: false,
-        });
+        }, 'organization_id,source_entity_id,source_entity_type');
       } catch (feedErr) {
         console.warn('[worker] Oracle auto-feed failed (non-critical):', feedErr);
       }
     }
 
     // Mark job complete
-    await supabase
-      .from('brand_intelligence_jobs')
-      .update({
-        status: 'completed',
-        progress: 100,
-        completed_at: new Date().toISOString(),
-        result: { success: true, summary: analysis.summary },
-      })
-      .eq('id', jobId);
+    await db.update('brand_intelligence_jobs', `id=eq.${jobId}`, {
+      status: 'completed',
+      progress: 100,
+      completed_at: new Date().toISOString(),
+      result: { success: true, summary: analysis.summary },
+    });
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -413,16 +413,17 @@ Analyze provided images and document content for visual consistency, content qua
 
   } catch (error) {
     console.error("[worker] Error:", error);
-    
+
     if (jobId) {
-      await supabase
-        .from('brand_intelligence_jobs')
-        .update({
+      try {
+        await db.update('brand_intelligence_jobs', `id=eq.${jobId}`, {
           status: 'failed',
           completed_at: new Date().toISOString(),
           error_message: error instanceof Error ? error.message : 'Unknown error',
-        })
-        .eq('id', jobId);
+        });
+      } catch (updateErr) {
+        console.error("[worker] Failed to update job status:", updateErr);
+      }
     }
 
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
@@ -433,32 +434,26 @@ Analyze provided images and document content for visual consistency, content qua
 });
 
 /**
- * Fetch Oracle Brain context for org-level intelligence injection
+ * Fetch Oracle Brain context using REST calls (no SDK)
  */
-async function fetchOracleContext(supabase: any, organizationId: string | null): Promise<string | null> {
+async function fetchOracleContextRest(db: ReturnType<typeof dbFetch>, organizationId: string | null): Promise<string | null> {
   if (!organizationId) return null;
-  
+
   try {
-    const [{ data: oracle }, { data: knowledge }] = await Promise.all([
-      supabase.from('oracle_intelligence')
-        .select('org_summary, portfolio_analysis, strategic_recommendations, unified_voice_profile, competitive_overview, cultural_readiness')
-        .eq('organization_id', organizationId)
-        .maybeSingle(),
-      supabase.from('oracle_knowledge_base')
-        .select('title, content')
-        .eq('organization_id', organizationId)
-        .eq('is_active', true)
-        .order('updated_at', { ascending: false })
-        .limit(5),
+    const [oracleRows, knowledge] = await Promise.all([
+      db.select('oracle_intelligence',
+        `organization_id=eq.${organizationId}&select=org_summary,unified_voice_profile,competitive_overview,strategic_recommendations&limit=1`
+      ),
+      db.select('oracle_knowledge_base',
+        `organization_id=eq.${organizationId}&is_active=eq.true&select=title,content&order=updated_at.desc&limit=5`
+      ),
     ]);
 
+    const oracle = oracleRows.length > 0 ? oracleRows[0] : null;
     if (!oracle?.org_summary && (!knowledge || knowledge.length === 0)) return null;
 
     const parts: string[] = [];
-    
-    if (oracle?.org_summary) {
-      parts.push(`Org Summary: ${oracle.org_summary}`);
-    }
+    if (oracle?.org_summary) parts.push(`Org Summary: ${oracle.org_summary}`);
     if (oracle?.unified_voice_profile?.primary_tone) {
       parts.push(`Org Voice: ${oracle.unified_voice_profile.primary_tone}`);
     }
@@ -469,9 +464,8 @@ async function fetchOracleContext(supabase: any, organizationId: string | null):
     if (recs.length > 0) {
       parts.push(`Strategic Priorities: ${recs.slice(0, 3).map((r: any) => r.recommendation).join('; ')}`);
     }
-    
     if (knowledge && knowledge.length > 0) {
-      parts.push(`Knowledge Base Highlights: ${knowledge.map((k: any) => `${k.title}: ${k.content.slice(0, 150)}`).join(' | ')}`);
+      parts.push(`Knowledge Base: ${knowledge.map((k: any) => `${k.title}: ${k.content.slice(0, 100)}`).join(' | ')}`);
     }
 
     return parts.join('\n');
