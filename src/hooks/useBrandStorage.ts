@@ -1052,15 +1052,17 @@ export const useBrandStorage = () => {
               return;
             }
             
-            // Convert DB format to BrandGuide
-            baseData = dbToBrandGuide(dbBrand as DbBrand);
+            // Convert DB format to BrandGuide and merge pending updates
+            baseData = { ...dbToBrandGuide(dbBrand as DbBrand), ...finalUpdates };
           }
           
-          // The baseData (latestBrand) already has the optimistic updates applied
-          // So we should use it directly rather than re-merging with finalUpdates
-          // which would be redundant and could cause issues
+          // If baseData came from the DB (not local state), ensure pending updates are merged
+          // When brand is in local state, optimistic updates are already applied
+          // When fetched from DB, we must explicitly merge pending updates
+          const mergedData = latestBrand ? baseData : { ...baseData, ...finalUpdates };
+          
           console.log('[SYNC] updateBrand: Syncing to DB for', id);
-          await syncBrandToDb(id, baseData as BrandGuide);
+          await syncBrandToDb(id, mergedData as BrandGuide);
           
           brandSyncTimeouts.current.delete(id);
         } catch (err) {
@@ -1152,13 +1154,17 @@ export const useBrandStorage = () => {
               return;
             }
             
-            // Convert DB format to ProductGuide
-            baseData = dbToProductGuide(dbProduct as DbProduct);
+            // Convert DB format to ProductGuide and merge pending updates
+            baseData = { ...dbToProductGuide(dbProduct as DbProduct), ...finalUpdates };
           }
           
-          // The baseData (latestProduct) already has the optimistic updates applied
+          // If baseData came from the DB (not local state), ensure pending updates are merged
+          // When product is in local state, optimistic updates are already applied
+          // When fetched from DB, we must explicitly merge pending updates
+          const mergedData = latestProduct ? baseData : { ...baseData, ...finalUpdates };
+          
           console.log('[SYNC] updateProduct: Syncing to DB for', id);
-          await syncProductToDb(id, baseData as ProductGuide);
+          await syncProductToDb(id, mergedData as ProductGuide);
           
           productSyncTimeouts.current.delete(id);
         } catch (err) {
