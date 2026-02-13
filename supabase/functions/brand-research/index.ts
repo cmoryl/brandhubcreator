@@ -12,7 +12,7 @@ interface ResearchRequest {
   focusAreas?: string[];
 }
 
-import { extractFullBrandContext, buildMultimodalContent, fetchDocumentContext, type ImageReference } from '../_shared/extractFullBrandContext.ts';
+import { extractFullBrandContext, buildMultimodalContent, fetchDocumentContext, fetchSocialMetricsContext, type ImageReference } from '../_shared/extractFullBrandContext.ts';
 
 function extractBrandContext(guideData: Record<string, unknown>, entityName: string, entityType: string): { text: string; imageUrls: ImageReference[] } {
   const { text, imageUrls } = extractFullBrandContext(guideData, entityName, entityType, 3000, true, 10);
@@ -293,11 +293,14 @@ Deno.serve(async (req) => {
     const guideData = entityData.guide_data as Record<string, unknown>;
     const { text: brandContext, imageUrls: brandImageUrls } = extractBrandContext(guideData, entityData.name, entityType);
 
-    // Fetch document content (PDFs, PPTXs, slide text)
-    const { text: docContext, imageUrls: docImageUrls, documentCount } = await fetchDocumentContext(
-      supabaseClient, entityId, entityType, guideData, 1500
-    );
-    const combinedContext = docContext ? `${brandContext}\n${docContext}` : brandContext;
+    // Fetch document content and social metrics in parallel
+    const [docResult, socialResult] = await Promise.all([
+      fetchDocumentContext(supabaseClient, entityId, entityType, guideData, 1500),
+      fetchSocialMetricsContext(supabaseClient, entityId, entityType),
+    ]);
+    const { text: docContext, imageUrls: docImageUrls, documentCount } = docResult;
+    const { text: socialContext, platformCount: socialPlatformCount, hasMetrics: hasSocialMetrics } = socialResult;
+    const combinedContext = [brandContext, docContext, socialContext].filter(Boolean).join('\n');
     const combinedImages = [...brandImageUrls, ...docImageUrls.slice(0, 5)];
 
     // Fetch minimal intelligence summary
@@ -311,6 +314,7 @@ Deno.serve(async (req) => {
     if (intel?.brand_summary) intelligenceSummary += `\nBrand Summary: ${intel.brand_summary}`;
     if (intel?.market_position) intelligenceSummary += `\nMarket Position: ${intel.market_position}`;
     if (documentCount > 0) intelligenceSummary += `\nDocuments Analyzed: ${documentCount}`;
+    if (hasSocialMetrics) intelligenceSummary += `\nSocial Platforms Tracked: ${socialPlatformCount}`;
 
     // Create job record
     const adminSupabase = createClient(

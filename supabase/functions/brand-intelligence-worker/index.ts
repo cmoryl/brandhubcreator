@@ -222,7 +222,7 @@ Analyze provided images and document content for visual consistency, content qua
     // Get or create intelligence record
     let { data: intel } = await supabase
       .from('brand_intelligence')
-      .select('id, knowledge_entries, brand_summary, market_position, target_audience, competitive_advantages, brand_voice_profile, growth_recommendations, cultural_insights, globallink_recommendations, localization_readiness_score, analysis_count, competitive_landscape')
+      .select('id, knowledge_entries, brand_summary, market_position, target_audience, competitive_advantages, brand_voice_profile, growth_recommendations, cultural_insights, globallink_recommendations, localization_readiness_score, analysis_count, competitive_landscape, learning_context')
       .eq('entity_type', job.entity_type)
       .eq('entity_id', job.entity_id)
       .maybeSingle();
@@ -237,7 +237,7 @@ Analyze provided images and document content for visual consistency, content qua
           knowledge_entries: [],
           semantic_hashes: [],
         })
-        .select('id, knowledge_entries, brand_summary, market_position, target_audience, competitive_advantages, brand_voice_profile, growth_recommendations, cultural_insights, globallink_recommendations, localization_readiness_score, analysis_count, competitive_landscape')
+        .select('id, knowledge_entries, brand_summary, market_position, target_audience, competitive_advantages, brand_voice_profile, growth_recommendations, cultural_insights, globallink_recommendations, localization_readiness_score, analysis_count, competitive_landscape, learning_context')
         .single();
       intel = newIntel;
     }
@@ -327,6 +327,16 @@ Analyze provided images and document content for visual consistency, content qua
       demographics: mergeArrays(existingAudience.demographics, []),
     };
 
+    // Merge learning_context to persist social_performance, visual_analysis, document_analysis
+    const existingLearning = (intel.learning_context as Record<string, unknown>) || {};
+    const mergedLearning = {
+      ...existingLearning,
+      ...(analysis.social_performance ? { social_performance: analysis.social_performance } : {}),
+      ...(analysis.visual_analysis ? { visual_analysis: analysis.visual_analysis } : {}),
+      ...(analysis.document_analysis ? { document_analysis: analysis.document_analysis } : {}),
+      last_updated: new Date().toISOString(),
+    };
+
     // Update intelligence with MERGED data
     await supabase
       .from('brand_intelligence')
@@ -340,6 +350,7 @@ Analyze provided images and document content for visual consistency, content qua
         cultural_insights: Object.keys(mergedCultural).length > 0 ? mergedCultural : null,
         globallink_recommendations: mergeArrays(intel.globallink_recommendations, analysis.globallink_recommendations),
         knowledge_entries: [...entries, newInsight],
+        learning_context: mergedLearning,
         last_analyzed_at: new Date().toISOString(),
         analysis_count: ((intel as any).analysis_count || 0) + 1,
         localization_readiness_score: Math.max(
