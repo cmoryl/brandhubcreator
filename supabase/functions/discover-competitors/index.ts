@@ -7,22 +7,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-interface DiscoverCompetitorsRequest {
-  entityType: "brand" | "product" | "event";
-  entityId: string;
-  entityName: string;
-  industry?: string;
-  additionalContext?: string;
-}
-
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Authentication check
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
@@ -31,13 +21,13 @@ serve(async (req) => {
       );
     }
 
-    const token = authHeader.replace("Bearer ", "");
-    const authSupabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const authSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
 
+    const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await authSupabase.auth.getUser(token);
     if (authError || !user) {
       return new Response(
@@ -46,8 +36,7 @@ serve(async (req) => {
       );
     }
 
-    const { entityType, entityId, entityName, industry, additionalContext } =
-      (await req.json()) as DiscoverCompetitorsRequest;
+    const { entityType, entityId, entityName, industry, additionalContext } = await req.json();
 
     if (!entityId || !entityName) {
       return new Response(
@@ -61,69 +50,33 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Fetch entity data to get more context
-    let entityData: any = null;
+    // Fetch minimal entity context
+    const supabase = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const tableName = entityType === "brand" ? "brands" : entityType === "product" ? "products" : "events";
     
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from(tableName)
-      .select("guide_data, name")
+      .select("guide_data")
       .eq("id", entityId)
       .single();
 
-    if (!error && data) {
-      entityData = data.guide_data;
-    }
-
-    // Extract relevant context from entity data
-    const guideData = entityData || {};
+    const guideData = (data?.guide_data as Record<string, any>) || {};
     const hero = guideData.hero || {};
     const identity = guideData.identity || {};
-    const services = guideData.services || [];
-    const values = guideData.values || [];
 
-    // Build context for the AI
-    const entityContext = `
-Entity Name: ${entityName}
-Entity Type: ${entityType}
-${hero.tagline ? `Tagline: ${hero.tagline}` : ""}
-${identity.mission ? `Mission: ${identity.mission}` : ""}
-${identity.archetype ? `Brand Archetype: ${identity.archetype}` : ""}
-${services.length > 0 ? `Services/Products: ${services.map((s: any) => s.name || s.title).filter(Boolean).join(", ")}` : ""}
-${values.length > 0 ? `Core Values: ${values.map((v: any) => v.title || v.name).filter(Boolean).join(", ")}` : ""}
-${industry ? `Industry: ${industry}` : ""}
-${additionalContext ? `Additional Context: ${additionalContext}` : ""}
-    `.trim();
+    // Build a compact context string
+    const contextParts = [
+      `Name: ${entityName}`,
+      `Type: ${entityType}`,
+      hero.tagline ? `Tagline: ${hero.tagline}` : "",
+      identity.archetype ? `Archetype: ${identity.archetype}` : "",
+      industry ? `Industry: ${industry}` : "",
+      additionalContext || "",
+    ].filter(Boolean).join(". ");
 
-    const systemPrompt = `You are a competitive intelligence expert. Your task is to identify the top competitors for a given brand, product, or event.
+    const prompt = `Identify 5-8 competitors for: ${contextParts}
 
-Based on the entity information provided, identify 5-8 relevant competitors. Consider:
-1. Direct competitors offering similar products/services
-2. Indirect competitors in adjacent markets
-3. Emerging disruptors in the space
-4. Market leaders that set industry standards
-
-For each competitor, provide:
-- name: The company/brand name
-- reason: A brief explanation of why they're a competitor (1 sentence)
-- type: Either "direct", "indirect", or "emerging"
-
-Return your response as a JSON object with a "competitors" array.`;
-
-    const userPrompt = `Identify the top competitors for:
-
-${entityContext}
-
-Return a JSON object with the following structure:
-{
-  "competitors": [
-    { "name": "Competitor Name", "reason": "Why they compete", "type": "direct|indirect|emerging" }
-  ]
-}`;
+Return ONLY a JSON object: {"competitors":[{"name":"string","reason":"string","type":"direct|indirect|emerging"}]}`;
 
     console.log("Discovering competitors for:", entityName);
 
@@ -135,42 +88,8 @@ Return a JSON object with the following structure:
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "return_competitors",
-              description: "Return the list of discovered competitors",
-              parameters: {
-                type: "object",
-                properties: {
-                  competitors: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        name: { type: "string", description: "Competitor company/brand name" },
-                        reason: { type: "string", description: "Brief explanation of competitive relationship" },
-                        type: { 
-                          type: "string", 
-                          enum: ["direct", "indirect", "emerging"],
-                          description: "Type of competitor" 
-                        },
-                      },
-                      required: ["name", "reason", "type"],
-                    },
-                  },
-                },
-                required: ["competitors"],
-              },
-            },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "return_competitors" } },
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
       }),
     });
 
@@ -193,30 +112,29 @@ Return a JSON object with the following structure:
     }
 
     const aiResponse = await response.json();
-    console.log("AI Response received");
+    const rawContent = aiResponse.choices?.[0]?.message?.content || "";
 
-    // Extract the tool call result
-    const toolCall = aiResponse.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall?.function?.arguments) {
-      throw new Error("Invalid AI response format");
+    // Extract JSON from response
+    const jsonMatch = rawContent.match(/\{[\s\S]*"competitors"[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error("Could not parse competitors from AI response");
     }
 
-    const result = JSON.parse(toolCall.function.arguments);
-    
+    const result = JSON.parse(jsonMatch[0]);
+
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         competitors: result.competitors || [],
         entityName,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-
   } catch (error) {
     console.error("Error discovering competitors:", error);
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : "Failed to discover competitors" 
+      JSON.stringify({
+        error: error instanceof Error ? error.message : "Failed to discover competitors",
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
