@@ -165,14 +165,17 @@ serve(async (req) => {
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const tableName = entityType === 'product' ? 'products' : 'brands';
 
-    // Fetch brand data (name + guide_data + hidden_sections) + intelligence data
-    const [brandRes, intelRes] = await Promise.all([
+    // Fetch brand data, intelligence, AND Oracle context
+    const orgId = body.organizationId;
+    const [brandRes, intelRes, oracleRes, oracleKbRes] = await Promise.all([
       fetch(`${supabaseUrl}/rest/v1/${tableName}?id=eq.${brandId}&select=id,name,guide_data,hidden_sections&limit=1`, {
         headers: { 'apikey': anonKey, 'Authorization': userAuth, 'Content-Type': 'application/json' },
       }),
       fetch(`${supabaseUrl}/rest/v1/brand_intelligence?entity_id=eq.${brandId}&entity_type=eq.${entityType}&select=brand_summary,market_position,competitive_advantages,growth_recommendations,brand_voice_profile,target_audience,cultural_insights&limit=1`, {
         headers: { 'apikey': anonKey, 'Authorization': userAuth, 'Content-Type': 'application/json' },
       }),
+      orgId ? fetch(`${supabaseUrl}/rest/v1/oracle_intelligence?organization_id=eq.${orgId}&select=org_summary,unified_voice_profile,strategic_recommendations,competitive_overview&limit=1`, { headers: svcHeaders }) : Promise.resolve(null),
+      orgId ? fetch(`${supabaseUrl}/rest/v1/oracle_knowledge_base?organization_id=eq.${orgId}&is_active=eq.true&source_type=neq.entity_brain&order=updated_at.desc&limit=3&select=title,content`, { headers: svcHeaders }) : Promise.resolve(null),
     ]);
 
     const brandRows = await brandRes.json();
@@ -213,7 +216,25 @@ serve(async (req) => {
       }
     }
 
-    promptLines.push(`\nAudit this brand for cohesion and completeness across ALL visible sections. Return JSON.`);
+    // Add Oracle org-level context
+    try {
+      const oracleRows = oracleRes ? await oracleRes.json() : [];
+      const oracleKbRows = oracleKbRes ? await oracleKbRes.json() : [];
+      const oracle = Array.isArray(oracleRows) && oracleRows.length > 0 ? oracleRows[0] : null;
+      const oracleKb = Array.isArray(oracleKbRows) ? oracleKbRows : [];
+      if (oracle || oracleKb.length > 0) {
+        promptLines.push(`\n## Oracle Brain (Org-Level Strategic Context)`);
+        if (oracle?.org_summary) promptLines.push(`Org Strategy: ${oracle.org_summary}`);
+        if (oracle?.unified_voice_profile?.primary_tone) promptLines.push(`Org Voice: ${oracle.unified_voice_profile.primary_tone}`);
+        const recs = Array.isArray(oracle?.strategic_recommendations) ? oracle.strategic_recommendations : [];
+        if (recs.length > 0) promptLines.push(`Strategic Priorities: ${recs.slice(0, 3).map((r: any) => r.recommendation).join('; ')}`);
+        if (oracleKb.length > 0) promptLines.push(`Key Knowledge: ${oracleKb.map((k: any) => `${k.title}: ${(k.content || '').slice(0, 100)}`).join(' | ')}`);
+      }
+    } catch (e) {
+      console.warn('[audit-worker] Oracle context parse failed (non-critical):', e);
+    }
+
+    promptLines.push(`\nAudit this brand for cohesion and completeness across ALL visible sections. Consider Oracle org-level context for strategic alignment. Return JSON.`);
 
     await updateJob(jobId!, { progress: 55 });
 

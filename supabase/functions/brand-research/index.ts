@@ -293,14 +293,19 @@ Deno.serve(async (req) => {
     const guideData = entityData.guide_data as Record<string, unknown>;
     const { text: brandContext, imageUrls: brandImageUrls } = extractBrandContext(guideData, entityData.name, entityType);
 
-    // Fetch document content and social metrics in parallel
-    const [docResult, socialResult] = await Promise.all([
+    // Fetch document content, social metrics, and Oracle context in parallel
+    const adminSupabaseForOracle = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+    const [docResult, socialResult, oracleCtx] = await Promise.all([
       fetchDocumentContext(supabaseClient, entityId, entityType, guideData, 1500),
       fetchSocialMetricsContext(supabaseClient, entityId, entityType),
+      fetchOracleContextForResearch(adminSupabaseForOracle, entityData.organization_id),
     ]);
     const { text: docContext, imageUrls: docImageUrls, documentCount } = docResult;
     const { text: socialContext, platformCount: socialPlatformCount, hasMetrics: hasSocialMetrics } = socialResult;
-    const combinedContext = [brandContext, docContext, socialContext].filter(Boolean).join('\n');
+    const combinedContext = [brandContext, docContext, socialContext, oracleCtx].filter(Boolean).join('\n');
     const combinedImages = [...brandImageUrls, ...docImageUrls.slice(0, 5)];
 
     // Fetch minimal intelligence summary
@@ -376,3 +381,41 @@ Deno.serve(async (req) => {
     );
   }
 });
+
+/**
+ * Fetch Oracle Brain context for research briefing enrichment
+ */
+async function fetchOracleContextForResearch(supabase: any, organizationId: string | null): Promise<string | null> {
+  if (!organizationId) return null;
+  try {
+    const [{ data: oracle }, { data: knowledge }] = await Promise.all([
+      supabase.from('oracle_intelligence')
+        .select('org_summary, strategic_recommendations, unified_voice_profile, market_landscape, competitive_overview')
+        .eq('organization_id', organizationId)
+        .maybeSingle(),
+      supabase.from('oracle_knowledge_base')
+        .select('title, content')
+        .eq('organization_id', organizationId)
+        .eq('is_active', true)
+        .neq('source_type', 'entity_brain')
+        .order('updated_at', { ascending: false })
+        .limit(5),
+    ]);
+
+    if (!oracle?.org_summary && (!knowledge || knowledge.length === 0)) return null;
+
+    const parts: string[] = ['\nORACLE BRAIN (Org-Level Strategic Intelligence):'];
+    if (oracle?.org_summary) parts.push(`Org Strategy: ${oracle.org_summary}`);
+    if (oracle?.market_landscape?.overall_position) parts.push(`Market Landscape: ${oracle.market_landscape.overall_position}`);
+    if (oracle?.unified_voice_profile?.primary_tone) parts.push(`Org Voice: ${oracle.unified_voice_profile.primary_tone}`);
+    if (oracle?.competitive_overview?.competitive_moat) parts.push(`Competitive Moat: ${oracle.competitive_overview.competitive_moat}`);
+    const recs = Array.isArray(oracle?.strategic_recommendations) ? oracle.strategic_recommendations : [];
+    if (recs.length > 0) parts.push(`Strategic Priorities: ${recs.slice(0, 3).map((r: any) => r.recommendation).join('; ')}`);
+    if (knowledge?.length) parts.push(`Knowledge Base: ${knowledge.map((k: any) => `${k.title}: ${(k.content || '').slice(0, 120)}`).join(' | ')}`);
+
+    return parts.join('\n');
+  } catch (err) {
+    console.warn('[brand-research] Oracle context failed (non-critical):', err);
+    return null;
+  }
+}
