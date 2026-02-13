@@ -28,7 +28,6 @@ interface AdminSidebarProps {
 const navGroups = [
   { id: 'core', label: 'Core Admin' },
   { id: 'management', label: 'Management' },
-  { id: 'content', label: 'Content & Data' },
   { id: 'localization', label: 'Localization' },
   { id: 'analytics', label: 'Analytics & AI' },
   { id: 'tools', label: 'Tools' },
@@ -44,24 +43,23 @@ function SidebarContent({
   const allNavItems: NavItem[] = [
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="h-4 w-4" />, group: 'core' },
     { id: 'approvals', label: 'Approvals', icon: <UserCheck className="h-4 w-4" />, badge: pendingApprovals, group: 'core' },
+    { id: 'leads', label: 'Lead Submissions', icon: <Mail className="h-4 w-4" />, group: 'core' },
     { id: 'users', label: 'Users & Members', icon: <Users className="h-4 w-4" />, group: 'management' },
     { id: 'organizations', label: 'Organizations', icon: <Building2 className="h-4 w-4" />, group: 'management' },
-    { id: 'content', label: 'Content', icon: <Palette className="h-4 w-4" />, group: 'content' },
-    { id: 'inspector', label: 'Inspector', icon: <Database className="h-4 w-4" />, group: 'content' },
+    { id: 'locations', label: 'Company Locations', icon: <MapPin className="h-4 w-4" />, group: 'management' },
+    { id: 'globallink', label: 'GlobalLink', icon: <Globe2 className="h-4 w-4" />, group: 'localization' },
     { id: 'analytics', label: 'Brand Analytics', icon: <TrendingUp className="h-4 w-4" />, group: 'analytics' },
     { id: 'user-analytics', label: 'User Stats', icon: <Eye className="h-4 w-4" />, group: 'analytics' },
     { id: 'intelligence', label: 'Intelligence Hub', icon: <Brain className="h-4 w-4" />, group: 'analytics' },
-    { id: 'reports', label: 'Reports', icon: <FileText className="h-4 w-4" />, group: 'tools' },
     { id: 'downloads', label: 'Downloads', icon: <FileDown className="h-4 w-4" />, group: 'analytics' },
+    { id: 'reports', label: 'Reports', icon: <FileText className="h-4 w-4" />, group: 'tools' },
     { id: 'activity', label: 'Activity Log', icon: <Activity className="h-4 w-4" />, group: 'tools' },
     { id: 'image-library', label: 'Image Library', icon: <Image className="h-4 w-4" />, group: 'tools' },
     { id: 'logo-hub', label: 'Logo Hub', icon: <Crown className="h-4 w-4" />, group: 'tools' },
+    { id: 'inspector', label: 'Inspector', icon: <Database className="h-4 w-4" />, group: 'tools' },
     { id: 'repair', label: 'Repair Tools', icon: <Wrench className="h-4 w-4" />, group: 'tools' },
     { id: 'backups', label: 'Backups', icon: <HardDrive className="h-4 w-4" />, group: 'tools' },
-    { id: 'leads', label: 'Lead Submissions', icon: <Mail className="h-4 w-4" />, group: 'core' },
-    { id: 'demo-pages', label: 'Demo Pages', icon: <Sparkles className="h-4 w-4" />, group: 'content' },
-    { id: 'locations', label: 'Company Locations', icon: <MapPin className="h-4 w-4" />, group: 'content' },
-    { id: 'globallink', label: 'GlobalLink', icon: <Globe2 className="h-4 w-4" />, group: 'localization' },
+    { id: 'demo-pages', label: 'Demo Pages', icon: <Sparkles className="h-4 w-4" />, group: 'tools' },
   ];
 
   const superAdminOnly = ['repair', 'demo-pages'];
