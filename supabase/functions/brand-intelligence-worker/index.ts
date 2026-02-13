@@ -364,6 +364,38 @@ Analyze provided images and document content for visual consistency, content qua
       })
       .eq('id', intel.id);
 
+    // Auto-feed key insights to Oracle Knowledge Base
+    if (job.organization_id && analysis.summary) {
+      try {
+        const entityName = guideData?.hero?.name || guideData?.name || job.entity_type;
+        const insightContent = [
+          analysis.summary,
+          analysis.position ? `\nMarket Position: ${analysis.position}` : '',
+          Array.isArray(analysis.advantages) && analysis.advantages.length > 0 
+            ? `\nKey Advantages: ${analysis.advantages.join(', ')}` : '',
+          analysis.audience ? `\nTarget Audience: ${analysis.audience}` : '',
+        ].filter(Boolean).join('');
+
+        await supabase.from('oracle_knowledge_base').upsert({
+          organization_id: job.organization_id,
+          title: `🧠 ${job.entity_type.charAt(0).toUpperCase() + job.entity_type.slice(1)} Intelligence: ${entityName}`,
+          content: insightContent,
+          content_type: 'intelligence',
+          source_type: 'entity_brain',
+          category: 'entity_insights',
+          source_entity_id: job.entity_id,
+          source_entity_type: job.entity_type,
+          tags: [job.entity_type, 'auto-generated', 'brain-insight'],
+          is_active: true,
+        }, {
+          onConflict: 'organization_id,source_entity_id,source_entity_type',
+          ignoreDuplicates: false,
+        });
+      } catch (feedErr) {
+        console.warn('[worker] Oracle auto-feed failed (non-critical):', feedErr);
+      }
+    }
+
     // Mark job complete
     await supabase
       .from('brand_intelligence_jobs')
