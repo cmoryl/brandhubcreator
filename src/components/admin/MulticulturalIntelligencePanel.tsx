@@ -155,8 +155,9 @@ export const MulticulturalIntelligencePanel: React.FC = () => {
     };
 
     intelligenceRecords?.forEach(record => {
-      const recommendations = record.globallink_recommendations || [];
-      recommendations.forEach(rec => {
+      const rawRecs = record.globallink_recommendations;
+      const recommendations = Array.isArray(rawRecs) ? rawRecs : [];
+      recommendations.forEach((rec: any) => {
         const product = rec.product || 'Translation';
         if (productCounts[product]) {
           productCounts[product].count++;
