@@ -34,7 +34,7 @@ import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, HierarchicalProductGrid, HierarchicalBrandGrid, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit, OrbitLegend, MobileStickyTabs, DemoUniverseCarousel } from '@/components/portal';
+import { PortalBrandCard, PortalProductCard, HierarchicalEventCard, HierarchicalProductGrid, HierarchicalBrandGrid, PortalGridSkeleton, PortalPagination, PortalAdminActions, GlobalAssetOrbit, OrbitLegend, MobileStickyTabs } from '@/components/portal';
 import { toast } from 'sonner';
 
 // Lazy load admin components
@@ -514,11 +514,6 @@ const OrganizationPortal = () => {
             
           </div>
         </div>
-      </div>
-
-      {/* Demo Universe Carousel – inside hero flow */}
-      <div className="relative z-10 -mt-8 sm:-mt-12 pb-4">
-        <DemoUniverseCarousel />
       </div>
 
       {/* Content Grid */}
