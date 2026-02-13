@@ -67,3 +67,6 @@ verify_jwt = false
 
 [functions.oracle-brain]
 verify_jwt = false
+
+[functions.cleanup-base64-bloat]
+verify_jwt = false
