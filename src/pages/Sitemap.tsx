@@ -83,6 +83,7 @@ const sitemapData: SitemapSection[] = [
     links: [
       { name: 'Demo Guides', path: '/demo/:brandSlug', description: 'Preview demo brand guides' },
       { name: 'Hero Effects Showcase', path: '/hero-effects', description: 'Browse hero section effects' },
+      { name: 'Sections Showcase', path: '/sections', description: 'Browse all guide section styles' },
       { name: 'GlobalLink Universe', path: '/product/globallink/universe', description: 'GlobalLink product universe' },
     ],
   },

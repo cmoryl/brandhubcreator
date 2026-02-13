@@ -82,7 +82,7 @@ const faqs = [
     questions: [
       {
         q: "What is BrandHub?",
-        a: "BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines. Create stunning brand books with colors, typography, logos, AI-powered analytics, competitive intelligence, multicultural localization, and dedicated event brand kits—all with enterprise-grade security."
+        a: "BrandHub is a comprehensive brand guide creation platform that helps you build, manage, and share professional brand guidelines. Create stunning brand books with colors, typography, logos, AI-powered analytics, competitive intelligence, multicultural localization, DataForce AI compliance, Oracle Brain strategic intelligence, and dedicated event brand kits—all with enterprise-grade security."
       },
       {
         q: "How do I create my first brand guide?",
@@ -211,16 +211,28 @@ const faqs = [
     icon: HelpCircle,
     questions: [
       {
+        q: "What is the Oracle Brain?",
+        a: "The Oracle Brain (Master Oracle) is BrandHub's organization-level strategic intelligence backbone. It aggregates institutional knowledge, strategic priorities, unified brand voice, and market intelligence. All entity-level AI analysis—Brand Intelligence, Competitive Reports, Research Briefings, DataForce Compliance, and the AI Assistant—are grounded in Oracle context, ensuring portfolio-wide strategic alignment."
+      },
+      {
+        q: "How does the Oracle Brain integrate with other AI features?",
+        a: "The Oracle Brain feeds strategic context downward into every AI function (Brand Intelligence, Competitive Analysis, Market Analysis, Research Briefings, DataForce Compliance, and the AI Assistant). Simultaneously, entity-level insights 'bubble up' into the Oracle knowledge base, creating a continuous bidirectional intelligence loop that gets smarter over time."
+      },
+      {
         q: "What is Competitive Intelligence?",
-        a: "Competitive Intelligence generates comprehensive AI-powered reports with personality matrix radar charts, score gauges, SWOT analysis, and strategic recommendations. Discover competitors automatically or track favorites across analyses."
+        a: "Competitive Intelligence generates comprehensive AI-powered reports with 10 sections including personality matrix radar charts, per-competitor profiles, SWOT analysis, content & messaging audits, and market trends. Reports are grounded in Oracle strategic context for portfolio-aligned insights. Discover competitors automatically or track favorites across analyses."
       },
       {
         q: "What is Brand Intelligence?",
-        a: "Brand Intelligence is an AI learning system that builds knowledge about your brand over time. It tracks analysis history, confidence scores, cultural insights, global readiness, and provides personalized recommendations based on your feedback."
+        a: "Brand Intelligence is an AI learning system that builds knowledge about your brand over time. It uses a cumulative merging strategy (new insights merge with existing data, never overwrite), tracks analysis history, confidence scores with temporal decay, cultural insights, global readiness, and provides personalized recommendations based on your feedback—all aligned with the Oracle Brain's strategic context."
+      },
+      {
+        q: "What are Research Briefings?",
+        a: "Research Briefings are AI-generated deep-dive reports on your brands, products, or events. They use background job processing for complex analysis and incorporate Oracle strategic context. The Cultural Analysis Generator orchestrates research across multiple AI functions, feeding findings back as learned knowledge."
       },
       {
         q: "How do Brand Health Scores work?",
-        a: "Brand Health Scores track completeness and consistency metrics across 35+ sections in 8 strategic categories. The system analyzes section completion with depth-based scoring, identifies missing elements, and provides actionable recommendations."
+        a: "Brand Health Scores track completeness and consistency metrics across 35+ sections in 8 strategic categories. The system analyzes section completion with weighted depth-based scoring, identifies missing elements, and provides actionable recommendations. Compliance scores from DataForce AI are also displayed as badges across the platform."
       },
       {
         q: "Can I generate patterns and gradients automatically?",
@@ -229,6 +241,32 @@ const faqs = [
       {
         q: "What is the Brand Creative Studio?",
         a: "The Brand Creative Studio enables brand-aware imagery generation with a built-in AI generator, prompt library for reusable templates, and design token export utility for CSS, JSON, and Tailwind configurations."
+      }
+    ]
+  },
+  {
+    category: "DataForce AI",
+    icon: Shield,
+    questions: [
+      {
+        q: "What is DataForce AI?",
+        a: "DataForce AI provides four enterprise-grade services: Brand Compliance AI (automated guideline enforcement with strategic alignment scoring), AI-Powered Brand Assistant (multilingual chatbot supporting 15+ languages), Cultural Validation Panel (human-in-the-loop regional validation), and GenAI Brand Training (fine-tuning models on brand-specific voice). All services are Oracle-aligned."
+      },
+      {
+        q: "How does Brand Compliance AI work?",
+        a: "Brand Compliance AI automatically scans your brand guides against established guidelines, evaluating 6 dimensions including visual consistency, messaging alignment, typography adherence, and strategic alignment with organization-level standards via the Oracle Brain. Compliance scores appear as color-coded badges (Green 80+, Yellow 60-79, Red <60) across the platform."
+      },
+      {
+        q: "What is Auto-Compliance scanning?",
+        a: "Auto-Compliance triggers a debounced (5-second delay) compliance scan automatically whenever a brand guide is saved. This ensures compliance scores are always current without manual intervention. Enable or disable per organization."
+      },
+      {
+        q: "What is Live Mode vs Demo Mode in DataForce?",
+        a: "Live Mode connects to actual AI services with API keys for production-quality results. Demo Mode provides simulated AI responses with brand-specific placeholders—perfect for demonstrations, testing workflows, and client presentations without incurring API costs."
+      },
+      {
+        q: "Where can I monitor DataForce AI?",
+        a: "DataForce AI has a dedicated tab in the Admin Dashboard with service status, usage metrics, and compliance summaries. A Summary Widget also appears on the Admin Overview page for at-a-glance monitoring."
       }
     ]
   },
@@ -286,7 +324,7 @@ const faqs = [
       },
       {
         q: "What permission levels are available?",
-        a: "We offer multiple permission levels: Viewer (view only), Member (can edit guides), Admin (can manage settings, members, and GlobalLink config), Owner (full control including deletion), and Super Admin (platform-wide access)."
+        a: "We offer multiple permission levels: Viewer (view only), Member (can edit guides), Admin (can manage settings, members, and GlobalLink config), Owner (full control including deletion), and Super Admin (platform-wide access including Application Settings, admin repair tools, organization deletion, and user promotion)."
       },
       {
         q: "How does email masking work?",
