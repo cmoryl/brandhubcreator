@@ -36,6 +36,7 @@ interface AdminOverviewProps {
   locationCount?: number;
   leadCount?: number;
   imageCount?: number;
+  isSuperAdmin?: boolean;
 }
 
 export const AdminOverview: React.FC<AdminOverviewProps> = ({
@@ -47,6 +48,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
   locationCount = 0,
   leadCount = 0,
   imageCount = 0,
+  isSuperAdmin = false,
 }) => {
   // Calculate module statuses
   const moduleStatuses: ModuleStatus[] = [
@@ -157,7 +159,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
       icon: <Database className="h-4 w-4" />,
       onClick: () => onTabChange('inspector'),
     },
-  ];
+  ].filter(action => isSuperAdmin || action.id !== 'repair') as QuickAction[];
 
   // Calculate health scores
   const contentHealth = stats ? Math.round(((stats.publicBrands + stats.publicEvents) / Math.max(stats.totalBrands + stats.totalEvents, 1)) * 100) : 0;

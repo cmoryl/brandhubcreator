@@ -22,6 +22,7 @@ interface AdminSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   pendingApprovals?: number;
+  isSuperAdmin?: boolean;
 }
 
 const navGroups = [
@@ -37,9 +38,10 @@ function SidebarContent({
   activeTab, 
   onTabChange, 
   pendingApprovals = 0,
+  isSuperAdmin = false,
   onItemClick 
 }: AdminSidebarProps & { onItemClick?: () => void }) {
-  const navItems: NavItem[] = [
+  const allNavItems: NavItem[] = [
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="h-4 w-4" />, group: 'core' },
     { id: 'approvals', label: 'Approvals', icon: <UserCheck className="h-4 w-4" />, badge: pendingApprovals, group: 'core' },
     { id: 'users', label: 'Users & Members', icon: <Users className="h-4 w-4" />, group: 'management' },
@@ -61,6 +63,8 @@ function SidebarContent({
     { id: 'locations', label: 'Company Locations', icon: <MapPin className="h-4 w-4" />, group: 'content' },
     { id: 'globallink', label: 'GlobalLink', icon: <Globe2 className="h-4 w-4" />, group: 'localization' },
   ];
+
+  const navItems = isSuperAdmin ? allNavItems : allNavItems.filter(item => item.id !== 'repair');
 
   const handleItemClick = (id: string) => {
     onTabChange(id);
@@ -125,7 +129,7 @@ function SidebarContent({
 }
 
 // Mobile navigation trigger button
-export function AdminMobileNav({ activeTab, onTabChange, pendingApprovals = 0 }: AdminSidebarProps) {
+export function AdminMobileNav({ activeTab, onTabChange, pendingApprovals = 0, isSuperAdmin = false }: AdminSidebarProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -142,6 +146,7 @@ export function AdminMobileNav({ activeTab, onTabChange, pendingApprovals = 0 }:
           activeTab={activeTab} 
           onTabChange={onTabChange} 
           pendingApprovals={pendingApprovals}
+          isSuperAdmin={isSuperAdmin}
           onItemClick={() => setOpen(false)}
         />
       </SheetContent>
@@ -150,13 +155,14 @@ export function AdminMobileNav({ activeTab, onTabChange, pendingApprovals = 0 }:
 }
 
 // Desktop sidebar
-export function AdminSidebar({ activeTab, onTabChange, pendingApprovals = 0 }: AdminSidebarProps) {
+export function AdminSidebar({ activeTab, onTabChange, pendingApprovals = 0, isSuperAdmin = false }: AdminSidebarProps) {
   return (
     <aside className="hidden md:flex w-56 border-r bg-card/50 flex-col h-[calc(100vh-73px)] shrink-0">
       <SidebarContent 
         activeTab={activeTab} 
         onTabChange={onTabChange} 
         pendingApprovals={pendingApprovals}
+        isSuperAdmin={isSuperAdmin}
       />
     </aside>
   );
