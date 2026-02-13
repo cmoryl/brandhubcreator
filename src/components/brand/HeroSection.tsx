@@ -194,6 +194,16 @@ export const HeroSection = ({
         return;
       }
 
+      const MAX_VIDEO_SIZE_MB = 14;
+      const fileSizeMB = file.size / (1024 * 1024);
+      if (fileSizeMB > MAX_VIDEO_SIZE_MB) {
+        alert(`Video file is too large (${fileSizeMB.toFixed(1)}MB). Maximum allowed size is ${MAX_VIDEO_SIZE_MB}MB. Please compress or trim your video before uploading.`);
+        if (videoInputRef.current) {
+          videoInputRef.current.value = '';
+        }
+        return;
+      }
+
       setPendingVideoFile(file);
       setVideoUploadDialogOpen(true);
       // Reset input for re-selection
