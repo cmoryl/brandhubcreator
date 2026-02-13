@@ -1,29 +1,42 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 serve(async (req) => {
-  try {
-    const { jobId, entityType, entityId, entityName, industry, additionalContext } = await req.json();
+  let jobId: string | null = null;
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const headers = {
+    "apikey": serviceKey,
+    "Authorization": `Bearer ${serviceKey}`,
+    "Content-Type": "application/json",
+  };
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+  const updateJob = async (updates: Record<string, unknown>) => {
+    if (!jobId) return;
+    await fetch(`${supabaseUrl}/rest/v1/brand_intelligence_jobs?id=eq.${jobId}`, {
+      method: "PATCH",
+      headers: { ...headers, "Prefer": "return=minimal" },
+      body: JSON.stringify(updates),
+    });
+  };
+
+  try {
+    const body = await req.json();
+    jobId = body.jobId;
+    const { entityType, entityId, entityName, industry, additionalContext } = body;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    // Fetch minimal entity context
+    // Fetch minimal entity context via REST
     const tableName = entityType === "brand" ? "brands" : entityType === "product" ? "products" : "events";
-    const { data } = await supabase
-      .from(tableName)
-      .select("guide_data")
-      .eq("id", entityId)
-      .single();
-
-    const guideData = (data?.guide_data as Record<string, any>) || {};
-    const hero = guideData.hero || {};
-    const identity = guideData.identity || {};
+    const entityRes = await fetch(
+      `${supabaseUrl}/rest/v1/${tableName}?id=eq.${entityId}&select=guide_data`,
+      { headers }
+    );
+    const entityRows = await entityRes.json();
+    const guideData = (entityRows?.[0]?.guide_data as Record<string, unknown>) || {};
+    const hero = (guideData.hero as Record<string, string>) || {};
+    const identity = (guideData.identity as Record<string, string>) || {};
 
     const contextParts = [
       `Name: ${entityName}`,
@@ -34,10 +47,7 @@ serve(async (req) => {
       additionalContext || "",
     ].filter(Boolean).join(". ");
 
-    await supabase
-      .from("brand_intelligence_jobs")
-      .update({ progress: 30 })
-      .eq("id", jobId);
+    await updateJob({ progress: 30 });
 
     const prompt = `Identify 5-8 competitors for: ${contextParts}
 
@@ -53,6 +63,7 @@ Return ONLY a JSON object: {"competitors":[{"name":"string","reason":"string","t
         model: "google/gemini-2.5-flash-lite",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.3,
+        max_tokens: 1500,
       }),
     });
 
@@ -71,15 +82,12 @@ Return ONLY a JSON object: {"competitors":[{"name":"string","reason":"string","t
 
     const result = JSON.parse(jsonMatch[0]);
 
-    await supabase
-      .from("brand_intelligence_jobs")
-      .update({
-        status: "completed",
-        progress: 100,
-        result: { competitors: result.competitors || [], entityName },
-        completed_at: new Date().toISOString(),
-      })
-      .eq("id", jobId);
+    await updateJob({
+      status: "completed",
+      progress: 100,
+      result: { competitors: result.competitors || [], entityName },
+      completed_at: new Date().toISOString(),
+    });
 
     console.log(`Discovered ${result.competitors?.length || 0} competitors for ${entityName}`);
 
@@ -88,25 +96,11 @@ Return ONLY a JSON object: {"competitors":[{"name":"string","reason":"string","t
     });
   } catch (error) {
     console.error("Worker error:", error);
-
-    // Try to update job status
-    try {
-      const supabase = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-      );
-      const { jobId } = await req.clone().json().catch(() => ({ jobId: null }));
-      if (jobId) {
-        await supabase
-          .from("brand_intelligence_jobs")
-          .update({
-            status: "failed",
-            error_message: error instanceof Error ? error.message : "Unknown error",
-            completed_at: new Date().toISOString(),
-          })
-          .eq("id", jobId);
-      }
-    } catch { /* best effort */ }
+    await updateJob({
+      status: "failed",
+      error_message: error instanceof Error ? error.message : "Unknown error",
+      completed_at: new Date().toISOString(),
+    });
 
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
