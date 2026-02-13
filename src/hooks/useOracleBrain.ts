@@ -157,6 +157,25 @@ export function useOracleBrain(organizationId: string | null | undefined) {
     }
   }, [organizationId]);
 
+  const updateKnowledge = useCallback(async (knowledgeId: string, updates: { title?: string; content?: string; tags?: string[]; category?: string }) => {
+    if (!organizationId) return;
+    try {
+      const { data, error } = await supabase
+        .from('oracle_knowledge_base')
+        .update(updates)
+        .eq('id', knowledgeId)
+        .eq('organization_id', organizationId)
+        .select()
+        .single();
+      if (error) throw error;
+      setKnowledge(prev => prev.map(k => k.id === knowledgeId ? { ...k, ...updates } : k));
+      toast.success('Knowledge entry updated');
+      return data;
+    } catch (err) {
+      toast.error('Failed to update knowledge entry');
+    }
+  }, [organizationId]);
+
   return {
     intelligence,
     knowledge,
@@ -166,6 +185,7 @@ export function useOracleBrain(organizationId: string | null | undefined) {
     startSynthesis,
     addKnowledge,
     deleteKnowledge,
+    updateKnowledge,
     refetch: fetchIntelligence,
   };
 }
