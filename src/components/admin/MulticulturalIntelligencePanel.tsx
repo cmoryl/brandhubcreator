@@ -4,7 +4,7 @@
  * Provides actionable recommendations for GlobalLink suite utilization
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -17,8 +17,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Globe2, TrendingUp, MapPin, Languages, Zap, AlertTriangle, 
   CheckCircle2, Target, Lightbulb, ArrowRight, Brain, RefreshCw,
-  BarChart3, Sparkles
+  BarChart3, Sparkles, ArrowUpDown
 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { CulturalAnalysisGenerator } from './CulturalAnalysisGenerator';
 
@@ -70,6 +71,7 @@ interface BrandIntelligenceData {
 
 export const MulticulturalIntelligencePanel: React.FC = () => {
   const { organization } = useOrganization();
+  const [entitySortBy, setEntitySortBy] = useState<'name' | 'readiness' | 'type'>('readiness');
 
   // Fetch research briefings with multicultural insights - scoped to organization
   const { data: briefings, isLoading: briefingsLoading, refetch: refetchBriefings } = useQuery({
@@ -206,6 +208,22 @@ export const MulticulturalIntelligencePanel: React.FC = () => {
       .sort((a, b) => b[1].mentions - a[1].mentions)
       .slice(0, 10);
   }, [intelligenceRecords]);
+
+  const sortedEntityRecords = useMemo(() => {
+    const filtered = intelligenceRecords?.filter(r => r.cultural_insights) || [];
+    return [...filtered].sort((a, b) => {
+      const nameA = entityNames?.get(a.entity_id) || '';
+      const nameB = entityNames?.get(b.entity_id) || '';
+      const scoreA = a.localization_readiness_score || (a.cultural_insights as any)?.global_readiness_score || 0;
+      const scoreB = b.localization_readiness_score || (b.cultural_insights as any)?.global_readiness_score || 0;
+      switch (entitySortBy) {
+        case 'name': return nameA.localeCompare(nameB);
+        case 'readiness': return scoreB - scoreA;
+        case 'type': return a.entity_type.localeCompare(b.entity_type) || nameA.localeCompare(nameB);
+        default: return 0;
+      }
+    });
+  }, [intelligenceRecords, entityNames, entitySortBy]);
 
   const isLoading = briefingsLoading || intelligenceLoading;
 
@@ -453,9 +471,22 @@ export const MulticulturalIntelligencePanel: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="flex items-center gap-2 mb-4">
+                <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                <Select value={entitySortBy} onValueChange={(v) => setEntitySortBy(v as 'name' | 'readiness' | 'type')}>
+                  <SelectTrigger className="w-[160px] h-8 text-xs">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name">Name</SelectItem>
+                    <SelectItem value="readiness">Readiness</SelectItem>
+                    <SelectItem value="type">Type</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <ScrollArea className="h-[400px]">
                 <div className="space-y-4">
-                  {intelligenceRecords?.filter(r => r.cultural_insights).map((record) => {
+                  {sortedEntityRecords.map((record) => {
                     const entityName = entityNames?.get(record.entity_id) || record.entity_id.slice(0, 8);
                     const insights = record.cultural_insights;
                     const score = record.localization_readiness_score || insights?.global_readiness_score || 0;
