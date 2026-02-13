@@ -124,52 +124,38 @@ serve(async (req) => {
       progress: 10,
     });
 
-    // Fetch entity data — ONLY text fields, no binary/image data
-    // This prevents loading 70-126MB guide_data blobs into memory
+    // Fetch entity text context via server-side RPC
+    // This extracts ONLY text fields from guide_data in PostgreSQL,
+    // preventing the 77-126MB guide_data from ever entering Edge Function memory
     const table = job.entity_type === 'brand' ? 'brands' : job.entity_type === 'product' ? 'products' : 'events';
-    const textFields = [
-      'name',
-      'guide_data->hero->>name',
-      'guide_data->hero->>tagline',
-      'guide_data->identity->>missionStatement',
-      'guide_data->identity->>archetype',
-      'guide_data->identity->>toneOfVoice',
-      'guide_data->tagline->>primary',
-      'guide_data->>industry',
-    ].join(',');
     
-    // Use PostgREST to extract only specific JSONB keys (avoids loading full guide_data)
-    const entityRes = await fetch(
-      `${supabaseUrl}/rest/v1/${table}?id=eq.${job.entity_id}&select=name,guide_data`,
+    const contextRes = await fetch(
+      `${supabaseUrl}/rest/v1/rpc/get_entity_text_context`,
       {
+        method: "POST",
         headers: {
           apikey: supabaseServiceKey,
           Authorization: `Bearer ${supabaseServiceKey}`,
           "Content-Type": "application/json",
-          Accept: "application/vnd.pgrst.object+json",
-          Range: "0-0",
+          Prefer: "return=representation",
         },
+        body: JSON.stringify({ p_table: table, p_id: job.entity_id }),
       }
     );
 
-    if (!entityRes.ok || entityRes.status === 406) {
+    if (!contextRes.ok) {
+      throw new Error(`Entity context fetch failed: ${contextRes.status}`);
+    }
+
+    const textContext = await contextRes.json();
+    if (!textContext) {
       throw new Error(`Entity not found`);
     }
 
-    // Parse response but immediately extract ONLY text fields to minimize memory
-    const entityRaw = await entityRes.json();
-    const entityName = entityRaw?.name || 'Unknown';
-    const guideData = (entityRaw?.guide_data || {}) as Record<string, unknown>;
+    const entityName = textContext.name || 'Unknown';
     
-    // Extract ONLY lightweight text context — skip all binary/image fields entirely
-    const brandContext = extractLightweightContext(guideData, entityName, job.entity_type);
-    
-    // Release the heavy object immediately
-    delete entityRaw.guide_data;
-
-    if (!entityName) {
-      throw new Error(`Entity not found`);
-    }
+    // Build lightweight brand context from the extracted text fields
+    const brandContext = buildContextFromTextFields(textContext);
 
     await db.update('brand_intelligence_jobs', `id=eq.${jobId}`, { progress: 30 });
 
@@ -373,7 +359,7 @@ Analyze for brand coherence and market positioning.${oracleContext ? ' Align wit
     // Auto-feed to Oracle Knowledge Base
     if (job.organization_id && analysis.summary) {
       try {
-        const oracleName = (guideData as any)?.hero?.name || entityName || job.entity_type;
+        const oracleName = textContext?.hero_name || entityName || job.entity_type;
         const insightContent = [
           analysis.summary,
           analysis.position ? `\nMarket Position: ${analysis.position}` : '',
@@ -475,101 +461,59 @@ async function fetchOracleContextRest(db: ReturnType<typeof dbFetch>, organizati
 }
 
 /**
- * Ultra-lightweight context extraction — text fields only, no images/binary
- * Designed to work even with 126MB guide_data by only reading small string fields
+ * Build brand context from pre-extracted text fields (from get_entity_text_context RPC)
+ * No guide_data ever enters Edge Function memory
  */
-function extractLightweightContext(
-  guideData: Record<string, unknown>,
-  entityName: string,
-  entityType: string,
-): string {
-  const parts: string[] = [`Name: ${entityName}`, `Type: ${entityType}`];
+function buildContextFromTextFields(ctx: any): string {
+  const parts: string[] = [];
+  if (ctx.name) parts.push(`Name: ${ctx.name}`);
+  if (ctx.hero_name) parts.push(`Brand Name: ${ctx.hero_name}`);
+  if (ctx.hero_tagline) parts.push(`Tagline: ${ctx.hero_tagline}`);
+  if (ctx.primary_tagline) parts.push(`Primary Tagline: ${ctx.primary_tagline}`);
+  if (ctx.mission) parts.push(`Mission: ${ctx.mission}`);
+  if (ctx.archetype) parts.push(`Archetype: ${ctx.archetype}`);
+  if (ctx.industry) parts.push(`Industry: ${ctx.industry}`);
 
-  // Safe string extraction with size cap
-  const safeStr = (obj: any, ...keys: string[]): string | null => {
-    let val = obj;
-    for (const k of keys) {
-      if (!val || typeof val !== 'object') return null;
-      val = val[k];
-    }
-    if (typeof val !== 'string') return null;
-    // Skip base64 data URIs entirely
-    if (val.startsWith('data:')) return null;
-    return val.length > 500 ? val.slice(0, 500) : val;
-  };
+  // Tone of voice
+  const tone = ctx.tone_of_voice;
+  if (Array.isArray(tone) && tone.length > 0) parts.push(`Tone: ${tone.slice(0, 5).join(', ')}`);
+  else if (typeof tone === 'string') parts.push(`Tone: ${tone}`);
 
-  // Hero
-  const hero = guideData.hero as Record<string, unknown> | undefined;
-  if (hero) {
-    const tagline = safeStr(hero, 'tagline');
-    const name = safeStr(hero, 'name');
-    if (name) parts.push(`Brand Name: ${name}`);
-    if (tagline) parts.push(`Tagline: ${tagline}`);
-  }
-
-  // Identity
-  const identity = guideData.identity as Record<string, unknown> | undefined;
-  if (identity) {
-    const mission = safeStr(identity, 'missionStatement');
-    const archetype = safeStr(identity, 'archetype');
-    const tone = identity.toneOfVoice;
-    if (mission) parts.push(`Mission: ${mission}`);
-    if (archetype) parts.push(`Archetype: ${archetype}`);
-    if (Array.isArray(tone) && tone.length > 0) parts.push(`Tone: ${tone.slice(0, 5).join(', ')}`);
-    else if (typeof tone === 'string') parts.push(`Tone: ${tone}`);
-  }
-
-  // Industry
-  const industry = safeStr(guideData, 'industry');
-  if (industry) parts.push(`Industry: ${industry}`);
-
-  // Tagline
-  const taglineObj = guideData.tagline as Record<string, unknown> | undefined;
-  if (taglineObj) {
-    const primary = safeStr(taglineObj, 'primary');
-    if (primary) parts.push(`Primary Tagline: ${primary}`);
-  }
-
-  // Colors — just names and hex, very lightweight
-  const colors = guideData.colors;
+  // Colors
+  const colors = ctx.colors;
   if (Array.isArray(colors) && colors.length > 0) {
-    const colorSummary = colors.slice(0, 8).map((c: any) => 
+    const colorSummary = colors.slice(0, 8).map((c: any) =>
       `${c.name || c.role || ''}:${c.hex || ''}`
     ).filter(Boolean).join(', ');
     if (colorSummary) parts.push(`Colors: ${colorSummary}`);
   }
 
-  // Values — text only
-  const values = guideData.values;
+  // Values
+  const values = ctx.values;
   if (Array.isArray(values) && values.length > 0) {
-    const valueTexts = values.slice(0, 5).map((v: any) => v.text || v.name).filter(Boolean);
-    if (valueTexts.length > 0) parts.push(`Values: ${valueTexts.join(', ')}`);
+    parts.push(`Values: ${values.filter(Boolean).join(', ')}`);
   }
 
-  // Services — names only
-  const services = guideData.services;
+  // Services
+  const services = ctx.services;
   if (Array.isArray(services) && services.length > 0) {
-    const serviceNames = services.slice(0, 5).map((s: any) => s.name).filter(Boolean);
-    if (serviceNames.length > 0) parts.push(`Services: ${serviceNames.join(', ')}`);
+    parts.push(`Services: ${services.filter(Boolean).join(', ')}`);
   }
 
-  // Typography — family names only
-  const typography = guideData.typography;
+  // Typography
+  const typography = ctx.typography;
   if (Array.isArray(typography) && typography.length > 0) {
-    const fontFamilies = typography.slice(0, 4).map((t: any) => t.fontFamily || t.family).filter(Boolean);
-    if (fontFamilies.length > 0) parts.push(`Fonts: ${fontFamilies.join(', ')}`);
+    parts.push(`Fonts: ${typography.filter(Boolean).join(', ')}`);
   }
 
-  // Section counts for context
-  const sectionCounts: string[] = [];
-  const countable = ['logos', 'imagery', 'patterns', 'gradients', 'brandIcons', 'sponsorLogos', 'brochures'];
-  for (const key of countable) {
-    const arr = guideData[key];
-    if (Array.isArray(arr) && arr.length > 0) {
-      sectionCounts.push(`${key}: ${arr.length}`);
-    }
-  }
-  if (sectionCounts.length > 0) parts.push(`Asset counts: ${sectionCounts.join(', ')}`);
+  // Asset counts
+  const counts: string[] = [];
+  if (ctx.logos_count > 0) counts.push(`logos: ${ctx.logos_count}`);
+  if (ctx.imagery_count > 0) counts.push(`imagery: ${ctx.imagery_count}`);
+  if (ctx.patterns_count > 0) counts.push(`patterns: ${ctx.patterns_count}`);
+  if (ctx.brochures_count > 0) counts.push(`brochures: ${ctx.brochures_count}`);
+  if (ctx.icons_count > 0) counts.push(`icons: ${ctx.icons_count}`);
+  if (counts.length > 0) parts.push(`Asset counts: ${counts.join(', ')}`);
 
   return parts.join('\n');
 }

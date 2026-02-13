@@ -3237,6 +3237,10 @@ export type Database = {
         }[]
       }
       get_auth_email: { Args: never; Returns: string }
+      get_entity_text_context: {
+        Args: { p_id: string; p_table: string }
+        Returns: Json
+      }
       get_external_top_content: {
         Args: { p_days?: number; p_limit?: number }
         Returns: {
