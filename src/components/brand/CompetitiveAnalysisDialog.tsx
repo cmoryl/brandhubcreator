@@ -38,6 +38,10 @@ import { toast } from 'sonner';
 import type { EntityType, CompetitiveAnalysisReportData } from '@/types/competitiveAnalysis';
 import { STANDARD_REGIONS, COMMON_COUNTRIES } from '@/types/regionalBranding';
 
+// Defensive helper: ensures AI response fields are always arrays before .map()
+const safeArr = (v: unknown): string[] => Array.isArray(v) ? v : [];
+const safeObjArr = <T,>(v: unknown): T[] => Array.isArray(v) ? v : [];
+
 interface DiscoveredCompetitor {
   name: string;
   reason: string;
@@ -873,7 +877,7 @@ export function CompetitiveAnalysisDialog({
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-1 text-sm">
-                            {reportData.marketPerception.keyStrengths.map((s, i) => (
+                            {safeArr(reportData.marketPerception?.keyStrengths).map((s, i) => (
                               <li key={i} className="flex items-start gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2" />
                                 {s}
@@ -892,7 +896,7 @@ export function CompetitiveAnalysisDialog({
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-1 text-sm">
-                            {reportData.marketPerception.criticalGaps.map((g, i) => (
+                            {safeArr(reportData.marketPerception?.criticalGaps).map((g, i) => (
                               <li key={i} className="flex items-start gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-2" />
                                 {g}
@@ -939,7 +943,7 @@ export function CompetitiveAnalysisDialog({
                         </CardHeader>
                         <CardContent>
                           <div className="flex flex-wrap gap-2">
-                            {reportData.brandPositioning.targetAudienceSignals.map((s, i) => (
+                            {safeArr(reportData.brandPositioning?.targetAudienceSignals).map((s, i) => (
                               <Badge key={i} variant="outline">{s}</Badge>
                             ))}
                           </div>
@@ -952,7 +956,7 @@ export function CompetitiveAnalysisDialog({
                         </CardHeader>
                         <CardContent>
                           <div className="flex flex-wrap gap-2">
-                            {reportData.brandPositioning.differentiation.map((d, i) => (
+                            {safeArr(reportData.brandPositioning?.differentiation).map((d, i) => (
                               <Badge key={i} variant="secondary">{d}</Badge>
                             ))}
                           </div>
@@ -966,7 +970,7 @@ export function CompetitiveAnalysisDialog({
                       </CardHeader>
                       <CardContent>
                         <ul className="grid md:grid-cols-2 gap-2 text-sm">
-                          {reportData.brandPositioning.trustIndicators.map((t, i) => (
+                          {safeArr(reportData.brandPositioning?.trustIndicators).map((t, i) => (
                             <li key={i} className="flex items-center gap-2">
                               <CheckCircle className="w-4 h-4 text-green-500" />
                               {t}
@@ -990,7 +994,7 @@ export function CompetitiveAnalysisDialog({
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-1.5 text-sm">
-                              {reportData.swotAnalysis.strengths.map((s, i) => (
+                              {safeArr(reportData.swotAnalysis?.strengths).map((s, i) => (
                                 <li key={i} className="flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2 shrink-0" />
                                   {s}
@@ -1009,7 +1013,7 @@ export function CompetitiveAnalysisDialog({
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-1.5 text-sm">
-                              {reportData.swotAnalysis.weaknesses.map((w, i) => (
+                              {safeArr(reportData.swotAnalysis?.weaknesses).map((w, i) => (
                                 <li key={i} className="flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-destructive mt-2 shrink-0" />
                                   {w}
@@ -1028,7 +1032,7 @@ export function CompetitiveAnalysisDialog({
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-1.5 text-sm">
-                              {reportData.swotAnalysis.opportunities.map((o, i) => (
+                              {safeArr(reportData.swotAnalysis?.opportunities).map((o, i) => (
                                 <li key={i} className="flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                                   {o}
@@ -1047,7 +1051,7 @@ export function CompetitiveAnalysisDialog({
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-1.5 text-sm">
-                              {reportData.swotAnalysis.threats.map((t, i) => (
+                              {safeArr(reportData.swotAnalysis?.threats).map((t, i) => (
                                 <li key={i} className="flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
                                   {t}
@@ -1128,7 +1132,7 @@ export function CompetitiveAnalysisDialog({
                           </CardHeader>
                           <CardContent>
                             <div className="flex flex-wrap gap-2">
-                              {reportData.contentMessaging.messagingPillars.map((p, i) => (
+                              {safeArr(reportData.contentMessaging?.messagingPillars).map((p, i) => (
                                 <Badge key={i} variant="outline">{p}</Badge>
                               ))}
                             </div>
@@ -1141,7 +1145,7 @@ export function CompetitiveAnalysisDialog({
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-1 text-sm">
-                              {reportData.contentMessaging.contentGaps.map((g, i) => (
+                              {safeArr(reportData.contentMessaging?.contentGaps).map((g, i) => (
                                 <li key={i} className="flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
                                   {g}
@@ -1224,7 +1228,7 @@ export function CompetitiveAnalysisDialog({
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-2 text-sm">
-                            {reportData.recommendations.positioningOpportunities.map((o, i) => (
+                            {safeArr(reportData.recommendations?.positioningOpportunities).map((o, i) => (
                               <li key={i} className="flex items-start gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
                                 {o}
@@ -1241,7 +1245,7 @@ export function CompetitiveAnalysisDialog({
                       <h3 className="font-semibold text-lg">Top Priorities</h3>
                     </div>
                     <div className="flex flex-wrap gap-2 mb-6">
-                      {reportData.executiveSummary.topPriorities.map((p, i) => (
+                      {safeArr(reportData.executiveSummary?.topPriorities).map((p, i) => (
                         <Badge key={i} variant="default" className="text-sm py-1 px-3">
                           {i + 1}. {p}
                         </Badge>
@@ -1256,7 +1260,7 @@ export function CompetitiveAnalysisDialog({
                       </CardHeader>
                       <CardContent>
                         <ul className="grid md:grid-cols-2 gap-2 text-sm">
-                          {reportData.executiveSummary.successMetrics.map((m, i) => (
+                          {safeArr(reportData.executiveSummary?.successMetrics).map((m, i) => (
                             <li key={i} className="flex items-center gap-2">
                               <Target className="w-4 h-4 text-primary" />
                               {m}
@@ -1280,7 +1284,7 @@ export function CompetitiveAnalysisDialog({
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-1.5 text-sm">
-                              {reportData.marketTrends.industryTrends.map((t, i) => (
+                              {safeArr(reportData.marketTrends?.industryTrends).map((t, i) => (
                                 <li key={i} className="flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                                   {t}
@@ -1299,7 +1303,7 @@ export function CompetitiveAnalysisDialog({
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-1.5 text-sm">
-                              {reportData.marketTrends.emergingOpportunities.map((o, i) => (
+                              {safeArr(reportData.marketTrends?.emergingOpportunities).map((o, i) => (
                                 <li key={i} className="flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
                                   {o}
@@ -1318,7 +1322,7 @@ export function CompetitiveAnalysisDialog({
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-1.5 text-sm">
-                              {reportData.marketTrends.innovationGaps.map((g, i) => (
+                              {safeArr(reportData.marketTrends?.innovationGaps).map((g, i) => (
                                 <li key={i} className="flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-destructive mt-2 shrink-0" />
                                   {g}
@@ -1337,7 +1341,7 @@ export function CompetitiveAnalysisDialog({
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-1.5 text-sm">
-                              {reportData.marketTrends.disruptionRisks.map((r, i) => (
+                              {safeArr(reportData.marketTrends?.disruptionRisks).map((r, i) => (
                                 <li key={i} className="flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-destructive mt-2 shrink-0" />
                                   {r}
@@ -1394,7 +1398,7 @@ export function CompetitiveAnalysisDialog({
                           </CardHeader>
                           <CardContent>
                             <div className="flex flex-wrap gap-2">
-                              {reportData.regionalInsights.localCompetitors.map((c, i) => (
+                              {safeArr(reportData.regionalInsights?.localCompetitors).map((c, i) => (
                                 <Badge key={i} variant="secondary">{c}</Badge>
                               ))}
                             </div>
@@ -1410,7 +1414,7 @@ export function CompetitiveAnalysisDialog({
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-1 text-sm">
-                              {reportData.regionalInsights.marketOpportunities.map((o, i) => (
+                              {safeArr(reportData.regionalInsights?.marketOpportunities).map((o, i) => (
                                 <li key={i} className="flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2" />
                                   {o}
@@ -1427,7 +1431,7 @@ export function CompetitiveAnalysisDialog({
                         </CardHeader>
                         <CardContent>
                           <div className="flex flex-wrap gap-2">
-                            {reportData.regionalInsights.culturalConsiderations.map((c, i) => (
+                            {safeArr(reportData.regionalInsights?.culturalConsiderations).map((c, i) => (
                               <Badge key={i} variant="outline">{c}</Badge>
                             ))}
                           </div>
@@ -1444,7 +1448,7 @@ export function CompetitiveAnalysisDialog({
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-1 text-sm">
-                              {reportData.regionalInsights.localizationPriorities.map((p, i) => (
+                              {safeArr(reportData.regionalInsights?.localizationPriorities).map((p, i) => (
                                 <li key={i} className="flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
                                   {p}
@@ -1463,7 +1467,7 @@ export function CompetitiveAnalysisDialog({
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-1 text-sm">
-                              {reportData.regionalInsights.entryBarriers.map((b, i) => (
+                              {safeArr(reportData.regionalInsights?.entryBarriers).map((b, i) => (
                                 <li key={i} className="flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-destructive mt-2" />
                                   {b}
