@@ -71,7 +71,7 @@ import {
 } from '@/lib/admin';
 
 export default function AdminDashboard() {
-  const { user, isAdmin, isLoading: authLoading } = useAuth();
+  const { user, isAdmin, isSuperAdmin, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -557,6 +557,7 @@ export default function AdminDashboard() {
                 activeTab={activeTab} 
                 onTabChange={setActiveTab} 
                 pendingApprovals={stats?.pendingApprovals}
+                isSuperAdmin={isSuperAdmin}
               />
               <div className="hidden md:block p-2 bg-primary/10 rounded-lg shrink-0">
                 <Shield className="h-6 w-6 text-primary" />
@@ -592,6 +593,7 @@ export default function AdminDashboard() {
           activeTab={activeTab} 
           onTabChange={setActiveTab} 
           pendingApprovals={stats?.pendingApprovals}
+          isSuperAdmin={isSuperAdmin}
         />
 
         {/* Main Content Area */}
@@ -605,6 +607,7 @@ export default function AdminDashboard() {
               onTabChange={setActiveTab}
               onRefresh={fetchDashboardData}
               isLoading={isLoading}
+              isSuperAdmin={isSuperAdmin}
             />
           </TabsContent>
 
@@ -858,11 +861,13 @@ export default function AdminDashboard() {
             <ActivityLogsPanel />
           </TabsContent>
 
-          {/* Repair Tab */}
+          {/* Repair Tab - Super Admin only */}
+          {isSuperAdmin && (
           <TabsContent value="repair" className="space-y-6">
             <HiddenSectionsScanner />
             <BulkRepairTool />
           </TabsContent>
+          )}
 
           {/* Image Library Tab */}
           <TabsContent value="image-library" className="space-y-6">
