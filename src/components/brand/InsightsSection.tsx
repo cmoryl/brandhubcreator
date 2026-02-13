@@ -493,8 +493,11 @@ export const InsightsSection = ({
 
         {/* Content based on layout */}
         {(() => {
-          // Filter out site-analysis insights from the card grid (they're shown via WebsiteAnalysisCard)
-          const displayInsights = allInsights.filter(i => !i.id.startsWith('site-analysis-'));
+          // For admins, filter out site-analysis insights (shown via WebsiteAnalysisCard below).
+          // For public users, include them as read-only insight cards so they can see the results.
+          const displayInsights = canEdit
+            ? allInsights.filter(i => !i.id.startsWith('site-analysis-'))
+            : allInsights;
           if (displayInsights.length === 0) {
             // Show a public-facing empty state when no insights are available after unlock
             if (!canEdit) {
