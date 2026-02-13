@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -51,6 +51,18 @@ export const VideoUploadDialog = ({
     height: number;
   } | null>(null);
 
+  const handleUseOriginal = useCallback(() => {
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      onVideoReady(dataUrl);
+      onOpenChange(false);
+    };
+    reader.readAsDataURL(file);
+  }, [file, onVideoReady, onOpenChange]);
+
   // Analyze video when dialog opens
   const analyzeVideo = useCallback(async () => {
     if (!file) return;
@@ -75,24 +87,22 @@ export const VideoUploadDialog = ({
       if (needs && isCompressionSupported()) {
         setStage('prompt');
       } else if (needs && !isCompressionSupported()) {
-        // Browser doesn't support compression, upload anyway with warning
         setStage('prompt');
       } else {
-        // No compression needed, use original
         handleUseOriginal();
       }
     } catch (err) {
       setError('Failed to analyze video. Please try a different file.');
       setStage('error');
     }
-  }, [file]);
+  }, [file, handleUseOriginal]);
 
-  // Start analysis when file changes
-  useState(() => {
+  // Start analysis when file changes or dialog opens
+  useEffect(() => {
     if (file && open) {
       analyzeVideo();
     }
-  });
+  }, [file, open, analyzeVideo]);
 
   const handleCompress = async () => {
     if (!file) return;
@@ -119,18 +129,6 @@ export const VideoUploadDialog = ({
       setStage('error');
     }
   };
-
-  const handleUseOriginal = useCallback(() => {
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      onVideoReady(dataUrl);
-      onOpenChange(false);
-    };
-    reader.readAsDataURL(file);
-  }, [file, onVideoReady, onOpenChange]);
 
   const handleUseCompressed = () => {
     if (result) {
