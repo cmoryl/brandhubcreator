@@ -2054,6 +2054,7 @@ export type Database = {
       }
       oracle_knowledge_base: {
         Row: {
+          category: string | null
           content: string
           content_type: string
           created_at: string
@@ -2071,6 +2072,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category?: string | null
           content: string
           content_type?: string
           created_at?: string
@@ -2088,6 +2090,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category?: string | null
           content?: string
           content_type?: string
           created_at?: string

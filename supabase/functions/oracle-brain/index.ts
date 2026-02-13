@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
 
     // ---- ACTION: Add Knowledge Entry ----
     if (action === "add_knowledge") {
-      const { title, content, contentType, tags } = body;
+      const { title, content, contentType, tags, category } = body;
       if (!title || !content) {
         return new Response(JSON.stringify({ error: "title and content required" }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -107,10 +107,40 @@ Deno.serve(async (req) => {
         title, content,
         content_type: contentType || "text",
         source_type: "manual",
+        category: category || "general",
         tags: tags || [],
         created_by: user.id,
       });
       return new Response(JSON.stringify({ success: true, id: data[0]?.id }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ---- ACTION: Import Document (AI extraction) ----
+    if (action === "import_document") {
+      const { title, rawContent, category, tags } = body;
+      if (!title || !rawContent) {
+        return new Response(JSON.stringify({ error: "title and rawContent required" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Create a pending job for the import
+      const jobData = await restQuery("oracle_jobs", "", "POST", {
+        organization_id: organizationId,
+        job_type: "document_import",
+        status: "pending",
+        triggered_by: user.id,
+      });
+      const jobId = jobData[0]?.id;
+      if (!jobId) throw new Error("Failed to create import job");
+
+      // @ts-ignore
+      EdgeRuntime.waitUntil(
+        processDocumentImport(lovableApiKey, jobId, organizationId, user.id, title, rawContent, category || "research", tags || [])
+      );
+
+      return new Response(JSON.stringify({ success: true, job_id: jobId }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -291,6 +321,96 @@ Return ONLY valid JSON:
     });
   } catch (error) {
     console.error("[oracle] Synthesis error:", error);
+    await updateJob(jobId, {
+      status: "failed", completed_at: new Date().toISOString(),
+      error_message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+}
+
+/**
+ * Background document import processor - AI extracts and summarizes content
+ */
+async function processDocumentImport(
+  apiKey: string, jobId: string, organizationId: string, userId: string,
+  title: string, rawContent: string, category: string, tags: string[]
+) {
+  try {
+    await updateJob(jobId, { status: "processing", started_at: new Date().toISOString(), progress: 20 });
+
+    // Truncate to avoid token limits
+    const truncated = rawContent.slice(0, 8000);
+
+    const prompt = `You are the Oracle Knowledge Extractor. Analyze this document and extract key insights for an organization's knowledge base.
+
+DOCUMENT TITLE: ${title}
+DOCUMENT CONTENT:
+${truncated}
+
+Extract and summarize the most important strategic insights, facts, frameworks, and actionable knowledge. Return ONLY valid JSON:
+{"summary":"2-3 paragraph comprehensive summary of key insights","key_findings":["up to 6 most important findings or facts"],"strategic_implications":["up to 4 implications for brand/business strategy"],"extracted_tags":["up to 5 topic tags derived from content"]}`;
+
+    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.2,
+        max_tokens: 1500,
+      }),
+    });
+
+    if (!aiRes.ok) throw new Error(`AI extraction failed: ${aiRes.status}`);
+
+    await updateJob(jobId, { progress: 60 });
+
+    const parsed = await aiRes.json();
+    const content = parsed.choices?.[0]?.message?.content || "";
+
+    let extraction: any;
+    try {
+      extraction = JSON.parse(content.trim());
+    } catch {
+      try {
+        const m = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/\{[\s\S]*\}/);
+        extraction = JSON.parse((m?.[1] || m?.[0] || content).trim());
+      } catch {
+        extraction = { summary: rawContent.slice(0, 500), key_findings: [], strategic_implications: [], extracted_tags: [] };
+      }
+    }
+
+    // Build rich knowledge entry content
+    const richContent = [
+      extraction.summary,
+      extraction.key_findings?.length ? `\n\nKey Findings:\n${extraction.key_findings.map((f: string) => `• ${f}`).join('\n')}` : '',
+      extraction.strategic_implications?.length ? `\n\nStrategic Implications:\n${extraction.strategic_implications.map((s: string) => `• ${s}`).join('\n')}` : '',
+    ].filter(Boolean).join('');
+
+    const allTags = [...new Set([...tags, ...(extraction.extracted_tags || [])])];
+
+    await updateJob(jobId, { progress: 80 });
+
+    // Insert into knowledge base
+    await restQuery("oracle_knowledge_base", "", "POST", {
+      organization_id: organizationId,
+      title: `📄 ${title}`,
+      content: richContent,
+      content_type: "document",
+      source_type: "document_import",
+      category,
+      tags: allTags,
+      created_by: userId,
+      metadata: { original_length: rawContent.length, findings_count: extraction.key_findings?.length || 0 },
+    });
+
+    await updateJob(jobId, {
+      status: "completed", progress: 100,
+      completed_at: new Date().toISOString(),
+      result: { success: true, title, findings: extraction.key_findings?.length || 0 },
+    });
+  } catch (error) {
+    console.error("[oracle] Document import error:", error);
     await updateJob(jobId, {
       status: "failed", completed_at: new Date().toISOString(),
       error_message: error instanceof Error ? error.message : "Unknown error",
