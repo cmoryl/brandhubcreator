@@ -1925,6 +1925,195 @@ export type Database = {
           },
         ]
       }
+      oracle_intelligence: {
+        Row: {
+          competitive_overview: Json | null
+          confidence_scores: Json | null
+          created_at: string
+          cross_entity_patterns: Json | null
+          cultural_readiness: Json | null
+          entity_brain_count: number
+          id: string
+          knowledge_entry_count: number
+          last_synthesis_at: string | null
+          market_landscape: Json | null
+          org_summary: string | null
+          organization_id: string
+          portfolio_analysis: Json | null
+          strategic_recommendations: Json | null
+          synthesis_count: number
+          synthesis_history: Json | null
+          unified_audience_map: Json | null
+          unified_voice_profile: Json | null
+          updated_at: string
+        }
+        Insert: {
+          competitive_overview?: Json | null
+          confidence_scores?: Json | null
+          created_at?: string
+          cross_entity_patterns?: Json | null
+          cultural_readiness?: Json | null
+          entity_brain_count?: number
+          id?: string
+          knowledge_entry_count?: number
+          last_synthesis_at?: string | null
+          market_landscape?: Json | null
+          org_summary?: string | null
+          organization_id: string
+          portfolio_analysis?: Json | null
+          strategic_recommendations?: Json | null
+          synthesis_count?: number
+          synthesis_history?: Json | null
+          unified_audience_map?: Json | null
+          unified_voice_profile?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          competitive_overview?: Json | null
+          confidence_scores?: Json | null
+          created_at?: string
+          cross_entity_patterns?: Json | null
+          cultural_readiness?: Json | null
+          entity_brain_count?: number
+          id?: string
+          knowledge_entry_count?: number
+          last_synthesis_at?: string | null
+          market_landscape?: Json | null
+          org_summary?: string | null
+          organization_id?: string
+          portfolio_analysis?: Json | null
+          strategic_recommendations?: Json | null
+          synthesis_count?: number
+          synthesis_history?: Json | null
+          unified_audience_map?: Json | null
+          unified_voice_profile?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_intelligence_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oracle_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          job_type: string
+          organization_id: string
+          progress: number | null
+          result: Json | null
+          started_at: string | null
+          status: string
+          triggered_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_type?: string
+          organization_id: string
+          progress?: number | null
+          result?: Json | null
+          started_at?: string | null
+          status?: string
+          triggered_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_type?: string
+          organization_id?: string
+          progress?: number | null
+          result?: Json | null
+          started_at?: string | null
+          status?: string
+          triggered_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_jobs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oracle_knowledge_base: {
+        Row: {
+          content: string
+          content_type: string
+          created_at: string
+          created_by: string | null
+          embedding_hash: string | null
+          id: string
+          is_active: boolean
+          metadata: Json | null
+          organization_id: string
+          source_entity_id: string | null
+          source_entity_type: string | null
+          source_type: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          content_type?: string
+          created_at?: string
+          created_by?: string | null
+          embedding_hash?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          organization_id: string
+          source_entity_id?: string | null
+          source_entity_type?: string | null
+          source_type?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          content_type?: string
+          created_at?: string
+          created_by?: string | null
+          embedding_hash?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          organization_id?: string
+          source_entity_id?: string | null
+          source_entity_type?: string | null
+          source_type?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_knowledge_base_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_icon_libraries: {
         Row: {
           created_at: string
