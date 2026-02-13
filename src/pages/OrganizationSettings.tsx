@@ -59,7 +59,7 @@ const roleColors = {
 
 const OrganizationSettings = () => {
   const navigate = useNavigate();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isSuperAdmin, isLoading: authLoading } = useAuth();
   const { organization, members, userRole, updateOrganization, deleteOrganization, inviteMember, removeMember, updateMemberRole, isLoading: orgLoading } = useOrganization();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -843,7 +843,7 @@ const OrganizationSettings = () => {
         </div>
 
         {/* Danger Zone - Only visible to owners */}
-        {userRole === 'owner' && (
+        {isSuperAdmin && (
           <Card className="border-destructive/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-destructive">
