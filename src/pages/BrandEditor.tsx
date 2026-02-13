@@ -701,7 +701,7 @@ const BrandEditor = () => {
     const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
     
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={editHandler((hero) => updateBrand({ hero }))} onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined} guideData={brand as unknown as Record<string, unknown>} entityType="brand" entityId={brand.id} complianceScore={complianceScores?.get(brand.id)?.score} />;
+      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={editHandler((hero) => updateBrand({ hero }))} onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined} guideData={brand as unknown as Record<string, unknown>} entityType="brand" entityId={brand.id} complianceScore={complianceScores?.get(brand.id)?.score} hiddenSections={hiddenSections} />;
       case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={editHandler((tagline) => updateBrand({ tagline }))} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={editHandler((identity) => updateBrand({ identity }))} />;
       case 'values': return <ValuesSection values={brand.values} onValuesChange={editHandler((values) => updateBrand({ values }))} organizationId={brand.organizationId} brandId={brand.id} brandName={brand.hero.name} canEdit={canEdit} />;

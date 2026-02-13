@@ -135,6 +135,7 @@ export const FullEventPage = ({
             guideData={event as unknown as Record<string, unknown>}
             entityType="event"
             entityId={eventId}
+            hiddenSections={hiddenSections}
           />
         );
       case 'tagline':

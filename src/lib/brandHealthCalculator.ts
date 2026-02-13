@@ -344,9 +344,18 @@ function calculateSectionCompleteness(
 
 /**
  * Calculate brand health score from guide_data
+ * @param hiddenSections - sections hidden by the admin; excluded from scoring
  */
-export function calculateBrandHealth(guideData: GuideData | null | undefined): HealthScoreResult {
-  const totalSections = Object.keys(SECTION_WEIGHTS).length;
+export function calculateBrandHealth(
+  guideData: GuideData | null | undefined,
+  hiddenSections?: string[] | null
+): HealthScoreResult {
+  const hiddenSet = new Set(hiddenSections ?? []);
+  // Only count sections that are NOT hidden
+  const activeSections = Object.entries(SECTION_WEIGHTS).filter(
+    ([key]) => !hiddenSet.has(key)
+  );
+  const totalSections = activeSections.length;
 
   if (!guideData) {
     return {
@@ -363,8 +372,8 @@ export function calculateBrandHealth(guideData: GuideData | null | undefined): H
   let filledSections = 0;
   const breakdown: SectionScore[] = [];
 
-  // Calculate each section's score
-  for (const [section, config] of Object.entries(SECTION_WEIGHTS)) {
+  // Calculate each section's score (skip hidden sections)
+  for (const [section, config] of activeSections) {
     const completeness = calculateSectionCompleteness(guideData, section);
     const earned = config.weight * completeness;
     const filled = completeness > 0;

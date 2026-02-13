@@ -44,6 +44,8 @@ interface HeroSectionProps {
   entityId?: string;
   /** Compliance score to display alongside health */
   complianceScore?: number | null;
+  /** Hidden sections excluded from health score */
+  hiddenSections?: string[] | null;
 }
 
 export const HeroSection = ({ 
@@ -58,6 +60,7 @@ export const HeroSection = ({
   entityType = 'brand',
   entityId,
   complianceScore,
+  hiddenSections,
 }: HeroSectionProps) => {
   // Only allow editing if onHeroChange is provided (canEdit mode)
   const canEdit = !!onHeroChange;
@@ -79,10 +82,10 @@ export const HeroSection = ({
     entityId: entityId || (guideData?.id as string) 
   });
 
-  // Calculate real health score from guide_data
+  // Calculate real health score from guide_data (excluding hidden sections)
   const calculatedHealth = useMemo(() => {
-    return calculateBrandHealth(guideData);
-  }, [guideData]);
+    return calculateBrandHealth(guideData, hiddenSections);
+  }, [guideData, hiddenSections]);
 
   // Use calculated health score if guideData provided, otherwise fall back to stats prop
   const displayStats: HeroStats = useMemo(() => {
