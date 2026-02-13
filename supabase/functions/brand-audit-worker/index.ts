@@ -17,6 +17,140 @@ async function updateJob(jobId: string, updates: Record<string, unknown>) {
   });
 }
 
+// ── Lightweight section analysis (mirrors brandHealthCalculator.ts logic) ──
+
+const SECTION_DEFS: Record<string, { weight: number; label: string; category: string }> = {
+  hero:       { weight: 10, label: 'Brand Name & Hero', category: 'Core Identity' },
+  tagline:    { weight: 6, label: 'Tagline', category: 'Core Identity' },
+  identity:   { weight: 8, label: 'Mission & Vision', category: 'Core Identity' },
+  values:     { weight: 8, label: 'Core Values', category: 'Core Identity' },
+  services:   { weight: 8, label: 'Services', category: 'Core Identity' },
+  colors:     { weight: 10, label: 'Color Palette', category: 'Visual Identity' },
+  colorCombinations: { weight: 2, label: 'Color Combinations', category: 'Visual Identity' },
+  typography: { weight: 8, label: 'Typography', category: 'Visual Identity' },
+  logos:      { weight: 10, label: 'Logo Assets', category: 'Visual Identity' },
+  brandIcons: { weight: 3, label: 'Brand Icons', category: 'Visual Identity' },
+  gradients:  { weight: 2, label: 'Gradients', category: 'Visual Identity' },
+  patterns:   { weight: 2, label: 'Patterns', category: 'Visual Identity' },
+  iconography:{ weight: 3, label: 'Iconography', category: 'Visual Identity' },
+  social:     { weight: 5, label: 'Social Profiles', category: 'Digital Presence' },
+  socialAssets:{ weight: 2, label: 'Social Assets', category: 'Digital Presence' },
+  websites:   { weight: 3, label: 'Website', category: 'Digital Presence' },
+  qr:         { weight: 2, label: 'QR Codes', category: 'Digital Presence' },
+  signatures: { weight: 2, label: 'Email Signatures', category: 'Digital Presence' },
+  imagery:    { weight: 3, label: 'Imagery Guidelines', category: 'Content & Assets' },
+  imageAssets:{ weight: 2, label: 'Image Assets', category: 'Content & Assets' },
+  misuse:     { weight: 2, label: 'Misuse Guidelines', category: 'Content & Assets' },
+  templates:  { weight: 3, label: 'Templates', category: 'Marketing Materials' },
+  brochures:  { weight: 3, label: 'Brochures', category: 'Marketing Materials' },
+  presentationTemplates: { weight: 2, label: 'Presentations', category: 'Marketing Materials' },
+  awards:     { weight: 2, label: 'Awards', category: 'Business & Events' },
+  statistics: { weight: 2, label: 'Statistics', category: 'Business & Events' },
+  clientLogos:{ weight: 2, label: 'Client Logos', category: 'Partnerships' },
+  sponsorLogos:{ weight: 2, label: 'Sponsor Logos', category: 'Partnerships' },
+};
+
+// Map hidden section IDs to guide_data keys
+const HIDDEN_ID_MAP: Record<string, string> = {
+  brandicon: 'brandIcons', socialicons: 'socialIcons', socialassets: 'socialAssets',
+  website: 'websites', imageassets: 'imageAssets', bythenumbers: 'statistics',
+  templatespecs: 'templateSpecs', presentations: 'presentationTemplates',
+  casestudies: 'caseStudies', sponsorlogos: 'sponsorLogos', clientlogos: 'clientLogos',
+  eventsignage: 'eventSignage', universe: 'linkedGuides',
+};
+
+function safeArr(v: unknown): unknown[] { return Array.isArray(v) ? v : []; }
+
+function sectionCompleteness(gd: Record<string, unknown>, key: string): number {
+  switch (key) {
+    case 'hero': {
+      const h = gd.hero as Record<string, unknown> | undefined;
+      if (!h?.name) return 0;
+      const filled = ['name','description','tagline','imageUrl','coverImage','cardImage'].filter(f => h[f]).length;
+      return filled >= 4 ? 1 : filled >= 2 ? 0.6 : 0.3;
+    }
+    case 'tagline': return (gd.hero as any)?.tagline ? 1 : 0;
+    case 'identity': {
+      const id = gd.identity as Record<string, unknown> | undefined;
+      if (!id) return 0;
+      const filled = ['missionStatement','visionStatement','brandPromise','personality','voiceTone','archetype','brandStory'].filter(f => id[f]).length;
+      return filled >= 4 ? 1 : filled >= 2 ? 0.6 : filled >= 1 ? 0.3 : 0;
+    }
+    case 'values': case 'services': {
+      const arr = safeArr(gd[key]);
+      return arr.length >= 4 ? 1 : arr.length >= 2 ? 0.6 : arr.length > 0 ? 0.3 : 0;
+    }
+    case 'colors': {
+      const c = safeArr(gd.colors);
+      return c.length >= 6 ? 1 : c.length >= 4 ? 0.8 : c.length >= 2 ? 0.6 : c.length > 0 ? 0.3 : 0;
+    }
+    case 'typography': {
+      const t = safeArr(gd.typography);
+      return t.length >= 3 ? 1 : t.length >= 2 ? 0.7 : t.length > 0 ? 0.5 : 0;
+    }
+    case 'logos': {
+      const l = safeArr(gd.logos);
+      return l.length >= 4 ? 1 : l.length >= 2 ? 0.7 : l.length > 0 ? 0.4 : 0;
+    }
+    case 'qr': {
+      const q = gd.qr as Record<string, unknown> | undefined;
+      return q?.defaultUrl ? 1 : 0;
+    }
+    default: {
+      const arr = safeArr(gd[key]);
+      return arr.length >= 3 ? 1 : arr.length >= 2 ? 0.7 : arr.length > 0 ? 0.4 : 0;
+    }
+  }
+}
+
+function buildSectionSummary(guideData: Record<string, unknown>, hiddenSections?: string[]): string {
+  const hiddenKeys = new Set((hiddenSections ?? []).map(id => HIDDEN_ID_MAP[id] ?? id));
+  const lines: string[] = [];
+  const catMap: Record<string, { filled: number; total: number; details: string[] }> = {};
+
+  for (const [key, def] of Object.entries(SECTION_DEFS)) {
+    if (hiddenKeys.has(key)) continue;
+    const score = sectionCompleteness(guideData, key);
+    const pct = Math.round(score * 100);
+    if (!catMap[def.category]) catMap[def.category] = { filled: 0, total: 0, details: [] };
+    catMap[def.category].total++;
+    if (score > 0) catMap[def.category].filled++;
+
+    // Add detail for notable sections
+    if (pct === 0) {
+      catMap[def.category].details.push(`${def.label}: EMPTY`);
+    } else if (pct < 70) {
+      catMap[def.category].details.push(`${def.label}: ${pct}% complete`);
+    } else {
+      catMap[def.category].details.push(`${def.label}: ${pct}%`);
+    }
+  }
+
+  for (const [cat, info] of Object.entries(catMap)) {
+    lines.push(`## ${cat} (${info.filled}/${info.total} sections filled)`);
+    lines.push(info.details.join(' | '));
+  }
+
+  // Add key content details (compact)
+  const identity = guideData.identity as Record<string, unknown> | undefined;
+  if (identity?.missionStatement) lines.push(`Mission: ${String(identity.missionStatement).substring(0, 120)}`);
+  if (identity?.archetype) lines.push(`Archetype: ${identity.archetype}`);
+
+  const colors = safeArr(guideData.colors);
+  if (colors.length > 0) {
+    const colorNames = colors.slice(0, 6).map((c: any) => c?.name || c?.hex || '?').join(', ');
+    lines.push(`Colors: ${colorNames}`);
+  }
+
+  const typo = safeArr(guideData.typography);
+  if (typo.length > 0) {
+    const fonts = typo.slice(0, 4).map((t: any) => t?.family || t?.name || '?').join(', ');
+    lines.push(`Typography: ${fonts}`);
+  }
+
+  return lines.join('\n');
+}
+
 serve(async (req) => {
   let jobId: string | null = null;
 
@@ -28,13 +162,12 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
 
-    // Fetch brand data via REST using user's auth (respects RLS)
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const tableName = entityType === 'product' ? 'products' : 'brands';
 
-    // Fetch brand name only (no guide_data to avoid memory issues) + intelligence data
+    // Fetch brand data (name + guide_data + hidden_sections) + intelligence data
     const [brandRes, intelRes] = await Promise.all([
-      fetch(`${supabaseUrl}/rest/v1/${tableName}?id=eq.${brandId}&select=id,name&limit=1`, {
+      fetch(`${supabaseUrl}/rest/v1/${tableName}?id=eq.${brandId}&select=id,name,guide_data,hidden_sections&limit=1`, {
         headers: { 'apikey': anonKey, 'Authorization': userAuth, 'Content-Type': 'application/json' },
       }),
       fetch(`${supabaseUrl}/rest/v1/brand_intelligence?entity_id=eq.${brandId}&entity_type=eq.${entityType}&select=brand_summary,market_position,competitive_advantages,growth_recommendations,brand_voice_profile,target_audience,cultural_insights&limit=1`, {
@@ -49,38 +182,40 @@ serve(async (req) => {
       throw new Error('Brand not found');
     }
 
-    await updateJob(jobId!, { progress: 30 });
+    await updateJob(jobId!, { progress: 20 });
 
-    const brandName = brandRows[0].name || 'Unnamed';
+    const brand = brandRows[0];
+    const brandName = brand.name || 'Unnamed';
+    const guideData = (brand.guide_data || {}) as Record<string, unknown>;
+    const hiddenSections = Array.isArray(brand.hidden_sections) ? brand.hidden_sections : [];
 
-    // Build compact prompt from intelligence data only
-    const lines: string[] = [];
-    lines.push(`# Brand Audit: ${brandName}`);
-    lines.push(`Type: ${entityType}`);
+    // Build section-aware summary
+    const sectionSummary = buildSectionSummary(guideData, hiddenSections);
 
+    await updateJob(jobId!, { progress: 40 });
+
+    // Build prompt
+    const promptLines: string[] = [];
+    promptLines.push(`# Brand Cohesion Audit: ${brandName}`);
+    promptLines.push(`Type: ${entityType}\n`);
+    promptLines.push(`## Section Analysis`);
+    promptLines.push(sectionSummary);
+
+    // Add intelligence context if available
     if (Array.isArray(intelRows) && intelRows.length > 0) {
       const intel = intelRows[0];
-      if (intel.brand_summary) lines.push(`Summary: ${String(intel.brand_summary).substring(0, 300)}`);
-      if (intel.market_position) lines.push(`Market Position: ${String(intel.market_position).substring(0, 150)}`);
-      if (intel.brand_voice_profile) {
-        const voice = typeof intel.brand_voice_profile === 'string' ? intel.brand_voice_profile : JSON.stringify(intel.brand_voice_profile);
-        lines.push(`Voice: ${voice.substring(0, 200)}`);
-      }
+      promptLines.push(`\n## Intelligence Context`);
+      if (intel.brand_summary) promptLines.push(`Summary: ${String(intel.brand_summary).substring(0, 200)}`);
+      if (intel.market_position) promptLines.push(`Market Position: ${String(intel.market_position).substring(0, 120)}`);
       if (intel.competitive_advantages) {
-        const adv = Array.isArray(intel.competitive_advantages) ? intel.competitive_advantages.slice(0, 5).join(', ') : String(intel.competitive_advantages).substring(0, 200);
-        lines.push(`Advantages: ${adv}`);
+        const adv = Array.isArray(intel.competitive_advantages) ? intel.competitive_advantages.slice(0, 5).join(', ') : String(intel.competitive_advantages).substring(0, 150);
+        promptLines.push(`Advantages: ${adv}`);
       }
-      if (intel.target_audience) {
-        const ta = typeof intel.target_audience === 'string' ? intel.target_audience : JSON.stringify(intel.target_audience);
-        lines.push(`Audience: ${ta.substring(0, 200)}`);
-      }
-    } else {
-      lines.push('No intelligence data available yet. Provide a general assessment based on the brand name.');
     }
 
-    lines.push(`\nAnalyze for cohesion. Return JSON.`);
+    promptLines.push(`\nAudit this brand for cohesion and completeness across ALL visible sections. Return JSON.`);
 
-    await updateJob(jobId!, { progress: 50 });
+    await updateJob(jobId!, { progress: 55 });
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -93,14 +228,18 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a brand cohesion expert. Return JSON only:
-{"overallScore":<0-100>,"categories":[{"name":"<name>","score":<0-100>,"findings":["..."],"recommendations":["..."]}],"summary":"<2-3 sentences>","strengths":["..."],"weaknesses":["..."],"actionItems":["..."]}
-Categories: Visual Consistency, Brand Identity, Digital Presence, Completeness, Competitive Position, Best Practices.`
+            content: `You are a brand cohesion expert auditing a brand guide. You have been given a detailed section-by-section completeness breakdown. Evaluate visual consistency, identity coherence, digital presence maturity, and overall completeness.
+
+Return JSON only:
+{"overallScore":<0-100>,"categories":[{"name":"<category name>","score":<0-100>,"findings":["specific finding..."],"recommendations":["actionable rec..."]}],"summary":"<2-3 sentences on overall cohesion>","strengths":["..."],"weaknesses":["..."],"actionItems":["prioritized action..."]}
+
+Categories MUST include: Visual Consistency, Brand Identity, Digital Presence, Content Completeness, Marketing Materials, Best Practices.
+Score based on ACTUAL section data provided. Empty sections should significantly reduce relevant category scores. Be specific — reference actual section names and completion levels in findings.`
           },
-          { role: 'user', content: lines.join('\n') }
+          { role: 'user', content: promptLines.join('\n') }
         ],
         temperature: 0.3,
-        max_tokens: 1800,
+        max_tokens: 2200,
       }),
     });
 
@@ -140,7 +279,11 @@ Categories: Visual Consistency, Brand Identity, Digital Presence, Completeness, 
         audit: auditResult,
         brandName: brandName,
         auditDate: new Date().toISOString(),
-        dataSources: { brandIntelligence: intelRows?.length > 0 },
+        dataSources: {
+          brandIntelligence: intelRows?.length > 0,
+          guideDataSections: true,
+          hiddenSectionsExcluded: hiddenSections.length,
+        },
       },
       completed_at: new Date().toISOString(),
     });
