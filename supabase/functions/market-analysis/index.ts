@@ -43,7 +43,7 @@ interface AnalysisResult {
   generatedAt: string;
 }
 
-import { extractFullBrandContext, buildMultimodalContent, fetchDocumentContext, type ImageReference } from '../_shared/extractFullBrandContext.ts';
+import { extractFullBrandContext, buildMultimodalContent, fetchDocumentContext, fetchSocialMetricsContext, type ImageReference } from '../_shared/extractFullBrandContext.ts';
 
 function extractRelevantBrandData(guideData: Record<string, unknown>, entityName: string = '', entityType: string = 'brand'): { text: string; imageUrls: ImageReference[] } {
   const { text, imageUrls } = extractFullBrandContext(guideData, entityName, entityType, 3000, true, 10);
@@ -137,16 +137,19 @@ ${recentBrands?.map(b => `- ${b.name} (${b.is_public ? 'Public' : 'Private'})`).
       const brandData = extractRelevantBrandData(guideData, brand.name, 'brand');
       marketImageUrls = brandData.imageUrls;
 
-      // Fetch document content
-      const { text: docCtx, imageUrls: docImgs } = await fetchDocumentContext(supabaseClient, entityId!, 'brand', guideData, 1000);
-      for (const di of docImgs.slice(0, 4)) { if (marketImageUrls.length < 14) marketImageUrls.push(di); }
+      // Fetch document content and social metrics
+      const [docRes, socialRes] = await Promise.all([
+        fetchDocumentContext(supabaseClient, entityId!, 'brand', guideData, 1000),
+        fetchSocialMetricsContext(supabaseClient, entityId!, 'brand'),
+      ]);
+      for (const di of docRes.imageUrls.slice(0, 4)) { if (marketImageUrls.length < 14) marketImageUrls.push(di); }
 
       contextData = `Brand: ${brand.name}
 Status: ${brand.is_public ? 'Public' : 'Private'}
 Created: ${brand.created_at}
 
 Brand Details:
-${brandData.text}${docCtx ? `\n${docCtx}` : ''}`;
+${brandData.text}${docRes.text ? `\n${docRes.text}` : ''}${socialRes.text || ''}`;
     } else if (type === 'product' && entityId) {
       const { data: product } = await supabaseClient
         .from('products')
@@ -166,16 +169,19 @@ ${brandData.text}${docCtx ? `\n${docCtx}` : ''}`;
       const productData = extractRelevantBrandData(guideData, product.name, 'product');
       marketImageUrls = productData.imageUrls;
 
-      // Fetch document content
-      const { text: docCtx, imageUrls: docImgs } = await fetchDocumentContext(supabaseClient, entityId!, 'product', guideData, 1000);
-      for (const di of docImgs.slice(0, 4)) { if (marketImageUrls.length < 14) marketImageUrls.push(di); }
+      // Fetch document content and social metrics
+      const [docRes2, socialRes2] = await Promise.all([
+        fetchDocumentContext(supabaseClient, entityId!, 'product', guideData, 1000),
+        fetchSocialMetricsContext(supabaseClient, entityId!, 'product'),
+      ]);
+      for (const di of docRes2.imageUrls.slice(0, 4)) { if (marketImageUrls.length < 14) marketImageUrls.push(di); }
 
       contextData = `Product: ${product.name}
 Status: ${product.is_public ? 'Public' : 'Private'}
 Created: ${product.created_at}
 
 Product Details:
-${productData.text}${docCtx ? `\n${docCtx}` : ''}`;
+${productData.text}${docRes2.text ? `\n${docRes2.text}` : ''}${socialRes2.text || ''}`;
     } else if (type === 'organization' && entityId) {
       const { data: org } = await supabaseClient
         .from('organizations')

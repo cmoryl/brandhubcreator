@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-import { extractFullBrandContext, buildMultimodalContent, fetchDocumentContext, type ImageReference } from '../_shared/extractFullBrandContext.ts';
+import { extractFullBrandContext, buildMultimodalContent, fetchDocumentContext, fetchSocialMetricsContext, type ImageReference } from '../_shared/extractFullBrandContext.ts';
 
 function extractEntityContext(guideData: Record<string, unknown>, name: string): { text: string; imageUrls: ImageReference[] } {
   const { text, imageUrls } = extractFullBrandContext(guideData, name, 'brand', 3000, true, 10);
@@ -293,11 +293,14 @@ serve(async (req) => {
     const guideData = (entityData.guide_data || {}) as EntityGuideData;
     const { text: entityContext, imageUrls: compEntityImages } = extractEntityContext(guideData, entityData.name);
     
-    // Fetch document content for competitive analysis
-    const { text: docContext, imageUrls: docImages, documentCount } = await fetchDocumentContext(
-      supabase, entityId, entityType, guideData as Record<string, unknown>, 1000
-    );
-    const enrichedContext = docContext ? `${entityContext}\n${docContext}` : entityContext;
+    // Fetch document content and social metrics for competitive analysis
+    const [docResult, socialResult] = await Promise.all([
+      fetchDocumentContext(supabase, entityId, entityType, guideData as Record<string, unknown>, 1000),
+      fetchSocialMetricsContext(supabase, entityId, entityType),
+    ]);
+    const { text: docContext, imageUrls: docImages, documentCount } = docResult;
+    const { text: socialContext } = socialResult;
+    const enrichedContext = [entityContext, docContext, socialContext].filter(Boolean).join('\n');
     for (const di of docImages.slice(0, 4)) {
       if (compEntityImages.length < 12) compEntityImages.push(di);
     }
