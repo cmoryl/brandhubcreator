@@ -50,6 +50,8 @@ verify_jwt = false
 
 [functions.dataforce-validation]
 verify_jwt = false
-
 [functions.dataforce-training]
+verify_jwt = false
+
+[functions.social-metrics-scan]
 verify_jwt = false

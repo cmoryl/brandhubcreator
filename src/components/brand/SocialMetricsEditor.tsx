@@ -2,7 +2,7 @@
  * SocialMetricsEditor - Modal for entering social metrics per platform
  */
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SocialMetricsInput, METRIC_CATEGORIES, METRIC_LABELS } from '@/types/socialMetrics';
-import { Loader2, TrendingUp, Users, MessageCircle, Share2 } from 'lucide-react';
+import { Loader2, TrendingUp, Users, MessageCircle, Share2, Sparkles } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface SocialMetricsEditorProps {
   open: boolean;
@@ -20,6 +22,9 @@ interface SocialMetricsEditorProps {
   existingData?: Partial<SocialMetricsInput>;
   onSave: (data: SocialMetricsInput) => Promise<boolean>;
   isSaving: boolean;
+  entityName?: string;
+  entityType?: 'brand' | 'product' | 'event';
+  industry?: string;
 }
 
 const categoryIcons = {
@@ -35,13 +40,17 @@ export const SocialMetricsEditor = ({
   platform,
   existingData,
   onSave,
-  isSaving
+  isSaving,
+  entityName,
+  entityType,
+  industry
 }: SocialMetricsEditorProps) => {
   const [formData, setFormData] = useState<Partial<SocialMetricsInput>>({
     platform,
     period_type: 'monthly',
     ...existingData
   });
+  const [isScanning, setIsScanning] = useState(false);
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({
@@ -58,6 +67,59 @@ export const SocialMetricsEditor = ({
       onOpenChange(false);
     }
   };
+
+  const handleAiScan = useCallback(async () => {
+    if (!entityName) {
+      toast.error('Entity name is required for AI scanning');
+      return;
+    }
+
+    setIsScanning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('social-metrics-scan', {
+        body: {
+          entityName,
+          platform,
+          entityType: entityType || 'brand',
+          industry: industry || undefined,
+        }
+      });
+
+      if (error) throw error;
+
+      if (!data?.success || !data?.metrics) {
+        throw new Error(data?.error || 'Failed to get AI metrics');
+      }
+
+      const metrics = data.metrics;
+      const confidenceNote = metrics.confidence_note;
+      delete metrics.confidence_note;
+
+      // Merge AI metrics into form (only non-zero values)
+      setFormData(prev => {
+        const updated = { ...prev };
+        for (const [key, value] of Object.entries(metrics)) {
+          if (typeof value === 'number' && value > 0) {
+            (updated as Record<string, unknown>)[key] = Math.round(value * 100) / 100;
+          }
+        }
+        if (confidenceNote) {
+          updated.notes = confidenceNote;
+        }
+        return updated;
+      });
+
+      toast.success(`AI populated ${platform} metrics`, {
+        description: 'Review and adjust the values before saving.',
+      });
+    } catch (error) {
+      console.error('[SocialMetrics] AI scan failed:', error);
+      const message = error instanceof Error ? error.message : 'AI scan failed';
+      toast.error(message);
+    } finally {
+      setIsScanning(false);
+    }
+  }, [entityName, platform, entityType, industry]);
 
   const renderMetricInput = (metricKey: string) => {
     const label = METRIC_LABELS[metricKey] || metricKey;
@@ -85,15 +147,38 @@ export const SocialMetricsEditor = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <div 
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-              style={{ backgroundColor: getPlatformColor(platform) }}
-            >
-              {platform.charAt(0)}
-            </div>
-            {platform} Metrics
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <div 
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                style={{ backgroundColor: getPlatformColor(platform) }}
+              >
+                {platform.charAt(0)}
+              </div>
+              {platform} Metrics
+            </DialogTitle>
+            {entityName && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAiScan}
+                disabled={isScanning || isSaving}
+                className="gap-1.5"
+              >
+                {isScanning ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Scanning...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-3.5 w-3.5" />
+                    AI Scan
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
         <Tabs defaultValue="core" className="w-full">

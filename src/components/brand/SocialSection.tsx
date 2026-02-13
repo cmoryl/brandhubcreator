@@ -21,6 +21,7 @@ interface SocialSectionProps {
   entityId?: string;
   entityType?: 'brand' | 'product' | 'event';
   organizationId?: string | null;
+  entityName?: string;
 }
 
 const platformOptions = [
@@ -44,7 +45,8 @@ export const SocialSection = ({
   onSubtitleChange,
   entityId,
   entityType = 'brand',
-  organizationId
+  organizationId,
+  entityName
 }: SocialSectionProps) => {
   const canEdit = Boolean(onSocialChange);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -305,6 +307,8 @@ export const SocialSection = ({
           existingData={getMetricsForPlatform(selectedPlatform) || undefined}
           onSave={saveSnapshot}
           isSaving={isSaving}
+          entityName={entityName}
+          entityType={entityType}
         />
       )}
 

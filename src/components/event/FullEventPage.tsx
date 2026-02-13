@@ -303,6 +303,7 @@ export const FullEventPage = ({
             entityId={eventId}
             entityType="event"
             organizationId={event.organizationId}
+            entityName={event.hero?.name}
           />
         );
       case 'socialassets':
