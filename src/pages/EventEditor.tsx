@@ -846,6 +846,7 @@ const EventEditor = () => {
                     entityType="event"
                     entityId={event.id}
                     organizationId={event.organizationId}
+                    isAdmin={isGuideAdmin}
                     onOpenAnalysis={() => setRegionalAnalysisOpen(true)}
                     className="hidden md:flex"
                   />
