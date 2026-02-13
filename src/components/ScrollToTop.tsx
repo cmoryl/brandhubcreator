@@ -18,13 +18,25 @@ export const ScrollToTop = () => {
     const raf = requestAnimationFrame(() => {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     });
-    const timeout = setTimeout(() => {
+
+    // Multiple fallbacks to catch async data loading that causes layout shifts
+    const t1 = setTimeout(() => {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    }, 100);
+    }, 50);
+    const t2 = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }, 150);
+    const t3 = setTimeout(() => {
+      if (window.scrollY > 0) {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      }
+    }, 400);
 
     return () => {
       cancelAnimationFrame(raf);
-      clearTimeout(timeout);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
     };
   }, [pathname, navType, hash]);
 
