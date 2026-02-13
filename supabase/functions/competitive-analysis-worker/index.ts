@@ -30,13 +30,37 @@ serve(async (req) => {
     // Fetch entity name + intelligence context (skip guide_data to save memory)
     const tableName = entityType === "brand" ? "brands" : entityType === "product" ? "products" : "events";
 
-    const [entityRes, intelRes] = await Promise.all([
+    const [entityRes, intelRes, oracleRes, oracleKbRes] = await Promise.all([
       fetch(`${supabaseUrl}/rest/v1/${tableName}?id=eq.${entityId}&select=id,name,organization_id&limit=1`, { headers }),
       fetch(`${supabaseUrl}/rest/v1/brand_intelligence?entity_id=eq.${entityId}&entity_type=eq.${entityType}&select=brand_summary,market_position,competitive_advantages,brand_voice_profile,target_audience&limit=1`, { headers }),
+      organizationId ? fetch(`${supabaseUrl}/rest/v1/oracle_intelligence?organization_id=eq.${organizationId}&select=org_summary,strategic_recommendations,unified_voice_profile,competitive_overview,market_landscape&limit=1`, { headers }) : Promise.resolve(null),
+      organizationId ? fetch(`${supabaseUrl}/rest/v1/oracle_knowledge_base?organization_id=eq.${organizationId}&is_active=eq.true&source_type=neq.entity_brain&order=updated_at.desc&limit=5&select=title,content`, { headers }) : Promise.resolve(null),
     ]);
 
     const entityRows = await entityRes.json();
     const intelRows = await intelRes.json();
+    
+    // Parse Oracle context
+    let oracleContext = "";
+    try {
+      const oracleRows = oracleRes ? await oracleRes.json() : [];
+      const oracleKbRows = oracleKbRes ? await oracleKbRes.json() : [];
+      const oracle = Array.isArray(oracleRows) && oracleRows.length > 0 ? oracleRows[0] : null;
+      const oracleKb = Array.isArray(oracleKbRows) ? oracleKbRows : [];
+      
+      if (oracle || oracleKb.length > 0) {
+        const parts: string[] = [];
+        if (oracle?.org_summary) parts.push(`Org Strategy: ${oracle.org_summary}`);
+        if (oracle?.competitive_overview?.market_position) parts.push(`Org Market Position: ${oracle.competitive_overview.market_position}`);
+        if (oracle?.market_landscape?.overall_position) parts.push(`Market Landscape: ${oracle.market_landscape.overall_position}`);
+        const recs = Array.isArray(oracle?.strategic_recommendations) ? oracle.strategic_recommendations : [];
+        if (recs.length > 0) parts.push(`Strategic Priorities: ${recs.slice(0, 3).map((r: any) => r.recommendation).join('; ')}`);
+        if (oracleKb.length > 0) parts.push(`Knowledge Base: ${oracleKb.map((k: any) => `${k.title}: ${(k.content || '').slice(0, 150)}`).join(' | ')}`);
+        oracleContext = parts.join('\n');
+      }
+    } catch (e) {
+      console.warn('[competitive-worker] Oracle context fetch failed (non-critical):', e);
+    }
 
     if (!Array.isArray(entityRows) || entityRows.length === 0) {
       throw new Error("Entity not found");
@@ -75,9 +99,13 @@ serve(async (req) => {
       ? `\nREGIONAL FOCUS: Tailor analysis for ${country || ""} ${region ? `(${region})` : ""} market.`
       : "";
 
+    const oracleNote = oracleContext
+      ? `\nORACLE BRAIN (Org-Level Strategic Intelligence):\n${oracleContext}\n\nUse this organizational context to ground your competitive analysis in the broader portfolio strategy.`
+      : "";
+
     await updateJob({ progress: 40 });
 
-    const prompt = `Competitive analysis for ${entity.name} against competitors.${regionalNote}
+    const prompt = `Competitive analysis for ${entity.name} against competitors.${regionalNote}${oracleNote}
 
 ENTITY: ${entityContext}
 

@@ -110,12 +110,14 @@ serve(async (req) => {
     const { text: fullContext, imageUrls: complianceImages } = extractCtx(guide_data, entity_name, entity_type, 3000, true, 15);
 
     // Fetch document content and social metrics for compliance checking
-    const [docResult, socialResult] = await Promise.all([
+    const [docResult, socialResult, oracleResult] = await Promise.all([
       fetchDocs(supabase, entity_id, entity_type, guide_data, 1000),
       fetchSocial(supabase, entity_id, entity_type),
+      fetchOracleContextForCompliance(supabase, organization_id),
     ]);
     const { text: docContext, imageUrls: docImages, documentCount } = docResult;
-    const combinedContext = [fullContext, docContext, socialResult.text].filter(Boolean).join('\n');
+    const oracleCtx = oracleResult || '';
+    const combinedContext = [fullContext, docContext, socialResult.text, oracleCtx].filter(Boolean).join('\n');
     for (const di of docImages.slice(0, 5)) {
       if (complianceImages.length < 20) complianceImages.push(di);
     }
@@ -142,6 +144,9 @@ Analyze the provided brand data and identify:
 3. Logo usage concerns (clear space, minimum size, color variations)
 4. Imagery style inconsistencies
 5. Messaging alignment issues
+6. Strategic alignment with organization-level brand standards (if Oracle context provided)
+
+${oracleCtx ? `ORGANIZATION STRATEGIC CONTEXT (Oracle Brain):\n${oracleCtx}\n\nUse this context to also evaluate whether the entity\'s brand assets align with the organization\'s overall strategic direction, voice, and positioning.` : ''}
 
 Return your analysis as a JSON object with this structure:
 {
@@ -357,4 +362,42 @@ function countAssets(guideData: Record<string, unknown>): number {
   if (logos.variations) count += Object.keys(logos.variations).length;
   
   return Math.max(count, 5);
+}
+
+/**
+ * Fetch Oracle Brain context for org-level strategic compliance checking
+ */
+async function fetchOracleContextForCompliance(supabase: any, organizationId: string): Promise<string | null> {
+  try {
+    const [{ data: oracle }, { data: knowledge }] = await Promise.all([
+      supabase.from('oracle_intelligence')
+        .select('org_summary, unified_voice_profile, competitive_overview, strategic_recommendations')
+        .eq('organization_id', organizationId)
+        .maybeSingle(),
+      supabase.from('oracle_knowledge_base')
+        .select('title, content')
+        .eq('organization_id', organizationId)
+        .eq('is_active', true)
+        .eq('source_type', 'manual')
+        .order('updated_at', { ascending: false })
+        .limit(3),
+    ]);
+
+    if (!oracle?.org_summary && (!knowledge || knowledge.length === 0)) return null;
+
+    const parts: string[] = [];
+    if (oracle?.org_summary) parts.push(`Org Strategy: ${oracle.org_summary}`);
+    if (oracle?.unified_voice_profile?.primary_tone) parts.push(`Org Voice Tone: ${oracle.unified_voice_profile.primary_tone}`);
+    if (oracle?.competitive_overview?.competitive_moat) parts.push(`Competitive Moat: ${oracle.competitive_overview.competitive_moat}`);
+    const recs = Array.isArray(oracle?.strategic_recommendations) ? oracle.strategic_recommendations : [];
+    if (recs.length > 0) parts.push(`Strategic Priorities: ${recs.slice(0, 2).map((r: any) => r.recommendation).join('; ')}`);
+    if (knowledge && knowledge.length > 0) {
+      parts.push(`Key Knowledge: ${knowledge.map((k: any) => `${k.title}: ${(k.content || '').slice(0, 100)}`).join(' | ')}`);
+    }
+
+    return parts.join('\n');
+  } catch (err) {
+    console.warn('[compliance] Oracle context fetch failed (non-critical):', err);
+    return null;
+  }
 }
