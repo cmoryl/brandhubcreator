@@ -482,15 +482,21 @@ const ProductEditor = () => {
   // ALL HOOKS MUST BE DECLARED BEFORE ANY EARLY RETURNS
   const handleSectionOrderChange = useCallback((newOrder: SectionId[]) => {
     if (currentProduct) {
+      if (!contextProduct && publicProduct) {
+        setPublicProduct(prev => prev ? { ...prev, sectionOrder: newOrder, updatedAt: new Date() } : prev);
+      }
       updateProduct(currentProduct.id, { sectionOrder: newOrder });
     }
-  }, [currentProduct, updateProduct]);
+  }, [currentProduct, contextProduct, publicProduct, updateProduct]);
 
   const handleHiddenSectionsChange = useCallback((newHiddenSections: SectionId[]) => {
     if (currentProduct) {
+      if (!contextProduct && publicProduct) {
+        setPublicProduct(prev => prev ? { ...prev, hiddenSections: newHiddenSections, updatedAt: new Date() } : prev);
+      }
       updateProduct(currentProduct.id, { hiddenSections: newHiddenSections });
     }
-  }, [currentProduct, updateProduct]);
+  }, [currentProduct, contextProduct, publicProduct, updateProduct]);
 
   const handleSectionVisible = useCallback((section: SectionId) => {
     if (viewMode === 'full') {
