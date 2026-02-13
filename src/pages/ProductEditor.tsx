@@ -608,7 +608,7 @@ const ProductEditor = () => {
             onDisplayBannersChange={editHandler((displayBanners) => handleUpdateProduct({ displayBanners }))}
           />
         );
-      case 'website': return <WebsiteSection websites={currentProduct.websites} onWebsitesChange={editHandler((websites) => handleUpdateProduct({ websites }))} />;
+      case 'website': return <WebsiteSection websites={currentProduct.websites} onWebsitesChange={editHandler((websites) => handleUpdateProduct({ websites }))} entityType="product" entityId={currentProduct.id} />;
       case 'signatures': return <SignaturesSection signatures={currentProduct.signatures} onSignaturesChange={editHandler((signatures) => handleUpdateProduct({ signatures }))} />;
       case 'qr': return <QRSection qr={currentProduct.qr} onQRChange={editHandler((qr) => handleUpdateProduct({ qr }))} entityType="product" entityId={currentProduct.id} logos={currentProduct.logos} />;
       case 'videos': return <VideosSection videos={currentProduct.videos} onVideosChange={editHandler((videos) => handleUpdateProduct({ videos }))} />;

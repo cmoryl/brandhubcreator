@@ -241,7 +241,11 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     socialIcons: safeArray(g.socialIcons),
     imagery: safeArray(g.imagery),
     social: safeArray(g.social),
-    websites: safeArray(g.websites),
+    websites: safeArray(g.websites).map((w: any) => ({
+      ...w,
+      // Strip base64 data URIs from screenshots to prevent guide_data bloat
+      screenshotUrl: w?.screenshotUrl?.startsWith('data:') ? undefined : w?.screenshotUrl,
+    })),
     signatures: safeArray(g.signatures),
     emailBanners: safeArray(g.emailBanners),
     videos: safeArray(g.videos),
