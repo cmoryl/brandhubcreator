@@ -118,39 +118,61 @@ const AuthPage = () => {
     }
   };
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [isResetLoading, setIsResetLoading] = useState(false);
+  const [showResetForm, setShowResetForm] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(() => {
+    return localStorage.getItem('brandhub-remember-me') === 'true';
+  });
+
+  // Listen for PASSWORD_RECOVERY event from reset link
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+      }
+    });
+    if (searchParams.get('reset') === 'true') {
+      setIsPasswordRecovery(true);
+    }
+    return () => subscription.unsubscribe();
+  }, [searchParams]);
+
   // Redirect authenticated users - wait for BOTH auth AND org to settle to prevent flash
   useEffect(() => {
-    // Wait for auth to finish loading
+    if (isPasswordRecovery) return;
     if (authLoading) return;
-    
-    // No user = stay on auth page
     if (!user) return;
 
-    // Handle access verification error
     if (accessStatus === 'error') {
       toast({
         title: 'Signed in, but access could not be verified',
         description: accessError || 'Please refresh and try again.',
         variant: 'destructive',
       });
-      // Still redirect to dashboard on error - don't block user
       navigate('/dashboard', { replace: true });
       return;
     }
 
-    // Wait for access to be verified
     if (accessStatus !== 'ready') return;
 
-    // Handle unapproved users
     if (!isAdmin && !isApproved) {
       navigate('/pending-approval', { replace: true });
       return;
     }
 
-    // Wait for org loading to complete to determine correct destination
     if (orgLoading) return;
 
-    // Redirect directly to org portal if user has organization (prevents dashboard flash)
     if (organization) {
       sessionStorage.setItem('welcomeToast', JSON.stringify({
         orgName: organization.name,
@@ -158,24 +180,43 @@ const AuthPage = () => {
       }));
       navigate(`/org/${organization.slug}`, { replace: true });
     } else {
-      // No org - go to dashboard
       navigate('/dashboard', { replace: true });
     }
-  }, [user, isAdmin, isApproved, accessStatus, accessError, authLoading, orgLoading, organization, navigate, toast]);
-  
-  const [isLoading, setIsLoading] = useState(false);
-  const [isResetLoading, setIsResetLoading] = useState(false);
-  const [showResetForm, setShowResetForm] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [signupEmail, setSignupEmail] = useState('');
-  const [signupPassword, setSignupPassword] = useState('');
-  const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(() => {
-    // Check if user previously opted for remember me
-    return localStorage.getItem('brandhub-remember-me') === 'true';
-  });
+  }, [user, isAdmin, isApproved, accessStatus, accessError, authLoading, orgLoading, organization, navigate, toast, isPasswordRecovery]);
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      toast({ title: 'Password too short', description: 'Password must be at least 6 characters.', variant: 'destructive' });
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      toast({ title: 'Passwords do not match', description: 'Please make sure both passwords match.', variant: 'destructive' });
+      return;
+    }
+    setIsUpdatingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: 'Password Updated', description: 'Your password has been successfully reset.' });
+        setIsPasswordRecovery(false);
+        setNewPassword('');
+        setConfirmNewPassword('');
+        // Navigate to dashboard after successful reset
+        if (organization) {
+          navigate(`/org/${organization.slug}`, { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
+      }
+    } catch (err) {
+      toast({ title: 'Error', description: 'An unexpected error occurred.', variant: 'destructive' });
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -432,8 +473,65 @@ const AuthPage = () => {
             )}
           </CardHeader>
           <CardContent className="px-4 sm:px-6 pb-5 sm:pb-6">
-            {/* Password Reset Form */}
-            {showResetForm ? (
+            {/* Set New Password Form (after clicking reset link in email) */}
+            {isPasswordRecovery ? (
+              <form onSubmit={handleUpdatePassword} className="space-y-4">
+                <div className="text-center mb-2">
+                  <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                    <Lock className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">Set New Password</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Enter your new password below</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">New Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    <Input
+                      id="new-password"
+                      type="password"
+                      autoComplete="new-password"
+                      placeholder="••••••••"
+                      className="pl-10"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    <Input
+                      id="confirm-new-password"
+                      type="password"
+                      autoComplete="new-password"
+                      placeholder="••••••••"
+                      className="pl-10"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                </div>
+                <Button type="submit" className="w-full" disabled={isUpdatingPassword}>
+                  {isUpdatingPassword ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      Update Password
+                    </>
+                  )}
+                </Button>
+              </form>
+            ) : showResetForm ? (
               <form onSubmit={handlePasswordReset} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="reset-email">Email</Label>
