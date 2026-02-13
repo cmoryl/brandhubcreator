@@ -269,7 +269,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
       </motion.div>
 
       {/* ── Two Column: Activity + Sidebar ──────────────────── */}
-      <div className="grid lg:grid-cols-3 gap-5">
+      <div className="grid lg:grid-cols-5 gap-5">
 
         {/* Activity Feed — 2 cols */}
         <motion.div variants={fadeUp} className="lg:col-span-2">
@@ -286,7 +286,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollArea className="h-[340px]">
+              <ScrollArea className="h-[260px]">
                 {activityLogs.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
                     <Activity className="h-8 w-8 text-muted-foreground/20 mb-3" />
@@ -294,7 +294,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
                   </div>
                 ) : (
                   <div className="divide-y divide-border/30">
-                    {activityLogs.slice(0, 12).map((log, i) => (
+                    {activityLogs.slice(0, 8).map((log, i) => (
                       <motion.div
                         key={log.id}
                         initial={{ opacity: 0 }}
@@ -327,7 +327,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
         </motion.div>
 
         {/* Sidebar: Quick Actions + Modules + Health */}
-        <motion.div variants={fadeUp} className="space-y-4">
+        <motion.div variants={fadeUp} className="lg:col-span-3 space-y-4">
 
           {/* Quick Actions */}
           <Card>
