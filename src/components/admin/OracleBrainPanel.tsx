@@ -7,7 +7,8 @@ import { useState } from 'react';
 import { 
   Brain, Sparkles, Target, Users, TrendingUp, Globe2, 
   MessageSquare, Plus, Trash2, Loader2, RefreshCw,
-  Lightbulb, BarChart3, BookOpen, Zap
+  Lightbulb, BarChart3, BookOpen, Zap, Pencil, Eye,
+  Save, X
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,7 @@ export function OracleBrainPanel({ organizationId }: OracleBrainPanelProps) {
     startSynthesis,
     addKnowledge,
     deleteKnowledge,
+    updateKnowledge,
     refetch,
   } = useOracleBrain(orgId);
 
@@ -142,7 +144,8 @@ export function OracleBrainPanel({ organizationId }: OracleBrainPanelProps) {
           <OracleKnowledgeBase 
             knowledge={knowledge} 
             onAdd={addKnowledge} 
-            onDelete={deleteKnowledge} 
+            onDelete={deleteKnowledge}
+            onUpdate={updateKnowledge}
           />
         </TabsContent>
       </Tabs>
@@ -458,17 +461,45 @@ function PortfolioList({ title, items, color }: { title: string; items: any; col
 function OracleKnowledgeBase({ 
   knowledge, 
   onAdd, 
-  onDelete 
+  onDelete,
+  onUpdate,
 }: { 
   knowledge: any[]; 
   onAdd: (title: string, content: string, contentType?: string, tags?: string[]) => Promise<any>;
   onDelete: (id: string) => Promise<void>;
+  onUpdate: (id: string, updates: { title?: string; content?: string; tags?: string[]; category?: string }) => Promise<any>;
 }) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [newTags, setNewTags] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+
+  // View/Edit state
+  const [selectedEntry, setSelectedEntry] = useState<any | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [editTags, setEditTags] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const openEntry = (entry: any, edit = false) => {
+    setSelectedEntry(entry);
+    setEditTitle(entry.title || '');
+    setEditContent(entry.content || '');
+    setEditTags(Array.isArray(entry.tags) ? entry.tags.join(', ') : '');
+    setIsEditing(edit);
+  };
+
+  const handleSave = async () => {
+    if (!selectedEntry || !editTitle.trim() || !editContent.trim()) return;
+    setIsSaving(true);
+    const tags = editTags.split(',').map(t => t.trim()).filter(Boolean);
+    await onUpdate(selectedEntry.id, { title: editTitle.trim(), content: editContent.trim(), tags });
+    setSelectedEntry(null);
+    setIsEditing(false);
+    setIsSaving(false);
+  };
 
   const handleAdd = async () => {
     if (!newTitle.trim() || !newContent.trim()) return;
@@ -540,31 +571,50 @@ function OracleKnowledgeBase({
         <ScrollArea className="max-h-[500px]">
           <div className="space-y-2">
             {knowledge.map((entry) => (
-              <Card key={entry.id} className="border-border/50">
+              <Card key={entry.id} className="border-border/50 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => openEntry(entry)}>
                 <CardContent className="p-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="text-sm font-medium truncate">{entry.title}</p>
                         <Badge variant="outline" className="text-[10px] shrink-0">{entry.content_type}</Badge>
+                        {entry.source_type === 'entity_brain' && (
+                          <Badge variant="secondary" className="text-[10px] shrink-0">Auto</Badge>
+                        )}
+                        {entry.source_type === 'document_import' && (
+                          <Badge variant="secondary" className="text-[10px] shrink-0">Import</Badge>
+                        )}
                       </div>
                       <p className="text-xs text-muted-foreground line-clamp-2">{entry.content}</p>
                       {entry.tags?.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1.5">
-                          {entry.tags.map((tag: string, i: number) => (
+                          {entry.tags.slice(0, 5).map((tag: string, i: number) => (
                             <Badge key={i} variant="secondary" className="text-[10px]">{tag}</Badge>
                           ))}
+                          {entry.tags.length > 5 && (
+                            <Badge variant="secondary" className="text-[10px]">+{entry.tags.length - 5}</Badge>
+                          )}
                         </div>
                       )}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 shrink-0 text-muted-foreground hover:text-red-500"
-                      onClick={() => onDelete(entry.id)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    <div className="flex flex-col gap-1 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-primary"
+                        onClick={(e) => { e.stopPropagation(); openEntry(entry, true); }}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={(e) => { e.stopPropagation(); onDelete(entry.id); }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -572,6 +622,88 @@ function OracleKnowledgeBase({
           </div>
         </ScrollArea>
       )}
+
+      {/* View / Edit Dialog */}
+      <Dialog open={!!selectedEntry} onOpenChange={(open) => { if (!open) { setSelectedEntry(null); setIsEditing(false); } }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <div className="flex items-center justify-between pr-6">
+              <DialogTitle className="flex items-center gap-2">
+                {isEditing ? <Pencil className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {isEditing ? 'Edit Knowledge Entry' : 'Knowledge Entry'}
+              </DialogTitle>
+              {!isEditing && (
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                  <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
+                </Button>
+              )}
+            </div>
+            <DialogDescription>
+              {selectedEntry?.source_type === 'entity_brain' ? 'Auto-generated from entity intelligence' :
+               selectedEntry?.source_type === 'document_import' ? 'Imported from document' :
+               'Manually added knowledge entry'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto space-y-4 py-2">
+            {isEditing ? (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Title</label>
+                  <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Content</label>
+                  <Textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={14} className="font-mono text-xs" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Tags (comma-separated)</label>
+                  <Input value={editTags} onChange={(e) => setEditTags(e.target.value)} />
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <h3 className="font-semibold text-lg">{selectedEntry?.title}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="outline" className="text-[10px]">{selectedEntry?.content_type}</Badge>
+                    {selectedEntry?.source_type && (
+                      <Badge variant="secondary" className="text-[10px]">{selectedEntry.source_type}</Badge>
+                    )}
+                    {selectedEntry?.created_at && (
+                      <span className="text-[10px] text-muted-foreground">
+                        {new Date(selectedEntry.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed bg-muted/30 rounded-lg p-4 border">
+                  {selectedEntry?.content}
+                </div>
+                {selectedEntry?.tags?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedEntry.tags.map((tag: string, i: number) => (
+                      <Badge key={i} variant="secondary" className="text-xs">{tag}</Badge>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {isEditing && (
+            <div className="flex justify-end gap-2 pt-2 border-t">
+              <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
+                <X className="h-3.5 w-3.5 mr-1.5" /> Cancel
+              </Button>
+              <Button size="sm" onClick={handleSave} disabled={isSaving || !editTitle.trim() || !editContent.trim()}>
+                {isSaving ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-1.5" />}
+                Save Changes
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
