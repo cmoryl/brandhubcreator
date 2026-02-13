@@ -175,26 +175,29 @@ export function CompetitiveAnalysisDialog({
       const jobId = data?.jobId;
       if (!jobId) { toast.error('Failed to start discovery'); setIsDiscovering(false); return; }
 
-      // Poll for results
+      // Poll the database directly for results
       const pollInterval = setInterval(async () => {
         try {
-          const { data: pollData, error: pollError } = await supabase.functions.invoke('discover-competitors', {
-            body: { action: 'poll', jobId },
-          });
+          const { data: job, error: pollError } = await supabase
+            .from('brand_intelligence_jobs')
+            .select('status, result, error_message')
+            .eq('id', jobId)
+            .single();
 
           if (pollError) throw pollError;
 
-          if (pollData?.status === 'completed' && pollData?.result) {
+          if (job?.status === 'completed' && job?.result) {
             clearInterval(pollInterval);
-            const competitors = pollData.result.competitors || [];
+            const result = job.result as Record<string, any>;
+            const competitors = result.competitors || [];
             setDiscoveredCompetitors(
               competitors.map((c: any) => ({ ...c, selected: true }))
             );
             toast.success(`Found ${competitors.length} potential competitors`);
             setIsDiscovering(false);
-          } else if (pollData?.status === 'failed') {
+          } else if (job?.status === 'failed') {
             clearInterval(pollInterval);
-            toast.error(pollData.error || 'Discovery failed');
+            toast.error(job.error_message || 'Discovery failed');
             setIsDiscovering(false);
           }
         } catch (pollErr) {
@@ -203,15 +206,12 @@ export function CompetitiveAnalysisDialog({
           toast.error('Failed to check discovery status');
           setIsDiscovering(false);
         }
-      }, 2000);
+      }, 2500);
 
       // Safety timeout after 60s
       setTimeout(() => {
         clearInterval(pollInterval);
-        if (isDiscovering) {
-          setIsDiscovering(false);
-          toast.error('Discovery timed out. Please try again.');
-        }
+        setIsDiscovering(false);
       }, 60000);
 
     } catch (error) {
