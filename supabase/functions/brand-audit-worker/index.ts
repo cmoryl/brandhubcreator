@@ -32,11 +32,12 @@ serve(async (req) => {
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const tableName = entityType === 'product' ? 'products' : 'brands';
 
+    // Fetch brand name only (no guide_data to avoid memory issues) + intelligence data
     const [brandRes, intelRes] = await Promise.all([
-      fetch(`${supabaseUrl}/rest/v1/${tableName}?id=eq.${brandId}&select=id,name,guide_data&limit=1`, {
+      fetch(`${supabaseUrl}/rest/v1/${tableName}?id=eq.${brandId}&select=id,name&limit=1`, {
         headers: { 'apikey': anonKey, 'Authorization': userAuth, 'Content-Type': 'application/json' },
       }),
-      fetch(`${supabaseUrl}/rest/v1/brand_intelligence?entity_id=eq.${brandId}&entity_type=eq.${entityType}&select=brand_summary,market_position,competitive_advantages,growth_recommendations&limit=1`, {
+      fetch(`${supabaseUrl}/rest/v1/brand_intelligence?entity_id=eq.${brandId}&entity_type=eq.${entityType}&select=brand_summary,market_position,competitive_advantages,growth_recommendations,brand_voice_profile,target_audience,cultural_insights&limit=1`, {
         headers: { 'apikey': anonKey, 'Authorization': userAuth, 'Content-Type': 'application/json' },
       }),
     ]);
@@ -50,47 +51,31 @@ serve(async (req) => {
 
     await updateJob(jobId!, { progress: 30 });
 
-    const brandData = brandRows[0];
-    const gd = (brandData.guide_data || {}) as Record<string, unknown>;
-    const hero = (gd.hero || {}) as Record<string, string>;
-    const identity = (gd.identity || {}) as Record<string, unknown>;
-    const values = Array.isArray(gd.values) ? gd.values.slice(0, 6) : [];
-    const colors = Array.isArray(gd.colors) ? gd.colors.slice(0, 10) : [];
-    const typography = Array.isArray(gd.typography) ? gd.typography.slice(0, 6) : [];
-    const gradients = Array.isArray(gd.gradients) ? gd.gradients : [];
-    const patterns = Array.isArray(gd.patterns) ? gd.patterns : [];
+    const brandName = brandRows[0].name || 'Unnamed';
 
-    // Build compact prompt
+    // Build compact prompt from intelligence data only
     const lines: string[] = [];
-    lines.push(`# Brand Audit: ${brandData.name || hero.name || 'Unnamed'}`);
+    lines.push(`# Brand Audit: ${brandName}`);
     lines.push(`Type: ${entityType}`);
-    lines.push(`Tagline: ${hero.tagline || 'Not defined'}`);
-    lines.push(`Mission: ${(identity.missionStatement as string) || 'Not defined'}`);
-    lines.push(`Archetype: ${(identity.archetype as string) || 'Not defined'}`);
-    lines.push(`Tone: ${Array.isArray(identity.toneOfVoice) ? identity.toneOfVoice.join(', ') : 'Not defined'}`);
 
-    if (values.length > 0) {
-      lines.push(`\nValues (${values.length}):`);
-      values.forEach((v: any) => lines.push(`- ${v.title || 'Untitled'}: ${(v.description || '-').substring(0, 60)}`));
-    }
-
-    if (colors.length > 0) {
-      lines.push(`\nColors (${colors.length}):`);
-      colors.forEach((c: any) => lines.push(`- ${c.name}: ${c.hex} (${c.usage || '-'})`));
-    }
-
-    if (typography.length > 0) {
-      lines.push(`\nTypography (${typography.length}):`);
-      typography.forEach((t: any) => lines.push(`- ${t.name}: ${t.fontFamily}`));
-    }
-
-    lines.push(`\nAssets: ${gradients.length} gradients, ${patterns.length} patterns`);
-
-    // Intel context
     if (Array.isArray(intelRows) && intelRows.length > 0) {
       const intel = intelRows[0];
-      if (intel.brand_summary) lines.push(`\nAI Summary: ${intel.brand_summary.substring(0, 200)}`);
-      if (intel.market_position) lines.push(`Market Position: ${intel.market_position}`);
+      if (intel.brand_summary) lines.push(`Summary: ${String(intel.brand_summary).substring(0, 300)}`);
+      if (intel.market_position) lines.push(`Market Position: ${String(intel.market_position).substring(0, 150)}`);
+      if (intel.brand_voice_profile) {
+        const voice = typeof intel.brand_voice_profile === 'string' ? intel.brand_voice_profile : JSON.stringify(intel.brand_voice_profile);
+        lines.push(`Voice: ${voice.substring(0, 200)}`);
+      }
+      if (intel.competitive_advantages) {
+        const adv = Array.isArray(intel.competitive_advantages) ? intel.competitive_advantages.slice(0, 5).join(', ') : String(intel.competitive_advantages).substring(0, 200);
+        lines.push(`Advantages: ${adv}`);
+      }
+      if (intel.target_audience) {
+        const ta = typeof intel.target_audience === 'string' ? intel.target_audience : JSON.stringify(intel.target_audience);
+        lines.push(`Audience: ${ta.substring(0, 200)}`);
+      }
+    } else {
+      lines.push('No intelligence data available yet. Provide a general assessment based on the brand name.');
     }
 
     lines.push(`\nAnalyze for cohesion. Return JSON.`);
@@ -153,14 +138,14 @@ Categories: Visual Consistency, Brand Identity, Digital Presence, Completeness, 
       progress: 100,
       result: {
         audit: auditResult,
-        brandName: brandData.name || hero.name || 'Unnamed',
+        brandName: brandName,
         auditDate: new Date().toISOString(),
-        dataSources: { guideData: true, brandIntelligence: intelRows?.length > 0 },
+        dataSources: { brandIntelligence: intelRows?.length > 0 },
       },
       completed_at: new Date().toISOString(),
     });
 
-    console.log(`Audit complete for ${brandData.name}. Score: ${auditResult.overallScore}`);
+    console.log(`Audit complete for ${brandName}. Score: ${auditResult.overallScore}`);
 
     return new Response(JSON.stringify({ success: true }),
       { headers: { 'Content-Type': 'application/json' } });
