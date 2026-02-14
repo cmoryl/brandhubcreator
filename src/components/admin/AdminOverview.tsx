@@ -1,6 +1,6 @@
 /**
- * AdminOverview - Bold, editorial admin dashboard
- * Clean hierarchy with a command-center feel
+ * AdminOverview - Unified Command Center
+ * Cohesive dashboard integrating all AI & governance modules
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -10,19 +10,20 @@ import {
   TrendingUp, AlertTriangle, Clock, Shield, CheckCircle,
   UserCheck, FileText, Database, HardDrive, Mail, Image,
   Eye, Zap, ArrowRight, Brain, Wrench, RefreshCw, BarChart3,
-  Bot, Globe, Languages, Sparkles, ChevronRight, Layers
+  Bot, Globe, Languages, Sparkles, ChevronRight, Layers,
+  Scan, ShieldCheck, MessageSquare, Accessibility, Scale
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import {
   DashboardStats,
   ActivityLog,
-  ModuleStatus,
   QuickAction,
   getActivityIcon
 } from '@/lib/admin';
@@ -132,7 +133,6 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
   const contentHealth = stats ? Math.round(((stats.publicBrands + stats.publicEvents) / Math.max(stats.totalBrands + stats.totalEvents, 1)) * 100) : 0;
   const userEngagement = stats?.totalUsers ? Math.round((stats.activeUsersToday / stats.totalUsers) * 100) : 0;
 
-  // Fake sparkline data derived from stats for visual effect
   const userSpark = [3, 5, 4, 7, 6, 8, stats?.activeUsersToday || 5];
   const contentSpark = [2, 4, 3, 6, 5, 7, (stats?.totalBrands || 0) % 10 || 4];
 
@@ -185,91 +185,36 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
 
       {/* ── Primary Metrics Row ────────────────────────────── */}
       <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Users */}
-        <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
-          <Card className="border-border/50 overflow-hidden group cursor-pointer" onClick={() => onTabChange('users')}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Users className="h-4 w-4 text-primary" />
-                </div>
-                <SparkBars values={userSpark} color="bg-primary/60" />
-              </div>
-              <span className="text-2xl font-bold tabular-nums block"><AnimatedCounter value={stats?.totalUsers || 0} /></span>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-[11px] text-muted-foreground">Users</span>
-                {(stats?.newUsersThisWeek || 0) > 0 && (
-                  <span className="text-[10px] font-semibold text-emerald-500 flex items-center gap-0.5">
-                    <TrendingUp className="h-2.5 w-2.5" />+{stats?.newUsersThisWeek}
-                  </span>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Organizations */}
-        <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
-          <Card className="border-border/50 overflow-hidden cursor-pointer" onClick={() => onTabChange('organizations')}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="h-8 w-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
-                  <Building2 className="h-4 w-4 text-violet-500" />
-                </div>
-                <span className="text-[10px] font-medium text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">Workspaces</span>
-              </div>
-              <span className="text-2xl font-bold tabular-nums block"><AnimatedCounter value={stats?.totalOrganizations || 0} /></span>
-              <span className="text-[11px] text-muted-foreground mt-1 block">Organizations</span>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Content */}
-        <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
-          <Card className="border-border/50 overflow-hidden cursor-pointer" onClick={() => onTabChange('analytics')}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                  <Layers className="h-4 w-4 text-blue-500" />
-                </div>
-                <SparkBars values={contentSpark} color="bg-blue-500/50" />
-              </div>
-              <span className="text-2xl font-bold tabular-nums block">
-                <AnimatedCounter value={(stats?.totalBrands || 0) + (stats?.totalProducts || 0) + (stats?.totalEvents || 0)} />
-              </span>
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-[10px] text-muted-foreground">{stats?.totalBrands || 0} brands</span>
-                <span className="text-[10px] text-muted-foreground/40">·</span>
-                <span className="text-[10px] text-muted-foreground">{stats?.totalProducts || 0} products</span>
-                <span className="text-[10px] text-muted-foreground/40">·</span>
-                <span className="text-[10px] text-muted-foreground">{stats?.totalEvents || 0} events</span>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Published / Health */}
-        <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
-          <Card className="border-border/50 overflow-hidden cursor-pointer" onClick={() => onTabChange('analytics')}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                  <Eye className="h-4 w-4 text-emerald-500" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <RadialProgress value={contentHealth} size={36} label="" color="hsl(var(--primary))" />
-                </div>
-              </div>
-              <span className="text-2xl font-bold tabular-nums block">
-                <AnimatedCounter value={(stats?.publicBrands || 0) + (stats?.publicEvents || 0)} />
-              </span>
-              <span className="text-[11px] text-muted-foreground mt-1 block">Published · {contentHealth}% rate</span>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <MetricCard
+          icon={Users} iconColor="text-primary" iconBg="bg-primary/10"
+          value={stats?.totalUsers || 0} label="Users"
+          onClick={() => onTabChange('users')}
+          extra={<SparkBars values={userSpark} color="bg-primary/60" />}
+          trend={(stats?.newUsersThisWeek || 0) > 0 ? `+${stats?.newUsersThisWeek}` : undefined}
+        />
+        <MetricCard
+          icon={Building2} iconColor="text-violet-500" iconBg="bg-violet-500/10"
+          value={stats?.totalOrganizations || 0} label="Organizations"
+          onClick={() => onTabChange('organizations')}
+          badge="Workspaces"
+        />
+        <MetricCard
+          icon={Layers} iconColor="text-blue-500" iconBg="bg-blue-500/10"
+          value={(stats?.totalBrands || 0) + (stats?.totalProducts || 0) + (stats?.totalEvents || 0)}
+          label={`${stats?.totalBrands || 0} brands · ${stats?.totalProducts || 0} products · ${stats?.totalEvents || 0} events`}
+          onClick={() => onTabChange('analytics')}
+          extra={<SparkBars values={contentSpark} color="bg-blue-500/50" />}
+        />
+        <MetricCard
+          icon={Eye} iconColor="text-emerald-500" iconBg="bg-emerald-500/10"
+          value={(stats?.publicBrands || 0) + (stats?.publicEvents || 0)}
+          label={`Published · ${contentHealth}% rate`}
+          onClick={() => onTabChange('analytics')}
+          extra={<RadialProgress value={contentHealth} size={36} label="" color="hsl(var(--primary))" />}
+        />
       </motion.div>
 
-      {/* ── Two Column: Activity + Sidebar ──────────────────── */}
+      {/* ── Two Column: Activity + Quick Actions ────────────── */}
       <div className="grid lg:grid-cols-5 gap-5">
 
         {/* Activity Feed — 2 cols */}
@@ -329,7 +274,6 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
 
         {/* Sidebar: Quick Actions + Modules + Health */}
         <motion.div variants={fadeUp} className="lg:col-span-3 space-y-4">
-
           {/* Quick Actions */}
           <Card>
             <CardHeader className="p-3.5 pb-2 border-b border-border/40">
@@ -434,17 +378,61 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
       {/* ── Reporting Section ──────────────────────────────── */}
       <AdminReportingWidgets stats={stats} onTabChange={onTabChange} />
 
-      {/* ── Summary Widgets Row ─────────────────────────────── */}
-      <motion.div variants={fadeUp} className="grid lg:grid-cols-2 gap-4">
-        <DataForceSummaryWidget onTabChange={onTabChange} />
-        <GlobalLinkSummaryWidget onTabChange={onTabChange} />
+      {/* ── AI & Governance Hub ─────────────────────────────── */}
+      <motion.div variants={fadeUp}>
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary/20 to-violet-500/20 flex items-center justify-center">
+            <Brain className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold tracking-tight">AI & Governance Hub</h3>
+            <p className="text-[11px] text-muted-foreground">Unified view of all intelligence modules</p>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <DataForceSummaryWidget onTabChange={onTabChange} />
+          <GlobalLinkSummaryWidget onTabChange={onTabChange} />
+          <BotSummaryWidget onTabChange={onTabChange} />
+          <BiasAwarenessSummaryWidget onTabChange={onTabChange} />
+        </div>
       </motion.div>
     </motion.div>
   );
 };
 
+// ─── Metric Card ────────────────────────────────────────────
+function MetricCard({ icon: Icon, iconColor, iconBg, value, label, onClick, extra, trend, badge }: {
+  icon: React.ElementType; iconColor: string; iconBg: string; value: number; label: string;
+  onClick?: () => void; extra?: React.ReactNode; trend?: string; badge?: string;
+}) {
+  return (
+    <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
+      <Card className="border-border/50 overflow-hidden cursor-pointer" onClick={onClick}>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center", iconBg)}>
+              <Icon className={cn("h-4 w-4", iconColor)} />
+            </div>
+            {extra || (badge && <span className="text-[10px] font-medium text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{badge}</span>)}
+          </div>
+          <span className="text-2xl font-bold tabular-nums block"><AnimatedCounter value={value} /></span>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[11px] text-muted-foreground truncate">{label}</span>
+            {trend && (
+              <span className="text-[10px] font-semibold text-emerald-500 flex items-center gap-0.5 shrink-0">
+                <TrendingUp className="h-2.5 w-2.5" />{trend}
+              </span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
 // ─── Compact Summary Card ───────────────────────────────────
-function SummaryItem({ icon: Icon, color, bg, label, value, sub, subColor, onClick }: {
+function SummaryRow({ icon: Icon, color, bg, label, value, sub, subColor, onClick }: {
   icon: React.ElementType; color: string; bg: string; label: string; value: number; sub?: string; subColor?: string; onClick?: () => void;
 }) {
   return (
@@ -452,17 +440,17 @@ function SummaryItem({ icon: Icon, color, bg, label, value, sub, subColor, onCli
       onClick={onClick}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.97 }}
-      className="flex items-center gap-3 p-3 rounded-lg border border-border/40 hover:border-primary/20 text-left transition-colors w-full"
+      className="flex items-center gap-3 p-2.5 rounded-lg border border-border/40 hover:border-primary/20 text-left transition-colors w-full"
     >
-      <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center shrink-0", bg)}>
-        <Icon className={cn("h-4 w-4", color)} />
+      <div className={cn("h-7 w-7 rounded-lg flex items-center justify-center shrink-0", bg)}>
+        <Icon className={cn("h-3.5 w-3.5", color)} />
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
-          <span className="text-lg font-bold tabular-nums"><AnimatedCounter value={value} duration={0.8} /></span>
+          <span className="text-base font-bold tabular-nums"><AnimatedCounter value={value} duration={0.8} /></span>
           {sub && <span className={cn("text-[10px] font-medium", subColor || 'text-muted-foreground')}>{sub}</span>}
         </div>
-        <span className="text-[11px] text-muted-foreground block truncate">{label}</span>
+        <span className="text-[10px] text-muted-foreground block truncate">{label}</span>
       </div>
     </motion.button>
   );
@@ -487,15 +475,15 @@ const DataForceSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> =
   }, []);
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader className="p-4 pb-2.5 border-b border-border/40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-blue-500" />
             <CardTitle className="text-sm font-semibold">DataForce AI</CardTitle>
           </div>
-          <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-7" onClick={() => onTabChange('dataforce')}>
-            Open <ArrowRight className="h-3 w-3 ml-1" />
+          <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-7 px-2" onClick={() => onTabChange('dataforce')}>
+            <ArrowRight className="h-3 w-3" />
           </Button>
         </div>
       </CardHeader>
@@ -504,13 +492,13 @@ const DataForceSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> =
           <div className="flex justify-center py-6"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
         ) : (
           <div className="space-y-2">
-            <SummaryItem icon={Shield} color="text-blue-500" bg="bg-blue-500/10" label="Compliance Scans" value={data.scans}
+            <SummaryRow icon={Shield} color="text-blue-500" bg="bg-blue-500/10" label="Compliance Scans" value={data.scans}
               sub={data.avgScore > 0 ? `Avg: ${data.avgScore.toFixed(0)}%` : undefined}
               subColor={data.avgScore >= 80 ? 'text-emerald-500' : data.avgScore >= 60 ? 'text-amber-500' : 'text-destructive'}
               onClick={() => onTabChange('intelligence')} />
             <div className="grid grid-cols-2 gap-2">
-              <SummaryItem icon={Bot} color="text-emerald-500" bg="bg-emerald-500/10" label="Conversations" value={data.conversations} onClick={() => onTabChange('intelligence')} />
-              <SummaryItem icon={Users} color="text-violet-500" bg="bg-violet-500/10" label="Validations" value={data.validations}
+              <SummaryRow icon={MessageSquare} color="text-emerald-500" bg="bg-emerald-500/10" label="Conversations" value={data.conversations} onClick={() => onTabChange('intelligence')} />
+              <SummaryRow icon={Users} color="text-violet-500" bg="bg-violet-500/10" label="Validations" value={data.validations}
                 sub={data.pending > 0 ? `${data.pending} pending` : undefined} subColor="text-amber-500"
                 onClick={() => onTabChange('intelligence')} />
             </div>
@@ -523,7 +511,7 @@ const DataForceSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> =
 
 // ─── GlobalLink Summary ─────────────────────────────────────
 const GlobalLinkSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> = ({ onTabChange }) => {
-  const [data, setData] = useState<{ totalJobs: number; completedJobs: number; pendingJobs: number; languages: number; variants: number } | null>(null);
+  const [data, setData] = useState<{ totalJobs: number; completedJobs: number; languages: number; variants: number } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -536,7 +524,6 @@ const GlobalLinkSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> 
       setData({
         totalJobs: allJobs.length,
         completedJobs: allJobs.filter(j => j.status === 'completed').length,
-        pendingJobs: allJobs.filter(j => j.status === 'pending' || j.status === 'in_progress').length,
         languages: languages?.length || 0,
         variants: variants?.length || 0,
       });
@@ -544,15 +531,15 @@ const GlobalLinkSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> 
   }, []);
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader className="p-4 pb-2.5 border-b border-border/40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Globe className="h-3.5 w-3.5 text-sky-500" />
             <CardTitle className="text-sm font-semibold">GlobalLink</CardTitle>
           </div>
-          <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-7" onClick={() => onTabChange('globallink')}>
-            Open <ArrowRight className="h-3 w-3 ml-1" />
+          <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-7 px-2" onClick={() => onTabChange('globallink')}>
+            <ArrowRight className="h-3 w-3" />
           </Button>
         </div>
       </CardHeader>
@@ -561,13 +548,157 @@ const GlobalLinkSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> 
           <div className="flex justify-center py-6"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
         ) : (
           <div className="space-y-2">
-            <SummaryItem icon={FileText} color="text-sky-500" bg="bg-sky-500/10" label="Translation Jobs" value={data.totalJobs}
+            <SummaryRow icon={FileText} color="text-sky-500" bg="bg-sky-500/10" label="Translation Jobs" value={data.totalJobs}
               sub={data.completedJobs > 0 ? `${data.completedJobs} done` : undefined} subColor="text-emerald-500"
               onClick={() => onTabChange('globallink')} />
             <div className="grid grid-cols-2 gap-2">
-              <SummaryItem icon={Languages} color="text-indigo-500" bg="bg-indigo-500/10" label="Languages" value={data.languages} onClick={() => onTabChange('globallink')} />
-              <SummaryItem icon={Globe} color="text-teal-500" bg="bg-teal-500/10" label="Variants" value={data.variants} onClick={() => onTabChange('globallink')} />
+              <SummaryRow icon={Languages} color="text-indigo-500" bg="bg-indigo-500/10" label="Languages" value={data.languages} onClick={() => onTabChange('globallink')} />
+              <SummaryRow icon={Globe} color="text-teal-500" bg="bg-teal-500/10" label="Variants" value={data.variants} onClick={() => onTabChange('globallink')} />
             </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// ─── Bot Summary ────────────────────────────────────────────
+const BotSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> = ({ onTabChange }) => {
+  const [data, setData] = useState<{ activeBots: number; totalConversations: number; totalMessages: number; avgSatisfaction: number } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const [{ data: bots }, { data: conversations }] = await Promise.all([
+        supabase.from('bot_config').select('id, is_active'),
+        supabase.from('bot_conversations').select('id, message_count, satisfaction_rating'),
+      ]);
+      const allBots = bots || [];
+      const allConvos = conversations || [];
+      const ratings = allConvos.filter(c => c.satisfaction_rating != null).map(c => c.satisfaction_rating!);
+      const avgRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+      const totalMsgs = allConvos.reduce((a, c) => a + (c.message_count || 0), 0);
+
+      setData({
+        activeBots: allBots.filter(b => b.is_active).length,
+        totalConversations: allConvos.length,
+        totalMessages: totalMsgs,
+        avgSatisfaction: avgRating,
+      });
+    })();
+  }, []);
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="p-4 pb-2.5 border-b border-border/40">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Bot className="h-3.5 w-3.5 text-emerald-500" />
+            <CardTitle className="text-sm font-semibold">AI Assistants</CardTitle>
+          </div>
+          <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-7 px-2" onClick={() => onTabChange('bot-management')}>
+            <ArrowRight className="h-3 w-3" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-3">
+        {!data ? (
+          <div className="flex justify-center py-6"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+        ) : (
+          <div className="space-y-2">
+            <SummaryRow icon={Bot} color="text-emerald-500" bg="bg-emerald-500/10" label="Active Bots" value={data.activeBots}
+              sub={`${data.totalConversations} sessions`} subColor="text-muted-foreground"
+              onClick={() => onTabChange('bot-management')} />
+            <div className="grid grid-cols-2 gap-2">
+              <SummaryRow icon={MessageSquare} color="text-blue-500" bg="bg-blue-500/10" label="Messages" value={data.totalMessages}
+                onClick={() => onTabChange('bot-management')} />
+              <SummaryRow icon={TrendingUp} color="text-amber-500" bg="bg-amber-500/10" label="Avg Rating" value={Math.round(data.avgSatisfaction * 10) / 10}
+                sub={data.avgSatisfaction > 0 ? '/5' : 'N/A'} subColor="text-muted-foreground"
+                onClick={() => onTabChange('bot-management')} />
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// ─── Bias Awareness Summary ─────────────────────────────────
+const BiasAwarenessSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> = ({ onTabChange }) => {
+  const [data, setData] = useState<{
+    totalScans: number; completedScans: number; avgInclusion: number;
+    avgAccessibility: number; avgLanguage: number; avgVisual: number;
+  } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data: scans } = await supabase
+        .from('bias_awareness_scans')
+        .select('status, inclusion_score, accessibility_score, language_score, visual_score')
+        .order('created_at', { ascending: false })
+        .limit(200);
+
+      const all = scans || [];
+      const completed = all.filter(s => s.status === 'completed');
+      const avg = (key: 'inclusion_score' | 'accessibility_score' | 'language_score' | 'visual_score') => {
+        const vals = completed.map(s => Number(s[key])).filter(v => !isNaN(v) && v > 0);
+        return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+      };
+
+      setData({
+        totalScans: all.length,
+        completedScans: completed.length,
+        avgInclusion: avg('inclusion_score'),
+        avgAccessibility: avg('accessibility_score'),
+        avgLanguage: avg('language_score'),
+        avgVisual: avg('visual_score'),
+      });
+    })();
+  }, []);
+
+  const scoreColor = (v: number) => v >= 80 ? 'text-emerald-500' : v >= 60 ? 'text-amber-500' : 'text-destructive';
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="p-4 pb-2.5 border-b border-border/40">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Scale className="h-3.5 w-3.5 text-violet-500" />
+            <CardTitle className="text-sm font-semibold">Bias Awareness</CardTitle>
+          </div>
+          <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-7 px-2" onClick={() => onTabChange('bias-awareness')}>
+            <ArrowRight className="h-3 w-3" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-3">
+        {!data ? (
+          <div className="flex justify-center py-6"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+        ) : (
+          <div className="space-y-2">
+            <SummaryRow icon={Scan} color="text-violet-500" bg="bg-violet-500/10" label="Completed Scans" value={data.completedScans}
+              sub={data.avgInclusion > 0 ? `Avg: ${data.avgInclusion.toFixed(0)}%` : undefined}
+              subColor={scoreColor(data.avgInclusion)}
+              onClick={() => onTabChange('bias-awareness')} />
+
+            {/* Dimension breakdown */}
+            {data.completedScans > 0 && (
+              <div className="space-y-1.5 pt-1">
+                {[
+                  { label: 'Language', value: data.avgLanguage, icon: FileText },
+                  { label: 'Visual', value: data.avgVisual, icon: Eye },
+                  { label: 'Accessibility', value: data.avgAccessibility, icon: Accessibility },
+                ].map(dim => (
+                  <div key={dim.label} className="flex items-center gap-2">
+                    <dim.icon className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <span className="text-[10px] text-muted-foreground w-16">{dim.label}</span>
+                    <Progress value={dim.value} className="h-1.5 flex-1" />
+                    <span className={cn("text-[10px] font-bold tabular-nums w-8 text-right", scoreColor(dim.value))}>
+                      {dim.value > 0 ? `${dim.value.toFixed(0)}%` : '—'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </CardContent>
