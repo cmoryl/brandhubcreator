@@ -6,7 +6,7 @@ import { sectionMeta } from './ReorderableBrandSidebar';
 import { HeroBackground } from '@/components/HeroBackground';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Paintbrush, Sparkles, Waves, LayoutGrid, Image, Palette, X } from 'lucide-react';
+import { Paintbrush, Sparkles, Waves, LayoutGrid, X, ArrowUpDown } from 'lucide-react';
 
 interface SectionCardGridProps {
   sectionOrder: SectionId[];
@@ -65,6 +65,55 @@ const TINT_PRESETS = [
   { label: 'Cyan', value: '#06b6d4' },
 ];
 
+type SortMode = 'default' | 'category' | 'alphabetical' | 'identity-first' | 'visual-first' | 'assets-first';
+
+const SORT_OPTIONS: { value: SortMode; label: string }[] = [
+  { value: 'default', label: 'Custom Order' },
+  { value: 'category', label: 'By Category' },
+  { value: 'alphabetical', label: 'A–Z' },
+  { value: 'identity-first', label: 'Identity First' },
+  { value: 'visual-first', label: 'Visual First' },
+  { value: 'assets-first', label: 'Assets First' },
+];
+
+const CATEGORY_ORDER = ['Identity', 'Visual', 'Typography', 'Assets', 'Communication', 'Resources', 'Collateral'];
+
+const sortSections = (sections: SectionId[], mode: SortMode): SectionId[] => {
+  if (mode === 'default') return sections;
+  
+  const sorted = [...sections];
+  
+  switch (mode) {
+    case 'alphabetical':
+      return sorted.sort((a, b) => {
+        const labelA = sectionMeta[a]?.label || '';
+        const labelB = sectionMeta[b]?.label || '';
+        return labelA.localeCompare(labelB);
+      });
+    case 'category':
+      return sorted.sort((a, b) => {
+        const catA = CATEGORY_ORDER.indexOf(sectionMeta[a]?.category || '');
+        const catB = CATEGORY_ORDER.indexOf(sectionMeta[b]?.category || '');
+        if (catA !== catB) return catA - catB;
+        return (sectionMeta[a]?.label || '').localeCompare(sectionMeta[b]?.label || '');
+      });
+    case 'identity-first':
+    case 'visual-first':
+    case 'assets-first': {
+      const priorityCat = mode === 'identity-first' ? 'Identity' : mode === 'visual-first' ? 'Visual' : 'Assets';
+      return sorted.sort((a, b) => {
+        const aIsPriority = sectionMeta[a]?.category === priorityCat;
+        const bIsPriority = sectionMeta[b]?.category === priorityCat;
+        if (aIsPriority && !bIsPriority) return -1;
+        if (!aIsPriority && bIsPriority) return 1;
+        return 0;
+      });
+    }
+    default:
+      return sorted;
+  }
+};
+
 export const SectionCardGrid = ({
   sectionOrder,
   hiddenSections = [],
@@ -76,14 +125,15 @@ export const SectionCardGrid = ({
   onCardViewBackgroundChange,
 }: SectionCardGridProps) => {
   const [bgPickerOpen, setBgPickerOpen] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>('default');
 
   const sections = useMemo(() => {
     const base = sectionOrder.filter(
       (id) => sectionMeta[id] && !EXCLUDED_FROM_NAV.includes(id)
     );
-    if (isAdmin) return base;
-    return base.filter((id) => !hiddenSections.includes(id));
-  }, [sectionOrder, hiddenSections, isAdmin]);
+    const visible = isAdmin ? base : base.filter((id) => !hiddenSections.includes(id));
+    return sortSections(visible, sortMode);
+  }, [sectionOrder, hiddenSections, isAdmin, sortMode]);
 
   const hasBackground = cardViewBackground && cardViewBackground !== 'inherit';
 
@@ -107,9 +157,44 @@ export const SectionCardGrid = ({
       )}
 
       <div className="relative z-10">
-        {/* Background picker button - admin only */}
-        {isAdmin && onCardViewBackgroundChange && (
-          <div className="flex justify-end mb-2">
+        {/* Toolbar row: sort + background */}
+        <div className="flex items-center justify-between mb-2 gap-2">
+          {/* Sort selector */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                className={cn(
+                  'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all',
+                  'bg-card/60 backdrop-blur-sm border border-border/50 text-muted-foreground hover:text-foreground hover:bg-card/80',
+                  sortMode !== 'default' && 'ring-1 ring-accent/40 text-accent'
+                )}
+              >
+                <ArrowUpDown className="h-3.5 w-3.5" />
+                <span>{SORT_OPTIONS.find(o => o.value === sortMode)?.label || 'Sort'}</span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-44 p-2">
+              <div className="space-y-0.5">
+                {SORT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSortMode(opt.value)}
+                    className={cn(
+                      'w-full text-left px-2.5 py-1.5 rounded-md text-xs transition-all',
+                      sortMode === opt.value
+                        ? 'bg-accent/10 text-accent font-medium'
+                        : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Background picker button - admin only */}
+          {isAdmin && onCardViewBackgroundChange && (
             <Popover open={bgPickerOpen} onOpenChange={setBgPickerOpen}>
               <PopoverTrigger asChild>
                 <button
@@ -178,8 +263,8 @@ export const SectionCardGrid = ({
                 </div>
               </PopoverContent>
             </Popover>
-          </div>
-        )}
+          )}
+        </div>
 
         <motion.div 
           className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-1.5 sm:gap-2"

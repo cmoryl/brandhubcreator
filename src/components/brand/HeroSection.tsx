@@ -616,7 +616,7 @@ export const HeroSection = ({
           />
         )}
 
-        {/* Stats Panel - Top Left - Aligned to page content */}
+        {/* Stats Panel - Top Left - Hidden in compact mode (moved to right side instead) */}
         {showStats && enhancedMode && !compact && (
           <div className="absolute inset-x-0 top-0 z-30 pointer-events-none">
             <div className="w-full px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
@@ -681,12 +681,12 @@ export const HeroSection = ({
 
         {/* Main Content Area - z-20 to be above overlays */}
         <div className="absolute inset-0 flex items-end z-20 pointer-events-none">
-          <div className="w-full px-4 sm:px-6 lg:px-8 pb-4 sm:pb-8 lg:pb-12 pointer-events-auto">
+          <div className={`w-full px-4 sm:px-6 lg:px-8 ${compact ? 'pb-2 sm:pb-4 lg:pb-6' : 'pb-4 sm:pb-8 lg:pb-12'} pointer-events-auto`}>
             {/* Centered content container matching page max-width */}
             <div className="max-w-7xl mx-auto">
               <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-start lg:items-end justify-between">
               {/* Left: Logo & Brand Info */}
-              <div className="flex gap-4 sm:gap-6 items-end flex-1">
+              <div className={`flex ${compact ? 'gap-3 sm:gap-4' : 'gap-4 sm:gap-6'} items-end flex-1`}>
                 {/* Logo with enhanced styling - smaller on mobile */}
                 <div
                   className={`relative shrink-0 ${compact ? 'w-14 h-14 sm:w-20 sm:h-20 lg:w-28 lg:h-28 xl:w-32 xl:h-32 rounded-xl sm:rounded-2xl border sm:border-2' : 'w-20 h-20 sm:w-32 sm:h-32 lg:w-44 lg:h-44 xl:w-52 xl:h-52 rounded-2xl sm:rounded-3xl border-2 sm:border-4'} bg-white border-white shadow-2xl flex items-center justify-center overflow-hidden transform transition-all duration-300 hover:scale-105 ${canEdit && isEditing ? 'cursor-pointer group/logo' : ''}`}
@@ -771,6 +771,43 @@ export const HeroSection = ({
                   )}
                 </div>
               </div>
+
+              {/* Right: Compact stats panel in card view mode */}
+              {compact && showStats && (
+                <div className={`hidden sm:flex flex-col gap-1.5 items-end shrink-0 transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/20 shadow-lg cursor-help">
+                        <BarChart3 className="h-3.5 w-3.5 text-white" />
+                        <span className="text-white/80 text-xs">Health</span>
+                        <span className="text-white font-bold text-xs">{animatedStats.healthScore || 0}%</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="max-w-xs p-3 bg-popover/95 backdrop-blur-sm">
+                      <div className="space-y-2">
+                        <p className="font-semibold text-sm">Brand Completeness: {calculatedHealth.overallScore}%</p>
+                        <p className="text-xs text-muted-foreground">{calculatedHealth.filledSections}/{calculatedHealth.totalSections} sections filled</p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                  <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/20 shadow-lg">
+                    <ComplianceScoreBadge score={complianceScore} size="sm" />
+                  </div>
+                  <Badge variant="secondary" className="bg-white/10 backdrop-blur-md border-white/20 text-white text-[10px] px-2 py-0.5">
+                    <Sparkles className="h-2.5 w-2.5 mr-1" />
+                    Active
+                  </Badge>
+                  {onOpenIntelligence && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); onOpenIntelligence(); }}
+                      className="flex items-center gap-1 bg-white/10 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/20 shadow-lg hover:bg-white/20 transition-colors text-white text-xs cursor-pointer"
+                    >
+                      <Brain className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              )}
 
               </div>
             </div>
