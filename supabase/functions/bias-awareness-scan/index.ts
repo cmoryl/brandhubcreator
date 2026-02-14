@@ -9,6 +9,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { scanTextForInclusiveLanguage, buildDeepIntelligencePromptContext, INCLUSIVE_PROMPTING_HEURISTICS, EAA_COMPLIANCE_BASELINE } from "../_shared/inclusive-language-patterns.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -119,7 +120,15 @@ serve(async (req) => {
       .eq('entity_type', entity_type)
       .maybeSingle();
 
-    // Build context string
+    // Run automated regex scan on entity text context
+    const entityText = typeof entityContext === 'string' ? entityContext : JSON.stringify(entityContext || {});
+    const regexFindings = scanTextForInclusiveLanguage(entityText);
+    const regexSummary = regexFindings.length > 0
+      ? `\n\nAUTOMATED REGEX PRE-SCAN (Tier 1 Inclusive Language):\nFound ${regexFindings.length} flagged term(s):\n${regexFindings.slice(0, 20).map(f => `- "${f.matched}" [${f.category}/${f.severity}] → Replace with: ${f.replacements.join(' / ')}`).join('\n')}`
+      : '\n\nAUTOMATED REGEX PRE-SCAN: No Tier 1 problematic terms detected.';
+
+    // Build context string with deep intelligence
+    const deepIntelCtx = buildDeepIntelligencePromptContext();
     const contextStr = JSON.stringify({
       entity: entityContext || { name: entity_name },
       intelligence: intelligence ? {
@@ -128,13 +137,13 @@ serve(async (req) => {
         cultural: intelligence.cultural_insights,
         audience: intelligence.target_audience
       } : null
-    });
+    }) + regexSummary + '\n\n' + deepIntelCtx;
 
     // Process in background
     // @ts-ignore - EdgeRuntime available in Supabase
     EdgeRuntime.waitUntil((async () => {
       try {
-        const systemPrompt = `You are an advanced Bias Awareness & Inclusion Auditor for brand ecosystems (2026 standard). Analyze the provided entity data across 4 core dimensions PLUS 5 advanced governance modules. Return a single structured JSON assessment.
+        const systemPrompt = `You are an advanced Bias Awareness & Inclusion Auditor for brand ecosystems (2026 standard). You have access to automated Tier 1 regex pre-scan results AND Deep Intelligence modules (inclusive prompting heuristics, EAA regulatory baseline, design sprint activities). Analyze the provided entity data across 4 core dimensions PLUS 5 advanced governance modules. Incorporate the regex pre-scan findings directly into your language score. Apply EAA regulatory requirements to the accessibility score. Return a single structured JSON assessment.
 
 CORE DIMENSIONS (0-100 each):
 

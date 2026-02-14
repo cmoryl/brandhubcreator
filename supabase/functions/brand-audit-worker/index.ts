@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { INCLUSIVE_LANGUAGE_PATTERNS, buildDeepIntelligencePromptContext } from "../_shared/inclusive-language-patterns.ts";
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -233,7 +234,11 @@ serve(async (req) => {
       }
     }
 
-    promptLines.push(`\nAudit this brand for cohesion and completeness across ALL visible sections. Consider Oracle org-level context for strategic alignment. Return JSON.`);
+    // Add Deep Intelligence context for enhanced bias review
+    const deepIntelCtx = buildDeepIntelligencePromptContext();
+    promptLines.push(`\n${deepIntelCtx}`);
+
+    promptLines.push(`\nAudit this brand for cohesion and completeness across ALL visible sections. Consider Oracle org-level context for strategic alignment. Apply Deep Intelligence modules for bias and inclusivity scoring. Return JSON.`);
 
     await updateJob(jobId!, { progress: 60 });
 
@@ -248,25 +253,26 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a brand cohesion expert auditing a brand guide. You have been given a detailed section-by-section completeness breakdown. Evaluate visual consistency, identity coherence, digital presence maturity, overall completeness, AND bias & inclusivity.
+            content: `You are a brand cohesion expert auditing a brand guide. You have been given a detailed section-by-section completeness breakdown AND Deep Intelligence modules (inclusive language regex patterns, inclusive prompting heuristics, EAA regulatory baseline). Evaluate visual consistency, identity coherence, digital presence maturity, overall completeness, AND bias & inclusivity using the Deep Intelligence framework.
 
 Return JSON only:
-{"overallScore":<0-100>,"categories":[{"name":"<category name>","score":<0-100>,"findings":["specific finding..."],"recommendations":["actionable rec..."]}],"biasReview":{"score":<0-100>,"languageInclusivity":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"visualRepresentation":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"culturalSensitivity":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"accessibilityConsiderations":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"overallFindings":["..."],"overallRecommendations":["..."]},"summary":"<2-3 sentences on overall cohesion>","strengths":["..."],"weaknesses":["..."],"actionItems":["prioritized action..."]}
+{"overallScore":<0-100>,"categories":[{"name":"<category name>","score":<0-100>,"findings":["specific finding..."],"recommendations":["actionable rec..."]}],"biasReview":{"score":<0-100>,"languageInclusivity":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"visualRepresentation":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"culturalSensitivity":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"accessibilityConsiderations":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"regulatoryCompliance":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"overallFindings":["..."],"overallRecommendations":["..."]},"summary":"<2-3 sentences on overall cohesion>","strengths":["..."],"weaknesses":["..."],"actionItems":["prioritized action..."]}
 
 Categories MUST include: Visual Consistency, Brand Identity, Digital Presence, Content Completeness, Marketing Materials, Best Practices.
 
-For the biasReview section, analyze the brand guide content for:
-- Language Inclusivity: gendered language, ableist terms, cultural assumptions in taglines/mission/values/messaging
-- Visual Representation: diversity signals in imagery guidelines, logo accessibility, color contrast considerations
-- Cultural Sensitivity: region-specific messaging concerns, universal vs localized tone, potential cultural blind spots
-- Accessibility Considerations: alt text practices, color-only information, typography readability, screen reader friendliness
+For the biasReview section, apply Deep Intelligence modules:
+- Language Inclusivity: Use the Tier 1 regex patterns to flag non-inclusive terms (whitelist/blacklist, master/slave, grandfathered, ableist slang, dummy). Also check for gendered language, cultural assumptions.
+- Visual Representation: Apply Inclusive Prompting Heuristics — check if imagery guidelines specify visible identity diversity, observable actions over internal identities, cultural context. Flag if guidelines default to narrow representation.
+- Cultural Sensitivity: Evaluate region-specific messaging, universal vs localized tone, cultural blind spots.
+- Accessibility Considerations: Apply EAA 2025/2026 baseline — check for public Accessibility Statement, WCAG 2.2 readiness, alt text practices, color-only information, typography readability. Flag EU compliance gaps.
+- Regulatory Compliance: Score against EAA mandatory scope. Flag if consumer-facing products lack accessibility statements or improvement timelines.
 
 Score based on ACTUAL section data provided. Empty sections should significantly reduce relevant category scores. Be specific — reference actual section names and completion levels in findings.`
           },
           { role: 'user', content: promptLines.join('\n') }
         ],
         temperature: 0.3,
-        max_tokens: 2200,
+        max_tokens: 2500,
       }),
     });
 
