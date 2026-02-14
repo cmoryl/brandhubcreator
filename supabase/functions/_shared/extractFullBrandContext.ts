@@ -294,8 +294,19 @@ export function extractFullBrandContext(
   // ── Websites ──
   const websites = safeArr(g.websites);
   if (websites.length) {
-    parts.push(`Websites: ${websites.slice(0, 3).map((w: any) => w.url || w.name || '').join(', ')}`);
+    const websiteDetails = websites.slice(0, 5).map((w: any) => {
+      const d: string[] = [];
+      if (w.url || w.name) d.push(w.url || w.name);
+      if (w.label) d.push(`(${w.label})`);
+      if (w.description) d.push(`- ${safeStr(w.description).slice(0, 100)}`);
+      if (w.purpose) d.push(`Purpose: ${w.purpose}`);
+      return d.join(' ');
+    });
+    parts.push(`Websites (${websites.length}): ${websiteDetails.join('; ')}`);
     sectionsWithData.push('websites');
+    for (const w of websites.slice(0, 3)) {
+      addImages(extractItemUrls(w, 'websites', 'image', w.label || w.name || w.url || 'Website'));
+    }
   }
 
   // ── Signatures ──
@@ -444,19 +455,45 @@ export function extractFullBrandContext(
   // ── Webinars ──
   const webinars = safeArr(g.webinars);
   if (webinars.length) {
-    parts.push(`Webinars: ${webinars.length}`);
+    const webinarDetails = webinars.slice(0, 5).map((w: any) => {
+      const d: string[] = [];
+      d.push(w.title || w.name || 'Untitled Webinar');
+      if (w.topic || w.category) d.push(`[${w.topic || w.category}]`);
+      if (w.description) d.push(`- ${safeStr(w.description).slice(0, 120)}`);
+      if (w.speakers) {
+        const speakers = Array.isArray(w.speakers)
+          ? w.speakers.map((s: any) => typeof s === 'string' ? s : s?.name || '').join(', ')
+          : String(w.speakers);
+        d.push(`Speakers: ${speakers}`);
+      }
+      if (w.date || w.eventDate) d.push(`Date: ${w.date || w.eventDate}`);
+      if (w.recordingUrl || w.url) d.push(`Recording: available`);
+      if (w.duration) d.push(`Duration: ${w.duration}`);
+      return d.join(' ');
+    });
+    parts.push(`Webinars (${webinars.length}): ${webinarDetails.join(' | ')}`);
     sectionsWithData.push('webinars');
-    for (const w of webinars.slice(0, 2)) {
+    for (const w of webinars.slice(0, 3)) {
       addImages(extractItemUrls(w, 'webinars', 'video-thumb', w.title || w.name));
     }
   }
 
-  // ── Awards ──
+  // ── Awards & Recognition ──
   const awards = safeArr(g.awards);
   if (awards.length) {
-    parts.push(`Awards (${awards.length}): ${summarizeItems(awards, ['title', 'name'])}`);
+    const awardDetails = awards.slice(0, 8).map((a: any) => {
+      const d: string[] = [];
+      d.push(a.title || a.name || 'Award');
+      if (a.organization || a.awardBody || a.issuingBody) d.push(`by ${a.organization || a.awardBody || a.issuingBody}`);
+      if (a.year || a.date) d.push(`(${a.year || a.date})`);
+      if (a.category) d.push(`[${a.category}]`);
+      if (a.description) d.push(`- ${safeStr(a.description).slice(0, 100)}`);
+      if (a.significance) d.push(`Significance: ${safeStr(a.significance).slice(0, 80)}`);
+      return d.join(' ');
+    });
+    parts.push(`Awards & Recognition (${awards.length}): ${awardDetails.join(' | ')}`);
     sectionsWithData.push('awards');
-    for (const a of awards.slice(0, 3)) {
+    for (const a of awards.slice(0, 4)) {
       addImages(extractItemUrls(a, 'awards', 'image', a.title || a.name));
     }
   }
@@ -507,9 +544,45 @@ export function extractFullBrandContext(
     if (isValidUrl(atmosphere.imageUrl)) addImages([{ url: atmosphere.imageUrl as string, section: 'atmosphere', label: 'Atmosphere Image', type: 'image' }]);
   }
 
-  // ── Insights ──
+  // ── Insights (includes website analysis reports, competitive intel) ──
   const insightsArr = safeArr(g.insights);
-  if (insightsArr.length) { parts.push(`Brand Insights: ${insightsArr.length}`); sectionsWithData.push('insights'); }
+  if (insightsArr.length) {
+    const websiteAnalyses = insightsArr.filter((i: any) => i?.type === 'website_analysis' || i?.subtype === 'website-report');
+    const otherInsights = insightsArr.filter((i: any) => i?.type !== 'website_analysis' && i?.subtype !== 'website-report');
+
+    if (websiteAnalyses.length) {
+      const analysisDetails = websiteAnalyses.slice(0, 3).map((wa: any) => {
+        const d: string[] = [];
+        const report = wa.report || wa.data || {};
+        d.push(`URL: ${wa.url || wa.title || 'unknown'}`);
+        if (report.overallScore) d.push(`Score: ${report.overallScore}/100 (Grade: ${report.grade || 'N/A'})`);
+        if (report.summary) d.push(`Summary: ${safeStr(report.summary).slice(0, 200)}`);
+        const sections = report.sections || {};
+        const sectionScores = Object.entries(sections).map(([key, val]: [string, any]) =>
+          `${key}: ${val?.score ?? 'N/A'}/100`
+        );
+        if (sectionScores.length) d.push(`Sections: ${sectionScores.join(', ')}`);
+        const topRecs = safeArr(report.topRecommendations);
+        if (topRecs.length) d.push(`Top Recs: ${topRecs.slice(0, 3).join('; ')}`);
+        const actions = safeArr(report.priorityActions);
+        if (actions.length) d.push(`Priority Actions: ${actions.slice(0, 3).map((a: any) => `${a.action || a.title} (${a.impact} impact)`).join('; ')}`);
+        return d.join('. ');
+      });
+      parts.push(`Website Analysis Reports (${websiteAnalyses.length}): ${analysisDetails.join(' || ')}`);
+    }
+
+    if (otherInsights.length) {
+      const insightSummary = otherInsights.slice(0, 5).map((i: any) => {
+        const d: string[] = [];
+        d.push(i.title || i.type || 'Insight');
+        if (i.description) d.push(safeStr(i.description).slice(0, 100));
+        return d.join(': ');
+      });
+      parts.push(`Brand Insights (${otherInsights.length}): ${insightSummary.join(' | ')}`);
+    }
+
+    sectionsWithData.push('insights');
+  }
 
   // ── Locations ──
   const locations = safeArr(g.locations);
