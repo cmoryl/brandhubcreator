@@ -152,7 +152,7 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect }: Signat
         </div>
 
         {/* Template Grid */}
-        <ScrollArea className="flex-1 px-6 py-4" style={{ maxHeight: 'calc(90vh - 180px)' }}>
+        <ScrollArea className="flex-1 px-6 py-4 [&>[data-radix-scroll-area-viewport]]:!overflow-y-scroll [&_[data-radix-scroll-area-scrollbar]]:opacity-100" style={{ maxHeight: 'calc(90vh - 180px)' }}>
           <div className={
             viewMode === 'grid'
               ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5'
