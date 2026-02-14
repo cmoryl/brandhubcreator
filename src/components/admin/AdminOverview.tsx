@@ -26,6 +26,7 @@ import {
   QuickAction,
   getActivityIcon
 } from '@/lib/admin';
+import { AdminReportingWidgets } from './AdminReportingWidgets';
 
 // ─── Animated Counter ───────────────────────────────────────
 function AnimatedCounter({ value, duration = 1.2 }: { value: number; duration?: number }) {
@@ -429,6 +430,9 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
           </Card>
         </motion.div>
       </div>
+
+      {/* ── Reporting Section ──────────────────────────────── */}
+      <AdminReportingWidgets stats={stats} onTabChange={onTabChange} />
 
       {/* ── Summary Widgets Row ─────────────────────────────── */}
       <motion.div variants={fadeUp} className="grid lg:grid-cols-2 gap-4">
