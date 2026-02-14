@@ -120,6 +120,23 @@ serve(async (req) => {
     let entityContext = '';
     let entityName = 'your organization';
     
+    // Build entity directory for navigation (all brands, products, events in org)
+    let entityDirectory = '';
+    try {
+      const [{ data: allBrands }, { data: allProducts }, { data: allEvents }] = await Promise.all([
+        supabase.from('brands').select('id, name, slug').eq('organization_id', organization_id).limit(100),
+        supabase.from('products').select('id, name, slug, parent_brand_id').eq('organization_id', organization_id).limit(100),
+        supabase.from('events').select('id, name, slug, parent_brand_id').eq('organization_id', organization_id).limit(100),
+      ]);
+      const dirParts: string[] = [];
+      if (allBrands?.length) dirParts.push(`Brands: ${allBrands.map(b => `${b.name} [slug:${b.slug}]`).join(', ')}`);
+      if (allProducts?.length) dirParts.push(`Products: ${allProducts.map(p => `${p.name} [slug:${p.slug}]`).join(', ')}`);
+      if (allEvents?.length) dirParts.push(`Events: ${allEvents.map(e => `${e.name} [slug:${e.slug}]`).join(', ')}`);
+      if (dirParts.length) entityDirectory = `\n\nAVAILABLE ENTITIES IN THIS ORGANIZATION:\n${dirParts.join('\n')}`;
+    } catch (e) {
+      console.warn('[dataforce-assistant] Entity directory fetch failed:', e);
+    }
+    
     // Fetch Oracle context in parallel with entity data
     let oracleContext = '';
     try {
@@ -382,7 +399,7 @@ serve(async (req) => {
 
     const systemPrompt = `${persona}${personalityBlock}${styleBlock}
 
-${entityContext}${oracleContext}
+${entityContext}${oracleContext}${entityDirectory}
 ${languageInstruction}
 
 Guidelines for responses:
@@ -390,7 +407,18 @@ Guidelines for responses:
 - Reference specific brand elements when relevant
 - Provide practical, actionable advice
 - Maintain brand voice and tone
-- If you don't have specific information, say so clearly`;
+- If you don't have specific information, say so clearly
+
+NAVIGATION LINKS:
+When a user asks about a specific brand, product, or event that exists in the entity directory above, include navigation links in your response using this exact format:
+[[nav:TYPE:SLUG:SECTION|LABEL]]
+Where TYPE is "brand", "product", or "event", SLUG is the entity slug from the directory, SECTION is an optional section hash (e.g. "colors", "typography", "hero", "identity", "logos", "imagery", "social", "values", "templates", "gradients", "patterns", "iconography", "misuse", "services", "signatures", "digital-collateral", "social-assets", "statistics", "case-studies", "videos", "websites", "awards"), and LABEL is the display text.
+Examples:
+- "Check out [[nav:brand:transperfect:colors|TransPerfect's Color Palette]]"
+- "View [[nav:product:globallink-tms|GlobalLink TMS]] for details"
+- "See [[nav:event:annual-summit:hero|Annual Summit Overview]]"
+- "You can view it at [[nav:brand:transperfect|TransPerfect Brand Guide]]"
+Only use slugs that exist in the entity directory. Do not fabricate slugs. If no matching entity exists, do not include a navigation link.`;
 
     // Call AI
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
