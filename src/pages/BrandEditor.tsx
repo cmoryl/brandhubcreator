@@ -12,6 +12,7 @@ import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 import { normalizeBrandGuide } from '@/lib/guideNormalization';
+import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -324,6 +325,7 @@ const BrandEditor = () => {
   const { data: complianceScores } = useLatestComplianceScores(brand?.organizationId);
 
   // Track brand view for analytics
+
   useEffect(() => {
     if (brand?.id && user?.id) {
       trackEntityView(user.id, 'brand', brand.id, brand.hero?.name || 'Unknown Brand');
@@ -456,6 +458,13 @@ const BrandEditor = () => {
     [brand?.hiddenSections, sectionOrder]
   );
   const pageSettings = brand?.pageSettings || DEFAULT_PAGE_SETTINGS;
+
+  // Calculate brand health for card view
+  const cardViewHealthScore = useMemo(() => {
+    if (!brand) return undefined;
+    const health = calculateBrandHealth(brand as unknown as Record<string, unknown>, hiddenSections);
+    return health.overallScore;
+  }, [brand, hiddenSections]);
 
   // Continuous bias monitoring — triggers scan on content changes
   // MUST be called before any early returns to respect Rules of Hooks
@@ -1232,8 +1241,11 @@ const BrandEditor = () => {
                     } : undefined}
                     entityName={brand?.hero?.name}
                     entityTagline={brand?.hero?.tagline}
+                    healthScore={cardViewHealthScore}
                     complianceScore={complianceScores?.get(brand.id)?.score}
                     onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined}
+                    entityType="brand"
+                    entityId={brand?.id}
                   />
                   {activeSection !== 'hero' && (
                     <div className="animate-zoom-in">

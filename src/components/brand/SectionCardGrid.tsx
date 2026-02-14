@@ -8,6 +8,7 @@ import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Paintbrush, Sparkles, Waves, LayoutGrid, X, ArrowUpDown, Upload, Sun, Moon, BarChart3, Brain, Shield } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
 
 interface SectionCardGridProps {
   sectionOrder: SectionId[];
@@ -26,6 +27,8 @@ interface SectionCardGridProps {
   healthScore?: number;
   complianceScore?: number;
   onOpenIntelligence?: () => void;
+  entityType?: 'brand' | 'product' | 'event';
+  entityId?: string;
 }
 
 const EXCLUDED_FROM_NAV: SectionId[] = ['socialmetrics', 'hero'];
@@ -140,6 +143,8 @@ export const SectionCardGrid = ({
   healthScore,
   complianceScore,
   onOpenIntelligence,
+  entityType = 'brand',
+  entityId,
 }: SectionCardGridProps) => {
   const [bgPickerOpen, setBgPickerOpen] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>('default');
@@ -147,6 +152,7 @@ export const SectionCardGrid = ({
   const lightLogoInputRef = useRef<HTMLInputElement>(null);
   const darkLogoInputRef = useRef<HTMLInputElement>(null);
   const { resolvedTheme } = useTheme();
+  const { uploadFile } = useStorageUpload({ entityType, entityId });
 
   const sections = useMemo(() => {
     const base = sectionOrder.filter(
@@ -163,11 +169,13 @@ export const SectionCardGrid = ({
     return cardViewBackground as HeroBackgroundType;
   };
 
-  const handleLogoUpload = (variant: 'light' | 'dark') => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = (variant: 'light' | 'dark') => async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !onEntityLogoChange) return;
-    const url = URL.createObjectURL(file);
-    onEntityLogoChange(variant, url);
+    const result = await uploadFile(file, 'logo', `card-view-${variant}-logo`);
+    if (result?.url) {
+      onEntityLogoChange(variant, result.url);
+    }
   };
 
   const activeLogoUrl = resolvedTheme === 'dark' ? (entityDarkLogoUrl || entityLightLogoUrl) : (entityLightLogoUrl || entityDarkLogoUrl);
@@ -187,89 +195,91 @@ export const SectionCardGrid = ({
       )}
 
       <div className="relative z-10">
-        {/* Horizontal identity bar: logo + name + stats */}
-        <div className="flex items-center gap-4 mb-3 flex-wrap">
-          {/* Logo with admin upload popover */}
-          <Popover open={isAdmin && onEntityLogoChange ? logoPickerOpen : false} onOpenChange={setLogoPickerOpen}>
-            <PopoverTrigger asChild>
-              <button className="relative group cursor-pointer shrink-0" title={isAdmin ? 'Click to update logo' : undefined}>
-                {activeLogoUrl ? (
-                  <img
-                    src={activeLogoUrl}
-                    alt="Entity logo"
-                    className="h-[77px] w-auto max-w-[240px] object-contain"
-                  />
-                ) : (
-                  <div className="h-10 w-10 rounded-lg bg-muted/50 border border-border/50 flex items-center justify-center">
-                    <Upload className="h-5 w-5 text-muted-foreground/50" />
+        {/* Identity header: logo stacked above name, stats on right */}
+        <div className="flex items-start justify-between gap-4 mb-3">
+          {/* Left: logo above name+tagline */}
+          <div className="flex flex-col gap-2 min-w-0">
+            {/* Logo */}
+            <Popover open={isAdmin && onEntityLogoChange ? logoPickerOpen : false} onOpenChange={setLogoPickerOpen}>
+              <PopoverTrigger asChild>
+                <button className="relative group cursor-pointer shrink-0 self-start" title={isAdmin ? 'Click to update logo' : undefined}>
+                  {activeLogoUrl ? (
+                    <img
+                      src={activeLogoUrl}
+                      alt="Entity logo"
+                      className="h-[77px] w-auto max-w-[240px] object-contain"
+                    />
+                  ) : isAdmin ? (
+                    <div className="h-12 px-4 rounded-lg bg-muted/50 border border-dashed border-border/50 flex items-center gap-2">
+                      <Upload className="h-4 w-4 text-muted-foreground/50" />
+                      <span className="text-xs text-muted-foreground/50">Add Logo</span>
+                    </div>
+                  ) : null}
+                  {isAdmin && onEntityLogoChange && activeLogoUrl && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                      <Upload className="h-5 w-5 text-foreground" />
+                    </div>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-64 p-3">
+                <p className="text-xs font-medium text-foreground mb-3">Update Logo</p>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <Sun className="h-3.5 w-3.5" />
+                      <span>Light Mode Logo</span>
+                    </div>
+                    <button
+                      onClick={() => lightLogoInputRef.current?.click()}
+                      className="w-full flex items-center gap-2 p-2 rounded-lg border border-border/50 bg-card/60 hover:bg-card/80 transition-all"
+                    >
+                      {entityLightLogoUrl ? (
+                        <img src={entityLightLogoUrl} alt="Light logo" className="h-8 w-auto max-w-[100px] object-contain" />
+                      ) : (
+                        <div className="h-8 w-8 rounded bg-muted/50 flex items-center justify-center">
+                          <Upload className="h-3.5 w-3.5 text-muted-foreground/50" />
+                        </div>
+                      )}
+                      <span className="text-[10px] text-muted-foreground">{entityLightLogoUrl ? 'Replace' : 'Upload'}</span>
+                    </button>
+                    <input ref={lightLogoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload('light')} />
                   </div>
-                )}
-                {isAdmin && onEntityLogoChange && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                    <Upload className="h-5 w-5 text-foreground" />
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <Moon className="h-3.5 w-3.5" />
+                      <span>Dark Mode Logo</span>
+                    </div>
+                    <button
+                      onClick={() => darkLogoInputRef.current?.click()}
+                      className="w-full flex items-center gap-2 p-2 rounded-lg border border-border/50 bg-card/60 hover:bg-card/80 transition-all"
+                    >
+                      {entityDarkLogoUrl ? (
+                        <img src={entityDarkLogoUrl} alt="Dark logo" className="h-8 w-auto max-w-[100px] object-contain" />
+                      ) : (
+                        <div className="h-8 w-8 rounded bg-muted/50 flex items-center justify-center">
+                          <Upload className="h-3.5 w-3.5 text-muted-foreground/50" />
+                        </div>
+                      )}
+                      <span className="text-[10px] text-muted-foreground">{entityDarkLogoUrl ? 'Replace' : 'Upload'}</span>
+                    </button>
+                    <input ref={darkLogoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload('dark')} />
                   </div>
-                )}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent align="start" className="w-64 p-3">
-              <p className="text-xs font-medium text-foreground mb-3">Update Logo</p>
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                    <Sun className="h-3.5 w-3.5" />
-                    <span>Light Mode Logo</span>
-                  </div>
-                  <button
-                    onClick={() => lightLogoInputRef.current?.click()}
-                    className="w-full flex items-center gap-2 p-2 rounded-lg border border-border/50 bg-card/60 hover:bg-card/80 transition-all"
-                  >
-                    {entityLightLogoUrl ? (
-                      <img src={entityLightLogoUrl} alt="Light logo" className="h-8 w-auto max-w-[100px] object-contain" />
-                    ) : (
-                      <div className="h-8 w-8 rounded bg-muted/50 flex items-center justify-center">
-                        <Upload className="h-3.5 w-3.5 text-muted-foreground/50" />
-                      </div>
-                    )}
-                    <span className="text-[10px] text-muted-foreground">{entityLightLogoUrl ? 'Replace' : 'Upload'}</span>
-                  </button>
-                  <input ref={lightLogoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload('light')} />
                 </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                    <Moon className="h-3.5 w-3.5" />
-                    <span>Dark Mode Logo</span>
-                  </div>
-                  <button
-                    onClick={() => darkLogoInputRef.current?.click()}
-                    className="w-full flex items-center gap-2 p-2 rounded-lg border border-border/50 bg-card/60 hover:bg-card/80 transition-all"
-                  >
-                    {entityDarkLogoUrl ? (
-                      <img src={entityDarkLogoUrl} alt="Dark logo" className="h-8 w-auto max-w-[100px] object-contain" />
-                    ) : (
-                      <div className="h-8 w-8 rounded bg-muted/50 flex items-center justify-center">
-                        <Upload className="h-3.5 w-3.5 text-muted-foreground/50" />
-                      </div>
-                    )}
-                    <span className="text-[10px] text-muted-foreground">{entityDarkLogoUrl ? 'Replace' : 'Upload'}</span>
-                  </button>
-                  <input ref={darkLogoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload('dark')} />
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+              </PopoverContent>
+            </Popover>
 
-          {/* Name + Tagline */}
-          <div className="flex flex-col min-w-0">
+            {/* Name + Tagline below logo */}
             {entityName && (
               <h2 className="text-lg font-semibold text-foreground tracking-tight truncate">{entityName}</h2>
             )}
             {entityTagline && (
-              <p className="text-sm text-muted-foreground line-clamp-1">{entityTagline}</p>
+              <p className="text-sm text-muted-foreground line-clamp-1 -mt-1">{entityTagline}</p>
             )}
           </div>
 
-          {/* Stats pills - pushed right */}
-          <div className="flex items-center gap-2 ml-auto shrink-0">
+          {/* Right: Stats pills */}
+          <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end pt-1">
             {healthScore !== undefined && (
               <div className="flex items-center gap-1.5 bg-card/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50">
                 <BarChart3 className="h-3.5 w-3.5 text-muted-foreground" />
