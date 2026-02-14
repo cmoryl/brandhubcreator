@@ -17,7 +17,7 @@ async function updateJob(jobId: string, updates: Record<string, unknown>) {
   });
 }
 
-// ── Lightweight section analysis (mirrors brandHealthCalculator.ts logic) ──
+// ── Section completeness from lightweight summary data ──
 
 const SECTION_DEFS: Record<string, { weight: number; label: string; category: string }> = {
   hero:       { weight: 10, label: 'Brand Name & Hero', category: 'Core Identity' },
@@ -50,7 +50,6 @@ const SECTION_DEFS: Record<string, { weight: number; label: string; category: st
   sponsorLogos:{ weight: 2, label: 'Sponsor Logos', category: 'Partnerships' },
 };
 
-// Map hidden section IDs to guide_data keys
 const HIDDEN_ID_MAP: Record<string, string> = {
   brandicon: 'brandIcons', socialicons: 'socialIcons', socialassets: 'socialAssets',
   website: 'websites', imageassets: 'imageAssets', bythenumbers: 'statistics',
@@ -59,64 +58,70 @@ const HIDDEN_ID_MAP: Record<string, string> = {
   eventsignage: 'eventSignage', universe: 'linkedGuides',
 };
 
-function safeArr(v: unknown): unknown[] { return Array.isArray(v) ? v : []; }
+// Get count for a section from the lightweight summary
+function getCount(summary: Record<string, unknown>, key: string): number {
+  const countKey = `${key}Count`;
+  return (summary[countKey] as number) || 0;
+}
 
-function sectionCompleteness(gd: Record<string, unknown>, key: string): number {
+function sectionCompletenessFromSummary(summary: Record<string, unknown>, key: string): number {
   switch (key) {
     case 'hero': {
-      const h = gd.hero as Record<string, unknown> | undefined;
+      const h = summary.hero as Record<string, unknown> | undefined;
       if (!h?.name) return 0;
-      const filled = ['name','description','tagline','imageUrl','coverImage','cardImage'].filter(f => h[f]).length;
+      const filled = ['name', 'tagline', 'description', 'hasImage', 'hasCover', 'hasCard']
+        .filter(f => h[f]).length;
       return filled >= 4 ? 1 : filled >= 2 ? 0.6 : 0.3;
     }
-    case 'tagline': return (gd.hero as any)?.tagline ? 1 : 0;
+    case 'tagline': {
+      const h = summary.hero as Record<string, unknown> | undefined;
+      return h?.tagline ? 1 : 0;
+    }
     case 'identity': {
-      const id = gd.identity as Record<string, unknown> | undefined;
+      const id = summary.identity as Record<string, unknown> | undefined;
       if (!id) return 0;
-      const filled = ['missionStatement','visionStatement','brandPromise','personality','voiceTone','archetype','brandStory'].filter(f => id[f]).length;
+      const filled = ['missionStatement', 'visionStatement', 'archetype', 'hasBrandPromise', 'hasPersonality', 'hasVoiceTone', 'hasBrandStory']
+        .filter(f => id[f]).length;
       return filled >= 4 ? 1 : filled >= 2 ? 0.6 : filled >= 1 ? 0.3 : 0;
     }
-    case 'values': case 'services': {
-      const arr = safeArr(gd[key]);
-      return arr.length >= 4 ? 1 : arr.length >= 2 ? 0.6 : arr.length > 0 ? 0.3 : 0;
-    }
+    case 'qr': return summary.hasQrUrl ? 1 : 0;
     case 'colors': {
-      const c = safeArr(gd.colors);
-      return c.length >= 6 ? 1 : c.length >= 4 ? 0.8 : c.length >= 2 ? 0.6 : c.length > 0 ? 0.3 : 0;
+      const c = getCount(summary, key);
+      return c >= 6 ? 1 : c >= 4 ? 0.8 : c >= 2 ? 0.6 : c > 0 ? 0.3 : 0;
     }
     case 'typography': {
-      const t = safeArr(gd.typography);
-      return t.length >= 3 ? 1 : t.length >= 2 ? 0.7 : t.length > 0 ? 0.5 : 0;
+      const c = getCount(summary, key);
+      return c >= 3 ? 1 : c >= 2 ? 0.7 : c > 0 ? 0.5 : 0;
     }
     case 'logos': {
-      const l = safeArr(gd.logos);
-      return l.length >= 4 ? 1 : l.length >= 2 ? 0.7 : l.length > 0 ? 0.4 : 0;
+      const c = getCount(summary, key);
+      return c >= 4 ? 1 : c >= 2 ? 0.7 : c > 0 ? 0.4 : 0;
     }
-    case 'qr': {
-      const q = gd.qr as Record<string, unknown> | undefined;
-      return q?.defaultUrl ? 1 : 0;
+    case 'values': case 'services': {
+      const c = getCount(summary, key);
+      return c >= 4 ? 1 : c >= 2 ? 0.6 : c > 0 ? 0.3 : 0;
     }
     default: {
-      const arr = safeArr(gd[key]);
-      return arr.length >= 3 ? 1 : arr.length >= 2 ? 0.7 : arr.length > 0 ? 0.4 : 0;
+      const c = getCount(summary, key);
+      return c >= 3 ? 1 : c >= 2 ? 0.7 : c > 0 ? 0.4 : 0;
     }
   }
 }
 
-function buildSectionSummary(guideData: Record<string, unknown>, hiddenSections?: string[]): string {
-  const hiddenKeys = new Set((hiddenSections ?? []).map(id => HIDDEN_ID_MAP[id] ?? id));
+function buildSectionSummaryFromRPC(summary: Record<string, unknown>): string {
+  const hiddenSections = Array.isArray(summary.hiddenSections) ? summary.hiddenSections as string[] : [];
+  const hiddenKeys = new Set(hiddenSections.map(id => HIDDEN_ID_MAP[id] ?? id));
   const lines: string[] = [];
   const catMap: Record<string, { filled: number; total: number; details: string[] }> = {};
 
   for (const [key, def] of Object.entries(SECTION_DEFS)) {
     if (hiddenKeys.has(key)) continue;
-    const score = sectionCompleteness(guideData, key);
+    const score = sectionCompletenessFromSummary(summary, key);
     const pct = Math.round(score * 100);
     if (!catMap[def.category]) catMap[def.category] = { filled: 0, total: 0, details: [] };
     catMap[def.category].total++;
     if (score > 0) catMap[def.category].filled++;
 
-    // Add detail for notable sections
     if (pct === 0) {
       catMap[def.category].details.push(`${def.label}: EMPTY`);
     } else if (pct < 70) {
@@ -131,21 +136,19 @@ function buildSectionSummary(guideData: Record<string, unknown>, hiddenSections?
     lines.push(info.details.join(' | '));
   }
 
-  // Add key content details (compact)
-  const identity = guideData.identity as Record<string, unknown> | undefined;
+  // Add key content details from summary
+  const identity = summary.identity as Record<string, unknown> | undefined;
   if (identity?.missionStatement) lines.push(`Mission: ${String(identity.missionStatement).substring(0, 120)}`);
   if (identity?.archetype) lines.push(`Archetype: ${identity.archetype}`);
 
-  const colors = safeArr(guideData.colors);
-  if (colors.length > 0) {
-    const colorNames = colors.slice(0, 6).map((c: any) => c?.name || c?.hex || '?').join(', ');
-    lines.push(`Colors: ${colorNames}`);
+  const colorNames = summary.colorNames;
+  if (Array.isArray(colorNames) && colorNames.length > 0) {
+    lines.push(`Colors: ${colorNames.filter(Boolean).slice(0, 6).join(', ')}`);
   }
 
-  const typo = safeArr(guideData.typography);
-  if (typo.length > 0) {
-    const fonts = typo.slice(0, 4).map((t: any) => t?.family || t?.name || '?').join(', ');
-    lines.push(`Typography: ${fonts}`);
+  const fontNames = summary.fontNames;
+  if (Array.isArray(fontNames) && fontNames.length > 0) {
+    lines.push(`Typography: ${fontNames.filter(Boolean).slice(0, 4).join(', ')}`);
   }
 
   return lines.join('\n');
@@ -163,39 +166,34 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
 
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const tableName = entityType === 'product' ? 'products' : 'brands';
 
-    // Fetch brand data, intelligence, AND Oracle context
-    const orgId = body.organizationId;
-    const [brandRes, intelRes, oracleRes, oracleKbRes] = await Promise.all([
-      fetch(`${supabaseUrl}/rest/v1/${tableName}?id=eq.${brandId}&select=id,name,guide_data,hidden_sections&limit=1`, {
+    // Use lightweight RPC to get only section metadata (~1KB instead of 77MB)
+    const [summaryRes, intelRes] = await Promise.all([
+      fetch(`${supabaseUrl}/rest/v1/rpc/get_brand_audit_summary`, {
+        method: 'POST',
+        headers: svcHeaders,
+        body: JSON.stringify({ p_brand_id: brandId, p_entity_type: entityType || 'brand' }),
+      }),
+      fetch(`${supabaseUrl}/rest/v1/brand_intelligence?entity_id=eq.${brandId}&entity_type=eq.${entityType}&select=brand_summary,market_position,competitive_advantages&limit=1`, {
         headers: { 'apikey': anonKey, 'Authorization': userAuth, 'Content-Type': 'application/json' },
       }),
-      fetch(`${supabaseUrl}/rest/v1/brand_intelligence?entity_id=eq.${brandId}&entity_type=eq.${entityType}&select=brand_summary,market_position,competitive_advantages,growth_recommendations,brand_voice_profile,target_audience,cultural_insights&limit=1`, {
-        headers: { 'apikey': anonKey, 'Authorization': userAuth, 'Content-Type': 'application/json' },
-      }),
-      orgId ? fetch(`${supabaseUrl}/rest/v1/oracle_intelligence?organization_id=eq.${orgId}&select=org_summary,unified_voice_profile,strategic_recommendations,competitive_overview&limit=1`, { headers: svcHeaders }) : Promise.resolve(null),
-      orgId ? fetch(`${supabaseUrl}/rest/v1/oracle_knowledge_base?organization_id=eq.${orgId}&is_active=eq.true&source_type=neq.entity_brain&order=updated_at.desc&limit=3&select=title,content`, { headers: svcHeaders }) : Promise.resolve(null),
     ]);
 
-    const brandRows = await brandRes.json();
+    const summary = await summaryRes.json();
     const intelRows = await intelRes.json();
 
-    if (!Array.isArray(brandRows) || brandRows.length === 0) {
+    if (summary?.error === 'not_found') {
       throw new Error('Brand not found');
     }
 
-    await updateJob(jobId!, { progress: 20 });
+    const brandName = summary.name || 'Unnamed';
 
-    const brand = brandRows[0];
-    const brandName = brand.name || 'Unnamed';
-    const guideData = (brand.guide_data || {}) as Record<string, unknown>;
-    const hiddenSections = Array.isArray(brand.hidden_sections) ? brand.hidden_sections : [];
+    await updateJob(jobId!, { progress: 30 });
 
-    // Build section-aware summary
-    const sectionSummary = buildSectionSummary(guideData, hiddenSections);
+    // Build section-aware summary from lightweight data
+    const sectionSummary = buildSectionSummaryFromRPC(summary);
 
-    await updateJob(jobId!, { progress: 40 });
+    await updateJob(jobId!, { progress: 50 });
 
     // Build prompt
     const promptLines: string[] = [];
@@ -216,27 +214,28 @@ serve(async (req) => {
       }
     }
 
-    // Add Oracle org-level context
-    try {
-      const oracleRows = oracleRes ? await oracleRes.json() : [];
-      const oracleKbRows = oracleKbRes ? await oracleKbRes.json() : [];
-      const oracle = Array.isArray(oracleRows) && oracleRows.length > 0 ? oracleRows[0] : null;
-      const oracleKb = Array.isArray(oracleKbRows) ? oracleKbRows : [];
-      if (oracle || oracleKb.length > 0) {
-        promptLines.push(`\n## Oracle Brain (Org-Level Strategic Context)`);
-        if (oracle?.org_summary) promptLines.push(`Org Strategy: ${oracle.org_summary}`);
-        if (oracle?.unified_voice_profile?.primary_tone) promptLines.push(`Org Voice: ${oracle.unified_voice_profile.primary_tone}`);
-        const recs = Array.isArray(oracle?.strategic_recommendations) ? oracle.strategic_recommendations : [];
-        if (recs.length > 0) promptLines.push(`Strategic Priorities: ${recs.slice(0, 3).map((r: any) => r.recommendation).join('; ')}`);
-        if (oracleKb.length > 0) promptLines.push(`Key Knowledge: ${oracleKb.map((k: any) => `${k.title}: ${(k.content || '').slice(0, 100)}`).join(' | ')}`);
+    // Add Oracle context (lightweight — only text fields)
+    const orgId = body.organizationId;
+    if (orgId) {
+      try {
+        const oracleRes = await fetch(`${supabaseUrl}/rest/v1/oracle_intelligence?organization_id=eq.${orgId}&select=org_summary,unified_voice_profile,strategic_recommendations&limit=1`, { headers: svcHeaders });
+        const oracleRows = await oracleRes.json();
+        const oracle = Array.isArray(oracleRows) && oracleRows.length > 0 ? oracleRows[0] : null;
+        if (oracle?.org_summary) {
+          promptLines.push(`\n## Oracle Brain (Org-Level Strategic Context)`);
+          promptLines.push(`Org Strategy: ${String(oracle.org_summary).substring(0, 300)}`);
+          if (oracle.unified_voice_profile?.primary_tone) promptLines.push(`Org Voice: ${oracle.unified_voice_profile.primary_tone}`);
+          const recs = Array.isArray(oracle.strategic_recommendations) ? oracle.strategic_recommendations : [];
+          if (recs.length > 0) promptLines.push(`Strategic Priorities: ${recs.slice(0, 3).map((r: any) => r.recommendation || r).join('; ')}`);
+        }
+      } catch (e) {
+        console.warn('[audit-worker] Oracle context parse failed (non-critical):', e);
       }
-    } catch (e) {
-      console.warn('[audit-worker] Oracle context parse failed (non-critical):', e);
     }
 
     promptLines.push(`\nAudit this brand for cohesion and completeness across ALL visible sections. Consider Oracle org-level context for strategic alignment. Return JSON.`);
 
-    await updateJob(jobId!, { progress: 55 });
+    await updateJob(jobId!, { progress: 60 });
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -303,7 +302,7 @@ Score based on ACTUAL section data provided. Empty sections should significantly
         dataSources: {
           brandIntelligence: intelRows?.length > 0,
           guideDataSections: true,
-          hiddenSectionsExcluded: hiddenSections.length,
+          hiddenSectionsExcluded: (Array.isArray(summary.hiddenSections) ? summary.hiddenSections.length : 0),
         },
       },
       completed_at: new Date().toISOString(),
