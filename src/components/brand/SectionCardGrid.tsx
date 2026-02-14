@@ -72,11 +72,11 @@ export const SectionCardGrid = ({
               whileTap={{ scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               className={cn(
-                'relative flex flex-col items-center justify-center gap-1 p-2 rounded-xl aspect-square overflow-hidden',
-                'border transition-colors duration-200',
+                'group relative flex flex-col items-center justify-center gap-1 p-2 rounded-xl aspect-square overflow-hidden',
+                'border transition-all duration-300',
                 isActive
                   ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25 ring-2 ring-primary/40'
-                  : 'bg-card/80 backdrop-blur-sm text-card-foreground border-border/60 hover:border-primary/50',
+                  : 'bg-card/80 backdrop-blur-sm text-card-foreground border-border/60 hover:border-primary/50 hover:shadow-[0_0_15px_hsl(var(--primary)/0.4),0_0_30px_hsl(var(--primary)/0.15)] hover:ring-1 hover:ring-primary/30',
                 isHidden && isAdmin && 'opacity-40 grayscale'
               )}
             >
