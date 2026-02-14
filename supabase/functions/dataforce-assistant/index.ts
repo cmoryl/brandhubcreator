@@ -304,14 +304,34 @@ serve(async (req) => {
     }
 
     // Get DataForce config for persona and mode
-    const { data: config } = await supabase
-      .from('dataforce_config')
-      .select('assistant_persona, api_mode')
-      .eq('organization_id', organization_id)
-      .maybeSingle();
+    const [{ data: config }, { data: botConfig }] = await Promise.all([
+      supabase
+        .from('dataforce_config')
+        .select('assistant_persona, api_mode')
+        .eq('organization_id', organization_id)
+        .maybeSingle(),
+      supabase
+        .from('bot_config')
+        .select('system_prompt, model, temperature, max_tokens, is_active, welcome_message, personality_traits, response_style, display_name')
+        .eq('bot_type', 'brand_assistant')
+        .eq('organization_id', organization_id)
+        .maybeSingle(),
+    ]);
 
     const isDemo = !config || config.api_mode === 'demo';
-    const persona = config?.assistant_persona || `You are a helpful brand assistant for ${entityName}. You help users understand and apply brand guidelines correctly.`;
+    // Bot Manager config takes priority over DataForce config
+    const persona = botConfig?.system_prompt || config?.assistant_persona || `You are a helpful brand assistant for ${entityName}. You help users understand and apply brand guidelines correctly.`;
+    const aiModel = botConfig?.model || 'google/gemini-3-flash-preview';
+    const aiTemperature = botConfig?.temperature ?? 0.7;
+    const aiMaxTokens = botConfig?.max_tokens ?? 4096;
+    
+    // If bot is explicitly disabled in Bot Manager, return inactive response
+    if (botConfig && botConfig.is_active === false) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Brand Assistant is currently disabled by your administrator.' }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Demo mode - return helpful placeholder response
     if (isDemo && !LOVABLE_API_KEY) {
@@ -352,7 +372,15 @@ serve(async (req) => {
       ? `\n\nIMPORTANT: Respond in the language specified by code: ${language_code}. If the user writes in a different language, still respond in ${language_code}.`
       : '';
 
-    const systemPrompt = `${persona}
+    // Build personality context from Bot Manager config
+    const personalityBlock = botConfig?.personality_traits 
+      ? `\nPersonality traits: ${Array.isArray(botConfig.personality_traits) ? (botConfig.personality_traits as string[]).join(', ') : botConfig.personality_traits}`
+      : '';
+    const styleBlock = botConfig?.response_style 
+      ? `\nResponse style: ${botConfig.response_style}` 
+      : '';
+
+    const systemPrompt = `${persona}${personalityBlock}${styleBlock}
 
 ${entityContext}${oracleContext}
 ${languageInstruction}
@@ -372,7 +400,9 @@ Guidelines for responses:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: aiModel,
+        temperature: aiTemperature,
+        max_tokens: aiMaxTokens,
         messages: [
           { role: "system", content: systemPrompt },
           ...messageHistory,
