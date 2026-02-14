@@ -1219,7 +1219,7 @@ const BrandEditor = () => {
                     sectionOrder={sectionOrder}
                     hiddenSections={hiddenSections}
                     activeSection={activeSection}
-                    onSectionSelect={(section) => { setActiveSection(section); }}
+                    onSectionSelect={(section) => { setActiveSection(section as SectionId); }}
                     isAdmin={isGuideAdmin}
                     cardViewBackground={pageSettings.cardViewBackground}
                     cardViewBackgroundTint={pageSettings.cardViewBackgroundTint}

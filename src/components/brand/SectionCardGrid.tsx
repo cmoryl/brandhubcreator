@@ -2,7 +2,7 @@ import { useMemo, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { SectionId, BrandBackgroundType } from '@/types/brand';
-import { sectionMeta } from './ReorderableBrandSidebar';
+import { sectionMeta as defaultSectionMeta } from './ReorderableBrandSidebar';
 import { HeroBackground } from '@/components/HeroBackground';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -11,10 +11,10 @@ import { useTheme } from 'next-themes';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 
 interface SectionCardGridProps {
-  sectionOrder: SectionId[];
-  hiddenSections?: SectionId[];
-  activeSection: SectionId;
-  onSectionSelect: (sectionId: SectionId) => void;
+  sectionOrder: string[];
+  hiddenSections?: string[];
+  activeSection: string;
+  onSectionSelect: (sectionId: string) => void;
   isAdmin?: boolean;
   cardViewBackground?: BrandBackgroundType;
   cardViewBackgroundTint?: string;
@@ -29,9 +29,10 @@ interface SectionCardGridProps {
   onOpenIntelligence?: () => void;
   entityType?: 'brand' | 'product' | 'event';
   entityId?: string;
+  customSectionMeta?: Record<string, { label: string; icon: React.ElementType; category: string }>;
 }
 
-const EXCLUDED_FROM_NAV: SectionId[] = ['socialmetrics', 'hero'];
+const EXCLUDED_FROM_NAV: string[] = ['socialmetrics', 'hero'];
 
 // Each card gets a unique tint color based on index
 const CARD_TINTS = [
@@ -90,7 +91,7 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
 
 const CATEGORY_ORDER = ['Identity', 'Visual', 'Typography', 'Assets', 'Communication', 'Resources', 'Collateral'];
 
-const sortSections = (sections: SectionId[], mode: SortMode): SectionId[] => {
+const sortSections = (sections: string[], mode: SortMode, meta: Record<string, { label: string; icon: React.ElementType; category: string }>): string[] => {
   if (mode === 'default') return sections;
   
   const sorted = [...sections];
@@ -98,24 +99,24 @@ const sortSections = (sections: SectionId[], mode: SortMode): SectionId[] => {
   switch (mode) {
     case 'alphabetical':
       return sorted.sort((a, b) => {
-        const labelA = sectionMeta[a]?.label || '';
-        const labelB = sectionMeta[b]?.label || '';
+        const labelA = meta[a]?.label || '';
+        const labelB = meta[b]?.label || '';
         return labelA.localeCompare(labelB);
       });
     case 'category':
       return sorted.sort((a, b) => {
-        const catA = CATEGORY_ORDER.indexOf(sectionMeta[a]?.category || '');
-        const catB = CATEGORY_ORDER.indexOf(sectionMeta[b]?.category || '');
+        const catA = CATEGORY_ORDER.indexOf(meta[a]?.category || '');
+        const catB = CATEGORY_ORDER.indexOf(meta[b]?.category || '');
         if (catA !== catB) return catA - catB;
-        return (sectionMeta[a]?.label || '').localeCompare(sectionMeta[b]?.label || '');
+        return (meta[a]?.label || '').localeCompare(meta[b]?.label || '');
       });
     case 'identity-first':
     case 'visual-first':
     case 'assets-first': {
       const priorityCat = mode === 'identity-first' ? 'Identity' : mode === 'visual-first' ? 'Visual' : 'Assets';
       return sorted.sort((a, b) => {
-        const aIsPriority = sectionMeta[a]?.category === priorityCat;
-        const bIsPriority = sectionMeta[b]?.category === priorityCat;
+        const aIsPriority = meta[a]?.category === priorityCat;
+        const bIsPriority = meta[b]?.category === priorityCat;
         if (aIsPriority && !bIsPriority) return -1;
         if (!aIsPriority && bIsPriority) return 1;
         return 0;
@@ -145,7 +146,9 @@ export const SectionCardGrid = ({
   onOpenIntelligence,
   entityType = 'brand',
   entityId,
+  customSectionMeta,
 }: SectionCardGridProps) => {
+  const sectionMeta = customSectionMeta || defaultSectionMeta;
   const [bgPickerOpen, setBgPickerOpen] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>('default');
   const [logoPickerOpen, setLogoPickerOpen] = useState(false);
@@ -159,8 +162,8 @@ export const SectionCardGrid = ({
       (id) => sectionMeta[id] && !EXCLUDED_FROM_NAV.includes(id)
     );
     const visible = isAdmin ? base : base.filter((id) => !hiddenSections.includes(id));
-    return sortSections(visible, sortMode);
-  }, [sectionOrder, hiddenSections, isAdmin, sortMode]);
+    return sortSections(visible, sortMode, sectionMeta);
+  }, [sectionOrder, hiddenSections, isAdmin, sortMode, sectionMeta]);
 
   const hasBackground = cardViewBackground && cardViewBackground !== 'inherit';
 

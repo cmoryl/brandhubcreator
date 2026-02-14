@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Calendar, Building2, Brain, Settings, Download, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2 } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, LayoutGrid, ArrowLeft, Lock, Shield, LogOut, Star, Calendar, Building2, Brain, Settings, Download, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2 } from 'lucide-react';
 import { toast } from 'sonner';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
@@ -83,8 +83,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { SectionCardGrid } from '@/components/brand/SectionCardGrid';
+import { eventSectionMeta } from '@/components/event/EventSidebar';
+import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
 
-type ViewMode = 'sections' | 'full';
+type ViewMode = 'sections' | 'full' | 'cards';
 
 const CompetitiveReportCardLazy = lazy(() =>
   import('@/components/brand/CompetitiveReportCard').then((m) => ({ default: m.CompetitiveReportCard }))
@@ -316,6 +319,13 @@ const EventEditor = () => {
   const hiddenSections = useMemo(() => event?.hiddenSections || [], [event?.hiddenSections]);
   const sectionLayouts = useMemo(() => event?.sectionLayouts || {}, [event?.sectionLayouts]);
   const pageSettings = event?.pageSettings || DEFAULT_PAGE_SETTINGS;
+
+  // Calculate health for card view
+  const cardViewHealthScore = useMemo(() => {
+    if (!event) return undefined;
+    const health = calculateBrandHealth(event as unknown as Record<string, unknown>, hiddenSections);
+    return health.overallScore;
+  }, [event, hiddenSections]);
 
   const getSectionLayout = useCallback((sectionId: EventSectionId): LayoutPreset => {
     return (sectionLayouts[sectionId as SectionId] as LayoutPreset) || 'grid-3';
@@ -767,24 +777,28 @@ const EventEditor = () => {
     <TooltipProvider>
       <UnsavedChangesBlocker />
       <div className="min-h-screen bg-background flex relative">
-        {/* Desktop Sidebar - Fixed position for persistent visibility */}
-        <div className="hidden lg:block fixed top-0 left-0 h-screen w-72 z-30">
-          <EventSidebar 
-            activeSection={activeSection} 
-            onSectionChange={handleSectionChange} 
-            eventName={event.hero.name}
-            eventId={event.id}
-            organizationId={event.organizationId}
-            sectionOrder={sectionOrder}
-            onSectionOrderChange={handleSectionOrderChange}
-            hiddenSections={hiddenSections}
-            onHiddenSectionsChange={handleHiddenSectionsChange}
-            isAdmin={isGuideAdmin}
-          />
-        </div>
+        {/* Desktop Sidebar - Hidden in cards mode */}
+        {viewMode !== 'cards' && (
+          <div className="hidden lg:block fixed top-0 left-0 h-screen w-72 z-30">
+            <EventSidebar 
+              activeSection={activeSection} 
+              onSectionChange={handleSectionChange} 
+              eventName={event.hero.name}
+              eventId={event.id}
+              organizationId={event.organizationId}
+              sectionOrder={sectionOrder}
+              onSectionOrderChange={handleSectionOrderChange}
+              hiddenSections={hiddenSections}
+              onHiddenSectionsChange={handleHiddenSectionsChange}
+              isAdmin={isGuideAdmin}
+            />
+          </div>
+        )}
         
-        {/* Sidebar spacer for fixed positioning */}
-        <div className="hidden lg:block w-72 flex-shrink-0" />
+        {/* Sidebar spacer for fixed positioning - Hidden in cards mode */}
+        {viewMode !== 'cards' && (
+          <div className="hidden lg:block w-72 flex-shrink-0" />
+        )}
 
         {/* Mobile Sidebar */}
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
@@ -904,6 +918,14 @@ const EventEditor = () => {
                       </ToggleGroupItem>
                     </TooltipTrigger>
                     <TooltipContent>Section View</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ToggleGroupItem value="cards" aria-label="Card grid view" className="h-8 w-8 data-[state=on]:bg-background">
+                        <LayoutGrid className="h-4 w-4" />
+                      </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>Card Grid View</TooltipContent>
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -1071,7 +1093,46 @@ const EventEditor = () => {
                 />
               )}
               
-              {viewMode === 'sections' ? (
+              {viewMode === 'cards' ? (
+                <div className="animate-fade-in">
+                  <SectionCardGrid
+                    sectionOrder={sectionOrder as string[]}
+                    hiddenSections={hiddenSections as string[]}
+                    activeSection={activeSection}
+                    onSectionSelect={(section) => { setActiveSection(section as EventSectionId); }}
+                    isAdmin={isGuideAdmin}
+                    cardViewBackground={pageSettings.cardViewBackground}
+                    cardViewBackgroundTint={pageSettings.cardViewBackgroundTint}
+                    onCardViewBackgroundChange={(bg, tint) => {
+                      handlePageSettingsChange({
+                        ...pageSettings,
+                        cardViewBackground: bg,
+                        cardViewBackgroundTint: tint,
+                      });
+                    }}
+                    entityLightLogoUrl={pageSettings.cardViewLightLogo}
+                    entityDarkLogoUrl={pageSettings.cardViewDarkLogo}
+                    onEntityLogoChange={isGuideAdmin ? (variant: 'light' | 'dark', url: string) => {
+                      handlePageSettingsChange({
+                        ...pageSettings,
+                        ...(variant === 'light' ? { cardViewLightLogo: url } : { cardViewDarkLogo: url }),
+                      });
+                    } : undefined}
+                    entityName={event?.hero?.name}
+                    entityTagline={event?.hero?.tagline}
+                    healthScore={cardViewHealthScore}
+                    onOpenIntelligence={isGuideAdmin ? () => setIntelligenceOpen(true) : undefined}
+                    entityType="event"
+                    entityId={event?.id}
+                    customSectionMeta={eventSectionMeta}
+                  />
+                  {activeSection !== 'hero' && (
+                    <div className="animate-zoom-in">
+                      {renderSection()}
+                    </div>
+                  )}
+                </div>
+              ) : viewMode === 'sections' ? (
                 <div className="animate-zoom-in">
                   {renderSection()}
                 </div>
