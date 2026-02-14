@@ -3237,6 +3237,10 @@ export type Database = {
         }[]
       }
       get_auth_email: { Args: never; Returns: string }
+      get_brand_audit_summary: {
+        Args: { p_brand_id: string; p_entity_type?: string }
+        Returns: Json
+      }
       get_entity_text_context: {
         Args: { p_id: string; p_table: string }
         Returns: Json
