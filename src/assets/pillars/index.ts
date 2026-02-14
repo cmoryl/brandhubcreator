@@ -1,19 +1,25 @@
 /**
- * Philosophical Pillars - Persistent Storage URLs
- * Images stored in Supabase storage for reliability and admin management
+ * Philosophical Pillars - Local Asset Imports
+ * Hyper-realistic human imagery for brand values
  */
 
-const STORAGE_BASE = 'https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/public/organization-assets/pillars';
+import collaborationImg from '@/assets/pillars/collaboration-pillar.jpg';
+import integrityImg from '@/assets/pillars/integrity-pillar.jpg';
+import excellenceImg from '@/assets/pillars/excellence-pillar.jpg';
+import innovationImg from '@/assets/pillars/innovation-pillar.jpg';
+import customerFocusImg from '@/assets/pillars/customer-focus-pillar.jpg';
+import trustImg from '@/assets/pillars/trust-pillar.jpg';
+import sustainabilityImg from '@/assets/pillars/sustainability-pillar.jpg';
+import diversityImg from '@/assets/pillars/diversity-pillar.jpg';
 
-// Persistent storage URLs for pillar images
-export const collaborationPillar = `${STORAGE_BASE}/collaboration-pillar.jpg`;
-export const integrityPillar = `${STORAGE_BASE}/integrity-pillar.jpg`;
-export const excellencePillar = `${STORAGE_BASE}/excellence-pillar.jpg`;
-export const innovationPillar = `${STORAGE_BASE}/innovation-pillar.jpg`;
-export const customerFocusPillar = `${STORAGE_BASE}/customer-focus-pillar.jpg`;
-export const trustPillar = `${STORAGE_BASE}/trust-pillar.jpg`;
-export const sustainabilityPillar = `${STORAGE_BASE}/sustainability-pillar.jpg`;
-export const diversityPillar = `${STORAGE_BASE}/diversity-pillar.jpg`;
+export const collaborationPillar = collaborationImg;
+export const integrityPillar = integrityImg;
+export const excellencePillar = excellenceImg;
+export const innovationPillar = innovationImg;
+export const customerFocusPillar = customerFocusImg;
+export const trustPillar = trustImg;
+export const sustainabilityPillar = sustainabilityImg;
+export const diversityPillar = diversityImg;
 
 export const pillarImages: Record<string, string> = {
   // Collaboration / Teamwork
@@ -122,7 +128,6 @@ export function getPillarImage(valueText: string): string | null {
  * Get a stable pillar image based on text hash for consistency
  */
 export function getStablePillarImage(valueText: string): string {
-  // Use a simple hash to get a consistent image for the same text
   let hash = 0;
   for (let i = 0; i < valueText.length; i++) {
     hash = ((hash << 5) - hash) + valueText.charCodeAt(i);
