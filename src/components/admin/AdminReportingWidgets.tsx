@@ -8,10 +8,15 @@ import { motion } from 'framer-motion';
 import {
   BarChart3, TrendingUp, TrendingDown, Minus, PieChart, Target,
   Palette, Package, Calendar, Users, Eye, FileText, ArrowUpRight,
-  Activity, CheckCircle2, AlertCircle, XCircle
+  Activity, CheckCircle2, AlertCircle, XCircle, HardDrive, Clock,
+  CheckCircle, AlertTriangle, Search, Image as ImageIcon, ExternalLink,
+  ArrowRight, ChevronRight
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -356,6 +361,231 @@ const GrowthKPIPanel: React.FC<{ stats: DashboardStats | null }> = ({ stats }) =
   );
 };
 
+// ─── Backup Status Widget ───────────────────────────────────
+const BackupStatusWidget: React.FC<{ onTabChange: (tab: string) => void }> = ({ onTabChange }) => {
+  const [data, setData] = useState<{ total: number; completed: number; failed: number; lastBackup: string | null; totalSize: number } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data: jobs } = await supabase
+        .from('backup_jobs')
+        .select('status, completed_at, file_size_bytes')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      const allJobs = jobs || [];
+      const completed = allJobs.filter(j => j.status === 'completed');
+      const failed = allJobs.filter(j => j.status === 'failed');
+      const lastCompleted = completed.find(j => j.completed_at);
+      const totalSize = completed.reduce((a, j) => a + (j.file_size_bytes || 0), 0);
+
+      setData({
+        total: allJobs.length,
+        completed: completed.length,
+        failed: failed.length,
+        lastBackup: lastCompleted?.completed_at || null,
+        totalSize,
+      });
+    })();
+  }, []);
+
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="p-4 pb-2 border-b border-border/40">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <HardDrive className="h-3.5 w-3.5 text-sky-500" />
+            <CardTitle className="text-sm font-semibold">Backup Status</CardTitle>
+          </div>
+          <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-7" onClick={() => onTabChange('backups')}>
+            Manage <ArrowRight className="h-3 w-3 ml-1" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-4">
+        {!data ? (
+          <div className="flex items-center justify-center h-[120px]">
+            <Activity className="h-5 w-5 animate-pulse text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {/* Status badges row */}
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: 'Total', value: data.total, icon: HardDrive, color: 'text-sky-500', bg: 'bg-sky-500/10' },
+                { label: 'Completed', value: data.completed, icon: CheckCircle, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+                { label: 'Failed', value: data.failed, icon: AlertTriangle, color: data.failed > 0 ? 'text-destructive' : 'text-muted-foreground', bg: data.failed > 0 ? 'bg-destructive/10' : 'bg-muted/60' },
+              ].map(item => (
+                <div key={item.label} className="flex items-center gap-2 p-2 rounded-lg border border-border/50">
+                  <div className={cn("h-6 w-6 rounded-md flex items-center justify-center", item.bg)}>
+                    <item.icon className={cn("h-3 w-3", item.color)} />
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold tabular-nums block leading-none">{item.value}</span>
+                    <span className="text-[9px] text-muted-foreground">{item.label}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Last backup + size */}
+            <div className="flex items-center justify-between px-2 py-2 rounded-md bg-muted/30 border border-border/30">
+              <div className="flex items-center gap-2">
+                <Clock className="h-3 w-3 text-muted-foreground" />
+                <span className="text-[11px] text-muted-foreground">Last backup</span>
+              </div>
+              <span className="text-[11px] font-medium">
+                {data.lastBackup ? format(new Date(data.lastBackup), 'MMM d, h:mm a') : 'Never'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between px-2 py-2 rounded-md bg-muted/30 border border-border/30">
+              <div className="flex items-center gap-2">
+                <HardDrive className="h-3 w-3 text-muted-foreground" />
+                <span className="text-[11px] text-muted-foreground">Total size</span>
+              </div>
+              <span className="text-[11px] font-medium">{formatBytes(data.totalSize)}</span>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// ─── Logo Hub Search Widget ─────────────────────────────────
+const LogoHubSearchWidget: React.FC<{ onTabChange: (tab: string) => void }> = ({ onTabChange }) => {
+  const [logos, setLogos] = useState<Array<{ id: string; name: string; category: string; files: any }>>([]);
+  const [search, setSearch] = useState('');
+  const [totalCount, setTotalCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data, count } = await supabase
+          .from('global_client_logos')
+          .select('id, name, category, files', { count: 'exact' })
+          .order('name')
+          .limit(100);
+        setLogos(data || []);
+        setTotalCount(count || 0);
+      } catch (err) {
+        console.error('Logo fetch error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, []);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return logos.slice(0, 8);
+    const q = search.toLowerCase();
+    return logos.filter(l => l.name.toLowerCase().includes(q) || l.category.toLowerCase().includes(q)).slice(0, 8);
+  }, [logos, search]);
+
+  const categories = useMemo(() => {
+    const cats: Record<string, number> = {};
+    logos.forEach(l => { cats[l.category] = (cats[l.category] || 0) + 1; });
+    return Object.entries(cats).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  }, [logos]);
+
+  const getFileCount = (files: any) => {
+    if (!files || typeof files !== 'object') return 0;
+    return Object.values(files).filter(Boolean).length;
+  };
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="p-4 pb-2 border-b border-border/40">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ImageIcon className="h-3.5 w-3.5 text-violet-500" />
+            <CardTitle className="text-sm font-semibold">Logo Hub</CardTitle>
+            <Badge variant="outline" className="text-[10px] h-5">{totalCount} logos</Badge>
+          </div>
+          <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-7" onClick={() => onTabChange('logo-hub')}>
+            Open <ArrowRight className="h-3 w-3 ml-1" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-4">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-[120px]">
+            <Activity className="h-5 w-5 animate-pulse text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Search logos..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="h-8 pl-8 text-xs"
+              />
+            </div>
+
+            {/* Categories */}
+            <div className="flex flex-wrap gap-1.5">
+              {categories.map(([cat, count]) => (
+                <Badge
+                  key={cat}
+                  variant="secondary"
+                  className="text-[9px] h-5 cursor-pointer hover:bg-primary/10 transition-colors"
+                  onClick={() => setSearch(cat)}
+                >
+                  {cat} ({count})
+                </Badge>
+              ))}
+            </div>
+
+            {/* Logo List */}
+            <ScrollArea className="h-[140px]">
+              <div className="space-y-1">
+                {filtered.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-6 text-center">
+                    <ImageIcon className="h-6 w-6 text-muted-foreground/20 mb-2" />
+                    <p className="text-[11px] text-muted-foreground">
+                      {search ? 'No logos match your search' : 'No logos in library'}
+                    </p>
+                  </div>
+                ) : (
+                  filtered.map(logo => (
+                    <motion.div
+                      key={logo.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex items-center gap-2.5 px-2.5 py-2 rounded-md hover:bg-muted/40 transition-colors group"
+                    >
+                      <div className="h-7 w-7 rounded-md bg-muted/60 flex items-center justify-center shrink-0 border border-border/50">
+                        <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[12px] font-medium block truncate">{logo.name}</span>
+                        <span className="text-[10px] text-muted-foreground">{logo.category} · {getFileCount(logo.files)} variants</span>
+                      </div>
+                      <ChevronRight className="h-3 w-3 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors" />
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 // ─── Main Export ─────────────────────────────────────────────
 export const AdminReportingWidgets: React.FC<ReportingWidgetsProps> = ({ stats, onTabChange }) => {
   return (
@@ -367,6 +597,12 @@ export const AdminReportingWidgets: React.FC<ReportingWidgetsProps> = ({ stats, 
       <div className="grid lg:grid-cols-2 gap-4">
         <WeeklyActivityChart />
         <ContentHealthSummary stats={stats} onTabChange={onTabChange} />
+      </div>
+
+      {/* Backup & Logo Hub Row */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        <BackupStatusWidget onTabChange={onTabChange} />
+        <LogoHubSearchWidget onTabChange={onTabChange} />
       </div>
     </motion.div>
   );
