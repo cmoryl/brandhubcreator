@@ -3,7 +3,7 @@ import {
   BarChart3, Heart, AlertTriangle, CheckCircle, XCircle, 
   RefreshCw, Download, TrendingUp, Palette, Type, Image,
   Target, Sparkles, FileText, Layers, Info, ChevronDown, ChevronRight,
-  Clock
+  Clock, Package, Calendar, Building2, Filter
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,9 +19,13 @@ import { usePersistedAdminData, formatLastRunMessage } from '@/hooks/usePersiste
 import { ComplianceScoreBadge } from '@/components/dataforce/ComplianceScoreBadge';
 
 // Types for brand analysis
+type EntityType = 'brand' | 'product' | 'event';
+type EntityFilter = 'all' | EntityType;
+
 interface BrandHealthData {
   id: string;
   name: string;
+  entityType: EntityType;
   organizationName: string | null;
   overallScore: number;
   complianceScore?: number | null;
@@ -90,6 +94,7 @@ export function BrandAnalyticsHub() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [expandedBrands, setExpandedBrands] = useState<Set<string>>(new Set());
+  const [entityFilter, setEntityFilter] = useState<EntityFilter>('all');
   
   // Use persisted data hook for caching analytics
   const { 
@@ -99,26 +104,36 @@ export function BrandAnalyticsHub() {
     saveData 
   } = usePersistedAdminData<CachedBrandAnalytics>('brand_analytics', { ttl: 60 * 60 * 1000 }); // 1 hour cache
   
-  const brandsHealth = cachedData?.brandsHealth || [];
-  const summary = cachedData?.summary || null;
+  const allEntitiesHealth = cachedData?.brandsHealth || [];
+  const brandsHealth = useMemo(() => 
+    entityFilter === 'all' ? allEntitiesHealth : allEntitiesHealth.filter(e => e.entityType === entityFilter),
+    [allEntitiesHealth, entityFilter]
+  );
+  const summary = useMemo(() => calculateSummary(brandsHealth), [brandsHealth]);
 
-  const analyzeBrands = async () => {
+  const analyzeAll = async () => {
     setIsLoading(true);
     try {
-      const { data: brands, error } = await supabase
-        .from('brands')
-        .select('id, name, guide_data, is_public, updated_at, organization_id')
-        .order('updated_at', { ascending: false });
+      // Fetch brands, products, and events in parallel
+      const [brandsRes, productsRes, eventsRes] = await Promise.all([
+        supabase.from('brands').select('id, name, guide_data, is_public, updated_at, organization_id').order('updated_at', { ascending: false }),
+        supabase.from('products').select('id, name, guide_data, is_public, updated_at, organization_id').order('updated_at', { ascending: false }),
+        supabase.from('events').select('id, name, guide_data, is_public, updated_at, organization_id').order('updated_at', { ascending: false }),
+      ]);
 
-      if (error) throw error;
+      if (brandsRes.error) throw brandsRes.error;
+      if (productsRes.error) throw productsRes.error;
+      if (eventsRes.error) throw eventsRes.error;
 
-      // Get organization names
-      const orgIds = [...new Set(brands?.filter(b => b.organization_id).map(b => b.organization_id) || [])];
-      const { data: orgs } = await supabase
-        .from('organizations')
-        .select('id, name')
-        .in('id', orgIds as string[]);
-      
+      // Collect all org IDs
+      const allEntities = [
+        ...(brandsRes.data || []).map(b => ({ ...b, entityType: 'brand' as EntityType })),
+        ...(productsRes.data || []).map(p => ({ ...p, entityType: 'product' as EntityType })),
+        ...(eventsRes.data || []).map(e => ({ ...e, entityType: 'event' as EntityType })),
+      ];
+
+      const orgIds = [...new Set(allEntities.filter(e => e.organization_id).map(e => e.organization_id) as string[])];
+      const { data: orgs } = await supabase.from('organizations').select('id, name').in('id', orgIds);
       const orgMap = new Map(orgs?.map(o => [o.id, o.name]) || []);
 
       // Fetch latest compliance scores
@@ -135,36 +150,38 @@ export function BrandAnalyticsHub() {
         }
       }
 
-      const analyzedBrands: BrandHealthData[] = (brands || []).map(brand => {
-        const guideData = brand.guide_data as Record<string, unknown> || {};
+      const analyzedEntities: BrandHealthData[] = allEntities.map(entity => {
+        const guideData = entity.guide_data as Record<string, unknown> || {};
         const analysis = analyzeBrandHealth(guideData);
         
         return {
-          id: brand.id,
-          name: brand.name,
-          organizationName: brand.organization_id ? orgMap.get(brand.organization_id) || null : null,
+          id: entity.id,
+          name: entity.name,
+          entityType: entity.entityType,
+          organizationName: entity.organization_id ? orgMap.get(entity.organization_id) || null : null,
           overallScore: analysis.overallScore,
-          complianceScore: complianceMap.get(brand.id) ?? null,
+          complianceScore: complianceMap.get(entity.id) ?? null,
           scores: analysis.scores,
           gaps: analysis.gaps,
           consistencyIssues: analysis.consistencyIssues,
-          isPublic: brand.is_public,
-          updatedAt: brand.updated_at,
+          isPublic: entity.is_public ?? false,
+          updatedAt: entity.updated_at,
         };
       });
 
-      const calculatedSummary = calculateSummary(analyzedBrands);
-      
       // Save to persistent cache
       saveData({
-        brandsHealth: analyzedBrands,
-        summary: calculatedSummary,
+        brandsHealth: analyzedEntities,
+        summary: null, // summary is now computed via useMemo
       });
       
-      toast.success(`Analyzed ${analyzedBrands.length} brands`);
+      const brandCount = analyzedEntities.filter(e => e.entityType === 'brand').length;
+      const productCount = analyzedEntities.filter(e => e.entityType === 'product').length;
+      const eventCount = analyzedEntities.filter(e => e.entityType === 'event').length;
+      toast.success(`Analyzed ${brandCount} brands, ${productCount} products, ${eventCount} events`);
     } catch (error) {
-      console.error('Error analyzing brands:', error);
-      toast.error('Failed to analyze brands');
+      console.error('Error analyzing entities:', error);
+      toast.error('Failed to analyze entities');
     } finally {
       setIsLoading(false);
     }
@@ -518,7 +535,8 @@ export function BrandAnalyticsHub() {
     if (!brandsHealth.length) return;
 
     const reportData = brandsHealth.map(b => ({
-      'Brand Name': b.name,
+      'Entity Name': b.name,
+      'Type': b.entityType.charAt(0).toUpperCase() + b.entityType.slice(1),
       'Organization': b.organizationName || 'N/A',
       'Health Score': `${b.overallScore}%`,
       'Compliance Score': b.complianceScore != null ? `${b.complianceScore}%` : 'N/A',
@@ -593,6 +611,29 @@ export function BrandAnalyticsHub() {
     [brandsHealth]
   );
 
+  const entityTypeIcon = (type: EntityType) => {
+    switch (type) {
+      case 'brand': return <Building2 className="h-3.5 w-3.5" />;
+      case 'product': return <Package className="h-3.5 w-3.5" />;
+      case 'event': return <Calendar className="h-3.5 w-3.5" />;
+    }
+  };
+
+  const entityTypeBadgeVariant = (type: EntityType) => {
+    switch (type) {
+      case 'brand': return 'default' as const;
+      case 'product': return 'secondary' as const;
+      case 'event': return 'outline' as const;
+    }
+  };
+
+  const entityCounts = useMemo(() => ({
+    all: allEntitiesHealth.length,
+    brand: allEntitiesHealth.filter(e => e.entityType === 'brand').length,
+    product: allEntitiesHealth.filter(e => e.entityType === 'product').length,
+    event: allEntitiesHealth.filter(e => e.entityType === 'event').length,
+  }), [allEntitiesHealth]);
+
   return (
     <Card>
       <CardHeader>
@@ -603,7 +644,7 @@ export function BrandAnalyticsHub() {
               Brand Analytics Hub
             </CardTitle>
             <CardDescription className="flex items-center gap-2">
-              Health scores, content gaps, and consistency audits across all brands
+              Health scores, content gaps, and consistency audits across all entities
               {lastRunLabel && (
                 <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-muted">
                   <Clock className="h-3 w-3" />
@@ -613,7 +654,7 @@ export function BrandAnalyticsHub() {
             </CardDescription>
           </div>
           <div className="flex gap-2">
-            <Button onClick={analyzeBrands} disabled={isLoading}>
+            <Button onClick={analyzeAll} disabled={isLoading}>
               {isLoading ? (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -622,7 +663,7 @@ export function BrandAnalyticsHub() {
               ) : (
                 <>
                   <Sparkles className="h-4 w-4 mr-2" />
-                  Analyze All Brands
+                  Analyze All
                 </>
               )}
             </Button>
@@ -634,6 +675,30 @@ export function BrandAnalyticsHub() {
             )}
           </div>
         </div>
+        {/* Entity type filter */}
+        {allEntitiesHealth.length > 0 && (
+          <div className="flex items-center gap-2 mt-3">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            {(['all', 'brand', 'product', 'event'] as EntityFilter[]).map(filter => (
+              <Button
+                key={filter}
+                variant={entityFilter === filter ? 'default' : 'outline'}
+                size="sm"
+                className="h-7 text-xs gap-1.5"
+                onClick={() => setEntityFilter(filter)}
+              >
+                {filter === 'all' && <Layers className="h-3 w-3" />}
+                {filter === 'brand' && <Building2 className="h-3 w-3" />}
+                {filter === 'product' && <Package className="h-3 w-3" />}
+                {filter === 'event' && <Calendar className="h-3 w-3" />}
+                <span className="capitalize">{filter === 'all' ? 'All' : `${filter}s`}</span>
+                <Badge variant="secondary" className="h-4 px-1 text-[10px] ml-0.5">
+                  {entityCounts[filter]}
+                </Badge>
+              </Button>
+            ))}
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Summary Stats */}
@@ -641,7 +706,7 @@ export function BrandAnalyticsHub() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 bg-muted/50 rounded-lg text-center">
               <p className="text-2xl font-bold">{summary.totalBrands}</p>
-              <p className="text-sm text-muted-foreground">Total Brands</p>
+              <p className="text-sm text-muted-foreground">Total Entities</p>
             </div>
             <div className="p-4 bg-muted/50 rounded-lg text-center">
               <p className={`text-2xl font-bold ${getScoreColor(summary.avgHealthScore)}`}>
@@ -650,7 +715,7 @@ export function BrandAnalyticsHub() {
               <p className="text-sm text-muted-foreground">Avg Health Score</p>
             </div>
             <div className="p-4 bg-muted/50 rounded-lg text-center">
-              <p className="text-2xl font-bold text-red-600">{summary.brandsNeedingAttention}</p>
+              <p className="text-2xl font-bold text-destructive">{summary.brandsNeedingAttention}</p>
               <p className="text-sm text-muted-foreground">Need Attention</p>
             </div>
             <div className="p-4 bg-muted/50 rounded-lg text-center">
@@ -701,7 +766,13 @@ export function BrandAnalyticsHub() {
                                 <ChevronRight className="h-4 w-4" />
                               }
                               <div className="text-left">
-                                <p className="font-medium">{brand.name}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium">{brand.name}</p>
+                                  <Badge variant={entityTypeBadgeVariant(brand.entityType)} className="text-[10px] h-4 px-1.5 capitalize">
+                                    {entityTypeIcon(brand.entityType)}
+                                    <span className="ml-1">{brand.entityType}</span>
+                                  </Badge>
+                                </div>
                                 <p className="text-xs text-muted-foreground">
                                   {brand.organizationName || 'Personal'} • Updated {format(new Date(brand.updatedAt), 'MMM d, yyyy')}
                                 </p>
@@ -915,7 +986,7 @@ export function BrandAnalyticsHub() {
           <div className="text-center py-12 text-muted-foreground">
             <BarChart3 className="h-16 w-16 mx-auto mb-4 opacity-50" />
             <p className="text-lg font-medium">No Analysis Data</p>
-            <p className="text-sm mb-4">Click "Analyze All Brands" to generate health scores and reports</p>
+            <p className="text-sm mb-4">Click "Analyze All" to generate health scores for brands, products, and events</p>
           </div>
         )}
       </CardContent>
