@@ -14,16 +14,21 @@ interface SectionCardGridProps {
 
 const EXCLUDED_FROM_NAV: SectionId[] = ['socialmetrics'];
 
-// Category color mapping for subtle accent variety
-const CATEGORY_ACCENT: Record<string, string> = {
-  Identity: 'from-primary/20 to-primary/5',
-  Visual: 'from-accent/20 to-accent/5',
-  Typography: 'from-secondary/30 to-secondary/10',
-  Assets: 'from-primary/15 to-accent/10',
-  Communication: 'from-accent/15 to-primary/10',
-  Resources: 'from-muted-foreground/10 to-muted/20',
-  Collateral: 'from-primary/10 to-secondary/15',
-};
+// Each card gets a unique tint color based on index
+const CARD_TINTS = [
+  { bg: 'hsl(210 80% 55%)',  tint: 'hsl(210 80% 55% / 0.08)' },  // blue
+  { bg: 'hsl(280 70% 55%)',  tint: 'hsl(280 70% 55% / 0.08)' },  // purple
+  { bg: 'hsl(340 75% 55%)',  tint: 'hsl(340 75% 55% / 0.08)' },  // rose
+  { bg: 'hsl(160 60% 45%)',  tint: 'hsl(160 60% 45% / 0.08)' },  // emerald
+  { bg: 'hsl(35 90% 55%)',   tint: 'hsl(35 90% 55% / 0.08)' },   // amber
+  { bg: 'hsl(190 75% 50%)',  tint: 'hsl(190 75% 50% / 0.08)' },  // cyan
+  { bg: 'hsl(250 65% 60%)',  tint: 'hsl(250 65% 60% / 0.08)' },  // indigo
+  { bg: 'hsl(15 80% 55%)',   tint: 'hsl(15 80% 55% / 0.08)' },   // orange
+  { bg: 'hsl(320 70% 55%)',  tint: 'hsl(320 70% 55% / 0.08)' },  // pink
+  { bg: 'hsl(145 55% 48%)',  tint: 'hsl(145 55% 48% / 0.08)' },  // green
+  { bg: 'hsl(200 85% 50%)',  tint: 'hsl(200 85% 50% / 0.08)' },  // sky
+  { bg: 'hsl(45 95% 55%)',   tint: 'hsl(45 95% 55% / 0.08)' },   // yellow
+];
 
 export const SectionCardGrid = ({
   sectionOrder,
@@ -51,13 +56,13 @@ export const SectionCardGrid = ({
           visible: { transition: { staggerChildren: 0.02 } },
         }}
       >
-        {sections.map((sectionId) => {
+        {sections.map((sectionId, index) => {
           const meta = sectionMeta[sectionId];
           if (!meta) return null;
           const Icon = meta.icon;
           const isActive = activeSection === sectionId;
           const isHidden = hiddenSections.includes(sectionId);
-          const gradientClass = CATEGORY_ACCENT[meta.category] || CATEGORY_ACCENT.Resources;
+          const tint = CARD_TINTS[index % CARD_TINTS.length];
 
           return (
             <motion.button
@@ -72,32 +77,26 @@ export const SectionCardGrid = ({
               whileTap={{ scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               className={cn(
-                'group relative flex flex-col items-center justify-center gap-1 p-2 rounded-xl aspect-square overflow-hidden',
-                'border transition-all duration-300',
+                'section-card-shimmer group relative flex flex-col items-center justify-center gap-1 p-2 rounded-xl aspect-square',
+                'transition-all duration-300',
                 isActive
-                  ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25 ring-2 ring-primary/40'
-                  : 'bg-card/80 backdrop-blur-sm text-card-foreground border-border/60 hover:border-primary/50 hover:shadow-[0_0_15px_hsl(var(--primary)/0.4),0_0_30px_hsl(var(--primary)/0.15)] hover:ring-1 hover:ring-primary/30',
+                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 ring-2 ring-primary/40'
+                  : 'bg-card/80 backdrop-blur-sm text-card-foreground',
                 isHidden && isAdmin && 'opacity-40 grayscale'
               )}
+              style={{
+                '--shimmer-color': tint.bg,
+                backgroundColor: isActive ? undefined : tint.tint,
+              } as React.CSSProperties}
             >
-              {/* Subtle gradient background */}
-              {!isActive && (
-                <div className={cn(
-                  'absolute inset-0 bg-gradient-to-br opacity-60 transition-opacity duration-300',
-                  gradientClass
-                )} />
-              )}
-              
-              {/* Active glow effect */}
+              {/* Active inner glow */}
               {isActive && (
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-foreground/10 to-transparent" />
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary-foreground/10 to-transparent" />
               )}
 
               <Icon className={cn(
                 'relative z-10 h-5 w-5 sm:h-6 sm:w-6 transition-all duration-300',
-                isActive 
-                  ? 'drop-shadow-[0_0_6px_hsl(var(--primary-foreground)/0.8)]' 
-                  : 'group-hover:drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)] group-hover:animate-[icon-glow-pulse_2s_ease-in-out_infinite]'
+                isActive && 'drop-shadow-[0_0_6px_hsl(var(--primary-foreground)/0.8)]'
               )} />
               <span className={cn(
                 'relative z-10 text-[9px] sm:text-[10px] leading-tight text-center line-clamp-2 font-bold tracking-wide',
