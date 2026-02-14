@@ -7,6 +7,7 @@ import { HeroBackground } from '@/components/HeroBackground';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Paintbrush, Sparkles, Waves, LayoutGrid, X, ArrowUpDown } from 'lucide-react';
+import { BrandHubLogo } from '@/components/BrandHubLogo';
 
 interface SectionCardGridProps {
   sectionOrder: SectionId[];
@@ -159,7 +160,9 @@ export const SectionCardGrid = ({
       <div className="relative z-10">
         {/* Toolbar row: sort + background */}
         <div className="flex items-center justify-between mb-2 gap-2">
-          {/* Sort selector */}
+          {/* Logo + Sort */}
+          <div className="flex items-center gap-2">
+            <BrandHubLogo size="sm" className="mr-1" />
           <Popover>
             <PopoverTrigger asChild>
               <button
@@ -192,8 +195,9 @@ export const SectionCardGrid = ({
               </div>
             </PopoverContent>
           </Popover>
+          </div>
 
-          {/* Background picker button - admin only */}
+
           {isAdmin && onCardViewBackgroundChange && (
             <Popover open={bgPickerOpen} onOpenChange={setBgPickerOpen}>
               <PopoverTrigger asChild>
