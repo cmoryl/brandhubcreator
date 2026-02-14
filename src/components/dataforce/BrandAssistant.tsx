@@ -1,9 +1,10 @@
 /**
  * DataForce AI Brand Assistant Component
- * Multilingual chatbot for brand questions
+ * Multilingual chatbot for brand questions with entity navigation
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -28,7 +29,8 @@ import {
   Loader2,
   User,
   Sparkles,
-  Globe
+  Globe,
+  ExternalLink
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -40,6 +42,13 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+}
+
+interface NavLink {
+  type: 'brand' | 'product' | 'event';
+  slug: string;
+  section?: string;
+  label: string;
 }
 
 interface BrandAssistantProps {
@@ -60,6 +69,26 @@ const LANGUAGES = [
   { code: 'pt_BR', label: 'Portuguese', flag: '🇧🇷' },
 ];
 
+/** Parse [[nav:type:slug:section|label]] patterns from text */
+function parseNavLinks(text: string): { cleanText: string; links: NavLink[] } {
+  const navRegex = /\[\[nav:(brand|product|event):([a-z0-9-]+)(?::([a-z0-9-]+))?\|([^\]]+)\]\]/g;
+  const links: NavLink[] = [];
+  let match: RegExpExecArray | null;
+  
+  while ((match = navRegex.exec(text)) !== null) {
+    links.push({
+      type: match[1] as NavLink['type'],
+      slug: match[2],
+      section: match[3] || undefined,
+      label: match[4],
+    });
+  }
+
+  // Replace nav tokens with just the label text for markdown rendering
+  const cleanText = text.replace(navRegex, '**$4**');
+  return { cleanText, links };
+}
+
 export const BrandAssistant = ({
   open,
   onOpenChange,
@@ -68,6 +97,7 @@ export const BrandAssistant = ({
   entityName
 }: BrandAssistantProps) => {
   const { organization } = useOrganization();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -81,11 +111,17 @@ export const BrandAssistant = ({
     }
   }, [messages]);
 
-  // Reset conversation when entity changes
   useEffect(() => {
     setMessages([]);
     setConversationId(null);
   }, [entityId, entityType]);
+
+  const handleNavClick = useCallback((link: NavLink) => {
+    const path = `/${link.type}/${link.slug}`;
+    const hash = link.section ? `#${link.section}` : '';
+    onOpenChange(false);
+    setTimeout(() => navigate(`${path}${hash}`), 150);
+  }, [navigate, onOpenChange]);
 
   const sendMessage = async () => {
     if (!input.trim() || !organization?.id) return;
@@ -138,7 +174,6 @@ export const BrandAssistant = ({
       console.error('Assistant error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to get response');
       
-      // Remove user message on error
       setMessages(prev => prev.filter(m => m.id !== userMessage.id));
       setInput(userMessage.content);
     } finally {
@@ -159,10 +194,48 @@ export const BrandAssistant = ({
     `How should I describe ${entityName} in marketing?`,
     `What is the brand voice for ${entityName}?`,
   ] : [
+    'Show me our brands and their guidelines',
     'How do I maintain brand consistency?',
     'What are best practices for logo usage?',
     'How should I approach color accessibility?',
   ];
+
+  const renderMessageContent = (message: Message) => {
+    if (message.role === 'user') {
+      return <p className="text-sm">{message.content}</p>;
+    }
+
+    const { cleanText, links } = parseNavLinks(message.content);
+
+    return (
+      <div className="space-y-2">
+        <div className="prose prose-sm dark:prose-invert max-w-none">
+          <ReactMarkdown>{cleanText}</ReactMarkdown>
+        </div>
+        {links.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {links.map((link, i) => (
+              <Button
+                key={i}
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs gap-1.5 bg-primary/5 border-primary/20 hover:bg-primary/10"
+                onClick={() => handleNavClick(link)}
+              >
+                <ExternalLink className="h-3 w-3" />
+                {link.label}
+                {link.section && (
+                  <Badge variant="secondary" className="text-[10px] h-4 px-1 ml-0.5">
+                    #{link.section}
+                  </Badge>
+                )}
+              </Button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -194,7 +267,6 @@ export const BrandAssistant = ({
           </SheetDescription>
         </SheetHeader>
 
-        {/* Messages Area */}
         <ScrollArea className="flex-1 p-4" ref={scrollRef}>
           {messages.length === 0 ? (
             <div className="space-y-4">
@@ -202,6 +274,9 @@ export const BrandAssistant = ({
                 <Sparkles className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
                 <p className="text-muted-foreground">
                   Ask me anything about your brand guidelines
+                </p>
+                <p className="text-xs text-muted-foreground/70 mt-1">
+                  I can navigate you to any brand, product, or event page
                 </p>
               </div>
               
@@ -241,13 +316,7 @@ export const BrandAssistant = ({
                         : 'bg-muted'
                     }`}
                   >
-                    {message.role === 'assistant' ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none">
-                        <ReactMarkdown>{message.content}</ReactMarkdown>
-                      </div>
-                    ) : (
-                      <p className="text-sm">{message.content}</p>
-                    )}
+                    {renderMessageContent(message)}
                   </div>
                   {message.role === 'user' && (
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -270,7 +339,6 @@ export const BrandAssistant = ({
           )}
         </ScrollArea>
 
-        {/* Input Area */}
         <div className="border-t p-4">
           <div className="flex gap-2">
             <Input
