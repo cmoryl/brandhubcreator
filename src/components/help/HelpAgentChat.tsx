@@ -218,10 +218,23 @@ export function HelpAgentChat() {
             exit={{ scale: 0, opacity: 0 }}
             className="fixed bottom-6 right-6 z-50"
           >
+            {/* Thought bubble dots */}
+            <motion.div
+              className="absolute -bottom-1 -left-3 h-3 w-3 rounded-full bg-primary shadow-md"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.15 }}
+            />
+            <motion.div
+              className="absolute -bottom-3 -left-6 h-2 w-2 rounded-full bg-primary/80 shadow-sm"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.25 }}
+            />
             <Button
               onClick={() => setIsOpen(true)}
               size="lg"
-              className="rounded-full h-14 w-14 shadow-lg hover:shadow-xl transition-shadow bg-primary text-primary-foreground"
+              className="relative rounded-[1.75rem] h-14 w-14 shadow-lg hover:shadow-xl transition-all bg-primary text-primary-foreground hover:scale-105"
             >
               <Bot className="h-6 w-6" />
             </Button>
