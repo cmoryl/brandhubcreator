@@ -347,13 +347,6 @@ const OrganizationPortal = () => {
                       </>
                     )}
                     
-                    {canEdit && userRole && ['owner', 'admin'].includes(userRole) && (
-                      <DropdownMenuItem onClick={() => navigate(`/org/${slug}/settings`)} className="gap-2 cursor-pointer">
-                        <Users className="h-4 w-4" />
-                        Manage Members
-                      </DropdownMenuItem>
-                    )}
-                    
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => navigate('/help')} className="gap-2 cursor-pointer">
                       <HelpCircle className="h-4 w-4" />
