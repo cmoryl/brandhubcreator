@@ -1,4 +1,4 @@
-import { useRef, useEffect, memo, useMemo, useCallback } from 'react';
+import { useRef, useEffect, memo, useMemo, useCallback, lazy, Suspense } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { BaseGuide, SectionId, DEFAULT_SECTION_ORDER, LayoutPreset, InfographicLayout, BrandLocation, LocationStat } from '@/types/brand';
@@ -37,7 +37,7 @@ import { WebinarSeriesSection } from './WebinarSeriesSection';
 import AwardsSection from './AwardsSection';
 import { GlobalLinkUniverseSection } from './GlobalLinkUniverseSection';
 import { InsightsSection } from './InsightsSection';
-import { LeafletLocationsSection } from './LeafletLocationsSection';
+const LeafletLocationsSection = lazy(() => import('./LeafletLocationsSection').then(m => ({ default: m.LeafletLocationsSection })));
 import { BrandEventSignageSection } from './BrandEventSignageSection';
 import { ClientLogosSection } from './ClientLogosSection';
 import { PresentationTemplatesSection } from './PresentationTemplatesSection';
@@ -345,23 +345,25 @@ export const FullBrandPage = ({
           onAccessCodeChange={canEdit ? (insightsAccessCode) => onBrandUpdate({ insightsAccessCode }) : undefined}
         />;
       case 'locations':
-        return <LeafletLocationsSection 
-          locations={brand.locations || []} 
-          locationStats={brand.locationStats || []}
-          onLocationsChange={editHandler((locations: BrandLocation[]) => onBrandUpdate({ locations }))}
-          onLocationStatsChange={editHandler((locationStats: LocationStat[]) => onBrandUpdate({ locationStats }))}
-          customSubtitle={customSubtitle} 
-          onSubtitleChange={onSubtitleChange}
-          accentColor={brand.colors?.[0]?.hex}
-          sectionTitle={brand.locationsSectionTitle}
-          sectionDescription={brand.locationsSectionDescription}
-          onSectionTitleChange={canEdit ? (locationsSectionTitle: string) => onBrandUpdate({ locationsSectionTitle }) : undefined}
-          onSectionDescriptionChange={canEdit ? (locationsSectionDescription: string) => onBrandUpdate({ locationsSectionDescription }) : undefined}
-          useSharedLocations={brand.useSharedLocations ?? false}
-          onUseSharedLocationsChange={canEdit ? (useSharedLocations: boolean) => onBrandUpdate({ useSharedLocations }) : undefined}
-          mapTheme={brand.mapTheme}
-          onMapThemeChange={canEdit ? (mapTheme) => onBrandUpdate({ mapTheme }) : undefined}
-        />;
+        return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading map...</div>}>
+          <LeafletLocationsSection 
+            locations={brand.locations || []} 
+            locationStats={brand.locationStats || []}
+            onLocationsChange={editHandler((locations: BrandLocation[]) => onBrandUpdate({ locations }))}
+            onLocationStatsChange={editHandler((locationStats: LocationStat[]) => onBrandUpdate({ locationStats }))}
+            customSubtitle={customSubtitle} 
+            onSubtitleChange={onSubtitleChange}
+            accentColor={brand.colors?.[0]?.hex}
+            sectionTitle={brand.locationsSectionTitle}
+            sectionDescription={brand.locationsSectionDescription}
+            onSectionTitleChange={canEdit ? (locationsSectionTitle: string) => onBrandUpdate({ locationsSectionTitle }) : undefined}
+            onSectionDescriptionChange={canEdit ? (locationsSectionDescription: string) => onBrandUpdate({ locationsSectionDescription }) : undefined}
+            useSharedLocations={brand.useSharedLocations ?? false}
+            onUseSharedLocationsChange={canEdit ? (useSharedLocations: boolean) => onBrandUpdate({ useSharedLocations }) : undefined}
+            mapTheme={brand.mapTheme}
+            onMapThemeChange={canEdit ? (mapTheme) => onBrandUpdate({ mapTheme }) : undefined}
+          />
+        </Suspense>;
       case 'eventsignage':
         return <BrandEventSignageSection 
           eventSignage={brand.eventSignage || []} 

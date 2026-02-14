@@ -29,7 +29,7 @@ import {
   DEFAULT_MAP_THEME,
   TILE_CONFIGS_BY_CATEGORY,
 } from '@/types/mapTheme';
-import { TilePreviewThumb } from './MapThemePreview';
+import { TilePreviewThumb } from './TilePreviewThumb';
 
 // Lazy load the heavy map preview
 const MapThemePreview = lazy(() => 
