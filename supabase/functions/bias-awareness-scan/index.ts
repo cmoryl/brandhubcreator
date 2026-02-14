@@ -9,7 +9,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { scanTextForInclusiveLanguage, buildDeepIntelligencePromptContext, INCLUSIVE_PROMPTING_HEURISTICS, EAA_COMPLIANCE_BASELINE } from "../_shared/inclusive-language-patterns.ts";
+import { scanTextForInclusiveLanguage, buildDeepIntelligencePromptContext, WCAG_22_NEW_CRITERIA, WFA_12_AREAS, PIE_TOUCHPOINTS, IMAGERY_STOP_GO, EVENT_ACCESSIBILITY_CHECKLIST, AI_POLICY_AS_CODE, PERSONA_SPECTRUM_DIMENSIONS } from "../_shared/inclusive-language-patterns.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -143,48 +143,65 @@ serve(async (req) => {
     // @ts-ignore - EdgeRuntime available in Supabase
     EdgeRuntime.waitUntil((async () => {
       try {
-        const systemPrompt = `You are an advanced Bias Awareness & Inclusion Auditor for brand ecosystems (2026 standard). You have access to automated Tier 1 regex pre-scan results AND Deep Intelligence modules (inclusive prompting heuristics, EAA regulatory baseline, design sprint activities). Analyze the provided entity data across 4 core dimensions PLUS 5 advanced governance modules. Incorporate the regex pre-scan findings directly into your language score. Apply EAA regulatory requirements to the accessibility score. Return a single structured JSON assessment.
+        const wcagContext = WCAG_22_NEW_CRITERIA.map(c => `${c.id} ${c.name} [${c.level}]: ${c.objective}`).join('\n');
+        const wfaContext = WFA_12_AREAS.map(a => `Stage ${a.stage} ${a.name}: ${a.audit_question}`).join('\n');
+        const pieContext = PIE_TOUCHPOINTS.map(t => `${t.name}: ${t.audit_question}`).join('\n');
+        const imageryContext = `STOP: ${IMAGERY_STOP_GO.stop_signals.join('; ')}\nGO: ${IMAGERY_STOP_GO.go_signals.join('; ')}`;
+        const eventContext = EVENT_ACCESSIBILITY_CHECKLIST.map(e => `${e.category}: ${e.specification}`).join('\n');
+        const personaContext = PERSONA_SPECTRUM_DIMENSIONS.map(p => `${p.dimension}: Permanent(${p.permanent}), Temporary(${p.temporary}), Situational(${p.situational})`).join('\n');
+        const policyContext = `Disparate Impact: ${AI_POLICY_AS_CODE.disparate_impact_rule.description}\n${AI_POLICY_AS_CODE.governance_pillars.map(p => `${p.name}: ${p.description}`).join('\n')}`;
+
+        const systemPrompt = `You are an advanced Bias Awareness & Inclusion Auditor for brand ecosystems (2026 Foundations of Inclusive Architecture standard). You have access to automated Tier 1 regex pre-scan results AND comprehensive Deep Intelligence modules. Analyze the provided entity data across 4 core dimensions PLUS 5 advanced governance modules. Incorporate the regex pre-scan findings directly into your language score. Apply EAA/Section 508 regulatory requirements to the accessibility score. Return a single structured JSON assessment.
 
 CORE DIMENSIONS (0-100 each):
 
 1. LANGUAGE & MESSAGING (language_score):
 - Asset-based vs deficit-focused framing
-- Non-inclusive terminology detection
+- Non-inclusive terminology detection (include gender-biased language: fireman→firefighter, chairman→chairperson, guys→folks)
 - Plain language accessibility, cultural sensitivity
 - Person-first vs identity-first appropriateness
 
 2. VISUAL REPRESENTATION (visual_score):
 - Diversity signals in imagery
-- Stereotyping risk detection
-- Persona spectrum coverage (permanent/temporary/situational)
+- Stereotyping risk detection using Stop/Go Imagery Framework:
+${imageryContext}
+- Persona spectrum coverage across 5 dimensions:
+${personaContext}
 
 3. ACCESSIBILITY (accessibility_score):
-- WCAG 2.2 compliance awareness
-- Target sizes (24x24px min), accessible authentication
-- Multi-sensory design, event accessibility
+- WCAG 2.2 compliance — evaluate against ALL 9 new success criteria:
+${wcagContext}
+- Target sizes (24x24px min per 2.5.8), accessible authentication (3.3.8), redundant entry prevention (3.3.7)
+- Multi-sensory design (haptic hierarchy, synchronized timing, accessible affordances)
+- Event accessibility standards:
+${eventContext}
+- EAA enforcement (€3M penalties) + U.S. Section 508 (WCAG 2.1 AA by April 2026)
 
 4. AI GOVERNANCE (ai_governance_score):
 - AI content oversight, bias detection in automated workflows
 - Human-in-the-loop processes, prompt inclusivity
+- Policy-as-Code governance:
+${policyContext}
 
 ADVANCED MODULES:
 
 MODULE 1 - PI&E "Who Else?" Framework (Annie Jean-Baptiste/Google):
-Evaluate 5 touchpoints: Ideation (whose voice is missing?), Research (are pen portraits generalized?), Design (Curb-Cut Effect opportunities), Testing (diverse co-designer recruitment), Marketing (intersectionality of portrayals). Score each 0-100.
+${pieContext}
+Score each touchpoint 0-100. Apply the "Curb-Cut Effect" principle.
 
 MODULE 2 - WFA 12 Key Areas Bias Litmus Test:
-Audit: business_challenge (is target audience excluding growth?), insight_generation (nuanced vs broad perspectives), creative_briefing (representative casting mandated?), media_placement (blocklists demonetizing minority media?). Score each 0-100.
+${wfaContext}
+Commercial impact: inclusive advertising linked to +3.46% short-term and +16.26% long-term sales.
+Score key areas 0-100 with specific findings.
 
 MODULE 3 - Policy-as-Code Disparate Impact:
 Evaluate content/AI pipelines against the U.S. 80% rule (disparate impact ratio 0.80-1.25). Flag any areas where content skews beyond thresholds. Assess data_journey_traceability, bias_detection_automation, threshold_monitoring readiness.
 
 MODULE 4 - Inclusive Imagery Stop/Go Framework:
-STOP signals: hospital-style equipment, pity-based hierarchies, "heroic" tropes for everyday activities.
-GO signals: authentic models in realistic settings, equal power hierarchies, normalized invisible disabilities.
-Score overall imagery_inclusion 0-100.
+Score imagery_inclusion 0-100 based on presence of GO signals and absence of STOP signals.
 
-MODULE 5 - 2026 Master Inclusion Checklist (26 Actions):
-Evaluate against key areas: linguistic (CamelCase hashtags for screen readers), technical (no puzzle-based auth per WCAG 3.3.8), physical (32in doors, <5lbs force), communication (roving microphones for Q&A). Report completed_count out of applicable_count.
+MODULE 5 - 2026 Master Inclusion Checklist:
+Evaluate against key areas: linguistic (CamelCase hashtags for screen readers), technical (no puzzle-based auth per WCAG 3.3.8, 24x24px targets per 2.5.8), physical (32in doors, <5lbs force), communication (roving microphones for Q&A, captions on all videos, speakers describe visuals), digital (WCAG 2.2 AA event apps). Report completed_count out of applicable_count.
 
 RESPONSE FORMAT (strict JSON):
 {
