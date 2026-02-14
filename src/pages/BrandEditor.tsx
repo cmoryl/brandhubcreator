@@ -1194,6 +1194,15 @@ const BrandEditor = () => {
                     activeSection={activeSection}
                     onSectionSelect={(section) => { setActiveSection(section); }}
                     isAdmin={isGuideAdmin}
+                    cardViewBackground={pageSettings.cardViewBackground}
+                    cardViewBackgroundTint={pageSettings.cardViewBackgroundTint}
+                    onCardViewBackgroundChange={(bg, tint) => {
+                      handlePageSettingsChange({
+                        ...pageSettings,
+                        cardViewBackground: bg,
+                        cardViewBackgroundTint: tint,
+                      });
+                    }}
                   />
                   <div className="animate-zoom-in">
                     {renderSection()}

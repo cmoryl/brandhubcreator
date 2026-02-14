@@ -464,6 +464,8 @@ export interface BrandPageSettings {
   defaultTheme?: 'light' | 'dark' | 'system'; // Per-brand default theme
   customPrimaryColor?: string; // Override primary color for this brand
   customSecondaryColor?: string; // Override secondary color for this brand
+  cardViewBackground?: BrandBackgroundType; // Background for card grid view
+  cardViewBackgroundTint?: string; // Tint color for card view animated backgrounds
 }
 
 // CASESTUDIES - Proof Shards
