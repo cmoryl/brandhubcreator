@@ -148,6 +148,21 @@ async function fetchEntityBrains(orgId: string): Promise<string> {
   }
 }
 
+async function fetchBotConfig(orgId: string | null): Promise<{ system_prompt?: string; model?: string; temperature?: number; max_tokens?: number } | null> {
+  try {
+    let url = `${SUPABASE_URL}/rest/v1/bot_config?bot_type=eq.help_agent&limit=1`;
+    if (orgId) {
+      url += `&organization_id=eq.${orgId}`;
+    }
+    const res = await fetch(url, { headers: restHeaders() });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.[0] || null;
+  } catch {
+    return null;
+  }
+}
+
 const BASE_SYSTEM_PROMPT = `You are the BrandHub Help Assistant — a friendly, knowledgeable guide for the BrandHub platform. You have access to the user's organization intelligence and brand data to provide context-aware, personalized help.
 
 ## Core Features
@@ -244,7 +259,30 @@ serve(async (req) => {
       }
     }
 
+    // Try to load dynamic bot config
+    let dynamicConfig: any = null;
+    let orgIdForConfig: string | null = null;
+
     const fullSystemPrompt = BASE_SYSTEM_PROMPT + contextBlock;
+
+    // Extract orgId from context if available
+    if (contextBlock) {
+      // orgId was fetched above, try to load config
+      try {
+        const authHeader2 = req.headers.get("Authorization");
+        if (authHeader2 && !authHeader2.includes(Deno.env.get("SUPABASE_ANON_KEY") || '__none__')) {
+          const user2 = await verifyUser(authHeader2);
+          if (user2?.id) {
+            orgIdForConfig = await getUserOrgId(user2.id);
+          }
+        }
+      } catch { /* ignore */ }
+    }
+    
+    dynamicConfig = await fetchBotConfig(orgIdForConfig);
+    
+    const systemPrompt = dynamicConfig?.system_prompt || fullSystemPrompt;
+    const model = dynamicConfig?.model || "google/gemini-2.5-flash-lite";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -253,9 +291,9 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model,
         messages: [
-          { role: "system", content: fullSystemPrompt },
+          { role: "system", content: systemPrompt },
           ...messages,
         ],
         stream: true,

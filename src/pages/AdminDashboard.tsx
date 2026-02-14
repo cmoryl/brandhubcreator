@@ -60,6 +60,7 @@ import { GlobalLinkAdminSection } from '@/components/admin/globallink';
 import { ResearchBriefingsPanel } from '@/components/admin/ResearchBriefingsPanel';
 import { MulticulturalIntelligencePanel } from '@/components/admin/MulticulturalIntelligencePanel';
 import { DataForceAdminPanel } from '@/components/admin/DataForceAdminPanel';
+import { BotManagementPanel } from '@/components/admin/BotManagementPanel';
 import { OracleBrainPanel } from '@/components/admin/OracleBrainPanel';
 import { 
   DashboardStats, 
@@ -772,6 +773,11 @@ export default function AdminDashboard() {
           {/* DataForce AI Tab */}
           <TabsContent value="dataforce" className="space-y-6">
             <DataForceAdminPanel />
+          </TabsContent>
+
+          {/* Bot Management Tab */}
+          <TabsContent value="bot-management" className="space-y-6">
+            <BotManagementPanel />
           </TabsContent>
 
           {/* Activity Tab */}

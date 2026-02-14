@@ -203,6 +203,130 @@ export type Database = {
           },
         ]
       }
+      bot_config: {
+        Row: {
+          bot_type: string
+          created_at: string
+          display_name: string
+          id: string
+          is_active: boolean | null
+          max_tokens: number | null
+          model: string
+          organization_id: string | null
+          personality_traits: Json | null
+          response_style: string | null
+          suggested_questions: Json | null
+          system_prompt: string | null
+          temperature: number | null
+          updated_at: string
+          welcome_message: string | null
+        }
+        Insert: {
+          bot_type: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          max_tokens?: number | null
+          model?: string
+          organization_id?: string | null
+          personality_traits?: Json | null
+          response_style?: string | null
+          suggested_questions?: Json | null
+          system_prompt?: string | null
+          temperature?: number | null
+          updated_at?: string
+          welcome_message?: string | null
+        }
+        Update: {
+          bot_type?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          max_tokens?: number | null
+          model?: string
+          organization_id?: string | null
+          personality_traits?: Json | null
+          response_style?: string | null
+          suggested_questions?: Json | null
+          system_prompt?: string | null
+          temperature?: number | null
+          updated_at?: string
+          welcome_message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_config_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bot_conversations: {
+        Row: {
+          bot_type: string
+          created_at: string
+          entity_id: string | null
+          entity_name: string | null
+          entity_type: string | null
+          id: string
+          language_code: string | null
+          message_count: number | null
+          messages: Json
+          organization_id: string | null
+          satisfaction_rating: number | null
+          session_duration_seconds: number | null
+          updated_at: string
+          user_email: string | null
+          user_id: string
+        }
+        Insert: {
+          bot_type: string
+          created_at?: string
+          entity_id?: string | null
+          entity_name?: string | null
+          entity_type?: string | null
+          id?: string
+          language_code?: string | null
+          message_count?: number | null
+          messages?: Json
+          organization_id?: string | null
+          satisfaction_rating?: number | null
+          session_duration_seconds?: number | null
+          updated_at?: string
+          user_email?: string | null
+          user_id: string
+        }
+        Update: {
+          bot_type?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_name?: string | null
+          entity_type?: string | null
+          id?: string
+          language_code?: string | null
+          message_count?: number | null
+          messages?: Json
+          organization_id?: string | null
+          satisfaction_rating?: number | null
+          session_duration_seconds?: number | null
+          updated_at?: string
+          user_email?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_conversations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brand_country_mappings: {
         Row: {
           business_context: Json | null
