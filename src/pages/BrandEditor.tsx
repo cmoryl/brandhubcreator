@@ -1230,10 +1230,16 @@ const BrandEditor = () => {
                         updateBrand({ hero: { ...brand.hero, darkLogoUrl: url } });
                       }
                     } : undefined}
+                    entityName={brand?.hero?.name}
+                    entityTagline={brand?.hero?.tagline}
+                    complianceScore={complianceScores?.get(brand.id)?.score}
+                    onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined}
                   />
-                  <div className="animate-zoom-in">
-                    {renderSection()}
-                  </div>
+                  {activeSection !== 'hero' && (
+                    <div className="animate-zoom-in">
+                      {renderSection()}
+                    </div>
+                  )}
                 </div>
               ) : viewMode === 'sections' ? (
                 <div className="animate-zoom-in">
