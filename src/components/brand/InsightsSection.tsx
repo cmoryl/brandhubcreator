@@ -7,7 +7,7 @@ import { useBiasAwarenessInsights } from '@/hooks/useBiasAwarenessInsights';
 import { 
   TrendingUp, TrendingDown, Minus, FileText, BarChart2, Newspaper, 
   Bell, AlertCircle, Calendar, ExternalLink, Plus, Trash2, Pencil,
-  LayoutGrid, LayoutList, Sparkles, Eye
+  LayoutGrid, LayoutList, Sparkles, Eye, ArrowUpDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -326,6 +326,7 @@ export const InsightsSection = ({
 }: InsightsSectionProps) => {
   const canEdit = Boolean(onInsightsChange);
   const [isEditing, setIsEditing] = useState(false);
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'priority' | 'category'>('newest');
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingInsight, setEditingInsight] = useState<InsightItem | null>(null);
   const [competitiveDialogOpen, setCompetitiveDialogOpen] = useState(false);
@@ -516,13 +517,47 @@ export const InsightsSection = ({
           </div>
         )}
 
+        {/* Sort Controls */}
+        {allInsights.length > 1 && (
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground font-medium">Sort:</span>
+            {(['newest', 'oldest', 'priority', 'category'] as const).map((opt) => (
+              <Button
+                key={opt}
+                variant={sortBy === opt ? 'default' : 'outline'}
+                size="sm"
+                className="h-7 text-xs capitalize px-2.5"
+                onClick={() => setSortBy(opt)}
+              >
+                {opt}
+              </Button>
+            ))}
+          </div>
+        )}
+
         {/* Content based on layout */}
         {(() => {
           // For admins, filter out site-analysis insights (shown via WebsiteAnalysisCard below).
           // For public users, include them as read-only insight cards so they can see the results.
-          const displayInsights = canEdit
+          const filtered = canEdit
             ? allInsights.filter(i => !i.id.startsWith('site-analysis-'))
             : allInsights;
+
+          const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
+          const displayInsights = [...filtered].sort((a, b) => {
+            switch (sortBy) {
+              case 'oldest':
+                return (a.date || '').localeCompare(b.date || '');
+              case 'priority':
+                return (priorityOrder[a.priority || 'low'] ?? 2) - (priorityOrder[b.priority || 'low'] ?? 2);
+              case 'category':
+                return (a.category || '').localeCompare(b.category || '');
+              case 'newest':
+              default:
+                return (b.date || '').localeCompare(a.date || '');
+            }
+          });
           if (displayInsights.length === 0) {
             // Show a public-facing empty state when no insights are available after unlock
             if (!canEdit) {
