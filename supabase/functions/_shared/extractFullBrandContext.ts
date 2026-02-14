@@ -556,16 +556,61 @@ export function extractFullBrandContext(
         const report = wa.report || wa.data || {};
         d.push(`URL: ${wa.url || wa.title || 'unknown'}`);
         if (report.overallScore) d.push(`Score: ${report.overallScore}/100 (Grade: ${report.grade || 'N/A'})`);
-        if (report.summary) d.push(`Summary: ${safeStr(report.summary).slice(0, 200)}`);
+        if (report.summary) d.push(`Summary: ${safeStr(report.summary).slice(0, 300)}`);
+
+        // Deep-dive into each section's findings, recommendations, and content details
         const sections = report.sections || {};
-        const sectionScores = Object.entries(sections).map(([key, val]: [string, any]) =>
-          `${key}: ${val?.score ?? 'N/A'}/100`
-        );
-        if (sectionScores.length) d.push(`Sections: ${sectionScores.join(', ')}`);
+        for (const [key, val] of Object.entries(sections) as [string, any][]) {
+          const sd: string[] = [`${key}: ${val?.score ?? 'N/A'}/100`];
+          if (val?.summary) sd.push(safeStr(val.summary).slice(0, 150));
+          // Extract specific findings (e.g. SEO issues, accessibility problems, content gaps)
+          const findings = safeArr(val?.findings);
+          if (findings.length) {
+            sd.push(`Findings: ${findings.slice(0, 4).map((f: any) =>
+              typeof f === 'string' ? f.slice(0, 80) : `${f.title || f.issue || f.finding || ''}: ${safeStr(f.detail || f.description || f.recommendation || '').slice(0, 80)}`
+            ).join('; ')}`);
+          }
+          // Extract section-specific recommendations
+          const recs = safeArr(val?.recommendations);
+          if (recs.length) {
+            sd.push(`Recs: ${recs.slice(0, 3).map((r: any) =>
+              typeof r === 'string' ? r.slice(0, 80) : `${r.title || r.action || ''} (${r.priority || r.impact || 'medium'})`
+            ).join('; ')}`);
+          }
+          // Extract detected content details (meta, headings, keywords, etc.)
+          if (val?.detectedTitle) sd.push(`Page Title: ${val.detectedTitle}`);
+          if (val?.detectedDescription) sd.push(`Meta Desc: ${safeStr(val.detectedDescription).slice(0, 120)}`);
+          if (val?.detectedKeywords) sd.push(`Keywords: ${safeStr(val.detectedKeywords).slice(0, 100)}`);
+          if (val?.contentThemes) sd.push(`Themes: ${safeArr(val.contentThemes).slice(0, 5).join(', ')}`);
+          if (val?.messagingTone) sd.push(`Tone: ${val.messagingTone}`);
+          if (val?.brandConsistencyNotes) sd.push(`Brand Notes: ${safeStr(val.brandConsistencyNotes).slice(0, 100)}`);
+          d.push(sd.join(' | '));
+        }
+
+        // Top-level recommendations and priority actions
         const topRecs = safeArr(report.topRecommendations);
-        if (topRecs.length) d.push(`Top Recs: ${topRecs.slice(0, 3).join('; ')}`);
+        if (topRecs.length) d.push(`Top Recs: ${topRecs.slice(0, 5).join('; ')}`);
         const actions = safeArr(report.priorityActions);
-        if (actions.length) d.push(`Priority Actions: ${actions.slice(0, 3).map((a: any) => `${a.action || a.title} (${a.impact} impact)`).join('; ')}`);
+        if (actions.length) d.push(`Priority Actions: ${actions.slice(0, 5).map((a: any) => `${a.action || a.title} (${a.impact} impact, ${a.effort || 'unknown'} effort)`).join('; ')}`);
+
+        // Extract competitor mentions from the report
+        if (report.competitorMentions || report.competitivePosition) {
+          const cp = report.competitivePosition || report.competitorMentions || {};
+          if (typeof cp === 'string') d.push(`Competitive Position: ${cp.slice(0, 150)}`);
+          else if (cp.summary) d.push(`Competitive Position: ${safeStr(cp.summary).slice(0, 150)}`);
+        }
+
+        // Extract technology/platform details if detected
+        if (report.techStack) d.push(`Tech Stack: ${safeArr(report.techStack).slice(0, 5).join(', ')}`);
+        if (report.performanceMetrics) {
+          const pm = report.performanceMetrics;
+          const metrics: string[] = [];
+          if (pm.loadTime) metrics.push(`Load: ${pm.loadTime}`);
+          if (pm.mobileScore) metrics.push(`Mobile: ${pm.mobileScore}`);
+          if (pm.desktopScore) metrics.push(`Desktop: ${pm.desktopScore}`);
+          if (metrics.length) d.push(`Perf: ${metrics.join(', ')}`);
+        }
+
         return d.join('. ');
       });
       parts.push(`Website Analysis Reports (${websiteAnalyses.length}): ${analysisDetails.join(' || ')}`);
