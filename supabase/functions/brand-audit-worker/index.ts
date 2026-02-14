@@ -242,6 +242,85 @@ serve(async (req) => {
 
     await updateJob(jobId!, { progress: 60 });
 
+    const auditToolDef = {
+      type: "function",
+      function: {
+        name: "brand_cohesion_audit",
+        description: "Return the brand cohesion audit results",
+        parameters: {
+          type: "object",
+          properties: {
+            overallScore: { type: "number", description: "Overall cohesion score 0-100" },
+            summary: { type: "string", description: "2-3 sentence executive summary of overall cohesion" },
+            categories: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  score: { type: "number" },
+                  findings: { type: "array", items: { type: "string" } },
+                  recommendations: { type: "array", items: { type: "string" } }
+                },
+                required: ["name", "score", "findings", "recommendations"]
+              }
+            },
+            biasReview: {
+              type: "object",
+              properties: {
+                score: { type: "number" },
+                languageInclusivity: {
+                  type: "object",
+                  properties: { score: { type: "number" }, findings: { type: "array", items: { type: "string" } }, recommendations: { type: "array", items: { type: "string" } } },
+                  required: ["score", "findings", "recommendations"]
+                },
+                visualRepresentation: {
+                  type: "object",
+                  properties: { score: { type: "number" }, findings: { type: "array", items: { type: "string" } }, recommendations: { type: "array", items: { type: "string" } } },
+                  required: ["score", "findings", "recommendations"]
+                },
+                culturalSensitivity: {
+                  type: "object",
+                  properties: { score: { type: "number" }, findings: { type: "array", items: { type: "string" } }, recommendations: { type: "array", items: { type: "string" } } },
+                  required: ["score", "findings", "recommendations"]
+                },
+                accessibilityConsiderations: {
+                  type: "object",
+                  properties: { score: { type: "number" }, findings: { type: "array", items: { type: "string" } }, recommendations: { type: "array", items: { type: "string" } } },
+                  required: ["score", "findings", "recommendations"]
+                },
+                regulatoryCompliance: {
+                  type: "object",
+                  properties: { score: { type: "number" }, findings: { type: "array", items: { type: "string" } }, recommendations: { type: "array", items: { type: "string" } } },
+                  required: ["score", "findings", "recommendations"]
+                },
+                overallFindings: { type: "array", items: { type: "string" } },
+                overallRecommendations: { type: "array", items: { type: "string" } }
+              },
+              required: ["score", "languageInclusivity", "visualRepresentation", "culturalSensitivity", "accessibilityConsiderations", "overallFindings", "overallRecommendations"]
+            },
+            strengths: { type: "array", items: { type: "string" } },
+            weaknesses: { type: "array", items: { type: "string" } },
+            actionItems: { type: "array", items: { type: "string" } }
+          },
+          required: ["overallScore", "summary", "categories", "strengths", "weaknesses", "actionItems"]
+        }
+      }
+    };
+
+    const systemPrompt = `You are a brand cohesion expert auditing a brand guide. You have been given a detailed section-by-section completeness breakdown AND Deep Intelligence modules (inclusive language regex patterns, inclusive prompting heuristics, EAA regulatory baseline). Evaluate visual consistency, identity coherence, digital presence maturity, overall completeness, AND bias & inclusivity using the Deep Intelligence framework.
+
+Categories MUST include: Visual Consistency, Brand Identity, Digital Presence, Content Completeness, Marketing Materials, Best Practices.
+
+For the biasReview section, apply Deep Intelligence modules:
+- Language Inclusivity: Flag non-inclusive terms (whitelist/blacklist, master/slave, grandfathered, ableist slang). Check for gendered language, cultural assumptions.
+- Visual Representation: Check if imagery guidelines specify visible identity diversity, observable actions, cultural context.
+- Cultural Sensitivity: Evaluate region-specific messaging, universal vs localized tone, cultural blind spots.
+- Accessibility Considerations: Apply EAA 2025/2026 baseline — WCAG 2.2 readiness, alt text, color-only information, typography readability.
+- Regulatory Compliance: Score against EAA mandatory scope.
+
+Score based on ACTUAL section data provided. Empty sections should significantly reduce relevant category scores. Be specific — reference actual section names and completion levels in findings.`;
+
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -251,28 +330,12 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash-lite',
         messages: [
-          {
-            role: 'system',
-            content: `You are a brand cohesion expert auditing a brand guide. You have been given a detailed section-by-section completeness breakdown AND Deep Intelligence modules (inclusive language regex patterns, inclusive prompting heuristics, EAA regulatory baseline). Evaluate visual consistency, identity coherence, digital presence maturity, overall completeness, AND bias & inclusivity using the Deep Intelligence framework.
-
-Return JSON only:
-{"overallScore":<0-100>,"categories":[{"name":"<category name>","score":<0-100>,"findings":["specific finding..."],"recommendations":["actionable rec..."]}],"biasReview":{"score":<0-100>,"languageInclusivity":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"visualRepresentation":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"culturalSensitivity":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"accessibilityConsiderations":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"regulatoryCompliance":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"overallFindings":["..."],"overallRecommendations":["..."]},"summary":"<2-3 sentences on overall cohesion>","strengths":["..."],"weaknesses":["..."],"actionItems":["prioritized action..."]}
-
-Categories MUST include: Visual Consistency, Brand Identity, Digital Presence, Content Completeness, Marketing Materials, Best Practices.
-
-For the biasReview section, apply Deep Intelligence modules:
-- Language Inclusivity: Use the Tier 1 regex patterns to flag non-inclusive terms (whitelist/blacklist, master/slave, grandfathered, ableist slang, dummy). Also check for gendered language, cultural assumptions.
-- Visual Representation: Apply Inclusive Prompting Heuristics — check if imagery guidelines specify visible identity diversity, observable actions over internal identities, cultural context. Flag if guidelines default to narrow representation.
-- Cultural Sensitivity: Evaluate region-specific messaging, universal vs localized tone, cultural blind spots.
-- Accessibility Considerations: Apply EAA 2025/2026 baseline — check for public Accessibility Statement, WCAG 2.2 readiness, alt text practices, color-only information, typography readability. Flag EU compliance gaps.
-- Regulatory Compliance: Score against EAA mandatory scope. Flag if consumer-facing products lack accessibility statements or improvement timelines.
-
-Score based on ACTUAL section data provided. Empty sections should significantly reduce relevant category scores. Be specific — reference actual section names and completion levels in findings.`
-          },
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: promptLines.join('\n') }
         ],
+        tools: [auditToolDef],
+        tool_choice: { type: "function", function: { name: "brand_cohesion_audit" } },
         temperature: 0.3,
-        max_tokens: 2500,
       }),
     });
 
@@ -282,27 +345,38 @@ Score based on ACTUAL section data provided. Empty sections should significantly
     }
 
     const aiResponse = await response.json();
-    const content = aiResponse.choices?.[0]?.message?.content;
-    if (!content) throw new Error('No AI response');
-
+    
     let auditResult;
-    try {
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
-      let fixedJson = (jsonMatch[1] || content).trim();
-      if (!fixedJson.endsWith('}')) {
-        const lastBrace = fixedJson.lastIndexOf('}');
-        if (lastBrace > 0) fixedJson = fixedJson.substring(0, lastBrace + 1);
+    // Extract from tool call response
+    const toolCall = aiResponse.choices?.[0]?.message?.tool_calls?.[0];
+    if (toolCall?.function?.arguments) {
+      try {
+        auditResult = JSON.parse(toolCall.function.arguments);
+      } catch (e) {
+        console.error('Tool call JSON parse failed:', e, 'Raw:', toolCall.function.arguments?.substring(0, 200));
       }
-      auditResult = JSON.parse(fixedJson);
-    } catch {
-      auditResult = {
-        overallScore: 70,
-        categories: [{ name: 'Analysis', score: 70, findings: ['Parsing failed'], recommendations: ['Try again'] }],
-        summary: content.substring(0, 200),
-        strengths: ['Brand guide exists'],
-        weaknesses: ['Could not parse detailed analysis'],
-        actionItems: ['Enhance brand guide completeness']
-      };
+    }
+    
+    // Fallback: try content field
+    if (!auditResult) {
+      const content = aiResponse.choices?.[0]?.message?.content;
+      if (content) {
+        try {
+          const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
+          let fixedJson = (jsonMatch[1] || content).trim();
+          if (!fixedJson.endsWith('}')) {
+            const lastBrace = fixedJson.lastIndexOf('}');
+            if (lastBrace > 0) fixedJson = fixedJson.substring(0, lastBrace + 1);
+          }
+          auditResult = JSON.parse(fixedJson);
+        } catch {
+          console.error('Content JSON parse also failed. Content preview:', content?.substring(0, 300));
+        }
+      }
+    }
+
+    if (!auditResult) {
+      throw new Error('Failed to parse AI audit response — neither tool call nor content contained valid JSON');
     }
 
     await updateJob(jobId!, {
