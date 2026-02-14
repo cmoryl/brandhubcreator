@@ -455,6 +455,16 @@ const BrandEditor = () => {
   );
   const pageSettings = brand?.pageSettings || DEFAULT_PAGE_SETTINGS;
 
+  // Continuous bias monitoring — triggers scan on content changes
+  // MUST be called before any early returns to respect Rules of Hooks
+  const { triggerMonitor: triggerBiasMonitor } = useAutoBiasMonitoring({
+    organizationId: brand?.organizationId,
+    entityType: 'brand',
+    entityId: brand?.id || '',
+    entityName: brand?.hero?.name || '',
+    enabled: canEdit && Boolean(brand?.id),
+  });
+
   // Apply brand-specific theme on mount and revert on unmount
   useEffect(() => {
     const brandDefaultTheme = pageSettings.defaultTheme;
@@ -692,14 +702,7 @@ const BrandEditor = () => {
     );
   }
 
-  // Continuous bias monitoring — triggers scan on content changes
-  const { triggerMonitor: triggerBiasMonitor } = useAutoBiasMonitoring({
-    organizationId: brand?.organizationId,
-    entityType: 'brand',
-    entityId: brand?.id || '',
-    entityName: brand?.hero?.name || '',
-    enabled: canEdit && Boolean(brand?.id),
-  });
+  // (hook moved above early returns to respect Rules of Hooks)
 
   const updateBrand = (updates: Parameters<typeof updateBrandContext>[1]) => {
     applyBrandUpdates(updates);
