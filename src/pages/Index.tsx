@@ -5,7 +5,7 @@
 
 import { useMemo, useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap, HelpCircle } from 'lucide-react';
+import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap, HelpCircle, Scale, Accessibility, ShieldCheck } from 'lucide-react';
 import { GlitchText } from '@/components/ui/GlitchText';
 import { HeroOrbit } from '@/components/landing/HeroOrbit';
 import { Button } from '@/components/ui/button';
@@ -153,7 +153,7 @@ const Index = () => {
             <div className="text-center md:text-left order-2 md:order-1">
               <Badge variant="secondary" className="mb-4 gap-1.5">
                 <Sparkles className="h-3 w-3" />
-                Interactive Brand Guidelines Platform
+                AI-Powered Inclusive Brand Architecture
               </Badge>
               
               <h1 className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight mb-4 md:mb-6">
@@ -165,8 +165,8 @@ const Index = () => {
               </h1>
               
               <p className="text-base sm:text-lg md:text-lg lg:text-xl text-muted-foreground mb-6 md:mb-8 max-w-xl mx-auto md:mx-0">
-                Transform static brand guidelines into dynamic, interactive experiences. 
-                Manage brands, products, and events in one unified platform.
+                Transform static brand guidelines into dynamic, inclusive experiences. 
+                Bias awareness, WCAG 2.2 compliance, and AI governance — built in from day one.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center md:justify-start">
@@ -309,30 +309,30 @@ const Index = () => {
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 gap-1.5">
               <Zap className="h-3 w-3" />
-              Automate Brand Management
+              Inclusive Architecture by Default
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Save Time & <GlitchText text="Money" glowColor="hsl(199 89% 48%)" className="text-3xl sm:text-4xl" /></h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Intelligent <GlitchText text="Performance" glowColor="hsl(199 89% 48%)" className="text-3xl sm:text-4xl" /></h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Eliminate manual brand asset creation and maintenance. Let AI handle the repetitive work while your team focuses on strategy.
+              From bias-aware AI governance to WCAG 2.2 compliance, every feature is designed to build for everyone by default.
             </p>
           </div>
 
           {/* Value Props Row */}
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-6 border border-primary/20 text-center">
-              <Clock className="h-8 w-8 text-primary mx-auto mb-3" />
-              <div className="text-3xl font-bold text-foreground mb-1">80%</div>
-              <p className="text-sm text-muted-foreground">Less time creating brand assets</p>
+              <Scale className="h-8 w-8 text-primary mx-auto mb-3" />
+              <div className="text-3xl font-bold text-foreground mb-1">12</div>
+              <p className="text-sm text-muted-foreground">Deep Intelligence Modules</p>
             </div>
             <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-2xl p-6 border border-accent/20 text-center">
-              <DollarSign className="h-8 w-8 text-accent mx-auto mb-3" />
-              <div className="text-3xl font-bold text-foreground mb-1">50%</div>
-              <p className="text-sm text-muted-foreground">Reduction in design costs</p>
+              <Accessibility className="h-8 w-8 text-accent mx-auto mb-3" />
+              <div className="text-3xl font-bold text-foreground mb-1">WCAG 2.2</div>
+              <p className="text-sm text-muted-foreground">Full AA/AAA criteria tracked</p>
             </div>
             <div className="bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-2xl p-6 border border-secondary/30 text-center">
-              <Zap className="h-8 w-8 text-secondary-foreground mx-auto mb-3" />
-              <div className="text-3xl font-bold text-foreground mb-1">10x</div>
-              <p className="text-sm text-muted-foreground">Faster brand guide creation</p>
+              <ShieldCheck className="h-8 w-8 text-secondary-foreground mx-auto mb-3" />
+              <div className="text-3xl font-bold text-foreground mb-1">EAA + 508</div>
+              <p className="text-sm text-muted-foreground">Global regulatory compliance</p>
             </div>
           </div>
 
@@ -341,9 +341,9 @@ const Index = () => {
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
                 <Building2 className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Automated Brand Guides</h3>
+              <h3 className="text-xl font-semibold mb-3">AI-Powered Brand Guides</h3>
               <p className="text-muted-foreground">
-                AI generates patterns, gradients, and color specs automatically. Oracle Brain aligns all intelligence across your portfolio for strategic consistency.
+                Oracle Brain aligns intelligence across your portfolio. Bias Awareness Scanner evaluates language, visual, accessibility & AI governance dimensions automatically.
               </p>
             </div>
 
@@ -351,9 +351,9 @@ const Index = () => {
               <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6">
                 <Package className="h-6 w-6 text-accent" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Smart Product Lines</h3>
+              <h3 className="text-xl font-semibold mb-3">Inclusive Product Lines</h3>
               <p className="text-muted-foreground">
-                Automatically inherit parent brand assets. DataForce AI enforces compliance, while Brand Intelligence learns and evolves with your team's feedback.
+                PI&E "Who Else?" framework, WFA 12-area bias litmus test, and Policy-as-Code governance ensure every product is built for everyone.
               </p>
             </div>
 
@@ -361,9 +361,9 @@ const Index = () => {
               <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-6">
                 <Calendar className="h-6 w-6 text-secondary-foreground" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Instant Event Kits</h3>
+              <h3 className="text-xl font-semibold mb-3">Accessible Event Kits</h3>
               <p className="text-muted-foreground">
-                Generate complete event branding packages in minutes. Competitive Intelligence, Research Briefings, and GlobalLink localization—all AI-aligned.
+                Universal Event Framework with accessibility checklists, Microsoft Persona Spectrum coverage, and GlobalLink localization — all WCAG 2.2 compliant.
               </p>
             </div>
           </div>
