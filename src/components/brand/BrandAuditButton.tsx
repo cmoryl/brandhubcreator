@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ClipboardCheck, Loader2, TrendingUp, TrendingDown, AlertCircle, CheckCircle2, X, Scale, Languages, Eye, Accessibility, Globe, ShieldCheck } from 'lucide-react';
+import { ClipboardCheck, Loader2, TrendingUp, TrendingDown, AlertCircle, CheckCircle2, X, Scale, Languages, Eye, Accessibility, Globe, ShieldCheck, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
@@ -149,9 +149,26 @@ export const BrandAuditButton = ({ brand }: BrandAuditButtonProps) => {
               <ClipboardCheck className="h-5 w-5 text-accent" />
               Brand Cohesion Audit
             </DialogTitle>
-            <DialogDescription>
-              AI-powered analysis of {brand.hero.name}
-            </DialogDescription>
+            <div className="flex items-center gap-2">
+              <DialogDescription className="flex-1">
+                AI-powered analysis of {brand.hero.name}
+              </DialogDescription>
+              {auditResult && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 shrink-0"
+                  onClick={() => {
+                    import('@/lib/exportHtml').then(({ exportBrandAuditHtml }) => {
+                      exportBrandAuditHtml(auditResult, { brandName: brand.hero.name });
+                    });
+                  }}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Export
+                </Button>
+              )}
+            </div>
           </DialogHeader>
 
           <ScrollArea className="max-h-[calc(90vh-120px)]">

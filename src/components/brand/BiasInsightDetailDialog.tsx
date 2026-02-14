@@ -9,7 +9,8 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Scale, Languages, Eye, Accessibility, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Scale, Languages, Eye, Accessibility, ShieldCheck, AlertCircle, CheckCircle2, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -65,9 +66,26 @@ export const BiasInsightDetailDialog = ({ open, onOpenChange, entityId, entityTy
             <Scale className="h-5 w-5 text-violet-500" />
             Bias & Inclusivity Report
           </DialogTitle>
-          <DialogDescription>
-            Latest scan results {scan?.completed_at ? `from ${format(new Date(scan.completed_at), 'MMM d, yyyy')}` : ''}
-          </DialogDescription>
+          <div className="flex items-center gap-2">
+            <DialogDescription className="flex-1">
+              Latest scan results {scan?.completed_at ? `from ${format(new Date(scan.completed_at), 'MMM d, yyyy')}` : ''}
+            </DialogDescription>
+            {scan && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 shrink-0"
+                onClick={() => {
+                  import('@/lib/exportHtml').then(({ exportBiasAwarenessHtml }) => {
+                    exportBiasAwarenessHtml(scan, { entityName: scan.entity_name || 'Entity', entityType: entityType });
+                  });
+                }}
+              >
+                <Download className="h-3.5 w-3.5" />
+                Export
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
         <div className="overflow-y-auto max-h-[calc(90vh-100px)] p-6 pt-4 space-y-5">
