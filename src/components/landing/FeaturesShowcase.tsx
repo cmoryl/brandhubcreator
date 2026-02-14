@@ -40,6 +40,11 @@ import {
   ListChecks,
   Fingerprint,
   HeartHandshake,
+  AudioLines,
+  ScanSearch,
+  Blend,
+  Volume2,
+  DoorOpen,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -99,21 +104,34 @@ const coreFeatures: Feature[] = [
 const eventFeatures: Feature[] = [
   {
     icon: Calendar,
-    title: 'Event Brand Kits',
-    description: 'Create comprehensive event brand guidelines with schedules, signage specs, and sponsor tiers.',
+    title: 'Sensory-Safe Event Kits',
+    description: 'Comprehensive brand guidelines with quiet/reset rooms, epilepsy-safe signage, strobe suppression, and fidget tool provisions for neurodiversity.',
     gradient: 'from-violet-500/20 to-purple-500/20',
+    badge: 'Universal',
+  },
+  {
+    icon: DoorOpen,
+    title: 'Physical Accessibility',
+    description: 'Doors ≥32" wide, <5 lbs force. Aisles ≥36" with no pinch points. High-contrast floor markers and accessible route wayfinding.',
+    gradient: 'from-rose-500/20 to-pink-500/20',
+  },
+  {
+    icon: Volume2,
+    title: 'Sensory Communication',
+    description: 'CamelCase hashtags (#InclusiveDesign), roving microphones for Q&A, human-validated captions, and verbal descriptions of all visual materials.',
+    gradient: 'from-teal-500/20 to-cyan-500/20',
   },
   {
     icon: MapPin,
     title: 'Venue & Signage',
-    description: 'Document signage dimensions, placement guidelines, and wayfinding specifications.',
-    gradient: 'from-rose-500/20 to-pink-500/20',
+    description: 'Sans-serif fonts min 24pt, high-contrast color markers, accessible wayfinding, and verbal announcement protocols for vision impairments.',
+    gradient: 'from-amber-500/20 to-orange-500/20',
   },
   {
     icon: Ticket,
     title: 'Digital Banners',
-    description: 'Manage email headers, social media banners, and web assets with size presets.',
-    gradient: 'from-teal-500/20 to-cyan-500/20',
+    description: 'Manage email headers, social media banners, and web assets with size presets — all meeting WCAG 2.2 contrast and motion requirements.',
+    gradient: 'from-blue-500/20 to-indigo-500/20',
   },
 ];
 
@@ -193,63 +211,85 @@ const inclusionFeatures: Feature[] = [
   {
     icon: Scale,
     title: 'Bias Awareness Scanner',
-    description: 'AI-powered 5-dimension bias analysis: Language, Visual, Accessibility, AI Governance & Inclusion scoring with automated remediation.',
+    description: 'AI-powered 5-dimension bias analysis: Language, Visual, Accessibility, AI Governance & Inclusion scoring with automated CDA remediation.',
     gradient: 'from-violet-500/20 to-purple-500/20',
     badge: '2026',
   },
   {
     icon: Accessibility,
-    title: 'WCAG 2.2 Compliance',
-    description: 'Full coverage of 9 new WCAG 2.2 criteria including Accessible Authentication, Target Size (24px), and Focus Appearance.',
+    title: 'WCAG 2.2 + Dark Mode 2.0',
+    description: 'Full 9 new criteria coverage including Accessible Auth, Focus Appearance (3:1), and display-aware Dark Mode avoiding OLED black smearing.',
     gradient: 'from-blue-500/20 to-sky-500/20',
     badge: 'AA/AAA',
   },
   {
+    icon: Blend,
+    title: 'OKLCH Perceptual Color',
+    description: 'Perceptually uniform lightness steps across all hues. Automated palette generation that always meets 7:1 contrast — no manual checking needed.',
+    gradient: 'from-cyan-500/20 to-teal-500/20',
+    badge: 'Color Science',
+  },
+  {
+    icon: ScanSearch,
+    title: 'Semantic Color Search',
+    description: 'Multilingual "Colour Spinner" logic bridges the semantic gap between human color intentions and controllable parameters across languages and cultures.',
+    gradient: 'from-emerald-500/20 to-green-500/20',
+    badge: 'AI',
+  },
+  {
+    icon: Globe2,
+    title: 'Cultural Symbolism Map',
+    description: 'Geo-targeted audit rules: Red = Joy (Asia) vs. Mourning (S. Africa). Green = Sacred (Islam) vs. Taboo (China). Automated campaign color optimization.',
+    gradient: 'from-orange-500/20 to-amber-500/20',
+    badge: 'Global',
+  },
+  {
+    icon: AudioLines,
+    title: 'Adaptive Motion Sensitivity',
+    description: 'Neuro-inclusive animation control for ADHD, autism & vestibular disorders. Context-aware timing, haptic sync (<10ms), and mandatory pause mechanisms.',
+    gradient: 'from-pink-500/20 to-rose-500/20',
+    badge: 'Neuro-UX',
+  },
+  {
+    icon: Type,
+    title: 'Neuro-Inclusive Typography',
+    description: 'Cognitive clarity enforcement: 45-75 character line lengths, 16px minimum body, Dynamic Reflow, and AI-suggested 7:1 contrast pairings.',
+    gradient: 'from-indigo-500/20 to-blue-500/20',
+    badge: 'Typography',
+  },
+  {
     icon: Eye,
     title: 'Inclusive Imagery Stop/Go',
-    description: 'Automated DAM flagging: STOP pity-based hierarchies & heroic tropes. GO authentic representation & equal power dynamics.',
+    description: 'Automated DAM flagging: STOP pity-based hierarchies & heroic tropes. GO authentic representation, equal power dynamics & asset-based framing.',
     gradient: 'from-emerald-500/20 to-teal-500/20',
   },
   {
     icon: ListChecks,
     title: 'WFA 12-Area Litmus Test',
-    description: 'World Federation of Advertisers bias audit across 12 creative stages — from brief to effectiveness analysis. +16.26% long-term sales lift.',
+    description: 'Color-linked creative audit across 12 stages — from Helmholtz-Kohlrausch attention capture to eye-tracking fixation validation. +16.26% sales lift.',
     gradient: 'from-amber-500/20 to-orange-500/20',
     badge: 'WFA',
   },
   {
     icon: Fingerprint,
     title: 'PI&E "Who Else?" Framework',
-    description: 'Google\'s Product Inclusion & Equity methodology: Ideation, Research, Design (Curb-Cut Effect), Testing & Marketing touchpoints.',
+    description: 'Google\'s Product Inclusion methodology: Curb-Cut Effect, Karen Haller\'s 4 Tonal Groups (Seasons), and intersectionality-first design.',
     gradient: 'from-pink-500/20 to-rose-500/20',
     badge: 'Google',
   },
   {
     icon: HeartHandshake,
     title: 'Microsoft Persona Spectrum',
-    description: 'Permanent → Temporary → Situational disability mapping across Mobility, Vision, Hearing, Speech & Cognitive dimensions.',
+    description: 'Permanent → Temporary → Situational mapping: Protanopia, dilated pupils, sun glare. "Respecting Focus" for neurodiverse users and Dopamine Color control.',
     gradient: 'from-cyan-500/20 to-blue-500/20',
     badge: 'Microsoft',
   },
   {
-    icon: ShieldCheck,
-    title: 'EAA & Section 508 Tracker',
-    description: 'European Accessibility Act (€3M penalties) and U.S. Section 508 deadline monitoring with Accessibility Statement requirements.',
-    gradient: 'from-red-500/20 to-rose-500/20',
-    badge: 'Regulatory',
-  },
-  {
     icon: Brain,
     title: 'Policy-as-Code Governance',
-    description: 'Disparate Impact Ratio monitoring (80% rule), end-to-end Data Journey traceability, and continuous AI bias observability.',
+    description: 'Disparate Impact Ratio (80% rule), Sentiment-to-Color cross-check via SACM, Data Journey traceability, and "Teach the Agent" reinforcement loops.',
     gradient: 'from-indigo-500/20 to-violet-500/20',
     badge: 'AI Gov',
-  },
-  {
-    icon: Languages,
-    title: 'Inclusive Language Engine',
-    description: 'Tier-1 regex automation: flags whitelist/blacklist, master/slave, gendered terms, ableist slang with precise alternatives.',
-    gradient: 'from-teal-500/20 to-emerald-500/20',
   },
 ];
 
@@ -565,9 +605,9 @@ export function FeaturesShowcase() {
             Built for everyone.
             <span className="block text-accent">Governed by intelligence.</span>
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            From WCAG 2.2 compliance to AI bias governance, BrandHub embeds 12 Deep Intelligence Modules
-            to ensure your brand is inclusive, accessible, and regulation-ready worldwide.
+           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            From OKLCH color science to neuro-inclusive motion controls, BrandHub embeds 16 Intelligence Modules
+            with cultural symbolism mapping, adaptive typography, and AI governance for every market.
           </p>
         </div>
 
@@ -630,10 +670,10 @@ export function FeaturesShowcase() {
         {/* Stats Row - Updated with inclusion stats */}
         <div className={`grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`} style={{ animationDelay: '600ms' }}>
           {[
-            { value: '12', label: 'Deep Intelligence Modules' },
-            { value: '9', label: 'WCAG 2.2 Criteria Tracked' },
-            { value: '50+', label: 'Languages Supported' },
-            { value: '5', label: 'Governance Dimensions' },
+            { value: '16', label: 'Intelligence Modules' },
+            { value: 'OKLCH', label: 'Perceptual Color Standard' },
+            { value: '50+', label: 'Languages & Color Maps' },
+            { value: '7', label: 'Governance Dimensions' },
           ].map((stat) => (
             <div key={stat.label} className="text-center p-6 rounded-2xl bg-muted/30 hover:bg-muted/50 transition-colors">
               <div className="text-3xl font-bold text-accent mb-1">{stat.value}</div>
