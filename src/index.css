@@ -1205,6 +1205,16 @@ div[role="region"][aria-label^="Notifications"] {
   opacity: 1;
 }
 
+/* Icon shimmer on hover - match the card's tint color */
+.section-card-shimmer svg {
+  transition: filter 0.3s ease, color 0.3s ease;
+}
+
+.section-card-shimmer:hover svg {
+  color: var(--shimmer-color, hsl(var(--primary)));
+  filter: drop-shadow(0 0 4px var(--shimmer-color, hsl(var(--primary))));
+}
+
 @keyframes shimmer-rotate {
   0% { --shimmer-angle: 0deg; }
   100% { --shimmer-angle: 360deg; }
