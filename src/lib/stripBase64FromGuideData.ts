@@ -11,10 +11,9 @@ const MAX_STRING_LENGTH = 5000; // Strings longer than this are checked for base
 
 let warnedFields: Set<string> = new Set();
 
-function processValue(value: unknown, path: string): unknown {
+function processValue(value: unknown, path: string, visited: WeakSet<object>): unknown {
   if (typeof value === 'string' && value.length > MAX_STRING_LENGTH) {
     if (BASE64_PATTERN.test(value)) {
-      // Only warn once per field path per session to avoid console spam
       if (!warnedFields.has(path)) {
         console.warn(
           `[stripBase64] Removing base64 blob from ${path} (${(value.length / 1024 / 1024).toFixed(2)} MB). ` +
@@ -27,14 +26,18 @@ function processValue(value: unknown, path: string): unknown {
   }
 
   if (Array.isArray(value)) {
-    return value.map((item, i) => processValue(item, `${path}[${i}]`));
+    if (visited.has(value)) return []; // Break circular reference
+    visited.add(value);
+    return value.map((item, i) => processValue(item, `${path}[${i}]`, visited));
   }
 
   if (value && typeof value === 'object') {
+    if (visited.has(value as object)) return {}; // Break circular reference
+    visited.add(value as object);
     const obj = value as Record<string, unknown>;
     const result: Record<string, unknown> = {};
     for (const [key, val] of Object.entries(obj)) {
-      result[key] = processValue(val, `${path}.${key}`);
+      result[key] = processValue(val, `${path}.${key}`, visited);
     }
     return result;
   }
@@ -47,7 +50,7 @@ function processValue(value: unknown, path: string): unknown {
  * Returns a cleaned copy — does NOT mutate the original.
  */
 export function stripBase64FromGuideData<T extends Record<string, unknown>>(guideData: T): T {
-  return processValue(guideData, 'guide_data') as T;
+  return processValue(guideData, 'guide_data', new WeakSet()) as T;
 }
 
 /**
