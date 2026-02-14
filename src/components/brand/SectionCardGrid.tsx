@@ -281,10 +281,13 @@ export const SectionCardGrid = ({
           {/* Right: Stats pills */}
           <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end pt-1">
             {healthScore !== undefined && (
-              <div className="flex items-center gap-1.5 bg-card/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50">
-                <BarChart3 className="h-3.5 w-3.5 text-muted-foreground" />
+              <div className={cn(
+                "flex items-center gap-1.5 bg-card/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50",
+                healthScore >= 80 ? 'text-emerald-500' : healthScore >= 60 ? 'text-amber-500' : 'text-destructive'
+              )}>
+                <BarChart3 className="h-3.5 w-3.5" />
                 <span className="text-xs text-muted-foreground">Health</span>
-                <span className="text-xs font-bold text-foreground">{healthScore}%</span>
+                <span className="text-xs font-bold">{healthScore}%</span>
               </div>
             )}
             {complianceScore !== undefined && (
