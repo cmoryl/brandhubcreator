@@ -5,7 +5,7 @@
 
 import { useMemo, useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap, HelpCircle, Scale, Accessibility, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap, HelpCircle, Scale, Accessibility, ShieldCheck, Globe2, Palette } from 'lucide-react';
 import { GlitchText } from '@/components/ui/GlitchText';
 import { HeroOrbit } from '@/components/landing/HeroOrbit';
 import { Button } from '@/components/ui/button';
@@ -165,8 +165,9 @@ const Index = () => {
               </h1>
               
               <p className="text-base sm:text-lg md:text-lg lg:text-xl text-muted-foreground mb-6 md:mb-8 max-w-xl mx-auto md:mx-0">
-                Transform static brand guidelines into dynamic, inclusive experiences. 
-                Bias awareness, WCAG 2.2 compliance, and AI governance — built in from day one.
+                Transform static brand guidelines into adaptive, neuro-inclusive experiences. 
+                Cultural symbolism mapping, OKLCH color science, motion sensitivity controls, 
+                and AI governance — architected for every human.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center md:justify-start">
@@ -318,21 +319,26 @@ const Index = () => {
           </div>
 
           {/* Value Props Row */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-6 border border-primary/20 text-center">
-              <Scale className="h-8 w-8 text-primary mx-auto mb-3" />
-              <div className="text-3xl font-bold text-foreground mb-1">12</div>
-              <p className="text-sm text-muted-foreground">Deep Intelligence Modules</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+            <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-5 border border-primary/20 text-center">
+              <Scale className="h-7 w-7 text-primary mx-auto mb-2" />
+              <div className="text-2xl font-bold text-foreground mb-1">16</div>
+              <p className="text-xs text-muted-foreground">Intelligence Modules</p>
             </div>
-            <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-2xl p-6 border border-accent/20 text-center">
-              <Accessibility className="h-8 w-8 text-accent mx-auto mb-3" />
-              <div className="text-3xl font-bold text-foreground mb-1">WCAG 2.2</div>
-              <p className="text-sm text-muted-foreground">Full AA/AAA criteria tracked</p>
+            <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-2xl p-5 border border-accent/20 text-center">
+              <Palette className="h-7 w-7 text-accent mx-auto mb-2" />
+              <div className="text-2xl font-bold text-foreground mb-1">OKLCH</div>
+              <p className="text-xs text-muted-foreground">Perceptual Color Science</p>
             </div>
-            <div className="bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-2xl p-6 border border-secondary/30 text-center">
-              <ShieldCheck className="h-8 w-8 text-secondary-foreground mx-auto mb-3" />
-              <div className="text-3xl font-bold text-foreground mb-1">EAA + 508</div>
-              <p className="text-sm text-muted-foreground">Global regulatory compliance</p>
+            <div className="bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-2xl p-5 border border-secondary/30 text-center">
+              <Globe2 className="h-7 w-7 text-secondary-foreground mx-auto mb-2" />
+              <div className="text-2xl font-bold text-foreground mb-1">6+</div>
+              <p className="text-xs text-muted-foreground">Cultural Color Maps</p>
+            </div>
+            <div className="bg-gradient-to-br from-muted to-muted/50 rounded-2xl p-5 border border-border text-center">
+              <Accessibility className="h-7 w-7 text-foreground mx-auto mb-2" />
+              <div className="text-2xl font-bold text-foreground mb-1">WCAG 2.2</div>
+              <p className="text-xs text-muted-foreground">AA/AAA + Dark Mode 2.0</p>
             </div>
           </div>
 
@@ -341,9 +347,9 @@ const Index = () => {
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
                 <Building2 className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">AI-Powered Brand Guides</h3>
+              <h3 className="text-xl font-semibold mb-3">Neuro-Inclusive Brands</h3>
               <p className="text-muted-foreground">
-                Oracle Brain aligns intelligence across your portfolio. Bias Awareness Scanner evaluates language, visual, accessibility & AI governance dimensions automatically.
+                Oracle Brain with OKLCH color science, adaptive motion sensitivity, cultural symbolism mapping, and Bias Awareness Scanner across 16 intelligence modules.
               </p>
             </div>
 
@@ -351,9 +357,9 @@ const Index = () => {
               <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6">
                 <Package className="h-6 w-6 text-accent" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Inclusive Product Lines</h3>
+              <h3 className="text-xl font-semibold mb-3">Adaptive Product Lines</h3>
               <p className="text-muted-foreground">
-                PI&E "Who Else?" framework, WFA 12-area bias litmus test, and Policy-as-Code governance ensure every product is built for everyone.
+                PI&E "Who Else?" framework, semantic color search across languages, neuro-inclusive typography (45-75 char lines), and Persona Spectrum coverage.
               </p>
             </div>
 
@@ -361,9 +367,9 @@ const Index = () => {
               <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-6">
                 <Calendar className="h-6 w-6 text-secondary-foreground" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Accessible Event Kits</h3>
+              <h3 className="text-xl font-semibold mb-3">Sensory-Safe Event Kits</h3>
               <p className="text-muted-foreground">
-                Universal Event Framework with accessibility checklists, Microsoft Persona Spectrum coverage, and GlobalLink localization — all WCAG 2.2 compliant.
+                Universal Event Framework with quiet rooms, epilepsy-safe signage, strobe suppression, haptic synchronization, and CamelCase hashtag compliance.
               </p>
             </div>
           </div>
