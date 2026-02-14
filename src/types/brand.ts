@@ -668,7 +668,7 @@ export interface BrandWebinar {
   recordingUrl?: string;
   thumbnailUrl?: string;
   speakers?: string[];
-  status: 'upcoming' | 'live' | 'recorded';
+  status?: 'upcoming' | 'live' | 'recorded';
   attendees?: number;
 }
 

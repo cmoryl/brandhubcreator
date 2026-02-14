@@ -18,7 +18,7 @@ export interface WebinarItem {
   recordingUrl?: string;
   thumbnailUrl?: string;
   speakers?: string[];
-  status: 'upcoming' | 'live' | 'recorded';
+  status?: 'upcoming' | 'live' | 'recorded';
   attendees?: number;
 }
 
@@ -99,13 +99,18 @@ export const WebinarSeriesSection = ({
     toast.success('Webinar removed');
   };
 
-  const getStatusColor = (status: WebinarItem['status']) => {
+  const getStatusColor = (status?: string) => {
     switch (status) {
       case 'live': return 'bg-red-500/10 text-red-500 border-red-500/30';
       case 'upcoming': return 'bg-blue-500/10 text-blue-500 border-blue-500/30';
       case 'recorded': return 'bg-green-500/10 text-green-500 border-green-500/30';
       default: return 'bg-muted text-muted-foreground';
     }
+  };
+
+  const getStatusLabel = (status?: string) => {
+    if (!status) return 'Recorded';
+    return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
   return (
@@ -158,7 +163,7 @@ export const WebinarSeriesSection = ({
                 />
                 <Badge className={cn("absolute top-2 left-2 text-xs", getStatusColor(webinar.status))}>
                   {webinar.status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse mr-1.5" />}
-                  {webinar.status.charAt(0).toUpperCase() + webinar.status.slice(1)}
+                  {getStatusLabel(webinar.status)}
                 </Badge>
               </div>
             ) : (
@@ -166,7 +171,7 @@ export const WebinarSeriesSection = ({
                 <Video className="h-12 w-12 text-primary/40" />
                 <Badge className={cn("absolute top-2 left-2 text-xs", getStatusColor(webinar.status))}>
                   {webinar.status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse mr-1.5" />}
-                  {webinar.status.charAt(0).toUpperCase() + webinar.status.slice(1)}
+                  {getStatusLabel(webinar.status)}
                 </Badge>
               </div>
             )}
