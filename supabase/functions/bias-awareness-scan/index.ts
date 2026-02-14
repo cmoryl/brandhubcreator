@@ -9,7 +9,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { scanTextForInclusiveLanguage, buildDeepIntelligencePromptContext, WCAG_22_NEW_CRITERIA, WFA_12_AREAS, PIE_TOUCHPOINTS, IMAGERY_STOP_GO, EVENT_ACCESSIBILITY_CHECKLIST, AI_POLICY_AS_CODE, PERSONA_SPECTRUM_DIMENSIONS } from "../_shared/inclusive-language-patterns.ts";
+import { scanTextForInclusiveLanguage, buildDeepIntelligencePromptContext, WCAG_22_NEW_CRITERIA, WFA_12_AREAS, PIE_TOUCHPOINTS, IMAGERY_STOP_GO, EVENT_ACCESSIBILITY_CHECKLIST, AI_POLICY_AS_CODE, PERSONA_SPECTRUM_DIMENSIONS, OKLCH_COLOR_STANDARD, COLOR_PSYCHOLOGY_DBA, CULTURAL_COLOR_GEOMETRY, COLOR_TRENDS_2026 } from "../_shared/inclusive-language-patterns.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -150,6 +150,10 @@ serve(async (req) => {
         const eventContext = EVENT_ACCESSIBILITY_CHECKLIST.map(e => `${e.category}: ${e.specification}`).join('\n');
         const personaContext = PERSONA_SPECTRUM_DIMENSIONS.map(p => `${p.dimension}: Permanent(${p.permanent}), Temporary(${p.temporary}), Situational(${p.situational})`).join('\n');
         const policyContext = `Disparate Impact: ${AI_POLICY_AS_CODE.disparate_impact_rule.description}\n${AI_POLICY_AS_CODE.governance_pillars.map(p => `${p.name}: ${p.description}`).join('\n')}`;
+        const oklchContext = `${OKLCH_COLOR_STANDARD.description}\nContrast: Primary text ${OKLCH_COLOR_STANDARD.contrast_requirements.primary_text}, Focus ${OKLCH_COLOR_STANDARD.contrast_requirements.focus_indicators}, UI components ${OKLCH_COLOR_STANDARD.contrast_requirements.ui_components}.\n${OKLCH_COLOR_STANDARD.key_principles.join('\n')}`;
+        const colorPsychContext = `${COLOR_PSYCHOLOGY_DBA.brand_recognition_stat} ${COLOR_PSYCHOLOGY_DBA.consumer_assessment} Colorblind: ${COLOR_PSYCHOLOGY_DBA.colorblind_prevalence}\nHelmholtz-Kohlrausch: ${COLOR_PSYCHOLOGY_DBA.helmholtz_kohlrausch.description}\nPurple fixation: ${COLOR_PSYCHOLOGY_DBA.purple_fixation.description}\nDBA Principles: ${COLOR_PSYCHOLOGY_DBA.dba_principles.map(p => `${p.name}: ${p.description}`).join(' | ')}\nSACM: ${COLOR_PSYCHOLOGY_DBA.sentiment_color_mapping.mappings.map(m => `${m.sentiment} → ${m.color_family}`).join(', ')}`;
+        const culturalColorContext = CULTURAL_COLOR_GEOMETRY.mappings.map(m => `${m.color}: W(${m.western}), E(${m.eastern}), AF(${m.african}), ME(${m.middle_east})`).join('\n');
+        const colorTrendsContext = COLOR_TRENDS_2026.trending_palettes.map(t => `${t.name}: ${t.meaning}`).join('\n') + `\nDark Mode 2.0: ${COLOR_TRENDS_2026.dark_mode_2_0.description}`;
 
         const systemPrompt = `You are an advanced Bias Awareness & Inclusion Auditor for brand ecosystems (2026 Foundations of Inclusive Architecture standard). You have access to automated Tier 1 regex pre-scan results AND comprehensive Deep Intelligence modules. Analyze the provided entity data across 4 core dimensions PLUS 5 advanced governance modules. Incorporate the regex pre-scan findings directly into your language score. Apply EAA/Section 508 regulatory requirements to the accessibility score. Return a single structured JSON assessment.
 
@@ -187,21 +191,33 @@ ADVANCED MODULES:
 
 MODULE 1 - PI&E "Who Else?" Framework (Annie Jean-Baptiste/Google):
 ${pieContext}
-Score each touchpoint 0-100. Apply the "Curb-Cut Effect" principle.
+Score each touchpoint 0-100. Apply the "Curb-Cut Effect" principle. Address intersectionality.
 
-MODULE 2 - WFA 12 Key Areas Bias Litmus Test:
+MODULE 2 - WFA 12 Key Areas Bias Litmus Test (Color-Linked):
 ${wfaContext}
 Commercial impact: inclusive advertising linked to +3.46% short-term and +16.26% long-term sales.
 Score key areas 0-100 with specific findings.
 
 MODULE 3 - Policy-as-Code Disparate Impact:
-Evaluate content/AI pipelines against the U.S. 80% rule (disparate impact ratio 0.80-1.25). Flag any areas where content skews beyond thresholds. Assess data_journey_traceability, bias_detection_automation, threshold_monitoring readiness.
+Evaluate content/AI pipelines against the U.S. 80% rule (disparate impact ratio 0.80-1.25). Flag any areas where content skews beyond thresholds. Include Sentiment-to-Color cross-check: verify color choices match emotional valence (e.g., high-saturation red for urgency, not calming wellness). Assess data_journey_traceability, bias_detection_automation, threshold_monitoring readiness.
 
 MODULE 4 - Inclusive Imagery Stop/Go Framework:
 Score imagery_inclusion 0-100 based on presence of GO signals and absence of STOP signals.
 
 MODULE 5 - 2026 Master Inclusion Checklist:
-Evaluate against key areas: linguistic (CamelCase hashtags for screen readers), technical (no puzzle-based auth per WCAG 3.3.8, 24x24px targets per 2.5.8), physical (32in doors, <5lbs force), communication (roving microphones for Q&A, captions on all videos, speakers describe visuals), digital (WCAG 2.2 AA event apps). Report completed_count out of applicable_count.
+Evaluate against key areas: linguistic (CamelCase hashtags for screen readers), technical (no puzzle-based auth per WCAG 3.3.8, 24x24px targets per 2.5.8), physical (32in doors, <5lbs force), communication (roving microphones for Q&A, captions on all videos, speakers describe visuals), digital (WCAG 2.2 AA event apps), color (high-contrast floor indicators, no pinch points from high-saturation branding, sans-serif min 24pt signage). Report completed_count out of applicable_count.
+
+MODULE 6 - Color Accessibility & OKLCH Standard:
+${oklchContext}
+Evaluate entity's color system for: OKLCH adoption readiness, contrast compliance (7:1 primary text, 3:1 focus/UI), Dark Mode 2.0 (no pure black), colorblind-safe palettes (1 in 12 men affected). Score color_accessibility 0-100.
+
+MODULE 7 - Color Psychology & Distinctive Brand Assets (DBA):
+${colorPsychContext}
+Evaluate brand colors for: DBA uniqueness/fame, Helmholtz-Kohlrausch awareness, tonal group consistency (Karen Haller Seasons), sentiment-color alignment. Score color_strategy 0-100.
+
+MODULE 8 - Cultural Color Geometry:
+${culturalColorContext}
+Evaluate color choices against target markets for cultural appropriateness. Flag conflicts (e.g., red for joy vs mourning depending on market). Score cultural_color_readiness 0-100.
 
 RESPONSE FORMAT (strict JSON):
 {
@@ -278,11 +294,31 @@ RESPONSE FORMAT (strict JSON):
       "linguistic": {"met": ["..."], "unmet": ["..."]},
       "technical": {"met": ["..."], "unmet": ["..."]},
       "physical": {"met": ["..."], "unmet": ["..."]},
-      "communication": {"met": ["..."], "unmet": ["..."]}
+      "communication": {"met": ["..."], "unmet": ["..."]},
+      "color": {"met": ["..."], "unmet": ["..."]}
     }
   },
+  "color_accessibility_module": {
+    "overall_score": <0-100>,
+    "oklch_readiness": "adopted|partial|not_adopted",
+    "contrast_compliance": {"primary_text": "pass|fail", "focus_indicators": "pass|fail", "ui_components": "pass|fail"},
+    "dark_mode_compliance": "compliant|partial|non_compliant",
+    "colorblind_safe": <bool>,
+    "issues": ["..."],
+    "recommendations": ["..."]
+  },
+  "color_strategy_module": {
+    "overall_score": <0-100>,
+    "dba_uniqueness": <0-100>,
+    "dba_fame": <0-100>,
+    "tonal_consistency": "consistent|mixed|jarring",
+    "sentiment_alignment": "aligned|partial|misaligned",
+    "helmholtz_awareness": <bool>,
+    "cultural_conflicts": [{"color": "...", "market": "...", "conflict": "...", "severity": "critical|warning"}],
+    "recommendations": ["..."]
+  },
   "findings": [
-    {"dimension": "language|visual|accessibility|ai_governance|pie|wfa|policy|imagery|checklist", "severity": "critical|high|medium|low", "title": "...", "description": "...", "recommendation": "..."}
+    {"dimension": "language|visual|accessibility|ai_governance|pie|wfa|policy|imagery|checklist|color_accessibility|color_strategy", "severity": "critical|high|medium|low", "title": "...", "description": "...", "recommendation": "..."}
   ],
   "recommendations": [
     {"priority": "immediate|short_term|long_term", "dimension": "...", "action": "...", "impact": "high|medium|low"}
