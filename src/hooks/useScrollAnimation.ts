@@ -166,7 +166,8 @@ export function useParallax(speed: number = 0.5) {
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
+    // Defer initial read to avoid forced reflow during render
+    requestAnimationFrame(handleScroll);
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, [speed]);
