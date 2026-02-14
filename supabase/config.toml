@@ -79,3 +79,6 @@ verify_jwt = false
 
 [functions.help-agent]
 verify_jwt = false
+
+[functions.bias-awareness-scan]
+verify_jwt = false
