@@ -506,6 +506,78 @@ function buildContextFromTextFields(ctx: any): string {
     parts.push(`Fonts: ${typography.filter(Boolean).join(', ')}`);
   }
 
+  // Awards (enriched)
+  const awards = ctx.awards;
+  if (Array.isArray(awards) && awards.length > 0) {
+    const awardDetails = awards.map((a: any) => {
+      const d: string[] = [a.title || 'Award'];
+      if (a.organization) d.push(`by ${a.organization}`);
+      if (a.year) d.push(`(${a.year})`);
+      if (a.category) d.push(`[${a.category}]`);
+      if (a.description) d.push(`- ${a.description}`);
+      return d.join(' ');
+    });
+    parts.push(`Awards (${ctx.awards_count || awards.length}): ${awardDetails.join('; ')}`);
+  }
+
+  // Webinars (enriched)
+  const webinars = ctx.webinars;
+  if (Array.isArray(webinars) && webinars.length > 0) {
+    const webinarDetails = webinars.map((w: any) => {
+      const d: string[] = [w.title || 'Webinar'];
+      if (w.topic) d.push(`[${w.topic}]`);
+      if (w.speakers) d.push(`Speakers: ${w.speakers}`);
+      if (w.description) d.push(`- ${w.description}`);
+      if (w.date) d.push(`(${w.date})`);
+      return d.join(' ');
+    });
+    parts.push(`Webinars (${ctx.webinars_count || webinars.length}): ${webinarDetails.join('; ')}`);
+  }
+
+  // Websites (enriched)
+  const websites = ctx.websites;
+  if (Array.isArray(websites) && websites.length > 0) {
+    const siteDetails = websites.map((ws: any) => {
+      const d: string[] = [ws.url || 'site'];
+      if (ws.label) d.push(`(${ws.label})`);
+      if (ws.purpose) d.push(`Purpose: ${ws.purpose}`);
+      if (ws.description) d.push(`- ${ws.description}`);
+      return d.join(' ');
+    });
+    parts.push(`Websites (${ctx.websites_count || websites.length}): ${siteDetails.join('; ')}`);
+  }
+
+  // Website analysis reports
+  const analyses = ctx.website_analyses;
+  if (Array.isArray(analyses) && analyses.length > 0) {
+    const analysisDetails = analyses.map((wa: any) => {
+      const d: string[] = [wa.url || 'site'];
+      if (wa.score) d.push(`Score: ${wa.score}/100`);
+      if (wa.grade) d.push(`Grade: ${wa.grade}`);
+      if (wa.summary) d.push(wa.summary);
+      return d.join(' | ');
+    });
+    parts.push(`Website Analyses: ${analysisDetails.join(' || ')}`);
+  }
+
+  // Case studies
+  const caseStudies = ctx.case_studies;
+  if (Array.isArray(caseStudies) && caseStudies.length > 0) {
+    parts.push(`Case Studies (${ctx.case_studies_count || caseStudies.length}): ${caseStudies.map((cs: any) => `${cs.title || 'Study'}${cs.description ? ': ' + cs.description : ''}`).join('; ')}`);
+  }
+
+  // Statistics
+  const statistics = ctx.statistics;
+  if (Array.isArray(statistics) && statistics.length > 0) {
+    parts.push(`Statistics: ${statistics.map((s: any) => `${s.label || 'stat'}: ${s.value || ''}`).join(', ')}`);
+  }
+
+  // Social profiles
+  const social = ctx.social_profiles;
+  if (Array.isArray(social) && social.length > 0) {
+    parts.push(`Social: ${social.map((sp: any) => `${sp.platform || 'channel'}: ${sp.handle || ''}`).join(', ')}`);
+  }
+
   // Asset counts
   const counts: string[] = [];
   if (ctx.logos_count > 0) counts.push(`logos: ${ctx.logos_count}`);
