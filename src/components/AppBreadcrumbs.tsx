@@ -121,7 +121,7 @@ export const AppBreadcrumbs = React.forwardRef<
 
   return (
     <Breadcrumb className={cn('mb-4', className)}>
-      <BreadcrumbList className="flex-wrap text-sm">
+      <BreadcrumbList className="flex-wrap text-xs sm:text-sm">
         {/* Home link */}
         {showHome && (
           <>
@@ -154,7 +154,7 @@ export const AppBreadcrumbs = React.forwardRef<
               {isLast ? (
                 <BreadcrumbPage className="flex items-center gap-1.5 font-medium min-h-[44px] sm:min-h-0 px-1">
                   {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
-                  <span className="truncate max-w-[120px] sm:max-w-[200px]">{item.label}</span>
+                  <span className="truncate max-w-[140px] sm:max-w-[200px]">{item.label}</span>
                 </BreadcrumbPage>
               ) : (
                 <>
@@ -164,7 +164,7 @@ export const AppBreadcrumbs = React.forwardRef<
                       className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors min-h-[44px] sm:min-h-0 px-1"
                     >
                       {Icon && <Icon className="h-4 w-4 flex-shrink-0 hidden sm:block" />}
-                      <span className="truncate max-w-[80px] sm:max-w-[150px]">{item.label}</span>
+                      <span className="truncate max-w-[100px] sm:max-w-[150px]">{item.label}</span>
                     </Link>
                   </BreadcrumbLink>
                   <BreadcrumbSeparator>
@@ -181,7 +181,7 @@ export const AppBreadcrumbs = React.forwardRef<
           <BreadcrumbItem>
             <BreadcrumbPage className="flex items-center gap-1.5 font-medium text-foreground min-h-[44px] sm:min-h-0 px-1">
               {CurrentIcon && <CurrentIcon className="h-4 w-4 flex-shrink-0 hidden sm:block" />}
-              <span className="truncate max-w-[140px] sm:max-w-[300px]">{currentPage}</span>
+              <span className="truncate max-w-[160px] sm:max-w-[300px]">{currentPage}</span>
             </BreadcrumbPage>
           </BreadcrumbItem>
         )}
