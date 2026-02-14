@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Upload, Download, FileText, Image } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Download, FileText, Image, Expand } from 'lucide-react';
 import { BrandBrochure } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { SectionHeader } from './SectionHeader';
 import { OptimizedImage } from '@/components/ui/optimized-image';
+import { PreviewDialog } from '@/components/ui/preview-dialog';
 
 import { LayoutSelector, useLayoutClasses, LayoutPreset } from './LayoutSelector';
 
@@ -29,6 +30,7 @@ export const BrochuresSection = ({ brochures: brochuresProp, onBrochuresChange, 
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const [uploadingThumbnailFor, setUploadingThumbnailFor] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const [previewBrochure, setPreviewBrochure] = useState<BrandBrochure | null>(null);
   
   const { gridClass } = useLayoutClasses(layout);
 
@@ -170,21 +172,25 @@ export const BrochuresSection = ({ brochures: brochuresProp, onBrochuresChange, 
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     {/* Preview */}
-                    <div className="aspect-[3/4] bg-muted relative flex items-center justify-center overflow-hidden">
+                    <div
+                      className="aspect-[3/4] bg-muted relative flex items-center justify-center overflow-hidden cursor-pointer"
+                      onClick={() => setPreviewBrochure(brochure)}
+                    >
                       {brochure.thumbnailUrl ? (
-                        // Show thumbnail if available
                         <OptimizedImage src={brochure.thumbnailUrl} alt={brochure.title} className="w-full h-full" objectFit="cover" />
                       ) : brochure.previewUrl?.includes('image') || brochure.previewUrl?.includes('data:image') ? (
-                        // Show image preview for image files
                         <OptimizedImage src={brochure.previewUrl} alt={brochure.title} className="w-full h-full" objectFit="cover" />
                       ) : (
-                        // Show file icon for PDFs without thumbnail
                         <div className="flex flex-col items-center gap-2">
                           <FileText className="h-16 w-16 text-muted-foreground" />
                           <span className="text-xs text-muted-foreground">PDF Document</span>
                         </div>
                       )}
-                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {/* Expand indicator */}
+                      <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/10 transition-colors">
+                        <Expand className="h-6 w-6 text-background opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
+                      </div>
+                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => triggerThumbnailUpload(brochure.id)}
                           className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-secondary"
@@ -207,8 +213,8 @@ export const BrochuresSection = ({ brochures: brochuresProp, onBrochuresChange, 
                       </div>
                       {brochure.thumbnailUrl && (
                         <button
-                          onClick={() => removeThumbnail(brochure.id)}
-                          className="absolute bottom-2 right-2 px-2 py-1 text-xs rounded bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => { e.stopPropagation(); removeThumbnail(brochure.id); }}
+                          className="absolute bottom-2 right-2 px-2 py-1 text-xs rounded bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity z-10"
                         >
                           Remove thumbnail
                         </button>
@@ -289,6 +295,14 @@ export const BrochuresSection = ({ brochures: brochuresProp, onBrochuresChange, 
           </div>
         </button>
       )}
+
+      <PreviewDialog
+        open={!!previewBrochure}
+        onOpenChange={(open) => !open && setPreviewBrochure(null)}
+        title={previewBrochure?.title || ''}
+        previewUrl={previewBrochure?.thumbnailUrl || previewBrochure?.previewUrl}
+        type={previewBrochure?.previewUrl?.includes('application/pdf') ? 'iframe' : 'image'}
+      />
     </section>
   );
 };
