@@ -134,53 +134,53 @@ const InsightCard = ({
         )}
       </div>
 
-      <CardHeader className="pb-2 pt-5">
-        <div className="flex items-start gap-3">
+      <CardHeader className="pb-1.5 pt-4 px-3">
+        <div className="flex items-start gap-2">
           <div className={cn(
-            "p-2 rounded-lg border",
+            "p-1.5 rounded-md border",
             typeColors[insight.type]
           )}>
-            <Icon className="h-4 w-4" />
+            <Icon className="h-3.5 w-3.5" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <Badge variant="outline" className="text-[10px] uppercase tracking-wider">
+            <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+              <Badge variant="outline" className="text-[9px] uppercase tracking-wider px-1.5 py-0">
                 {insight.type}
               </Badge>
               {insight.priority && (
-                <Badge className={cn("text-[10px]", priorityColors[insight.priority])}>
+                <Badge className={cn("text-[9px] px-1.5 py-0", priorityColors[insight.priority])}>
                   {insight.priority}
                 </Badge>
               )}
               {insight.category && (
-                <Badge variant="secondary" className="text-[10px]">
+                <Badge variant="secondary" className="text-[9px] px-1.5 py-0">
                   {insight.category}
                 </Badge>
               )}
             </div>
-            <CardTitle className="text-base font-semibold leading-tight">
+            <CardTitle className="text-sm font-semibold leading-tight">
               {insight.title}
             </CardTitle>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-2 px-3 pb-3">
         {/* Metric display */}
         {insight.value && (
-          <div className="flex items-baseline gap-3 p-3 rounded-lg bg-muted/30 border border-border/50">
-            <span className="text-3xl font-bold text-foreground">{insight.value}</span>
+          <div className="flex items-baseline gap-2 p-2 rounded-md bg-muted/30 border border-border/50">
+            <span className="text-xl font-bold text-foreground">{insight.value}</span>
             {insight.valueLabel && (
-              <span className="text-sm text-muted-foreground">{insight.valueLabel}</span>
+              <span className="text-xs text-muted-foreground">{insight.valueLabel}</span>
             )}
             {insight.trend && (
               <div className={cn(
-                "flex items-center gap-1 ml-auto text-sm font-medium",
+                "flex items-center gap-0.5 ml-auto text-xs font-medium",
                 insight.trend === 'up' && "text-emerald-500",
                 insight.trend === 'down' && "text-red-500",
                 insight.trend === 'neutral' && "text-muted-foreground"
               )}>
-                <TrendIcon className="h-4 w-4" />
+                <TrendIcon className="h-3.5 w-3.5" />
                 {insight.trendValue}
               </div>
             )}
@@ -188,13 +188,13 @@ const InsightCard = ({
         )}
 
         {/* Summary */}
-        <p className="text-sm text-muted-foreground leading-relaxed">
+        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
           {insight.summary}
         </p>
 
         {/* Image preview */}
         {insight.imageUrl && (
-          <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
+          <div className="relative aspect-video rounded-md overflow-hidden bg-muted">
             <img 
               src={insight.imageUrl} 
               alt={insight.title}
@@ -204,9 +204,9 @@ const InsightCard = ({
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-border/50">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Calendar className="h-3.5 w-3.5" />
+        <div className="flex items-center justify-between pt-1.5 border-t border-border/50">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+            <Calendar className="h-3 w-3" />
             {new Date(insight.date).toLocaleDateString('en-US', { 
               month: 'short', 
               day: 'numeric', 
@@ -214,10 +214,10 @@ const InsightCard = ({
             })}
           </div>
           {insight.linkUrl && (
-            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" asChild>
+            <Button variant="ghost" size="sm" className="h-6 gap-1 text-[10px] px-2" asChild>
               <a href={insight.linkUrl} target="_blank" rel="noopener noreferrer">
                 {insight.linkLabel || 'View Details'}
-                <ExternalLink className="h-3 w-3" />
+                <ExternalLink className="h-2.5 w-2.5" />
               </a>
             </Button>
           )}
