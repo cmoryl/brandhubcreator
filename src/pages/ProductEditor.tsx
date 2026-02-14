@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, lazy, Suspense } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2 } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, LayoutGrid, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2 } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -76,8 +76,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Badge } from '@/components/ui/badge';
 import { normalizeHiddenSections, normalizeSectionOrder } from '@/lib/sectionOrder';
+import { SectionCardGrid } from '@/components/brand/SectionCardGrid';
+import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
 
-type ViewMode = 'sections' | 'full';
+type ViewMode = 'sections' | 'full' | 'cards';
 
 const CompetitiveReportCardLazy = lazy(() =>
   import('@/components/brand/CompetitiveReportCard').then((m) => ({ default: m.CompetitiveReportCard }))
@@ -434,6 +436,13 @@ const ProductEditor = () => {
     return currentProduct?.pageSettings ?? DEFAULT_PAGE_SETTINGS;
   }, [currentProduct?.pageSettings]);
 
+  // Calculate health for card view
+  const cardViewHealthScore = useMemo(() => {
+    if (!currentProduct) return undefined;
+    const health = calculateBrandHealth(currentProduct as unknown as Record<string, unknown>, hiddenSections);
+    return health.overallScore;
+  }, [currentProduct, hiddenSections]);
+
   const handlePageSettingsChange = useCallback((newSettings: BrandPageSettings) => {
     if (currentProduct) {
       updateProduct(currentProduct.id, { pageSettings: newSettings });
@@ -661,27 +670,31 @@ const ProductEditor = () => {
     <TooltipProvider>
       <UnsavedChangesBlocker />
       <div className="min-h-screen bg-background flex relative">
-        {/* Desktop Sidebar - Fixed position for persistent visibility */}
-        <div className="hidden lg:block fixed top-0 left-0 h-screen w-72 z-30">
-          <ReorderableBrandSidebar 
-            activeSection={activeSection} 
-            onSectionChange={handleSectionChange} 
-            brandName={currentProduct.hero.name}
-            brandId={currentProduct.id}
-            organizationId={currentProduct.organizationId}
-            entityType="product"
-            sectionOrder={sectionOrder}
-            onSectionOrderChange={handleSectionOrderChange}
-            hiddenSections={hiddenSections}
-            onHiddenSectionsChange={handleHiddenSectionsChange}
-            isAdmin={isGuideAdmin}
-            showFavoritesOnly={showFavoritesOnly}
-            onShowFavoritesOnlyChange={setShowFavoritesOnly}
-          />
-        </div>
+        {/* Desktop Sidebar - Hidden in cards mode */}
+        {viewMode !== 'cards' && (
+          <div className="hidden lg:block fixed top-0 left-0 h-screen w-72 z-30">
+            <ReorderableBrandSidebar 
+              activeSection={activeSection} 
+              onSectionChange={handleSectionChange} 
+              brandName={currentProduct.hero.name}
+              brandId={currentProduct.id}
+              organizationId={currentProduct.organizationId}
+              entityType="product"
+              sectionOrder={sectionOrder}
+              onSectionOrderChange={handleSectionOrderChange}
+              hiddenSections={hiddenSections}
+              onHiddenSectionsChange={handleHiddenSectionsChange}
+              isAdmin={isGuideAdmin}
+              showFavoritesOnly={showFavoritesOnly}
+              onShowFavoritesOnlyChange={setShowFavoritesOnly}
+            />
+          </div>
+        )}
         
-        {/* Sidebar spacer for fixed positioning */}
-        <div className="hidden lg:block w-72 flex-shrink-0" />
+        {/* Sidebar spacer for fixed positioning - Hidden in cards mode */}
+        {viewMode !== 'cards' && (
+          <div className="hidden lg:block w-72 flex-shrink-0" />
+        )}
 
         {/* Mobile Sidebar */}
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
@@ -805,6 +818,14 @@ const ProductEditor = () => {
                       </ToggleGroupItem>
                     </TooltipTrigger>
                     <TooltipContent>Section View</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ToggleGroupItem value="cards" aria-label="Card grid view" className="h-8 w-8 data-[state=on]:bg-background">
+                        <LayoutGrid className="h-4 w-4" />
+                      </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>Card Grid View</TooltipContent>
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -987,7 +1008,45 @@ const ProductEditor = () => {
                 currentIcon={Package}
               />
               
-              {viewMode === 'sections' ? (
+              {viewMode === 'cards' ? (
+                <div className="animate-fade-in">
+                  <SectionCardGrid
+                    sectionOrder={sectionOrder}
+                    hiddenSections={hiddenSections}
+                    activeSection={activeSection}
+                    onSectionSelect={(section) => { setActiveSection(section as SectionId); }}
+                    isAdmin={isGuideAdmin}
+                    cardViewBackground={pageSettings.cardViewBackground}
+                    cardViewBackgroundTint={pageSettings.cardViewBackgroundTint}
+                    onCardViewBackgroundChange={(bg, tint) => {
+                      handlePageSettingsChange({
+                        ...pageSettings,
+                        cardViewBackground: bg,
+                        cardViewBackgroundTint: tint,
+                      });
+                    }}
+                    entityLightLogoUrl={pageSettings.cardViewLightLogo}
+                    entityDarkLogoUrl={pageSettings.cardViewDarkLogo}
+                    onEntityLogoChange={isGuideAdmin ? (variant: 'light' | 'dark', url: string) => {
+                      handlePageSettingsChange({
+                        ...pageSettings,
+                        ...(variant === 'light' ? { cardViewLightLogo: url } : { cardViewDarkLogo: url }),
+                      });
+                    } : undefined}
+                    entityName={currentProduct?.hero?.name}
+                    entityTagline={currentProduct?.hero?.tagline}
+                    healthScore={cardViewHealthScore}
+                    onOpenIntelligence={isGuideAdmin ? () => setIntelligenceOpen(true) : undefined}
+                    entityType="product"
+                    entityId={currentProduct?.id}
+                  />
+                  {activeSection !== 'hero' && (
+                    <div className="animate-zoom-in">
+                      {renderSection()}
+                    </div>
+                  )}
+                </div>
+              ) : viewMode === 'sections' ? (
                 renderSection()
               ) : (
                 <FullBrandPage 
