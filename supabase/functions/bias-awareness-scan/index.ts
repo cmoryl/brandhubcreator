@@ -172,6 +172,16 @@ ${imageryContext}
 - Persona spectrum coverage across 5 dimensions:
 ${personaContext}
 
+PERSONA COVERAGE EVALUATION RULES (critical — do NOT default all to false):
+Mark a persona dimension as TRUE when the brand content demonstrates ANY accommodation, awareness, or design consideration for that audience — even implied:
+- Mobility: responsive/flexible layouts, touch-friendly targets, physical event accommodations, mentions of adaptive tools or ergonomic design
+- Vision: alt text practices, high contrast colors, screen reader compatibility, large text options, visual hierarchy, color-blind safe palettes, dark mode support
+- Hearing: captions/subtitles on video, visual notifications, text-based communication, transcripts
+- Speech: text-based input/chat options, non-verbal interaction paths, written alternatives to voice
+- Cognitive: plain language, clear navigation, consistent layouts, minimal cognitive load, progressive disclosure, error prevention, readable fonts
+For each level: permanent=designed for long-term users, temporary=accommodates short-term impairments, situational=helps users in challenging contexts (bright sun, noisy room, one-handed use).
+If a brand has ANY content mentioning accessibility, plain language, responsive design, or multi-format content, at least some dimensions should be TRUE. A 0% score should only occur for brands with zero accessibility awareness.
+
 3. ACCESSIBILITY (accessibility_score):
 - WCAG 2.2 compliance — evaluate against ALL 9 new success criteria:
 ${wcagContext}
