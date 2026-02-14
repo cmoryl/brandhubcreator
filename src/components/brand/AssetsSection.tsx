@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react';
-import { X, Download, Folder, File, Upload, Globe } from 'lucide-react';
+import { X, Download, Folder, File, Upload, Globe, Expand } from 'lucide-react';
 import { BrandAsset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
 import { WebsiteImageScanner } from './WebsiteImageScanner';
+import { PreviewDialog } from '@/components/ui/preview-dialog';
 
 interface AssetsSectionProps {
   assets: BrandAsset[];
@@ -34,6 +35,7 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
   const canEdit = Boolean(onAssetsChange);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [previewAsset, setPreviewAsset] = useState<BrandAsset | null>(null);
 
   const handleImportImages = useCallback((images: { name: string; url: string; type: string }[]) => {
     if (!onAssetsChange) return;
@@ -154,6 +156,11 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
                       )}
                       {/* Hover overlay */}
                       <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        {asset.type?.startsWith('image/') && (
+                          <Button variant="secondary" size="icon" className="h-9 w-9" onClick={() => setPreviewAsset(asset)}>
+                            <Expand className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button variant="secondary" size="icon" className="h-9 w-9" onClick={() => downloadAsset(asset)}>
                           <Download className="h-4 w-4" />
                         </Button>
@@ -210,6 +217,16 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
           onImportImages={handleImportImages}
         />
       )}
+
+      {/* Preview Dialog */}
+      <PreviewDialog
+        open={!!previewAsset}
+        onOpenChange={(open) => !open && setPreviewAsset(null)}
+        title={previewAsset?.name || 'Image Preview'}
+        previewUrl={previewAsset?.url}
+        type="image"
+        aspectRatio="auto"
+      />
     </section>
   );
 };
