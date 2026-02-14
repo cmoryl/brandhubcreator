@@ -379,7 +379,7 @@ export const ValuesSection = ({
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3">
         {values.map((value, index) => {
           const IconComponent = getIconComponent(value.icon);
           const isEditing = editingId === value.id;
@@ -387,9 +387,9 @@ export const ValuesSection = ({
           return (
             <div
               key={value.id}
-              className={`group relative bg-card rounded-xl p-6 shadow-sm border border-border 
+              className={`group relative bg-card rounded-lg p-3 sm:p-4 shadow-sm border border-border 
                 transition-all duration-500 ease-out
-                hover:shadow-xl hover:-translate-y-2 hover:border-accent/30
+                hover:shadow-lg hover:-translate-y-1 hover:border-accent/30
                 hover:bg-gradient-to-br hover:from-card hover:to-accent/5
                 ${!isEditing ? 'cursor-pointer' : ''}
               `}
@@ -577,7 +577,7 @@ export const ValuesSection = ({
                       : null;
                     
                     return resolvedImage && (
-                      <div className="absolute inset-x-0 top-0 h-32 rounded-t-xl overflow-hidden">
+                      <div className="absolute inset-x-0 top-0 h-20 sm:h-24 rounded-t-lg overflow-hidden">
                         <img 
                           src={resolvedImage} 
                           alt={value.text} 
@@ -591,13 +591,13 @@ export const ValuesSection = ({
                   })()}
                   
                   {/* Adjust margin and show icon only if not in image mode */}
-                  <div className={`flex items-start justify-between ${value.useImage ? 'mt-24' : ''} mb-4`}>
+                  <div className={`flex items-start justify-between ${value.useImage ? 'mt-14 sm:mt-16' : ''} mb-2`}>
                     {!value.useImage ? (
-                      <div className="p-3 bg-accent/10 rounded-xl transition-all duration-300 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg group-hover:shadow-accent/20">
+                      <div className="p-2 bg-accent/10 rounded-lg transition-all duration-300 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg group-hover:shadow-accent/20">
                         {IconComponent ? (
-                          <IconComponent className="h-6 w-6 text-accent transition-transform duration-300 group-hover:scale-110" />
+                          <IconComponent className="h-5 w-5 text-accent transition-transform duration-300 group-hover:scale-110" />
                         ) : (
-                          <Heart className="h-6 w-6 text-accent transition-transform duration-300 group-hover:scale-110" />
+                          <Heart className="h-5 w-5 text-accent transition-transform duration-300 group-hover:scale-110" />
                         )}
                       </div>
                     ) : <div />}
@@ -618,12 +618,12 @@ export const ValuesSection = ({
                       </div>
                     )}
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2 transition-colors duration-300 group-hover:text-accent">{value.text}</h3>
-                  <p className="text-sm text-muted-foreground transition-all duration-300 group-hover:text-foreground/80">{value.description}</p>
+                  <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1 transition-colors duration-300 group-hover:text-accent leading-tight">{value.text}</h3>
+                  <p className="text-xs text-muted-foreground transition-all duration-300 group-hover:text-foreground/80 line-clamp-2">{value.description}</p>
                   
                   {/* Hover glow effect */}
-                  <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-accent/5 via-transparent to-accent/10" />
-                  <div className="absolute -inset-0.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-r from-accent/20 via-transparent to-accent/20 blur-sm -z-10" />
+                  <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-accent/5 via-transparent to-accent/10" />
+                  <div className="absolute -inset-0.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-r from-accent/20 via-transparent to-accent/20 blur-sm -z-10" />
                 </>
               )}
             </div>
@@ -633,7 +633,7 @@ export const ValuesSection = ({
         {values.length === 0 && canEdit && (
           <button
             onClick={addValue}
-            className="h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors"
+            className="h-32 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent hover:text-accent transition-colors"
           >
             <Plus className="h-8 w-8" />
             <span className="text-sm font-medium">Add your first value</span>
