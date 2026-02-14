@@ -1,0 +1,2 @@
+ALTER TABLE public.brand_intelligence DROP CONSTRAINT brand_intelligence_entity_type_check;
+ALTER TABLE public.brand_intelligence ADD CONSTRAINT brand_intelligence_entity_type_check CHECK (entity_type = ANY (ARRAY['brand'::text, 'product'::text, 'event'::text]));
