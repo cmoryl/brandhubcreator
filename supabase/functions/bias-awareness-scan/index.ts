@@ -395,6 +395,8 @@ RESPONSE FORMAT (strict JSON):
           policy_as_code_module: result.policy_as_code_module || null,
           inclusive_imagery_module: result.inclusive_imagery_module || null,
           inclusion_checklist_module: result.inclusion_checklist_module || null,
+          color_accessibility_module: result.color_accessibility_module || null,
+          color_strategy_module: result.color_strategy_module || null,
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }).eq('id', scan.id);

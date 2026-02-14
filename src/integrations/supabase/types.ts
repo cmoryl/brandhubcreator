@@ -209,6 +209,8 @@ export type Database = {
           accessibility_score: number | null
           ai_governance_analysis: Json | null
           ai_governance_score: number | null
+          color_accessibility_module: Json | null
+          color_strategy_module: Json | null
           completed_at: string | null
           created_at: string
           created_by: string | null
@@ -241,6 +243,8 @@ export type Database = {
           accessibility_score?: number | null
           ai_governance_analysis?: Json | null
           ai_governance_score?: number | null
+          color_accessibility_module?: Json | null
+          color_strategy_module?: Json | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -273,6 +277,8 @@ export type Database = {
           accessibility_score?: number | null
           ai_governance_analysis?: Json | null
           ai_governance_score?: number | null
+          color_accessibility_module?: Json | null
+          color_strategy_module?: Json | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
