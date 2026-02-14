@@ -6,64 +6,180 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are the BrandHub Help Assistant — a friendly, knowledgeable guide for the BrandHub platform.
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-BrandHub is a comprehensive brand management platform that helps organizations create, manage, and share brand guidelines. Here's what you know:
+function restHeaders(token?: string) {
+  return {
+    apikey: SUPABASE_SERVICE_KEY,
+    Authorization: `Bearer ${token || SUPABASE_SERVICE_KEY}`,
+    "Content-Type": "application/json",
+  };
+}
+
+async function verifyUser(authHeader: string) {
+  const token = authHeader.replace("Bearer ", "");
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: { Authorization: `Bearer ${token}`, apikey: SUPABASE_SERVICE_KEY },
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+async function getUserOrgId(userId: string): Promise<string | null> {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/organization_members?user_id=eq.${userId}&select=organization_id&limit=1`,
+    { headers: restHeaders() }
+  );
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data?.[0]?.organization_id || null;
+}
+
+async function fetchOracleContext(orgId: string): Promise<string> {
+  const parts: string[] = [];
+
+  try {
+    // Fetch Oracle intelligence summary
+    const [oracleRes, knowledgeRes] = await Promise.all([
+      fetch(
+        `${SUPABASE_URL}/rest/v1/oracle_intelligence?organization_id=eq.${orgId}&select=org_summary,strategic_recommendations,unified_voice_profile,competitive_overview,market_landscape&limit=1`,
+        { headers: restHeaders() }
+      ),
+      fetch(
+        `${SUPABASE_URL}/rest/v1/oracle_knowledge_base?organization_id=eq.${orgId}&is_active=eq.true&order=updated_at.desc&limit=10&select=title,content,category`,
+        { headers: restHeaders() }
+      ),
+    ]);
+
+    if (oracleRes.ok) {
+      const oracle = await oracleRes.json();
+      if (oracle?.[0]) {
+        const o = oracle[0];
+        if (o.org_summary) parts.push(`## Organization Intelligence\n${o.org_summary}`);
+        if (o.strategic_recommendations) {
+          const recs = Array.isArray(o.strategic_recommendations) ? o.strategic_recommendations : [];
+          if (recs.length) parts.push(`## Strategic Recommendations\n${recs.map((r: any) => `- ${typeof r === 'string' ? r : r.recommendation || r.title || JSON.stringify(r)}`).join('\n')}`);
+        }
+        if (o.unified_voice_profile) {
+          const voice = o.unified_voice_profile;
+          parts.push(`## Unified Voice Profile\nTone: ${voice.tone || 'N/A'}, Style: ${voice.style || 'N/A'}`);
+        }
+      }
+    }
+
+    if (knowledgeRes.ok) {
+      const entries = await knowledgeRes.json();
+      if (entries?.length) {
+        const kb = entries.map((e: any) => `### ${e.title} (${e.category || 'General'})\n${(e.content || '').slice(0, 300)}`).join('\n\n');
+        parts.push(`## Organization Knowledge Base\n${kb}`);
+      }
+    }
+  } catch (e) {
+    console.error("Error fetching oracle context:", e);
+  }
+
+  return parts.join('\n\n');
+}
+
+async function fetchEntityBrains(orgId: string): Promise<string> {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/brand_intelligence?organization_id=eq.${orgId}&select=entity_type,entity_id,brand_summary,market_position,competitive_advantages,brand_voice_profile&order=updated_at.desc&limit=10`,
+      { headers: restHeaders() }
+    );
+    if (!res.ok) return '';
+    const brains = await res.json();
+    if (!brains?.length) return '';
+
+    // Also fetch entity names
+    const brandIds = brains.filter((b: any) => b.entity_type === 'brand').map((b: any) => b.entity_id);
+    const productIds = brains.filter((b: any) => b.entity_type === 'product').map((b: any) => b.entity_id);
+    const eventIds = brains.filter((b: any) => b.entity_type === 'event').map((b: any) => b.entity_id);
+
+    const nameMap: Record<string, string> = {};
+
+    const nameFetches = [];
+    if (brandIds.length) {
+      nameFetches.push(
+        fetch(`${SUPABASE_URL}/rest/v1/brands?id=in.(${brandIds.join(',')})&select=id,name`, { headers: restHeaders() })
+          .then(r => r.json()).then((data: any[]) => data?.forEach(d => nameMap[d.id] = d.name)).catch(() => {})
+      );
+    }
+    if (productIds.length) {
+      nameFetches.push(
+        fetch(`${SUPABASE_URL}/rest/v1/products?id=in.(${productIds.join(',')})&select=id,name`, { headers: restHeaders() })
+          .then(r => r.json()).then((data: any[]) => data?.forEach(d => nameMap[d.id] = d.name)).catch(() => {})
+      );
+    }
+    if (eventIds.length) {
+      nameFetches.push(
+        fetch(`${SUPABASE_URL}/rest/v1/events?id=in.(${eventIds.join(',')})&select=id,name`, { headers: restHeaders() })
+          .then(r => r.json()).then((data: any[]) => data?.forEach(d => nameMap[d.id] = d.name)).catch(() => {})
+      );
+    }
+    await Promise.all(nameFetches);
+
+    const summaries = brains.map((b: any) => {
+      const name = nameMap[b.entity_id] || b.entity_id;
+      const lines = [`### ${name} (${b.entity_type})`];
+      if (b.brand_summary) lines.push(b.brand_summary.slice(0, 400));
+      if (b.market_position) lines.push(`Market Position: ${b.market_position}`);
+      if (b.competitive_advantages && Array.isArray(b.competitive_advantages)) {
+        lines.push(`Key Advantages: ${b.competitive_advantages.slice(0, 5).map((a: any) => typeof a === 'string' ? a : a.advantage || a.title || '').filter(Boolean).join(', ')}`);
+      }
+      return lines.join('\n');
+    });
+
+    return `## Entity Intelligence (Brand Brains)\n${summaries.join('\n\n')}`;
+  } catch (e) {
+    console.error("Error fetching entity brains:", e);
+    return '';
+  }
+}
+
+const BASE_SYSTEM_PROMPT = `You are the BrandHub Help Assistant — a friendly, knowledgeable guide for the BrandHub platform. You have access to the user's organization intelligence and brand data to provide context-aware, personalized help.
 
 ## Core Features
 - **Brand Guides**: Create rich brand guidelines with sections for colors, typography, logos, patterns, gradients, imagery, voice & tone, iconography, and more.
 - **Product Guides**: Create product-specific brand guidelines linked to parent brands.
 - **Event Guides**: Create event-specific branding linked to parent brands.
 - **Organization Portal**: A public-facing portal (org/:slug) showcasing brands, products, and events.
-- **Demo Guides**: Showcase example brand guides for prospective users.
 
 ## Brand Guide Sections
 Brands have many configurable sections: Hero, Identity, Colors, Typography, Logos, Patterns, Gradients, Imagery, Voice & Tone, Messaging, Digital Collateral, Social Assets, Iconography, QR Codes, Email Signatures, Templates, Brochures, Case Studies, Anti-Patterns, Symbol Standards, Geometric Primitives, Website, Platform Marketer, Events, Statistics, Revenue Growth, and more.
 
 ## Key Capabilities
-- **Section Visibility**: Admins can show/hide sections via the sidebar eye icon. Hidden sections don't appear for viewers.
+- **Section Visibility**: Admins can show/hide sections via the sidebar eye icon.
 - **Section Reordering**: Drag-and-drop reordering of sidebar sections.
-- **Layout Styles**: Configurable grid layouts (Grid 2/3/4, List, Large Cards, Compact) per section.
+- **Layout Styles**: Configurable grid layouts per section.
 - **Brand Health Score**: Tracks completeness across 35+ sections with weighted scoring.
-- **Image Library**: Organization-wide shared image library for logos, assets, and media.
+- **Image Library**: Organization-wide shared image library.
 - **QR Code Generator**: Create styled QR codes with brand colors and logos.
 - **Email Signatures**: Template library with customizable HTML signatures.
-- **PDF Exports**: Export brand guides, competitive reports, and analytics as PDFs.
+- **PDF Exports**: Export brand guides, competitive reports, and analytics.
 
 ## AI-Powered Features
-- **Brand Intelligence (Oracle)**: AI-driven brand analysis with market positioning, competitive advantages, and growth recommendations.
-- **Competitive Analysis**: AI reports comparing brands against competitors with radar charts and scoring.
-- **Competitor Discovery**: AI-powered discovery of relevant competitors.
+- **Brand Intelligence (Oracle Brain)**: Organization-level AI that aggregates insights across all brands, products, and events. Provides strategic recommendations, unified voice profiles, and market landscape analysis.
+- **Entity Brains**: Each brand, product, and event has its own AI "brain" that learns from its guide data. Stores market position, competitive advantages, voice profile, cultural insights, and growth recommendations.
+- **Competitive Analysis**: AI reports comparing brands against competitors.
 - **DataForce AI**: Brand compliance scanning, AI assistant, cultural validation, and GenAI training.
 - **GlobalLink**: Translation and cultural adaptation with regional variants.
 - **Brand Creative Studio**: AI image generation using brand context.
 - **Icon Studio (IconKIT)**: AI icon generation with style presets and brand DNA locking.
+- **Research Briefings**: AI-generated strategic briefings covering trends, risks, and opportunities.
+- **Knowledge Base**: Import PDFs, documents, and manual entries to feed the brand brains.
 
 ## Organization Management
-- **Members & Roles**: Admin, member roles with invite workflows.
-- **Portal Settings**: Customize public portal appearance, insights, and branding.
-- **Backups**: Organization, universe, and product suite backup system.
-- **Audit Logs**: Comprehensive activity tracking for compliance.
-- **App Settings**: Custom logos, favicons, and branding for the platform.
+- Members & roles, portal settings, backups, audit logs, app settings.
 
-## Navigation
-- Dashboard: /dashboard — manage all brands
-- Brand Editor: /brand/:slug — edit a specific brand guide
-- Product Editor: /product/:slug — edit a product guide
-- Event Editor: /event/:slug — edit an event guide
-- Organization Portal: /org/:slug — public portal view
-- Admin Dashboard: /admin — platform administration
-- Help Center: /help — guides and tutorials
-
-## Tips for Users
-- Use the sidebar to navigate between sections in a brand guide.
-- Click the eye icon next to sections to show/hide them.
-- Drag sections in the sidebar to reorder them.
-- Use the search bar to find specific help articles.
+## Tips
+- Use the sidebar to navigate sections. Click eye icon to show/hide. Drag to reorder.
 - Brand Health Score helps track guide completeness.
 - All changes save automatically.
+- The Oracle Brain learns from all entity brains and provides portfolio-wide intelligence.
 
-Keep answers concise, friendly, and actionable. Use markdown formatting for clarity. If you don't know something specific, suggest checking the help articles or contacting the admin.`;
+Keep answers concise, friendly, and actionable. Use markdown for clarity. When you have organization-specific context, reference it naturally to personalize your answers. If unsure, suggest checking the help articles or contacting an admin.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -77,6 +193,34 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    // Try to get authenticated user context
+    let contextBlock = '';
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader && !authHeader.includes(Deno.env.get("SUPABASE_ANON_KEY") || '__none__')) {
+      try {
+        const user = await verifyUser(authHeader);
+        if (user?.id) {
+          const orgId = await getUserOrgId(user.id);
+          if (orgId) {
+            // Fetch Oracle + Entity brains in parallel
+            const [oracleCtx, brainsCtx] = await Promise.all([
+              fetchOracleContext(orgId),
+              fetchEntityBrains(orgId),
+            ]);
+            const parts = [oracleCtx, brainsCtx].filter(Boolean);
+            if (parts.length) {
+              contextBlock = `\n\n---\n# LIVE ORGANIZATION CONTEXT\nThe following is real-time intelligence from the user's organization. Use it to give personalized, context-aware answers.\n\n${parts.join('\n\n')}`;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error fetching user context:", e);
+        // Continue without context — still useful as a generic helper
+      }
+    }
+
+    const fullSystemPrompt = BASE_SYSTEM_PROMPT + contextBlock;
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -86,7 +230,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: fullSystemPrompt },
           ...messages,
         ],
         stream: true,
