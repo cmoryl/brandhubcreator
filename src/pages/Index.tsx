@@ -153,7 +153,7 @@ const Index = () => {
             <div className="text-center md:text-left order-2 md:order-1">
               <Badge variant="secondary" className="mb-4 gap-1.5">
                 <Sparkles className="h-3 w-3" />
-                AI-Powered Inclusive Brand Architecture
+                AI-Powered Brand Platform
               </Badge>
               
               <h1 className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight mb-4 md:mb-6">
@@ -165,9 +165,9 @@ const Index = () => {
               </h1>
               
               <p className="text-base sm:text-lg md:text-lg lg:text-xl text-muted-foreground mb-6 md:mb-8 max-w-xl mx-auto md:mx-0">
-                Transform static brand guidelines into adaptive, neuro-inclusive experiences. 
-                Cultural symbolism mapping, OKLCH color science, motion sensitivity controls, 
-                and AI governance — architected for every human.
+                Turn static brand guidelines into smart, living documents. 
+                Built-in accessibility checks, cultural awareness tools, 
+                and AI insights — so your brand works for everyone, everywhere.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center md:justify-start">
@@ -310,11 +310,11 @@ const Index = () => {
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 gap-1.5">
               <Zap className="h-3 w-3" />
-              Inclusive Architecture by Default
+              Built for Everyone
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Intelligent <GlitchText text="Performance" glowColor="hsl(199 89% 48%)" className="text-3xl sm:text-4xl" /></h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Smart <GlitchText text="Tools" glowColor="hsl(199 89% 48%)" className="text-3xl sm:text-4xl" /></h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              From bias-aware AI governance to WCAG 2.2 compliance, every feature is designed to build for everyone by default.
+              Accessibility, cultural awareness, and AI insights are baked into every feature — so you can focus on building great brands.
             </p>
           </div>
 
@@ -323,22 +323,22 @@ const Index = () => {
             <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-5 border border-primary/20 text-center">
               <Scale className="h-7 w-7 text-primary mx-auto mb-2" />
               <div className="text-2xl font-bold text-foreground mb-1">16</div>
-              <p className="text-xs text-muted-foreground">Intelligence Modules</p>
+              <p className="text-xs text-muted-foreground">AI Modules</p>
             </div>
             <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-2xl p-5 border border-accent/20 text-center">
               <Palette className="h-7 w-7 text-accent mx-auto mb-2" />
-              <div className="text-2xl font-bold text-foreground mb-1">OKLCH</div>
-              <p className="text-xs text-muted-foreground">Perceptual Color Science</p>
+              <div className="text-2xl font-bold text-foreground mb-1">Smart</div>
+              <p className="text-xs text-muted-foreground">Color Science</p>
             </div>
             <div className="bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-2xl p-5 border border-secondary/30 text-center">
               <Globe2 className="h-7 w-7 text-secondary-foreground mx-auto mb-2" />
               <div className="text-2xl font-bold text-foreground mb-1">6+</div>
-              <p className="text-xs text-muted-foreground">Cultural Color Maps</p>
+              <p className="text-xs text-muted-foreground">Cultural Regions</p>
             </div>
             <div className="bg-gradient-to-br from-muted to-muted/50 rounded-2xl p-5 border border-border text-center">
               <Accessibility className="h-7 w-7 text-foreground mx-auto mb-2" />
               <div className="text-2xl font-bold text-foreground mb-1">WCAG 2.2</div>
-              <p className="text-xs text-muted-foreground">AA/AAA + Dark Mode 2.0</p>
+              <p className="text-xs text-muted-foreground">Full Accessibility</p>
             </div>
           </div>
 
@@ -347,9 +347,9 @@ const Index = () => {
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
                 <Building2 className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Neuro-Inclusive Brands</h3>
+              <h3 className="text-xl font-semibold mb-3">Brands That Work for Everyone</h3>
               <p className="text-muted-foreground">
-                Oracle Brain with OKLCH color science, adaptive motion sensitivity, cultural symbolism mapping, and Bias Awareness Scanner across 16 intelligence modules.
+                AI-powered color tools, accessibility scanning, cultural awareness checks, and motion sensitivity controls — all built in so your brand feels right to every audience.
               </p>
             </div>
 
@@ -357,9 +357,9 @@ const Index = () => {
               <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6">
                 <Package className="h-6 w-6 text-accent" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Adaptive Product Lines</h3>
+              <h3 className="text-xl font-semibold mb-3">Products That Scale Globally</h3>
               <p className="text-muted-foreground">
-                PI&E "Who Else?" framework, semantic color search across languages, neuro-inclusive typography (45-75 char lines), and Persona Spectrum coverage.
+                Search colors by meaning in any language, get readable typography suggestions, and ensure your product guidelines look great for every type of user.
               </p>
             </div>
 
@@ -367,9 +367,9 @@ const Index = () => {
               <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-6">
                 <Calendar className="h-6 w-6 text-secondary-foreground" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Sensory-Safe Event Kits</h3>
+              <h3 className="text-xl font-semibold mb-3">Events Designed for All</h3>
               <p className="text-muted-foreground">
-                Universal Event Framework with quiet rooms, epilepsy-safe signage, strobe suppression, haptic synchronization, and CamelCase hashtag compliance.
+                Plan accessible events from the start — quiet rooms, safe signage, easy-to-read materials, and digital assets that meet modern accessibility standards.
               </p>
             </div>
           </div>
