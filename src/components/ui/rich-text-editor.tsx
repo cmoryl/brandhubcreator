@@ -37,6 +37,242 @@ const HIGHLIGHT_COLORS = [
   { name: 'Purple', value: '#ddd6fe' },
 ];
 
+// ── Safe DOM helpers (no execCommand) ──────────────────────────
+
+/** Get the current selection range, scoped to an editor element */
+const getEditorRange = (editor: HTMLElement): Range | null => {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return null;
+  const range = sel.getRangeAt(0);
+  if (!editor.contains(range.commonAncestorContainer)) return null;
+  return range;
+};
+
+/** Wrap the current selection in a given tag (toggle: unwrap if already wrapped) */
+const toggleInlineTag = (editor: HTMLElement, tagName: string): void => {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  if (!editor.contains(range.commonAncestorContainer)) return;
+
+  // Check if already wrapped in this tag
+  let node: Node | null = range.commonAncestorContainer;
+  while (node && node !== editor) {
+    if (node.nodeType === Node.ELEMENT_NODE && (node as Element).tagName === tagName.toUpperCase()) {
+      // Unwrap: replace the element with its children
+      const parent = node.parentNode;
+      if (parent) {
+        while (node.firstChild) {
+          parent.insertBefore(node.firstChild, node);
+        }
+        parent.removeChild(node);
+      }
+      return;
+    }
+    node = node.parentNode;
+  }
+
+  // Wrap selection in new element
+  if (range.collapsed) return;
+  const wrapper = document.createElement(tagName);
+  try {
+    range.surroundContents(wrapper);
+  } catch {
+    // surroundContents fails if range crosses element boundaries
+    // Fall back to extracting and re-inserting
+    const fragment = range.extractContents();
+    wrapper.appendChild(fragment);
+    range.insertNode(wrapper);
+  }
+  // Re-select the wrapped content
+  sel.removeAllRanges();
+  const newRange = document.createRange();
+  newRange.selectNodeContents(wrapper);
+  sel.addRange(newRange);
+};
+
+/** Insert sanitized HTML at the current cursor position */
+const insertSafeHtml = (editor: HTMLElement, html: string): void => {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  if (!editor.contains(range.commonAncestorContainer)) return;
+
+  range.deleteContents();
+
+  const sanitized = sanitizeHtml(html);
+  const temp = document.createElement('div');
+  temp.innerHTML = sanitized;
+  const frag = document.createDocumentFragment();
+  let lastNode: Node | null = null;
+  while (temp.firstChild) {
+    lastNode = temp.firstChild;
+    frag.appendChild(lastNode);
+  }
+  range.insertNode(frag);
+
+  // Move cursor after inserted content
+  if (lastNode) {
+    const newRange = document.createRange();
+    newRange.setStartAfter(lastNode);
+    newRange.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+  }
+};
+
+/** Get the closest block-level ancestor of the selection */
+const getSelectionBlock = (editor: HTMLElement): HTMLElement | null => {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return null;
+  let node: Node | null = sel.anchorNode;
+  const blockTags = ['P', 'DIV', 'H1', 'H2', 'H3', 'LI', 'UL', 'OL'];
+  while (node && node !== editor) {
+    if (node.nodeType === Node.ELEMENT_NODE && blockTags.includes((node as Element).tagName)) {
+      return node as HTMLElement;
+    }
+    node = node.parentNode;
+  }
+  return null;
+};
+
+/** Wrap current block in a heading or toggle back to paragraph */
+const formatBlock = (editor: HTMLElement, tagName: string): void => {
+  const block = getSelectionBlock(editor);
+  if (!block) return;
+  const parent = block.parentNode;
+  if (!parent) return;
+
+  if (block.tagName === tagName.toUpperCase()) {
+    // Toggle off: convert back to div
+    const div = document.createElement('div');
+    div.innerHTML = block.innerHTML;
+    parent.replaceChild(div, block);
+  } else {
+    const heading = document.createElement(tagName);
+    heading.innerHTML = block.innerHTML;
+    parent.replaceChild(heading, block);
+  }
+};
+
+/** Toggle a list (ul or ol) for the current selection */
+const toggleList = (editor: HTMLElement, listTag: 'ul' | 'ol'): void => {
+  const block = getSelectionBlock(editor);
+  if (!block) return;
+  const parent = block.parentNode;
+  if (!parent) return;
+
+  // If already inside this list type, unwrap
+  if (block.tagName === 'LI' && parent.nodeName === listTag.toUpperCase()) {
+    const grandparent = parent.parentNode;
+    if (grandparent) {
+      const div = document.createElement('div');
+      div.innerHTML = block.innerHTML;
+      grandparent.insertBefore(div, parent);
+      parent.removeChild(block);
+      if (!parent.hasChildNodes()) {
+        grandparent.removeChild(parent);
+      }
+    }
+    return;
+  }
+
+  // Wrap current block in a list
+  const list = document.createElement(listTag);
+  const li = document.createElement('li');
+  li.innerHTML = block.innerHTML;
+  list.appendChild(li);
+  parent.replaceChild(list, block);
+};
+
+/** Set text alignment on the current block */
+const setAlignment = (editor: HTMLElement, align: string): void => {
+  const block = getSelectionBlock(editor);
+  if (block) {
+    block.style.textAlign = align;
+  }
+};
+
+/** Wrap selection in an anchor tag */
+const wrapInLink = (editor: HTMLElement, url: string): void => {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+  const range = sel.getRangeAt(0);
+  if (!editor.contains(range.commonAncestorContainer)) return;
+
+  const anchor = document.createElement('a');
+  anchor.href = url.startsWith('http') ? url : `https://${url}`;
+  anchor.target = '_blank';
+  anchor.rel = 'noopener noreferrer';
+
+  try {
+    range.surroundContents(anchor);
+  } catch {
+    const fragment = range.extractContents();
+    anchor.appendChild(fragment);
+    range.insertNode(anchor);
+  }
+};
+
+/** Remove link from selection */
+const unwrapLink = (editor: HTMLElement): void => {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  let node: Node | null = sel.anchorNode;
+  while (node && node !== editor) {
+    if (node.nodeType === Node.ELEMENT_NODE && (node as Element).tagName === 'A') {
+      const parent = node.parentNode;
+      if (parent) {
+        while (node.firstChild) {
+          parent.insertBefore(node.firstChild, node);
+        }
+        parent.removeChild(node);
+      }
+      return;
+    }
+    node = node.parentNode;
+  }
+};
+
+/** Apply highlight color to selection */
+const applyHighlight = (editor: HTMLElement, color: string): void => {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+  const range = sel.getRangeAt(0);
+  if (!editor.contains(range.commonAncestorContainer)) return;
+
+  const mark = document.createElement('mark');
+  mark.style.backgroundColor = color;
+
+  try {
+    range.surroundContents(mark);
+  } catch {
+    const fragment = range.extractContents();
+    mark.appendChild(fragment);
+    range.insertNode(mark);
+  }
+};
+
+/** Remove all formatting from selection (strip to plain text) */
+const removeFormatting = (editor: HTMLElement): void => {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  if (!editor.contains(range.commonAncestorContainer)) return;
+
+  const text = range.toString();
+  range.deleteContents();
+  const textNode = document.createTextNode(text);
+  range.insertNode(textNode);
+
+  sel.removeAllRanges();
+  const newRange = document.createRange();
+  newRange.selectNodeContents(textNode);
+  sel.addRange(newRange);
+};
+
+// ── Editor component ───────────────────────────────────────────
+
 export const RichTextEditor = ({
   value,
   onChange,
@@ -75,13 +311,7 @@ export const RichTextEditor = ({
     }
   }, [savedSelection]);
 
-  const execCommand = useCallback((command: string, value?: string) => {
-    editorRef.current?.focus();
-    document.execCommand(command, false, value);
-    handleInput();
-  }, []);
-
-  const handleInput = useCallback(() => {
+  const emitChange = useCallback(() => {
     if (editorRef.current) {
       const html = editorRef.current.innerHTML;
       const sanitized = sanitizeHtml(html);
@@ -89,51 +319,45 @@ export const RichTextEditor = ({
     }
   }, [onChange]);
 
-  const handleBold = () => execCommand('bold');
-  const handleItalic = () => execCommand('italic');
-  const handleUnderline = () => execCommand('underline');
-  const handleStrikethrough = () => execCommand('strikeThrough');
-
-  // List commands
-  const handleBulletList = () => execCommand('insertUnorderedList');
-  const handleNumberedList = () => execCommand('insertOrderedList');
-
-  // Alignment commands
-  const handleAlignLeft = () => execCommand('justifyLeft');
-  const handleAlignCenter = () => execCommand('justifyCenter');
-  const handleAlignRight = () => execCommand('justifyRight');
-
-  // Heading commands
-  const handleHeading = (level: 'h1' | 'h2' | 'h3') => {
-    execCommand('formatBlock', level);
-  };
-
-  // Line break - insert <br> tag
-  const handleLineBreak = () => {
+  const doAction = useCallback((action: () => void) => {
     editorRef.current?.focus();
-    document.execCommand('insertHTML', false, '<br><br>');
-    handleInput();
+    action();
+    emitChange();
+  }, [emitChange]);
+
+  const handleBold = () => doAction(() => toggleInlineTag(editorRef.current!, 'B'));
+  const handleItalic = () => doAction(() => toggleInlineTag(editorRef.current!, 'I'));
+  const handleUnderline = () => doAction(() => toggleInlineTag(editorRef.current!, 'U'));
+  const handleStrikethrough = () => doAction(() => toggleInlineTag(editorRef.current!, 'S'));
+
+  const handleBulletList = () => doAction(() => toggleList(editorRef.current!, 'ul'));
+  const handleNumberedList = () => doAction(() => toggleList(editorRef.current!, 'ol'));
+
+  const handleAlignLeft = () => doAction(() => setAlignment(editorRef.current!, 'left'));
+  const handleAlignCenter = () => doAction(() => setAlignment(editorRef.current!, 'center'));
+  const handleAlignRight = () => doAction(() => setAlignment(editorRef.current!, 'right'));
+
+  const handleHeading = (level: 'h1' | 'h2' | 'h3') => {
+    doAction(() => formatBlock(editorRef.current!, level));
   };
 
-  // Horizontal rule
+  const handleLineBreak = () => {
+    doAction(() => insertSafeHtml(editorRef.current!, '<br><br>'));
+  };
+
   const handleHorizontalRule = () => {
-    execCommand('insertHorizontalRule');
+    doAction(() => insertSafeHtml(editorRef.current!, '<hr>'));
   };
 
-  // Highlight
   const handleHighlight = (color: string) => {
     restoreSelection();
-    editorRef.current?.focus();
-    document.execCommand('hiliteColor', false, color);
-    handleInput();
+    doAction(() => applyHighlight(editorRef.current!, color));
     setShowHighlightPopover(false);
   };
 
   const handleRemoveHighlight = () => {
     restoreSelection();
-    editorRef.current?.focus();
-    document.execCommand('removeFormat');
-    handleInput();
+    doAction(() => removeFormatting(editorRef.current!));
     setShowHighlightPopover(false);
   };
 
@@ -145,42 +369,23 @@ export const RichTextEditor = ({
   const confirmLink = () => {
     if (linkUrl) {
       restoreSelection();
-      editorRef.current?.focus();
-      
-      // Ensure URL has protocol
-      const url = linkUrl.startsWith('http') ? linkUrl : `https://${linkUrl}`;
-      document.execCommand('createLink', false, url);
-      
-      // Add target="_blank" to the newly created link
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        const anchor = selection.anchorNode?.parentElement;
-        if (anchor?.tagName === 'A') {
-          anchor.setAttribute('target', '_blank');
-          anchor.setAttribute('rel', 'noopener noreferrer');
-        }
-      }
-      
-      handleInput();
+      doAction(() => wrapInLink(editorRef.current!, linkUrl));
     }
     setLinkUrl('');
     setShowLinkPopover(false);
   };
 
   const handleRemoveLink = () => {
-    execCommand('unlink');
+    doAction(() => unwrapLink(editorRef.current!));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Handle Shift+Enter for line break
     if (e.key === 'Enter' && e.shiftKey) {
       e.preventDefault();
-      document.execCommand('insertHTML', false, '<br>');
-      handleInput();
+      doAction(() => insertSafeHtml(editorRef.current!, '<br>'));
       return;
     }
 
-    // Handle keyboard shortcuts
     if (e.metaKey || e.ctrlKey) {
       switch (e.key.toLowerCase()) {
         case 'b':
@@ -201,20 +406,17 @@ export const RichTextEditor = ({
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    // Get HTML if available, otherwise plain text
     const html = e.clipboardData.getData('text/html');
     const text = e.clipboardData.getData('text/plain');
     
     if (html) {
-      // Sanitize and insert HTML
-      const sanitized = sanitizeHtml(html);
-      document.execCommand('insertHTML', false, sanitized);
+      // Sanitize and insert HTML safely via Range API
+      insertSafeHtml(editorRef.current!, html);
     } else {
-      // Convert line breaks to <br> for plain text
       const htmlText = text.replace(/\n/g, '<br>');
-      document.execCommand('insertHTML', false, htmlText);
+      insertSafeHtml(editorRef.current!, htmlText);
     }
-    handleInput();
+    emitChange();
   };
 
   return (
@@ -222,44 +424,16 @@ export const RichTextEditor = ({
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-0.5 p-1.5 border-b bg-muted/30">
         {/* Text formatting */}
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleBold}
-          className="h-7 w-7 p-0"
-          title="Bold (Ctrl+B)"
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={handleBold} className="h-7 w-7 p-0" title="Bold (Ctrl+B)">
           <Bold className="h-3.5 w-3.5" />
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleItalic}
-          className="h-7 w-7 p-0"
-          title="Italic (Ctrl+I)"
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={handleItalic} className="h-7 w-7 p-0" title="Italic (Ctrl+I)">
           <Italic className="h-3.5 w-3.5" />
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleUnderline}
-          className="h-7 w-7 p-0"
-          title="Underline (Ctrl+U)"
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={handleUnderline} className="h-7 w-7 p-0" title="Underline (Ctrl+U)">
           <Underline className="h-3.5 w-3.5" />
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleStrikethrough}
-          className="h-7 w-7 p-0"
-          title="Strikethrough"
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={handleStrikethrough} className="h-7 w-7 p-0" title="Strikethrough">
           <Strikethrough className="h-3.5 w-3.5" />
         </Button>
         
@@ -268,14 +442,7 @@ export const RichTextEditor = ({
         {/* Links */}
         <Popover open={showLinkPopover} onOpenChange={setShowLinkPopover}>
           <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleAddLink}
-              className="h-7 w-7 p-0"
-              title="Add Link"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={handleAddLink} className="h-7 w-7 p-0" title="Add Link">
               <Link className="h-3.5 w-3.5" />
             </Button>
           </PopoverTrigger>
@@ -290,24 +457,10 @@ export const RichTextEditor = ({
                   className="h-8 text-sm"
                   onKeyDown={(e) => e.key === 'Enter' && confirmLink()}
                 />
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={confirmLink}
-                  className="h-8 px-2"
-                >
+                <Button type="button" size="sm" onClick={confirmLink} className="h-8 px-2">
                   <Check className="h-3.5 w-3.5" />
                 </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    setLinkUrl('');
-                    setShowLinkPopover(false);
-                  }}
-                  className="h-8 px-2"
-                >
+                <Button type="button" size="sm" variant="ghost" onClick={() => { setLinkUrl(''); setShowLinkPopover(false); }} className="h-8 px-2">
                   <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -315,14 +468,7 @@ export const RichTextEditor = ({
           </PopoverContent>
         </Popover>
         
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleRemoveLink}
-          className="h-7 w-7 p-0"
-          title="Remove Link"
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={handleRemoveLink} className="h-7 w-7 p-0" title="Remove Link">
           <Link2Off className="h-3.5 w-3.5" />
         </Button>
 
@@ -330,136 +476,51 @@ export const RichTextEditor = ({
           <>
             <div className="w-px h-4 bg-border mx-1" />
             
-            {/* Line break and horizontal rule */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleLineBreak}
-              className="h-7 w-7 p-0"
-              title="Line Break (Shift+Enter)"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={handleLineBreak} className="h-7 w-7 p-0" title="Line Break (Shift+Enter)">
               <CornerDownLeft className="h-3.5 w-3.5" />
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleHorizontalRule}
-              className="h-7 w-7 p-0"
-              title="Horizontal Line"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={handleHorizontalRule} className="h-7 w-7 p-0" title="Horizontal Line">
               <Minus className="h-3.5 w-3.5" />
             </Button>
 
             <div className="w-px h-4 bg-border mx-1" />
             
-            {/* Headings */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => handleHeading('h1')}
-              className="h-7 w-7 p-0"
-              title="Heading 1"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={() => handleHeading('h1')} className="h-7 w-7 p-0" title="Heading 1">
               <Heading1 className="h-3.5 w-3.5" />
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => handleHeading('h2')}
-              className="h-7 w-7 p-0"
-              title="Heading 2"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={() => handleHeading('h2')} className="h-7 w-7 p-0" title="Heading 2">
               <Heading2 className="h-3.5 w-3.5" />
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => handleHeading('h3')}
-              className="h-7 w-7 p-0"
-              title="Heading 3"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={() => handleHeading('h3')} className="h-7 w-7 p-0" title="Heading 3">
               <Heading3 className="h-3.5 w-3.5" />
             </Button>
 
             <div className="w-px h-4 bg-border mx-1" />
             
-            {/* Lists */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleBulletList}
-              className="h-7 w-7 p-0"
-              title="Bullet List"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={handleBulletList} className="h-7 w-7 p-0" title="Bullet List">
               <List className="h-3.5 w-3.5" />
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleNumberedList}
-              className="h-7 w-7 p-0"
-              title="Numbered List"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={handleNumberedList} className="h-7 w-7 p-0" title="Numbered List">
               <ListOrdered className="h-3.5 w-3.5" />
             </Button>
 
             <div className="w-px h-4 bg-border mx-1" />
             
-            {/* Alignment */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleAlignLeft}
-              className="h-7 w-7 p-0"
-              title="Align Left"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={handleAlignLeft} className="h-7 w-7 p-0" title="Align Left">
               <AlignLeft className="h-3.5 w-3.5" />
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleAlignCenter}
-              className="h-7 w-7 p-0"
-              title="Align Center"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={handleAlignCenter} className="h-7 w-7 p-0" title="Align Center">
               <AlignCenter className="h-3.5 w-3.5" />
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleAlignRight}
-              className="h-7 w-7 p-0"
-              title="Align Right"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={handleAlignRight} className="h-7 w-7 p-0" title="Align Right">
               <AlignRight className="h-3.5 w-3.5" />
             </Button>
 
             <div className="w-px h-4 bg-border mx-1" />
             
-            {/* Highlight */}
             <Popover open={showHighlightPopover} onOpenChange={setShowHighlightPopover}>
               <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    saveSelection();
-                    setShowHighlightPopover(true);
-                  }}
-                  className="h-7 w-7 p-0"
-                  title="Highlight"
-                >
+                <Button type="button" variant="ghost" size="sm" onClick={() => { saveSelection(); setShowHighlightPopover(true); }} className="h-7 w-7 p-0" title="Highlight">
                   <Highlighter className="h-3.5 w-3.5" />
                 </Button>
               </PopoverTrigger>
@@ -477,13 +538,7 @@ export const RichTextEditor = ({
                       />
                     ))}
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRemoveHighlight}
-                    className="w-full text-xs"
-                  >
+                  <Button type="button" variant="ghost" size="sm" onClick={handleRemoveHighlight} className="w-full text-xs">
                     Remove Highlight
                   </Button>
                 </div>
@@ -513,7 +568,7 @@ export const RichTextEditor = ({
         )}
         style={{ minHeight }}
         data-placeholder={placeholder}
-        onInput={handleInput}
+        onInput={emitChange}
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
         onBlur={saveSelection}
