@@ -48,6 +48,7 @@ interface ValuesSectionProps {
   brandId?: string;
   brandName?: string;
   canEdit?: boolean;
+  onSyncComplete?: () => void;
 }
 
 interface IconCategory {
@@ -220,6 +221,7 @@ export const ValuesSection = ({
   brandId,
   brandName,
   canEdit: canEditProp,
+  onSyncComplete,
 }: ValuesSectionProps) => {
   // Derive canEdit from prop or whether change handler is provided
   const canEdit = canEditProp ?? Boolean(onValuesChange);
@@ -369,6 +371,7 @@ export const ValuesSection = ({
                 organizationId={organizationId}
                 brandId={brandId}
                 brandName={brandName}
+                onSyncComplete={onSyncComplete}
               />
             )}
             <Button onClick={addValue} size="sm" className="gap-2">

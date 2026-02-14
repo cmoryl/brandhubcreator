@@ -21,16 +21,18 @@ interface SyncValuesButtonProps {
   organizationId: string;
   brandId: string;
   brandName: string;
+  onSyncComplete?: () => void;
 }
 
 export const SyncValuesButton = ({ 
   values, 
   organizationId, 
   brandId, 
-  brandName 
+  brandName,
+  onSyncComplete
 }: SyncValuesButtonProps) => {
   const [isSyncing, setIsSyncing] = useState(false);
-  const [syncResult, setSyncResult] = useState<{ products: number; events: number } | null>(null);
+  const [syncResult, setSyncResult] = useState<{ brands: number; products: number; events: number } | null>(null);
 
   const handleSync = async () => {
     if (!organizationId || values.length === 0) {
@@ -44,100 +46,141 @@ export const SyncValuesButton = ({
     try {
       // Convert values to JSON-safe format
       const valuesJson = JSON.parse(JSON.stringify(values));
+      console.log('[SyncValues] Starting sync for brand:', brandName, 'with', values.length, 'values');
+      console.log('[SyncValues] Organization ID:', organizationId);
 
-      // Fetch all products in the organization
-      const { data: products, error: productsError } = await supabase
-        .from('products')
-        .select('id, name, guide_data')
-        .eq('organization_id', organizationId);
+      // Fetch all entities in parallel
+      const [productsRes, eventsRes, brandsRes] = await Promise.all([
+        supabase
+          .from('products')
+          .select('id, name, guide_data')
+          .eq('organization_id', organizationId),
+        supabase
+          .from('events')
+          .select('id, name, guide_data')
+          .eq('organization_id', organizationId),
+        supabase
+          .from('brands')
+          .select('id, name, guide_data')
+          .eq('organization_id', organizationId)
+          .neq('id', brandId),
+      ]);
 
-      if (productsError) throw productsError;
+      if (productsRes.error) {
+        console.error('[SyncValues] Products fetch error:', productsRes.error);
+        throw productsRes.error;
+      }
+      if (eventsRes.error) {
+        console.error('[SyncValues] Events fetch error:', eventsRes.error);
+        throw eventsRes.error;
+      }
+      if (brandsRes.error) {
+        console.error('[SyncValues] Brands fetch error:', brandsRes.error);
+        throw brandsRes.error;
+      }
 
-      // Fetch all events in the organization
-      const { data: events, error: eventsError } = await supabase
-        .from('events')
-        .select('id, name, guide_data')
-        .eq('organization_id', organizationId);
+      const products = productsRes.data || [];
+      const events = eventsRes.data || [];
+      const otherBrands = brandsRes.data || [];
 
-      if (eventsError) throw eventsError;
+      console.log(`[SyncValues] Found ${products.length} products, ${events.length} events, ${otherBrands.length} other brands`);
 
       let productsUpdated = 0;
       let eventsUpdated = 0;
-
-      // Update all products with the values
-      for (const product of products || []) {
-        const currentGuideData = (product.guide_data as Record<string, unknown>) || {};
-        const updatedGuideData = {
-          ...currentGuideData,
-          values: valuesJson,
-        };
-
-        const { error: updateError } = await supabase
-          .from('products')
-          .update({ guide_data: updatedGuideData })
-          .eq('id', product.id);
-
-        if (!updateError) {
-          productsUpdated++;
-        }
-      }
-
-      // Update all events with the values
-      for (const event of events || []) {
-        const currentGuideData = (event.guide_data as Record<string, unknown>) || {};
-        const updatedGuideData = {
-          ...currentGuideData,
-          values: valuesJson,
-        };
-
-        const { error: updateError } = await supabase
-          .from('events')
-          .update({ guide_data: updatedGuideData })
-          .eq('id', event.id);
-
-        if (!updateError) {
-          eventsUpdated++;
-        }
-      }
-
-      // Also update other brands in the organization (except the source brand)
-      const { data: otherBrands, error: brandsError } = await supabase
-        .from('brands')
-        .select('id, name, guide_data')
-        .eq('organization_id', organizationId)
-        .neq('id', brandId);
-
       let brandsUpdated = 0;
-      if (!brandsError && otherBrands) {
-        for (const brand of otherBrands) {
-          const currentGuideData = (brand.guide_data as Record<string, unknown>) || {};
-          const updatedGuideData = {
-            ...currentGuideData,
-            values: valuesJson,
-          };
+      const errors: string[] = [];
 
-          const { error: updateError } = await supabase
+      // Build all update promises
+      const updatePromises: Promise<void>[] = [];
+
+      // Update products
+      for (const product of products) {
+        updatePromises.push((async () => {
+          const currentGuideData = (product.guide_data as Record<string, unknown>) || {};
+          const updatedGuideData = { ...currentGuideData, values: valuesJson };
+
+          const { error } = await supabase
+            .from('products')
+            .update({ guide_data: updatedGuideData, updated_at: new Date().toISOString() })
+            .eq('id', product.id);
+
+          if (error) {
+            console.error(`[SyncValues] Failed to update product "${product.name}":`, error);
+            errors.push(`Product "${product.name}": ${error.message}`);
+          } else {
+            productsUpdated++;
+          }
+        })());
+      }
+
+      // Update events
+      for (const event of events) {
+        updatePromises.push((async () => {
+          const currentGuideData = (event.guide_data as Record<string, unknown>) || {};
+          const updatedGuideData = { ...currentGuideData, values: valuesJson };
+
+          const { error } = await supabase
+            .from('events')
+            .update({ guide_data: updatedGuideData, updated_at: new Date().toISOString() })
+            .eq('id', event.id);
+
+          if (error) {
+            console.error(`[SyncValues] Failed to update event "${event.name}":`, error);
+            errors.push(`Event "${event.name}": ${error.message}`);
+          } else {
+            eventsUpdated++;
+          }
+        })());
+      }
+
+      // Update other brands
+      for (const brand of otherBrands) {
+        updatePromises.push((async () => {
+          const currentGuideData = (brand.guide_data as Record<string, unknown>) || {};
+          const updatedGuideData = { ...currentGuideData, values: valuesJson };
+
+          const { error } = await supabase
             .from('brands')
-            .update({ guide_data: updatedGuideData })
+            .update({ guide_data: updatedGuideData, updated_at: new Date().toISOString() })
             .eq('id', brand.id);
 
-          if (!updateError) {
+          if (error) {
+            console.error(`[SyncValues] Failed to update brand "${brand.name}":`, error);
+            errors.push(`Brand "${brand.name}": ${error.message}`);
+          } else {
             brandsUpdated++;
           }
-        }
+        })());
       }
 
-      setSyncResult({ products: productsUpdated, events: eventsUpdated });
-      toast.success(
-        `Synced values across ${brandsUpdated + 1} brands, ${productsUpdated} products, and ${eventsUpdated} events`,
-        {
-          description: `Philosophical pillars from "${brandName}" have been applied across the organization.`,
-        }
-      );
+      // Execute all updates in parallel
+      await Promise.all(updatePromises);
+
+      console.log(`[SyncValues] Sync complete: ${brandsUpdated} brands, ${productsUpdated} products, ${eventsUpdated} events`);
+      if (errors.length > 0) {
+        console.warn('[SyncValues] Errors:', errors);
+      }
+
+      setSyncResult({ brands: brandsUpdated, products: productsUpdated, events: eventsUpdated });
+
+      if (errors.length > 0) {
+        toast.warning(
+          `Partially synced: ${brandsUpdated} brands, ${productsUpdated} products, ${eventsUpdated} events`,
+          { description: `${errors.length} update(s) failed. Check console for details.` }
+        );
+      } else {
+        toast.success(
+          `Synced values across ${brandsUpdated + 1} brands, ${productsUpdated} products, and ${eventsUpdated} events`,
+          { description: `Philosophical pillars from "${brandName}" have been applied across the organization.` }
+        );
+      }
+
+      // Trigger refetch so other contexts pick up changes
+      onSyncComplete?.();
     } catch (error) {
-      console.error('Sync error:', error);
+      console.error('[SyncValues] Sync error:', error);
       toast.error('Failed to sync values', {
-        description: 'Please check your permissions and try again.',
+        description: error instanceof Error ? error.message : 'Please check your permissions and try again.',
       });
     } finally {
       setIsSyncing(false);
