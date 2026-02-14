@@ -3,7 +3,6 @@ import { Globe, Search, Check, Download, Loader2, ImageIcon, X, RefreshCw } from
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -35,6 +34,7 @@ export const WebsiteImageScanner = ({
   const [filter, setFilter] = useState('');
   const [hasScanned, setHasScanned] = useState(false);
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
+  const [scanProgress, setScanProgress] = useState('');
 
   const handleScan = useCallback(async () => {
     if (!url.trim()) {
@@ -47,10 +47,11 @@ export const WebsiteImageScanner = ({
     setSelectedIds(new Set());
     setHasScanned(false);
     setFailedImages(new Set());
+    setScanProgress('Discovering pages...');
 
     try {
       const { data, error } = await supabase.functions.invoke('scan-website-images', {
-        body: { url: url.trim() },
+        body: { url: url.trim(), deepCrawl: true },
       });
 
       if (error) throw error;
@@ -58,12 +59,14 @@ export const WebsiteImageScanner = ({
 
       setImages(data.images || []);
       setHasScanned(true);
-      toast.success(`Found ${data.images?.length || 0} images`);
+      const pageCount = data.pagesScanned || 1;
+      toast.success(`Found ${data.images?.length || 0} images across ${pageCount} page${pageCount > 1 ? 's' : ''}`);
     } catch (err: any) {
       console.error('Scan error:', err);
       toast.error(err.message || 'Failed to scan website');
     } finally {
       setIsScanning(false);
+      setScanProgress('');
     }
   }, [url]);
 
@@ -117,8 +120,8 @@ export const WebsiteImageScanner = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] p-0 overflow-hidden bg-background border-border">
-        <DialogHeader className="p-4 pb-0">
+      <DialogContent className="max-w-5xl h-[90vh] p-0 flex flex-col overflow-hidden bg-background border-border">
+        <DialogHeader className="p-4 pb-0 shrink-0">
           <DialogTitle className="flex items-center gap-2 text-lg">
             <Globe className="h-5 w-5 text-primary" />
             Website Image Scanner
@@ -126,7 +129,7 @@ export const WebsiteImageScanner = ({
         </DialogHeader>
 
         {/* URL Input */}
-        <div className="px-4 pb-3 space-y-3">
+        <div className="px-4 pb-3 space-y-3 shrink-0">
           <div className="flex gap-2">
             <Input
               value={url}
@@ -141,7 +144,7 @@ export const WebsiteImageScanner = ({
               ) : (
                 <Search className="h-4 w-4" />
               )}
-              {isScanning ? 'Scanning...' : 'Scan'}
+              {isScanning ? 'Scanning...' : 'Deep Scan'}
             </Button>
           </div>
 
@@ -172,13 +175,13 @@ export const WebsiteImageScanner = ({
           )}
         </div>
 
-        {/* Image Grid */}
-        <ScrollArea className="flex-1 px-4 pb-4" style={{ maxHeight: 'calc(90vh - 220px)' }}>
+        {/* Image Grid — native overflow scroll instead of ScrollArea */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
           {isScanning && (
             <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              <p className="font-medium">Scanning website for images...</p>
-              <p className="text-sm">This may take a moment</p>
+              <p className="font-medium">Deep scanning website for images...</p>
+              <p className="text-sm">{scanProgress || 'Crawling pages and extracting imagery'}</p>
             </div>
           )}
 
@@ -186,7 +189,7 @@ export const WebsiteImageScanner = ({
             <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground">
               <ImageIcon className="h-10 w-10" />
               <p className="font-medium">
-                {filter ? 'No images match your filter' : 'No images found on this page'}
+                {filter ? 'No images match your filter' : 'No images found on this site'}
               </p>
               <p className="text-sm">Try a different URL or check the website is accessible</p>
             </div>
@@ -196,7 +199,7 @@ export const WebsiteImageScanner = ({
             <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground">
               <Globe className="h-10 w-10" />
               <p className="font-medium">Enter a website URL to discover images</p>
-              <p className="text-sm">The scanner will find all images on the page</p>
+              <p className="text-sm">Deep scan crawls all linked pages to find every image</p>
             </div>
           )}
 
@@ -257,11 +260,11 @@ export const WebsiteImageScanner = ({
               })}
             </div>
           )}
-        </ScrollArea>
+        </div>
 
         {/* Footer */}
         {hasScanned && images.length > 0 && (
-          <div className="border-t border-border p-3 flex items-center justify-between bg-muted/30">
+          <div className="border-t border-border p-3 flex items-center justify-between bg-muted/30 shrink-0">
             <p className="text-xs text-muted-foreground">
               Select images to import into your brand assets
             </p>
