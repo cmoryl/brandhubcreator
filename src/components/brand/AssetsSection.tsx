@@ -138,44 +138,36 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
                   {categoryAssets.length} files
                 </span>
               </div>
-              <div className="bg-card rounded-xl border border-border overflow-hidden divide-y divide-border">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {categoryAssets.map((asset, index) => (
                   <div
                     key={asset.id}
-                    className="group flex items-center justify-between p-4 hover:bg-muted/30 transition-colors animate-fade-in"
+                    className="group relative bg-card rounded-xl border border-border overflow-hidden animate-fade-in"
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                       {asset.type?.startsWith('image/') ? (
-                         <div className="h-10 w-10 rounded-md overflow-hidden bg-muted/30 shrink-0">
-                           <img src={asset.url} alt={asset.name} className="h-full w-full object-cover" />
-                         </div>
-                       ) : (
-                         <span className="text-2xl">{getFileIcon(asset.type)}</span>
-                       )}
-                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-foreground truncate">{asset.name}</p>
-                        <p className="text-xs text-muted-foreground">{asset.size} • {asset.type}</p>
+                    {/* Preview area */}
+                    <div className="aspect-square relative overflow-hidden bg-muted/30 flex items-center justify-center">
+                      {asset.type?.startsWith('image/') ? (
+                        <img src={asset.url} alt={asset.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                      ) : (
+                        <span className="text-4xl">{getFileIcon(asset.type)}</span>
+                      )}
+                      {/* Hover overlay */}
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <Button variant="secondary" size="icon" className="h-9 w-9" onClick={() => downloadAsset(asset)}>
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        {canEdit && (
+                          <Button variant="destructive" size="icon" className="h-9 w-9" onClick={() => deleteAsset(asset.id)}>
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => downloadAsset(asset)}
-                        className="gap-2"
-                      >
-                        <Download className="h-4 w-4" />
-                        Download
-                      </Button>
-                      {canEdit && (
-                        <button
-                          onClick={() => deleteAsset(asset.id)}
-                          className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      )}
+                    {/* Info */}
+                    <div className="p-3 space-y-1">
+                      <p className="text-sm font-medium truncate" title={asset.name}>{asset.name}</p>
+                      <p className="text-xs text-muted-foreground">{asset.size} • {asset.type?.split('/')[1]?.toUpperCase() || 'FILE'}</p>
                     </div>
                   </div>
                 ))}
