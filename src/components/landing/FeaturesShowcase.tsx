@@ -33,7 +33,13 @@ import {
   BookOpen,
   Shield,
   Bot,
-  GraduationCap
+  GraduationCap,
+  Scale,
+  Accessibility,
+  Eye,
+  ListChecks,
+  Fingerprint,
+  HeartHandshake,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -182,30 +188,103 @@ const localizationFeatures: Feature[] = [
   },
 ];
 
+// Bias Awareness & Inclusive Architecture features - NEW 2026
+const inclusionFeatures: Feature[] = [
+  {
+    icon: Scale,
+    title: 'Bias Awareness Scanner',
+    description: 'AI-powered 5-dimension bias analysis: Language, Visual, Accessibility, AI Governance & Inclusion scoring with automated remediation.',
+    gradient: 'from-violet-500/20 to-purple-500/20',
+    badge: '2026',
+  },
+  {
+    icon: Accessibility,
+    title: 'WCAG 2.2 Compliance',
+    description: 'Full coverage of 9 new WCAG 2.2 criteria including Accessible Authentication, Target Size (24px), and Focus Appearance.',
+    gradient: 'from-blue-500/20 to-sky-500/20',
+    badge: 'AA/AAA',
+  },
+  {
+    icon: Eye,
+    title: 'Inclusive Imagery Stop/Go',
+    description: 'Automated DAM flagging: STOP pity-based hierarchies & heroic tropes. GO authentic representation & equal power dynamics.',
+    gradient: 'from-emerald-500/20 to-teal-500/20',
+  },
+  {
+    icon: ListChecks,
+    title: 'WFA 12-Area Litmus Test',
+    description: 'World Federation of Advertisers bias audit across 12 creative stages — from brief to effectiveness analysis. +16.26% long-term sales lift.',
+    gradient: 'from-amber-500/20 to-orange-500/20',
+    badge: 'WFA',
+  },
+  {
+    icon: Fingerprint,
+    title: 'PI&E "Who Else?" Framework',
+    description: 'Google\'s Product Inclusion & Equity methodology: Ideation, Research, Design (Curb-Cut Effect), Testing & Marketing touchpoints.',
+    gradient: 'from-pink-500/20 to-rose-500/20',
+    badge: 'Google',
+  },
+  {
+    icon: HeartHandshake,
+    title: 'Microsoft Persona Spectrum',
+    description: 'Permanent → Temporary → Situational disability mapping across Mobility, Vision, Hearing, Speech & Cognitive dimensions.',
+    gradient: 'from-cyan-500/20 to-blue-500/20',
+    badge: 'Microsoft',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'EAA & Section 508 Tracker',
+    description: 'European Accessibility Act (€3M penalties) and U.S. Section 508 deadline monitoring with Accessibility Statement requirements.',
+    gradient: 'from-red-500/20 to-rose-500/20',
+    badge: 'Regulatory',
+  },
+  {
+    icon: Brain,
+    title: 'Policy-as-Code Governance',
+    description: 'Disparate Impact Ratio monitoring (80% rule), end-to-end Data Journey traceability, and continuous AI bias observability.',
+    gradient: 'from-indigo-500/20 to-violet-500/20',
+    badge: 'AI Gov',
+  },
+  {
+    icon: Languages,
+    title: 'Inclusive Language Engine',
+    description: 'Tier-1 regex automation: flags whitelist/blacklist, master/slave, gendered terms, ableist slang with precise alternatives.',
+    gradient: 'from-teal-500/20 to-emerald-500/20',
+  },
+];
+
 const analyticsFeatures: Feature[] = [
   {
     icon: BarChart3,
     title: 'Brand Health Scores',
-    description: 'Track completeness and consistency metrics across all your brand guides.',
+    description: 'Track completeness and consistency metrics across 35+ sections in 8 categories with weighted depth-based scoring.',
     gradient: 'from-accent/20 to-primary/20',
   },
   {
     icon: TrendingUp,
     title: 'Competitive Intelligence',
-    description: 'AI personality matrix, score gauges, and strategic reports with PDF export.',
+    description: 'AI personality matrix, score gauges, radar charts, and 8-section strategic reports with PDF export.',
     gradient: 'from-primary/20 to-accent/20',
   },
   {
     icon: Brain,
     title: 'Brand Intelligence',
-    description: 'AI-powered knowledge base with learning, confidence tracking, cultural insights, and recommendations.',
+    description: 'AI-powered knowledge base with cumulative learning, confidence calibration, semantic deduplication, and temporal decay.',
     gradient: 'from-purple-500/20 to-pink-500/20',
+    badge: 'Oracle Brain',
   },
   {
     icon: FileSearch,
     title: 'Comprehensive Audit Logs',
-    description: 'Full change tracking with session data, diffs, and infographic-style visualization.',
+    description: 'Full change tracking with session data, JSON diffs, 30+ helper functions, and infographic visualization.',
     gradient: 'from-blue-500/20 to-indigo-500/20',
+  },
+  {
+    icon: Scale,
+    title: 'Bias & Inclusion Reports',
+    description: 'Exportable HTML reports with 5 advanced governance modules, persona coverage matrices, and remediation tracking.',
+    gradient: 'from-violet-500/20 to-purple-500/20',
+    badge: 'NEW',
   },
 ];
 
@@ -213,25 +292,25 @@ const adminFeatures: Feature[] = [
   {
     icon: Users,
     title: 'User Management',
-    description: 'Approve users, manage roles, invite via email with expiring tokens.',
+    description: 'Approve users, manage roles, invite via email with expiring tokens. Expandable row pattern with Pending Invites.',
     gradient: 'from-green-500/20 to-teal-500/20',
   },
   {
     icon: FolderCheck,
     title: 'Bulk Repair Tools',
-    description: 'Normalize sections, fix hidden content, and ensure platform-wide consistency.',
+    description: 'Normalize sections, fix hidden content, and ensure platform-wide consistency across all entities.',
     gradient: 'from-sky-500/20 to-teal-500/20',
   },
   {
     icon: ShieldCheck,
     title: 'Enterprise Security',
-    description: 'Row Level Security, email masking, leaked password protection, and audit compliance.',
+    description: 'Row Level Security, email masking, leaked password protection, comprehensive audit trails, and data encryption.',
     gradient: 'from-red-500/20 to-rose-500/20',
   },
   {
     icon: Zap,
     title: 'Bulk Intelligence',
-    description: 'Generate AI analysis, patterns, gradients, and cultural insights for all brands in one operation.',
+    description: 'Generate AI analysis, patterns, gradients, cultural insights, and bias scans for all brands in one operation.',
     gradient: 'from-cyan-500/20 to-blue-500/20',
   },
 ];
@@ -479,16 +558,16 @@ export function FeaturesShowcase() {
         {/* Section Header */}
         <div className={`text-center mb-16 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}>
           <Badge variant="secondary" className="mb-4 gap-1">
-            <Zap className="h-3 w-3" />
-            Powerful Features
+            <Scale className="h-3 w-3" />
+            Inclusive Architecture
           </Badge>
           <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-4">
-            Everything you need for
-            <span className="block text-accent">global brand consistency</span>
+            Built for everyone.
+            <span className="block text-accent">Governed by intelligence.</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            From color systems to AI-powered multicultural intelligence, BrandHub provides all the tools 
-            to create, manage, and localize your brand guidelines worldwide.
+            From WCAG 2.2 compliance to AI bias governance, BrandHub embeds 12 Deep Intelligence Modules
+            to ensure your brand is inclusive, accessible, and regulation-ready worldwide.
           </p>
         </div>
 
@@ -497,9 +576,13 @@ export function FeaturesShowcase() {
 
         {/* Category Tabs */}
         <div className={`${isVisible ? 'animate-fade-in' : 'opacity-0'}`} style={{ animationDelay: '200ms' }}>
-          <Tabs defaultValue="localization" className="w-full">
+          <Tabs defaultValue="inclusion" className="w-full">
             <div className="flex justify-center mb-12">
-              <TabsList className="grid w-full max-w-3xl grid-cols-5 h-12">
+              <TabsList className="grid w-full max-w-4xl grid-cols-6 h-12">
+                <TabsTrigger value="inclusion" className="gap-2 text-sm" aria-label="Inclusion & Bias features">
+                  <Scale className="h-4 w-4" />
+                  <span className="hidden sm:inline">Inclusion</span>
+                </TabsTrigger>
                 <TabsTrigger value="localization" className="gap-2 text-sm" aria-label="Localization features">
                   <Languages className="h-4 w-4" />
                   <span className="hidden sm:inline">Global</span>
@@ -523,6 +606,9 @@ export function FeaturesShowcase() {
               </TabsList>
             </div>
 
+            <TabsContent value="inclusion" className="mb-12 mt-0">
+              <FeatureGrid features={inclusionFeatures} isVisible={isVisible} />
+            </TabsContent>
             <TabsContent value="localization" className="mb-12 mt-0">
               <FeatureGrid features={localizationFeatures} isVisible={isVisible} />
             </TabsContent>
@@ -541,14 +627,14 @@ export function FeaturesShowcase() {
           </Tabs>
         </div>
 
-        {/* Stats Row - Updated with global stats */}
+        {/* Stats Row - Updated with inclusion stats */}
         <div className={`grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`} style={{ animationDelay: '600ms' }}>
           {[
+            { value: '12', label: 'Deep Intelligence Modules' },
+            { value: '9', label: 'WCAG 2.2 Criteria Tracked' },
             { value: '50+', label: 'Languages Supported' },
-            { value: '3-Tier', label: 'Regional Hierarchy' },
-            { value: '25+', label: 'Sections Available' },
-            { value: '100%', label: 'Customizable' },
-          ].map((stat, index) => (
+            { value: '5', label: 'Governance Dimensions' },
+          ].map((stat) => (
             <div key={stat.label} className="text-center p-6 rounded-2xl bg-muted/30 hover:bg-muted/50 transition-colors">
               <div className="text-3xl font-bold text-accent mb-1">{stat.value}</div>
               <div className="text-sm text-muted-foreground">{stat.label}</div>
