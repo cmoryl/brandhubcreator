@@ -5,7 +5,7 @@
 
 import { useMemo, useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap, HelpCircle, Scale, Accessibility, ShieldCheck, Globe2, Palette } from 'lucide-react';
+import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap, HelpCircle } from 'lucide-react';
 import { GlitchText } from '@/components/ui/GlitchText';
 import { HeroOrbit } from '@/components/landing/HeroOrbit';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DEMO_GRADIENTS, DEMO_INDUSTRIES, DEMO_CARD_IMAGES, getOrbitBrands, getOrbitProducts, getOrbitEvents } from '@/data/demoGuides';
 import { ParticleEmbers } from '@/components/ParticleEmbers';
 import { InteractiveCTA } from '@/components/landing/InteractiveCTA';
+import { FeaturesShowcase } from '@/components/landing/FeaturesShowcase';
 import { BrandHubLogo } from '@/components/BrandHubLogo';
 import { GetStartedSurveyModal } from '@/components/landing/GetStartedSurveyModal';
 import { DemoFirstTimeModal, useFirstTimeDemoPrompt } from '@/components/landing/DemoFirstTimeModal';
@@ -304,77 +305,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-4 gap-1.5">
-              <Zap className="h-3 w-3" />
-              Built for Everyone
-            </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Smart <GlitchText text="Tools" glowColor="hsl(199 89% 48%)" className="text-3xl sm:text-4xl" /></h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Accessibility, cultural awareness, and AI insights are baked into every feature — so you can focus on building great brands.
-            </p>
-          </div>
-
-          {/* Value Props Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-            <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-5 border border-primary/20 text-center">
-              <Scale className="h-7 w-7 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-bold text-foreground mb-1">16</div>
-              <p className="text-xs text-muted-foreground">AI Modules</p>
-            </div>
-            <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-2xl p-5 border border-accent/20 text-center">
-              <Palette className="h-7 w-7 text-accent mx-auto mb-2" />
-              <div className="text-2xl font-bold text-foreground mb-1">Smart</div>
-              <p className="text-xs text-muted-foreground">Color Science</p>
-            </div>
-            <div className="bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-2xl p-5 border border-secondary/30 text-center">
-              <Globe2 className="h-7 w-7 text-secondary-foreground mx-auto mb-2" />
-              <div className="text-2xl font-bold text-foreground mb-1">6+</div>
-              <p className="text-xs text-muted-foreground">Cultural Regions</p>
-            </div>
-            <div className="bg-gradient-to-br from-muted to-muted/50 rounded-2xl p-5 border border-border text-center">
-              <Accessibility className="h-7 w-7 text-foreground mx-auto mb-2" />
-              <div className="text-2xl font-bold text-foreground mb-1">WCAG 2.2</div>
-              <p className="text-xs text-muted-foreground">Full Accessibility</p>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-card rounded-2xl p-8 border border-border hover:border-primary/30 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
-                <Building2 className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Brands That Work for Everyone</h3>
-              <p className="text-muted-foreground">
-                AI-powered color tools, accessibility scanning, cultural awareness checks, and motion sensitivity controls — all built in so your brand feels right to every audience.
-              </p>
-            </div>
-
-            <div className="bg-card rounded-2xl p-8 border border-border hover:border-primary/30 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6">
-                <Package className="h-6 w-6 text-accent" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Products That Scale Globally</h3>
-              <p className="text-muted-foreground">
-                Search colors by meaning in any language, get readable typography suggestions, and ensure your product guidelines look great for every type of user.
-              </p>
-            </div>
-
-            <div className="bg-card rounded-2xl p-8 border border-border hover:border-primary/30 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-6">
-                <Calendar className="h-6 w-6 text-secondary-foreground" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Events Designed for All</h3>
-              <p className="text-muted-foreground">
-                Plan accessible events from the start — quiet rooms, safe signage, easy-to-read materials, and digital assets that meet modern accessibility standards.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Full Features Showcase */}
+      <FeaturesShowcase />
 
       {/* Interactive CTA Section */}
       <InteractiveCTA />
