@@ -6,7 +6,8 @@ import { sectionMeta } from './ReorderableBrandSidebar';
 import { HeroBackground } from '@/components/HeroBackground';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Paintbrush, Sparkles, Waves, LayoutGrid, X, ArrowUpDown, Upload } from 'lucide-react';
+import { Paintbrush, Sparkles, Waves, LayoutGrid, X, ArrowUpDown, Upload, Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 interface SectionCardGridProps {
   sectionOrder: SectionId[];
@@ -17,8 +18,9 @@ interface SectionCardGridProps {
   cardViewBackground?: BrandBackgroundType;
   cardViewBackgroundTint?: string;
   onCardViewBackgroundChange?: (bg: BrandBackgroundType, tint?: string) => void;
-  entityLogoUrl?: string;
-  onEntityLogoChange?: (url: string) => void;
+  entityLightLogoUrl?: string;
+  entityDarkLogoUrl?: string;
+  onEntityLogoChange?: (variant: 'light' | 'dark', url: string) => void;
 }
 
 const EXCLUDED_FROM_NAV: SectionId[] = ['socialmetrics'];
@@ -125,12 +127,16 @@ export const SectionCardGrid = ({
   cardViewBackground = 'inherit',
   cardViewBackgroundTint,
   onCardViewBackgroundChange,
-  entityLogoUrl,
+  entityLightLogoUrl,
+  entityDarkLogoUrl,
   onEntityLogoChange,
 }: SectionCardGridProps) => {
   const [bgPickerOpen, setBgPickerOpen] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>('default');
-  const logoInputRef = useRef<HTMLInputElement>(null);
+  const [logoPickerOpen, setLogoPickerOpen] = useState(false);
+  const lightLogoInputRef = useRef<HTMLInputElement>(null);
+  const darkLogoInputRef = useRef<HTMLInputElement>(null);
+  const { resolvedTheme } = useTheme();
 
   const sections = useMemo(() => {
     const base = sectionOrder.filter(
@@ -147,12 +153,14 @@ export const SectionCardGrid = ({
     return cardViewBackground as HeroBackgroundType;
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = (variant: 'light' | 'dark') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !onEntityLogoChange) return;
     const url = URL.createObjectURL(file);
-    onEntityLogoChange(url);
+    onEntityLogoChange(variant, url);
   };
+
+  const activeLogoUrl = resolvedTheme === 'dark' ? (entityDarkLogoUrl || entityLightLogoUrl) : (entityLightLogoUrl || entityDarkLogoUrl);
 
   return (
     <div className="w-full mb-8 relative">
@@ -171,37 +179,76 @@ export const SectionCardGrid = ({
       <div className="relative z-10">
         {/* Entity Logo above toolbar */}
         <div className="flex items-center gap-3 mb-3">
-          <div className="relative group">
-            {entityLogoUrl ? (
-              <img
-                src={entityLogoUrl}
-                alt="Entity logo"
-                className="h-12 w-auto max-w-[160px] object-contain"
-              />
-            ) : (
-              <div className="h-12 w-12 rounded-lg bg-muted/50 border border-border/50 flex items-center justify-center">
-                <Upload className="h-5 w-5 text-muted-foreground/50" />
+          <Popover open={isAdmin && onEntityLogoChange ? logoPickerOpen : false} onOpenChange={setLogoPickerOpen}>
+            <PopoverTrigger asChild>
+              <button className="relative group cursor-pointer" title={isAdmin ? 'Click to update logo' : undefined}>
+                {activeLogoUrl ? (
+                  <img
+                    src={activeLogoUrl}
+                    alt="Entity logo"
+                    className="h-16 w-auto max-w-[200px] object-contain"
+                  />
+                ) : (
+                  <div className="h-16 w-16 rounded-lg bg-muted/50 border border-border/50 flex items-center justify-center">
+                    <Upload className="h-6 w-6 text-muted-foreground/50" />
+                  </div>
+                )}
+                {isAdmin && onEntityLogoChange && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                    <Upload className="h-5 w-5 text-foreground" />
+                  </div>
+                )}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-64 p-3">
+              <p className="text-xs font-medium text-foreground mb-3">Update Logo</p>
+              <div className="space-y-3">
+                {/* Light mode logo */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <Sun className="h-3.5 w-3.5" />
+                    <span>Light Mode Logo</span>
+                  </div>
+                  <button
+                    onClick={() => lightLogoInputRef.current?.click()}
+                    className="w-full flex items-center gap-2 p-2 rounded-lg border border-border/50 bg-card/60 hover:bg-card/80 transition-all"
+                  >
+                    {entityLightLogoUrl ? (
+                      <img src={entityLightLogoUrl} alt="Light logo" className="h-8 w-auto max-w-[100px] object-contain" />
+                    ) : (
+                      <div className="h-8 w-8 rounded bg-muted/50 flex items-center justify-center">
+                        <Upload className="h-3.5 w-3.5 text-muted-foreground/50" />
+                      </div>
+                    )}
+                    <span className="text-[10px] text-muted-foreground">{entityLightLogoUrl ? 'Replace' : 'Upload'}</span>
+                  </button>
+                  <input ref={lightLogoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload('light')} />
+                </div>
+
+                {/* Dark mode logo */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <Moon className="h-3.5 w-3.5" />
+                    <span>Dark Mode Logo</span>
+                  </div>
+                  <button
+                    onClick={() => darkLogoInputRef.current?.click()}
+                    className="w-full flex items-center gap-2 p-2 rounded-lg border border-border/50 bg-card/60 hover:bg-card/80 transition-all"
+                  >
+                    {entityDarkLogoUrl ? (
+                      <img src={entityDarkLogoUrl} alt="Dark logo" className="h-8 w-auto max-w-[100px] object-contain" />
+                    ) : (
+                      <div className="h-8 w-8 rounded bg-muted/50 flex items-center justify-center">
+                        <Upload className="h-3.5 w-3.5 text-muted-foreground/50" />
+                      </div>
+                    )}
+                    <span className="text-[10px] text-muted-foreground">{entityDarkLogoUrl ? 'Replace' : 'Upload'}</span>
+                  </button>
+                  <input ref={darkLogoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload('dark')} />
+                </div>
               </div>
-            )}
-            {isAdmin && onEntityLogoChange && (
-              <>
-                <button
-                  onClick={() => logoInputRef.current?.click()}
-                  className="absolute inset-0 flex items-center justify-center bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg cursor-pointer"
-                  title="Update logo"
-                >
-                  <Upload className="h-4 w-4 text-foreground" />
-                </button>
-                <input
-                  ref={logoInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleLogoUpload}
-                />
-              </>
-            )}
-          </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Toolbar row: sort + background */}
