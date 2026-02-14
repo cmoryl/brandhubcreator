@@ -166,9 +166,9 @@ const Index = () => {
               </h1>
               
               <p className="text-base sm:text-lg md:text-lg lg:text-xl text-muted-foreground mb-6 md:mb-8 max-w-xl mx-auto md:mx-0">
-                Turn static brand guidelines into smart, living documents. 
-                Built-in accessibility checks, cultural awareness tools, 
-                and AI insights — so your brand works for everyone, everywhere.
+                Build smart, living guidelines for your brands, product lines, 
+                and events — with built-in accessibility, cultural awareness, 
+                and AI insights so everything works for everyone, everywhere.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center md:justify-start">
