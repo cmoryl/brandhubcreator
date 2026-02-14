@@ -64,38 +64,38 @@ interface Feature {
 const coreFeatures: Feature[] = [
   {
     icon: Palette,
-    title: 'Color Systems',
-    description: 'Define palettes with HEX, RGB, CMYK, HSV, and Pantone matching. Export to CSV, JSON, or Adobe ASE.',
+    title: 'Pick Your Colors',
+    description: 'Choose your brand colors and we\'ll handle the rest — formats, matching, and export files ready for your designers.',
     gradient: 'from-pink-500/20 to-rose-500/20',
   },
   {
     icon: Type,
-    title: 'Typography',
-    description: 'Document fonts, weights, and usage. Connect to Google Fonts for live previews.',
+    title: 'Set Your Fonts',
+    description: 'Pick your fonts and see them in action with live previews. We\'ll generate usage rules automatically.',
     gradient: 'from-blue-500/20 to-cyan-500/20',
   },
   {
     icon: Image,
-    title: 'Logo & Assets',
-    description: 'Upload multiple logo variations with usage guidelines. Support for SVG, PNG, and more.',
+    title: 'Organize Your Logos',
+    description: 'Upload every logo variation you have. We\'ll set up clear-space rules and usage dos & don\'ts for you.',
     gradient: 'from-purple-500/20 to-violet-500/20',
   },
   {
     icon: Layers,
-    title: 'Product Suites',
-    description: 'Create master products with sub-brands. Build hierarchical ecosystems with linked guides.',
+    title: 'Build Product Lines',
+    description: 'Group products under your main brand. Each product gets its own guide that stays connected to the parent.',
     gradient: 'from-green-500/20 to-emerald-500/20',
   },
   {
     icon: Globe,
-    title: 'Public Portals',
-    description: 'Organization portals with custom branding, hero effects, and branded navigation.',
+    title: 'Share Publicly',
+    description: 'Give your brand a beautiful public portal with your own branding, colors, and navigation.',
     gradient: 'from-sky-500/20 to-cyan-500/20',
   },
   {
     icon: FileText,
-    title: 'Presentation Templates',
-    description: 'Upload PPTX/PDF decks with live Office Online previews and fullscreen mode.',
+    title: 'Upload Decks & PDFs',
+    description: 'Drop in your presentations and brand documents. View them right inside BrandHub — no downloads needed.',
     gradient: 'from-indigo-500/20 to-blue-500/20',
   },
 ];
@@ -104,34 +104,34 @@ const coreFeatures: Feature[] = [
 const eventFeatures: Feature[] = [
   {
     icon: Calendar,
-    title: 'Accessible Event Kits',
-    description: 'Plan events everyone can enjoy — with guidelines for quiet spaces, safe lighting, and thoughtful layouts built right in.',
+    title: 'Event Brand Kits',
+    description: 'Everything your event needs in one place — logos, banners, signage specs, and digital assets ready to go.',
     gradient: 'from-violet-500/20 to-purple-500/20',
-    badge: 'Universal',
   },
   {
     icon: DoorOpen,
-    title: 'Physical Accessibility',
-    description: 'Easy-to-follow specs for wide doorways, clear aisles, high-contrast markers, and accessible routes so no one gets left out.',
+    title: 'Venue Guidelines',
+    description: 'Simple specs for signage, layout, and wayfinding so your venues look great and are easy to navigate.',
     gradient: 'from-rose-500/20 to-pink-500/20',
   },
   {
     icon: Volume2,
-    title: 'Clear Communication',
-    description: 'Readable hashtags, live captions, roving mics for Q&A, and verbal descriptions of visuals — so everyone stays in the loop.',
+    title: 'Digital Assets',
+    description: 'Social banners, email headers, and web graphics in every size you need — branded and ready to post.',
     gradient: 'from-teal-500/20 to-cyan-500/20',
   },
   {
     icon: MapPin,
-    title: 'Venue & Signage',
-    description: 'Large, readable fonts, high-contrast colors, and clear wayfinding so attendees can navigate any space with confidence.',
+    title: 'Signage & Wayfinding',
+    description: 'Templates for directional signs, stage backdrops, and name badges — all in your brand\'s look and feel.',
     gradient: 'from-amber-500/20 to-orange-500/20',
   },
   {
     icon: Ticket,
-    title: 'Digital Banners',
-    description: 'Manage email headers, social banners, and web assets with ready-made size presets — all accessibility-friendly by default.',
+    title: 'Accessibility Built In',
+    description: 'Quiet rooms, readable fonts, safe lighting — guidelines that help you plan events everyone can enjoy.',
     gradient: 'from-blue-500/20 to-indigo-500/20',
+    badge: 'Inclusive',
   },
 ];
 
@@ -139,68 +139,67 @@ const eventFeatures: Feature[] = [
 const localizationFeatures: Feature[] = [
   {
     icon: Languages,
-    title: 'Instant Translation',
-    description: 'Translate your brand content in real-time with smart caching so you don\'t pay to translate the same thing twice.',
+    title: 'Translate Instantly',
+    description: 'Translate your brand content with one click. Smart caching means you never pay to translate the same thing twice.',
     gradient: 'from-emerald-500/20 to-teal-500/20',
     badge: 'GlobalLink',
   },
   {
     icon: Globe2,
-    title: 'Cultural Insights',
-    description: 'AI tells you how ready your brand is for new markets and highlights cultural considerations before you launch.',
+    title: 'Know Your Markets',
+    description: 'AI tells you which markets you\'re ready for and what to watch out for culturally — before you launch.',
     gradient: 'from-blue-500/20 to-indigo-500/20',
     badge: 'AI',
   },
   {
     icon: GitBranch,
     title: 'Regional Versions',
-    description: 'Set up a global brand, then customize colors, messaging, and imagery for each region or country — changes flow down automatically.',
+    description: 'Start with your global brand, then tweak colors, images, and messaging for each region. Changes flow down automatically.',
     gradient: 'from-violet-500/20 to-purple-500/20',
-    badge: 'Living Guide',
   },
   {
     icon: Sparkles,
     title: 'Smart Adaptation',
-    description: 'AI suggests how to adjust your colors, images, and messaging for different regions so nothing gets lost in translation.',
+    description: 'AI suggests how to adjust your brand for different regions — so nothing feels off or gets lost in translation.',
     gradient: 'from-purple-500/20 to-pink-500/20',
   },
   {
     icon: Network,
-    title: 'Translation Dashboard',
-    description: 'Track all your translation jobs in one place — see progress, word counts, and costs at a glance.',
+    title: 'Track Translations',
+    description: 'See all your translation jobs, progress, and costs in one simple dashboard.',
     gradient: 'from-orange-500/20 to-amber-500/20',
   },
   {
     icon: Map,
-    title: 'Compare Regions',
-    description: 'View your brand side-by-side across markets to spot differences and keep things consistent.',
+    title: 'Compare Side by Side',
+    description: 'View your brand across different markets to spot differences and keep everything consistent.',
     gradient: 'from-cyan-500/20 to-sky-500/20',
   },
   {
     icon: Shield,
-    title: 'Compliance Checker',
-    description: 'Automatically scans your brand materials for color, typography, and logo issues so nothing slips through.',
+    title: 'Auto Quality Checks',
+    description: 'Scans your brand materials for color, font, and logo issues so nothing slips through the cracks.',
     gradient: 'from-blue-500/20 to-sky-500/20',
     badge: 'DataForce',
   },
   {
     icon: Bot,
-    title: 'AI Brand Assistant',
-    description: 'Ask questions about your brand guidelines and get instant answers in 50+ languages — like ChatGPT for your brand.',
+    title: 'Ask Your Brand AI',
+    description: 'Got a question about your brand guidelines? Ask in any language and get instant answers — like having a brand expert on call.',
     gradient: 'from-green-500/20 to-emerald-500/20',
     badge: 'DataForce',
   },
   {
     icon: Users,
-    title: 'Real User Feedback',
-    description: 'Get feedback from real people in your target markets to validate that your brand resonates locally.',
+    title: 'Get Local Feedback',
+    description: 'Get feedback from real people in your target markets to make sure your brand actually resonates.',
     gradient: 'from-purple-500/20 to-violet-500/20',
     badge: 'DataForce',
   },
   {
     icon: GraduationCap,
-    title: 'Train Your Brand AI',
-    description: 'Teach AI your brand\'s unique voice and style, so it creates content that sounds authentically you.',
+    title: 'Train Your AI',
+    description: 'Teach AI your brand\'s voice and style so it creates content that actually sounds like you.',
     gradient: 'from-amber-500/20 to-orange-500/20',
     badge: 'DataForce',
   },
@@ -210,84 +209,79 @@ const localizationFeatures: Feature[] = [
 const inclusionFeatures: Feature[] = [
   {
     icon: Scale,
-    title: 'Bias Scanner',
-    description: 'AI checks your content across 5 dimensions — language, visuals, accessibility, governance, and inclusion — and suggests fixes automatically.',
+    title: 'Bias Check',
+    description: 'AI reviews your content for language, imagery, and cultural blind spots — then suggests simple fixes.',
     gradient: 'from-violet-500/20 to-purple-500/20',
     badge: '2026',
   },
   {
     icon: Accessibility,
-    title: 'Accessibility Built In',
-    description: 'Meets the latest WCAG 2.2 standards including better login options, visible focus states, and a dark mode that\'s easy on the eyes.',
+    title: 'Accessibility Ready',
+    description: 'Your guides automatically meet modern accessibility standards — readable fonts, good contrast, and visible focus states.',
     gradient: 'from-blue-500/20 to-sky-500/20',
-    badge: 'AA/AAA',
+    badge: 'WCAG 2.2',
   },
   {
     icon: Blend,
-    title: 'Smart Color Tools',
-    description: 'Colors that just work — our system auto-generates palettes with proper contrast so you never have to guess if things are readable.',
+    title: 'Smart Color Contrast',
+    description: 'Pick colors and we\'ll tell you if they\'re readable. Auto-generates palettes that look great and pass contrast checks.',
     gradient: 'from-cyan-500/20 to-teal-500/20',
-    badge: 'Color Science',
   },
   {
     icon: ScanSearch,
-    title: 'Search Colors by Meaning',
-    description: 'Find the right color by describing what you want — in any language. Great for teams working across different cultures and markets.',
+    title: 'Find Colors by Feel',
+    description: 'Describe the vibe you want — "warm and trustworthy" — and we\'ll suggest colors that match, in any language.',
     gradient: 'from-emerald-500/20 to-green-500/20',
     badge: 'AI',
   },
   {
     icon: Globe2,
-    title: 'Cultural Color Guide',
-    description: 'Colors mean different things around the world. Red means luck in Asia but mourning in South Africa. We flag these conflicts for you.',
+    title: 'Cultural Color Alerts',
+    description: 'Red means luck in Asia but mourning in South Africa. We\'ll flag these conflicts before they become problems.',
     gradient: 'from-orange-500/20 to-amber-500/20',
     badge: 'Global',
   },
   {
     icon: AudioLines,
-    title: 'Motion Sensitivity',
-    description: 'Not everyone loves flashy animations. Built-in controls let users pause, stop, or reduce motion for a comfortable experience.',
+    title: 'Motion Controls',
+    description: 'Some people get dizzy from animations. Built-in controls let anyone pause or reduce motion for comfort.',
     gradient: 'from-pink-500/20 to-rose-500/20',
-    badge: 'UX',
   },
   {
     icon: Type,
-    title: 'Readable Typography',
-    description: 'AI suggests font sizes and line lengths that are easy to read for everyone, with high contrast pairings that look great too.',
+    title: 'Easy-Read Fonts',
+    description: 'AI picks font sizes and spacing that are comfortable to read for everyone — no guesswork needed.',
     gradient: 'from-indigo-500/20 to-blue-500/20',
-    badge: 'Typography',
   },
   {
     icon: Eye,
-    title: 'Inclusive Imagery',
-    description: 'Automatically flags imagery that relies on stereotypes and suggests authentic, representative alternatives that respect everyone.',
+    title: 'Better Imagery',
+    description: 'Flags photos that lean on stereotypes and suggests more authentic, representative alternatives.',
     gradient: 'from-emerald-500/20 to-teal-500/20',
   },
   {
     icon: ListChecks,
-    title: 'Creative Audit Checklist',
-    description: 'A 12-step review process that checks your creative work for attention, impact, and inclusivity — proven to boost engagement.',
+    title: 'Creative Checklist',
+    description: 'A simple 12-step review to make sure your creative work is on-brand, engaging, and inclusive.',
     gradient: 'from-amber-500/20 to-orange-500/20',
     badge: 'WFA',
   },
   {
     icon: Fingerprint,
-    title: '"Who Else?" Framework',
-    description: 'Design for underserved users first, and you\'ll build features that work better for everyone. Inspired by Google\'s inclusion playbook.',
+    title: 'Design for Everyone',
+    description: 'Start with underserved users and you\'ll build something that works better for everyone. Simple as that.',
     gradient: 'from-pink-500/20 to-rose-500/20',
-    badge: 'Inclusion',
   },
   {
     icon: HeartHandshake,
-    title: 'Persona Spectrum',
-    description: 'Think beyond permanent disabilities — consider temporary (broken arm) and situational (holding a baby) needs in your designs.',
+    title: 'Think Beyond Labels',
+    description: 'Consider temporary needs (broken arm) and situational ones (holding a baby) — not just permanent disabilities.',
     gradient: 'from-cyan-500/20 to-blue-500/20',
-    badge: 'Design',
   },
   {
     icon: Brain,
-    title: 'AI Governance',
-    description: 'Automated fairness checks, sentiment analysis on your color choices, and a learning system that gets smarter from your team\'s feedback.',
+    title: 'AI That Learns',
+    description: 'Our AI gets smarter from your team\'s feedback — better suggestions, fewer false flags, over time.',
     gradient: 'from-indigo-500/20 to-violet-500/20',
     badge: 'AI',
   },
@@ -296,33 +290,33 @@ const inclusionFeatures: Feature[] = [
 const analyticsFeatures: Feature[] = [
   {
     icon: BarChart3,
-    title: 'Brand Health Scores',
-    description: 'See how complete and consistent your brand is at a glance, with scores across 35+ sections and 8 categories.',
+    title: 'Brand Health Score',
+    description: 'See how complete your brand is at a glance — one score that tells you what\'s done and what needs attention.',
     gradient: 'from-accent/20 to-primary/20',
   },
   {
     icon: TrendingUp,
-    title: 'Competitive Reports',
-    description: 'See how you stack up against competitors with AI-generated reports, visual charts, and exportable PDFs.',
+    title: 'Competitor Reports',
+    description: 'See how you compare to competitors with AI-generated reports, charts, and downloadable PDFs.',
     gradient: 'from-primary/20 to-accent/20',
   },
   {
     icon: Brain,
-    title: 'Brand Intelligence',
-    description: 'An AI brain that learns your brand over time, getting smarter with every update and offering better insights as it grows.',
+    title: 'Brand Brain',
+    description: 'An AI that learns your brand over time — the more you use it, the smarter its suggestions get.',
     gradient: 'from-purple-500/20 to-pink-500/20',
-    badge: 'Oracle Brain',
+    badge: 'Oracle',
   },
   {
     icon: FileSearch,
     title: 'Change History',
-    description: 'See exactly who changed what and when — with full before/after comparisons and visual timelines.',
+    description: 'See who changed what and when — with before/after comparisons so nothing gets lost.',
     gradient: 'from-blue-500/20 to-indigo-500/20',
   },
   {
     icon: Scale,
     title: 'Inclusion Reports',
-    description: 'Downloadable reports showing how inclusive your brand is, with actionable recommendations for improvement.',
+    description: 'Downloadable reports showing how inclusive your brand is, with clear next steps.',
     gradient: 'from-violet-500/20 to-purple-500/20',
     badge: 'NEW',
   },
@@ -331,26 +325,26 @@ const analyticsFeatures: Feature[] = [
 const adminFeatures: Feature[] = [
   {
     icon: Users,
-    title: 'Team Management',
-    description: 'Invite teammates, set roles, approve new users — all with simple email invites and a clean dashboard.',
+    title: 'Team & Roles',
+    description: 'Invite teammates by email, assign roles, and approve new users — all from one simple dashboard.',
     gradient: 'from-green-500/20 to-teal-500/20',
   },
   {
     icon: FolderCheck,
-    title: 'Bulk Cleanup',
-    description: 'Fix inconsistencies across all your brands at once — normalize sections, unhide content, and keep everything tidy.',
+    title: 'Bulk Fixes',
+    description: 'Clean up all your brands at once — fix inconsistencies, unhide sections, and keep everything tidy.',
     gradient: 'from-sky-500/20 to-teal-500/20',
   },
   {
     icon: ShieldCheck,
-    title: 'Enterprise Security',
-    description: 'Your data stays safe with encryption, audit trails, password protection, and strict access controls.',
+    title: 'Security & Backups',
+    description: 'Encryption, audit trails, password protection, and regular backups keep your data safe.',
     gradient: 'from-red-500/20 to-rose-500/20',
   },
   {
     icon: Zap,
-    title: 'Bulk AI Actions',
-    description: 'Run AI analysis, generate patterns, and scan for issues across all your brands in a single click.',
+    title: 'One-Click AI',
+    description: 'Run AI analysis across all your brands at once — patterns, issues, and insights in a single click.',
     gradient: 'from-cyan-500/20 to-blue-500/20',
   },
 ];
@@ -455,15 +449,15 @@ function GlobalBrandHero({ isVisible }: { isVisible: boolean }) {
                 </Badge>
               </div>
               
-              <h3 className="text-3xl md:text-4xl font-bold text-foreground">
+               <h3 className="text-3xl md:text-4xl font-bold text-foreground">
                 One Brand.
                 <span className="block text-accent">Every Market.</span>
               </h3>
               
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Create adaptive brand guidelines that evolve across regions while maintaining global consistency. 
-                Our tiered hierarchy system (Global → Region → Country) ensures your brand speaks authentically 
-                to every market.
+                Set up your brand once, then customize it for each region or country. 
+                Colors, messaging, and imagery can all be tweaked locally while staying 
+                connected to your global brand — so everything stays consistent.
               </p>
               
               <div className="grid grid-cols-2 gap-4 pt-4">
@@ -599,15 +593,15 @@ export function FeaturesShowcase() {
         <div className={`text-center mb-16 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}>
           <Badge variant="secondary" className="mb-4 gap-1">
             <Scale className="h-3 w-3" />
-            Inclusive Architecture
+            Everything You Need
           </Badge>
           <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-4">
-            Built for everyone.
-            <span className="block text-accent">Powered by AI.</span>
+            What can you do
+            <span className="block text-accent">with BrandHub?</span>
           </h2>
            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Smart color tools, cultural awareness, accessible typography, and 16 AI modules 
-            that help your brand connect with every audience — no expertise required.
+            Build brand guides, manage products, plan events, go global — 
+            all in one place. Here's a quick look at what's inside.
           </p>
         </div>
 
@@ -616,20 +610,16 @@ export function FeaturesShowcase() {
 
         {/* Category Tabs */}
         <div className={`${isVisible ? 'animate-fade-in' : 'opacity-0'}`} style={{ animationDelay: '200ms' }}>
-          <Tabs defaultValue="inclusion" className="w-full">
+          <Tabs defaultValue="core" className="w-full">
             <div className="flex justify-center mb-12">
               <TabsList className="grid w-full max-w-4xl grid-cols-6 h-12">
-                <TabsTrigger value="inclusion" className="gap-2 text-sm" aria-label="Inclusion & Bias features">
-                  <Scale className="h-4 w-4" />
-                  <span className="hidden sm:inline">Inclusion</span>
+                <TabsTrigger value="core" className="gap-2 text-sm" aria-label="Core features">
+                  <Layers className="h-4 w-4" />
+                  <span className="hidden sm:inline">Brand Basics</span>
                 </TabsTrigger>
                 <TabsTrigger value="localization" className="gap-2 text-sm" aria-label="Localization features">
                   <Languages className="h-4 w-4" />
-                  <span className="hidden sm:inline">Global</span>
-                </TabsTrigger>
-                <TabsTrigger value="core" className="gap-2 text-sm" aria-label="Core features">
-                  <Layers className="h-4 w-4" />
-                  <span className="hidden sm:inline">Core</span>
+                  <span className="hidden sm:inline">Go Global</span>
                 </TabsTrigger>
                 <TabsTrigger value="events" className="gap-2 text-sm" aria-label="Event features">
                   <Calendar className="h-4 w-4" />
@@ -637,7 +627,11 @@ export function FeaturesShowcase() {
                 </TabsTrigger>
                 <TabsTrigger value="analytics" className="gap-2 text-sm" aria-label="AI and analytics features">
                   <BarChart3 className="h-4 w-4" />
-                  <span className="hidden sm:inline">AI</span>
+                  <span className="hidden sm:inline">AI & Insights</span>
+                </TabsTrigger>
+                <TabsTrigger value="inclusion" className="gap-2 text-sm" aria-label="Inclusion & Bias features">
+                  <Scale className="h-4 w-4" />
+                  <span className="hidden sm:inline">Inclusion</span>
                 </TabsTrigger>
                 <TabsTrigger value="admin" className="gap-2 text-sm" aria-label="Admin features">
                   <ShieldCheck className="h-4 w-4" />
@@ -646,20 +640,20 @@ export function FeaturesShowcase() {
               </TabsList>
             </div>
 
-            <TabsContent value="inclusion" className="mb-12 mt-0">
-              <FeatureGrid features={inclusionFeatures} isVisible={isVisible} />
+            <TabsContent value="core" className="mb-12 mt-0">
+              <FeatureGrid features={coreFeatures} isVisible={isVisible} />
             </TabsContent>
             <TabsContent value="localization" className="mb-12 mt-0">
               <FeatureGrid features={localizationFeatures} isVisible={isVisible} />
-            </TabsContent>
-            <TabsContent value="core" className="mb-12 mt-0">
-              <FeatureGrid features={coreFeatures} isVisible={isVisible} />
             </TabsContent>
             <TabsContent value="events" className="mb-12 mt-0">
               <FeatureGrid features={eventFeatures} isVisible={isVisible} />
             </TabsContent>
             <TabsContent value="analytics" className="mb-12 mt-0">
               <FeatureGrid features={analyticsFeatures} isVisible={isVisible} />
+            </TabsContent>
+            <TabsContent value="inclusion" className="mb-12 mt-0">
+              <FeatureGrid features={inclusionFeatures} isVisible={isVisible} />
             </TabsContent>
             <TabsContent value="admin" className="mb-12 mt-0">
               <FeatureGrid features={adminFeatures} isVisible={isVisible} />
@@ -670,10 +664,10 @@ export function FeaturesShowcase() {
         {/* Stats Row - Updated with inclusion stats */}
         <div className={`grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`} style={{ animationDelay: '600ms' }}>
           {[
-            { value: '16', label: 'AI Modules' },
-            { value: 'Smart', label: 'Color Science' },
-            { value: '50+', label: 'Languages Supported' },
-            { value: '7', label: 'Quality Dimensions' },
+            { value: '40+', label: 'Features' },
+            { value: '50+', label: 'Languages' },
+            { value: 'AI', label: 'Powered Insights' },
+            { value: '∞', label: 'Brands & Products' },
           ].map((stat) => (
             <div key={stat.label} className="text-center p-6 rounded-2xl bg-muted/30 hover:bg-muted/50 transition-colors">
               <div className="text-3xl font-bold text-accent mb-1">{stat.value}</div>
