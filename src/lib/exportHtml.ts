@@ -448,6 +448,18 @@ export function exportBrandIntelligenceHtml(
 }
 
 // ─── Website Analysis Report ────────────────────────────────
+
+const SECTION_LABELS: Record<string, string> = {
+  seoHealth: 'SEO Health',
+  performance: 'Performance',
+  accessibility: 'Accessibility',
+  brandConsistency: 'Brand Consistency',
+  contentQuality: 'Content Quality',
+  technicalFoundation: 'Technical Foundation',
+  userExperience: 'User Experience',
+  competitivePosition: 'Competitive Position',
+};
+
 export function exportWebsiteAnalysisHtml(
   report: any,
   options: { url: string }
@@ -455,6 +467,7 @@ export function exportWebsiteAnalysisHtml(
   const r = report;
   let body = '';
 
+  // Overall score & grade
   body += `<div class="stat-grid">
     <div class="stat-card"><div class="stat-value" style="color:${scoreColor(r.overallScore || 0)}">${r.overallScore || 0}</div><div class="stat-label">Overall Score</div></div>
     <div class="stat-card"><div class="stat-value">${esc(r.grade || 'N/A')}</div><div class="stat-label">Grade</div></div>
@@ -462,34 +475,87 @@ export function exportWebsiteAnalysisHtml(
 
   if (r.summary) body += `<div class="card"><p style="color:var(--fg)">${esc(r.summary)}</p></div>`;
 
-  // Categories
-  const cats = safeArr(r.categories);
-  if (cats.length) {
-    body += `<h2>Category Breakdown</h2>`;
-    cats.forEach((cat: any) => {
+  // Section breakdown (the main content)
+  const sections = r.sections || {};
+  const sectionEntries = Object.entries(sections).filter(([, val]) => val && typeof val === 'object');
+
+  if (sectionEntries.length) {
+    body += `<h2>Section Breakdown</h2>`;
+    body += `<div class="two-col">`;
+    sectionEntries.forEach(([key, data]: [string, any]) => {
+      const label = SECTION_LABELS[key] || key;
+      const score = data.score ?? data.overallScore ?? null;
+      const findings = safeArr(data.findings);
+      const recommendations = safeArr(data.recommendations);
+
       body += `<div class="card">
-        <div class="card-header"><span class="card-title">${esc(cat.name)}</span></div>
-        ${scoreBar(cat.score || 0, cat.name)}
-        ${safeArr(cat.findings).length ? `<div style="margin-top:12px">${safeArr(cat.findings).map((f: any) => `
-          <div style="padding:8px 0;border-bottom:1px solid var(--border)">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-              <span style="font-size:12px;font-weight:600;color:${f.severity === 'critical' || f.severity === 'error' ? 'var(--red)' : f.severity === 'warning' ? 'var(--amber)' : 'var(--emerald)'}">${esc(f.severity || 'info')}</span>
-              <span style="font-size:13px;color:var(--fg)">${esc(f.title || f.issue || '')}</span>
-            </div>
-            ${f.description ? `<p style="font-size:12px;margin:0">${esc(f.description)}</p>` : ''}
-            ${f.recommendation ? `<p style="font-size:12px;margin:4px 0 0;color:var(--primary)">→ ${esc(f.recommendation)}</p>` : ''}
+        <div class="card-header">
+          <span class="card-title">${esc(label)}</span>
+          ${score !== null ? `<span style="font-size:18px;font-weight:700;color:${scoreColor(score)}">${score}/100</span>` : ''}
+        </div>
+        ${score !== null ? scoreBar(score, label) : ''}
+        ${findings.length ? `<div style="margin-top:12px">
+          <p style="font-size:11px;font-weight:600;color:var(--fg-muted);margin-bottom:6px;text-transform:uppercase">Findings</p>
+          <ul class="list list-check">${findings.slice(0, 10).map((f: any) => `<li>${esc(f)}</li>`).join('')}</ul>
+        </div>` : ''}
+        ${recommendations.length ? `<div style="margin-top:12px">
+          <p style="font-size:11px;font-weight:600;color:var(--fg-muted);margin-bottom:6px;text-transform:uppercase">Recommendations</p>
+          <ul class="list list-warn">${recommendations.slice(0, 10).map((r: any) => `<li>${esc(r)}</li>`).join('')}</ul>
+        </div>` : ''}
+      </div>`;
+    });
+    body += `</div>`;
+  }
+
+  // Top recommendations
+  const topRecs = safeArr(r.topRecommendations);
+  if (topRecs.length) {
+    body += `<h2>Top Recommendations</h2>`;
+    body += `<div class="card">${listHtml(topRecs, 'list-warn')}</div>`;
+  }
+
+  // Priority actions
+  const actions = safeArr(r.priorityActions);
+  if (actions.length) {
+    body += `<h2>Priority Actions</h2>`;
+    body += `<div class="card"><table>
+      <thead><tr><th>Action</th><th>Impact</th><th>Effort</th><th>Timeline</th></tr></thead>
+      <tbody>${actions.map((a: any) => `<tr>
+        <td>${esc(a.action || a.title || '')}</td>
+        <td><span class="badge ${a.impact === 'high' ? 'badge-red' : a.impact === 'medium' ? 'badge-amber' : 'badge-emerald'}">${esc(a.impact || '—')}</span></td>
+        <td>${esc(a.effort || '—')}</td>
+        <td>${esc(a.timeline || '—')}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+
+  // Competitor comparison
+  const comps = safeArr(r.competitorComparison);
+  if (comps.length) {
+    body += `<h2>Competitor Comparison</h2>`;
+    comps.forEach((comp: any) => {
+      body += `<div class="card">
+        <div class="card-header"><span class="card-title">${esc(comp.competitor || 'Competitor')}</span></div>
+        <div class="two-col">
+          <div>
+            <p style="font-size:11px;font-weight:600;color:var(--emerald);margin-bottom:6px;text-transform:uppercase">Strengths</p>
+            ${listHtml(safeArr(comp.strengths), 'list-check')}
           </div>
-        `).join('')}</div>` : ''}
+          <div>
+            <p style="font-size:11px;font-weight:600;color:var(--red);margin-bottom:6px;text-transform:uppercase">Weaknesses</p>
+            ${listHtml(safeArr(comp.weaknesses), 'list-risk')}
+          </div>
+        </div>
       </div>`;
     });
   }
 
-  // Benchmarks
+  // Industry benchmarks
   if (r.industryBenchmarks) {
     const ib = r.industryBenchmarks;
     body += `<h2>Industry Benchmarks</h2><div class="card"><table>
       <thead><tr><th>Metric</th><th>Value</th></tr></thead>
-      <tbody>${Object.entries(ib).map(([k, v]) => `<tr><td>${esc(k.replace(/_/g, ' '))}</td><td>${esc(v)}</td></tr>`).join('')}</tbody>
+      <tbody>${Object.entries(ib).map(([k, v]) => `<tr><td>${esc(k.replace(/([A-Z])/g, ' $1').replace(/_/g, ' '))}</td><td>${esc(v)}</td></tr>`).join('')}</tbody>
     </table></div>`;
   }
 
