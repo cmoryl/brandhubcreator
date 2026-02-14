@@ -6,7 +6,7 @@
 
 import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users, HelpCircle } from 'lucide-react';
+import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users, HelpCircle, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -39,6 +39,7 @@ import { toast } from 'sonner';
 
 // Lazy load admin components
 const AppSettingsEditor = lazy(() => import('@/components/admin/AppSettingsEditor').then(m => ({ default: m.AppSettingsEditor })));
+const BrandAssistant = lazy(() => import('@/components/dataforce/BrandAssistant').then(m => ({ default: m.BrandAssistant })));
 
 const OrganizationPortal = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -68,6 +69,7 @@ const OrganizationPortal = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'brands' | 'products' | 'events'>('all');
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
 
   // Keep these hooks ABOVE any conditional returns to avoid hook order crashes.
   const orgColors = useMemo(
@@ -710,6 +712,26 @@ const OrganizationPortal = () => {
 
       {/* Admin Quick Actions Panel */}
       {canEdit && <PortalAdminActions organizationSlug={slug} />}
+
+      {/* Brand Assistant Floating Button - Admin only */}
+      {canEdit && (
+        <>
+          <Button
+            onClick={() => setAssistantOpen(true)}
+            className="fixed bottom-6 left-6 z-50 h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground p-0"
+            aria-label="Open Brand Assistant"
+          >
+            <Bot className="h-5 w-5" />
+          </Button>
+          <Suspense fallback={null}>
+            <BrandAssistant
+              open={assistantOpen}
+              onOpenChange={setAssistantOpen}
+              entityName={organization.name}
+            />
+          </Suspense>
+        </>
+      )}
     </div>
   );
 };
