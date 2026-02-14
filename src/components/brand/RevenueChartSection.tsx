@@ -668,27 +668,27 @@ export const RevenueChartSection = ({
       )}
 
       {/* Controls */}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-3">
         {/* Quick zoom buttons */}
-        <div className="flex items-center gap-2 bg-card/70 backdrop-blur-sm border border-border rounded-lg px-3 py-2">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Zoom</span>
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-bold" onClick={() => handleQuickZoom('all')}>All</Button>
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-bold" onClick={() => handleQuickZoom(5)}>5Y</Button>
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-bold" onClick={() => handleQuickZoom(10)}>10Y</Button>
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-bold" onClick={() => handleQuickZoom(15)}>15Y</Button>
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-bold" onClick={() => handleQuickZoom(20)}>20Y</Button>
+        <div className="flex items-center gap-2 bg-card/70 backdrop-blur-sm border border-border rounded-lg px-3 py-2 overflow-x-auto scrollbar-hide -mx-1 px-1 sm:mx-0 sm:px-3">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">Zoom</span>
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-bold flex-shrink-0" onClick={() => handleQuickZoom('all')}>All</Button>
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-bold flex-shrink-0" onClick={() => handleQuickZoom(5)}>5Y</Button>
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-bold flex-shrink-0" onClick={() => handleQuickZoom(10)}>10Y</Button>
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-bold flex-shrink-0" onClick={() => handleQuickZoom(15)}>15Y</Button>
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-bold flex-shrink-0" onClick={() => handleQuickZoom(20)}>20Y</Button>
         </div>
 
         {/* Year range inputs */}
         <div className="flex items-center gap-2 bg-card/70 backdrop-blur-sm border border-border rounded-lg px-3 py-2">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">View</span>
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">View</span>
           <Input
             type="number"
             min={minYear}
             max={yearRange[1]}
             value={yearRange[0]}
             onChange={(e) => setYearRange([Math.min(Number(e.target.value), yearRange[1]), yearRange[1]])}
-            className="w-20 h-7 text-center font-bold"
+            className="w-16 sm:w-20 h-7 text-center font-bold text-sm"
           />
           <span className="text-muted-foreground font-bold">–</span>
           <Input
@@ -697,12 +697,12 @@ export const RevenueChartSection = ({
             max={maxYear}
             value={yearRange[1]}
             onChange={(e) => setYearRange([yearRange[0], Math.max(Number(e.target.value), yearRange[0])])}
-            className="w-20 h-7 text-center font-bold"
+            className="w-16 sm:w-20 h-7 text-center font-bold text-sm"
           />
         </div>
 
         {/* Scrubber */}
-        <div className="flex-1 min-w-[280px] bg-card/70 backdrop-blur-sm border border-border rounded-lg px-3 py-2">
+        <div className="flex-1 min-w-0 sm:min-w-[280px] bg-card/70 backdrop-blur-sm border border-border rounded-lg px-3 py-2">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Scrub</span>
             <span className="text-sm font-bold text-foreground">{yearRange[0]}–{yearRange[1]}</span>
@@ -719,13 +719,13 @@ export const RevenueChartSection = ({
       </div>
 
       {/* Chart */}
-      <div className="bg-card/70 backdrop-blur-sm border border-border rounded-xl p-4 shadow-lg">
-        <p className="text-xs text-muted-foreground mb-3 font-medium">Click any bar to view year details</p>
-        <div className="h-[400px] md:h-[500px]">
+      <div className="bg-card/70 backdrop-blur-sm border border-border rounded-xl p-2 sm:p-4 shadow-lg">
+        <p className="text-xs text-muted-foreground mb-2 sm:mb-3 font-medium">Tap any bar to view year details</p>
+        <div className="h-[280px] sm:h-[400px] md:h-[500px]">
           <ResponsiveContainer width="100%" height="100%" key={`chart-${activeColors.barColor}-${activeColors.hoverColor}-${activeColors.barColorEnd}`}>
             <BarChart
               data={filteredData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+              margin={{ top: 10, right: 10, left: 0, bottom: 50 }}
               onClick={handleBarClick}
             >
               <defs>
@@ -741,18 +741,20 @@ export const RevenueChartSection = ({
               <CartesianGrid strokeDasharray="3 3" stroke={activeColors.gridColor} opacity={0.5} />
               <XAxis 
                 dataKey="year" 
-                tick={{ fill: activeColors.textColor, fontSize: 11, fontWeight: 600 }}
+                tick={{ fill: activeColors.textColor, fontSize: 9, fontWeight: 600 }}
                 tickLine={{ stroke: activeColors.gridColor }}
                 axisLine={{ stroke: activeColors.gridColor }}
                 angle={-45}
                 textAnchor="end"
-                height={60}
+                height={50}
+                interval="preserveStartEnd"
               />
               <YAxis 
                 tickFormatter={(v) => v >= 1000 ? `$${v/1000}B` : `$${v}M`}
-                tick={{ fill: activeColors.textColor, fontSize: 11, fontWeight: 600 }}
+                tick={{ fill: activeColors.textColor, fontSize: 9, fontWeight: 600 }}
                 tickLine={{ stroke: activeColors.gridColor }}
                 axisLine={{ stroke: activeColors.gridColor }}
+                width={45}
               />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))', opacity: 0.1 }} />
               <ReferenceLine y={1000} stroke={activeColors.barColor} strokeDasharray="5 5" opacity={0.5} />
