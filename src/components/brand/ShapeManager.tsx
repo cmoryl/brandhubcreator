@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Sparkles, Loader2, Trash2, Download, Eye, Code, Copy, Check, Wand2, Search, Filter, X, Library } from 'lucide-react';
+import { Plus, Sparkles, Loader2, Trash2, Download, Eye, Code, Copy, Check, Wand2, Search, Filter, X, Library, Palette } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ import { CustomDesignShape, BrandColor } from '@/types/brand';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { SHAPE_LIBRARY, SHAPE_INDUSTRIES, SHAPE_CATEGORIES, type LibraryShape } from '@/data/shapeLibrary';
+import { getGeneratedShapes } from '@/data/shapeGenerator';
 
 // SVG sanitization config to prevent XSS attacks
 const SVG_SANITIZE_CONFIG = {
@@ -179,9 +180,12 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
   const [manualCategory, setManualCategory] = useState<string>('custom');
   const [svgPreviewError, setSvgPreviewError] = useState<string | null>(null);
 
+  // Combined library: original + generated shapes
+  const COMBINED_LIBRARY = useMemo(() => [...SHAPE_LIBRARY, ...getGeneratedShapes()], []);
+
   // Filtered library shapes
   const filteredShapes = useMemo(() => {
-    let results = SHAPE_LIBRARY;
+    let results = COMBINED_LIBRARY;
     
     if (selectedIndustry !== 'all') {
       results = results.filter(s => s.industry === selectedIndustry);
@@ -200,17 +204,62 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
     }
     
     return results;
-  }, [searchQuery, selectedIndustry, selectedCategory]);
+  }, [searchQuery, selectedIndustry, selectedCategory, COMBINED_LIBRARY]);
 
   // Count shapes per industry for badges
   const industryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    SHAPE_LIBRARY.forEach(s => {
+    COMBINED_LIBRARY.forEach(s => {
       counts[s.industry] = (counts[s.industry] || 0) + 1;
     });
-    counts['all'] = SHAPE_LIBRARY.length;
+    counts['all'] = COMBINED_LIBRARY.length;
     return counts;
-  }, []);
+  }, [COMBINED_LIBRARY]);
+
+  // Shape editing state
+  const [editingShape, setEditingShape] = useState<string | null>(null);
+  const [editFill, setEditFill] = useState('#6366F1');
+  const [editStroke, setEditStroke] = useState('#000000');
+  const [editStrokeWidth, setEditStrokeWidth] = useState(0);
+  const [editOpacity, setEditOpacity] = useState(1);
+
+  const startEditing = (shape: CustomDesignShape) => {
+    setEditingShape(shape.id);
+    // Extract current fill from SVG
+    const fillMatch = shape.svg.match(/fill="(#[0-9a-fA-F]{6})"/);
+    if (fillMatch) setEditFill(fillMatch[1]);
+    const strokeMatch = shape.svg.match(/stroke="(#[0-9a-fA-F]{6})"/);
+    if (strokeMatch) setEditStroke(strokeMatch[1]);
+    setEditOpacity(1);
+    setEditStrokeWidth(0);
+  };
+
+  const applyShapeEdit = (shapeId: string) => {
+    const updated = shapes.map(s => {
+      if (s.id !== shapeId) return s;
+      // Apply color overrides by wrapping in a group with fill/stroke/opacity
+      let svg = s.svg;
+      // Replace all fill colors (except 'none' and url())
+      svg = svg.replace(/fill="(?!none|url)(#[0-9a-fA-F]{3,8}|[a-z]+)"/g, `fill="${editFill}"`);
+      // Add or replace stroke
+      if (editStrokeWidth > 0) {
+        if (svg.includes('stroke="')) {
+          svg = svg.replace(/stroke="(#[0-9a-fA-F]{3,8}|[a-z]+)"/g, `stroke="${editStroke}"`);
+          svg = svg.replace(/stroke-width="[^"]*"/g, `stroke-width="${editStrokeWidth}"`);
+        } else {
+          svg = svg.replace(/<(circle|rect|polygon|path|ellipse)(\s)/g, `<$1 stroke="${editStroke}" stroke-width="${editStrokeWidth}"$2`);
+        }
+      }
+      // Apply opacity
+      if (editOpacity < 1) {
+        svg = svg.replace(/<svg/, `<svg opacity="${editOpacity}"`);
+      }
+      return { ...s, svg };
+    });
+    onShapesChange(updated);
+    setEditingShape(null);
+    toast.success('Shape updated');
+  };
 
   const addLibraryShape = (libShape: LibraryShape) => {
     const newShape: CustomDesignShape = {
@@ -701,33 +750,66 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
                   />
                   <p className="text-[10px] text-center mt-1 truncate">{shape.name}</p>
                   
-                  {/* Actions overlay */}
-                  <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1 rounded-lg">
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="h-7 w-7"
-                      onClick={() => setPreviewShape(shape)}
-                    >
-                      <Eye className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="h-7 w-7"
-                      onClick={() => downloadSVG(shape)}
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="h-7 w-7 text-destructive"
-                      onClick={() => deleteShape(shape.id)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
+                  {/* Edit panel */}
+                  {editingShape === shape.id ? (
+                    <div className="absolute inset-0 bg-background/95 rounded-lg p-2 flex flex-col gap-1.5 z-10 border border-primary/30">
+                      <div className="flex items-center gap-1">
+                        <Label className="text-[9px] w-8 shrink-0">Fill</Label>
+                        <input type="color" value={editFill} onChange={e => setEditFill(e.target.value)} className="w-6 h-6 border-0 p-0 cursor-pointer rounded" />
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Label className="text-[9px] w-8 shrink-0">Stroke</Label>
+                        <input type="color" value={editStroke} onChange={e => setEditStroke(e.target.value)} className="w-6 h-6 border-0 p-0 cursor-pointer rounded" />
+                        <Input type="number" min={0} max={10} step={0.5} value={editStrokeWidth} onChange={e => setEditStrokeWidth(Number(e.target.value))} className="h-5 w-10 text-[9px] px-1" />
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Label className="text-[9px] w-8 shrink-0">Opac</Label>
+                        <input type="range" min={0} max={1} step={0.05} value={editOpacity} onChange={e => setEditOpacity(Number(e.target.value))} className="flex-1 h-3" />
+                        <span className="text-[9px] w-6 text-right">{Math.round(editOpacity * 100)}%</span>
+                      </div>
+                      <div className="flex gap-1 mt-auto">
+                        <Button size="sm" variant="ghost" className="h-5 text-[9px] flex-1 px-1" onClick={() => setEditingShape(null)}>Cancel</Button>
+                        <Button size="sm" className="h-5 text-[9px] flex-1 px-1" onClick={() => applyShapeEdit(shape.id)}>Apply</Button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Actions overlay */
+                    <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1 rounded-lg">
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-7 w-7"
+                        onClick={() => startEditing(shape)}
+                        title="Edit colors"
+                      >
+                        <Palette className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-7 w-7"
+                        onClick={() => setPreviewShape(shape)}
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-7 w-7"
+                        onClick={() => downloadSVG(shape)}
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-7 w-7 text-destructive"
+                        onClick={() => deleteShape(shape.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  )}
                   
                   {shape.aiGenerated && (
                     <Badge variant="secondary" className="absolute top-1 right-1 text-[8px] px-1 py-0">
