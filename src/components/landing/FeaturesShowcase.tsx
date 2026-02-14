@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
   Palette, 
   Type, 
   Image, 
-  Share2, 
   Layers, 
   BarChart3, 
   TrendingUp, 
@@ -565,7 +563,6 @@ function GlobalBrandHero({ isVisible }: { isVisible: boolean }) {
 }
 
 export function FeaturesShowcase() {
-  const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 

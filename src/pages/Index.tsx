@@ -5,7 +5,7 @@
 
 import { useMemo, useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, Clock, DollarSign, Zap, HelpCircle } from 'lucide-react';
+import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, HelpCircle } from 'lucide-react';
 import { GlitchText } from '@/components/ui/GlitchText';
 import { HeroOrbit } from '@/components/landing/HeroOrbit';
 import { Button } from '@/components/ui/button';
