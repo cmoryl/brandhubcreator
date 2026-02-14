@@ -51,6 +51,7 @@ function SidebarContent({
     { id: 'analytics', label: 'Brand Analytics', icon: <TrendingUp className="h-4 w-4" />, group: 'analytics' },
     { id: 'user-analytics', label: 'User Stats', icon: <Eye className="h-4 w-4" />, group: 'analytics' },
     { id: 'intelligence', label: 'Intelligence Hub', icon: <Brain className="h-4 w-4" />, group: 'analytics' },
+    { id: 'dataforce', label: 'DataForce AI', icon: <Activity className="h-4 w-4" />, group: 'analytics' },
     { id: 'downloads', label: 'Downloads', icon: <FileDown className="h-4 w-4" />, group: 'analytics' },
     { id: 'reports', label: 'Reports', icon: <FileText className="h-4 w-4" />, group: 'tools' },
     { id: 'activity', label: 'Activity Log', icon: <Activity className="h-4 w-4" />, group: 'tools' },
