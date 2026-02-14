@@ -40,6 +40,7 @@ import { InsightsSection } from './InsightsSection';
 const LeafletLocationsSection = lazy(() => import('./LeafletLocationsSection').then(m => ({ default: m.LeafletLocationsSection })));
 import { BrandEventSignageSection } from './BrandEventSignageSection';
 import { ClientLogosSection } from './ClientLogosSection';
+import { SponsorLogosSection } from './SponsorLogosSection';
 import { PresentationTemplatesSection } from './PresentationTemplatesSection';
 import { Separator } from '@/components/ui/separator';
 
@@ -391,6 +392,18 @@ export const FullBrandPage = ({
           entityId={brandId}
           entityType={entityType}
         />;
+      case 'sponsorlogos':
+        return <SponsorLogosSection 
+          sponsors={brand.sponsorLogos || []} 
+          onSponsorsChange={editHandler((sponsorLogos) => onBrandUpdate({ sponsorLogos }))} 
+          customSubtitle={customSubtitle} 
+          onSubtitleChange={onSubtitleChange}
+          isEditable={canEdit}
+        />;
+      case 'brief':
+      case 'socialmetrics':
+        // These sections are either not yet implemented or excluded from rendering
+        return null;
       default: return null;
     }
   }, [brand, brandId, onBrandUpdate, sectionSubtitles, sectionLayouts, handleSubtitleChange, handleLayoutChange, heroFullWidth, onOpenIntelligence, canEdit]);
