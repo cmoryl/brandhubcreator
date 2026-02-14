@@ -1,7 +1,8 @@
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, Globe,
-  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase, LayoutGrid, TrendingUp
+  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase, LayoutGrid, TrendingUp,
+  Hash, Award, Lightbulb, MapPin, Presentation, ImagePlus, Eye, Sparkles, Calendar, Signpost
 } from 'lucide-react';
 import { SectionId } from '@/types/brand';
 import { cn } from '@/lib/utils';
@@ -18,8 +19,13 @@ const sections: { id: SectionId; label: string; icon: React.ElementType; categor
   { id: 'tagline', label: 'Corporate Tagline', icon: Quote, category: 'Identity' },
   { id: 'identity', label: 'Narrative Architecture', icon: Scroll, category: 'Identity' },
   { id: 'values', label: 'Philosophical Pillars', icon: Heart, category: 'Identity' },
+  { id: 'bythenumbers', label: 'By The Numbers', icon: Hash, category: 'Identity' },
   { id: 'services', label: 'Our Services', icon: Briefcase, category: 'Identity' },
   { id: 'revenue', label: 'Revenue Growth', icon: TrendingUp, category: 'Identity' },
+  { id: 'awards', label: 'Awards & Recognition', icon: Award, category: 'Identity' },
+  { id: 'insights', label: 'Insights & Updates', icon: Lightbulb, category: 'Identity' },
+  { id: 'locations', label: 'Locations', icon: MapPin, category: 'Identity' },
+  { id: 'webinars', label: 'Webinars', icon: Presentation, category: 'Identity' },
   { id: 'logos', label: 'Logos', icon: Image, category: 'Visual' },
   { id: 'brandicon', label: 'Symbol Standards', icon: Bookmark, category: 'Visual' },
   { id: 'colors', label: 'Color Palette', icon: Palette, category: 'Visual' },
@@ -30,8 +36,10 @@ const sections: { id: SectionId; label: string; icon: React.ElementType; categor
   { id: 'iconography', label: 'Iconography', icon: Layers, category: 'Assets' },
   { id: 'socialicons', label: 'Platform Markers', icon: Share2, category: 'Assets' },
   { id: 'imagery', label: 'Visual Direction', icon: Camera, category: 'Assets' },
+  { id: 'imageassets', label: 'Image Assets', icon: ImagePlus, category: 'Assets' },
   { id: 'social', label: 'Social Registry', icon: Users, category: 'Communication' },
   { id: 'socialassets', label: 'Social Assets & Guidelines', icon: LayoutGrid, category: 'Communication' },
+  { id: 'socialmetrics', label: 'Social Metrics', icon: Eye, category: 'Communication' },
   { id: 'website', label: 'Website', icon: Globe, category: 'Communication' },
   { id: 'signatures', label: 'Signature Protocol', icon: Mail, category: 'Communication' },
   { id: 'qr', label: 'QR Codes', icon: QrCode, category: 'Communication' },
@@ -39,11 +47,17 @@ const sections: { id: SectionId; label: string; icon: React.ElementType; categor
   { id: 'assets', label: 'Operational Vault', icon: FolderArchive, category: 'Resources' },
   { id: 'misuse', label: 'Anti-Patterns', icon: Ban, category: 'Resources' },
   { id: 'brochures', label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
+  { id: 'templatespecs', label: 'Template Specs', icon: FileText, category: 'Collateral' },
   { id: 'presentations', label: 'Presentation Templates', icon: FileType, category: 'Collateral' },
-  { id: 'products', label: 'Products', icon: Package, category: 'Collateral' },
+  { id: 'sponsorlogos', label: 'Sponsor Logos', icon: Sparkles, category: 'Collateral' },
+  { id: 'clientlogos', label: 'Client Logos', icon: Sparkles, category: 'Collateral' },
+  { id: 'universe', label: 'Universe', icon: Globe, category: 'Ecosystem' },
+  { id: 'products', label: 'Products', icon: Package, category: 'Ecosystem' },
+  { id: 'events', label: 'Events', icon: Calendar, category: 'Ecosystem' },
+  { id: 'eventsignage', label: 'Event Signage', icon: Signpost, category: 'Ecosystem' },
 ];
 
-const categories = ['Identity', 'Visual', 'Typography', 'Assets', 'Communication', 'Resources', 'Collateral'];
+const categories = ['Identity', 'Visual', 'Typography', 'Assets', 'Communication', 'Resources', 'Collateral', 'Ecosystem'];
 
 export const BrandSidebar = ({ activeSection, onSectionChange, brandName }: BrandSidebarProps) => {
   return (
