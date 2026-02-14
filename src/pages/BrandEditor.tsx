@@ -1221,8 +1221,15 @@ const BrandEditor = () => {
                         cardViewBackgroundTint: tint,
                       });
                     }}
-                    entityLogoUrl={brand?.hero?.logoUrl || brand?.logos?.[0]?.url}
-                    onEntityLogoChange={isGuideAdmin ? (url: string) => updateBrand({ hero: { ...brand.hero, logoUrl: url } }) : undefined}
+                    entityLightLogoUrl={brand?.hero?.logoUrl || brand?.logos?.[0]?.url}
+                    entityDarkLogoUrl={brand?.hero?.darkLogoUrl || brand?.logos?.[1]?.url}
+                    onEntityLogoChange={isGuideAdmin ? (variant: 'light' | 'dark', url: string) => {
+                      if (variant === 'light') {
+                        updateBrand({ hero: { ...brand.hero, logoUrl: url } });
+                      } else {
+                        updateBrand({ hero: { ...brand.hero, darkLogoUrl: url } });
+                      }
+                    } : undefined}
                   />
                   <div className="animate-zoom-in">
                     {renderSection()}

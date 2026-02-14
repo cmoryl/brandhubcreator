@@ -76,6 +76,8 @@ export interface BrandHero {
   /** @deprecated Use heroEffectBrightness instead */
   gradientBarsBrightness?: number;
   logoUrl: string;
+  /** Logo URL for dark mode display */
+  darkLogoUrl?: string;
   /** Tagline animation effect on load */
   taglineAnimation?: 'typewriter' | 'fade-slide' | 'blur-reveal' | 'split-chars' | 'wave-glow';
   /** Tagline hover interaction effect */
