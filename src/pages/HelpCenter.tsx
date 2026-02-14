@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,6 +65,8 @@ import {
   type HelpSection,
   type HelpCategory,
 } from '@/lib/helpContent';
+
+const HelpAgentChat = lazy(() => import('@/components/help/HelpAgentChat').then(m => ({ default: m.HelpAgentChat })));
 
 // Icon mapping for dynamic rendering
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -461,6 +463,11 @@ const HelpCenter = () => {
           </>
         )}
       </main>
+
+      {/* AI Help Agent */}
+      <Suspense fallback={null}>
+        <HelpAgentChat />
+      </Suspense>
     </div>
   );
 };

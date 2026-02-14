@@ -76,3 +76,6 @@ verify_jwt = false
 
 [functions.scan-website-images]
 verify_jwt = false
+
+[functions.help-agent]
+verify_jwt = false
