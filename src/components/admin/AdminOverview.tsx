@@ -490,7 +490,7 @@ const DataForceSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> =
             <Sparkles className="h-3.5 w-3.5 text-blue-500" />
             <CardTitle className="text-sm font-semibold">DataForce AI</CardTitle>
           </div>
-          <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-7" onClick={() => onTabChange('intelligence')}>
+          <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-7" onClick={() => onTabChange('dataforce')}>
             Open <ArrowRight className="h-3 w-3 ml-1" />
           </Button>
         </div>

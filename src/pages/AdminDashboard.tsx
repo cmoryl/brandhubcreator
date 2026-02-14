@@ -753,10 +753,6 @@ export default function AdminDashboard() {
                   <Eye className="h-4 w-4" />
                   Research Briefings
                 </TabsTrigger>
-                <TabsTrigger value="dataforce" className="gap-2">
-                  <Activity className="h-4 w-4" />
-                  DataForce AI
-                </TabsTrigger>
               </TabsList>
               <TabsContent value="oracle">
                 <OracleBrainPanel organizationId={organizations[0]?.id} />
@@ -770,10 +766,12 @@ export default function AdminDashboard() {
               <TabsContent value="research">
                 <ResearchBriefingsPanel />
               </TabsContent>
-              <TabsContent value="dataforce">
-                <DataForceAdminPanel />
-              </TabsContent>
             </Tabs>
+          </TabsContent>
+
+          {/* DataForce AI Tab */}
+          <TabsContent value="dataforce" className="space-y-6">
+            <DataForceAdminPanel />
           </TabsContent>
 
           {/* Activity Tab */}
