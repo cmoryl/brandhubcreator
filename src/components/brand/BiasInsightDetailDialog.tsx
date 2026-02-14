@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Scale, Languages, Eye, Accessibility, ShieldCheck, AlertCircle, CheckCircle2, Download, ChevronDown, ChevronRight, ListChecks, Palette, GlobeLock, ImageIcon, ClipboardCheck } from 'lucide-react';
+import { Scale, Languages, Eye, Accessibility, ShieldCheck, AlertCircle, CheckCircle2, Download, ChevronDown, ChevronRight, ListChecks, Palette, GlobeLock, ImageIcon, ClipboardCheck, Paintbrush, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
@@ -282,10 +282,84 @@ export const BiasInsightDetailDialog = ({ open, onOpenChange, entityId, entityTy
                 <div className="space-y-2">
                   <h3 className="text-xs font-semibold text-muted-foreground px-1">Advanced Governance Modules</h3>
                   {renderModuleCard('pie', 'PI&E "Who Else?" Framework', ListChecks, scan.pie_module)}
-                  {renderModuleCard('wfa', 'WFA 12-Area Bias Litmus', GlobeLock, scan.wfa_module)}
+                  {renderModuleCard('wfa', 'WFA 12-Area Bias Litmus (Color-Linked)', GlobeLock, scan.wfa_module)}
                   {renderModuleCard('policy', 'Policy-as-Code Disparate Impact', ShieldCheck, scan.policy_as_code_module)}
                   {renderModuleCard('imagery', 'Inclusive Imagery Stop/Go', ImageIcon, scan.inclusive_imagery_module)}
                   {renderModuleCard('checklist', '2026 Master Inclusion Checklist', ClipboardCheck, scan.inclusion_checklist_module)}
+                </div>
+              )}
+
+              {/* Color Science Modules */}
+              {(scan.color_accessibility_module || scan.color_strategy_module) && (
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold text-muted-foreground px-1">Color Science & DBA Modules</h3>
+                  
+                  {/* Color Accessibility */}
+                  {scan.color_accessibility_module && typeof scan.color_accessibility_module === 'object' && (() => {
+                    const cam = scan.color_accessibility_module as any;
+                    return renderModuleCard('color_access', 'Color Accessibility & OKLCH', Palette, cam) || (
+                      <Collapsible open={expandedModules.has('color_access_detail')} onOpenChange={() => toggleModule('color_access_detail')}>
+                        <CollapsibleTrigger asChild>
+                          <button className="w-full flex items-center gap-2 p-2.5 rounded-md bg-card hover:bg-accent/10 border border-border/50 transition-colors text-left">
+                            <Palette className="h-3.5 w-3.5 text-violet-400 shrink-0" />
+                            <span className="text-xs font-medium flex-1">Color Accessibility & OKLCH</span>
+                            {cam.overall_score !== undefined && (
+                              <Badge className={cn(scoreBg(Number(cam.overall_score)), 'text-white text-[10px] px-1.5 py-0')}>{Math.round(Number(cam.overall_score))}</Badge>
+                            )}
+                          </button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pl-2 pt-2 space-y-2">
+                          <div className="flex flex-wrap gap-2 text-[10px]">
+                            {cam.oklch_readiness && <Badge variant="outline" className="text-[9px]">OKLCH: {cam.oklch_readiness}</Badge>}
+                            {cam.dark_mode_compliance && <Badge variant="outline" className="text-[9px]">Dark Mode: {cam.dark_mode_compliance}</Badge>}
+                            {cam.colorblind_safe !== undefined && <Badge variant="outline" className="text-[9px]">Colorblind Safe: {cam.colorblind_safe ? '✅' : '❌'}</Badge>}
+                          </div>
+                          {cam.contrast_compliance && (
+                            <div className="flex gap-3 text-[10px]">
+                              <span className="text-muted-foreground">Text: <strong className={cam.contrast_compliance.primary_text === 'pass' ? 'text-emerald-500' : 'text-destructive'}>{cam.contrast_compliance.primary_text}</strong></span>
+                              <span className="text-muted-foreground">Focus: <strong className={cam.contrast_compliance.focus_indicators === 'pass' ? 'text-emerald-500' : 'text-destructive'}>{cam.contrast_compliance.focus_indicators}</strong></span>
+                              <span className="text-muted-foreground">UI: <strong className={cam.contrast_compliance.ui_components === 'pass' ? 'text-emerald-500' : 'text-destructive'}>{cam.contrast_compliance.ui_components}</strong></span>
+                            </div>
+                          )}
+                          {Array.isArray(cam.issues) && cam.issues.length > 0 && renderArrayItems(cam.issues, 'risk')}
+                          {Array.isArray(cam.recommendations) && cam.recommendations.length > 0 && renderArrayItems(cam.recommendations, 'check')}
+                        </CollapsibleContent>
+                      </Collapsible>
+                    );
+                  })()}
+
+                  {/* Color Strategy & DBA */}
+                  {scan.color_strategy_module && typeof scan.color_strategy_module === 'object' && (() => {
+                    const csm = scan.color_strategy_module as any;
+                    return (
+                      <Collapsible open={expandedModules.has('color_strategy')} onOpenChange={() => toggleModule('color_strategy')}>
+                        <CollapsibleTrigger asChild>
+                          <button className="w-full flex items-center gap-2 p-2.5 rounded-md bg-card hover:bg-accent/10 border border-border/50 transition-colors text-left">
+                            <Paintbrush className="h-3.5 w-3.5 text-violet-400 shrink-0" />
+                            <span className="text-xs font-medium flex-1">Color Strategy & DBA</span>
+                            {csm.overall_score !== undefined && (
+                              <Badge className={cn(scoreBg(Number(csm.overall_score)), 'text-white text-[10px] px-1.5 py-0')}>{Math.round(Number(csm.overall_score))}</Badge>
+                            )}
+                          </button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pl-2 pt-2 space-y-2">
+                          <div className="flex flex-wrap gap-2 text-[10px]">
+                            {csm.dba_uniqueness !== undefined && <Badge variant="outline" className="text-[9px]">DBA Uniqueness: {csm.dba_uniqueness}</Badge>}
+                            {csm.dba_fame !== undefined && <Badge variant="outline" className="text-[9px]">DBA Fame: {csm.dba_fame}</Badge>}
+                            {csm.tonal_consistency && <Badge variant="outline" className="text-[9px]">Tonal: {csm.tonal_consistency}</Badge>}
+                            {csm.sentiment_alignment && <Badge variant="outline" className="text-[9px]">Sentiment: {csm.sentiment_alignment}</Badge>}
+                          </div>
+                          {Array.isArray(csm.cultural_conflicts) && csm.cultural_conflicts.length > 0 && (
+                            <div>
+                              <p className="text-[10px] font-semibold text-destructive/80 mb-1">🌍 Cultural Color Conflicts</p>
+                              {renderArrayItems(csm.cultural_conflicts.map((c: any) => `${c.color} in ${c.market}: ${c.conflict} [${c.severity}]`), 'risk')}
+                            </div>
+                          )}
+                          {Array.isArray(csm.recommendations) && csm.recommendations.length > 0 && renderArrayItems(csm.recommendations, 'check')}
+                        </CollapsibleContent>
+                      </Collapsible>
+                    );
+                  })()}
                 </div>
               )}
 

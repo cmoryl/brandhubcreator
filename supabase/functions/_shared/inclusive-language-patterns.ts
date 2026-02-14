@@ -239,18 +239,18 @@ export interface WFAArea {
 }
 
 export const WFA_12_AREAS: WFAArea[] = [
-  { id: 'business_challenge', stage: 1, name: 'Business & Brand Challenge', audit_question: 'Who is excluded? Are they a potential business opportunity?' },
-  { id: 'insight_data', stage: 2, name: 'Strategic Insight & Data', audit_question: 'Is there bias in the research? Does it capture representative perspectives or broad generalizations?' },
-  { id: 'creative_brief', stage: 3, name: 'Creative & Comms Brief', audit_question: 'Does the brief make it clear that representation is key?' },
-  { id: 'agency_selection', stage: 4, name: 'Agency & Partner Selection', audit_question: 'What steps are you taking to bring in more diverse talent from suppliers?' },
-  { id: 'creative_development', stage: 5, name: 'Creative Development', audit_question: 'Are you applying the 3Ps (Presence, Perspective, Personality)?' },
-  { id: 'pretesting', stage: 6, name: 'Pre-testing', audit_question: 'Does testing include a check for bias or stereotyping amongst the affected group?' },
-  { id: 'production_casting', stage: 7, name: 'Production & Casting', audit_question: 'Have you allowed enough time for inclusive casting? Are props reinforcing stereotypes?' },
-  { id: 'post_production', stage: 8, name: 'Post-production & Edit', audit_question: 'Does the final edit deliver on the vision without introducing new biases?' },
-  { id: 'media_placement', stage: 9, name: 'Media Placement', audit_question: 'Are brand safety settings inadvertently blocking LGBTQ+ or minority content?' },
-  { id: 'localisation', stage: 10, name: 'Localisation', audit_question: 'Are there local cultural nuances that make content inappropriate?' },
-  { id: 'launch_activation', stage: 11, name: 'Launch & Activation', audit_question: 'Have you prepared for the impact amongst different diverse groups?' },
-  { id: 'analysis_effectiveness', stage: 12, name: 'Analysis & Effectiveness', audit_question: 'How are you building your body of knowledge and effectiveness?' },
+  { id: 'business_challenge', stage: 1, name: 'Business & Brand Challenge', audit_question: 'Who is your audience? Who is excluded? Are they a potential business opportunity? Is the target audience excluded by color-blindness (affecting 1 in 12 men)?' },
+  { id: 'insight_data', stage: 2, name: 'Strategic Insight & Data', audit_question: 'Is there bias in research? Does it capture representative perspectives? Use SACM (Sentiment Analysis & Computational Color Modeling) to map text sentiment to color palettes.' },
+  { id: 'creative_brief', stage: 3, name: 'Creative & Comms Brief', audit_question: 'Does the brief mandate Distinctive Brand Assets (DBAs)? Are unique colors like "Tiffany Blue" that trigger 85% recognition without a logo specified?' },
+  { id: 'agency_selection', stage: 4, name: 'Agency & Partner Selection', audit_question: 'Do you have a procurement diversity approach? What steps to bring in more diverse talent from suppliers?' },
+  { id: 'creative_development', stage: 5, name: 'Creative Development', audit_question: 'Apply the 3Ps (Presence, Perspective, Personality). Leverage the Helmholtz-Kohlrausch Effect — saturated red captures attention 0.3s faster than cool colors.' },
+  { id: 'pretesting', stage: 6, name: 'Pre-testing', audit_question: 'Does testing check for bias/stereotyping? Use eye-tracking to verify purple elements generate 34% longer fixation times. Have you leveraged ERG input?' },
+  { id: 'production_casting', stage: 7, name: 'Production & Casting', audit_question: 'Enough time for inclusive casting? Do props/wardrobe reinforce stereotypes? Are voice-overs avoiding stereotypes?' },
+  { id: 'post_production', stage: 8, name: 'Post-production & Edit', audit_question: 'Is there diversity in the post-production team? Does the final edit deliver on the inclusive vision?' },
+  { id: 'localisation', stage: 9, name: 'Localisation', audit_question: 'Account for Cultural Color Geometry — red signifies joy in China but mourning in South Africa. Does casting truly reflect local diversity?' },
+  { id: 'media_360', stage: 10, name: 'Media & 360 Activation', audit_question: 'Are brand safety settings inadvertently blocking LGBTQ+ or minority content? Is a Sentiment-to-Color cross-check applied?' },
+  { id: 'launch', stage: 11, name: 'Launch', audit_question: 'What is the response plan for feedback on representation? Are social teams briefed on how to respond?' },
+  { id: 'evaluation', stage: 12, name: 'Evaluation & Analysis', audit_question: 'What was the commercial upside? How are you tracking the impact of diversity on your brand? Track DBA distinctiveness metrics.' },
 ];
 
 export const WFA_COMMERCIAL_IMPACT = {
@@ -335,6 +335,107 @@ export const PERSONA_SPECTRUM_DIMENSIONS = [
 ];
 
 // ── Module 12: AI Governance Policy-as-Code ──
+// (continued below after new color modules)
+
+// ── Module 13: OKLCH Perceptual Color Standard (2026) ──
+
+export const OKLCH_COLOR_STANDARD = {
+  id: 'oklch_2026',
+  title: 'OKLCH Perceptual Uniformity Standard',
+  description: 'OKLCH lightness steps (L) produce visually even changes across all hues (H), ensuring automated palettes always meet contrast rules. Replaces HSL for accessibility-critical color generation.',
+  key_principles: [
+    'Uniform perceived lightness across all hues — equal L steps = equal visual difference.',
+    'Automated palette generation guarantees WCAG contrast ratios by design.',
+    'Dark Mode 2.0: Avoid pure black (#000000); use deep charcoal to prevent OLED "black smearing" and visual fatigue.',
+    'Display-aware rendering: Adapt palettes to OLED vs LCD characteristics.',
+  ],
+  contrast_requirements: {
+    primary_text: '7:1 minimum (WCAG AAA)',
+    large_text: '4.5:1 minimum (WCAG AA)',
+    focus_indicators: '3:1 minimum (WCAG 2.4.13)',
+    ui_components: '3:1 minimum against adjacent colors',
+  },
+};
+
+// ── Module 14: Color Psychology & Distinctive Brand Assets (DBA) ──
+
+export const COLOR_PSYCHOLOGY_DBA = {
+  id: 'color_psychology_dba',
+  title: 'Color Psychology & Distinctive Brand Assets',
+  brand_recognition_stat: 'Color increases brand recognition by up to 80%.',
+  consumer_assessment: '62-90% of product assessment in 90 seconds is based solely on color.',
+  colorblind_prevalence: 'Affects 1 in 12 men (~8%) and 1 in 200 women.',
+  helmholtz_kohlrausch: {
+    name: 'Helmholtz-Kohlrausch Effect',
+    description: 'Saturated colors (especially red) appear brighter than their numeric lightness suggests, capturing attention 0.3 seconds faster than cool colors.',
+    implication: 'Red CTAs outperform blue/green CTAs in attention capture but may conflict with cultural meaning.',
+  },
+  purple_fixation: {
+    description: 'Purple elements generate 34% longer eye fixation times, indicating deeper cognitive processing.',
+    use_case: 'Premium branding, thought leadership, innovation positioning.',
+  },
+  tonal_groups_haller: {
+    title: 'Karen Haller 4 Tonal Groups (Seasons)',
+    description: 'Colors classified into 4 groups corresponding to personality types. Jarring schemes result from mixing colors across these groups.',
+    groups: ['Spring (warm + light)', 'Summer (cool + light)', 'Autumn (warm + deep)', 'Winter (cool + deep)'],
+  },
+  dba_principles: [
+    { name: 'Uniqueness', description: 'Color must be ownable in the category — e.g., "Tiffany Blue" (Pantone 1837).' },
+    { name: 'Fame', description: 'Color triggers recognition in 85% of consumers without a logo present.' },
+    { name: 'Consistency', description: 'Same color applied across all touchpoints without variation.' },
+  ],
+  sentiment_color_mapping: {
+    title: 'Sentiment Analysis & Computational Color Modeling (SACM)',
+    description: 'Maps text sentiment to color palettes for brand consistency.',
+    mappings: [
+      { sentiment: 'Positive / Trust', color_family: 'Cyan / Teal' },
+      { sentiment: 'Negative / Urgency', color_family: 'Magenta / Red' },
+      { sentiment: 'Neutral / Professional', color_family: 'Blue-Gray / Slate' },
+      { sentiment: 'Joy / Energy', color_family: 'Yellow / Orange' },
+      { sentiment: 'Calm / Wellness', color_family: 'Green / Sage' },
+    ],
+  },
+};
+
+// ── Module 15: Cultural Color Geometry ──
+
+export const CULTURAL_COLOR_GEOMETRY = {
+  id: 'cultural_color_geometry',
+  title: 'Cultural Color Geometry — Regional Meaning Variations',
+  description: 'Color associations vary dramatically by culture. Localization must account for these differences.',
+  mappings: [
+    { color: 'Red', western: 'Danger, passion, urgency', eastern: 'Joy, celebration, prosperity (China)', african: 'Mourning (South Africa)', middle_east: 'Caution, danger' },
+    { color: 'White', western: 'Purity, cleanliness', eastern: 'Mourning, death (China, Japan)', african: 'Spirituality', middle_east: 'Purity, peace' },
+    { color: 'Green', western: 'Nature, money, go', eastern: 'Eternity, fertility', african: 'Corruption (some regions)', middle_east: 'Islam, paradise, fertility' },
+    { color: 'Yellow', western: 'Caution, warmth', eastern: 'Royalty, courage (Japan)', african: 'Wealth, status', middle_east: 'Mourning (Egypt)' },
+    { color: 'Purple', western: 'Royalty, luxury', eastern: 'Wealth, nobility', african: 'Royalty, mourning', middle_east: 'Wealth, piety' },
+    { color: 'Black', western: 'Elegance, mourning', eastern: 'Career, knowledge', african: 'Maturity, masculinity', middle_east: 'Mourning, evil' },
+  ],
+};
+
+// ── Module 16: 2026 Color Trends & Aesthetic Frontier ──
+
+export const COLOR_TRENDS_2026 = {
+  id: 'color_trends_2026',
+  title: '2026 Aesthetic Frontier & Color Trends',
+  color_history: [
+    { era: 'Antiquity (Aristotle)', theory: 'All colors derive from light (white) and darkness (black).' },
+    { era: '1704 (Newton)', theory: 'Established the visible spectrum (ROYGBIV) and additive color mixing.' },
+    { era: '1810 (Goethe)', theory: 'Color is a perceptual phenomenon; studied physiological/emotional effects.' },
+    { era: '1905 (Munsell)', theory: 'Standardized color using Hue, Value, and Chroma for industrial reproduction.' },
+    { era: '2026 (OKLCH)', theory: 'Perceptually uniform color space replaces HSL for accessibility-first design.' },
+  ],
+  trending_palettes: [
+    { name: 'Cloud Dancer (Pantone 2026)', hex: '#F0EDE5', meaning: 'A billowy white signaling reset and relief from digital overstimulation.' },
+    { name: 'Synthetic Naturalism', hex: null, meaning: 'Blending AI-generated precision with organic tones like Secret Safari (PPG 2026).' },
+    { name: 'Transformative Teal', hex: '#008080', meaning: 'A green-blue tone symbolizing resilience and eco-conscious creativity.' },
+    { name: 'Dopamine Colors', hex: null, meaning: 'High-saturation hues for engagement; caution for neurodiverse users who may be overstimulated.' },
+  ],
+  dark_mode_2_0: {
+    description: 'Avoid pure black (#000000); use deep charcoal (#1A1A1A or similar) to prevent OLED "black smearing" and visual fatigue.',
+    recommended_base: '#1A1A2E',
+  },
+};
 
 export const AI_POLICY_AS_CODE = {
   disparate_impact_rule: {
@@ -392,6 +493,25 @@ export function buildDeepIntelligencePromptContext(): string {
   lines.push(`Disparate Impact: ${AI_POLICY_AS_CODE.disparate_impact_rule.description}`);
   for (const p of AI_POLICY_AS_CODE.governance_pillars) {
     lines.push(`- ${p.name}: ${p.description}`);
+  }
+
+  lines.push('\n## Deep Intelligence: OKLCH Perceptual Color Standard');
+  lines.push(OKLCH_COLOR_STANDARD.description);
+  lines.push(`Contrast: Primary text ${OKLCH_COLOR_STANDARD.contrast_requirements.primary_text}, Focus indicators ${OKLCH_COLOR_STANDARD.contrast_requirements.focus_indicators}`);
+
+  lines.push('\n## Deep Intelligence: Color Psychology & DBA');
+  lines.push(`${COLOR_PSYCHOLOGY_DBA.brand_recognition_stat} ${COLOR_PSYCHOLOGY_DBA.consumer_assessment}`);
+  lines.push(`Helmholtz-Kohlrausch: ${COLOR_PSYCHOLOGY_DBA.helmholtz_kohlrausch.description}`);
+  lines.push(`DBA: ${COLOR_PSYCHOLOGY_DBA.dba_principles.map(p => `${p.name}: ${p.description}`).join(' | ')}`);
+
+  lines.push('\n## Deep Intelligence: Cultural Color Geometry');
+  for (const m of CULTURAL_COLOR_GEOMETRY.mappings.slice(0, 4)) {
+    lines.push(`- ${m.color}: Western(${m.western}), Eastern(${m.eastern}), African(${m.african})`);
+  }
+
+  lines.push('\n## Deep Intelligence: 2026 Color Trends');
+  for (const t of COLOR_TRENDS_2026.trending_palettes) {
+    lines.push(`- ${t.name}: ${t.meaning}`);
   }
 
   lines.push('\n## Deep Intelligence: EAA + Section 508 Regulatory Baseline');
