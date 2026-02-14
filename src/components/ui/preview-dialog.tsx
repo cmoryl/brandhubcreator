@@ -87,10 +87,11 @@ export const PreviewDialog = ({
                 src={previewUrl}
                 alt={title}
                 className={cn(
-                  "max-w-full max-h-[65vh] object-contain transition-transform duration-200 rounded-lg shadow-lg",
+                  "object-contain transition-transform duration-200 rounded-lg shadow-lg",
+                  zoom === 1 ? "max-w-full max-h-[65vh]" : "",
                   getAspectClass()
                 )}
-                style={{ transform: `scale(${zoom})` }}
+                style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}
                 onLoad={() => setIsLoading(false)}
                 onError={() => setIsLoading(false)}
               />
