@@ -361,6 +361,7 @@ const SECTION_ID_TO_WEIGHT_KEY: Record<string, string> = {
   sponsorlogos: 'sponsorLogos',
   clientlogos: 'clientLogos',
   eventsignage: 'eventSignage',
+  revenue: 'revenueData',
   universe: 'linkedGuides',
   // 'products' and 'events' are nav-only sections with no weight key
 };
