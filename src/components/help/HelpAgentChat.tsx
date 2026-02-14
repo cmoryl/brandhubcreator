@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Bot, X, Send, Loader2, MessageSquare } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { type Components } from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -108,12 +109,37 @@ async function streamChat({
 }
 
 export function HelpAgentChat() {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Markdown components that handle internal navigation links
+  const markdownComponents = useMemo<Components>(() => ({
+    a: ({ href, children, ...props }) => {
+      const isInternal = href && href.startsWith('/');
+      if (isInternal) {
+        return (
+          <a
+            {...props}
+            href={href}
+            className="text-primary underline hover:text-primary/80 cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              setIsOpen(false);
+              navigate(href);
+            }}
+          >
+            {children}
+          </a>
+        );
+      }
+      return <a {...props} href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline">{children}</a>;
+    },
+  }), [navigate]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -254,7 +280,7 @@ export function HelpAgentChat() {
                     >
                       {msg.role === 'assistant' ? (
                         <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:m-0 [&>ul]:mt-1 [&>ol]:mt-1 [&>p+p]:mt-2">
-                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                          <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
                         </div>
                       ) : (
                         <p>{msg.content}</p>

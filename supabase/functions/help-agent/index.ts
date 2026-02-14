@@ -36,6 +36,16 @@ async function getUserOrgId(userId: string): Promise<string | null> {
   return data?.[0]?.organization_id || null;
 }
 
+async function getOrgSlug(orgId: string): Promise<string | null> {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/organizations?id=eq.${orgId}&select=slug&limit=1`,
+    { headers: restHeaders() }
+  );
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data?.[0]?.slug || null;
+}
+
 async function fetchOracleContext(orgId: string): Promise<string> {
   const parts: string[] = [];
 
@@ -97,32 +107,32 @@ async function fetchEntityBrains(orgId: string): Promise<string> {
     const productIds = brains.filter((b: any) => b.entity_type === 'product').map((b: any) => b.entity_id);
     const eventIds = brains.filter((b: any) => b.entity_type === 'event').map((b: any) => b.entity_id);
 
-    const nameMap: Record<string, string> = {};
+    const nameMap: Record<string, { name: string; slug: string }> = {};
 
     const nameFetches = [];
     if (brandIds.length) {
       nameFetches.push(
-        fetch(`${SUPABASE_URL}/rest/v1/brands?id=in.(${brandIds.join(',')})&select=id,name`, { headers: restHeaders() })
-          .then(r => r.json()).then((data: any[]) => data?.forEach(d => nameMap[d.id] = d.name)).catch(() => {})
+        fetch(`${SUPABASE_URL}/rest/v1/brands?id=in.(${brandIds.join(',')})&select=id,name,slug`, { headers: restHeaders() })
+          .then(r => r.json()).then((data: any[]) => data?.forEach(d => nameMap[d.id] = { name: d.name, slug: d.slug || d.name.toLowerCase().replace(/\s+/g, '-') })).catch(() => {})
       );
     }
     if (productIds.length) {
       nameFetches.push(
-        fetch(`${SUPABASE_URL}/rest/v1/products?id=in.(${productIds.join(',')})&select=id,name`, { headers: restHeaders() })
-          .then(r => r.json()).then((data: any[]) => data?.forEach(d => nameMap[d.id] = d.name)).catch(() => {})
+        fetch(`${SUPABASE_URL}/rest/v1/products?id=in.(${productIds.join(',')})&select=id,name,slug`, { headers: restHeaders() })
+          .then(r => r.json()).then((data: any[]) => data?.forEach(d => nameMap[d.id] = { name: d.name, slug: d.slug || d.name.toLowerCase().replace(/\s+/g, '-') })).catch(() => {})
       );
     }
     if (eventIds.length) {
       nameFetches.push(
-        fetch(`${SUPABASE_URL}/rest/v1/events?id=in.(${eventIds.join(',')})&select=id,name`, { headers: restHeaders() })
-          .then(r => r.json()).then((data: any[]) => data?.forEach(d => nameMap[d.id] = d.name)).catch(() => {})
+        fetch(`${SUPABASE_URL}/rest/v1/events?id=in.(${eventIds.join(',')})&select=id,name,slug`, { headers: restHeaders() })
+          .then(r => r.json()).then((data: any[]) => data?.forEach(d => nameMap[d.id] = { name: d.name, slug: d.slug || d.name.toLowerCase().replace(/\s+/g, '-') })).catch(() => {})
       );
     }
     await Promise.all(nameFetches);
 
     const summaries = brains.map((b: any) => {
-      const name = nameMap[b.entity_id] || b.entity_id;
-      const lines = [`### ${name} (${b.entity_type})`];
+      const entity = nameMap[b.entity_id] || { name: b.entity_id, slug: b.entity_id };
+      const lines = [`### ${entity.name} (${b.entity_type}) [slug: ${entity.slug}]`];
       if (b.brand_summary) lines.push(b.brand_summary.slice(0, 400));
       if (b.market_position) lines.push(`Market Position: ${b.market_position}`);
       if (b.competitive_advantages && Array.isArray(b.competitive_advantages)) {
@@ -179,6 +189,19 @@ Brands have many configurable sections: Hero, Identity, Colors, Typography, Logo
 - All changes save automatically.
 - The Oracle Brain learns from all entity brains and provides portfolio-wide intelligence.
 
+## Navigation Links
+When referring to a specific brand, product, or event page, ALWAYS include a markdown link so the user can navigate directly. Use these URL patterns:
+- Brand page: \`/org/{orgSlug}/brand/{brandSlug}\`
+- Product page: \`/org/{orgSlug}/product/{productSlug}\`
+- Event page: \`/org/{orgSlug}/event/{eventSlug}\`
+- Organization portal: \`/org/{orgSlug}\`
+
+To link to a specific SECTION of a brand/product/event page, append the section ID as a hash fragment. Available section IDs: hero, tagline, identity, colors, typography, logos, patterns, gradients, imagery, voice, messaging, digitalCollateral, socialAssets, iconography, qrCodes, emailSignatures, templates, brochures, caseStudies, antiPatterns, symbolStandards, geometricPrimitives, website, platformMarketer, events, statistics, revenueGrowth.
+
+Example: "Check your [Colors section](/org/acme/brand/my-brand#colors)" or "View [My Brand](/org/acme/brand/my-brand)".
+
+When you have organization context with entity names, generate slugs by lowercasing and replacing spaces with hyphens (e.g., "My Brand" → "my-brand").
+
 Keep answers concise, friendly, and actionable. Use markdown for clarity. When you have organization-specific context, reference it naturally to personalize your answers. If unsure, suggest checking the help articles or contacting an admin.`;
 
 serve(async (req) => {
@@ -202,14 +225,16 @@ serve(async (req) => {
         if (user?.id) {
           const orgId = await getUserOrgId(user.id);
           if (orgId) {
-            // Fetch Oracle + Entity brains in parallel
-            const [oracleCtx, brainsCtx] = await Promise.all([
+            // Fetch Oracle + Entity brains + org slug in parallel
+            const [oracleCtx, brainsCtx, orgSlug] = await Promise.all([
               fetchOracleContext(orgId),
               fetchEntityBrains(orgId),
+              getOrgSlug(orgId),
             ]);
             const parts = [oracleCtx, brainsCtx].filter(Boolean);
             if (parts.length) {
-              contextBlock = `\n\n---\n# LIVE ORGANIZATION CONTEXT\nThe following is real-time intelligence from the user's organization. Use it to give personalized, context-aware answers.\n\n${parts.join('\n\n')}`;
+              const slugNote = orgSlug ? `\n\nOrganization slug for navigation links: **${orgSlug}**` : '';
+              contextBlock = `\n\n---\n# LIVE ORGANIZATION CONTEXT\nThe following is real-time intelligence from the user's organization. Use it to give personalized, context-aware answers.${slugNote}\n\n${parts.join('\n\n')}`;
             }
           }
         }
