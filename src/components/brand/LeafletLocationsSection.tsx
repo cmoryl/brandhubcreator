@@ -426,9 +426,9 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
         }}
       >
         {/* Header with title and controls */}
-        <div className="p-6 border-b border-white/10">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
+        <div className="p-4 sm:p-6 border-b border-white/10">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+            <div className="min-w-0">
               {isEditingTitle && canEdit ? (
                 <Input
                   value={sectionTitle}
@@ -471,10 +471,10 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
               )}
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               {/* Data source toggle */}
               {canToggleDataSource && (
-                <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/5 border border-white/10">
+                <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 rounded-lg bg-white/5 border border-white/10">
                   <div className="flex items-center gap-2 text-xs text-gray-400">
                     <FileText className="h-3.5 w-3.5" />
                     <span>Brand</span>
@@ -515,14 +515,14 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
             </div>
           </div>
 
-          {/* Category filters */}
-          <div className="flex flex-wrap gap-2 mt-4">
-            <Button
-              size="sm"
-              variant={selectedCategory === 'all' ? 'default' : 'outline'}
-              onClick={() => setSelectedCategory('all')}
-              className={cn(
-                "text-xs",
+          {/* Category filters - horizontal scroll on mobile */}
+          <div className="flex gap-2 mt-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible sm:pb-0">
+              <Button
+                  size="sm"
+                  variant={selectedCategory === 'all' ? 'default' : 'outline'}
+                  onClick={() => setSelectedCategory('all')}
+                  className={cn(
+                    "text-xs whitespace-nowrap flex-shrink-0",
                 selectedCategory === 'all' 
                   ? 'bg-cyan-500/30 text-cyan-300 border-cyan-500/50' 
                   : 'bg-transparent text-gray-400 border-white/10 hover:bg-white/5'
@@ -536,7 +536,7 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
                 size="sm"
                 variant={selectedCategory === key ? 'default' : 'outline'}
                 onClick={() => setSelectedCategory(key)}
-                className="text-xs bg-transparent border-white/10 hover:bg-white/5"
+                className="text-xs bg-transparent border-white/10 hover:bg-white/5 whitespace-nowrap flex-shrink-0"
                 style={{ 
                   borderColor: selectedCategory === key ? config.color : undefined,
                   color: selectedCategory === key ? config.color : undefined,
@@ -550,7 +550,7 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
         </div>
 
         {/* Leaflet Map with Error Boundary */}
-        <div className="h-[500px] relative">
+        <div className="h-[300px] sm:h-[400px] md:h-[500px] relative">
           <MapErrorBoundary fallbackHeight="500px">
             <Suspense fallback={
               <div className="h-full w-full flex items-center justify-center bg-muted/20">
@@ -574,8 +574,8 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
 
         {/* Stats section - prominent display with glow effects */}
         {(displayStats.length > 0 || canEdit) && (
-          <div className="p-6 border-t border-white/10">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="p-4 sm:p-6 border-t border-white/10">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
               {displayStats.map((stat, index) => {
                 const StatIcon = getStatIcon(stat.icon);
                 const lighterAccent = lightenHex(accentColor, 0.2);
@@ -613,7 +613,7 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
                         </div>
                       )}
                       <p 
-                        className="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent"
+                        className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent break-words"
                         style={{ 
                           backgroundImage: `linear-gradient(to right, ${accentColor}, ${lighterAccent})`,
                           textShadow: `0 0 30px ${hexToRgba(accentColor, 0.5)}`,
@@ -684,7 +684,7 @@ export const LeafletLocationsSection: React.FC<LeafletLocationsSectionProps> = (
 
         {/* Locations list - show 2 rows (8 items) initially, expand to see all */}
         {displayLocations.length > 0 && (
-          <div className="p-6 border-t border-white/10">
+          <div className="p-4 sm:p-6 border-t border-white/10">
             {/* Calculate how many items to show - 2 rows = 8 items on lg, 6 on md, 4 on sm, 2 on mobile */}
             {(() => {
               const ITEMS_PER_ROW = 4; // lg grid cols
