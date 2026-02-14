@@ -417,7 +417,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
           )}
           
           {/* Content */}
-          <div className={`relative z-10 ${settings.backgroundStyle === 'floating' ? 'py-12 px-4' : 'p-8 md:p-12'}`}>
+          <div className={`relative z-10 overflow-hidden ${settings.backgroundStyle === 'floating' ? 'py-8 sm:py-12 px-4' : 'p-4 sm:p-8 md:p-12'}`}>
             {settings.backgroundStyle !== 'floating' && (
               <div className="flex items-center gap-2 mb-4">
                 <div className={`h-px flex-1 bg-gradient-to-r from-transparent ${settings.backgroundStyle === 'glass' ? 'via-foreground/20' : 'via-white/30'} to-transparent`} />
@@ -453,12 +453,14 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                   style={{
                     fontFamily: `"${fontSettings.fontFamily}", serif`,
                     fontWeight: fontSettings.fontWeight,
-                    fontSize: `clamp(1.5rem, ${fontSettings.fontSize / 16}rem, ${fontSettings.fontSize}px)`,
+                    fontSize: `clamp(1.25rem, 4vw, ${fontSettings.fontSize}px)`,
                     letterSpacing: `${fontSettings.letterSpacing}px`,
                     lineHeight: fontSettings.lineHeight,
                     textTransform: fontSettings.textTransform,
                     textAlign: fontSettings.textAlign,
                     fontStyle: fontSettings.fontStyle,
+                    overflowWrap: 'break-word',
+                    wordBreak: 'break-word',
                   }}
                 />
                 {settings.backgroundStyle !== 'floating' && (
@@ -484,7 +486,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
               placeholder="An alternative or supporting tagline"
             />
           ) : (
-            <p className="text-xl font-medium text-foreground">
+            <p className="text-lg sm:text-xl font-medium text-foreground break-words" style={{ overflowWrap: 'break-word' }}>
               {tagline.secondary || 'No secondary tagline set'}
             </p>
           )}

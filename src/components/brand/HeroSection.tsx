@@ -714,7 +714,7 @@ export const HeroSection = ({
                 </div>
                 
                 {/* Brand name and tagline with enhanced typography */}
-                <div className="flex flex-col gap-1 sm:gap-3 min-w-0 flex-1">
+                <div className="flex flex-col gap-1 sm:gap-3 min-w-0 flex-1 overflow-hidden">
                   {/* Editable title or display */}
                   {canEdit && isEditing ? (
                     <Input
@@ -726,10 +726,12 @@ export const HeroSection = ({
                     />
                   ) : (
                     <h1 
-                      className={`text-xl sm:text-3xl lg:text-5xl xl:text-6xl font-bold drop-shadow-lg tracking-tight transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+                      className={`text-xl sm:text-3xl lg:text-5xl xl:text-6xl font-bold drop-shadow-lg tracking-tight break-words transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
                       style={{ 
                         color: hero.titleColor || '#ffffff',
-                        textShadow: hero.taglineGlow ? `0 0 20px ${hero.titleColor || '#ffffff'}40, 0 0 40px ${hero.titleColor || '#ffffff'}20` : undefined
+                        textShadow: hero.taglineGlow ? `0 0 20px ${hero.titleColor || '#ffffff'}40, 0 0 40px ${hero.titleColor || '#ffffff'}20` : undefined,
+                        overflowWrap: 'break-word',
+                        wordBreak: 'break-word',
                       }}
                     >
                       {hero.name || 'Brand Name'}
@@ -749,10 +751,12 @@ export const HeroSection = ({
                   ) : (
                     <>
                       <p 
-                        className={`text-sm sm:text-lg lg:text-2xl drop-shadow-md max-w-3xl line-clamp-2 sm:line-clamp-none transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+                        className={`text-sm sm:text-lg lg:text-2xl drop-shadow-md max-w-3xl line-clamp-2 sm:line-clamp-none break-words transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
                         style={{ 
                           color: hero.taglineColor || 'rgba(255,255,255,0.9)',
-                          textShadow: hero.taglineGlow ? `0 0 15px ${hero.taglineColor || '#ffffff'}50, 0 0 30px ${hero.taglineColor || '#ffffff'}30` : undefined
+                          textShadow: hero.taglineGlow ? `0 0 15px ${hero.taglineColor || '#ffffff'}50, 0 0 30px ${hero.taglineColor || '#ffffff'}30` : undefined,
+                          overflowWrap: 'break-word',
+                          wordBreak: 'break-word',
                         }}
                       >
                         {hero.tagline || 'Your brand tagline goes here'}
