@@ -218,18 +218,23 @@ export type Database = {
           error_message: string | null
           findings: Json | null
           id: string
+          inclusion_checklist_module: Json | null
           inclusion_score: number | null
+          inclusive_imagery_module: Json | null
           language_analysis: Json | null
           language_audit: Json | null
           language_score: number | null
           organization_id: string
           persona_coverage: Json | null
+          pie_module: Json | null
+          policy_as_code_module: Json | null
           recommendations: Json | null
           status: string
           updated_at: string
           visual_analysis: Json | null
           visual_score: number | null
           wcag_compliance: Json | null
+          wfa_module: Json | null
         }
         Insert: {
           accessibility_analysis?: Json | null
@@ -245,18 +250,23 @@ export type Database = {
           error_message?: string | null
           findings?: Json | null
           id?: string
+          inclusion_checklist_module?: Json | null
           inclusion_score?: number | null
+          inclusive_imagery_module?: Json | null
           language_analysis?: Json | null
           language_audit?: Json | null
           language_score?: number | null
           organization_id: string
           persona_coverage?: Json | null
+          pie_module?: Json | null
+          policy_as_code_module?: Json | null
           recommendations?: Json | null
           status?: string
           updated_at?: string
           visual_analysis?: Json | null
           visual_score?: number | null
           wcag_compliance?: Json | null
+          wfa_module?: Json | null
         }
         Update: {
           accessibility_analysis?: Json | null
@@ -272,18 +282,23 @@ export type Database = {
           error_message?: string | null
           findings?: Json | null
           id?: string
+          inclusion_checklist_module?: Json | null
           inclusion_score?: number | null
+          inclusive_imagery_module?: Json | null
           language_analysis?: Json | null
           language_audit?: Json | null
           language_score?: number | null
           organization_id?: string
           persona_coverage?: Json | null
+          pie_module?: Json | null
+          policy_as_code_module?: Json | null
           recommendations?: Json | null
           status?: string
           updated_at?: string
           visual_analysis?: Json | null
           visual_score?: number | null
           wcag_compliance?: Json | null
+          wfa_module?: Json | null
         }
         Relationships: [
           {
