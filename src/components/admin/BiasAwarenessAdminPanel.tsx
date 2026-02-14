@@ -59,6 +59,11 @@ interface ScanRow {
   accessibility_analysis: Record<string, unknown> | null;
   ai_governance_analysis: Record<string, unknown> | null;
   persona_coverage: Record<string, unknown> | null;
+  pie_module: Record<string, unknown> | null;
+  wfa_module: Record<string, unknown> | null;
+  policy_as_code_module: Record<string, unknown> | null;
+  inclusive_imagery_module: Record<string, unknown> | null;
+  inclusion_checklist_module: Record<string, unknown> | null;
 }
 
 interface OrgStats {
@@ -260,6 +265,178 @@ const ScanExpandedDetails = ({ scan }: { scan: ScanRow }) => {
             )}
           </div>
         </div>
+      )}
+
+      {/* Advanced Modules */}
+      <AdvancedModulesSection scan={scan} />
+    </div>
+  );
+};
+
+const ModuleScoreCard = ({ title, score, icon, children }: { title: string; score: number; icon: React.ReactNode; children: React.ReactNode }) => (
+  <div className="p-3 rounded-lg border bg-muted/20 space-y-2">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        {icon}
+        <span className="text-xs font-semibold">{title}</span>
+      </div>
+      <span className={`text-sm font-bold ${scoreColor(score)}`}>{Math.round(score)}</span>
+    </div>
+    {children}
+  </div>
+);
+
+const AdvancedModulesSection = ({ scan }: { scan: ScanRow }) => {
+  const pie = scan.pie_module as Record<string, any> | null;
+  const wfa = scan.wfa_module as Record<string, any> | null;
+  const pac = scan.policy_as_code_module as Record<string, any> | null;
+  const imagery = scan.inclusive_imagery_module as Record<string, any> | null;
+  const checklist = scan.inclusion_checklist_module as Record<string, any> | null;
+
+  const hasModules = pie || wfa || pac || imagery || checklist;
+  if (!hasModules) return null;
+
+  return (
+    <div className="space-y-3">
+      <h4 className="text-xs font-semibold flex items-center gap-1.5">
+        <Shield className="h-3.5 w-3.5 text-primary" />
+        Advanced Governance Modules
+      </h4>
+
+      {/* PI&E Module */}
+      {pie?.touchpoints && (
+        <ModuleScoreCard title="PI&E 'Who Else?' Framework" score={Number(pie.overall_score || 0)} icon={<Users className="h-3.5 w-3.5 text-blue-500" />}>
+          <div className="space-y-1">
+            {Object.entries(pie.touchpoints as Record<string, any>).map(([key, tp]) => (
+              <div key={key} className="flex items-center justify-between text-[10px]">
+                <span className="capitalize font-medium">{key}</span>
+                <div className="flex items-center gap-2">
+                  <Progress value={Number(tp?.score || 0)} className="h-1 w-16" />
+                  <span className={`font-semibold w-6 text-right ${scoreColor(Number(tp?.score || 0))}`}>{Math.round(Number(tp?.score || 0))}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          {pie.touchpoints && Object.values(pie.touchpoints as Record<string, any>).some((tp: any) => tp?.recommendation) && (
+            <div className="mt-2 pt-2 border-t space-y-1">
+              {Object.entries(pie.touchpoints as Record<string, any>).map(([key, tp]) => tp?.recommendation ? (
+                <div key={key} className="text-[9px] flex items-start gap-1">
+                  <AlertTriangle className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" />
+                  <span><strong className="capitalize">{key}:</strong> {tp.recommendation}</span>
+                </div>
+              ) : null)}
+            </div>
+          )}
+        </ModuleScoreCard>
+      )}
+
+      {/* WFA Module */}
+      {wfa?.areas && (
+        <ModuleScoreCard title="WFA Bias Litmus Test" score={Number(wfa.overall_score || 0)} icon={<Shield className="h-3.5 w-3.5 text-purple-500" />}>
+          <div className="space-y-1">
+            {Object.entries(wfa.areas as Record<string, any>).map(([key, area]) => (
+              <div key={key} className="text-[10px]">
+                <div className="flex items-center justify-between">
+                  <span className="capitalize font-medium">{key.replace(/_/g, ' ')}</span>
+                  <span className={`font-semibold ${scoreColor(Number(area?.score || 0))}`}>{Math.round(Number(area?.score || 0))}</span>
+                </div>
+                {Array.isArray(area?.findings) && area.findings.length > 0 && (
+                  <div className="ml-2 mt-0.5">
+                    {area.findings.slice(0, 2).map((f: string, i: number) => (
+                      <p key={i} className="text-[9px] text-muted-foreground">• {f}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </ModuleScoreCard>
+      )}
+
+      {/* Policy-as-Code Module */}
+      {pac && (
+        <ModuleScoreCard title="Policy-as-Code Thresholds" score={Number(pac.overall_score || 0)} icon={<Brain className="h-3.5 w-3.5 text-orange-500" />}>
+          <div className="grid grid-cols-3 gap-2 text-[10px]">
+            <div>
+              <p className="text-muted-foreground text-[9px]">Data Journey</p>
+              <Badge variant="outline" className="text-[8px] capitalize">{pac.data_journey_traceability || 'N/A'}</Badge>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-[9px]">Bias Detection</p>
+              <Badge variant="outline" className="text-[8px] capitalize">{pac.bias_detection_automation || 'N/A'}</Badge>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-[9px]">Monitoring</p>
+              <Badge variant="outline" className="text-[8px] capitalize">{pac.threshold_monitoring || 'N/A'}</Badge>
+            </div>
+          </div>
+          {Array.isArray(pac.disparate_impact_flags) && pac.disparate_impact_flags.length > 0 && (
+            <div className="mt-2 pt-2 border-t space-y-1">
+              <p className="text-[9px] font-medium text-muted-foreground">Disparate Impact Flags</p>
+              {pac.disparate_impact_flags.map((flag: any, i: number) => (
+                <div key={i} className="flex items-start gap-1.5 text-[9px]">
+                  <Badge variant={flag.severity === 'critical' ? 'destructive' : 'outline'} className="text-[8px] shrink-0">{flag.severity}</Badge>
+                  <span>{flag.area}: ratio {flag.ratio} — {flag.recommendation}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </ModuleScoreCard>
+      )}
+
+      {/* Inclusive Imagery Module */}
+      {imagery && (
+        <ModuleScoreCard title="Inclusive Imagery (Stop/Go)" score={Number(imagery.imagery_inclusion_score || 0)} icon={<Eye className="h-3.5 w-3.5 text-green-500" />}>
+          <div className="grid grid-cols-2 gap-2">
+            {Array.isArray(imagery.stop_signals_detected) && imagery.stop_signals_detected.length > 0 && (
+              <div>
+                <p className="text-[9px] font-medium text-destructive mb-0.5">⛔ STOP Signals</p>
+                {imagery.stop_signals_detected.map((s: string, i: number) => (
+                  <p key={i} className="text-[9px] text-muted-foreground">• {s}</p>
+                ))}
+              </div>
+            )}
+            {Array.isArray(imagery.go_signals_present) && imagery.go_signals_present.length > 0 && (
+              <div>
+                <p className="text-[9px] font-medium text-green-500 mb-0.5">✅ GO Signals</p>
+                {imagery.go_signals_present.map((s: string, i: number) => (
+                  <p key={i} className="text-[9px] text-muted-foreground">• {s}</p>
+                ))}
+              </div>
+            )}
+          </div>
+        </ModuleScoreCard>
+      )}
+
+      {/* Inclusion Checklist Module */}
+      {checklist && (
+        <ModuleScoreCard title="2026 Master Inclusion Checklist" score={Number(checklist.score || 0)} icon={<CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />}>
+          <div className="flex items-center gap-2 text-[10px] mb-2">
+            <span className="text-muted-foreground">Completed:</span>
+            <span className="font-bold">{checklist.completed_count || 0} / {checklist.applicable_count || 26}</span>
+          </div>
+          {checklist.categories && (
+            <div className="grid grid-cols-2 gap-2">
+              {Object.entries(checklist.categories as Record<string, any>).map(([cat, data]) => (
+                <div key={cat} className="text-[9px]">
+                  <p className="font-medium capitalize mb-0.5">{cat}</p>
+                  {Array.isArray(data?.met) && data.met.length > 0 && data.met.slice(0, 2).map((m: string, i: number) => (
+                    <div key={i} className="flex items-start gap-1">
+                      <CheckCircle2 className="h-2.5 w-2.5 text-green-500 shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground">{m}</span>
+                    </div>
+                  ))}
+                  {Array.isArray(data?.unmet) && data.unmet.length > 0 && data.unmet.slice(0, 2).map((m: string, i: number) => (
+                    <div key={i} className="flex items-start gap-1">
+                      <AlertTriangle className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground">{m}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </ModuleScoreCard>
       )}
     </div>
   );

@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { Shield, Scan, AlertTriangle, CheckCircle2, Info, Eye, MessageSquare, Accessibility, Brain, ChevronDown, ChevronRight, Loader2, Users } from 'lucide-react';
+import { Shield, Scan, AlertTriangle, CheckCircle2, Info, Eye, MessageSquare, Accessibility, Brain, ChevronDown, ChevronRight, Loader2, Users, FileCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -175,6 +175,169 @@ const DimensionCard = ({
   );
 };
 
+const EntityAdvancedModules = ({ scan }: { scan: any }) => {
+  const pie = scan.pie_module as Record<string, any> | null;
+  const wfa = scan.wfa_module as Record<string, any> | null;
+  const pac = scan.policy_as_code_module as Record<string, any> | null;
+  const imagery = scan.inclusive_imagery_module as Record<string, any> | null;
+  const checklist = scan.inclusion_checklist_module as Record<string, any> | null;
+
+  const hasModules = pie || wfa || pac || imagery || checklist;
+
+  if (!hasModules) {
+    return (
+      <Card className="border-dashed">
+        <CardContent className="py-6 text-center">
+          <FileCheck className="h-8 w-8 mx-auto mb-2 text-muted-foreground/40" />
+          <p className="text-xs text-muted-foreground">Advanced modules will appear after a re-scan with the upgraded engine.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <ScrollArea className="max-h-[500px]">
+      <div className="space-y-3">
+        {/* PI&E */}
+        {pie?.touchpoints && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs flex items-center justify-between">
+                <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-blue-500" /> PI&E "Who Else?" Framework</span>
+                <span className={`text-sm font-bold ${scoreColor(Number(pie.overall_score || 0))}`}>{Math.round(Number(pie.overall_score || 0))}</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              {Object.entries(pie.touchpoints as Record<string, any>).map(([key, tp]) => (
+                <div key={key}>
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="capitalize font-medium">{key}</span>
+                    <span className={`font-semibold ${scoreColor(Number(tp?.score || 0))}`}>{Math.round(Number(tp?.score || 0))}</span>
+                  </div>
+                  {tp?.recommendation && (
+                    <p className="text-[9px] text-muted-foreground ml-2">→ {tp.recommendation}</p>
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* WFA */}
+        {wfa?.areas && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs flex items-center justify-between">
+                <span className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5 text-purple-500" /> WFA Bias Litmus Test</span>
+                <span className={`text-sm font-bold ${scoreColor(Number(wfa.overall_score || 0))}`}>{Math.round(Number(wfa.overall_score || 0))}</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              {Object.entries(wfa.areas as Record<string, any>).map(([key, area]) => (
+                <div key={key} className="text-[10px]">
+                  <div className="flex items-center justify-between">
+                    <span className="capitalize font-medium">{key.replace(/_/g, ' ')}</span>
+                    <span className={`font-semibold ${scoreColor(Number(area?.score || 0))}`}>{Math.round(Number(area?.score || 0))}</span>
+                  </div>
+                  {Array.isArray(area?.findings) && area.findings.slice(0, 2).map((f: string, i: number) => (
+                    <p key={i} className="text-[9px] text-muted-foreground ml-2">• {f}</p>
+                  ))}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Policy-as-Code */}
+        {pac && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs flex items-center justify-between">
+                <span className="flex items-center gap-1.5"><Brain className="h-3.5 w-3.5 text-orange-500" /> Policy-as-Code Thresholds</span>
+                <span className={`text-sm font-bold ${scoreColor(Number(pac.overall_score || 0))}`}>{Math.round(Number(pac.overall_score || 0))}</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex gap-3 text-[10px]">
+                <Badge variant="outline" className="text-[8px]">Journey: {pac.data_journey_traceability || 'N/A'}</Badge>
+                <Badge variant="outline" className="text-[8px]">Detection: {pac.bias_detection_automation || 'N/A'}</Badge>
+                <Badge variant="outline" className="text-[8px]">Monitoring: {pac.threshold_monitoring || 'N/A'}</Badge>
+              </div>
+              {Array.isArray(pac.disparate_impact_flags) && pac.disparate_impact_flags.map((flag: any, i: number) => (
+                <div key={i} className="flex items-start gap-1.5 text-[9px]">
+                  <AlertTriangle className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" />
+                  <span>{flag.area} (ratio: {flag.ratio}) — {flag.recommendation}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Inclusive Imagery */}
+        {imagery && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs flex items-center justify-between">
+                <span className="flex items-center gap-1.5"><Eye className="h-3.5 w-3.5 text-green-500" /> Inclusive Imagery (Stop/Go)</span>
+                <span className={`text-sm font-bold ${scoreColor(Number(imagery.imagery_inclusion_score || 0))}`}>{Math.round(Number(imagery.imagery_inclusion_score || 0))}</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-2 text-[9px]">
+                <div>
+                  <p className="font-medium text-destructive mb-0.5">⛔ STOP</p>
+                  {Array.isArray(imagery.stop_signals_detected) && imagery.stop_signals_detected.map((s: string, i: number) => (
+                    <p key={i} className="text-muted-foreground">• {s}</p>
+                  ))}
+                  {(!imagery.stop_signals_detected || imagery.stop_signals_detected.length === 0) && <p className="text-muted-foreground italic">None detected</p>}
+                </div>
+                <div>
+                  <p className="font-medium text-green-500 mb-0.5">✅ GO</p>
+                  {Array.isArray(imagery.go_signals_present) && imagery.go_signals_present.map((s: string, i: number) => (
+                    <p key={i} className="text-muted-foreground">• {s}</p>
+                  ))}
+                  {(!imagery.go_signals_present || imagery.go_signals_present.length === 0) && <p className="text-muted-foreground italic">None detected</p>}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* 2026 Checklist */}
+        {checklist && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs flex items-center justify-between">
+                <span className="flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> 2026 Inclusion Checklist</span>
+                <span className={`text-sm font-bold ${scoreColor(Number(checklist.score || 0))}`}>{checklist.completed_count || 0}/{checklist.applicable_count || 26}</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {checklist.categories && Object.entries(checklist.categories as Record<string, any>).map(([cat, data]) => (
+                <div key={cat} className="mb-2">
+                  <p className="text-[10px] font-medium capitalize mb-0.5">{cat}</p>
+                  {Array.isArray(data?.met) && data.met.map((m: string, i: number) => (
+                    <div key={`met-${i}`} className="flex items-start gap-1 text-[9px]">
+                      <CheckCircle2 className="h-2.5 w-2.5 text-green-500 shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground">{m}</span>
+                    </div>
+                  ))}
+                  {Array.isArray(data?.unmet) && data.unmet.map((m: string, i: number) => (
+                    <div key={`unmet-${i}`} className="flex items-start gap-1 text-[9px]">
+                      <AlertTriangle className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground">{m}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </ScrollArea>
+  );
+};
+
 export const BiasAwarenessPanel = ({ entityType, entityId, entityName, organizationId }: BiasAwarenessPanelProps) => {
   const { latestScan, isLoading, isScanning, startScan } = useBiasAwareness(entityId, entityType, entityName, organizationId);
 
@@ -271,8 +434,9 @@ export const BiasAwarenessPanel = ({ entityType, entityId, entityName, organizat
           </Card>
 
           <Tabs defaultValue="dimensions">
-            <TabsList className="grid grid-cols-3 w-full">
+            <TabsList className="grid grid-cols-4 w-full">
               <TabsTrigger value="dimensions" className="text-xs">Dimensions</TabsTrigger>
+              <TabsTrigger value="modules" className="text-xs">Modules</TabsTrigger>
               <TabsTrigger value="findings" className="text-xs">Findings</TabsTrigger>
               <TabsTrigger value="persona" className="text-xs">Persona</TabsTrigger>
             </TabsList>
@@ -302,6 +466,10 @@ export const BiasAwarenessPanel = ({ entityType, entityId, entityName, organizat
                 icon={<Brain className="h-4 w-4 text-orange-500" />}
                 analysis={(scan.ai_governance_analysis || {}) as Record<string, unknown>}
               />
+            </TabsContent>
+
+            <TabsContent value="modules" className="mt-3">
+              <EntityAdvancedModules scan={scan} />
             </TabsContent>
 
             <TabsContent value="findings" className="mt-3">

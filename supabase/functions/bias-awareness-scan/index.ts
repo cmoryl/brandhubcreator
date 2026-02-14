@@ -134,46 +134,59 @@ serve(async (req) => {
     // @ts-ignore - EdgeRuntime available in Supabase
     EdgeRuntime.waitUntil((async () => {
       try {
-        const systemPrompt = `You are a Bias Awareness & Inclusion Auditor for brand ecosystems. Analyze the provided brand/product/event data across four dimensions and return a structured JSON assessment.
+        const systemPrompt = `You are an advanced Bias Awareness & Inclusion Auditor for brand ecosystems (2026 standard). Analyze the provided entity data across 4 core dimensions PLUS 5 advanced governance modules. Return a single structured JSON assessment.
 
-DIMENSIONS TO EVALUATE:
+CORE DIMENSIONS (0-100 each):
 
-1. LANGUAGE & MESSAGING (language_score 0-100):
-- Check for asset-based vs deficit-focused framing
-- Identify non-inclusive terminology (e.g., "minority", "handicapped", "blacklist/whitelist", gendered terms like "fireman")
-- Evaluate plain language accessibility
-- Check cultural sensitivity in messaging
-- Assess person-first vs identity-first appropriateness
+1. LANGUAGE & MESSAGING (language_score):
+- Asset-based vs deficit-focused framing
+- Non-inclusive terminology detection
+- Plain language accessibility, cultural sensitivity
+- Person-first vs identity-first appropriateness
 
-2. VISUAL REPRESENTATION (visual_score 0-100):
-- Evaluate diversity signals in imagery descriptions/guidelines
-- Check for stereotyping risks in visual direction
-- Assess persona spectrum coverage (permanent, temporary, situational constraints)
-- Check photography/imagery guidelines for inclusivity
+2. VISUAL REPRESENTATION (visual_score):
+- Diversity signals in imagery
+- Stereotyping risk detection
+- Persona spectrum coverage (permanent/temporary/situational)
 
-3. ACCESSIBILITY (accessibility_score 0-100):
-- Evaluate against WCAG 2.2 key criteria awareness
-- Check for target size considerations (24x24px minimum)
-- Assess authentication accessibility
-- Check for multi-sensory design considerations
-- Evaluate event accessibility (if applicable)
+3. ACCESSIBILITY (accessibility_score):
+- WCAG 2.2 compliance awareness
+- Target sizes (24x24px min), accessible authentication
+- Multi-sensory design, event accessibility
 
-4. AI GOVERNANCE (ai_governance_score 0-100):
-- Assess AI-generated content oversight
-- Check for bias detection in automated workflows
-- Evaluate human-in-the-loop processes
-- Check prompt engineering guidelines for inclusivity
+4. AI GOVERNANCE (ai_governance_score):
+- AI content oversight, bias detection in automated workflows
+- Human-in-the-loop processes, prompt inclusivity
+
+ADVANCED MODULES:
+
+MODULE 1 - PI&E "Who Else?" Framework (Annie Jean-Baptiste/Google):
+Evaluate 5 touchpoints: Ideation (whose voice is missing?), Research (are pen portraits generalized?), Design (Curb-Cut Effect opportunities), Testing (diverse co-designer recruitment), Marketing (intersectionality of portrayals). Score each 0-100.
+
+MODULE 2 - WFA 12 Key Areas Bias Litmus Test:
+Audit: business_challenge (is target audience excluding growth?), insight_generation (nuanced vs broad perspectives), creative_briefing (representative casting mandated?), media_placement (blocklists demonetizing minority media?). Score each 0-100.
+
+MODULE 3 - Policy-as-Code Disparate Impact:
+Evaluate content/AI pipelines against the U.S. 80% rule (disparate impact ratio 0.80-1.25). Flag any areas where content skews beyond thresholds. Assess data_journey_traceability, bias_detection_automation, threshold_monitoring readiness.
+
+MODULE 4 - Inclusive Imagery Stop/Go Framework:
+STOP signals: hospital-style equipment, pity-based hierarchies, "heroic" tropes for everyday activities.
+GO signals: authentic models in realistic settings, equal power hierarchies, normalized invisible disabilities.
+Score overall imagery_inclusion 0-100.
+
+MODULE 5 - 2026 Master Inclusion Checklist (26 Actions):
+Evaluate against key areas: linguistic (CamelCase hashtags for screen readers), technical (no puzzle-based auth per WCAG 3.3.8), physical (32in doors, <5lbs force), communication (roving microphones for Q&A). Report completed_count out of applicable_count.
 
 RESPONSE FORMAT (strict JSON):
 {
-  "inclusion_score": <number 0-100, weighted average>,
+  "inclusion_score": <0-100 weighted average>,
   "language_score": <0-100>,
   "visual_score": <0-100>,
   "accessibility_score": <0-100>,
   "ai_governance_score": <0-100>,
   "language_analysis": {
     "strengths": ["..."],
-    "issues": [{"term": "...", "suggestion": "...", "severity": "high|medium|low"}],
+    "issues": ["..."],
     "framing_assessment": "asset-based|mixed|deficit-focused"
   },
   "visual_analysis": {
@@ -199,8 +212,51 @@ RESPONSE FORMAT (strict JSON):
     "cognitive": {"permanent": <bool>, "temporary": <bool>, "situational": <bool>},
     "coverage_percentage": <0-100>
   },
+  "pie_module": {
+    "overall_score": <0-100>,
+    "touchpoints": {
+      "ideation": {"score": <0-100>, "missing_voices": ["..."], "recommendation": "..."},
+      "research": {"score": <0-100>, "generalization_risks": ["..."], "recommendation": "..."},
+      "design": {"score": <0-100>, "curb_cut_opportunities": ["..."], "recommendation": "..."},
+      "testing": {"score": <0-100>, "diversity_gaps": ["..."], "recommendation": "..."},
+      "marketing": {"score": <0-100>, "intersectionality_issues": ["..."], "recommendation": "..."}
+    }
+  },
+  "wfa_module": {
+    "overall_score": <0-100>,
+    "areas": {
+      "business_challenge": {"score": <0-100>, "findings": ["..."]},
+      "insight_generation": {"score": <0-100>, "findings": ["..."]},
+      "creative_briefing": {"score": <0-100>, "findings": ["..."]},
+      "media_placement": {"score": <0-100>, "findings": ["..."]}
+    }
+  },
+  "policy_as_code_module": {
+    "overall_score": <0-100>,
+    "disparate_impact_flags": [{"area": "...", "ratio": <number>, "severity": "critical|warning|ok", "recommendation": "..."}],
+    "data_journey_traceability": "high|medium|low",
+    "bias_detection_automation": "high|medium|low",
+    "threshold_monitoring": "active|partial|absent"
+  },
+  "inclusive_imagery_module": {
+    "imagery_inclusion_score": <0-100>,
+    "stop_signals_detected": ["..."],
+    "go_signals_present": ["..."],
+    "recommendations": ["..."]
+  },
+  "inclusion_checklist_module": {
+    "completed_count": <number>,
+    "applicable_count": <number>,
+    "score": <0-100>,
+    "categories": {
+      "linguistic": {"met": ["..."], "unmet": ["..."]},
+      "technical": {"met": ["..."], "unmet": ["..."]},
+      "physical": {"met": ["..."], "unmet": ["..."]},
+      "communication": {"met": ["..."], "unmet": ["..."]}
+    }
+  },
   "findings": [
-    {"dimension": "language|visual|accessibility|ai_governance", "severity": "critical|high|medium|low", "title": "...", "description": "...", "recommendation": "..."}
+    {"dimension": "language|visual|accessibility|ai_governance|pie|wfa|policy|imagery|checklist", "severity": "critical|high|medium|low", "title": "...", "description": "...", "recommendation": "..."}
   ],
   "recommendations": [
     {"priority": "immediate|short_term|long_term", "dimension": "...", "action": "...", "impact": "high|medium|low"}
@@ -217,7 +273,7 @@ RESPONSE FORMAT (strict JSON):
             model: "google/gemini-2.5-flash-lite",
             messages: [
               { role: "system", content: systemPrompt },
-              { role: "user", content: `Analyze this entity for bias awareness and inclusion:\n\n${contextStr}` }
+              { role: "user", content: `Analyze this entity for bias awareness, inclusion, and all 5 advanced modules:\n\n${contextStr}` }
             ],
             temperature: 0.3,
           }),
@@ -257,7 +313,7 @@ RESPONSE FORMAT (strict JSON):
           return;
         }
 
-        // Update scan record with results
+        // Update scan record with results including advanced modules
         await supabase.from('bias_awareness_scans').update({
           status: 'completed',
           inclusion_score: result.inclusion_score || 0,
@@ -272,6 +328,11 @@ RESPONSE FORMAT (strict JSON):
           persona_coverage: result.persona_coverage || {},
           findings: result.findings || [],
           recommendations: result.recommendations || [],
+          pie_module: result.pie_module || null,
+          wfa_module: result.wfa_module || null,
+          policy_as_code_module: result.policy_as_code_module || null,
+          inclusive_imagery_module: result.inclusive_imagery_module || null,
+          inclusion_checklist_module: result.inclusion_checklist_module || null,
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }).eq('id', scan.id);
