@@ -31,15 +31,15 @@ export const GlobalLinkAdminSection: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl">
-              <Globe2 className="h-6 w-6 text-white" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg sm:rounded-xl">
+              <Globe2 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold">Living Global Brand Guide</h2>
-              <p className="text-muted-foreground">
+              <h2 className="text-lg sm:text-2xl font-bold">Living Global Brand Guide</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Culturally-aware brand content across regions and markets
               </p>
             </div>
@@ -62,7 +62,7 @@ export const GlobalLinkAdminSection: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -143,7 +143,7 @@ export const GlobalLinkAdminSection: React.FC = () => {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-grid">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 lg:w-auto lg:inline-grid">
           <TabsTrigger value="overview" className="gap-2">
             <Globe2 className="h-4 w-4" />
             <span className="hidden sm:inline">Translate</span>

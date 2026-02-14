@@ -55,14 +55,14 @@ export const MobileEventSectionNav = ({
           <Menu className="h-6 w-6" />
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="max-h-[85vh]">
-        <DrawerHeader className="pb-2">
+      <DrawerContent className="max-h-[85vh] flex flex-col">
+        <DrawerHeader className="pb-2 flex-shrink-0">
           <DrawerTitle className="text-left">{eventName}</DrawerTitle>
           <p className="text-xs text-muted-foreground text-left">
             {visibleSections.length} sections
           </p>
         </DrawerHeader>
-        <ScrollArea className="flex-1 px-4 pb-6">
+        <ScrollArea className="flex-1 min-h-0 px-4 pb-6" style={{ maxHeight: 'calc(85vh - 80px)' }}>
           <div className="grid grid-cols-2 gap-2">
             {visibleSections.map((sectionId) => {
               const meta = eventSectionMeta[sectionId];
