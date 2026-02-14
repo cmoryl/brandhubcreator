@@ -4,7 +4,6 @@ import { BrandSignature } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { SIGNATURE_TEMPLATES, TEMPLATE_CATEGORIES, SignatureTemplate } from './signatureTemplates';
 import { DEFAULT_CONFIDENTIALITY } from './signatureConstants';
 import { renderSignatureHtml } from './signatureRenderer';
@@ -152,7 +151,7 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect }: Signat
         </div>
 
         {/* Template Grid */}
-        <ScrollArea className="flex-1 px-6 py-4 [&>[data-radix-scroll-area-viewport]]:!overflow-y-scroll [&_[data-radix-scroll-area-scrollbar]]:opacity-100" style={{ maxHeight: 'calc(90vh - 180px)' }}>
+        <div className="flex-1 px-6 py-4 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 180px)' }}>
           <div className={
             viewMode === 'grid'
               ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5'
@@ -297,7 +296,7 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect }: Signat
               <p className="text-xs mt-1">Try selecting a different category</p>
             </div>
           )}
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
