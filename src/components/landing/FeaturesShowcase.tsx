@@ -104,33 +104,33 @@ const coreFeatures: Feature[] = [
 const eventFeatures: Feature[] = [
   {
     icon: Calendar,
-    title: 'Sensory-Safe Event Kits',
-    description: 'Comprehensive brand guidelines with quiet/reset rooms, epilepsy-safe signage, strobe suppression, and fidget tool provisions for neurodiversity.',
+    title: 'Accessible Event Kits',
+    description: 'Plan events everyone can enjoy — with guidelines for quiet spaces, safe lighting, and thoughtful layouts built right in.',
     gradient: 'from-violet-500/20 to-purple-500/20',
     badge: 'Universal',
   },
   {
     icon: DoorOpen,
     title: 'Physical Accessibility',
-    description: 'Doors ≥32" wide, <5 lbs force. Aisles ≥36" with no pinch points. High-contrast floor markers and accessible route wayfinding.',
+    description: 'Easy-to-follow specs for wide doorways, clear aisles, high-contrast markers, and accessible routes so no one gets left out.',
     gradient: 'from-rose-500/20 to-pink-500/20',
   },
   {
     icon: Volume2,
-    title: 'Sensory Communication',
-    description: 'CamelCase hashtags (#InclusiveDesign), roving microphones for Q&A, human-validated captions, and verbal descriptions of all visual materials.',
+    title: 'Clear Communication',
+    description: 'Readable hashtags, live captions, roving mics for Q&A, and verbal descriptions of visuals — so everyone stays in the loop.',
     gradient: 'from-teal-500/20 to-cyan-500/20',
   },
   {
     icon: MapPin,
     title: 'Venue & Signage',
-    description: 'Sans-serif fonts min 24pt, high-contrast color markers, accessible wayfinding, and verbal announcement protocols for vision impairments.',
+    description: 'Large, readable fonts, high-contrast colors, and clear wayfinding so attendees can navigate any space with confidence.',
     gradient: 'from-amber-500/20 to-orange-500/20',
   },
   {
     icon: Ticket,
     title: 'Digital Banners',
-    description: 'Manage email headers, social media banners, and web assets with size presets — all meeting WCAG 2.2 contrast and motion requirements.',
+    description: 'Manage email headers, social banners, and web assets with ready-made size presets — all accessibility-friendly by default.',
     gradient: 'from-blue-500/20 to-indigo-500/20',
   },
 ];
@@ -139,68 +139,68 @@ const eventFeatures: Feature[] = [
 const localizationFeatures: Feature[] = [
   {
     icon: Languages,
-    title: 'GlobalLink Translation',
-    description: 'Real-time translation via GlobalLink Web API with demo and live modes. Automatic caching for cost optimization.',
+    title: 'Instant Translation',
+    description: 'Translate your brand content in real-time with smart caching so you don\'t pay to translate the same thing twice.',
     gradient: 'from-emerald-500/20 to-teal-500/20',
     badge: 'GlobalLink',
   },
   {
     icon: Globe2,
-    title: 'Multicultural Intelligence',
-    description: 'AI-powered cultural insights with localization readiness scores and regional market analysis for global expansion.',
+    title: 'Cultural Insights',
+    description: 'AI tells you how ready your brand is for new markets and highlights cultural considerations before you launch.',
     gradient: 'from-blue-500/20 to-indigo-500/20',
-    badge: 'AI-Powered',
+    badge: 'AI',
   },
   {
     icon: GitBranch,
-    title: 'Regional Hierarchy',
-    description: 'Global → Region → Country inheritance with JSONB overrides for colors, imagery, messaging, and cultural adaptations.',
+    title: 'Regional Versions',
+    description: 'Set up a global brand, then customize colors, messaging, and imagery for each region or country — changes flow down automatically.',
     gradient: 'from-violet-500/20 to-purple-500/20',
     badge: 'Living Guide',
   },
   {
     icon: Sparkles,
-    title: 'Cultural Adaptation',
-    description: 'AI-suggested regional adaptations for color sensitivity, imagery guidelines, and messaging localization.',
+    title: 'Smart Adaptation',
+    description: 'AI suggests how to adjust your colors, images, and messaging for different regions so nothing gets lost in translation.',
     gradient: 'from-purple-500/20 to-pink-500/20',
   },
   {
     icon: Network,
-    title: 'Translation Hub',
-    description: 'Centralized job management with status tracking, word counts, cache analytics, and target language configuration.',
+    title: 'Translation Dashboard',
+    description: 'Track all your translation jobs in one place — see progress, word counts, and costs at a glance.',
     gradient: 'from-orange-500/20 to-amber-500/20',
   },
   {
     icon: Map,
-    title: 'Regional Comparison',
-    description: 'Side-by-side analysis of variant differences across markets. Compare adaptations and track regional changes.',
+    title: 'Compare Regions',
+    description: 'View your brand side-by-side across markets to spot differences and keep things consistent.',
     gradient: 'from-cyan-500/20 to-sky-500/20',
   },
   {
     icon: Shield,
-    title: 'DataForce Compliance AI',
-    description: 'Automated brand guideline compliance checking powered by DataForce. Detect color, typography, and logo issues.',
+    title: 'Compliance Checker',
+    description: 'Automatically scans your brand materials for color, typography, and logo issues so nothing slips through.',
     gradient: 'from-blue-500/20 to-sky-500/20',
     badge: 'DataForce',
   },
   {
     icon: Bot,
     title: 'AI Brand Assistant',
-    description: 'Multilingual chatbot trained on your brand guidelines. Get instant answers in 50+ languages via DataForce.',
+    description: 'Ask questions about your brand guidelines and get instant answers in 50+ languages — like ChatGPT for your brand.',
     gradient: 'from-green-500/20 to-emerald-500/20',
     badge: 'DataForce',
   },
   {
     icon: Users,
-    title: 'Cultural Validation Panel',
-    description: 'Human-validated feedback from DataForce global crowd. Real user insights across target regions.',
+    title: 'Real User Feedback',
+    description: 'Get feedback from real people in your target markets to validate that your brand resonates locally.',
     gradient: 'from-purple-500/20 to-violet-500/20',
     badge: 'DataForce',
   },
   {
     icon: GraduationCap,
-    title: 'GenAI Brand Training',
-    description: 'Train custom AI models on your brand voice and style with DataForce annotation services.',
+    title: 'Train Your Brand AI',
+    description: 'Teach AI your brand\'s unique voice and style, so it creates content that sounds authentically you.',
     gradient: 'from-amber-500/20 to-orange-500/20',
     badge: 'DataForce',
   },
@@ -210,86 +210,86 @@ const localizationFeatures: Feature[] = [
 const inclusionFeatures: Feature[] = [
   {
     icon: Scale,
-    title: 'Bias Awareness Scanner',
-    description: 'AI-powered 5-dimension bias analysis: Language, Visual, Accessibility, AI Governance & Inclusion scoring with automated CDA remediation.',
+    title: 'Bias Scanner',
+    description: 'AI checks your content across 5 dimensions — language, visuals, accessibility, governance, and inclusion — and suggests fixes automatically.',
     gradient: 'from-violet-500/20 to-purple-500/20',
     badge: '2026',
   },
   {
     icon: Accessibility,
-    title: 'WCAG 2.2 + Dark Mode 2.0',
-    description: 'Full 9 new criteria coverage including Accessible Auth, Focus Appearance (3:1), and display-aware Dark Mode avoiding OLED black smearing.',
+    title: 'Accessibility Built In',
+    description: 'Meets the latest WCAG 2.2 standards including better login options, visible focus states, and a dark mode that\'s easy on the eyes.',
     gradient: 'from-blue-500/20 to-sky-500/20',
     badge: 'AA/AAA',
   },
   {
     icon: Blend,
-    title: 'OKLCH Perceptual Color',
-    description: 'Perceptually uniform lightness steps across all hues. Automated palette generation that always meets 7:1 contrast — no manual checking needed.',
+    title: 'Smart Color Tools',
+    description: 'Colors that just work — our system auto-generates palettes with proper contrast so you never have to guess if things are readable.',
     gradient: 'from-cyan-500/20 to-teal-500/20',
     badge: 'Color Science',
   },
   {
     icon: ScanSearch,
-    title: 'Semantic Color Search',
-    description: 'Multilingual "Colour Spinner" logic bridges the semantic gap between human color intentions and controllable parameters across languages and cultures.',
+    title: 'Search Colors by Meaning',
+    description: 'Find the right color by describing what you want — in any language. Great for teams working across different cultures and markets.',
     gradient: 'from-emerald-500/20 to-green-500/20',
     badge: 'AI',
   },
   {
     icon: Globe2,
-    title: 'Cultural Symbolism Map',
-    description: 'Geo-targeted audit rules: Red = Joy (Asia) vs. Mourning (S. Africa). Green = Sacred (Islam) vs. Taboo (China). Automated campaign color optimization.',
+    title: 'Cultural Color Guide',
+    description: 'Colors mean different things around the world. Red means luck in Asia but mourning in South Africa. We flag these conflicts for you.',
     gradient: 'from-orange-500/20 to-amber-500/20',
     badge: 'Global',
   },
   {
     icon: AudioLines,
-    title: 'Adaptive Motion Sensitivity',
-    description: 'Neuro-inclusive animation control for ADHD, autism & vestibular disorders. Context-aware timing, haptic sync (<10ms), and mandatory pause mechanisms.',
+    title: 'Motion Sensitivity',
+    description: 'Not everyone loves flashy animations. Built-in controls let users pause, stop, or reduce motion for a comfortable experience.',
     gradient: 'from-pink-500/20 to-rose-500/20',
-    badge: 'Neuro-UX',
+    badge: 'UX',
   },
   {
     icon: Type,
-    title: 'Neuro-Inclusive Typography',
-    description: 'Cognitive clarity enforcement: 45-75 character line lengths, 16px minimum body, Dynamic Reflow, and AI-suggested 7:1 contrast pairings.',
+    title: 'Readable Typography',
+    description: 'AI suggests font sizes and line lengths that are easy to read for everyone, with high contrast pairings that look great too.',
     gradient: 'from-indigo-500/20 to-blue-500/20',
     badge: 'Typography',
   },
   {
     icon: Eye,
-    title: 'Inclusive Imagery Stop/Go',
-    description: 'Automated DAM flagging: STOP pity-based hierarchies & heroic tropes. GO authentic representation, equal power dynamics & asset-based framing.',
+    title: 'Inclusive Imagery',
+    description: 'Automatically flags imagery that relies on stereotypes and suggests authentic, representative alternatives that respect everyone.',
     gradient: 'from-emerald-500/20 to-teal-500/20',
   },
   {
     icon: ListChecks,
-    title: 'WFA 12-Area Litmus Test',
-    description: 'Color-linked creative audit across 12 stages — from Helmholtz-Kohlrausch attention capture to eye-tracking fixation validation. +16.26% sales lift.',
+    title: 'Creative Audit Checklist',
+    description: 'A 12-step review process that checks your creative work for attention, impact, and inclusivity — proven to boost engagement.',
     gradient: 'from-amber-500/20 to-orange-500/20',
     badge: 'WFA',
   },
   {
     icon: Fingerprint,
-    title: 'PI&E "Who Else?" Framework',
-    description: 'Google\'s Product Inclusion methodology: Curb-Cut Effect, Karen Haller\'s 4 Tonal Groups (Seasons), and intersectionality-first design.',
+    title: '"Who Else?" Framework',
+    description: 'Design for underserved users first, and you\'ll build features that work better for everyone. Inspired by Google\'s inclusion playbook.',
     gradient: 'from-pink-500/20 to-rose-500/20',
-    badge: 'Google',
+    badge: 'Inclusion',
   },
   {
     icon: HeartHandshake,
-    title: 'Microsoft Persona Spectrum',
-    description: 'Permanent → Temporary → Situational mapping: Protanopia, dilated pupils, sun glare. "Respecting Focus" for neurodiverse users and Dopamine Color control.',
+    title: 'Persona Spectrum',
+    description: 'Think beyond permanent disabilities — consider temporary (broken arm) and situational (holding a baby) needs in your designs.',
     gradient: 'from-cyan-500/20 to-blue-500/20',
-    badge: 'Microsoft',
+    badge: 'Design',
   },
   {
     icon: Brain,
-    title: 'Policy-as-Code Governance',
-    description: 'Disparate Impact Ratio (80% rule), Sentiment-to-Color cross-check via SACM, Data Journey traceability, and "Teach the Agent" reinforcement loops.',
+    title: 'AI Governance',
+    description: 'Automated fairness checks, sentiment analysis on your color choices, and a learning system that gets smarter from your team\'s feedback.',
     gradient: 'from-indigo-500/20 to-violet-500/20',
-    badge: 'AI Gov',
+    badge: 'AI',
   },
 ];
 
@@ -297,32 +297,32 @@ const analyticsFeatures: Feature[] = [
   {
     icon: BarChart3,
     title: 'Brand Health Scores',
-    description: 'Track completeness and consistency metrics across 35+ sections in 8 categories with weighted depth-based scoring.',
+    description: 'See how complete and consistent your brand is at a glance, with scores across 35+ sections and 8 categories.',
     gradient: 'from-accent/20 to-primary/20',
   },
   {
     icon: TrendingUp,
-    title: 'Competitive Intelligence',
-    description: 'AI personality matrix, score gauges, radar charts, and 8-section strategic reports with PDF export.',
+    title: 'Competitive Reports',
+    description: 'See how you stack up against competitors with AI-generated reports, visual charts, and exportable PDFs.',
     gradient: 'from-primary/20 to-accent/20',
   },
   {
     icon: Brain,
     title: 'Brand Intelligence',
-    description: 'AI-powered knowledge base with cumulative learning, confidence calibration, semantic deduplication, and temporal decay.',
+    description: 'An AI brain that learns your brand over time, getting smarter with every update and offering better insights as it grows.',
     gradient: 'from-purple-500/20 to-pink-500/20',
     badge: 'Oracle Brain',
   },
   {
     icon: FileSearch,
-    title: 'Comprehensive Audit Logs',
-    description: 'Full change tracking with session data, JSON diffs, 30+ helper functions, and infographic visualization.',
+    title: 'Change History',
+    description: 'See exactly who changed what and when — with full before/after comparisons and visual timelines.',
     gradient: 'from-blue-500/20 to-indigo-500/20',
   },
   {
     icon: Scale,
-    title: 'Bias & Inclusion Reports',
-    description: 'Exportable HTML reports with 5 advanced governance modules, persona coverage matrices, and remediation tracking.',
+    title: 'Inclusion Reports',
+    description: 'Downloadable reports showing how inclusive your brand is, with actionable recommendations for improvement.',
     gradient: 'from-violet-500/20 to-purple-500/20',
     badge: 'NEW',
   },
@@ -331,26 +331,26 @@ const analyticsFeatures: Feature[] = [
 const adminFeatures: Feature[] = [
   {
     icon: Users,
-    title: 'User Management',
-    description: 'Approve users, manage roles, invite via email with expiring tokens. Expandable row pattern with Pending Invites.',
+    title: 'Team Management',
+    description: 'Invite teammates, set roles, approve new users — all with simple email invites and a clean dashboard.',
     gradient: 'from-green-500/20 to-teal-500/20',
   },
   {
     icon: FolderCheck,
-    title: 'Bulk Repair Tools',
-    description: 'Normalize sections, fix hidden content, and ensure platform-wide consistency across all entities.',
+    title: 'Bulk Cleanup',
+    description: 'Fix inconsistencies across all your brands at once — normalize sections, unhide content, and keep everything tidy.',
     gradient: 'from-sky-500/20 to-teal-500/20',
   },
   {
     icon: ShieldCheck,
     title: 'Enterprise Security',
-    description: 'Row Level Security, email masking, leaked password protection, comprehensive audit trails, and data encryption.',
+    description: 'Your data stays safe with encryption, audit trails, password protection, and strict access controls.',
     gradient: 'from-red-500/20 to-rose-500/20',
   },
   {
     icon: Zap,
-    title: 'Bulk Intelligence',
-    description: 'Generate AI analysis, patterns, gradients, cultural insights, and bias scans for all brands in one operation.',
+    title: 'Bulk AI Actions',
+    description: 'Run AI analysis, generate patterns, and scan for issues across all your brands in a single click.',
     gradient: 'from-cyan-500/20 to-blue-500/20',
   },
 ];
@@ -603,11 +603,11 @@ export function FeaturesShowcase() {
           </Badge>
           <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-4">
             Built for everyone.
-            <span className="block text-accent">Governed by intelligence.</span>
+            <span className="block text-accent">Powered by AI.</span>
           </h2>
            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            From OKLCH color science to neuro-inclusive motion controls, BrandHub embeds 16 Intelligence Modules
-            with cultural symbolism mapping, adaptive typography, and AI governance for every market.
+            Smart color tools, cultural awareness, accessible typography, and 16 AI modules 
+            that help your brand connect with every audience — no expertise required.
           </p>
         </div>
 
@@ -670,10 +670,10 @@ export function FeaturesShowcase() {
         {/* Stats Row - Updated with inclusion stats */}
         <div className={`grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`} style={{ animationDelay: '600ms' }}>
           {[
-            { value: '16', label: 'Intelligence Modules' },
-            { value: 'OKLCH', label: 'Perceptual Color Standard' },
-            { value: '50+', label: 'Languages & Color Maps' },
-            { value: '7', label: 'Governance Dimensions' },
+            { value: '16', label: 'AI Modules' },
+            { value: 'Smart', label: 'Color Science' },
+            { value: '50+', label: 'Languages Supported' },
+            { value: '7', label: 'Quality Dimensions' },
           ].map((stat) => (
             <div key={stat.label} className="text-center p-6 rounded-2xl bg-muted/30 hover:bg-muted/50 transition-colors">
               <div className="text-3xl font-bold text-accent mb-1">{stat.value}</div>
