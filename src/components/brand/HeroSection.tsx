@@ -46,6 +46,8 @@ interface HeroSectionProps {
   complianceScore?: number | null;
   /** Hidden sections excluded from health score */
   hiddenSections?: string[] | null;
+  /** Compact mode — reduces height 50% for card grid view */
+  compact?: boolean;
 }
 
 export const HeroSection = ({ 
@@ -61,6 +63,7 @@ export const HeroSection = ({
   entityId,
   complianceScore,
   hiddenSections,
+  compact = false,
 }: HeroSectionProps) => {
   // Only allow editing if onHeroChange is provided (canEdit mode)
   const canEdit = !!onHeroChange;
@@ -290,9 +293,12 @@ export const HeroSection = ({
   };
 
   // Enhanced height for wow factor - reduced on mobile for better viewport fit
-  const heroHeight = enhancedMode 
-    ? 'h-[320px] sm:h-[420px] lg:h-[550px] xl:h-[650px]' 
-    : 'h-56 sm:h-72 lg:h-96';
+  // Compact mode halves the height for card grid view
+  const heroHeight = compact
+    ? 'h-[160px] sm:h-[210px] lg:h-[275px] xl:h-[325px]'
+    : enhancedMode 
+      ? 'h-[320px] sm:h-[420px] lg:h-[550px] xl:h-[650px]' 
+      : 'h-56 sm:h-72 lg:h-96';
 
   return (
     <section>
@@ -611,7 +617,7 @@ export const HeroSection = ({
         )}
 
         {/* Stats Panel - Top Left - Aligned to page content */}
-        {showStats && enhancedMode && (
+        {showStats && enhancedMode && !compact && (
           <div className="absolute inset-x-0 top-0 z-30 pointer-events-none">
             <div className="w-full px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
               <div className="max-w-7xl mx-auto">
@@ -683,7 +689,7 @@ export const HeroSection = ({
               <div className="flex gap-4 sm:gap-6 items-end flex-1">
                 {/* Logo with enhanced styling - smaller on mobile */}
                 <div
-                  className={`relative shrink-0 w-20 h-20 sm:w-32 sm:h-32 lg:w-44 lg:h-44 xl:w-52 xl:h-52 bg-white border-2 sm:border-4 border-white rounded-2xl sm:rounded-3xl shadow-2xl flex items-center justify-center overflow-hidden transform transition-all duration-300 hover:scale-105 ${canEdit && isEditing ? 'cursor-pointer group/logo' : ''}`}
+                  className={`relative shrink-0 ${compact ? 'w-14 h-14 sm:w-20 sm:h-20 lg:w-28 lg:h-28 xl:w-32 xl:h-32 rounded-xl sm:rounded-2xl border sm:border-2' : 'w-20 h-20 sm:w-32 sm:h-32 lg:w-44 lg:h-44 xl:w-52 xl:h-52 rounded-2xl sm:rounded-3xl border-2 sm:border-4'} bg-white border-white shadow-2xl flex items-center justify-center overflow-hidden transform transition-all duration-300 hover:scale-105 ${canEdit && isEditing ? 'cursor-pointer group/logo' : ''}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     canEdit && isEditing && logoInputRef.current?.click();
@@ -726,7 +732,7 @@ export const HeroSection = ({
                     />
                   ) : (
                     <h1 
-                      className={`text-xl sm:text-3xl lg:text-5xl xl:text-6xl font-bold drop-shadow-lg tracking-tight break-words transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+                      className={`${compact ? 'text-lg sm:text-xl lg:text-3xl xl:text-4xl' : 'text-xl sm:text-3xl lg:text-5xl xl:text-6xl'} font-bold drop-shadow-lg tracking-tight break-words transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
                       style={{ 
                         color: hero.titleColor || '#ffffff',
                         textShadow: hero.taglineGlow ? `0 0 20px ${hero.titleColor || '#ffffff'}40, 0 0 40px ${hero.titleColor || '#ffffff'}20` : undefined,
@@ -751,7 +757,7 @@ export const HeroSection = ({
                   ) : (
                     <>
                       <p 
-                        className={`text-sm sm:text-lg lg:text-2xl drop-shadow-md max-w-3xl line-clamp-2 sm:line-clamp-none break-words transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+                        className={`${compact ? 'text-xs sm:text-sm lg:text-lg line-clamp-1' : 'text-sm sm:text-lg lg:text-2xl line-clamp-2 sm:line-clamp-none'} drop-shadow-md max-w-3xl break-words transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
                         style={{ 
                           color: hero.taglineColor || 'rgba(255,255,255,0.9)',
                           textShadow: hero.taglineGlow ? `0 0 15px ${hero.taglineColor || '#ffffff'}50, 0 0 30px ${hero.taglineColor || '#ffffff'}30` : undefined,
