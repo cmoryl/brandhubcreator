@@ -28,6 +28,9 @@ const BrandIntelligenceDetailDialog = lazy(() =>
 const WebsiteReportDetailDialog = lazy(() =>
   import('./WebsiteReportDetailDialog').then(m => ({ default: m.WebsiteReportDetailDialog }))
 );
+const BiasInsightDetailDialog = lazy(() =>
+  import('./BiasInsightDetailDialog').then(m => ({ default: m.BiasInsightDetailDialog }))
+);
 
 interface InsightsSectionProps {
   insights: InsightItem[];
@@ -329,6 +332,7 @@ export const InsightsSection = ({
   const [intelligenceDialogOpen, setIntelligenceDialogOpen] = useState(false);
   const [websiteReportOpen, setWebsiteReportOpen] = useState(false);
   const [selectedWebsiteReport, setSelectedWebsiteReport] = useState<{ url: string; report: any } | null>(null);
+  const [biasDialogOpen, setBiasDialogOpen] = useState(false);
 
   // Auto-fetch competitive analysis reports when entity context is provided
   const { competitiveInsights, deleteReport: deleteCompetitiveReport } = useCompetitiveInsights({
@@ -564,6 +568,7 @@ export const InsightsSection = ({
                         onClick={
                           isCompetitive ? () => setCompetitiveDialogOpen(true) :
                           isBrain ? () => setIntelligenceDialogOpen(true) :
+                          insight.id.startsWith('bias-') ? () => setBiasDialogOpen(true) :
                           insight.id.startsWith('site-analysis-') ? () => {
                             try {
                               const report = insight.content ? JSON.parse(insight.content) : null;
@@ -649,6 +654,18 @@ export const InsightsSection = ({
             onOpenChange={setWebsiteReportOpen}
             url={selectedWebsiteReport.url}
             report={selectedWebsiteReport.report}
+          />
+        </Suspense>
+      )}
+
+      {/* Bias Awareness Detail Dialog */}
+      {entityType && entityId && (
+        <Suspense fallback={null}>
+          <BiasInsightDetailDialog
+            open={biasDialogOpen}
+            onOpenChange={setBiasDialogOpen}
+            entityId={entityId}
+            entityType={entityType}
           />
         </Suspense>
       )}
