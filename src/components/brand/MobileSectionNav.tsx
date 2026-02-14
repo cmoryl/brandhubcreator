@@ -69,8 +69,8 @@ export const MobileSectionNav = ({
           <Menu className="h-6 w-6" />
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="max-h-[85vh]">
-        <DrawerHeader className="pb-2">
+      <DrawerContent className="max-h-[85vh] flex flex-col">
+        <DrawerHeader className="pb-2 flex-shrink-0">
           <DrawerTitle className="text-left text-fluid-lg">{brandName}</DrawerTitle>
           <p className="text-xs text-muted-foreground text-left">
             {sections.length} sections
@@ -78,7 +78,7 @@ export const MobileSectionNav = ({
           </p>
         </DrawerHeader>
 
-        <ScrollArea className="flex-1 px-4 pb-6">
+        <ScrollArea className="flex-1 min-h-0 px-4 pb-6" style={{ maxHeight: 'calc(85vh - 80px)' }}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
             {sections.map((sectionId) => {
               const meta = sectionMeta[sectionId];
