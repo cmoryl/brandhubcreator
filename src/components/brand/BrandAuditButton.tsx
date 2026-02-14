@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ClipboardCheck, Loader2, TrendingUp, TrendingDown, AlertCircle, CheckCircle2, X, Scale, Languages, Eye, Accessibility, Globe } from 'lucide-react';
+import { ClipboardCheck, Loader2, TrendingUp, TrendingDown, AlertCircle, CheckCircle2, X, Scale, Languages, Eye, Accessibility, Globe, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
@@ -30,6 +30,7 @@ interface BiasReview {
   visualRepresentation: BiasSubDimension;
   culturalSensitivity: BiasSubDimension;
   accessibilityConsiderations: BiasSubDimension;
+  regulatoryCompliance?: BiasSubDimension;
   overallFindings: string[];
   overallRecommendations: string[];
 }
@@ -302,6 +303,7 @@ export const BrandAuditButton = ({ brand }: BrandAuditButtonProps) => {
                           { key: 'visualRepresentation' as const, label: 'Visual Representation', icon: Eye },
                           { key: 'culturalSensitivity' as const, label: 'Cultural Sensitivity', icon: Globe },
                           { key: 'accessibilityConsiderations' as const, label: 'Accessibility', icon: Accessibility },
+                          { key: 'regulatoryCompliance' as const, label: 'EAA Regulatory', icon: ShieldCheck },
                         ]).map((dim, i) => {
                           const sub = auditResult.biasReview![dim.key];
                           if (!sub) return null;

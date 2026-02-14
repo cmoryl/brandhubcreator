@@ -8,6 +8,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Import deep intelligence modules
+import { EAA_COMPLIANCE_BASELINE, INCLUSIVE_DESIGN_SPRINT_ACTIVITIES, INCLUSIVE_PROMPTING_HEURISTICS } from "../_shared/inclusive-language-patterns.ts";
+
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -243,7 +246,12 @@ async function processOracleSynthesis(apiKey: string, jobId: string, organizatio
 
     await updateJob(jobId, { progress: 40 });
 
-    const prompt = `You are the Master Oracle Brain. Synthesize ALL entity intelligence into unified org-level strategic insights.
+    const prompt = `You are the Master Oracle Brain. Synthesize ALL entity intelligence into unified org-level strategic insights. You also have access to Deep Intelligence governance modules.
+
+DEEP INTELLIGENCE GOVERNANCE:
+- EAA 2025/2026: Enforcement started ${EAA_COMPLIANCE_BASELINE.enforcement_start}. Penalties up to €${(EAA_COMPLIANCE_BASELINE.penalties.max_fine_euros / 1_000_000).toFixed(0)}M. Scope: ${EAA_COMPLIANCE_BASELINE.mandatory_scope.join(', ')}.
+- Inclusive Design Sprint Activities: ${INCLUSIVE_DESIGN_SPRINT_ACTIVITIES.map(a => a.title).join(', ')} — recommend during ideation phases.
+- Inclusive Prompting Heuristics: ${INCLUSIVE_PROMPTING_HEURISTICS.map(h => h.title).join(', ')} — enforce for all AI-generated imagery.
 
 PORTFOLIO (${(brands||[]).length} brands, ${(products||[]).length} products, ${(events||[]).length} events, ${(brains||[]).length} analyzed):
 ${brainSummaries || "No entity brains yet."}
@@ -252,7 +260,7 @@ KNOWLEDGE (${(knowledge||[]).length} entries):
 ${knowledgeCtx || "None."}
 
 Return ONLY valid JSON:
-{"org_summary":"3-4 sentences","portfolio_analysis":{"synergies":["up to 4"],"gaps":["up to 3"],"conflicts":["risks"],"recommendations":["up to 3"]},"market_landscape":{"overall_position":"1-2 sentences","market_opportunities":["up to 3"],"threats":["up to 2"]},"strategic_recommendations":[{"priority":"high|medium|low","recommendation":"rec","rationale":"why","impact":"impact"}],"cross_entity_patterns":{"voice_consistency":"1 sentence","audience_overlap":"1 sentence","visual_coherence":"1 sentence"},"unified_voice_profile":{"primary_tone":"1-2 words","secondary_tones":["up to 3"],"communication_style":"1 sentence","personality_traits":["up to 4"]},"unified_audience_map":{"primary_segment":"1 sentence","secondary_segments":["up to 3"],"underserved_segments":["up to 2"]},"competitive_overview":{"market_position":"1 sentence","key_competitors":["up to 3"],"competitive_moat":"1 sentence"},"cultural_readiness":{"overall_score":50,"strongest_markets":["up to 3"],"expansion_opportunities":["up to 3"]}}`;
+{"org_summary":"3-4 sentences","portfolio_analysis":{"synergies":["up to 4"],"gaps":["up to 3"],"conflicts":["risks"],"recommendations":["up to 3"]},"market_landscape":{"overall_position":"1-2 sentences","market_opportunities":["up to 3"],"threats":["up to 2"]},"strategic_recommendations":[{"priority":"high|medium|low","recommendation":"rec","rationale":"why","impact":"impact"}],"cross_entity_patterns":{"voice_consistency":"1 sentence","audience_overlap":"1 sentence","visual_coherence":"1 sentence"},"unified_voice_profile":{"primary_tone":"1-2 words","secondary_tones":["up to 3"],"communication_style":"1 sentence","personality_traits":["up to 4"]},"unified_audience_map":{"primary_segment":"1 sentence","secondary_segments":["up to 3"],"underserved_segments":["up to 2"]},"competitive_overview":{"market_position":"1 sentence","key_competitors":["up to 3"],"competitive_moat":"1 sentence"},"cultural_readiness":{"overall_score":50,"strongest_markets":["up to 3"],"expansion_opportunities":["up to 3"]},"governance_posture":{"eaa_readiness":"high|medium|low","inclusive_ai_maturity":"high|medium|low","recommended_sprint_activities":["up to 2 from: Computer Trust Exercise, Human-to-Computer Role-Play, Interaction Diary"],"regulatory_action_items":["up to 3"]}}`;
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -301,7 +309,10 @@ Return ONLY valid JSON:
       unified_voice_profile: synthesis.unified_voice_profile || {},
       unified_audience_map: synthesis.unified_audience_map || {},
       competitive_overview: synthesis.competitive_overview || {},
-      cultural_readiness: synthesis.cultural_readiness || {},
+      cultural_readiness: {
+        ...(synthesis.cultural_readiness || {}),
+        governance_posture: synthesis.governance_posture || {},
+      },
       knowledge_entry_count: (knowledge || []).length,
       entity_brain_count: (brains || []).length,
       last_synthesis_at: new Date().toISOString(),
