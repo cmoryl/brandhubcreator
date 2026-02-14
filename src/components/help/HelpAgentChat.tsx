@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Bot, X, Send, Loader2, MessageSquare } from 'lucide-react';
+import { Bot, X, Send, Loader2, MessageSquare, Sparkles, Shield, Zap, ArrowRight } from 'lucide-react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -111,11 +111,23 @@ async function streamChat({
 export function HelpAgentChat() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check auth state
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session?.user);
+    });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session?.user);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Markdown components that handle internal navigation links
   const markdownComponents = useMemo<Components>(() => ({
@@ -236,7 +248,9 @@ export function HelpAgentChat() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold">Help Assistant</p>
-                    <p className="text-[10px] text-muted-foreground">Ask anything about BrandHub</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {isAuthenticated ? 'Ask anything about BrandHub' : 'AI-powered brand guidance'}
+                    </p>
                   </div>
                 </div>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)}>
@@ -244,82 +258,132 @@ export function HelpAgentChat() {
                 </Button>
               </div>
 
-              {/* Messages */}
-              <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-                {messages.length === 0 && (
-                  <div className="flex flex-col items-center justify-center h-full text-center gap-3 py-8">
-                    <div className="p-3 bg-primary/10 rounded-full">
-                      <MessageSquare className="h-6 w-6 text-primary" />
+              {!isAuthenticated ? (
+                /* Unauthenticated CTA */
+                <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 text-center gap-5">
+                  <div className="p-4 bg-primary/10 rounded-full">
+                    <Sparkles className="h-8 w-8 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Unlock Your AI Brand Assistant</h3>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Sign in to access your personalized, context-aware help agent.
+                    </p>
+                  </div>
+                  <div className="w-full space-y-3 text-left">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                      <Zap className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium">Instant Answers</p>
+                        <p className="text-xs text-muted-foreground">Get real-time guidance tailored to your brands, products, and events.</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-sm">Hi! I'm your BrandHub assistant.</p>
-                      <p className="text-xs text-muted-foreground mt-1">Ask me how to use any feature, set up your brand guide, or troubleshoot issues.</p>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                      <Bot className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium">Context-Aware Intelligence</p>
+                        <p className="text-xs text-muted-foreground">Powered by your Oracle Brain and entity-level insights for precise answers.</p>
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {['How do I create a brand?', 'What is Brand Health?', 'How do sections work?'].map(q => (
-                        <button
-                          key={q}
-                          onClick={() => { setInput(q); }}
-                          className="text-[11px] px-2.5 py-1 rounded-full border border-border hover:bg-muted transition-colors text-muted-foreground"
-                        >
-                          {q}
-                        </button>
-                      ))}
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                      <Shield className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium">Direct Navigation</p>
+                        <p className="text-xs text-muted-foreground">Jump straight to any brand page or section with clickable links.</p>
+                      </div>
                     </div>
                   </div>
-                )}
-
-                {messages.map((msg, i) => (
-                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div
-                      className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
-                        msg.role === 'user'
-                          ? 'bg-primary text-primary-foreground rounded-br-sm'
-                          : 'bg-muted rounded-bl-sm'
-                      }`}
-                    >
-                      {msg.role === 'assistant' ? (
-                        <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:m-0 [&>ul]:mt-1 [&>ol]:mt-1 [&>p+p]:mt-2">
-                          <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
-                        </div>
-                      ) : (
-                        <p>{msg.content}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-
-                {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-                  <div className="flex justify-start">
-                    <div className="bg-muted rounded-xl px-3 py-2 rounded-bl-sm">
-                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Input */}
-              <div className="border-t border-border/50 px-3 py-2.5">
-                <div className="flex gap-2">
-                  <Input
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Ask a question..."
-                    className="text-sm h-9"
-                    disabled={isLoading}
-                  />
                   <Button
-                    size="icon"
-                    className="h-9 w-9 shrink-0"
-                    onClick={sendMessage}
-                    disabled={!input.trim() || isLoading}
+                    className="w-full mt-2 gap-2"
+                    onClick={() => {
+                      setIsOpen(false);
+                      navigate('/auth');
+                    }}
                   >
-                    <Send className="h-4 w-4" />
+                    Sign In to Get Started
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
-              </div>
+              ) : (
+                <>
+                  {/* Messages */}
+                  <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+                    {messages.length === 0 && (
+                      <div className="flex flex-col items-center justify-center h-full text-center gap-3 py-8">
+                        <div className="p-3 bg-primary/10 rounded-full">
+                          <MessageSquare className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">Hi! I'm your BrandHub assistant.</p>
+                          <p className="text-xs text-muted-foreground mt-1">Ask me how to use any feature, set up your brand guide, or troubleshoot issues.</p>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {['How do I create a brand?', 'What is Brand Health?', 'How do sections work?'].map(q => (
+                            <button
+                              key={q}
+                              onClick={() => { setInput(q); }}
+                              className="text-[11px] px-2.5 py-1 rounded-full border border-border hover:bg-muted transition-colors text-muted-foreground"
+                            >
+                              {q}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {messages.map((msg, i) => (
+                      <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div
+                          className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
+                            msg.role === 'user'
+                              ? 'bg-primary text-primary-foreground rounded-br-sm'
+                              : 'bg-muted rounded-bl-sm'
+                          }`}
+                        >
+                          {msg.role === 'assistant' ? (
+                            <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:m-0 [&>ul]:mt-1 [&>ol]:mt-1 [&>p+p]:mt-2">
+                              <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
+                            </div>
+                          ) : (
+                            <p>{msg.content}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
+                      <div className="flex justify-start">
+                        <div className="bg-muted rounded-xl px-3 py-2 rounded-bl-sm">
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Input */}
+                  <div className="border-t border-border/50 px-3 py-2.5">
+                    <div className="flex gap-2">
+                      <Input
+                        ref={inputRef}
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Ask a question..."
+                        className="text-sm h-9"
+                        disabled={isLoading}
+                      />
+                      <Button
+                        size="icon"
+                        className="h-9 w-9 shrink-0"
+                        onClick={sendMessage}
+                        disabled={!input.trim() || isLoading}
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
             </Card>
           </motion.div>
         )}
