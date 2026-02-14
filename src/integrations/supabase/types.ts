@@ -203,6 +203,98 @@ export type Database = {
           },
         ]
       }
+      bias_awareness_scans: {
+        Row: {
+          accessibility_analysis: Json | null
+          accessibility_score: number | null
+          ai_governance_analysis: Json | null
+          ai_governance_score: number | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_name: string
+          entity_type: string
+          error_message: string | null
+          findings: Json | null
+          id: string
+          inclusion_score: number | null
+          language_analysis: Json | null
+          language_audit: Json | null
+          language_score: number | null
+          organization_id: string
+          persona_coverage: Json | null
+          recommendations: Json | null
+          status: string
+          updated_at: string
+          visual_analysis: Json | null
+          visual_score: number | null
+          wcag_compliance: Json | null
+        }
+        Insert: {
+          accessibility_analysis?: Json | null
+          accessibility_score?: number | null
+          ai_governance_analysis?: Json | null
+          ai_governance_score?: number | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_name: string
+          entity_type?: string
+          error_message?: string | null
+          findings?: Json | null
+          id?: string
+          inclusion_score?: number | null
+          language_analysis?: Json | null
+          language_audit?: Json | null
+          language_score?: number | null
+          organization_id: string
+          persona_coverage?: Json | null
+          recommendations?: Json | null
+          status?: string
+          updated_at?: string
+          visual_analysis?: Json | null
+          visual_score?: number | null
+          wcag_compliance?: Json | null
+        }
+        Update: {
+          accessibility_analysis?: Json | null
+          accessibility_score?: number | null
+          ai_governance_analysis?: Json | null
+          ai_governance_score?: number | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_name?: string
+          entity_type?: string
+          error_message?: string | null
+          findings?: Json | null
+          id?: string
+          inclusion_score?: number | null
+          language_analysis?: Json | null
+          language_audit?: Json | null
+          language_score?: number | null
+          organization_id?: string
+          persona_coverage?: Json | null
+          recommendations?: Json | null
+          status?: string
+          updated_at?: string
+          visual_analysis?: Json | null
+          visual_score?: number | null
+          wcag_compliance?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bias_awareness_scans_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bot_config: {
         Row: {
           bot_type: string
@@ -527,6 +619,7 @@ export type Database = {
         Row: {
           analysis_count: number
           analysis_history: Json
+          bias_awareness_profile: Json | null
           brand_summary: string | null
           brand_voice_profile: Json | null
           competitive_advantages: Json | null
@@ -559,6 +652,7 @@ export type Database = {
         Insert: {
           analysis_count?: number
           analysis_history?: Json
+          bias_awareness_profile?: Json | null
           brand_summary?: string | null
           brand_voice_profile?: Json | null
           competitive_advantages?: Json | null
@@ -591,6 +685,7 @@ export type Database = {
         Update: {
           analysis_count?: number
           analysis_history?: Json
+          bias_awareness_profile?: Json | null
           brand_summary?: string | null
           brand_voice_profile?: Json | null
           competitive_advantages?: Json | null
@@ -2051,6 +2146,7 @@ export type Database = {
       }
       oracle_intelligence: {
         Row: {
+          bias_awareness_insights: Json | null
           competitive_overview: Json | null
           confidence_scores: Json | null
           created_at: string
@@ -2072,6 +2168,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          bias_awareness_insights?: Json | null
           competitive_overview?: Json | null
           confidence_scores?: Json | null
           created_at?: string
@@ -2093,6 +2190,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          bias_awareness_insights?: Json | null
           competitive_overview?: Json | null
           confidence_scores?: Json | null
           created_at?: string

@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   Cable,
   Download,
+  Shield,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ import { InsightFeedbackControls } from './intelligence/InsightFeedbackControls'
 import { LearningStatusBadge } from './intelligence/LearningStatusBadge';
 import { ConfidenceIndicator } from './intelligence/ConfidenceIndicator';
 import { InsightActionTracker } from './intelligence/InsightActionTracker';
+import { BiasAwarenessPanel } from './BiasAwarenessPanel';
 import { CompetitiveLandscapeSection } from './intelligence/CompetitiveLandscapeSection';
 import { CulturalIntelligenceSection } from './intelligence/CulturalIntelligenceSection';
 import { ImportReportDialog } from './intelligence/ImportReportDialog';
@@ -988,6 +990,30 @@ export const BrandIntelligencePanel = ({
                   </div>
                 )}
             </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Bias Awareness & Inclusion */}
+        <Collapsible
+          open={expandedSections.biasAwareness}
+          onOpenChange={() => toggleSection('biasAwareness')}
+        >
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" />
+                <span className="font-medium">Bias Awareness & Inclusion</span>
+              </div>
+              {expandedSections.biasAwareness ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-4">
+            <BiasAwarenessPanel
+              entityType={entityType}
+              entityId={entityId}
+              entityName={entityName}
+              organizationId={organizationId}
+            />
           </CollapsibleContent>
         </Collapsible>
         </CardContent>
