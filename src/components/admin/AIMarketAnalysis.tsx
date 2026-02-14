@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { exportMarketAnalysisHtml } from '@/lib/exportHtml';
 import { 
   Brain, Loader2, TrendingUp, Target, Lightbulb, AlertTriangle, CheckCircle, 
   Zap, Calendar, ArrowRight, Building2, Package, Users, BarChart3, 
@@ -411,6 +412,19 @@ export function AIMarketAnalysis() {
                 <p className="text-xs text-muted-foreground mt-1">
                   {new Date(result.generatedAt).toLocaleDateString()}
                 </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 mt-2"
+                  onClick={() => {
+                    const brandName = selectedBrand === 'platform' ? 'Platform' : (brands.find(b => b.id === selectedBrand)?.name || 'Brand');
+                    exportMarketAnalysisHtml(result, { brandName, analysisType });
+                    toast.success('HTML report downloaded');
+                  }}
+                >
+                  <ArrowRight className="h-3.5 w-3.5" />
+                  Export HTML
+                </Button>
               </div>
             </div>
           </CardHeader>

@@ -16,6 +16,7 @@ import {
   Accessibility,
   Search,
   ArrowUpRight,
+  Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -429,15 +430,32 @@ export const WebsiteAnalysisCard = ({
       <Dialog open={showReport} onOpenChange={setShowReport}>
         <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 gap-0">
           <DialogHeader className="px-6 pt-6 pb-4 border-b">
-            <DialogTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
-              Website Analysis Report
-            </DialogTitle>
-            <DialogDescription className="flex items-center gap-2">
-              <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline inline-flex items-center gap-1">
-                {websiteUrl} <ArrowUpRight className="h-3 w-3" />
-              </a>
-            </DialogDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                  Website Analysis Report
+                </DialogTitle>
+                <DialogDescription className="flex items-center gap-2">
+                  <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline inline-flex items-center gap-1">
+                    {websiteUrl} <ArrowUpRight className="h-3 w-3" />
+                  </a>
+                </DialogDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 shrink-0"
+                onClick={() => {
+                  import('@/lib/exportHtml').then(({ exportWebsiteAnalysisHtml }) => {
+                    exportWebsiteAnalysisHtml(report, { url: websiteUrl });
+                  });
+                }}
+              >
+                <Download className="h-3.5 w-3.5" />
+                HTML
+              </Button>
+            </div>
           </DialogHeader>
 
           {report && (

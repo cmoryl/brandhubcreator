@@ -24,6 +24,7 @@ import {
   MapPin,
   CheckCircle2,
   Cable,
+  Download,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,7 @@ import { InsightActionTracker } from './intelligence/InsightActionTracker';
 import { CompetitiveLandscapeSection } from './intelligence/CompetitiveLandscapeSection';
 import { CulturalIntelligenceSection } from './intelligence/CulturalIntelligenceSection';
 import { ImportReportDialog } from './intelligence/ImportReportDialog';
+import { exportBrandIntelligenceHtml } from '@/lib/exportHtml';
 
 interface KnowledgeEntry {
   id: string;
@@ -431,18 +433,34 @@ export const BrandIntelligencePanel = ({
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <Button 
-              onClick={runAnalysis} 
-              disabled={isAnalyzing}
-              className="gap-2"
-            >
-              {isAnalyzing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="h-4 w-4" />
+            <div className="flex items-center gap-2">
+              {intelligence && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => {
+                    exportBrandIntelligenceHtml(intelligence, { entityName, entityType });
+                    toast.success('HTML report downloaded');
+                  }}
+                >
+                  <Download className="h-4 w-4" />
+                  Export
+                </Button>
               )}
-              {isAnalyzing ? `Analyzing... ${analysisProgress}%` : 'Run AI Analysis'}
-            </Button>
+              <Button 
+                onClick={runAnalysis} 
+                disabled={isAnalyzing}
+                className="gap-2"
+              >
+                {isAnalyzing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+                {isAnalyzing ? `Analyzing... ${analysisProgress}%` : 'Run AI Analysis'}
+              </Button>
+            </div>
             {isAnalyzing && (
               <Progress value={analysisProgress} className="w-32 h-2" />
             )}
