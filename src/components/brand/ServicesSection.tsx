@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, X, Briefcase, Upload, Palette, FileText, Share2, Zap, Settings, Users, Globe, Shield, Heart, Star, Sparkles, Layers, Package, Target, Award, TrendingUp, MessageSquare } from 'lucide-react';
+import { Plus, X, Briefcase, Upload, Palette, FileText, Share2, Zap, Settings, Users, Globe, Shield, Heart, Star, Sparkles, Layers, Package, Target, Award, TrendingUp, MessageSquare, ChevronDown, ExternalLink } from 'lucide-react';
 import { BrandService } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 // Available icons for services
 const SERVICE_ICONS = [
@@ -61,6 +62,7 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
   const [isEditing, setIsEditing] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<BrandService | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -68,6 +70,15 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
     imageUrl: '',
     headerImage: '',
   });
+
+  const toggleExpanded = (id: string) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const openAddDialog = () => {
     setFormData({ name: '', description: '', icon: 'Briefcase', imageUrl: '', headerImage: '' });
@@ -91,14 +102,12 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
     if (!formData.name.trim() || !onServicesChange) return;
 
     if (editingService) {
-      // Update existing
       onServicesChange(services.map(s => 
         s.id === editingService.id 
           ? { ...s, ...formData }
           : s
       ));
     } else {
-      // Add new
       const newService: BrandService = {
         id: crypto.randomUUID(),
         name: formData.name,
@@ -138,6 +147,9 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
     }
   };
 
+  // Determine if any service has an image (imageUrl or headerImage) for the full-width card layout
+  const hasImages = services.some(s => s.imageUrl || s.headerImage);
+
   return (
     <section className="space-y-6 overflow-x-hidden">
       <SectionHeader
@@ -149,38 +161,42 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
         onEditToggle={() => setIsEditing(!isEditing)}
       />
 
-      {/* Services Grid - horizontal scroll on mobile, grid on larger screens */}
-      {/* Wrapper prevents negative margins from causing page-wide horizontal scroll */}
+      {/* Services Grid */}
       <div className="overflow-x-hidden">
-        <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 overflow-x-auto pb-4 sm:pb-0 sm:overflow-visible -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory scrollbar-hide">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
         {services.map((service) => {
           const IconComponent = getIconComponent(service.icon);
+          const isExpanded = expandedIds.has(service.id);
+          const cardImage = service.headerImage || service.imageUrl;
+          const serviceLink = (service as any).link;
+
           return (
             <Card 
               key={service.id} 
-              className="group relative bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 overflow-hidden flex-shrink-0 w-[280px] sm:w-auto snap-start"
+              className="group relative bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
+              onClick={() => toggleExpanded(service.id)}
             >
-              {/* Header Image */}
-              {service.headerImage && (
-                <div className="relative w-full h-28 overflow-hidden">
+              {/* Full-width image banner */}
+              {cardImage && (
+                <div className="relative w-full h-40 sm:h-44 overflow-hidden">
                   <img 
-                    src={service.headerImage} 
+                    src={cardImage} 
                     alt={service.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                     decoding="async"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
                 </div>
               )}
-              
+
               {canEdit && isEditing && (
                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                   <Button 
                     variant="secondary" 
                     size="icon" 
                     className="h-8 w-8 sm:h-7 sm:w-7"
-                    onClick={() => openEditDialog(service)}
+                    onClick={(e) => { e.stopPropagation(); openEditDialog(service); }}
                     aria-label={`Edit ${service.name}`}
                   >
                     <Settings className="h-4 w-4 sm:h-3 sm:w-3" />
@@ -189,30 +205,53 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
                     variant="destructive" 
                     size="icon" 
                     className="h-8 w-8 sm:h-7 sm:w-7"
-                    onClick={() => handleDelete(service.id)}
+                    onClick={(e) => { e.stopPropagation(); handleDelete(service.id); }}
                     aria-label={`Delete ${service.name}`}
                   >
                     <X className="h-4 w-4 sm:h-3 sm:w-3" />
                   </Button>
                 </div>
               )}
-              <CardContent className={service.headerImage ? "p-4 pt-0 -mt-6 relative z-10" : "p-4 sm:p-6"}>
-                {/* Icon or Image */}
-                {service.imageUrl ? (
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden mb-3 sm:mb-4 border border-border/50 shadow-sm">
-                    <img 
-                      src={service.imageUrl} 
-                      alt={service.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : !service.headerImage && (
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 group-hover:bg-primary/20 transition-colors">
+
+              <CardContent className={cn(
+                "p-4 sm:p-5",
+                cardImage && "-mt-8 relative z-10"
+              )}>
+                {/* Icon fallback when no image */}
+                {!cardImage && (
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
                     <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                   </div>
                 )}
-                <h3 className="font-semibold text-foreground mb-1.5 sm:mb-2 text-sm sm:text-base">{service.name}</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{service.description}</p>
+
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="font-semibold text-foreground text-sm sm:text-base leading-tight">{service.name}</h3>
+                  <ChevronDown className={cn(
+                    "h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5 transition-transform duration-300",
+                    isExpanded && "rotate-180"
+                  )} />
+                </div>
+
+                {/* Collapsed: truncated description */}
+                <p className={cn(
+                  "text-xs sm:text-sm text-muted-foreground mt-1.5 transition-all duration-300",
+                  !isExpanded && "line-clamp-2"
+                )}>
+                  {service.description}
+                </p>
+
+                {/* Expanded: full content + link */}
+                {isExpanded && serviceLink && (
+                  <a
+                    href={serviceLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 mt-3 font-medium transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Learn more <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
               </CardContent>
             </Card>
           );
@@ -221,10 +260,10 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
         {/* Add Service Card */}
         {canEdit && isEditing && (
           <Card 
-            className="border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors flex-shrink-0 w-[280px] sm:w-auto snap-start"
+            className="border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors"
             onClick={openAddDialog}
           >
-            <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center h-full min-h-[140px] sm:min-h-[160px]">
+            <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center h-full min-h-[160px]">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-muted flex items-center justify-center mb-3 sm:mb-4">
                 <Plus className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
               </div>
