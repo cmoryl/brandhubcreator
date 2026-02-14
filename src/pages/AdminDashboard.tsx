@@ -62,6 +62,7 @@ import { MulticulturalIntelligencePanel } from '@/components/admin/Multicultural
 import { DataForceAdminPanel } from '@/components/admin/DataForceAdminPanel';
 import { BotManagementPanel } from '@/components/admin/BotManagementPanel';
 import { OracleBrainPanel } from '@/components/admin/OracleBrainPanel';
+import { BiasAwarenessAdminPanel } from '@/components/admin/BiasAwarenessAdminPanel';
 import { 
   DashboardStats, 
   ActivityLog, 
@@ -773,6 +774,11 @@ export default function AdminDashboard() {
           {/* DataForce AI Tab */}
           <TabsContent value="dataforce" className="space-y-6">
             <DataForceAdminPanel />
+          </TabsContent>
+
+          {/* Bias Awareness Tab */}
+          <TabsContent value="bias-awareness" className="space-y-6">
+            <BiasAwarenessAdminPanel />
           </TabsContent>
 
           {/* Bot Management Tab */}
