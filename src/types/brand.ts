@@ -468,6 +468,8 @@ export interface BrandPageSettings {
   customSecondaryColor?: string; // Override secondary color for this brand
   cardViewBackground?: BrandBackgroundType; // Background for card grid view
   cardViewBackgroundTint?: string; // Tint color for card view animated backgrounds
+  cardViewLightLogo?: string; // Separate logo for card grid view (light mode)
+  cardViewDarkLogo?: string; // Separate logo for card grid view (dark mode)
 }
 
 // CASESTUDIES - Proof Shards

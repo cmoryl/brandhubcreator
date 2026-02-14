@@ -1230,14 +1230,13 @@ const BrandEditor = () => {
                         cardViewBackgroundTint: tint,
                       });
                     }}
-                    entityLightLogoUrl={(!brand?.hero?.logoUrl?.startsWith('blob:') ? brand?.hero?.logoUrl : undefined) || brand?.logos?.[0]?.url}
-                    entityDarkLogoUrl={(!brand?.hero?.darkLogoUrl?.startsWith('blob:') ? brand?.hero?.darkLogoUrl : undefined) || brand?.logos?.find(l => l.variant === 'reversed')?.url || brand?.logos?.[1]?.url}
+                    entityLightLogoUrl={pageSettings.cardViewLightLogo}
+                    entityDarkLogoUrl={pageSettings.cardViewDarkLogo}
                     onEntityLogoChange={isGuideAdmin ? (variant: 'light' | 'dark', url: string) => {
-                      if (variant === 'light') {
-                        updateBrand({ hero: { ...brand.hero, logoUrl: url } });
-                      } else {
-                        updateBrand({ hero: { ...brand.hero, darkLogoUrl: url } });
-                      }
+                      handlePageSettingsChange({
+                        ...pageSettings,
+                        ...(variant === 'light' ? { cardViewLightLogo: url } : { cardViewDarkLogo: url }),
+                      });
                     } : undefined}
                     entityName={brand?.hero?.name}
                     entityTagline={brand?.hero?.tagline}
