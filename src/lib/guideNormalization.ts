@@ -115,6 +115,10 @@ export const normalizeTypography = (typography: unknown[]): BrandTypography[] =>
     fontFamily: t.fontFamily || t.family || 'Inter, sans-serif',
     weight: t.weight || '400',
     usage: t.usage || t.role || 'General',
+    // Explicitly preserve optional fields that may be lost during normalization
+    previewText: t.previewText || undefined,
+    downloadUrl: t.downloadUrl || undefined,
+    role: t.role || undefined,
   }));
 
 /** Normalize legacy templates data (category -> fileType) */
@@ -246,7 +250,12 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
       // Strip base64 data URIs from screenshots to prevent guide_data bloat
       screenshotUrl: w?.screenshotUrl?.startsWith('data:') ? undefined : w?.screenshotUrl,
     })),
-    signatures: safeArray(g.signatures),
+    signatures: safeArray(g.signatures).map((s: any) => ({
+      ...s,
+      id: s.id || crypto.randomUUID(),
+      socialLinks: Array.isArray(s.socialLinks) ? s.socialLinks : undefined,
+      style: s.style && typeof s.style === 'object' ? s.style : undefined,
+    })),
     emailBanners: safeArray(g.emailBanners),
     videos: safeArray(g.videos),
     assets: safeArray(g.assets),
