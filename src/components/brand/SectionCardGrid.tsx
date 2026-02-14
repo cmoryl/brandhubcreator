@@ -214,7 +214,7 @@ export const SectionCardGrid = ({
                   'section-card-shimmer group relative flex flex-col items-center justify-center gap-1 p-2 rounded-xl aspect-square',
                   'transition-all duration-300',
                   isActive
-                    ? 'text-accent-foreground shadow-[0_0_20px_hsl(var(--accent)/0.4),0_0_40px_hsl(var(--accent)/0.15)] ring-1 ring-accent/60'
+                    ? 'text-white ring-1'
                     : 'bg-card/80 backdrop-blur-sm text-card-foreground',
                   isHidden && isAdmin && 'opacity-40 grayscale'
                 )}
@@ -222,7 +222,9 @@ export const SectionCardGrid = ({
                   '--shimmer-color': tint.bg,
                   backgroundColor: isActive ? undefined : tint.tint,
                   ...(isActive ? {
-                    background: `linear-gradient(135deg, hsl(var(--accent) / 0.9), hsl(var(--accent) / 0.65))`,
+                    background: `linear-gradient(135deg, ${tint.bg}, ${tint.bg.replace(')', ' / 0.7)')})`,
+                    boxShadow: `0 0 20px ${tint.bg.replace(')', ' / 0.4)')}, 0 0 40px ${tint.bg.replace(')', ' / 0.15)')}`,
+                    ringColor: tint.bg.replace(')', ' / 0.6)'),
                   } : {}),
                 } as React.CSSProperties}
               >
@@ -233,7 +235,7 @@ export const SectionCardGrid = ({
                     <motion.div
                       className="absolute inset-0 rounded-xl pointer-events-none"
                       style={{
-                        background: 'conic-gradient(from 0deg, transparent 0%, hsl(var(--accent-foreground) / 0.15) 25%, transparent 50%, hsl(var(--accent-foreground) / 0.1) 75%, transparent 100%)',
+                        background: 'conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.15) 25%, transparent 50%, rgba(255,255,255,0.1) 75%, transparent 100%)',
                       }}
                       animate={{ rotate: 360 }}
                       transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
@@ -243,11 +245,11 @@ export const SectionCardGrid = ({
 
                 <Icon className={cn(
                   'relative z-10 h-5 w-5 sm:h-6 sm:w-6 transition-all duration-300',
-                  isActive && 'drop-shadow-[0_0_8px_hsl(var(--accent-foreground)/0.6)]'
+                  isActive && 'drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]'
                 )} />
                 <span className={cn(
                   'relative z-10 text-[9px] sm:text-[10px] leading-tight text-center line-clamp-2 font-normal tracking-wide',
-                  isActive ? 'text-accent-foreground' : 'text-foreground/70 group-hover:text-foreground'
+                  isActive ? 'text-white' : 'text-foreground/70 group-hover:text-foreground'
                 )}>
                   {meta.label}
                 </span>
@@ -258,7 +260,7 @@ export const SectionCardGrid = ({
                     layoutId="section-card-indicator"
                     className="absolute bottom-0.5 left-2 right-2 h-[2px] rounded-full"
                     style={{
-                      background: 'linear-gradient(90deg, transparent, hsl(var(--accent-foreground) / 0.7), transparent)',
+                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent)',
                     }}
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   />
