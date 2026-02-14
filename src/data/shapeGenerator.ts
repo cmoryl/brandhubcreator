@@ -5,6 +5,7 @@
  */
 
 import type { LibraryShape } from './shapeLibrary';
+import { getIndustryShapes } from './industryShapeGenerators';
 
 // Color palettes for variety
 const PALETTES = [
@@ -960,6 +961,7 @@ export function getGeneratedShapes(): LibraryShape[] {
     ...generateDecorative(),
     ...generateUI(),
     ...generateLayered(),
+    ...getIndustryShapes(),
   ];
   
   return _generatedShapes;
