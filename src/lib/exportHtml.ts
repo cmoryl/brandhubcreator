@@ -567,3 +567,249 @@ export function exportWebsiteAnalysisHtml(
   const slug = options.url.replace(/https?:\/\//, '').replace(/[^a-zA-Z0-9]/g, '-');
   downloadHtml(html, `website-analysis-${slug}.html`);
 }
+
+// ─── Brand Cohesion Audit Report ────────────────────────────
+export function exportBrandAuditHtml(
+  audit: any,
+  options: { brandName: string }
+) {
+  const r = audit;
+  let body = '';
+
+  // Overall Score
+  body += `<div class="stat-grid">
+    <div class="stat-card"><div class="stat-value" style="color:${scoreColor(r.overallScore || 0)}">${r.overallScore || 0}</div><div class="stat-label">Cohesion Score</div></div>
+  </div>`;
+
+  // Summary
+  if (r.summary) body += `<div class="card"><p style="font-size:15px;color:var(--fg)">${esc(r.summary)}</p></div>`;
+
+  // Strengths & Weaknesses
+  if (safeArr(r.strengths).length || safeArr(r.weaknesses).length) {
+    body += `<h2>Strengths & Weaknesses</h2><div class="two-col">
+      <div class="card"><h3 style="color:var(--emerald)">Strengths</h3>${listHtml(safeArr(r.strengths), 'list-check')}</div>
+      <div class="card"><h3 style="color:var(--red)">Areas for Improvement</h3>${listHtml(safeArr(r.weaknesses), 'list-risk')}</div>
+    </div>`;
+  }
+
+  // Category Breakdown
+  const categories = safeArr(r.categories);
+  if (categories.length) {
+    body += `<h2>Category Breakdown</h2>`;
+    categories.forEach((cat: any) => {
+      body += `<div class="card">
+        <div class="card-header"><span class="card-title">${esc(cat.name)}</span><span style="font-size:18px;font-weight:700;color:${scoreColor(cat.score || 0)}">${cat.score || 0}/100</span></div>
+        ${scoreBar(cat.score || 0, cat.name)}
+        ${safeArr(cat.findings).length ? `<div style="margin-top:12px"><p style="font-size:11px;font-weight:600;color:var(--fg-muted);text-transform:uppercase;margin-bottom:6px">Findings</p>${listHtml(safeArr(cat.findings))}</div>` : ''}
+        ${safeArr(cat.recommendations).length ? `<div style="margin-top:12px"><p style="font-size:11px;font-weight:600;color:var(--fg-muted);text-transform:uppercase;margin-bottom:6px">Recommendations</p>${listHtml(safeArr(cat.recommendations), 'list-warn')}</div>` : ''}
+      </div>`;
+    });
+  }
+
+  // Bias & Inclusivity Review
+  const bias = r.biasReview;
+  if (bias) {
+    body += `<h2>Bias & Inclusivity Review</h2>`;
+    body += `<div class="stat-grid">
+      <div class="stat-card"><div class="stat-value" style="color:${scoreColor(bias.score || 0)}">${bias.score || 0}</div><div class="stat-label">Inclusivity Score</div></div>
+    </div>`;
+
+    const dims = [
+      { key: 'languageInclusivity', label: 'Language Inclusivity' },
+      { key: 'visualRepresentation', label: 'Visual Representation' },
+      { key: 'culturalSensitivity', label: 'Cultural Sensitivity' },
+      { key: 'accessibilityConsiderations', label: 'Accessibility' },
+      { key: 'regulatoryCompliance', label: 'EAA Regulatory Compliance' },
+    ];
+
+    dims.forEach(dim => {
+      const sub = bias[dim.key];
+      if (!sub) return;
+      body += `<div class="card">
+        <div class="card-header"><span class="card-title">${esc(dim.label)}</span><span style="font-size:16px;font-weight:700;color:${scoreColor(sub.score || 0)}">${sub.score || 0}/100</span></div>
+        ${scoreBar(sub.score || 0, dim.label)}
+        ${safeArr(sub.findings).length ? `<div style="margin-top:10px"><p style="font-size:11px;font-weight:600;color:var(--fg-muted);text-transform:uppercase;margin-bottom:6px">Findings</p>${listHtml(safeArr(sub.findings))}</div>` : ''}
+        ${safeArr(sub.recommendations).length ? `<div style="margin-top:10px"><p style="font-size:11px;font-weight:600;color:var(--fg-muted);text-transform:uppercase;margin-bottom:6px">Recommendations</p>${listHtml(safeArr(sub.recommendations), 'list-warn')}</div>` : ''}
+      </div>`;
+    });
+
+    if (safeArr(bias.overallFindings).length) {
+      body += `<div class="card"><h3 style="color:var(--violet)">Key Bias Findings</h3>${listHtml(safeArr(bias.overallFindings), 'list-warn')}</div>`;
+    }
+    if (safeArr(bias.overallRecommendations).length) {
+      body += `<div class="card"><h3>Overall Recommendations</h3>${listHtml(safeArr(bias.overallRecommendations), 'list-check')}</div>`;
+    }
+  }
+
+  // Action Items
+  if (safeArr(r.actionItems).length) {
+    body += `<h2>Priority Action Items</h2><div class="card"><ol style="padding-left:20px">`;
+    safeArr(r.actionItems).forEach((item: any, i: number) => {
+      body += `<li style="padding:6px 0;font-size:13px;color:var(--fg-muted);border-bottom:1px solid var(--border)">${esc(item)}</li>`;
+    });
+    body += `</ol></div>`;
+  }
+
+  const html = wrapDocument(
+    `Brand Cohesion Audit — ${options.brandName}`,
+    'AI-Powered Brand Analysis',
+    body
+  );
+  const slug = options.brandName.replace(/\s+/g, '-').toLowerCase();
+  downloadHtml(html, `brand-audit-${slug}.html`);
+}
+
+// ─── Bias & Inclusivity Awareness Report ────────────────────
+export function exportBiasAwarenessHtml(
+  scan: any,
+  options: { entityName: string; entityType: string }
+) {
+  let body = '';
+
+  // Dimension scores
+  const dims = [
+    { key: 'inclusion_score', label: 'Inclusion' },
+    { key: 'language_score', label: 'Language' },
+    { key: 'visual_score', label: 'Visual Representation' },
+    { key: 'accessibility_score', label: 'Accessibility' },
+    { key: 'ai_governance_score', label: 'AI Governance' },
+  ];
+
+  body += `<div class="stat-grid">`;
+  dims.forEach(d => {
+    const score = Number(scan[d.key]) || 0;
+    body += `<div class="stat-card"><div class="stat-value" style="color:${scoreColor(score)}">${score}</div><div class="stat-label">${esc(d.label)}</div></div>`;
+  });
+  body += `</div>`;
+
+  // Score bars
+  body += `<div class="card">`;
+  dims.forEach(d => {
+    const score = Number(scan[d.key]) || 0;
+    body += scoreBar(score, d.label);
+    body += `<div style="margin-bottom:12px"></div>`;
+  });
+  body += `</div>`;
+
+  // Detailed analyses
+  const analyses = [
+    { key: 'language_analysis', label: 'Language & Messaging Analysis' },
+    { key: 'visual_analysis', label: 'Visual Representation Analysis' },
+    { key: 'accessibility_analysis', label: 'Accessibility Analysis' },
+    { key: 'ai_governance_analysis', label: 'AI Governance Analysis' },
+  ];
+
+  analyses.forEach(a => {
+    const data = scan[a.key];
+    if (!data || typeof data !== 'object') return;
+    body += `<h2>${esc(a.label)}</h2><div class="card">`;
+    Object.entries(data as Record<string, unknown>).forEach(([key, val]) => {
+      const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      if (Array.isArray(val) && val.length) {
+        body += `<h3>${esc(label)}</h3>${listHtml(val, key.includes('strength') || key.includes('safeguard') ? 'list-check' : key.includes('risk') || key.includes('gap') || key.includes('issue') ? 'list-risk' : '')}`;
+      } else if (typeof val === 'string') {
+        body += `<h3>${esc(label)}</h3><p>${esc(val)}</p>`;
+      }
+    });
+    body += `</div>`;
+  });
+
+  // Advanced modules
+  const modules = [
+    { key: 'pie_module', label: 'PI&E "Who Else?" Framework' },
+    { key: 'wfa_module', label: 'WFA Bias Litmus Test' },
+    { key: 'policy_as_code_module', label: 'Policy-as-Code Disparate Impact' },
+    { key: 'inclusive_imagery_module', label: 'Inclusive Imagery Assessment' },
+    { key: 'inclusion_checklist_module', label: '2026 Master Inclusion Checklist' },
+  ];
+
+  modules.forEach(m => {
+    const data = scan[m.key];
+    if (!data || typeof data !== 'object') return;
+    body += `<h2>${esc(m.label)}</h2><div class="card">`;
+    if (data.overall_score !== undefined) body += scoreBar(data.overall_score, 'Module Score');
+    if (data.imagery_inclusion_score !== undefined) body += scoreBar(data.imagery_inclusion_score, 'Imagery Score');
+    if (data.score !== undefined) body += scoreBar(data.score, 'Checklist Score');
+
+    Object.entries(data as Record<string, unknown>).forEach(([key, val]) => {
+      if (['overall_score', 'imagery_inclusion_score', 'score'].includes(key)) return;
+      const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      if (Array.isArray(val) && val.length) {
+        body += `<h3>${esc(label)}</h3>${listHtml(val.map((v: any) => typeof v === 'object' ? (v.area || v.recommendation || v.action || JSON.stringify(v)) : v), key.includes('go_') ? 'list-check' : key.includes('stop_') ? 'list-risk' : '')}`;
+      } else if (typeof val === 'object' && val !== null) {
+        body += `<h3>${esc(label)}</h3>`;
+        Object.entries(val as Record<string, unknown>).forEach(([sk, sv]) => {
+          const sl = sk.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          if (typeof sv === 'object' && sv !== null) {
+            const subObj = sv as Record<string, unknown>;
+            if (subObj.score !== undefined) body += scoreBar(Number(subObj.score), sl);
+            const subArr = Object.entries(subObj).filter(([k, v]) => Array.isArray(v) && (v as unknown[]).length > 0);
+            subArr.forEach(([k, v]) => {
+              body += `<p style="font-size:11px;font-weight:600;color:var(--fg-muted);margin:8px 0 4px;text-transform:uppercase">${esc(k.replace(/_/g, ' '))}</p>${listHtml(v as unknown[])}`;
+            });
+          } else if (typeof sv === 'string') {
+            body += `<p style="margin:4px 0"><span style="color:var(--fg-muted);font-size:12px">${esc(sl)}:</span> ${esc(sv)}</p>`;
+          }
+        });
+      } else if (typeof val === 'string') {
+        body += `<p style="margin:4px 0"><span style="color:var(--fg-muted);font-size:12px">${esc(label)}:</span> ${esc(val)}</p>`;
+      }
+    });
+    body += `</div>`;
+  });
+
+  // Findings
+  const findings = Array.isArray(scan.findings) ? scan.findings : [];
+  if (findings.length) {
+    body += `<h2>Findings (${findings.length})</h2><div class="card"><table>
+      <thead><tr><th>Dimension</th><th>Severity</th><th>Title</th><th>Description</th></tr></thead>
+      <tbody>${findings.slice(0, 25).map((f: any) => `<tr>
+        <td>${esc(f.dimension || '')}</td>
+        <td><span class="badge ${f.severity === 'critical' || f.severity === 'high' ? 'badge-red' : f.severity === 'medium' ? 'badge-amber' : 'badge-emerald'}">${esc(f.severity || '')}</span></td>
+        <td style="font-weight:600">${esc(f.title || '')}</td>
+        <td>${esc(f.description || f.message || '')}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+
+  // Recommendations
+  const recs = Array.isArray(scan.recommendations) ? scan.recommendations : [];
+  if (recs.length) {
+    body += `<h2>Recommendations</h2><div class="card"><table>
+      <thead><tr><th>Priority</th><th>Dimension</th><th>Action</th><th>Impact</th></tr></thead>
+      <tbody>${recs.slice(0, 15).map((r: any) => `<tr>
+        <td><span class="badge ${r.priority === 'immediate' ? 'badge-red' : r.priority === 'short_term' ? 'badge-amber' : 'badge-emerald'}">${esc(r.priority || '')}</span></td>
+        <td>${esc(r.dimension || '')}</td>
+        <td>${esc(r.action || r.message || r.recommendation || '')}</td>
+        <td>${esc(r.impact || '')}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+
+  // Persona Coverage
+  if (scan.persona_coverage && typeof scan.persona_coverage === 'object') {
+    const pc = scan.persona_coverage as Record<string, unknown>;
+    body += `<h2>Persona Coverage</h2><div class="card">`;
+    if (pc.coverage_percentage !== undefined) body += scoreBar(Number(pc.coverage_percentage), 'Overall Coverage');
+    const spectrums = ['mobility', 'vision', 'hearing', 'speech', 'cognitive'];
+    body += `<table style="margin-top:12px"><thead><tr><th>Spectrum</th><th>Permanent</th><th>Temporary</th><th>Situational</th></tr></thead><tbody>`;
+    spectrums.forEach(s => {
+      const sp = pc[s] as Record<string, boolean> | undefined;
+      if (!sp) return;
+      body += `<tr><td style="text-transform:capitalize;font-weight:600">${s}</td>
+        <td>${sp.permanent ? '✅' : '❌'}</td>
+        <td>${sp.temporary ? '✅' : '❌'}</td>
+        <td>${sp.situational ? '✅' : '❌'}</td>
+      </tr>`;
+    });
+    body += `</tbody></table></div>`;
+  }
+
+  const html = wrapDocument(
+    `Bias & Inclusivity Report — ${options.entityName}`,
+    `${options.entityType} Awareness Scan`,
+    body
+  );
+  const slug = options.entityName.replace(/\s+/g, '-').toLowerCase();
+  downloadHtml(html, `bias-awareness-${slug}.html`);
+}
