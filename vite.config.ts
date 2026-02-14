@@ -23,14 +23,26 @@ export default defineConfig(({ mode }) => {
         output: {
           // Reduce chunk fragmentation by grouping small modules
           manualChunks: (id) => {
-            // Core React libraries - loaded first, must be in same chunk
-            if (id.includes('node_modules/react') || 
-                id.includes('node_modules/react-dom') || 
+            // Form libraries - deferred, not needed on landing page
+            if (id.includes('node_modules/react-day-picker') ||
+                id.includes('node_modules/react-hook-form') ||
+                id.includes('node_modules/@hookform')) {
+              return 'vendor-forms';
+            }
+            // 3D libraries - deferred, only used in specific pages
+            if (id.includes('node_modules/@react-three') ||
+                id.includes('node_modules/three') ||
+                id.includes('node_modules/react-reconciler')) {
+              return 'vendor-three';
+            }
+            // Core React libraries - use exact path segments to avoid matching react-day-picker etc.
+            if (id.includes('node_modules/react/') || 
+                id.includes('node_modules/react-dom/') || 
                 id.includes('node_modules/react-router') ||
                 id.includes('node_modules/scheduler')) {
               return 'vendor-react';
             }
-            // Leaflet map libraries - isolated chunk to prevent React conflicts
+            // Leaflet map libraries - isolated chunk, lazy-loaded
             if (id.includes('node_modules/leaflet') || 
                 id.includes('node_modules/react-leaflet') ||
                 id.includes('node_modules/@react-leaflet')) {
