@@ -91,7 +91,7 @@ const MapLoadingState: React.FC<{ message?: string }> = ({ message = 'Loading ma
 );
 
 // Region filter component (vanilla, no react-leaflet)
-const RegionFilter: React.FC<{
+interface RegionFilterProps {
   selectedRegion: RegionKey;
   onRegionChange: (region: RegionKey) => void;
   locationCounts: Record<RegionKey, number>;
@@ -99,7 +99,9 @@ const RegionFilter: React.FC<{
   panelBackground?: string;
   panelText?: string;
   borderColor?: string;
-}> = memo(({ 
+}
+
+const RegionFilter = memo(React.forwardRef<HTMLDivElement, RegionFilterProps>(({ 
   selectedRegion, 
   onRegionChange, 
   locationCounts, 
@@ -107,9 +109,9 @@ const RegionFilter: React.FC<{
   panelBackground = 'rgba(10, 22, 40, 0.9)',
   panelText = 'rgba(255,255,255,0.7)',
   borderColor = 'rgba(255,255,255,0.1)',
-}) => {
+}, ref) => {
   return (
-    <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-1">
+    <div ref={ref} className="absolute top-4 right-4 z-[1000] flex flex-col gap-1">
       <div 
         className="rounded-lg p-1.5 backdrop-blur-md"
         style={{
@@ -159,7 +161,7 @@ const RegionFilter: React.FC<{
       </div>
     </div>
   );
-});
+}));
 
 RegionFilter.displayName = 'RegionFilter';
 
