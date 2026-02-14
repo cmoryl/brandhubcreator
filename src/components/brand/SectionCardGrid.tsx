@@ -186,11 +186,11 @@ export const SectionCardGrid = ({
                   <img
                     src={activeLogoUrl}
                     alt="Entity logo"
-                    className="h-16 w-auto max-w-[200px] object-contain"
+                    className="h-[77px] w-auto max-w-[240px] object-contain"
                   />
                 ) : (
-                  <div className="h-16 w-16 rounded-lg bg-muted/50 border border-border/50 flex items-center justify-center">
-                    <Upload className="h-6 w-6 text-muted-foreground/50" />
+                  <div className="h-[77px] w-[77px] rounded-lg bg-muted/50 border border-border/50 flex items-center justify-center">
+                    <Upload className="h-7 w-7 text-muted-foreground/50" />
                   </div>
                 )}
                 {isAdmin && onEntityLogoChange && (
