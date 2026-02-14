@@ -57,6 +57,7 @@ import { WebinarSeriesSection } from '@/components/brand/WebinarSeriesSection';
 import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
 import { ClientLogosSection } from '@/components/brand/ClientLogosSection';
 import { InsightsSection } from '@/components/brand/InsightsSection';
+const LeafletLocationsSection = lazy(() => import('@/components/brand/LeafletLocationsSection').then(m => ({ default: m.LeafletLocationsSection })));
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
@@ -778,6 +779,23 @@ const BrandEditor = () => {
           insightsAccessCode={brand.insightsAccessCode}
           onAccessCodeChange={canEdit ? (insightsAccessCode) => updateBrand({ insightsAccessCode }) : undefined}
         />
+      );
+      case 'locations': return (
+        <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading map...</div>}>
+          <LeafletLocationsSection
+            locations={brand.locations || []}
+            locationStats={brand.locationStats || []}
+            onLocationsChange={editHandler((locations) => updateBrand({ locations }))}
+            onLocationStatsChange={editHandler((locationStats) => updateBrand({ locationStats }))}
+            accentColor={brand.colors?.[0]?.hex}
+            sectionTitle={brand.locationsSectionTitle}
+            sectionDescription={brand.locationsSectionDescription}
+            onSectionTitleChange={canEdit ? (locationsSectionTitle: string) => updateBrand({ locationsSectionTitle }) : undefined}
+            onSectionDescriptionChange={canEdit ? (locationsSectionDescription: string) => updateBrand({ locationsSectionDescription }) : undefined}
+            useSharedLocations={brand.useSharedLocations ?? false}
+            onUseSharedLocationsChange={canEdit ? (useSharedLocations: boolean) => updateBrand({ useSharedLocations }) : undefined}
+          />
+        </Suspense>
       );
       default: return null;
     }
