@@ -136,7 +136,7 @@ export const BiasInsightDetailDialog = ({ open, onOpenChange, entityId, entityTy
                   <CardContent>
                     <ul className="space-y-1.5">
                       {recommendations.slice(0, 10).map((r: any, i: number) => (
-                        <li key={i} className="text-sm text-muted-foreground">→ {r?.message || r?.recommendation || String(r)}</li>
+                        <li key={i} className="text-sm text-muted-foreground">→ {r?.action || r?.message || r?.recommendation || String(r)}</li>
                       ))}
                     </ul>
                   </CardContent>
