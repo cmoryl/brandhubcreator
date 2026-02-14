@@ -152,10 +152,13 @@ export const ReorderableBrandSidebar = ({
     }
   };
 
-  // Filter sections: non-admins never see hidden sections, then apply favorites filter
-  const visibleSections = isAdmin 
+  // Sections excluded from sidebar navigation
+  const excludedFromNav: SectionId[] = ['socialmetrics'];
+  
+  const visibleSections = (isAdmin 
     ? sectionOrder 
-    : sectionOrder.filter(id => !hiddenSections.includes(id));
+    : sectionOrder.filter(id => !hiddenSections.includes(id))
+  ).filter(id => !excludedFromNav.includes(id));
     
   const displayedSections = showFavoritesOnly
     ? visibleSections.filter(id => favoritedSectionIds.has(id))
