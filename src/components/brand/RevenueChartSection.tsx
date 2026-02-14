@@ -301,8 +301,8 @@ export const RevenueChartSection = ({
   }, [onRevenueDataChange]);
 
   return (
-    <section className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+    <section className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <SectionHeader
             title="Revenue Growth"
@@ -313,20 +313,20 @@ export const RevenueChartSection = ({
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {onRevenueDataChange && (
             <Button 
               onClick={() => setIsEditMode(!isEditMode)} 
               variant={isEditMode ? "default" : "outline"} 
               size="sm" 
-              className="gap-2"
+              className="gap-1.5 text-xs sm:text-sm"
             >
-              {isEditMode ? <X className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
+              {isEditMode ? <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
               {isEditMode ? 'Exit Edit' : 'Edit Data'}
             </Button>
           )}
-          <Button onClick={handleExport} variant="outline" size="sm" className="gap-2">
-            <Download className="h-4 w-4" />
+          <Button onClick={handleExport} variant="outline" size="sm" className="gap-1.5 text-xs sm:text-sm">
+            <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Export
           </Button>
         </div>
@@ -688,7 +688,7 @@ export const RevenueChartSection = ({
             max={yearRange[1]}
             value={yearRange[0]}
             onChange={(e) => setYearRange([Math.min(Number(e.target.value), yearRange[1]), yearRange[1]])}
-            className="w-16 sm:w-20 h-7 text-center font-bold text-sm"
+            className="w-[4.5rem] sm:w-20 h-7 text-center font-bold text-sm px-1"
           />
           <span className="text-muted-foreground font-bold">–</span>
           <Input
@@ -697,7 +697,7 @@ export const RevenueChartSection = ({
             max={maxYear}
             value={yearRange[1]}
             onChange={(e) => setYearRange([yearRange[0], Math.max(Number(e.target.value), yearRange[0])])}
-            className="w-16 sm:w-20 h-7 text-center font-bold text-sm"
+            className="w-[4.5rem] sm:w-20 h-7 text-center font-bold text-sm px-1"
           />
         </div>
 
