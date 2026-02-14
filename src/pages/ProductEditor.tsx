@@ -618,7 +618,7 @@ const ProductEditor = () => {
       case 'signatures': return <SignaturesSection signatures={currentProduct.signatures} onSignaturesChange={editHandler((signatures) => handleUpdateProduct({ signatures }))} />;
       case 'qr': return <QRSection qr={currentProduct.qr} onQRChange={editHandler((qr) => handleUpdateProduct({ qr }))} entityType="product" entityId={currentProduct.id} logos={currentProduct.logos} />;
       case 'videos': return <VideosSection videos={currentProduct.videos} onVideosChange={editHandler((videos) => handleUpdateProduct({ videos }))} />;
-      case 'assets': return <AssetsSection assets={currentProduct.assets} onAssetsChange={editHandler((assets) => handleUpdateProduct({ assets }))} />;
+      case 'assets': return <AssetsSection assets={currentProduct.assets} onAssetsChange={editHandler((assets) => handleUpdateProduct({ assets }))} websiteUrl={currentProduct.websites?.[0]?.url} />;
       case 'misuse': return <MisuseSection misuse={currentProduct.misuse} onMisuseChange={editHandler((misuse) => handleUpdateProduct({ misuse }))} />;
       case 'casestudies':
       case 'brochures': return <DigitalCollateralSection collateral={currentProduct.brochures} onCollateralChange={editHandler((brochures) => handleUpdateProduct({ brochures }))} />;

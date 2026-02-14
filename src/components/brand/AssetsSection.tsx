@@ -1,15 +1,17 @@
 import { useState, useCallback } from 'react';
-import { X, Download, Folder, File, Upload } from 'lucide-react';
+import { X, Download, Folder, File, Upload, Globe } from 'lucide-react';
 import { BrandAsset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
+import { WebsiteImageScanner } from './WebsiteImageScanner';
 
 interface AssetsSectionProps {
   assets: BrandAsset[];
   onAssetsChange?: (assets: BrandAsset[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  websiteUrl?: string;
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -28,10 +30,22 @@ const getFileIcon = (type?: string) => {
   return '📁';
 };
 
-export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtitleChange }: AssetsSectionProps) => {
+export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtitleChange, websiteUrl }: AssetsSectionProps) => {
   const canEdit = Boolean(onAssetsChange);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
+  const handleImportImages = useCallback((images: { name: string; url: string; type: string }[]) => {
+    if (!onAssetsChange) return;
+    const newAssets: BrandAsset[] = images.map((img) => ({
+      id: crypto.randomUUID(),
+      name: img.name,
+      type: img.type,
+      url: img.url,
+      size: 'External',
+    }));
+    onAssetsChange([...assets, ...newAssets]);
+  }, [assets, onAssetsChange]);
   const handleFileDrop = useCallback((file: File) => {
     if (!onAssetsChange) return;
     const reader = new FileReader();
@@ -90,10 +104,16 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
           />
         </div>
         {canEdit && (
-          <Button onClick={openFilePicker} size="sm" className="gap-2 shrink-0">
-            <Upload className="h-4 w-4" />
-            Upload Assets
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button onClick={() => setIsScannerOpen(true)} variant="outline" size="sm" className="gap-2">
+              <Globe className="h-4 w-4" />
+              Scan Website
+            </Button>
+            <Button onClick={openFilePicker} size="sm" className="gap-2">
+              <Upload className="h-4 w-4" />
+              Upload Assets
+            </Button>
+          </div>
         )}
       </div>
 
@@ -182,6 +202,15 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
             <p className="font-medium">No assets uploaded</p>
           </div>
         </div>
+      )}
+
+      {canEdit && (
+        <WebsiteImageScanner
+          open={isScannerOpen}
+          onOpenChange={setIsScannerOpen}
+          defaultUrl={websiteUrl || ''}
+          onImportImages={handleImportImages}
+        />
       )}
     </section>
   );

@@ -70,3 +70,6 @@ verify_jwt = false
 
 [functions.cleanup-base64-bloat]
 verify_jwt = false
+
+[functions.scan-website-images]
+verify_jwt = false
