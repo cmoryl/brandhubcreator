@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { SectionId, BrandBackgroundType } from '@/types/brand';
@@ -6,8 +6,7 @@ import { sectionMeta } from './ReorderableBrandSidebar';
 import { HeroBackground } from '@/components/HeroBackground';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Paintbrush, Sparkles, Waves, LayoutGrid, X, ArrowUpDown } from 'lucide-react';
-import { BrandHubLogo } from '@/components/BrandHubLogo';
+import { Paintbrush, Sparkles, Waves, LayoutGrid, X, ArrowUpDown, Upload } from 'lucide-react';
 
 interface SectionCardGridProps {
   sectionOrder: SectionId[];
@@ -18,6 +17,8 @@ interface SectionCardGridProps {
   cardViewBackground?: BrandBackgroundType;
   cardViewBackgroundTint?: string;
   onCardViewBackgroundChange?: (bg: BrandBackgroundType, tint?: string) => void;
+  entityLogoUrl?: string;
+  onEntityLogoChange?: (url: string) => void;
 }
 
 const EXCLUDED_FROM_NAV: SectionId[] = ['socialmetrics'];
@@ -124,9 +125,12 @@ export const SectionCardGrid = ({
   cardViewBackground = 'inherit',
   cardViewBackgroundTint,
   onCardViewBackgroundChange,
+  entityLogoUrl,
+  onEntityLogoChange,
 }: SectionCardGridProps) => {
   const [bgPickerOpen, setBgPickerOpen] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>('default');
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   const sections = useMemo(() => {
     const base = sectionOrder.filter(
@@ -141,6 +145,13 @@ export const SectionCardGrid = ({
   const getHeroBgType = (): HeroBackgroundType | undefined => {
     if (!hasBackground) return undefined;
     return cardViewBackground as HeroBackgroundType;
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !onEntityLogoChange) return;
+    const url = URL.createObjectURL(file);
+    onEntityLogoChange(url);
   };
 
   return (
@@ -158,11 +169,45 @@ export const SectionCardGrid = ({
       )}
 
       <div className="relative z-10">
+        {/* Entity Logo above toolbar */}
+        <div className="flex items-center gap-3 mb-3">
+          <div className="relative group">
+            {entityLogoUrl ? (
+              <img
+                src={entityLogoUrl}
+                alt="Entity logo"
+                className="h-12 w-auto max-w-[160px] object-contain"
+              />
+            ) : (
+              <div className="h-12 w-12 rounded-lg bg-muted/50 border border-border/50 flex items-center justify-center">
+                <Upload className="h-5 w-5 text-muted-foreground/50" />
+              </div>
+            )}
+            {isAdmin && onEntityLogoChange && (
+              <>
+                <button
+                  onClick={() => logoInputRef.current?.click()}
+                  className="absolute inset-0 flex items-center justify-center bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg cursor-pointer"
+                  title="Update logo"
+                >
+                  <Upload className="h-4 w-4 text-foreground" />
+                </button>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleLogoUpload}
+                />
+              </>
+            )}
+          </div>
+        </div>
+
         {/* Toolbar row: sort + background */}
         <div className="flex items-center justify-between mb-2 gap-2">
-          {/* Logo + Sort */}
+          {/* Sort */}
           <div className="flex items-center gap-2">
-            <BrandHubLogo size="sm" className="mr-1" />
           <Popover>
             <PopoverTrigger asChild>
               <button

@@ -1221,6 +1221,8 @@ const BrandEditor = () => {
                         cardViewBackgroundTint: tint,
                       });
                     }}
+                    entityLogoUrl={brand?.hero?.logoUrl || brand?.logos?.[0]?.url}
+                    onEntityLogoChange={isGuideAdmin ? (url: string) => updateBrand({ hero: { ...brand.hero, logoUrl: url } }) : undefined}
                   />
                   <div className="animate-zoom-in">
                     {renderSection()}
