@@ -2920,6 +2920,118 @@ export type Database = {
           },
         ]
       }
+      social_platform_credentials: {
+        Row: {
+          account_id: string | null
+          account_name: string | null
+          created_at: string
+          created_by: string | null
+          credential_type: string
+          credentials: Json
+          id: string
+          is_active: boolean
+          last_sync_at: string | null
+          organization_id: string | null
+          platform: string
+          sync_error: string | null
+          sync_frequency: string
+          sync_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          account_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          credential_type?: string
+          credentials?: Json
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          organization_id?: string | null
+          platform: string
+          sync_error?: string | null
+          sync_frequency?: string
+          sync_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          account_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          credential_type?: string
+          credentials?: Json
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          organization_id?: string | null
+          platform?: string
+          sync_error?: string | null
+          sync_frequency?: string
+          sync_status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_platform_credentials_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_sync_history: {
+        Row: {
+          completed_at: string | null
+          credential_id: string | null
+          data_source: string
+          entity_id: string
+          entity_type: string
+          error_message: string | null
+          id: string
+          metrics_fetched: Json | null
+          platform: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          credential_id?: string | null
+          data_source?: string
+          entity_id: string
+          entity_type: string
+          error_message?: string | null
+          id?: string
+          metrics_fetched?: Json | null
+          platform: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          credential_id?: string | null
+          data_source?: string
+          entity_id?: string
+          entity_type?: string
+          error_message?: string | null
+          id?: string
+          metrics_fetched?: Json | null
+          platform?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_sync_history_credential_id_fkey"
+            columns: ["credential_id"]
+            isOneToOne: false
+            referencedRelation: "social_platform_credentials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       universe_backups: {
         Row: {
           backup_data: Json
