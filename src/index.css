@@ -111,10 +111,11 @@
   html {
     /* Ensure proper full-height on mobile browsers */
     height: -webkit-fill-available;
-    /* Prevent horizontal scroll on mobile - critical for touch devices */
-    overflow-x: hidden;
-    /* Lock the viewport width */
-    max-width: 100vw;
+    /* Prevent horizontal scroll on mobile - clip is stronger than hidden */
+    overflow-x: clip;
+    /* Lock the viewport width - use 100% not 100vw to avoid scrollbar width */
+    max-width: 100%;
+    width: 100%;
   }
 
   body {
@@ -125,11 +126,11 @@
     min-height: 100dvh;
     min-height: -webkit-fill-available;
     /* Prevent iOS bounce scroll on body */
-    overscroll-behavior: none;
-    /* Prevent horizontal scroll on mobile - critical for touch devices */
-    overflow-x: hidden;
+    overscroll-behavior-x: none;
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: clip;
     /* Lock the viewport width */
-    max-width: 100vw;
+    max-width: 100%;
     width: 100%;
     /* Improve text rendering on mobile */
     -webkit-font-smoothing: antialiased;
@@ -137,12 +138,14 @@
     text-rendering: optimizeLegibility;
     /* Prevent accidental horizontal drag on touch */
     position: relative;
+    /* Block horizontal touch panning on the page itself */
+    touch-action: pan-y pinch-zoom;
   }
   
   /* Root app container constraint */
   #root {
-    overflow-x: hidden;
-    max-width: 100vw;
+    overflow-x: clip;
+    max-width: 100%;
     width: 100%;
     position: relative;
   }
@@ -333,6 +336,8 @@
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+    /* Allow horizontal finger scrolling on touch carousels */
+    touch-action: pan-x pan-y;
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
