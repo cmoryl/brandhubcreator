@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   BarChart3, Heart, AlertTriangle, CheckCircle, XCircle, 
   RefreshCw, Download, TrendingUp, Palette, Type, Image,
@@ -109,7 +109,22 @@ export function BrandAnalyticsHub() {
     entityFilter === 'all' ? allEntitiesHealth : allEntitiesHealth.filter(e => e.entityType === entityFilter),
     [allEntitiesHealth, entityFilter]
   );
-  const summary = useMemo(() => calculateSummary(brandsHealth), [brandsHealth]);
+
+  const calculateSummary = useCallback((brands: BrandHealthData[]): AnalyticsSummary | null => {
+    if (brands.length === 0) return null;
+    const avgScore = Math.round(brands.reduce((sum, b) => sum + b.overallScore, 0) / brands.length);
+    const needingAttention = brands.filter(b => b.overallScore < 60).length;
+    const complete = brands.filter(b => b.overallScore >= 90).length;
+    const gapCounts = new Map<string, number>();
+    brands.forEach(b => b.gaps.forEach(gap => gapCounts.set(gap.section, (gapCounts.get(gap.section) || 0) + 1)));
+    const topGaps = Array.from(gapCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([gap, count]) => ({ gap, count }));
+    const issueCounts = new Map<string, number>();
+    brands.forEach(b => b.consistencyIssues.forEach(issue => issueCounts.set(issue.issue, (issueCounts.get(issue.issue) || 0) + 1)));
+    const topIssues = Array.from(issueCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([issue, count]) => ({ issue, count }));
+    return { totalBrands: brands.length, avgHealthScore: avgScore, brandsNeedingAttention: needingAttention, fullyCompleteBrands: complete, topGaps, topIssues };
+  }, []);
+
+  const summary = useMemo(() => calculateSummary(brandsHealth), [brandsHealth, calculateSummary]);
 
   const analyzeAll = async () => {
     setIsLoading(true);
@@ -486,50 +501,7 @@ export function BrandAnalyticsHub() {
     return { overallScore, scores, gaps, consistencyIssues };
   };
 
-  const calculateSummary = (brands: BrandHealthData[]): AnalyticsSummary | null => {
-    if (brands.length === 0) {
-      return null;
-    }
-
-    const avgScore = Math.round(brands.reduce((sum, b) => sum + b.overallScore, 0) / brands.length);
-    const needingAttention = brands.filter(b => b.overallScore < 60).length;
-    const complete = brands.filter(b => b.overallScore >= 90).length;
-
-    // Count gaps
-    const gapCounts = new Map<string, number>();
-    brands.forEach(b => {
-      b.gaps.forEach(gap => {
-        gapCounts.set(gap.section, (gapCounts.get(gap.section) || 0) + 1);
-      });
-    });
-
-    const topGaps = Array.from(gapCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([gap, count]) => ({ gap, count }));
-
-    // Count issues
-    const issueCounts = new Map<string, number>();
-    brands.forEach(b => {
-      b.consistencyIssues.forEach(issue => {
-        issueCounts.set(issue.issue, (issueCounts.get(issue.issue) || 0) + 1);
-      });
-    });
-
-    const topIssues = Array.from(issueCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([issue, count]) => ({ issue, count }));
-
-    return {
-      totalBrands: brands.length,
-      avgHealthScore: avgScore,
-      brandsNeedingAttention: needingAttention,
-      fullyCompleteBrands: complete,
-      topGaps,
-      topIssues,
-    };
-  };
+  // calculateSummary moved to top of component as useCallback
 
   const downloadReport = () => {
     if (!brandsHealth.length) return;
