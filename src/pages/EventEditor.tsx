@@ -21,6 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useOrgSlug } from '@/hooks/useOrgSlug';
 import { useGuideAdmin } from '@/hooks/useGuideAdmin';
+import { useAutoBiasMonitoring } from '@/hooks/useAutoBiasMonitoring';
 import { useSEO } from '@/hooks/useSEO';
 import { trackEntityView } from '@/hooks/usePageTracking';
 import { EventSidebar } from '@/components/event/EventSidebar';
@@ -392,6 +393,15 @@ const EventEditor = () => {
     }
   }, [viewMode]);
 
+  // Continuous bias monitoring for events
+  const { triggerMonitor: triggerBiasMonitor } = useAutoBiasMonitoring({
+    organizationId: event?.organizationId,
+    entityType: 'event',
+    entityId: event?.id || '',
+    entityName: event?.hero?.name || '',
+    enabled: canEdit && Boolean(event?.id),
+  });
+
   // Stable update function - must be before early returns to maintain hooks order
   // Handles both context events and directly-fetched public events
   const updateEvent = useCallback(async (updates: Partial<EventGuide>) => {
@@ -399,6 +409,9 @@ const EventEditor = () => {
       console.warn('[EventEditor] updateEvent called but no event loaded');
       return;
     }
+    
+    // Feed to continuous bias monitor
+    triggerBiasMonitor({ ...event, ...updates } as unknown as Record<string, unknown>);
     
     // If event is in context, use context updater
     if (contextEvent) {

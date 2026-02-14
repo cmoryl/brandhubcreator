@@ -21,6 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { normalizeProductGuide } from '@/lib/guideNormalization';
 import { trackEntityView } from '@/hooks/usePageTracking';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
+import { useAutoBiasMonitoring } from '@/hooks/useAutoBiasMonitoring';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
 import { ShareButton } from '@/components/brand/ShareButton';
 import { HeroSection } from '@/components/brand/HeroSection';
@@ -504,17 +505,25 @@ const ProductEditor = () => {
     }
   }, [viewMode]);
 
+  // Continuous bias monitoring for products
+  const { triggerMonitor: triggerBiasMonitor } = useAutoBiasMonitoring({
+    organizationId: currentProduct?.organizationId,
+    entityType: 'product',
+    entityId: currentProduct?.id || '',
+    entityName: currentProduct?.hero?.name || '',
+    enabled: canEdit && Boolean(currentProduct?.id),
+  });
+
   const handleUpdateProduct = useCallback((updates: Partial<ProductGuide>) => {
     if (currentProduct) {
-      // When product comes from publicProduct (not context), also update local state
-      // to ensure the full product data is available for syncing
       if (!contextProduct && publicProduct) {
-        // Update local publicProduct state so UI stays in sync
         setPublicProduct(prev => prev ? { ...prev, ...updates, updatedAt: new Date() } : prev);
       }
       updateProduct(currentProduct.id, updates);
+      // Feed to continuous bias monitor
+      triggerBiasMonitor({ ...currentProduct, ...updates } as unknown as Record<string, unknown>);
     }
-  }, [currentProduct, contextProduct, publicProduct, updateProduct]);
+  }, [currentProduct, contextProduct, publicProduct, updateProduct, triggerBiasMonitor]);
 
   const handleSectionChange = useCallback((section: SectionId) => {
     setActiveSection(section);

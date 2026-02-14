@@ -90,7 +90,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { normalizeHiddenSections, normalizeSectionOrder } from '@/lib/sectionOrder';
-
+import { useAutoBiasMonitoring } from '@/hooks/useAutoBiasMonitoring';
 type ViewMode = 'sections' | 'full';
 
 // Legacy/short slugs that may exist in old links, emails, or bookmarks.
@@ -692,8 +692,21 @@ const BrandEditor = () => {
     );
   }
 
+  // Continuous bias monitoring — triggers scan on content changes
+  const { triggerMonitor: triggerBiasMonitor } = useAutoBiasMonitoring({
+    organizationId: brand?.organizationId,
+    entityType: 'brand',
+    entityId: brand?.id || '',
+    entityName: brand?.hero?.name || '',
+    enabled: canEdit && Boolean(brand?.id),
+  });
+
   const updateBrand = (updates: Parameters<typeof updateBrandContext>[1]) => {
     applyBrandUpdates(updates);
+    // Feed content changes to continuous bias monitor
+    if (brand) {
+      triggerBiasMonitor({ ...brand, ...updates } as unknown as Record<string, unknown>);
+    }
   };
 
   const renderSection = () => {
