@@ -14,6 +14,7 @@ import {
   normalizeBrochures,
   normalizeGradients 
 } from '@/lib/guideNormalization';
+import { stripBase64FromGuideData } from '@/lib/stripBase64FromGuideData';
 
 // Debounce delay for database syncing (ms)
 const SYNC_DEBOUNCE_MS = 500;
@@ -276,6 +277,8 @@ const dbToProductGuide = (db: DbProduct): ProductGuide => {
 
 const brandGuideToDb = (brand: Partial<BrandGuide>, userId: string, organizationId?: string | null) => {
   const { id, type, isFavorite, isPublic, sectionOrder, hiddenSections, createdAt, updatedAt, ...guideData } = brand as BrandGuide;
+  // Strip any remaining base64 blobs to prevent payload bloat
+  const cleanedGuideData = stripBase64FromGuideData(guideData as Record<string, unknown>);
   return {
     user_id: userId,
     ...(organizationId ? { organization_id: organizationId } : {}),
@@ -284,12 +287,14 @@ const brandGuideToDb = (brand: Partial<BrandGuide>, userId: string, organization
     is_public: isPublic ?? false,
     section_order: (sectionOrder as string[] | null) ?? null,
     hidden_sections: (hiddenSections as string[] | null) ?? null,
-    guide_data: guideData as unknown as Json,
+    guide_data: cleanedGuideData as unknown as Json,
   };
 };
 
 const productGuideToDb = (product: Partial<ProductGuide>, userId: string, organizationId?: string | null) => {
   const { id, type, parentBrandId, isFavorite, isPublic, sectionOrder, hiddenSections, createdAt, updatedAt, ...guideData } = product as ProductGuide;
+  // Strip any remaining base64 blobs to prevent payload bloat
+  const cleanedGuideData = stripBase64FromGuideData(guideData as Record<string, unknown>);
   return {
     user_id: userId,
     ...(organizationId ? { organization_id: organizationId } : {}),
@@ -299,7 +304,7 @@ const productGuideToDb = (product: Partial<ProductGuide>, userId: string, organi
     is_public: isPublic ?? false,
     section_order: (sectionOrder as string[] | null) ?? null,
     hidden_sections: (hiddenSections as string[] | null) ?? null,
-    guide_data: guideData as unknown as Json,
+    guide_data: cleanedGuideData as unknown as Json,
   };
 };
 

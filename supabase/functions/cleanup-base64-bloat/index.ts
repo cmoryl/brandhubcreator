@@ -48,6 +48,11 @@ serve(async (req) => {
     const sections = [
       "brochures", "imagery", "clientLogos", "logos", "sponsorLogos",
       "brandIcons", "patterns", "hero", "customSections", "pdfDocuments",
+      "services", "assets", "imageAssets", "socialAssets", "displayBanners",
+      "templates", "misuse", "iconography", "templateSpecs", "signatures",
+      "values", "insights", "colors", "social", "typography", "gradients",
+      "videos", "webinars", "awards", "qrCodes", "caseStudies", "websites",
+      "signage", "eventDetails", "schedule", "sponsors", "maps",
     ];
 
     const stats = {
@@ -229,7 +234,8 @@ async function processSection(
 }
 
 function isBase64DataUri(str: string): boolean {
-  return str.startsWith("data:image/") || str.startsWith("data:application/pdf");
+  // Match any data URI with base64 encoding that's substantial in size (>5KB)
+  return str.length > 5000 && /^data:[^;]+;base64,/.test(str);
 }
 
 /**
@@ -262,6 +268,14 @@ async function uploadBase64ToStorage(
       "image/webp": "webp",
       "image/svg+xml": "svg",
       "application/pdf": "pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
+      "application/msword": "doc",
+      "application/vnd.ms-excel": "xls",
+      "application/vnd.ms-powerpoint": "ppt",
+      "application/zip": "zip",
+      "application/octet-stream": "bin",
     };
     const ext = extMap[mimeType] || "bin";
 

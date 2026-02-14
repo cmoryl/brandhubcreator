@@ -6,6 +6,7 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { Json } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import { CACHE_KEYS } from '@/lib/cacheManager';
+import { stripBase64FromGuideData } from '@/lib/stripBase64FromGuideData';
 
 const SYNC_DEBOUNCE_MS = 500;
 const CACHE_KEY = CACHE_KEYS.EVENTS;
@@ -130,6 +131,8 @@ const dbToEventGuide = (db: DbEvent): EventGuide => {
 
 const eventGuideToDb = (event: Partial<EventGuide>, userId: string, organizationId?: string | null) => {
   const { id, type, isFavorite, isPublic, sectionOrder, hiddenSections, createdAt, updatedAt, parentBrandId, ...guideData } = event as EventGuide;
+  // Strip any remaining base64 blobs to prevent payload bloat
+  const cleanedGuideData = stripBase64FromGuideData(guideData as Record<string, unknown>);
   return {
     user_id: userId,
     ...(organizationId ? { organization_id: organizationId } : {}),
@@ -139,7 +142,7 @@ const eventGuideToDb = (event: Partial<EventGuide>, userId: string, organization
     is_public: isPublic ?? false,
     section_order: (sectionOrder as string[] | null) ?? null,
     hidden_sections: (hiddenSections as string[] | null) ?? null,
-    guide_data: guideData as unknown as Json,
+    guide_data: cleanedGuideData as unknown as Json,
   };
 };
 
