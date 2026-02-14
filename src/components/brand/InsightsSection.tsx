@@ -3,6 +3,7 @@ import { useCompetitiveInsights, type CompetitiveInsightItem } from '@/hooks/use
 import { useBrandIntelligenceInsights } from '@/hooks/useBrandIntelligenceInsights';
 import { useComplianceAuditInsights } from '@/hooks/useComplianceAuditInsights';
 import { useSocialMetricsInsights } from '@/hooks/useSocialMetricsInsights';
+import { useBiasAwarenessInsights } from '@/hooks/useBiasAwarenessInsights';
 import { 
   TrendingUp, TrendingDown, Minus, FileText, BarChart2, Newspaper, 
   Bell, AlertCircle, Calendar, ExternalLink, Plus, Trash2, Pencil,
@@ -357,10 +358,17 @@ export const InsightsSection = ({
     enabled: Boolean(entityType && entityId),
   });
 
-  // Merge manual insights with auto-fetched competitive, intelligence, compliance, and social insights
+  // Auto-fetch bias awareness insights
+  const { biasInsights } = useBiasAwarenessInsights({
+    entityType: entityType || 'brand',
+    entityId: entityId || '',
+    enabled: Boolean(entityType && entityId),
+  });
+
+  // Merge manual insights with auto-fetched competitive, intelligence, compliance, social, and bias insights
   const allInsights = useMemo(() => {
-    return [...insights, ...competitiveInsights, ...intelligenceInsights, ...complianceInsights, ...socialInsights];
-  }, [insights, competitiveInsights, intelligenceInsights, complianceInsights, socialInsights]);
+    return [...insights, ...competitiveInsights, ...intelligenceInsights, ...complianceInsights, ...socialInsights, ...biasInsights];
+  }, [insights, competitiveInsights, intelligenceInsights, complianceInsights, socialInsights, biasInsights]);
 
   const handleDelete = (id: string) => {
     if (!onInsightsChange) return;
