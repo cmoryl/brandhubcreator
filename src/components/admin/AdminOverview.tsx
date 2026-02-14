@@ -16,7 +16,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,33 +55,15 @@ function AnimatedCounter({ value, duration = 1.2 }: { value: number; duration?: 
   return <>{display.toLocaleString()}</>;
 }
 
-// ─── Spark Line (mini bar chart) ────────────────────────────
-function SparkBars({ values, color }: { values: number[]; color: string }) {
-  const max = Math.max(...values, 1);
-  return (
-    <div className="flex items-end gap-[3px] h-8">
-      {values.map((v, i) => (
-        <motion.div
-          key={i}
-          className={cn("w-[5px] rounded-sm", color)}
-          initial={{ height: 0 }}
-          animate={{ height: `${Math.max((v / max) * 100, 8)}%` }}
-          transition={{ delay: i * 0.05, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        />
-      ))}
-    </div>
-  );
-}
-
 // ─── Radial Progress ────────────────────────────────────────
-function RadialProgress({ value, size = 52, label, color }: { value: number; size?: number; label: string; color: string }) {
-  const strokeWidth = 4;
+function RadialProgress({ value, size = 44, label, color }: { value: number; size?: number; label: string; color: string }) {
+  const strokeWidth = 3.5;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (value / 100) * circumference;
 
   return (
-    <div className="flex flex-col items-center gap-1.5">
+    <div className="flex flex-col items-center gap-1">
       <div className="relative">
         <svg width={size} height={size} className="transform -rotate-90">
           <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--muted))" strokeWidth={strokeWidth} />
@@ -95,7 +76,7 @@ function RadialProgress({ value, size = 52, label, color }: { value: number; siz
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
           />
         </svg>
-        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold tabular-nums">{value}%</span>
+        <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold tabular-nums">{value}%</span>
       </div>
       <span className="text-[10px] text-muted-foreground font-medium">{label}</span>
     </div>
@@ -103,8 +84,8 @@ function RadialProgress({ value, size = 52, label, color }: { value: number; siz
 }
 
 // ─── Animation Variants ─────────────────────────────────────
-const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
-const fadeUp = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } } };
+const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
+const fadeUp = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } } };
 
 // ─── Types ──────────────────────────────────────────────────
 interface AdminOverviewProps {
@@ -133,9 +114,6 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
   const contentHealth = stats ? Math.round(((stats.publicBrands + stats.publicEvents) / Math.max(stats.totalBrands + stats.totalEvents, 1)) * 100) : 0;
   const userEngagement = stats?.totalUsers ? Math.round((stats.activeUsersToday / stats.totalUsers) * 100) : 0;
 
-  const userSpark = [3, 5, 4, 7, 6, 8, stats?.activeUsersToday || 5];
-  const contentSpark = [2, 4, 3, 6, 5, 7, (stats?.totalBrands || 0) % 10 || 4];
-
   const quickActions: QuickAction[] = [
     { id: 'approvals', label: 'Review Approvals', icon: <UserCheck className="h-4 w-4" />, onClick: () => onTabChange('approvals'), badge: stats?.pendingApprovals, variant: (stats?.pendingApprovals || 0) > 0 ? 'destructive' : 'outline' },
     { id: 'reports', label: 'Generate Report', icon: <FileText className="h-4 w-4" />, onClick: () => onTabChange('reports') },
@@ -148,7 +126,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
   return (
     <motion.div className="space-y-5" variants={stagger} initial="hidden" animate="show">
 
-      {/* ── Header Row ─────────────────────────────────────── */}
+      {/* ── Header ─────────────────────────────────────────── */}
       <motion.div variants={fadeUp} className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold tracking-tight">Command Center</h2>
@@ -168,9 +146,9 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
             <button
               onClick={() => onTabChange('approvals')}
-              className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-destructive/10 border border-destructive/25 hover:bg-destructive/15 transition-all group"
+              className="w-full flex items-center gap-3 p-3 rounded-xl bg-destructive/10 border border-destructive/25 hover:bg-destructive/15 transition-all group"
             >
-              <div className="h-9 w-9 rounded-lg bg-destructive/20 flex items-center justify-center shrink-0">
+              <div className="h-8 w-8 rounded-lg bg-destructive/20 flex items-center justify-center shrink-0">
                 <AlertTriangle className="h-4 w-4 text-destructive" />
               </div>
               <div className="text-left flex-1">
@@ -183,276 +161,222 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
         )}
       </AnimatePresence>
 
-      {/* ── Primary Metrics Row ────────────────────────────── */}
-      <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <MetricCard
-          icon={Users} iconColor="text-primary" iconBg="bg-primary/10"
-          value={stats?.totalUsers || 0} label="Users"
-          onClick={() => onTabChange('users')}
-          extra={<SparkBars values={userSpark} color="bg-primary/60" />}
+      {/* ── Primary Stats Strip ────────────────────────────── */}
+      <motion.div variants={fadeUp} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+        <StatChip icon={Users} color="text-primary" bg="bg-primary/10" value={stats?.totalUsers || 0} label="Users"
           trend={(stats?.newUsersThisWeek || 0) > 0 ? `+${stats?.newUsersThisWeek}` : undefined}
-        />
-        <MetricCard
-          icon={Building2} iconColor="text-violet-500" iconBg="bg-violet-500/10"
-          value={stats?.totalOrganizations || 0} label="Organizations"
-          onClick={() => onTabChange('organizations')}
-          badge="Workspaces"
-        />
-        <MetricCard
-          icon={Layers} iconColor="text-blue-500" iconBg="bg-blue-500/10"
-          value={(stats?.totalBrands || 0) + (stats?.totalProducts || 0) + (stats?.totalEvents || 0)}
-          label={`${stats?.totalBrands || 0} brands · ${stats?.totalProducts || 0} products · ${stats?.totalEvents || 0} events`}
-          onClick={() => onTabChange('analytics')}
-          extra={<SparkBars values={contentSpark} color="bg-blue-500/50" />}
-        />
-        <MetricCard
-          icon={Eye} iconColor="text-emerald-500" iconBg="bg-emerald-500/10"
-          value={(stats?.publicBrands || 0) + (stats?.publicEvents || 0)}
-          label={`Published · ${contentHealth}% rate`}
-          onClick={() => onTabChange('analytics')}
-          extra={<RadialProgress value={contentHealth} size={36} label="" color="hsl(var(--primary))" />}
-        />
+          onClick={() => onTabChange('users')} />
+        <StatChip icon={Building2} color="text-violet-500" bg="bg-violet-500/10" value={stats?.totalOrganizations || 0} label="Organizations"
+          onClick={() => onTabChange('organizations')} />
+        <StatChip icon={Palette} color="text-blue-500" bg="bg-blue-500/10" value={stats?.totalBrands || 0} label="Brands"
+          onClick={() => onTabChange('analytics')} />
+        <StatChip icon={Package} color="text-teal-500" bg="bg-teal-500/10" value={stats?.totalProducts || 0} label="Products"
+          onClick={() => onTabChange('analytics')} />
+        <StatChip icon={Calendar} color="text-rose-500" bg="bg-rose-500/10" value={stats?.totalEvents || 0} label="Events"
+          onClick={() => onTabChange('analytics')} />
+        <StatChip icon={Eye} color="text-emerald-500" bg="bg-emerald-500/10" value={(stats?.publicBrands || 0) + (stats?.publicEvents || 0)} label="Published"
+          onClick={() => onTabChange('analytics')} />
       </motion.div>
 
-      {/* ── Two Column: Activity + Quick Actions ────────────── */}
-      <div className="grid lg:grid-cols-5 gap-5">
+      {/* ── 3-Column: Quick Actions + Health + Activity ───── */}
+      <motion.div variants={fadeUp} className="grid lg:grid-cols-3 gap-4">
 
-        {/* Activity Feed — 2 cols */}
-        <motion.div variants={fadeUp} className="lg:col-span-2">
-          <Card className="h-full">
-            <CardHeader className="p-4 pb-3 border-b border-border/40">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <Activity className="h-4 w-4 text-primary" />
-                  <CardTitle className="text-sm font-semibold">Activity Stream</CardTitle>
-                </div>
-                <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-7" onClick={() => onTabChange('activity')}>
-                  View All <ArrowRight className="h-3 w-3 ml-1" />
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader className="p-3.5 pb-2 border-b border-border/40">
+            <div className="flex items-center gap-2">
+              <Zap className="h-3.5 w-3.5 text-amber-500" />
+              <CardTitle className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">Quick Actions</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-2">
+            <div className="space-y-0.5">
+              {quickActions.map((action) => (
+                <Button
+                  key={action.id}
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "w-full justify-start gap-2.5 h-8 text-xs font-medium",
+                    action.variant === 'destructive' && "text-destructive hover:text-destructive hover:bg-destructive/10"
+                  )}
+                  onClick={action.onClick}
+                >
+                  {action.icon}
+                  <span className="flex-1 text-left">{action.label}</span>
+                  {action.badge !== undefined && action.badge > 0 && (
+                    <Badge variant="destructive" className="h-4 min-w-4 px-1 text-[9px] font-bold rounded-full">
+                      {action.badge}
+                    </Badge>
+                  )}
+                  <ChevronRight className="h-3 w-3 text-muted-foreground/40" />
                 </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ScrollArea className="h-[260px]">
-                {activityLogs.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <Activity className="h-8 w-8 text-muted-foreground/20 mb-3" />
-                    <p className="text-sm text-muted-foreground">No recent activity</p>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-border/30">
-                    {activityLogs.slice(0, 8).map((log, i) => (
-                      <motion.div
-                        key={log.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: i * 0.03, duration: 0.3 }}
-                        className="flex items-start gap-3 px-4 py-3 hover:bg-muted/30 transition-colors group"
-                      >
-                        <div className="p-1.5 rounded-md bg-muted/60 shrink-0 mt-0.5">
-                          {getActivityIcon(log.type, log.entityType)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[13px] leading-snug truncate">{log.description}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            {log.userEmail && (
-                              <span className="text-[10px] text-primary/80 font-medium truncate max-w-[150px]">{log.userEmail}</span>
-                            )}
-                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                              <Clock className="h-2.5 w-2.5" />
-                              {format(new Date(log.timestamp), 'MMM d, h:mm a')}
-                            </span>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </motion.div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Sidebar: Quick Actions + Modules + Health */}
-        <motion.div variants={fadeUp} className="lg:col-span-3 space-y-4">
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader className="p-3.5 pb-2 border-b border-border/40">
-              <div className="flex items-center gap-2">
-                <Zap className="h-3.5 w-3.5 text-amber-500" />
-                <CardTitle className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">Actions</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="p-2.5">
-              <div className="space-y-0.5">
-                {quickActions.map((action) => (
-                  <motion.div key={action.id} whileHover={{ x: 2 }} transition={{ duration: 0.15 }}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={cn(
-                        "w-full justify-start gap-2.5 h-9 text-xs font-medium",
-                        action.variant === 'destructive' && "text-destructive hover:text-destructive hover:bg-destructive/10"
-                      )}
-                      onClick={action.onClick}
-                    >
-                      {action.icon}
-                      <span className="flex-1 text-left">{action.label}</span>
-                      {action.badge !== undefined && action.badge > 0 && (
-                        <Badge variant="destructive" className="h-4 min-w-4 px-1 text-[9px] font-bold rounded-full">
-                          {action.badge}
-                        </Badge>
-                      )}
-                      <ChevronRight className="h-3 w-3 text-muted-foreground/40" />
-                    </Button>
-                  </motion.div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        {/* Health + Modules */}
+        <Card>
+          <CardHeader className="p-3.5 pb-2 border-b border-border/40">
+            <div className="flex items-center gap-2">
+              <Shield className="h-3.5 w-3.5 text-emerald-500" />
+              <CardTitle className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">Platform Health</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-3 space-y-3">
+            <div className="flex justify-center gap-5">
+              <RadialProgress value={contentHealth} label="Published" color="hsl(var(--primary))" />
+              <RadialProgress value={userEngagement} label="Engaged" color="hsl(142.1 76.2% 36.3%)" />
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {[
+                { label: 'Leads', value: leadCount, icon: Mail, color: 'text-amber-500', bg: 'bg-amber-500/10', tab: 'leads' },
+                { label: 'Locations', value: locationCount, icon: Globe, color: 'text-rose-500', bg: 'bg-rose-500/10', tab: 'locations' },
+                { label: 'Assets', value: imageCount, icon: Image, color: 'text-indigo-500', bg: 'bg-indigo-500/10', tab: 'image-library' },
+                { label: 'Active Now', value: stats?.activeUsersToday || 0, icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-500/10', tab: 'users' },
+              ].map((mod) => (
+                <button
+                  key={mod.label}
+                  onClick={() => onTabChange(mod.tab)}
+                  className="flex items-center gap-2 p-2 rounded-lg border border-border/40 hover:border-primary/20 transition-colors text-left"
+                >
+                  <div className={cn("h-6 w-6 rounded-md flex items-center justify-center shrink-0", mod.bg)}>
+                    <mod.icon className={cn("h-3 w-3", mod.color)} />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold tabular-nums block leading-none"><AnimatedCounter value={mod.value} duration={0.8} /></span>
+                    <span className="text-[10px] text-muted-foreground">{mod.label}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {['Database', 'Auth', 'Storage', 'Functions'].map((svc) => (
+                <div key={svc} className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-500/[0.05] border border-emerald-500/10">
+                  <CheckCircle className="h-2.5 w-2.5 text-emerald-500" />
+                  <span className="text-[10px] font-medium">{svc}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Module Counts */}
-          <Card>
-            <CardHeader className="p-3.5 pb-2 border-b border-border/40">
+        {/* Compact Activity Feed */}
+        <Card>
+          <CardHeader className="p-3.5 pb-2 border-b border-border/40">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <BarChart3 className="h-3.5 w-3.5 text-primary" />
-                <CardTitle className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">Modules</CardTitle>
+                <Activity className="h-3.5 w-3.5 text-primary" />
+                <CardTitle className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">Recent Activity</CardTitle>
               </div>
-            </CardHeader>
-            <CardContent className="p-3">
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { label: 'Leads', value: leadCount, icon: Mail, color: 'text-amber-500', bg: 'bg-amber-500/10', tab: 'leads', warn: leadCount > 0 },
-                  { label: 'Locations', value: locationCount, icon: Globe, color: 'text-rose-500', bg: 'bg-rose-500/10', tab: 'locations' },
-                  { label: 'Assets', value: imageCount, icon: Image, color: 'text-indigo-500', bg: 'bg-indigo-500/10', tab: 'image-library' },
-                  { label: 'Active', value: stats?.activeUsersToday || 0, icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-500/10', tab: 'users' },
-                ].map((mod) => (
-                  <motion.button
-                    key={mod.label}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => onTabChange(mod.tab)}
-                    className={cn(
-                      "flex items-center gap-2 p-2.5 rounded-lg border border-border/50 hover:border-primary/25 transition-colors text-left",
-                      mod.warn && "border-amber-500/30 bg-amber-500/[0.04]"
-                    )}
-                  >
-                    <div className={cn("h-7 w-7 rounded-md flex items-center justify-center shrink-0", mod.bg)}>
-                      <mod.icon className={cn("h-3.5 w-3.5", mod.color)} />
+              <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-6 px-2" onClick={() => onTabChange('activity')}>
+                All <ArrowRight className="h-3 w-3 ml-0.5" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="max-h-[240px] overflow-y-auto">
+              {activityLogs.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <Activity className="h-6 w-6 text-muted-foreground/20 mb-2" />
+                  <p className="text-xs text-muted-foreground">No recent activity</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border/30">
+                  {activityLogs.slice(0, 6).map((log, i) => (
+                    <div key={log.id} className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-muted/30 transition-colors">
+                      <div className="p-1 rounded bg-muted/60 shrink-0">
+                        {getActivityIcon(log.type, log.entityType)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] leading-snug truncate">{log.description}</p>
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-2.5 w-2.5" />
+                          {format(new Date(log.timestamp), 'MMM d, h:mm a')}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-sm font-bold tabular-nums block leading-none"><AnimatedCounter value={mod.value} duration={0.8} /></span>
-                      <span className="text-[10px] text-muted-foreground">{mod.label}</span>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Platform Health */}
-          <Card>
-            <CardHeader className="p-3.5 pb-2 border-b border-border/40">
-              <div className="flex items-center gap-2">
-                <Shield className="h-3.5 w-3.5 text-emerald-500" />
-                <CardTitle className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">Health</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="flex justify-center gap-6 mb-4">
-                <RadialProgress value={contentHealth} label="Published" color="hsl(var(--primary))" />
-                <RadialProgress value={userEngagement} label="Engaged" color="hsl(142.1 76.2% 36.3%)" />
-              </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                {['Database', 'Auth', 'Storage', 'Functions'].map((svc) => (
-                  <div key={svc} className="flex items-center gap-1.5 px-2 py-1.5 rounded-md bg-emerald-500/[0.05] border border-emerald-500/10">
-                    <CheckCircle className="h-3 w-3 text-emerald-500" />
-                    <span className="text-[10px] font-medium">{svc}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* ── Reporting Section ──────────────────────────────── */}
-      <AdminReportingWidgets stats={stats} onTabChange={onTabChange} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* ── AI & Governance Hub ─────────────────────────────── */}
       <motion.div variants={fadeUp}>
-        <div className="flex items-center gap-2.5 mb-4">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary/20 to-violet-500/20 flex items-center justify-center">
-            <Brain className="h-4 w-4 text-primary" />
+        <div className="flex items-center gap-2.5 mb-3">
+          <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary/20 to-violet-500/20 flex items-center justify-center">
+            <Brain className="h-3.5 w-3.5 text-primary" />
           </div>
           <div>
             <h3 className="text-sm font-bold tracking-tight">AI & Governance Hub</h3>
-            <p className="text-[11px] text-muted-foreground">Unified view of all intelligence modules</p>
+            <p className="text-[11px] text-muted-foreground">Unified view of intelligence modules</p>
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3">
           <DataForceSummaryWidget onTabChange={onTabChange} />
           <GlobalLinkSummaryWidget onTabChange={onTabChange} />
           <BotSummaryWidget onTabChange={onTabChange} />
           <BiasAwarenessSummaryWidget onTabChange={onTabChange} />
         </div>
       </motion.div>
+
+      {/* ── Reporting Section ──────────────────────────────── */}
+      <AdminReportingWidgets stats={stats} onTabChange={onTabChange} />
     </motion.div>
   );
 };
 
-// ─── Metric Card ────────────────────────────────────────────
-function MetricCard({ icon: Icon, iconColor, iconBg, value, label, onClick, extra, trend, badge }: {
-  icon: React.ElementType; iconColor: string; iconBg: string; value: number; label: string;
-  onClick?: () => void; extra?: React.ReactNode; trend?: string; badge?: string;
+// ─── Stat Chip (compact metric) ─────────────────────────────
+function StatChip({ icon: Icon, color, bg, value, label, trend, onClick }: {
+  icon: React.ElementType; color: string; bg: string; value: number; label: string; trend?: string; onClick?: () => void;
 }) {
   return (
-    <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
-      <Card className="border-border/50 overflow-hidden cursor-pointer" onClick={onClick}>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center", iconBg)}>
-              <Icon className={cn("h-4 w-4", iconColor)} />
-            </div>
-            {extra || (badge && <span className="text-[10px] font-medium text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{badge}</span>)}
-          </div>
-          <span className="text-2xl font-bold tabular-nums block"><AnimatedCounter value={value} /></span>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-[11px] text-muted-foreground truncate">{label}</span>
+    <motion.div whileHover={{ y: -1 }} transition={{ type: 'spring', stiffness: 500, damping: 30 }}>
+      <button onClick={onClick} className="w-full flex items-center gap-2.5 p-3 rounded-xl border border-border/50 hover:border-primary/20 transition-colors text-left bg-card">
+        <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center shrink-0", bg)}>
+          <Icon className={cn("h-4 w-4", color)} />
+        </div>
+        <div className="min-w-0">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-lg font-bold tabular-nums leading-none"><AnimatedCounter value={value} /></span>
             {trend && (
               <span className="text-[10px] font-semibold text-emerald-500 flex items-center gap-0.5 shrink-0">
                 <TrendingUp className="h-2.5 w-2.5" />{trend}
               </span>
             )}
           </div>
-        </CardContent>
-      </Card>
+          <span className="text-[10px] text-muted-foreground block truncate">{label}</span>
+        </div>
+      </button>
     </motion.div>
   );
 }
 
-// ─── Compact Summary Card ───────────────────────────────────
+// ─── Compact Summary Row ────────────────────────────────────
 function SummaryRow({ icon: Icon, color, bg, label, value, sub, subColor, onClick }: {
   icon: React.ElementType; color: string; bg: string; label: string; value: number; sub?: string; subColor?: string; onClick?: () => void;
 }) {
   return (
-    <motion.button
+    <button
       onClick={onClick}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.97 }}
-      className="flex items-center gap-3 p-2.5 rounded-lg border border-border/40 hover:border-primary/20 text-left transition-colors w-full"
+      className="flex items-center gap-2.5 p-2 rounded-lg border border-border/40 hover:border-primary/20 text-left transition-colors w-full"
     >
-      <div className={cn("h-7 w-7 rounded-lg flex items-center justify-center shrink-0", bg)}>
-        <Icon className={cn("h-3.5 w-3.5", color)} />
+      <div className={cn("h-6 w-6 rounded-md flex items-center justify-center shrink-0", bg)}>
+        <Icon className={cn("h-3 w-3", color)} />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="flex items-baseline gap-2">
-          <span className="text-base font-bold tabular-nums"><AnimatedCounter value={value} duration={0.8} /></span>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-sm font-bold tabular-nums"><AnimatedCounter value={value} duration={0.8} /></span>
           {sub && <span className={cn("text-[10px] font-medium", subColor || 'text-muted-foreground')}>{sub}</span>}
         </div>
         <span className="text-[10px] text-muted-foreground block truncate">{label}</span>
       </div>
-    </motion.button>
+    </button>
   );
 }
 
@@ -476,28 +400,28 @@ const DataForceSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> =
 
   return (
     <Card className="h-full">
-      <CardHeader className="p-4 pb-2.5 border-b border-border/40">
+      <CardHeader className="p-3 pb-2 border-b border-border/40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-blue-500" />
-            <CardTitle className="text-sm font-semibold">DataForce AI</CardTitle>
+            <CardTitle className="text-xs font-semibold">DataForce AI</CardTitle>
           </div>
-          <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-7 px-2" onClick={() => onTabChange('dataforce')}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground" onClick={() => onTabChange('dataforce')}>
             <ArrowRight className="h-3 w-3" />
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="p-3">
+      <CardContent className="p-2.5">
         {!data ? (
-          <div className="flex justify-center py-6"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+          <div className="flex justify-center py-4"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <SummaryRow icon={Shield} color="text-blue-500" bg="bg-blue-500/10" label="Compliance Scans" value={data.scans}
               sub={data.avgScore > 0 ? `Avg: ${data.avgScore.toFixed(0)}%` : undefined}
               subColor={data.avgScore >= 80 ? 'text-emerald-500' : data.avgScore >= 60 ? 'text-amber-500' : 'text-destructive'}
               onClick={() => onTabChange('intelligence')} />
-            <div className="grid grid-cols-2 gap-2">
-              <SummaryRow icon={MessageSquare} color="text-emerald-500" bg="bg-emerald-500/10" label="Conversations" value={data.conversations} onClick={() => onTabChange('intelligence')} />
+            <div className="grid grid-cols-2 gap-1.5">
+              <SummaryRow icon={MessageSquare} color="text-emerald-500" bg="bg-emerald-500/10" label="Chats" value={data.conversations} onClick={() => onTabChange('intelligence')} />
               <SummaryRow icon={Users} color="text-violet-500" bg="bg-violet-500/10" label="Validations" value={data.validations}
                 sub={data.pending > 0 ? `${data.pending} pending` : undefined} subColor="text-amber-500"
                 onClick={() => onTabChange('intelligence')} />
@@ -532,26 +456,26 @@ const GlobalLinkSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> 
 
   return (
     <Card className="h-full">
-      <CardHeader className="p-4 pb-2.5 border-b border-border/40">
+      <CardHeader className="p-3 pb-2 border-b border-border/40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Globe className="h-3.5 w-3.5 text-sky-500" />
-            <CardTitle className="text-sm font-semibold">GlobalLink</CardTitle>
+            <CardTitle className="text-xs font-semibold">GlobalLink</CardTitle>
           </div>
-          <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-7 px-2" onClick={() => onTabChange('globallink')}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground" onClick={() => onTabChange('globallink')}>
             <ArrowRight className="h-3 w-3" />
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="p-3">
+      <CardContent className="p-2.5">
         {!data ? (
-          <div className="flex justify-center py-6"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+          <div className="flex justify-center py-4"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <SummaryRow icon={FileText} color="text-sky-500" bg="bg-sky-500/10" label="Translation Jobs" value={data.totalJobs}
               sub={data.completedJobs > 0 ? `${data.completedJobs} done` : undefined} subColor="text-emerald-500"
               onClick={() => onTabChange('globallink')} />
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-1.5">
               <SummaryRow icon={Languages} color="text-indigo-500" bg="bg-indigo-500/10" label="Languages" value={data.languages} onClick={() => onTabChange('globallink')} />
               <SummaryRow icon={Globe} color="text-teal-500" bg="bg-teal-500/10" label="Variants" value={data.variants} onClick={() => onTabChange('globallink')} />
             </div>
@@ -589,26 +513,26 @@ const BotSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> = ({ on
 
   return (
     <Card className="h-full">
-      <CardHeader className="p-4 pb-2.5 border-b border-border/40">
+      <CardHeader className="p-3 pb-2 border-b border-border/40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bot className="h-3.5 w-3.5 text-emerald-500" />
-            <CardTitle className="text-sm font-semibold">AI Assistants</CardTitle>
+            <CardTitle className="text-xs font-semibold">AI Assistants</CardTitle>
           </div>
-          <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-7 px-2" onClick={() => onTabChange('bot-management')}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground" onClick={() => onTabChange('bot-management')}>
             <ArrowRight className="h-3 w-3" />
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="p-3">
+      <CardContent className="p-2.5">
         {!data ? (
-          <div className="flex justify-center py-6"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+          <div className="flex justify-center py-4"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <SummaryRow icon={Bot} color="text-emerald-500" bg="bg-emerald-500/10" label="Active Bots" value={data.activeBots}
               sub={`${data.totalConversations} sessions`} subColor="text-muted-foreground"
               onClick={() => onTabChange('bot-management')} />
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-1.5">
               <SummaryRow icon={MessageSquare} color="text-blue-500" bg="bg-blue-500/10" label="Messages" value={data.totalMessages}
                 onClick={() => onTabChange('bot-management')} />
               <SummaryRow icon={TrendingUp} color="text-amber-500" bg="bg-amber-500/10" label="Avg Rating" value={Math.round(data.avgSatisfaction * 10) / 10}
@@ -659,40 +583,39 @@ const BiasAwarenessSummaryWidget: React.FC<{ onTabChange: (tab: string) => void 
 
   return (
     <Card className="h-full">
-      <CardHeader className="p-4 pb-2.5 border-b border-border/40">
+      <CardHeader className="p-3 pb-2 border-b border-border/40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Scale className="h-3.5 w-3.5 text-violet-500" />
-            <CardTitle className="text-sm font-semibold">Bias Awareness</CardTitle>
+            <CardTitle className="text-xs font-semibold">Bias Awareness</CardTitle>
           </div>
-          <Button variant="ghost" size="sm" className="text-[11px] text-muted-foreground h-7 px-2" onClick={() => onTabChange('bias-awareness')}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground" onClick={() => onTabChange('bias-awareness')}>
             <ArrowRight className="h-3 w-3" />
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="p-3">
+      <CardContent className="p-2.5">
         {!data ? (
-          <div className="flex justify-center py-6"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+          <div className="flex justify-center py-4"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <SummaryRow icon={Scan} color="text-violet-500" bg="bg-violet-500/10" label="Completed Scans" value={data.completedScans}
               sub={data.avgInclusion > 0 ? `Avg: ${data.avgInclusion.toFixed(0)}%` : undefined}
               subColor={scoreColor(data.avgInclusion)}
               onClick={() => onTabChange('bias-awareness')} />
 
-            {/* Dimension breakdown */}
             {data.completedScans > 0 && (
-              <div className="space-y-1.5 pt-1">
+              <div className="space-y-1 pt-0.5">
                 {[
                   { label: 'Language', value: data.avgLanguage, icon: FileText },
                   { label: 'Visual', value: data.avgVisual, icon: Eye },
-                  { label: 'Accessibility', value: data.avgAccessibility, icon: Accessibility },
+                  { label: 'Access.', value: data.avgAccessibility, icon: Accessibility },
                 ].map(dim => (
-                  <div key={dim.label} className="flex items-center gap-2">
-                    <dim.icon className="h-3 w-3 text-muted-foreground shrink-0" />
-                    <span className="text-[10px] text-muted-foreground w-16">{dim.label}</span>
+                  <div key={dim.label} className="flex items-center gap-1.5">
+                    <dim.icon className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
+                    <span className="text-[10px] text-muted-foreground w-12">{dim.label}</span>
                     <Progress value={dim.value} className="h-1.5 flex-1" />
-                    <span className={cn("text-[10px] font-bold tabular-nums w-8 text-right", scoreColor(dim.value))}>
+                    <span className={cn("text-[10px] font-bold tabular-nums w-7 text-right", scoreColor(dim.value))}>
                       {dim.value > 0 ? `${dim.value.toFixed(0)}%` : '—'}
                     </span>
                   </div>
@@ -705,5 +628,3 @@ const BiasAwarenessSummaryWidget: React.FC<{ onTabChange: (tab: string) => void 
     </Card>
   );
 };
-
-export default AdminOverview;
