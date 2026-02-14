@@ -33,6 +33,7 @@ import { StrengthsWeaknessesMatrix } from '@/components/admin/competitive-analys
 import { ActionPlanTimeline } from '@/components/admin/competitive-analysis/ActionPlanTimeline';
 import { DesignPriorityTable } from '@/components/admin/competitive-analysis/DesignPriorityTable';
 import { exportCompetitiveAnalysisPdf } from '@/lib/exportCompetitiveAnalysisPdf';
+import { exportCompetitiveAnalysisHtml } from '@/lib/exportHtml';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { EntityType, CompetitiveAnalysisReportData } from '@/types/competitiveAnalysis';
@@ -841,20 +842,34 @@ export function CompetitiveAnalysisDialog({
                         </TabsTrigger>
                       )}
                     </TabsList>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleExportPdf}
-                      disabled={isExporting}
-                      className="gap-2 shrink-0"
-                    >
-                      {isExporting ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExportPdf}
+                        disabled={isExporting}
+                        className="gap-2"
+                      >
+                        {isExporting ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Download className="w-4 h-4" />
+                        )}
+                        PDF
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          exportCompetitiveAnalysisHtml(reportData, { entityName, entityType });
+                          toast.success('HTML report downloaded');
+                        }}
+                        className="gap-2"
+                      >
                         <Download className="w-4 h-4" />
-                      )}
-                      Export PDF
-                    </Button>
+                        HTML
+                      </Button>
+                    </div>
                   </div>
 
                   <TabsContent value="summary" className="space-y-6">
