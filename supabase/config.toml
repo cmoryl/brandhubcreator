@@ -65,6 +65,9 @@ verify_jwt = false
 [functions.social-metrics-scan]
 verify_jwt = false
 
+[functions.social-metrics-fetch]
+verify_jwt = false
+
 [functions.oracle-brain]
 verify_jwt = false
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, X, Pencil, ExternalLink, BarChart3, TrendingUp, GitCompare } from 'lucide-react';
+import { Plus, X, Pencil, ExternalLink, BarChart3, TrendingUp, GitCompare, Settings } from 'lucide-react';
 import { BrandSocialProfile } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { SocialMetricsSummary } from './SocialMetricsSummary';
 import { SocialMetricsComparison } from './SocialMetricsComparison';
 import { SocialMetricsOnboarding } from './SocialMetricsOnboarding';
 import { SocialMetricsDetail } from './SocialMetricsDetail';
+import { SocialCredentialsManager } from './SocialCredentialsManager';
 import { cn } from '@/lib/utils';
 
 interface SocialSectionProps {
@@ -57,6 +58,7 @@ export const SocialSection = ({
   const [showMetrics, setShowMetrics] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const [expandedPlatform, setExpandedPlatform] = useState<string | null>(null);
+  const [credentialsOpen, setCredentialsOpen] = useState(false);
 
   // Social metrics hook - only active if entityId is provided
   const {
@@ -124,6 +126,18 @@ export const SocialSection = ({
           />
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          {canEdit && organizationId && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => setCredentialsOpen(true)}
+              title="Configure API credentials for automated tracking"
+            >
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">API Keys</span>
+            </Button>
+          )}
           {entityId && snapshots.length > 0 && (
             <Button 
               variant="outline" 
@@ -330,6 +344,15 @@ export const SocialSection = ({
         onOpenChange={setComparisonOpen}
         snapshots={snapshots}
       />
+
+      {/* Credentials Manager */}
+      {organizationId && (
+        <SocialCredentialsManager
+          open={credentialsOpen}
+          onOpenChange={setCredentialsOpen}
+          organizationId={organizationId}
+        />
+      )}
     </section>
   );
 };
