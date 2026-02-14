@@ -248,12 +248,19 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a brand cohesion expert auditing a brand guide. You have been given a detailed section-by-section completeness breakdown. Evaluate visual consistency, identity coherence, digital presence maturity, and overall completeness.
+            content: `You are a brand cohesion expert auditing a brand guide. You have been given a detailed section-by-section completeness breakdown. Evaluate visual consistency, identity coherence, digital presence maturity, overall completeness, AND bias & inclusivity.
 
 Return JSON only:
-{"overallScore":<0-100>,"categories":[{"name":"<category name>","score":<0-100>,"findings":["specific finding..."],"recommendations":["actionable rec..."]}],"summary":"<2-3 sentences on overall cohesion>","strengths":["..."],"weaknesses":["..."],"actionItems":["prioritized action..."]}
+{"overallScore":<0-100>,"categories":[{"name":"<category name>","score":<0-100>,"findings":["specific finding..."],"recommendations":["actionable rec..."]}],"biasReview":{"score":<0-100>,"languageInclusivity":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"visualRepresentation":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"culturalSensitivity":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"accessibilityConsiderations":{"score":<0-100>,"findings":["..."],"recommendations":["..."]},"overallFindings":["..."],"overallRecommendations":["..."]},"summary":"<2-3 sentences on overall cohesion>","strengths":["..."],"weaknesses":["..."],"actionItems":["prioritized action..."]}
 
 Categories MUST include: Visual Consistency, Brand Identity, Digital Presence, Content Completeness, Marketing Materials, Best Practices.
+
+For the biasReview section, analyze the brand guide content for:
+- Language Inclusivity: gendered language, ableist terms, cultural assumptions in taglines/mission/values/messaging
+- Visual Representation: diversity signals in imagery guidelines, logo accessibility, color contrast considerations
+- Cultural Sensitivity: region-specific messaging concerns, universal vs localized tone, potential cultural blind spots
+- Accessibility Considerations: alt text practices, color-only information, typography readability, screen reader friendliness
+
 Score based on ACTUAL section data provided. Empty sections should significantly reduce relevant category scores. Be specific — reference actual section names and completion levels in findings.`
           },
           { role: 'user', content: promptLines.join('\n') }

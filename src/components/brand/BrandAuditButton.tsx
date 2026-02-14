@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ClipboardCheck, Loader2, TrendingUp, TrendingDown, AlertCircle, CheckCircle2, X } from 'lucide-react';
+import { ClipboardCheck, Loader2, TrendingUp, TrendingDown, AlertCircle, CheckCircle2, X, Scale, Languages, Eye, Accessibility, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
@@ -18,9 +18,26 @@ interface AuditCategory {
   recommendations: string[];
 }
 
+interface BiasSubDimension {
+  score: number;
+  findings: string[];
+  recommendations: string[];
+}
+
+interface BiasReview {
+  score: number;
+  languageInclusivity: BiasSubDimension;
+  visualRepresentation: BiasSubDimension;
+  culturalSensitivity: BiasSubDimension;
+  accessibilityConsiderations: BiasSubDimension;
+  overallFindings: string[];
+  overallRecommendations: string[];
+}
+
 interface AuditResult {
   overallScore: number;
   categories: AuditCategory[];
+  biasReview?: BiasReview;
   summary: string;
   strengths: string[];
   weaknesses: string[];
@@ -264,7 +281,75 @@ export const BrandAuditButton = ({ brand }: BrandAuditButtonProps) => {
                     </CardContent>
                   </Card>
 
-                  {/* Action Items */}
+                  {/* Bias & Inclusivity Review */}
+                  {auditResult.biasReview && (
+                    <Card className="border-violet-200 dark:border-violet-900/50">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <Scale className="h-4 w-4 text-violet-500" />
+                            Bias & Inclusivity Review
+                          </CardTitle>
+                          <Badge className={`${getScoreBg(auditResult.biasReview.score)} text-white`}>
+                            {auditResult.biasReview.score}/100
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Dimension scores */}
+                        {([
+                          { key: 'languageInclusivity' as const, label: 'Language Inclusivity', icon: Languages },
+                          { key: 'visualRepresentation' as const, label: 'Visual Representation', icon: Eye },
+                          { key: 'culturalSensitivity' as const, label: 'Cultural Sensitivity', icon: Globe },
+                          { key: 'accessibilityConsiderations' as const, label: 'Accessibility', icon: Accessibility },
+                        ]).map((dim, i) => {
+                          const sub = auditResult.biasReview![dim.key];
+                          if (!sub) return null;
+                          return (
+                            <div key={dim.key}>
+                              <div className="flex items-center gap-2 mb-1.5">
+                                <dim.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="text-sm font-medium flex-1">{dim.label}</span>
+                                <span className={`text-sm font-bold ${getScoreColor(sub.score)}`}>{sub.score}/100</span>
+                              </div>
+                              <Progress value={sub.score} className="h-1.5 mb-2" />
+                              {sub.findings?.length > 0 && (
+                                <ul className="text-sm space-y-0.5 mb-1.5">
+                                  {sub.findings.map((f, j) => (
+                                    <li key={j} className="text-muted-foreground text-xs">• {f}</li>
+                                  ))}
+                                </ul>
+                              )}
+                              {sub.recommendations?.length > 0 && (
+                                <div className="bg-violet-500/5 rounded-md p-2 mb-1">
+                                  {sub.recommendations.map((r, j) => (
+                                    <p key={j} className="text-xs">→ {r}</p>
+                                  ))}
+                                </div>
+                              )}
+                              {i < 3 && <Separator className="mt-3" />}
+                            </div>
+                          );
+                        })}
+
+                        {/* Overall bias findings */}
+                        {auditResult.biasReview.overallFindings?.length > 0 && (
+                          <div className="pt-2 border-t border-border/50">
+                            <p className="text-xs font-semibold mb-1.5">Key Findings</p>
+                            <ul className="space-y-1">
+                              {auditResult.biasReview.overallFindings.map((f, i) => (
+                                <li key={i} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                                  <AlertCircle className="h-3 w-3 mt-0.5 shrink-0 text-violet-500" />
+                                  {f}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
                   <Card className="border-accent/30 bg-accent/5">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base flex items-center gap-2">
