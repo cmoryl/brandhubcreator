@@ -119,6 +119,7 @@ const SectionWrapper = memo(({
       )}
       <motion.div
         ref={handleRef}
+        id={sectionId}
         data-section={sectionId}
         className={cn(
           "scroll-mt-24 rounded-xl will-change-transform",
