@@ -1077,6 +1077,14 @@ div[role="region"][aria-label^="Notifications"] {
   page-break-after: always;
 }
 
+  @keyframes icon-glow-pulse {
+    0%, 100% {
+      filter: drop-shadow(0 0 3px hsl(var(--primary) / 0.3));
+    }
+    50% {
+      filter: drop-shadow(0 0 10px hsl(var(--primary) / 0.7)) drop-shadow(0 0 20px hsl(var(--primary) / 0.3));
+    }
+  }
 
 /* GlobalLink Universe Orbit Particle Animation */
 @keyframes orbitParticle {

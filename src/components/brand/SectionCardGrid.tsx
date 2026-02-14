@@ -94,12 +94,14 @@ export const SectionCardGrid = ({
               )}
 
               <Icon className={cn(
-                'relative z-10 h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-200',
-                isActive && 'drop-shadow-sm'
+                'relative z-10 h-5 w-5 sm:h-6 sm:w-6 transition-all duration-300',
+                isActive 
+                  ? 'drop-shadow-[0_0_6px_hsl(var(--primary-foreground)/0.8)]' 
+                  : 'group-hover:drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)] group-hover:animate-[icon-glow-pulse_2s_ease-in-out_infinite]'
               )} />
               <span className={cn(
-                'relative z-10 text-[7px] sm:text-[8px] leading-tight text-center line-clamp-2 font-semibold tracking-tight',
-                !isActive && 'text-muted-foreground'
+                'relative z-10 text-[9px] sm:text-[10px] leading-tight text-center line-clamp-2 font-bold tracking-wide',
+                isActive ? 'text-primary-foreground' : 'text-foreground/80 group-hover:text-foreground'
               )}>
                 {meta.label}
               </span>
