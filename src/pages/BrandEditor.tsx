@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, ArrowLeft, Lock, Shield, LogOut, Star, Brain, FileText, Building2, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2, Languages, MapPin, Zap } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, LayoutGrid, ArrowLeft, Lock, Shield, LogOut, Star, Brain, FileText, Building2, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2, Languages, MapPin, Zap } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, BrandGuide } from '@/types/brand';
@@ -73,6 +73,7 @@ import { GuideLanguageSelector } from '@/components/localization/GuideLanguageSe
 import { HeroBackground } from '@/components/HeroBackground';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
+import { SectionCardGrid } from '@/components/brand/SectionCardGrid';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -91,7 +92,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { normalizeHiddenSections, normalizeSectionOrder } from '@/lib/sectionOrder';
 import { useAutoBiasMonitoring } from '@/hooks/useAutoBiasMonitoring';
-type ViewMode = 'sections' | 'full';
+type ViewMode = 'sections' | 'full' | 'cards';
 
 // Legacy/short slugs that may exist in old links, emails, or bookmarks.
 // Keep this small and explicit to avoid unexpected matches.
@@ -804,27 +805,31 @@ const BrandEditor = () => {
           />
         )}
 
-        {/* Desktop Sidebar - Fixed position for persistent visibility */}
-        <div className="hidden lg:block fixed top-0 left-0 h-screen w-72 z-30">
-          <ReorderableBrandSidebar 
-            activeSection={activeSection} 
-            onSectionChange={handleSectionChange} 
-            brandName={brand.hero.name}
-            brandId={brand.id}
-            organizationId={brand.organizationId}
-            entityType="brand"
-            sectionOrder={sectionOrder}
-            onSectionOrderChange={handleSectionOrderChange}
-            hiddenSections={hiddenSections}
-            onHiddenSectionsChange={handleHiddenSectionsChange}
-            isAdmin={isGuideAdmin}
-            showFavoritesOnly={showFavoritesOnly}
-            onShowFavoritesOnlyChange={setShowFavoritesOnly}
-          />
-        </div>
+        {/* Desktop Sidebar - Hidden in cards mode */}
+        {viewMode !== 'cards' && (
+          <div className="hidden lg:block fixed top-0 left-0 h-screen w-72 z-30">
+            <ReorderableBrandSidebar 
+              activeSection={activeSection} 
+              onSectionChange={handleSectionChange} 
+              brandName={brand.hero.name}
+              brandId={brand.id}
+              organizationId={brand.organizationId}
+              entityType="brand"
+              sectionOrder={sectionOrder}
+              onSectionOrderChange={handleSectionOrderChange}
+              hiddenSections={hiddenSections}
+              onHiddenSectionsChange={handleHiddenSectionsChange}
+              isAdmin={isGuideAdmin}
+              showFavoritesOnly={showFavoritesOnly}
+              onShowFavoritesOnlyChange={setShowFavoritesOnly}
+            />
+          </div>
+        )}
         
-        {/* Sidebar spacer for fixed positioning */}
-        <div className="hidden lg:block w-72 flex-shrink-0" />
+        {/* Sidebar spacer for fixed positioning - Hidden in cards mode */}
+        {viewMode !== 'cards' && (
+          <div className="hidden lg:block w-72 flex-shrink-0" />
+        )}
 
         {/* Mobile Sidebar */}
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
@@ -947,6 +952,14 @@ const BrandEditor = () => {
                       </ToggleGroupItem>
                     </TooltipTrigger>
                     <TooltipContent>Section View</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ToggleGroupItem value="cards" aria-label="Card grid view" className="h-8 w-8 data-[state=on]:bg-background">
+                        <LayoutGrid className="h-4 w-4" />
+                      </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>Card Grid View</TooltipContent>
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -1173,7 +1186,20 @@ const BrandEditor = () => {
                 currentIcon={FileText}
               />
               
-              {viewMode === 'sections' ? (
+              {viewMode === 'cards' ? (
+                <div className="animate-fade-in">
+                  <SectionCardGrid
+                    sectionOrder={sectionOrder}
+                    hiddenSections={hiddenSections}
+                    activeSection={activeSection}
+                    onSectionSelect={(section) => { setActiveSection(section); }}
+                    isAdmin={isGuideAdmin}
+                  />
+                  <div className="animate-zoom-in">
+                    {renderSection()}
+                  </div>
+                </div>
+              ) : viewMode === 'sections' ? (
                 <div className="animate-zoom-in">
                   {renderSection()}
                 </div>
