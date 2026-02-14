@@ -160,19 +160,143 @@ serve(async (req) => {
         const guideData = entity.guide_data || {};
         entityContext = buildEntityContext(guideData, entity.name);
 
-        // Enrich with document content and social metrics
+        // Enrich with ALL available data sources in parallel
         try {
           const { fetchDocumentContext, fetchSocialMetricsContext } = await import('../_shared/extractFullBrandContext.ts');
-          const [docResult, socialResult] = await Promise.all([
+          const [
+            docResult,
+            socialResult,
+            { data: brandIntel },
+            { data: compReports },
+            { data: researchJobs },
+            { data: complianceJobs },
+            { data: regionalVariants },
+          ] = await Promise.all([
             fetchDocumentContext(supabase, entity_id, entity_type, guideData as Record<string, unknown>, 1500),
             fetchSocialMetricsContext(supabase, entity_id, entity_type),
+            supabase.from('brand_intelligence')
+              .select('brand_summary, brand_voice_profile, competitive_advantages, cultural_insights, growth_recommendations, market_position, target_audience, regional_adaptations, localization_readiness_score, competitive_landscape')
+              .eq('entity_id', entity_id)
+              .eq('entity_type', entity_type)
+              .maybeSingle(),
+            supabase.from('competitive_analysis_reports')
+              .select('report_data, competitors, score, created_at')
+              .eq('entity_id', entity_id)
+              .eq('entity_type', entity_type)
+              .eq('status', 'completed')
+              .order('created_at', { ascending: false })
+              .limit(1),
+            supabase.from('brand_intelligence_jobs')
+              .select('result, status, created_at')
+              .eq('entity_id', entity_id)
+              .eq('entity_type', entity_type)
+              .eq('status', 'completed')
+              .order('created_at', { ascending: false })
+              .limit(2),
+            supabase.from('dataforce_compliance_jobs')
+              .select('compliance_score, issues_found, issues_data, status, created_at')
+              .eq('entity_id', entity_id)
+              .eq('status', 'completed')
+              .order('created_at', { ascending: false })
+              .limit(3),
+            supabase.from('brand_regional_variants')
+              .select('variant_code, variant_level, colors_override, typography_override, messaging_override, voice_override, imagery_override, cultural_adaptations, translation_status')
+              .eq('entity_id', entity_id)
+              .eq('entity_type', entity_type)
+              .limit(10),
           ]);
-          if (docResult.text) {
-            entityContext += `\n${docResult.text}`;
+
+          if (docResult.text) entityContext += `\n${docResult.text}`;
+          if (socialResult.text) entityContext += `\n${socialResult.text}`;
+
+          // Brand Intelligence Brain
+          if (brandIntel) {
+            const biParts: string[] = [];
+            if (brandIntel.brand_summary) biParts.push(`AI Brand Summary: ${brandIntel.brand_summary}`);
+            if (brandIntel.market_position) biParts.push(`Market Position: ${brandIntel.market_position}`);
+            const voice = brandIntel.brand_voice_profile as any;
+            if (voice?.primary_tone) biParts.push(`Brand Voice: ${voice.primary_tone}${voice.formality ? `, Formality: ${voice.formality}` : ''}`);
+            const advantages = Array.isArray(brandIntel.competitive_advantages) ? brandIntel.competitive_advantages : [];
+            if (advantages.length) biParts.push(`Competitive Advantages: ${advantages.slice(0, 5).map((a: any) => typeof a === 'string' ? a : a.advantage || a.title || '').filter(Boolean).join('; ')}`);
+            const cultural = brandIntel.cultural_insights as any;
+            if (cultural?.readiness_score != null) biParts.push(`Cultural Readiness Score: ${cultural.readiness_score}/100`);
+            if (cultural?.key_considerations) biParts.push(`Cultural Considerations: ${Array.isArray(cultural.key_considerations) ? cultural.key_considerations.slice(0, 3).join('; ') : ''}`);
+            const growth = Array.isArray(brandIntel.growth_recommendations) ? brandIntel.growth_recommendations : [];
+            if (growth.length) biParts.push(`Growth Recommendations: ${growth.slice(0, 3).map((g: any) => typeof g === 'string' ? g : g.recommendation || g.title || '').filter(Boolean).join('; ')}`);
+            const audience = brandIntel.target_audience as any;
+            if (audience?.primary) biParts.push(`Target Audience: ${audience.primary}`);
+            if (brandIntel.localization_readiness_score != null) biParts.push(`Localization Readiness: ${brandIntel.localization_readiness_score}/100`);
+            const landscape = brandIntel.competitive_landscape as any;
+            if (landscape?.positioning_summary) biParts.push(`Competitive Positioning: ${landscape.positioning_summary}`);
+            if (landscape?.threats?.length) biParts.push(`Key Threats: ${landscape.threats.slice(0, 3).join('; ')}`);
+            if (landscape?.opportunities?.length) biParts.push(`Opportunities: ${landscape.opportunities.slice(0, 3).join('; ')}`);
+            const regional = Array.isArray(brandIntel.regional_adaptations) ? brandIntel.regional_adaptations : [];
+            if (regional.length) biParts.push(`Regional Insights: ${regional.slice(0, 3).map((r: any) => `${r.region || r.market || ''}: ${r.insight || r.recommendation || ''}`).filter(Boolean).join('; ')}`);
+            if (biParts.length > 0) entityContext += `\n\nBRAND INTELLIGENCE (AI Brain):\n${biParts.join('\n')}`;
           }
-          if (socialResult.text) {
-            entityContext += `\n${socialResult.text}`;
+
+          // Latest Competitive Report
+          if (compReports?.length) {
+            const report = compReports[0];
+            const rd = report.report_data as any;
+            const crParts: string[] = [];
+            if (report.score != null) crParts.push(`Overall Score: ${report.score}/100`);
+            if (rd?.executive_summary) crParts.push(`Summary: ${String(rd.executive_summary).slice(0, 400)}`);
+            if (rd?.swot) {
+              const swot = rd.swot;
+              if (swot.strengths?.length) crParts.push(`Strengths: ${swot.strengths.slice(0, 3).join('; ')}`);
+              if (swot.weaknesses?.length) crParts.push(`Weaknesses: ${swot.weaknesses.slice(0, 3).join('; ')}`);
+              if (swot.opportunities?.length) crParts.push(`Opportunities: ${swot.opportunities.slice(0, 3).join('; ')}`);
+              if (swot.threats?.length) crParts.push(`Threats: ${swot.threats.slice(0, 3).join('; ')}`);
+            }
+            const competitors = Array.isArray(report.competitors) ? report.competitors : [];
+            if (competitors.length) crParts.push(`Competitors Analyzed: ${competitors.slice(0, 5).map((c: any) => typeof c === 'string' ? c : c.name || '').filter(Boolean).join(', ')}`);
+            if (crParts.length > 0) entityContext += `\n\nCOMPETITIVE INTELLIGENCE:\n${crParts.join('\n')}`;
           }
+
+          // Research Briefings
+          if (researchJobs?.length) {
+            const rbParts: string[] = [];
+            for (const job of researchJobs) {
+              const result = job.result as any;
+              if (result?.briefing) rbParts.push(`Research (${new Date(job.created_at).toLocaleDateString()}): ${String(result.briefing).slice(0, 300)}`);
+              else if (result?.summary) rbParts.push(`Research: ${String(result.summary).slice(0, 300)}`);
+              if (result?.market_trends?.length) rbParts.push(`Market Trends: ${result.market_trends.slice(0, 3).map((t: any) => typeof t === 'string' ? t : t.trend || t.title || '').filter(Boolean).join('; ')}`);
+              if (result?.risks?.length) rbParts.push(`Risks: ${result.risks.slice(0, 3).map((r: any) => typeof r === 'string' ? r : r.risk || r.title || '').filter(Boolean).join('; ')}`);
+            }
+            if (rbParts.length > 0) entityContext += `\n\nRESEARCH BRIEFINGS:\n${rbParts.join('\n')}`;
+          }
+
+          // Compliance History
+          if (complianceJobs?.length) {
+            const chParts: string[] = [];
+            for (const job of complianceJobs) {
+              chParts.push(`Compliance Scan (${new Date(job.created_at).toLocaleDateString()}): Score ${job.compliance_score}%, ${job.issues_found || 0} issues found`);
+              const issues = job.issues_data as any;
+              if (Array.isArray(issues) && issues.length) {
+                chParts.push(`  Top Issues: ${issues.slice(0, 3).map((i: any) => `${i.category || i.type || 'Issue'}: ${i.description || i.message || ''}`).join('; ')}`);
+              }
+            }
+            if (chParts.length > 0) entityContext += `\n\nCOMPLIANCE HISTORY:\n${chParts.join('\n')}`;
+          }
+
+          // Regional Variants
+          if (regionalVariants?.length) {
+            const rvParts: string[] = [];
+            for (const v of regionalVariants) {
+              const overrides: string[] = [];
+              if (v.colors_override) overrides.push('colors');
+              if (v.typography_override) overrides.push('typography');
+              if (v.messaging_override) overrides.push('messaging');
+              if (v.voice_override) overrides.push('voice');
+              if (v.imagery_override) overrides.push('imagery');
+              rvParts.push(`${v.variant_code} (${v.variant_level}): overrides [${overrides.join(', ')}], translation: ${v.translation_status || 'none'}`);
+              const adaptations = v.cultural_adaptations as any;
+              if (adaptations?.notes) rvParts.push(`  Cultural notes: ${String(adaptations.notes).slice(0, 150)}`);
+            }
+            if (rvParts.length > 0) entityContext += `\n\nREGIONAL VARIANTS:\n${rvParts.join('\n')}`;
+          }
+
         } catch (e) {
           console.error('[dataforce-assistant] Data enrichment error:', e);
         }
