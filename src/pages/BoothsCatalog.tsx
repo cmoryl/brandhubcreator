@@ -1504,8 +1504,6 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
 
                 <KeyStatsManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
-                <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
-
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Services & Capabilities</h3>
                   <div className="flex flex-wrap gap-2">
@@ -1530,6 +1528,8 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                     <ExternalLink className="h-4 w-4" /> {division.website}
                   </a>
                 </div>
+
+                <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
               </div>
 
               <div className="space-y-6">
