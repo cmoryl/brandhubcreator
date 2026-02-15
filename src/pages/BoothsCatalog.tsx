@@ -1836,6 +1836,7 @@ export default function BoothsCatalog() {
         )}
 
         <div className="relative max-w-7xl mx-auto z-10 py-20 px-6">
+          <BrandHubLogo size="sm" className="mb-4" />
           <div className="flex items-center justify-between mb-6">
             <Button 
               variant="ghost" 
@@ -1844,7 +1845,6 @@ export default function BoothsCatalog() {
             >
               <ArrowLeft className="h-4 w-4 mr-2" /> Back
             </Button>
-            <BrandHubLogo size="sm" />
           </div>
           <div className="flex items-center gap-4 mb-4">
             <div className="h-1 w-16 bg-[hsl(195,100%,50%)] rounded-full" />
