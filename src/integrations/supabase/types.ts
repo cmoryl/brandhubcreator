@@ -2586,6 +2586,51 @@ export type Database = {
         }
         Relationships: []
       }
+      page_hero_settings: {
+        Row: {
+          created_at: string
+          hero_effect: string
+          hero_effect_brightness: number
+          hero_effect_color_scheme: string
+          hero_effect_density: string
+          hero_effect_intensity: string
+          hero_effect_mode: string
+          hero_effect_speed: string
+          id: string
+          page_slug: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          hero_effect?: string
+          hero_effect_brightness?: number
+          hero_effect_color_scheme?: string
+          hero_effect_density?: string
+          hero_effect_intensity?: string
+          hero_effect_mode?: string
+          hero_effect_speed?: string
+          id?: string
+          page_slug: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          hero_effect?: string
+          hero_effect_brightness?: number
+          hero_effect_color_scheme?: string
+          hero_effect_density?: string
+          hero_effect_intensity?: string
+          hero_effect_mode?: string
+          hero_effect_speed?: string
+          id?: string
+          page_slug?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       page_views: {
         Row: {
           created_at: string

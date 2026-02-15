@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, 
@@ -9,7 +9,15 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
+import { supabase } from "@/integrations/supabase/client";
+import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
+import { HeroEditToolbar, HeroEffectType } from "@/components/brand/HeroEditToolbar";
+import { GradientBarsHero } from "@/components/backgrounds/GradientBarsHero";
+import { HorizonGlowHero } from "@/components/backgrounds/HorizonGlowHero";
+import { FloatingOrbsHero } from "@/components/backgrounds/FloatingOrbsHero";
+import { GradientSpheresHero } from "@/components/backgrounds/GradientSpheresHero";
+import { ImageOrbsHero } from "@/components/backgrounds/ImageOrbsHero";
+import { ImagePanelsHero } from "@/components/backgrounds/ImagePanelsHero";
 interface BoothDivision {
   id: string;
   name: string;
@@ -434,21 +442,133 @@ const DivisionDetail = ({ division, onClose }: { division: BoothDivision; onClos
 
 export default function BoothsCatalog() {
   const [selected, setSelected] = useState<BoothDivision | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
+  const { settings: heroSettings, updateSettings: updateHeroSettings } = usePageHeroSettings('booths');
+
+  // Check if current user is authenticated (admin)
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAdmin(!!user);
+    };
+    checkAuth();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAdmin(!!session?.user);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const renderHeroEffect = () => {
+    const effect = heroSettings.heroEffect;
+    if (effect === 'none') return null;
+
+    const commonProps = {
+      colorScheme: (heroSettings.heroEffectColorScheme || 'cyan-purple') as any,
+      mode: heroSettings.heroEffectMode || 'dark',
+      brightness: heroSettings.heroEffectBrightness ?? 50,
+    };
+
+    switch (effect) {
+      case 'gradient-bars':
+        return (
+          <GradientBarsHero
+            {...commonProps}
+            intensity={heroSettings.heroEffectIntensity || 'medium'}
+            barCount={6}
+          />
+        );
+      case 'horizon-glow':
+        return <HorizonGlowHero {...commonProps} />;
+      case 'floating-orbs':
+        return (
+          <FloatingOrbsHero
+            {...commonProps}
+            density={heroSettings.heroEffectDensity || 'normal'}
+            speed={heroSettings.heroEffectSpeed || 'normal'}
+          />
+        );
+      case 'gradient-spheres':
+        return (
+          <GradientSpheresHero
+            {...commonProps}
+            density={heroSettings.heroEffectDensity || 'normal'}
+            speed={heroSettings.heroEffectSpeed || 'normal'}
+          />
+        );
+      case 'image-orbs':
+        return (
+          <ImageOrbsHero
+            {...commonProps}
+            orbCount={
+              heroSettings.heroEffectDensity === 'few' ? 3 :
+              heroSettings.heroEffectDensity === 'many' ? 8 :
+              heroSettings.heroEffectDensity === 'dense' ? 12 : 5
+            }
+          />
+        );
+      case 'image-panels':
+        return <ImagePanelsHero {...commonProps} />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[hsl(200,85%,20%)] via-[hsl(205,75%,30%)] to-[hsl(210,70%,25%)] py-20 px-6">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-full h-full" style={{
-            backgroundImage: `url('/booths/page-cover.jpg')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'blur(2px)',
-          }} />
-        </div>
-        <div className="relative max-w-7xl mx-auto">
+      <div className="relative overflow-hidden py-20 px-6" style={{ minHeight: '320px' }}>
+        {/* Hero Effect Background */}
+        {heroSettings.heroEffect !== 'none' ? (
+          <div className="absolute inset-0 z-0">
+            {renderHeroEffect()}
+          </div>
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(200,85%,20%)] via-[hsl(205,75%,30%)] to-[hsl(210,70%,25%)]" />
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 left-0 w-full h-full" style={{
+                backgroundImage: `url('/booths/page-cover.jpg')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                filter: 'blur(2px)',
+              }} />
+            </div>
+          </>
+        )}
+
+        {/* Admin Hero Edit Toolbar */}
+        {isAdmin && (
+          <HeroEditToolbar
+            useVideo={false}
+            kenBurnsEffect={false}
+            kenBurnsPreview={false}
+            isUploading={false}
+            onMediaTypeChange={() => {}}
+            onKenBurnsToggle={() => {}}
+            onKenBurnsPreviewStart={() => {}}
+            onKenBurnsPreviewEnd={() => {}}
+            onUploadClick={() => {}}
+            onVideoUrlClick={() => {}}
+            onLibrarySelect={() => {}}
+            heroEffect={heroSettings.heroEffect}
+            heroEffectIntensity={heroSettings.heroEffectIntensity}
+            heroEffectColorScheme={heroSettings.heroEffectColorScheme}
+            heroEffectMode={heroSettings.heroEffectMode}
+            heroEffectBrightness={heroSettings.heroEffectBrightness}
+            heroEffectDensity={heroSettings.heroEffectDensity}
+            heroEffectSpeed={heroSettings.heroEffectSpeed}
+            onHeroEffectChange={(effect) => updateHeroSettings({ heroEffect: effect })}
+            onHeroEffectIntensityChange={(v) => updateHeroSettings({ heroEffectIntensity: v })}
+            onHeroEffectColorSchemeChange={(v) => updateHeroSettings({ heroEffectColorScheme: v })}
+            onHeroEffectModeChange={(v) => updateHeroSettings({ heroEffectMode: v })}
+            onHeroEffectBrightnessChange={(v) => updateHeroSettings({ heroEffectBrightness: v })}
+            onHeroEffectDensityChange={(v) => updateHeroSettings({ heroEffectDensity: v })}
+            onHeroEffectSpeedChange={(v) => updateHeroSettings({ heroEffectSpeed: v })}
+          />
+        )}
+
+        <div className="relative max-w-7xl mx-auto z-10">
           <Button 
             variant="ghost" 
             onClick={() => navigate(-1)} 
