@@ -192,7 +192,8 @@ Include a "physical_accessibility" object in your response with: {"venue_readine
     const eventJsonExtra = isEvent ? ',"physical_accessibility":{"venue_readiness_score":50,"ada_compliance_gaps":["up to 5"],"recommended_accommodations":["up to 5"],"critical_measurements":["up to 5 category: spec pairs"]}' : '';
 
     const isProduct = job.entity_type === 'product';
-    const personaDesignContext = (isProduct || isEvent) ? `
+    const isBrand = job.entity_type === 'brand';
+    const personaDesignContext = `
 PERSONA-BASED INCLUSIVE DESIGN (Microsoft Persona Spectrum):
 Integrate persona-based design thinking, explicitly considering permanent, temporary, and situational needs across ALL user groups:
 - Mobility: permanent (wheelchair user), temporary (broken arm), situational (carrying child)
@@ -202,16 +203,29 @@ Integrate persona-based design thinking, explicitly considering permanent, tempo
 - Cognitive: permanent (ADHD), temporary (concussion), situational (information overload)
 Assess how well this ${job.entity_type}'s design, UX, and touchpoints address the full persona spectrum.
 Include a "persona_design" object: {"spectrum_score":0-100,"dimension_scores":{"mobility":0-100,"vision":0-100,"hearing":0-100,"speech":0-100,"cognitive":0-100},"gaps":["up to 3"],"recommendations":["up to 3"]}
-` : '';
+`;
 
-    const personaJsonExtra = (isProduct || isEvent) ? ',"persona_design":{"spectrum_score":50,"dimension_scores":{"mobility":50,"vision":50,"hearing":50,"speech":50,"cognitive":50},"gaps":["up to 3"],"recommendations":["up to 3"]}' : '';
+    const inclusiveImageryContext = `
+INCLUSIVE IMAGERY STANDARDS:
+Evaluate all marketing materials and brand imagery against these mandatory principles:
+- Actively showcase diverse individuals in realistic, everyday scenarios — not staged or tokenistic
+- Reflect equal power hierarchies: avoid depicting disabled, elderly, or minority individuals in subordinate or pitied roles
+- Reject pity-based tropes: no "inspiration porn", no framing disability as tragedy or triumph narrative
+- Ensure representation spans age, ethnicity, gender identity, body type, and visible/invisible disability
+- Depict assistive technology (wheelchairs, hearing aids, prosthetics) as neutral everyday tools, not props
+- Show diverse individuals as active participants, decision-makers, and leaders — not passive recipients
+Include an "inclusive_imagery" object: {"diversity_score":0-100,"power_hierarchy_balance":"equal|skewed|problematic","trope_risks":["up to 3"],"representation_gaps":["up to 3"],"recommendations":["up to 3"]}
+`;
+
+    const personaJsonExtra = ',"persona_design":{"spectrum_score":50,"dimension_scores":{"mobility":50,"vision":50,"hearing":50,"speech":50,"cognitive":50},"gaps":["up to 3"],"recommendations":["up to 3"]},"inclusive_imagery":{"diversity_score":50,"power_hierarchy_balance":"equal","trope_risks":[],"representation_gaps":["up to 3"],"recommendations":["up to 3"]}';
 
     const prompt = `Analyze "${entityName}" ${isEvent ? 'event' : isProduct ? 'product' : 'brand'}. Return compact JSON:
 ${brandContext}
 ${oracleContext ? `\nORACLE BRAIN CONTEXT:\n${oracleContext}` : ''}
 ${physicalAccessibilityContext}
 ${personaDesignContext}
-Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct ? 'product inclusive design, user accessibility, and' : ''} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''} Return ONLY valid JSON:
+${inclusiveImageryContext}
+Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct ? 'product inclusive design, user accessibility, and' : 'brand inclusive representation, imagery standards, and'} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''} Return ONLY valid JSON:
 {"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]${eventJsonExtra}${personaJsonExtra}}`;
 
     // Text-only analysis — no multimodal to save memory on large brands
@@ -376,6 +390,7 @@ Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct
       ...(analysis.document_analysis ? { document_analysis: analysis.document_analysis } : {}),
       ...(analysis.physical_accessibility ? { physical_accessibility: analysis.physical_accessibility } : {}),
       ...(analysis.persona_design ? { persona_design: analysis.persona_design } : {}),
+      ...(analysis.inclusive_imagery ? { inclusive_imagery: analysis.inclusive_imagery } : {}),
       last_updated: new Date().toISOString(),
     };
 
