@@ -326,6 +326,7 @@ export type Database = {
           heading: string
           id: string
           updated_at: string
+          variant_label: string | null
         }
         Insert: {
           bullets?: string[]
@@ -336,6 +337,7 @@ export type Database = {
           heading: string
           id?: string
           updated_at?: string
+          variant_label?: string | null
         }
         Update: {
           bullets?: string[]
@@ -346,6 +348,7 @@ export type Database = {
           heading?: string
           id?: string
           updated_at?: string
+          variant_label?: string | null
         }
         Relationships: []
       }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, Loader2, X, Check } from "lucide-react";
 import { useBoothContentSections, BoothContentSection } from "@/hooks/useBoothContentSections";
 
@@ -9,25 +10,31 @@ interface BoothContentManagerProps {
   divisionId: string;
   isAdmin: boolean;
   color: string;
+  variantLabel?: string;
+  variants?: string[];
 }
 
-export const BoothContentManager = ({ divisionId, isAdmin, color }: BoothContentManagerProps) => {
-  const { sections, loading, addSection, updateSection, deleteSection } = useBoothContentSections(divisionId);
+export const BoothContentManager = ({ divisionId, isAdmin, color, variantLabel, variants = [] }: BoothContentManagerProps) => {
+  const { sections, loading, addSection, updateSection, deleteSection } = useBoothContentSections(divisionId, variantLabel);
   const [adding, setAdding] = useState(false);
   const [newHeading, setNewHeading] = useState("");
   const [newBullets, setNewBullets] = useState("");
+  const [newVariant, setNewVariant] = useState<string>("shared");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editHeading, setEditHeading] = useState("");
   const [editBullets, setEditBullets] = useState("");
+  const [editVariant, setEditVariant] = useState<string>("shared");
 
   const parseBullets = (text: string) => text.split("\n").map(b => b.trim()).filter(Boolean);
 
   const handleAdd = async () => {
     const bullets = parseBullets(newBullets);
     if (!newHeading.trim() || bullets.length === 0) return;
-    await addSection(newHeading.trim(), bullets);
+    const variantVal = newVariant === "shared" ? null : newVariant;
+    await addSection(newHeading.trim(), bullets, variantVal);
     setNewHeading("");
     setNewBullets("");
+    setNewVariant("shared");
     setAdding(false);
   };
 
@@ -35,13 +42,15 @@ export const BoothContentManager = ({ divisionId, isAdmin, color }: BoothContent
     setEditingId(section.id);
     setEditHeading(section.heading);
     setEditBullets(section.bullets.join("\n"));
+    setEditVariant(section.variant_label || "shared");
   };
 
   const handleUpdate = async () => {
     if (!editingId) return;
     const bullets = parseBullets(editBullets);
     if (!editHeading.trim() || bullets.length === 0) return;
-    await updateSection(editingId, editHeading.trim(), bullets);
+    const variantVal = editVariant === "shared" ? null : editVariant;
+    await updateSection(editingId, editHeading.trim(), bullets, variantVal);
     setEditingId(null);
   };
 
@@ -54,6 +63,30 @@ export const BoothContentManager = ({ divisionId, isAdmin, color }: BoothContent
   }
 
   if (sections.length === 0 && !isAdmin) return null;
+
+  const variantOptions = ["shared", ...variants];
+
+  const VariantSelector = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
+    variants.length > 0 ? (
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-xs text-muted-foreground">Applies to:</span>
+        {variantOptions.map(v => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => onChange(v)}
+            className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
+              value === v 
+                ? "border-primary bg-primary/10 text-primary font-medium" 
+                : "border-border/40 text-muted-foreground hover:border-primary/40"
+            }`}
+          >
+            {v === "shared" ? "All Variants" : v}
+          </button>
+        ))}
+      </div>
+    ) : null
+  );
 
   return (
     <div>
@@ -70,9 +103,10 @@ export const BoothContentManager = ({ divisionId, isAdmin, color }: BoothContent
         <div className="mb-4 space-y-2 p-3 rounded-lg border border-border/60 bg-muted/20">
           <Input placeholder="Section heading" value={newHeading} onChange={(e) => setNewHeading(e.target.value)} className="text-sm" />
           <Textarea placeholder="Bullet points (one per line)" value={newBullets} onChange={(e) => setNewBullets(e.target.value)} className="text-sm min-h-[80px]" />
+          <VariantSelector value={newVariant} onChange={setNewVariant} />
           <div className="flex gap-2">
             <Button size="sm" className="text-xs" onClick={handleAdd}>Add</Button>
-            <Button size="sm" variant="ghost" className="text-xs" onClick={() => { setAdding(false); setNewHeading(""); setNewBullets(""); }}>Cancel</Button>
+            <Button size="sm" variant="ghost" className="text-xs" onClick={() => { setAdding(false); setNewHeading(""); setNewBullets(""); setNewVariant("shared"); }}>Cancel</Button>
           </div>
         </div>
       )}
@@ -84,6 +118,7 @@ export const BoothContentManager = ({ divisionId, isAdmin, color }: BoothContent
               <div key={section.id} className="bg-muted/30 rounded-lg p-4 border border-primary/30 space-y-2">
                 <Input value={editHeading} onChange={(e) => setEditHeading(e.target.value)} className="text-sm font-semibold" />
                 <Textarea value={editBullets} onChange={(e) => setEditBullets(e.target.value)} className="text-sm min-h-[100px]" />
+                <VariantSelector value={editVariant} onChange={setEditVariant} />
                 <div className="flex gap-2">
                   <Button size="sm" className="text-xs gap-1" onClick={handleUpdate}><Check className="h-3 w-3" /> Save</Button>
                   <Button size="sm" variant="ghost" className="text-xs gap-1" onClick={() => setEditingId(null)}><X className="h-3 w-3" /> Cancel</Button>
@@ -101,7 +136,14 @@ export const BoothContentManager = ({ divisionId, isAdmin, color }: BoothContent
                     </Button>
                   </div>
                 )}
-                <h4 className="text-sm font-semibold mb-2" style={{ color }}>{section.heading}</h4>
+                <div className="flex items-center gap-2 mb-2">
+                  <h4 className="text-sm font-semibold" style={{ color }}>{section.heading}</h4>
+                  {section.variant_label && isAdmin && (
+                    <Badge variant="outline" className="text-[9px] px-1.5 py-0" style={{ borderColor: color + "40" }}>
+                      {section.variant_label}
+                    </Badge>
+                  )}
+                </div>
                 <ul className="space-y-1.5">
                   {section.bullets.map((bullet, i) => (
                     <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
