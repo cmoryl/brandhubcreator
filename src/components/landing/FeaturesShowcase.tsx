@@ -50,6 +50,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { GetStartedSurveyModal } from './GetStartedSurveyModal';
 
 interface Feature {
   icon: React.ElementType;
@@ -564,6 +565,7 @@ function GlobalBrandHero({ isVisible }: { isVisible: boolean }) {
 
 export function FeaturesShowcase() {
   const [isVisible, setIsVisible] = useState(false);
+  const [showGetStarted, setShowGetStarted] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -677,13 +679,14 @@ export function FeaturesShowcase() {
         <div className={`text-center ${isVisible ? 'animate-fade-in' : 'opacity-0'}`} style={{ animationDelay: '800ms' }}>
           <Button 
             size="lg" 
-            onClick={() => window.location.href = 'mailto:support@brandhub.com?subject=BrandHub Demo Request'}
+            onClick={() => setShowGetStarted(true)}
             className="gap-2 group"
           >
             <Play className="h-5 w-5 group-hover:scale-110 transition-transform" />
             Request a Demo
             <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Button>
+          <GetStartedSurveyModal open={showGetStarted} onOpenChange={setShowGetStarted} />
         </div>
       </div>
     </section>
