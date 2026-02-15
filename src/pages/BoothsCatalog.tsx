@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, 
   Radio, Heart, Database, Microscope, Globe, X, ChevronLeft, ChevronRight,
-  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn
+  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -841,6 +841,7 @@ const SPEC_CATEGORIES = [
 
 const ProductionSpecsManager = ({ divisionId, isAdmin, color }: { divisionId: string; isAdmin: boolean; color: string }) => {
   const { specs, loading, addSpec, updateSpec, deleteSpec } = useBoothProductionSpecs(divisionId);
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
@@ -932,30 +933,54 @@ const ProductionSpecsManager = ({ divisionId, isAdmin, color }: { divisionId: st
       )}
 
       {grouped.length > 0 && (
-        <div className="space-y-3">
-          {grouped.map(group => (
-            <div key={group.value}>
-              <div className="text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color }}>{group.label}</div>
-              <div className="space-y-2">
-                {group.items.map(spec => (
-                  <div key={spec.id} className="bg-muted/40 rounded-lg p-3 relative group">
-                    <div className="text-xs font-semibold text-foreground mb-1">{spec.title}</div>
-                    <div className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">{spec.content}</div>
-                    {isAdmin && !editingId && (
-                      <div className="absolute top-1.5 right-1.5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEdit(spec)}>
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteSpec(spec.id)}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    )}
+        <div className="space-y-2">
+          {grouped.map(group => {
+            const isOpen = openCategories[group.value] ?? false;
+            return (
+              <div key={group.value} className="rounded-lg border border-border/40 overflow-hidden">
+                <button
+                  onClick={() => setOpenCategories(prev => ({ ...prev, [group.value]: !isOpen }))}
+                  className="w-full flex items-center justify-between px-3 py-2 bg-muted/30 hover:bg-muted/50 transition-colors text-left"
+                >
+                  <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color }}>{group.label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-muted-foreground">{group.items.length}</span>
+                    <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
                   </div>
-                ))}
+                </button>
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-2 space-y-2">
+                        {group.items.map(spec => (
+                          <div key={spec.id} className="bg-muted/40 rounded-lg p-3 relative group">
+                            <div className="text-xs font-semibold text-foreground mb-1">{spec.title}</div>
+                            <div className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">{spec.content}</div>
+                            {isAdmin && !editingId && (
+                              <div className="absolute top-1.5 right-1.5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEdit(spec)}>
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteSpec(spec.id)}>
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
