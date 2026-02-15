@@ -8,7 +8,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+// ScrollArea removed - using native overflow for mobile compatibility
 import { supabase } from "@/integrations/supabase/client";
 import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
 import { HeroEditToolbar, HeroEffectType } from "@/components/brand/HeroEditToolbar";
@@ -389,7 +389,7 @@ const DivisionDetail = ({ division, onClose }: { division: BoothDivision; onClos
           </Button>
         </div>
 
-        <ScrollArea className="max-h-[calc(90vh-80px)]">
+        <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
           <div className="p-6 space-y-6">
             {/* Image Viewer */}
             <div className="relative rounded-xl overflow-hidden bg-muted aspect-[16/9]">
@@ -544,7 +544,7 @@ const DivisionDetail = ({ division, onClose }: { division: BoothDivision; onClos
               </div>
             )}
           </div>
-        </ScrollArea>
+        </div>
       </motion.div>
     </motion.div>
   );
@@ -627,58 +627,62 @@ export default function BoothsCatalog() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
-      <div className="relative overflow-hidden py-20 px-6" style={{ minHeight: '320px' }}>
-        {/* Hero Effect Background */}
-        {heroSettings.heroEffect !== 'none' ? (
-          <div className="absolute inset-0 z-0">
-            {renderHeroEffect()}
-          </div>
-        ) : (
-          <>
-            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(200,85%,20%)] via-[hsl(205,75%,30%)] to-[hsl(210,70%,25%)]" />
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute top-0 left-0 w-full h-full" style={{
-                backgroundImage: `url('/booths/page-cover.jpg')`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                filter: 'blur(2px)',
-              }} />
+      <div className="relative" style={{ minHeight: '320px' }}>
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Hero Effect Background */}
+          {heroSettings.heroEffect !== 'none' ? (
+            <div className="absolute inset-0 z-0">
+              {renderHeroEffect()}
             </div>
-          </>
-        )}
+          ) : (
+            <>
+              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(200,85%,20%)] via-[hsl(205,75%,30%)] to-[hsl(210,70%,25%)]" />
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-0 left-0 w-full h-full" style={{
+                  backgroundImage: `url('/booths/page-cover.jpg')`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  filter: 'blur(2px)',
+                }} />
+              </div>
+            </>
+          )}
+        </div>
 
-        {/* Admin Hero Edit Toolbar */}
+        {/* Admin Hero Edit Toolbar - outside overflow-hidden */}
         {isAdmin && (
-          <HeroEditToolbar
-            useVideo={false}
-            kenBurnsEffect={false}
-            kenBurnsPreview={false}
-            isUploading={false}
-            onMediaTypeChange={() => {}}
-            onKenBurnsToggle={() => {}}
-            onKenBurnsPreviewStart={() => {}}
-            onKenBurnsPreviewEnd={() => {}}
-            onUploadClick={() => {}}
-            onVideoUrlClick={() => {}}
-            onLibrarySelect={() => {}}
-            heroEffect={heroSettings.heroEffect}
-            heroEffectIntensity={heroSettings.heroEffectIntensity}
-            heroEffectColorScheme={heroSettings.heroEffectColorScheme}
-            heroEffectMode={heroSettings.heroEffectMode}
-            heroEffectBrightness={heroSettings.heroEffectBrightness}
-            heroEffectDensity={heroSettings.heroEffectDensity}
-            heroEffectSpeed={heroSettings.heroEffectSpeed}
-            onHeroEffectChange={(effect) => updateHeroSettings({ heroEffect: effect })}
-            onHeroEffectIntensityChange={(v) => updateHeroSettings({ heroEffectIntensity: v })}
-            onHeroEffectColorSchemeChange={(v) => updateHeroSettings({ heroEffectColorScheme: v })}
-            onHeroEffectModeChange={(v) => updateHeroSettings({ heroEffectMode: v })}
-            onHeroEffectBrightnessChange={(v) => updateHeroSettings({ heroEffectBrightness: v })}
-            onHeroEffectDensityChange={(v) => updateHeroSettings({ heroEffectDensity: v })}
-            onHeroEffectSpeedChange={(v) => updateHeroSettings({ heroEffectSpeed: v })}
-          />
+          <div className="absolute top-4 right-4 z-50">
+            <HeroEditToolbar
+              useVideo={false}
+              kenBurnsEffect={false}
+              kenBurnsPreview={false}
+              isUploading={false}
+              onMediaTypeChange={() => {}}
+              onKenBurnsToggle={() => {}}
+              onKenBurnsPreviewStart={() => {}}
+              onKenBurnsPreviewEnd={() => {}}
+              onUploadClick={() => {}}
+              onVideoUrlClick={() => {}}
+              onLibrarySelect={() => {}}
+              heroEffect={heroSettings.heroEffect}
+              heroEffectIntensity={heroSettings.heroEffectIntensity}
+              heroEffectColorScheme={heroSettings.heroEffectColorScheme}
+              heroEffectMode={heroSettings.heroEffectMode}
+              heroEffectBrightness={heroSettings.heroEffectBrightness}
+              heroEffectDensity={heroSettings.heroEffectDensity}
+              heroEffectSpeed={heroSettings.heroEffectSpeed}
+              onHeroEffectChange={(effect) => updateHeroSettings({ heroEffect: effect })}
+              onHeroEffectIntensityChange={(v) => updateHeroSettings({ heroEffectIntensity: v })}
+              onHeroEffectColorSchemeChange={(v) => updateHeroSettings({ heroEffectColorScheme: v })}
+              onHeroEffectModeChange={(v) => updateHeroSettings({ heroEffectMode: v })}
+              onHeroEffectBrightnessChange={(v) => updateHeroSettings({ heroEffectBrightness: v })}
+              onHeroEffectDensityChange={(v) => updateHeroSettings({ heroEffectDensity: v })}
+              onHeroEffectSpeedChange={(v) => updateHeroSettings({ heroEffectSpeed: v })}
+            />
+          </div>
         )}
 
-        <div className="relative max-w-7xl mx-auto z-10">
+        <div className="relative max-w-7xl mx-auto z-10 py-20 px-6">
           <Button 
             variant="ghost" 
             onClick={() => navigate(-1)} 
