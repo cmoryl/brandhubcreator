@@ -316,6 +316,39 @@ export type Database = {
           },
         ]
       }
+      booth_content_sections: {
+        Row: {
+          bullets: string[]
+          created_at: string
+          created_by: string | null
+          display_order: number
+          division_id: string
+          heading: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          bullets?: string[]
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          division_id: string
+          heading: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          bullets?: string[]
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          division_id?: string
+          heading?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       booth_custom_divisions: {
         Row: {
           color: string
