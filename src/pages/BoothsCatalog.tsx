@@ -1836,14 +1836,27 @@ export default function BoothsCatalog() {
   const [newBoothWebsite, setNewBoothWebsite] = useState("");
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const { settings: heroSettings, updateSettings: updateHeroSettings } = usePageHeroSettings('booths');
-  const { divisions: customDivisions, addDivision, updateDivision, deleteDivision } = useCustomDivisions();
+  const { divisions: customDivisions, addDivision, updateDivision, deleteDivision, refetch: refetchCustomDivisions } = useCustomDivisions();
   const [editingBooth, setEditingBooth] = useState<CustomDivision | null>(null);
   const [editFields, setEditFields] = useState({ name: "", tagline: "", description: "", color: "", email: "", website: "" });
   const [sortBy, setSortBy] = useState<'default' | 'a-z' | 'z-a' | 'services'>('default');
 
+  const staticDivisionIds = new Set(DIVISIONS.map(d => d.id));
   const allDivisions: BoothDivision[] = [
-    ...DIVISIONS,
-    ...customDivisions.map(customToBoothDivision),
+    ...DIVISIONS.map(div => {
+      const override = customDivisions.find(c => c.division_id === div.id);
+      if (!override) return div;
+      return {
+        ...div,
+        tagline: override.tagline || div.tagline,
+        description: override.description || div.description,
+        email: override.email || div.email,
+        website: override.website || div.website,
+        services: override.services?.length ? override.services : div.services,
+        color: override.color || div.color,
+      };
+    }),
+    ...customDivisions.filter(c => !staticDivisionIds.has(c.division_id)).map(customToBoothDivision),
   ];
 
   const sortedDivisions = [...allDivisions].sort((a, b) => {
@@ -1897,22 +1910,56 @@ export default function BoothsCatalog() {
 
   const startEditBooth = (divId: string) => {
     const c = customDivisions.find(d => d.division_id === divId);
-    if (!c) return;
-    setEditingBooth(c);
-    setEditFields({ name: c.name, tagline: c.tagline, description: c.description, color: c.color, email: c.email, website: c.website });
+    const staticDiv = DIVISIONS.find(d => d.id === divId);
+    if (c) {
+      setEditingBooth(c);
+      setEditFields({ name: c.name, tagline: c.tagline, description: c.description, color: c.color, email: c.email, website: c.website });
+    } else if (staticDiv) {
+      // Create a virtual CustomDivision for editing static booths
+      const virtual: CustomDivision = {
+        id: '', division_id: divId, name: staticDiv.name, tagline: staticDiv.tagline,
+        description: staticDiv.description, color: staticDiv.color, icon_name: '',
+        email: staticDiv.email, website: staticDiv.website, services: staticDiv.services, display_order: 0,
+      };
+      setEditingBooth(virtual);
+      setEditFields({ name: staticDiv.name, tagline: staticDiv.tagline, description: staticDiv.description, color: staticDiv.color, email: staticDiv.email, website: staticDiv.website });
+    }
   };
 
   const handleSaveEdit = async () => {
     if (!editingBooth || !editFields.name.trim()) return;
-    const ok = await updateDivision(editingBooth.division_id, {
-      name: editFields.name.trim(),
-      tagline: editFields.tagline.trim(),
-      description: editFields.description.trim(),
-      color: editFields.color,
-      email: editFields.email.trim(),
-      website: editFields.website.trim(),
-    });
-    if (ok) setEditingBooth(null);
+    const existsInDb = customDivisions.some(c => c.division_id === editingBooth.division_id);
+    if (existsInDb) {
+      const ok = await updateDivision(editingBooth.division_id, {
+        name: editFields.name.trim(),
+        tagline: editFields.tagline.trim(),
+        description: editFields.description.trim(),
+        color: editFields.color,
+        email: editFields.email.trim(),
+        website: editFields.website.trim(),
+      });
+      if (ok) setEditingBooth(null);
+    } else {
+      // Create override row for static division
+      const { error } = await supabase.from("booth_custom_divisions").insert({
+        division_id: editingBooth.division_id,
+        name: editFields.name.trim(),
+        tagline: editFields.tagline.trim(),
+        description: editFields.description.trim(),
+        color: editFields.color,
+        email: editFields.email.trim(),
+        website: editFields.website.trim(),
+        display_order: 0,
+        created_by: (await supabase.auth.getUser()).data.user?.id,
+      });
+      if (error) {
+        toast.error("Failed to save: " + error.message);
+      } else {
+        toast.success("Booth details updated");
+        setEditingBooth(null);
+        await refetchCustomDivisions();
+      }
+    }
   };
 
   const renderHeroEffect = () => {
@@ -2165,8 +2212,8 @@ export default function BoothsCatalog() {
               className="relative group/card"
             >
               <BoothCardWithImages division={div} onClick={() => setSelected(div)} isAdmin={isAdmin} />
-              {/* Delete button for custom booths */}
-              {isAdmin && isCustomDivision(div.id) && (
+              {/* Edit/Delete buttons for admin */}
+              {isAdmin && (
                 <div className="absolute top-3 left-3 z-10 flex gap-1.5 opacity-0 group-hover/card:opacity-100 transition-opacity">
                   <button
                     onClick={(e) => { e.stopPropagation(); startEditBooth(div.id); }}
@@ -2175,13 +2222,15 @@ export default function BoothsCatalog() {
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); deleteDivision(div.id); }}
-                    className="h-7 w-7 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-destructive/70 transition-colors"
-                    title="Delete this booth"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                  {isCustomDivision(div.id) && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteDivision(div.id); }}
+                      className="h-7 w-7 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-destructive/70 transition-colors"
+                      title="Delete this booth"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </div>
               )}
             </motion.div>
