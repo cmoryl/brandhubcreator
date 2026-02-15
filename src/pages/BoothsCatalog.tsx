@@ -688,6 +688,23 @@ const ServicesManager = ({ divisionId, isAdmin, color }: { divisionId: string; i
                   <BarChart3 className="h-4 w-4" style={{ color: color + "80" }} />
                 )}
                 <div className="text-xs font-medium leading-tight" style={{ color }}>{svc.label}</div>
+                {svc.icon_svg && (
+                  <button
+                    className="absolute -bottom-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 flex items-center justify-center rounded-full bg-background shadow-sm border border-border hover:bg-muted"
+                    title="Download SVG"
+                    onClick={() => {
+                      const blob = new Blob([svc.icon_svg!], { type: 'image/svg+xml' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `${svc.label.replace(/\s+/g, '-').toLowerCase()}.svg`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    <Download className="h-3 w-3 text-muted-foreground" />
+                  </button>
+                )}
                 {isAdmin && (
                   <div className="absolute -top-1 -right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEdit(svc)}>
