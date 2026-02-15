@@ -1613,7 +1613,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [addingVariant, setAddingVariant] = useState(false);
-  const [detailsOpen, setDetailsOpen] = useState(true);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [newVariantLabel, setNewVariantLabel] = useState("");
   const Icon = division.icon;
   const { getMergedVariants, uploadImage, deleteImage, images } = useBoothImages(division.id);
@@ -1874,30 +1874,38 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Booth Details</h3>
                     <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${detailsOpen ? 'rotate-180' : ''}`} />
                   </button>
-                  {detailsOpen && (
-                    <div className="px-5 pb-5 space-y-6">
-                      {/* Info Grid */}
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                          <div>
-                            <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-primary">Tagline</h3>
-                            <p className="text-2xl md:text-3xl font-normal leading-relaxed text-primary" style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 400 }}>{division.tagline}</p>
-                            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-                              <span>Font: Poppins Regular 400</span>
-                              <span>Booth: 48–72pt</span>
-                              <span>Banner: 36–48pt</span>
-                              <span>Safe Zone: 2" from edges</span>
-                            </div>
-                          </div>
+                  <AnimatePresence initial={false}>
+                    {detailsOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-5 pb-5 space-y-6">
+                          {/* Info Grid */}
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                              <div>
+                                <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-primary">Tagline</h3>
+                                <p className="text-2xl md:text-3xl font-normal leading-relaxed text-primary" style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 400 }}>{division.tagline}</p>
+                                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                                  <span>Font: Poppins Regular 400</span>
+                                  <span>Booth: 48–72pt</span>
+                                  <span>Banner: 36–48pt</span>
+                                  <span>Safe Zone: 2" from edges</span>
+                                </div>
+                              </div>
 
-                          <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+                              <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
-                          <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+                              <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
-                          <ContactWebsiteEditor
-                            division={division}
-                            isAdmin={isAdmin}
-                          />
+                              <ContactWebsiteEditor
+                                division={division}
+                                isAdmin={isAdmin}
+                              />
                         </div>
 
                         <div className="space-y-6">
@@ -1942,8 +1950,10 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
 
                       {/* Download Links */}
                       <DownloadLinksManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
-                    </div>
-                  )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
             </div>
           </div>
         </div>
