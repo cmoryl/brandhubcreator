@@ -31,6 +31,8 @@ interface BoothDivision {
   stats?: { label: string; value: string }[];
   images: string[];
   variants: { label: string; image: string }[];
+  imageRotation?: number;
+  downloadLinks?: { label: string; url: string }[];
 }
 
 const DIVISIONS: BoothDivision[] = [
@@ -85,6 +87,7 @@ const DIVISIONS: BoothDivision[] = [
     services: ["Faster Case Outcomes", "Innovative Legal Technology", "Strategic Industry Expertise", "Seamless Multilingual Support", "eDiscovery", "Forensic Technology", "Managed Review"],
     images: ["/booths/legal.jpg"],
     variants: [{ label: "Standard", image: "/booths/legal.jpg" }],
+    imageRotation: -90,
   },
   {
     id: "ip",
@@ -245,6 +248,7 @@ const BoothCard = ({ division, onClick }: { division: BoothDivision; onClick: ()
           alt={`${division.name} booth`}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
+          style={division.imageRotation ? { transform: `rotate(${division.imageRotation}deg)`, objectFit: 'contain' } : undefined}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
@@ -337,6 +341,7 @@ const DivisionDetail = ({ division, onClose }: { division: BoothDivision; onClos
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
+                  style={division.imageRotation ? { transform: `rotate(${division.imageRotation}deg)` } : undefined}
                 />
               </AnimatePresence>
               {division.variants.length > 1 && (
@@ -433,6 +438,27 @@ const DivisionDetail = ({ division, onClose }: { division: BoothDivision; onClos
                 </div>
               </div>
             </div>
+
+            {/* Download Links */}
+            {division.downloadLinks && division.downloadLinks.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Download Files</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {division.downloadLinks.map((link) => (
+                    <a
+                      key={link.label}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border/60 bg-muted/30 hover:bg-muted/60 hover:border-primary/30 transition-colors text-sm group"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary shrink-0" />
+                      <span className="truncate">{link.label}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </ScrollArea>
       </motion.div>
