@@ -655,44 +655,51 @@ const BoothColorPalette = ({ color }: { color: string }) => {
   };
 
   const palette = [
-    shade(0.4),
-    shade(0.2),
+    shade(0.5),
+    shade(0.3),
     hex,
-    tintShade(0.3),
-    tintShade(0.6),
+    tintShade(0.25),
+    tintShade(0.5),
+    tintShade(0.75),
   ];
+
+  const [selectedIdx, setSelectedIdx] = useState(2);
+  const selHex = palette[selectedIdx];
+  const selRgb = hexToRgb(selHex);
+  const selHsl = rgbToHsl(selRgb.r, selRgb.g, selRgb.b);
+  const selCmyk = rgbToCmyk(selRgb.r, selRgb.g, selRgb.b);
 
   return (
     <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
-      <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Booth Color</h3>
+      <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Booth Color Palette</h3>
 
-      {/* Color swatch strip */}
-      <div className="flex rounded-lg overflow-hidden h-10">
+      {/* 6-color swatch strip */}
+      <div className="flex rounded-lg overflow-hidden h-12">
         {palette.map((c, i) => (
           <div
             key={i}
-            className="flex-1 relative group/swatch cursor-pointer transition-all hover:flex-[1.5]"
+            className={`flex-1 relative cursor-pointer transition-all ${selectedIdx === i ? 'flex-[1.8] ring-2 ring-foreground/30 z-10' : 'hover:flex-[1.3]'}`}
             style={{ backgroundColor: c }}
             title={c.toUpperCase()}
-            onClick={() => { navigator.clipboard.writeText(c.toUpperCase()); toast.success(`${c.toUpperCase()} copied`); }}
+            onClick={() => setSelectedIdx(i)}
           >
-            {i === 2 && (
+            {selectedIdx === i && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-1.5 h-1.5 rounded-full bg-white/80 ring-1 ring-white/40" />
+                <div className="w-2 h-2 rounded-full bg-white/90 ring-1 ring-white/50 shadow-sm" />
               </div>
             )}
           </div>
         ))}
       </div>
 
-      {/* Main swatch + codes */}
+      {/* Selected color codes */}
       <div className="grid grid-cols-[auto_1fr] gap-3 items-start">
-        <div className="w-16 h-16 rounded-lg shadow-sm border border-border/40" style={{ backgroundColor: hex }} />
+        <div className="w-14 h-14 rounded-lg shadow-sm border border-border/40" style={{ backgroundColor: selHex }} />
         <div className="space-y-1">
-          <ColorCodeRow label="HEX" value={hex.toUpperCase()} />
-          <ColorCodeRow label="RGB" value={`${r}, ${g}, ${b}`} />
-          <ColorCodeRow label="HSL" value={`${hsl.h}°, ${hsl.s}%, ${hsl.l}%`} />
-          <ColorCodeRow label="CMYK" value={`${cmyk.c}, ${cmyk.m}, ${cmyk.y}, ${cmyk.k}`} />
+          <ColorCodeRow label="HEX" value={selHex.toUpperCase()} />
+          <ColorCodeRow label="RGB" value={`${selRgb.r}, ${selRgb.g}, ${selRgb.b}`} />
+          <ColorCodeRow label="HSL" value={`${selHsl.h}°, ${selHsl.s}%, ${selHsl.l}%`} />
+          <ColorCodeRow label="CMYK" value={`${selCmyk.c}, ${selCmyk.m}, ${selCmyk.y}, ${selCmyk.k}`} />
         </div>
       </div>
     </div>
