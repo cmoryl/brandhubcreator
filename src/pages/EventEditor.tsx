@@ -54,6 +54,26 @@ import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
 import { ClientLogosSection } from '@/components/brand/ClientLogosSection';
 import { InsightsSection } from '@/components/brand/InsightsSection';
+import { LogoSection } from '@/components/brand/LogoSection';
+import { BrandIconsSection } from '@/components/brand/BrandIconsSection';
+import { PatternsSection } from '@/components/brand/PatternsSection';
+import { TextStylesSection } from '@/components/brand/TextStylesSection';
+import { IconographySection } from '@/components/brand/IconographySection';
+import { SocialIconsSection } from '@/components/brand/SocialIconsSection';
+import { WebsiteSection } from '@/components/brand/WebsiteSection';
+import { SignaturesSection } from '@/components/brand/SignaturesSection';
+import { QRSection } from '@/components/brand/QRSection';
+import { VideosSection } from '@/components/brand/VideosSection';
+import { ImageAssetsSection } from '@/components/brand/ImageAssetsSection';
+import { WebinarSeriesSection } from '@/components/brand/WebinarSeriesSection';
+import { ServicesSection } from '@/components/brand/ServicesSection';
+import { RevenueChartSection } from '@/components/brand/RevenueChartSection';
+import { ByTheNumbersSection } from '@/components/brand/ByTheNumbersSection';
+import { ProductsSection } from '@/components/brand/ProductsSection';
+import { EventsSection } from '@/components/brand/EventsSection';
+import { PresentationTemplatesSection } from '@/components/brand/PresentationTemplatesSection';
+import { ValuesSection } from '@/components/brand/ValuesSection';
+import { IdentitySection } from '@/components/brand/IdentitySection';
 import { ShareButton } from '@/components/brand/ShareButton';
 import { EventExportPdfButton } from '@/components/event/EventExportPdfButton';
 import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
@@ -92,6 +112,9 @@ type ViewMode = 'sections' | 'full' | 'cards';
 const CompetitiveReportCardLazy = lazy(() =>
   import('@/components/brand/CompetitiveReportCard').then((m) => ({ default: m.CompetitiveReportCard }))
 );
+const LeafletLocationsSection = lazy(() => import('@/components/brand/LeafletLocationsSection').then(m => ({ default: m.LeafletLocationsSection })));
+const AwardsSection = lazy(() => import('@/components/brand/AwardsSection'));
+const GlobalLinkUniverseSection = lazy(() => import('@/components/brand/GlobalLinkUniverseSection'));
 
 const EventEditor = () => {
   const { eventSlug } = useParams<{ eventSlug: string }>();
@@ -683,6 +706,37 @@ const EventEditor = () => {
             onAccessCodeChange={canEdit ? (insightsAccessCode) => updateEvent({ insightsAccessCode } as any) : undefined}
           />
         );
+      case 'logos': return <LogoSection logos={event.logos} onLogosChange={editHandler((logos) => updateEvent({ logos }))} />;
+      case 'brandicon': return <BrandIconsSection brandIcons={event.brandIcons} onBrandIconsChange={editHandler((brandIcons) => updateEvent({ brandIcons }))} />;
+      case 'patterns': return <PatternsSection patterns={event.patterns} onPatternsChange={editHandler((patterns) => updateEvent({ patterns }))} brandName={event.hero.name} brandColors={event.colors} />;
+      case 'textstyles': return <TextStylesSection textStyles={event.textStyles} onTextStylesChange={editHandler((textStyles) => updateEvent({ textStyles }))} />;
+      case 'iconography': return <IconographySection iconography={event.iconography} onIconographyChange={editHandler((iconography) => updateEvent({ iconography }))} brandColors={event.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} />;
+      case 'socialicons': return <SocialIconsSection socialIcons={event.socialIcons} onSocialIconsChange={editHandler((socialIcons) => updateEvent({ socialIcons }))} />;
+      case 'website': return <WebsiteSection websites={event.websites} onWebsitesChange={editHandler((websites) => updateEvent({ websites }))} entityType="event" entityId={event.id} />;
+      case 'signatures': return <SignaturesSection signatures={event.signatures} onSignaturesChange={editHandler((signatures) => updateEvent({ signatures }))} />;
+      case 'qr': return <QRSection qr={event.qr} onQRChange={editHandler((qr) => updateEvent({ qr }))} entityType="event" entityId={event.id} logos={event.logos} />;
+      case 'videos': return <VideosSection videos={event.videos} onVideosChange={editHandler((videos) => updateEvent({ videos }))} />;
+      case 'imageassets': return <ImageAssetsSection imageAssets={(event as any).imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => updateEvent({ imageAssets } as any))} />;
+      case 'bythenumbers': return <ByTheNumbersSection statistics={event.statistics || []} onStatisticsChange={editHandler((statistics) => updateEvent({ statistics }))} brandName={event.hero.name} brandColors={event.colors || []} />;
+      case 'services': return <ServicesSection services={(event as any).services || []} onServicesChange={editHandler((services) => updateEvent({ services } as any))} />;
+      case 'revenue': return <RevenueChartSection revenueData={(event as any).revenueData} onRevenueDataChange={editHandler((revenueData) => updateEvent({ revenueData } as any))} brandName={event.hero.name} brandColors={event.colors || []} />;
+      case 'webinars': return <WebinarSeriesSection webinars={(event as any).webinars || []} onWebinarsChange={editHandler((webinars) => updateEvent({ webinars } as any))} />;
+      case 'awards': return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading...</div>}><AwardsSection awards={(event as any).awards || []} onUpdate={editHandler((awards) => updateEvent({ awards } as any))} entityType="event" entityId={event.id} /></Suspense>;
+      case 'products': return <ProductsSection brandId={event.id} />;
+      case 'events': return <EventsSection brandId={event.id} />;
+      case 'universe': return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading...</div>}><GlobalLinkUniverseSection linkedGuides={(event as any).linkedGuides || []} primaryColor={event.colors?.[0]?.hex} /></Suspense>;
+      case 'presentations': return <PresentationTemplatesSection presentations={(event as any).presentations || []} onUpdate={canEdit ? (presentations) => updateEvent({ presentations } as any) : undefined} isEditable={canEdit} />;
+      case 'locations': return (
+        <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading map...</div>}>
+          <LeafletLocationsSection
+            locations={(event as any).locations || []}
+            locationStats={(event as any).locationStats || []}
+            onLocationsChange={editHandler((locations) => updateEvent({ locations } as any))}
+            onLocationStatsChange={editHandler((locationStats) => updateEvent({ locationStats } as any))}
+            accentColor={event.colors?.[0]?.hex}
+          />
+        </Suspense>
+      );
       default:
         return null;
     }
