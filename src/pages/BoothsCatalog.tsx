@@ -384,7 +384,7 @@ const BoothCard = ({ division, onClick, cardImage, isAdmin, onUploadCardImage }:
         </div>
       </div>
       <div className="p-4">
-        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{division.description}</p>
+        
         <div className="flex flex-wrap gap-1.5">
           {division.services.slice(0, 3).map((s) => (
             <Badge key={s} variant="outline" className="text-[10px] font-normal">
@@ -1633,7 +1633,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                 <div>
                   <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-primary">Tagline</h3>
                   <p className="text-base font-bold leading-relaxed text-primary">{division.tagline}</p>
-                  <p className="text-sm leading-relaxed">{division.description}</p>
+                  
                 </div>
 
                 {/* Color Palette */}
