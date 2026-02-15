@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, 
   Radio, Heart, Database, Microscope, Globe, X, ChevronLeft, ChevronRight,
-  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown, Upload, RotateCcw, Type, Download, ArrowUpDown
+  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown, Upload, RotateCcw, Type, Download, ArrowUpDown,
+  LogOut, User, HelpCircle, LayoutDashboard
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,15 @@ import { Badge } from "@/components/ui/badge";
 import { PreviewDialog } from "@/components/ui/preview-dialog";
 // ScrollArea removed - using native overflow for mobile compatibility
 import { supabase } from "@/integrations/supabase/client";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useBoothDownloadLinks } from "@/hooks/useBoothDownloadLinks";
 import { useBoothKeyStats } from "@/hooks/useBoothKeyStats";
 import { useBoothVariantInfo } from "@/hooks/useBoothVariantInfo";
@@ -1625,7 +1635,7 @@ export default function BoothsCatalog() {
   const [newBoothColor, setNewBoothColor] = useState("hsl(200, 70%, 45%)");
   const [newBoothEmail, setNewBoothEmail] = useState("");
   const [newBoothWebsite, setNewBoothWebsite] = useState("");
-  const navigate = useNavigate();
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const { settings: heroSettings, updateSettings: updateHeroSettings } = usePageHeroSettings('booths');
   const { divisions: customDivisions, addDivision, updateDivision, deleteDivision } = useCustomDivisions();
   const [editingBooth, setEditingBooth] = useState<CustomDivision | null>(null);
@@ -1646,15 +1656,19 @@ export default function BoothsCatalog() {
     }
   });
 
+  const navigate = useNavigate();
+
   // Check if current user is authenticated (admin)
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setIsAdmin(!!user);
+      setUserEmail(user?.email ?? null);
     };
     checkAuth();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAdmin(!!session?.user);
+      setUserEmail(session?.user?.email ?? null);
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -1836,8 +1850,59 @@ export default function BoothsCatalog() {
         )}
 
         <div className="relative max-w-7xl mx-auto z-10 py-20 px-6">
-          <div className="mb-6">
+          <div className="flex items-center justify-between mb-6">
             <div className="cursor-pointer inline-block" onClick={() => navigate('/org/transperfect')}><BrandHubLogo size="sm" /></div>
+            {isAdmin && userEmail && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-accent/10 text-accent text-sm font-medium">
+                        {userEmail.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-accent border-2 border-background" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{userEmail}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Shield className="h-3 w-3 text-accent" />
+                        <span className="text-accent">Admin</span>
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/admin')} className="gap-2 cursor-pointer">
+                    <Shield className="h-4 w-4" />
+                    Admin Panel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/org/transperfect')} className="gap-2 cursor-pointer">
+                    <Building2 className="h-4 w-4" />
+                    Organization Portal
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/org/transperfect/settings')} className="gap-2 cursor-pointer">
+                    <Settings className="h-4 w-4" />
+                    Organization Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/help')} className="gap-2 cursor-pointer">
+                    <HelpCircle className="h-4 w-4" />
+                    Help Center
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={async () => { await supabase.auth.signOut(); navigate('/auth'); }} 
+                    className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
           <div className="flex items-center gap-4 mb-4">
             <div className="h-1 w-16 bg-[hsl(195,100%,50%)] rounded-full" />

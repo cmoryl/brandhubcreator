@@ -344,6 +344,10 @@ const OrganizationPortal = () => {
                           <Settings className="h-4 w-4" />
                           Organization Settings
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/booths')} className="gap-2 cursor-pointer">
+                          <LayoutDashboard className="h-4 w-4" />
+                          Booth Catalog
+                        </DropdownMenuItem>
                       </>
                     )}
                     
