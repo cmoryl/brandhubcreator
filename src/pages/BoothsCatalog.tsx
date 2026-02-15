@@ -1571,7 +1571,9 @@ export default function BoothsCatalog() {
   const [newBoothWebsite, setNewBoothWebsite] = useState("");
   const navigate = useNavigate();
   const { settings: heroSettings, updateSettings: updateHeroSettings } = usePageHeroSettings('booths');
-  const { divisions: customDivisions, addDivision, deleteDivision } = useCustomDivisions();
+  const { divisions: customDivisions, addDivision, updateDivision, deleteDivision } = useCustomDivisions();
+  const [editingBooth, setEditingBooth] = useState<CustomDivision | null>(null);
+  const [editFields, setEditFields] = useState({ name: "", tagline: "", description: "", color: "", email: "", website: "" });
 
   const allDivisions: BoothDivision[] = [
     ...DIVISIONS,
@@ -1613,6 +1615,26 @@ export default function BoothsCatalog() {
   };
 
   const isCustomDivision = (divId: string) => customDivisions.some(c => c.division_id === divId);
+
+  const startEditBooth = (divId: string) => {
+    const c = customDivisions.find(d => d.division_id === divId);
+    if (!c) return;
+    setEditingBooth(c);
+    setEditFields({ name: c.name, tagline: c.tagline, description: c.description, color: c.color, email: c.email, website: c.website });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingBooth || !editFields.name.trim()) return;
+    const ok = await updateDivision(editingBooth.division_id, {
+      name: editFields.name.trim(),
+      tagline: editFields.tagline.trim(),
+      description: editFields.description.trim(),
+      color: editFields.color,
+      email: editFields.email.trim(),
+      website: editFields.website.trim(),
+    });
+    if (ok) setEditingBooth(null);
+  };
 
   const renderHeroEffect = () => {
     const effect = heroSettings.heroEffect;
@@ -1795,13 +1817,22 @@ export default function BoothsCatalog() {
               <BoothCardWithImages division={div} onClick={() => setSelected(div)} isAdmin={isAdmin} />
               {/* Delete button for custom booths */}
               {isAdmin && isCustomDivision(div.id) && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); deleteDivision(div.id); }}
-                  className="absolute top-3 left-3 z-10 h-7 w-7 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-destructive/70 transition-colors opacity-0 group-hover/card:opacity-100"
-                  title="Delete this booth"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                <div className="absolute top-3 left-3 z-10 flex gap-1.5 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); startEditBooth(div.id); }}
+                    className="h-7 w-7 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-primary/70 transition-colors"
+                    title="Edit booth details"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deleteDivision(div.id); }}
+                    className="h-7 w-7 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-destructive/70 transition-colors"
+                    title="Delete this booth"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               )}
             </motion.div>
           ))}
@@ -1881,6 +1912,69 @@ export default function BoothsCatalog() {
           )}
         </div>
       </div>
+
+      {/* Edit Booth Dialog */}
+      {editingBooth && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setEditingBooth(null)}>
+          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md mx-4 space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Edit Booth Details</h3>
+              <button onClick={() => setEditingBooth(null)} className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <Input
+              placeholder="Booth name *"
+              value={editFields.name}
+              onChange={(e) => setEditFields(f => ({ ...f, name: e.target.value }))}
+              className="text-sm"
+            />
+            <Input
+              placeholder="Tagline"
+              value={editFields.tagline}
+              onChange={(e) => setEditFields(f => ({ ...f, tagline: e.target.value }))}
+              className="text-sm"
+            />
+            <Textarea
+              placeholder="Description"
+              value={editFields.description}
+              onChange={(e) => setEditFields(f => ({ ...f, description: e.target.value }))}
+              className="text-sm min-h-[80px]"
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                placeholder="Email"
+                value={editFields.email}
+                onChange={(e) => setEditFields(f => ({ ...f, email: e.target.value }))}
+                className="text-sm"
+              />
+              <Input
+                placeholder="Website"
+                value={editFields.website}
+                onChange={(e) => setEditFields(f => ({ ...f, website: e.target.value }))}
+                className="text-sm"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-muted-foreground">Color:</label>
+              <input
+                type="color"
+                value={editFields.color.startsWith("hsl") ? "#3b82f6" : editFields.color}
+                onChange={(e) => setEditFields(f => ({ ...f, color: e.target.value }))}
+                className="h-8 w-10 rounded border border-border cursor-pointer"
+              />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button size="sm" onClick={handleSaveEdit} disabled={!editFields.name.trim()}>
+                Save Changes
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setEditingBooth(null)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Detail Modal */}
       <AnimatePresence>
