@@ -26,6 +26,7 @@ import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
 import { BoothContentManager } from "@/components/booths/BoothContentManager";
 import { BoothGalleryManager } from "@/components/booths/BoothGalleryManager";
 import { GlitchText } from "@/components/ui/GlitchText";
+import { BrandHubLogo } from "@/components/BrandHubLogo";
 
 import { HeroEditToolbar, HeroEffectType } from "@/components/brand/HeroEditToolbar";
 import { GradientBarsHero } from "@/components/backgrounds/GradientBarsHero";
@@ -1835,13 +1836,16 @@ export default function BoothsCatalog() {
         )}
 
         <div className="relative max-w-7xl mx-auto z-10 py-20 px-6">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/org/transperfect')} 
-            className="text-white/70 hover:text-white hover:bg-white/10 mb-6 -ml-2"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back
-          </Button>
+          <div className="flex items-center justify-between mb-6">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/org/transperfect')} 
+              className="text-white/70 hover:text-white hover:bg-white/10 -ml-2"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" /> Back
+            </Button>
+            <BrandHubLogo size="sm" />
+          </div>
           <div className="flex items-center gap-4 mb-4">
             <div className="h-1 w-16 bg-[hsl(195,100%,50%)] rounded-full" />
             <span className="text-[hsl(195,100%,70%)] text-sm font-semibold tracking-[0.2em] uppercase">
