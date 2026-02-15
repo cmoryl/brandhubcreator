@@ -692,6 +692,37 @@ const QRCodesManager = ({ divisionId, isAdmin, color }: { divisionId: string; is
     }
   };
 
+  const handleBatchUpload = async (files: FileList) => {
+    const validTypes = ['image/svg+xml', 'image/png', 'image/jpeg', 'image/webp'];
+    const validFiles = Array.from(files).filter(f => validTypes.includes(f.type) && f.size <= 5 * 1024 * 1024);
+    if (validFiles.length === 0) {
+      toast.error('No valid image files selected (SVG, PNG, JPG, WebP under 5MB)');
+      return;
+    }
+    setUploading(true);
+    let added = 0;
+    for (const file of validFiles) {
+      try {
+        const ext = file.name.split('.').pop() || 'svg';
+        const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+        const path = `booth-qr/${divisionId}/${Date.now()}-${added}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('organization-assets')
+          .upload(path, file, { contentType: file.type, upsert: true });
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage
+          .from('organization-assets')
+          .getPublicUrl(path);
+        await addQRCode(nameWithoutExt, '#', urlData.publicUrl);
+        added++;
+      } catch (err: any) {
+        console.error('Batch upload error:', err);
+      }
+    }
+    setUploading(false);
+    if (added > 0) toast.success(`${added} QR code${added > 1 ? 's' : ''} uploaded`);
+  };
+
   const handleAdd = async () => {
     if (!newLabel.trim() || !newUrl.trim()) return;
     await addQRCode(newLabel.trim(), newUrl.trim(), newImageUrl.trim() || undefined);
@@ -726,9 +757,17 @@ const QRCodesManager = ({ divisionId, isAdmin, color }: { divisionId: string; is
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">QR Codes</h3>
         {isAdmin && !adding && (
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setAdding(true)}>
-            <Plus className="h-3.5 w-3.5" /> Add QR Code
-          </Button>
+          <div className="flex gap-2">
+            <label className="cursor-pointer">
+              <input type="file" multiple accept=".svg,.png,.jpg,.jpeg,.webp,image/svg+xml,image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => { if (e.target.files?.length) handleBatchUpload(e.target.files); e.target.value = ''; }} />
+              <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs" disabled={uploading} asChild>
+                <span>{uploading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Uploading...</> : <><Plus className="h-3.5 w-3.5" /> Bulk Upload</>}</span>
+              </Button>
+            </label>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setAdding(true)}>
+              <Plus className="h-3.5 w-3.5" /> Add QR Code
+            </Button>
+          </div>
         )}
       </div>
 
