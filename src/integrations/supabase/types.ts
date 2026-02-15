@@ -385,6 +385,42 @@ export type Database = {
         }
         Relationships: []
       }
+      booth_qr_codes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          display_order: number
+          division_id: string
+          id: string
+          image_url: string | null
+          label: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          division_id: string
+          id?: string
+          image_url?: string | null
+          label: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          division_id?: string
+          id?: string
+          image_url?: string | null
+          label?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       booth_variant_info: {
         Row: {
           created_at: string

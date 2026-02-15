@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useBoothDownloadLinks } from "@/hooks/useBoothDownloadLinks";
 import { useBoothKeyStats } from "@/hooks/useBoothKeyStats";
 import { useBoothVariantInfo } from "@/hooks/useBoothVariantInfo";
+import { useBoothQRCodes } from "@/hooks/useBoothQRCodes";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
@@ -640,6 +641,124 @@ const KeyStatsManager = ({ divisionId, isAdmin, color }: { divisionId: string; i
   );
 };
 
+interface BoothQRCode { id: string; division_id: string; label: string; url: string; image_url: string | null; display_order: number; }
+
+const QRCodesManager = ({ divisionId, isAdmin, color }: { divisionId: string; isAdmin: boolean; color: string }) => {
+  const { qrCodes, loading, addQRCode, updateQRCode, deleteQRCode } = useBoothQRCodes(divisionId);
+  const [adding, setAdding] = useState(false);
+  const [newLabel, setNewLabel] = useState("");
+  const [newUrl, setNewUrl] = useState("");
+  const [newImageUrl, setNewImageUrl] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+  const [editUrl, setEditUrl] = useState("");
+  const [editImageUrl, setEditImageUrl] = useState("");
+
+  const handleAdd = async () => {
+    if (!newLabel.trim() || !newUrl.trim()) return;
+    await addQRCode(newLabel.trim(), newUrl.trim(), newImageUrl.trim() || undefined);
+    setNewLabel(""); setNewUrl(""); setNewImageUrl(""); setAdding(false);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId || !editLabel.trim() || !editUrl.trim()) return;
+    await updateQRCode(editingId, editLabel.trim(), editUrl.trim(), editImageUrl.trim() || null);
+    setEditingId(null);
+  };
+
+  const startEdit = (qr: BoothQRCode) => {
+    setEditingId(qr.id);
+    setEditLabel(qr.label);
+    setEditUrl(qr.url);
+    setEditImageUrl(qr.image_url || "");
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+        <Loader2 className="h-4 w-4 animate-spin" /> Loading QR codes...
+      </div>
+    );
+  }
+
+  if (qrCodes.length === 0 && !isAdmin) return null;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">QR Codes</h3>
+        {isAdmin && !adding && (
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setAdding(true)}>
+            <Plus className="h-3.5 w-3.5" /> Add QR Code
+          </Button>
+        )}
+      </div>
+
+      {adding && isAdmin && (
+        <div className="mb-3 space-y-2 p-3 rounded-lg border border-border/60 bg-muted/20">
+          <Input placeholder="Label (e.g. Booth Registration)" value={newLabel} onChange={(e) => setNewLabel(e.target.value)} className="text-sm" />
+          <Input placeholder="URL (e.g. https://example.com)" value={newUrl} onChange={(e) => setNewUrl(e.target.value)} className="text-sm" />
+          <Input placeholder="QR Code Image URL (optional)" value={newImageUrl} onChange={(e) => setNewImageUrl(e.target.value)} className="text-sm" />
+          <div className="flex gap-2">
+            <Button size="sm" className="text-xs" onClick={handleAdd}>Add</Button>
+            <Button size="sm" variant="ghost" className="text-xs" onClick={() => { setAdding(false); setNewLabel(""); setNewUrl(""); setNewImageUrl(""); }}>Cancel</Button>
+          </div>
+        </div>
+      )}
+
+      {qrCodes.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {qrCodes.map((qr) => (
+            editingId === qr.id && isAdmin ? (
+              <div key={qr.id} className="space-y-2 p-3 rounded-lg border border-primary/30 bg-muted/20 col-span-full">
+                <Input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} placeholder="Label" className="text-sm" />
+                <Input value={editUrl} onChange={(e) => setEditUrl(e.target.value)} placeholder="URL" className="text-sm" />
+                <Input value={editImageUrl} onChange={(e) => setEditImageUrl(e.target.value)} placeholder="QR Image URL (optional)" className="text-sm" />
+                <div className="flex gap-2">
+                  <Button size="sm" className="text-xs" onClick={handleUpdate}>Save</Button>
+                  <Button size="sm" variant="ghost" className="text-xs" onClick={() => setEditingId(null)}>Cancel</Button>
+                </div>
+              </div>
+            ) : (
+              <div key={qr.id} className="bg-muted/50 rounded-lg p-3 text-center relative group">
+                {qr.image_url ? (
+                  <div className="mb-2 flex justify-center">
+                    <img src={qr.image_url} alt={qr.label} className="w-24 h-24 object-contain rounded" />
+                  </div>
+                ) : (
+                  <div className="mb-2 flex justify-center">
+                    <div className="w-24 h-24 rounded bg-muted flex items-center justify-center border border-border/40">
+                      <ExternalLink className="h-8 w-8 text-muted-foreground/40" />
+                    </div>
+                  </div>
+                )}
+                <div className="text-xs font-medium truncate" style={{ color }}>{qr.label}</div>
+                <a href={qr.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-muted-foreground hover:text-primary truncate block mt-0.5">
+                  {qr.url.replace(/^https?:\/\//, '').slice(0, 30)}
+                </a>
+                {isAdmin && (
+                  <div className="absolute -top-1 -right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEdit(qr)}>
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteQRCode(qr.id)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )
+          ))}
+        </div>
+      )}
+
+      {qrCodes.length === 0 && isAdmin && !adding && (
+        <p className="text-xs text-muted-foreground italic">No QR codes yet. Click "Add QR Code" to add one.</p>
+      )}
+    </div>
+  );
+};
+
 const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divisionId: string; variantLabel: string; isAdmin: boolean; color: string }) => {
   const { info, loading, saveInfo } = useBoothVariantInfo(divisionId, variantLabel);
   const [editing, setEditing] = useState(false);
@@ -910,6 +1029,8 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                 </div>
 
                 <KeyStatsManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+
+                <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
                 <div className="flex flex-col gap-2">
                   <a href={`mailto:${division.email}`} className="flex items-center gap-2 text-sm text-primary hover:underline">
