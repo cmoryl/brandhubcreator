@@ -28,6 +28,7 @@ import { useBoothVariantInfo } from "@/hooks/useBoothVariantInfo";
 import { useBoothQRCodes } from "@/hooks/useBoothQRCodes";
 import { useBoothProductionSpecs } from "@/hooks/useBoothProductionSpecs";
 import { useBoothImages } from "@/hooks/useBoothImages";
+import { useBoothServices } from "@/hooks/useBoothServices";
 import { useCustomDivisions, type CustomDivision } from "@/hooks/useCustomDivisions";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -720,6 +721,132 @@ const KeyStatsManager = ({ divisionId, isAdmin, color }: { divisionId: string; i
                       <Pencil className="h-3 w-3" />
                     </Button>
                     <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteStat(s.id)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ServicesManager = ({ divisionId, isAdmin, color }: { divisionId: string; isAdmin: boolean; color: string }) => {
+  const { services, loading, addService, updateService, deleteService } = useBoothServices(divisionId);
+  const [adding, setAdding] = useState(false);
+  const [newLabel, setNewLabel] = useState("");
+  const [newIconSvg, setNewIconSvg] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+  const [editIconSvg, setEditIconSvg] = useState("");
+
+  const handleAdd = async () => {
+    if (!newLabel.trim()) return;
+    await addService(newLabel.trim(), newIconSvg.trim() || undefined);
+    setNewLabel(""); setNewIconSvg(""); setAdding(false);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId || !editLabel.trim()) return;
+    await updateService(editingId, editLabel.trim(), editIconSvg.trim() || null);
+    setEditingId(null);
+  };
+
+  const startEdit = (svc: { id: string; label: string; icon_svg: string | null }) => {
+    setEditingId(svc.id);
+    setEditLabel(svc.label);
+    setEditIconSvg(svc.icon_svg || "");
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+        <Loader2 className="h-4 w-4 animate-spin" /> Loading services...
+      </div>
+    );
+  }
+
+  if (services.length === 0 && !isAdmin) return null;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Services & Capabilities</h3>
+        {isAdmin && !adding && (
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setAdding(true)}>
+            <Plus className="h-3.5 w-3.5" /> Add Service
+          </Button>
+        )}
+      </div>
+
+      {adding && isAdmin && (
+        <div className="mb-3 space-y-2 p-3 rounded-lg border border-border/60 bg-muted/20">
+          <Input placeholder="Service name" value={newLabel} onChange={(e) => setNewLabel(e.target.value)} className="text-sm" />
+          <div className="space-y-1">
+            <Textarea placeholder="SVG icon code (optional, paste <svg>...</svg>)" value={newIconSvg} onChange={(e) => setNewIconSvg(e.target.value)} className="text-xs font-mono min-h-[60px]" />
+            <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+              <input type="file" accept=".svg,image/svg+xml" className="hidden" onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onload = (ev) => { const text = ev.target?.result as string; if (text) setNewIconSvg(text); };
+                  reader.readAsText(file);
+                }
+                e.target.value = '';
+              }} />
+              <Plus className="h-3 w-3" /> Upload SVG file
+            </label>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" className="text-xs" onClick={handleAdd}>Add</Button>
+            <Button size="sm" variant="ghost" className="text-xs" onClick={() => { setAdding(false); setNewLabel(""); setNewIconSvg(""); }}>Cancel</Button>
+          </div>
+        </div>
+      )}
+
+      {services.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {services.map((svc) => (
+            editingId === svc.id && isAdmin ? (
+              <div key={svc.id} className="space-y-2 p-3 rounded-lg border border-primary/30 bg-muted/20 col-span-full">
+                <Input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} className="text-sm" />
+                <div className="space-y-1">
+                  <Textarea placeholder="SVG icon code (optional)" value={editIconSvg} onChange={(e) => setEditIconSvg(e.target.value)} className="text-xs font-mono min-h-[60px]" />
+                  <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                    <input type="file" accept=".svg,image/svg+xml" className="hidden" onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => { const text = ev.target?.result as string; if (text) setEditIconSvg(text); };
+                        reader.readAsText(file);
+                      }
+                      e.target.value = '';
+                    }} />
+                    <Plus className="h-3 w-3" /> Upload SVG file
+                  </label>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" className="text-xs" onClick={handleUpdate}>Save</Button>
+                  <Button size="sm" variant="ghost" className="text-xs" onClick={() => setEditingId(null)}>Cancel</Button>
+                </div>
+              </div>
+            ) : (
+              <div key={svc.id} className="bg-muted/50 rounded-lg px-4 py-3 text-center relative group min-w-[80px] flex flex-col items-center gap-1.5">
+                {svc.icon_svg ? (
+                  <div className="flex justify-center" dangerouslySetInnerHTML={{ __html: svc.icon_svg }} />
+                ) : (
+                  <BarChart3 className="h-4 w-4" style={{ color: color + "80" }} />
+                )}
+                <div className="text-xs font-medium leading-tight" style={{ color }}>{svc.label}</div>
+                {isAdmin && (
+                  <div className="absolute -top-1 -right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEdit(svc)}>
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteService(svc.id)}>
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
@@ -1529,20 +1656,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
 
                 <KeyStatsManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Services & Capabilities</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {division.services.map((s) => (
-                      <div
-                        key={s}
-                        className="bg-muted/50 rounded-lg px-4 py-3 text-center min-w-[80px] flex flex-col items-center gap-1.5"
-                      >
-                        <BarChart3 className="h-4 w-4" style={{ color: division.color + "80" }} />
-                        <div className="text-xs font-medium leading-tight" style={{ color: division.color }}>{s}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
                 <div className="flex flex-col gap-2">
                   <a href={`mailto:${division.email}`} className="flex items-center gap-2 text-sm text-primary hover:underline">
