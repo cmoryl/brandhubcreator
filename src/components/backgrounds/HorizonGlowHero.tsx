@@ -57,7 +57,8 @@ export const HorizonGlowHero = memo(function HorizonGlowHero({
   const lastMousePos = useRef({ x: 0.5, y: 0.5 });
   const particleIdRef = useRef(0);
 
-  const colors = COLOR_SCHEMES[colorScheme === 'custom' ? 'cyan' : colorScheme];
+  const schemeKey = colorScheme === 'custom' ? 'cyan' : colorScheme;
+  const colors = COLOR_SCHEMES[schemeKey as keyof typeof COLOR_SCHEMES] || COLOR_SCHEMES['cyan'];
   const brightnessMultiplier = 0.4 + (brightness / 100) * 1.2;
 
   const bgColors = mode === 'dark'

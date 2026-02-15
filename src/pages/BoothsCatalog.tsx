@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, 
   Radio, Heart, Database, Microscope, Globe, X, ChevronLeft, ChevronRight,
-  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3
+  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -908,6 +908,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
 export default function BoothsCatalog() {
   const [selected, setSelected] = useState<BoothDivision | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [heroEditorOpen, setHeroEditorOpen] = useState(false);
   const navigate = useNavigate();
   const { settings: heroSettings, updateSettings: updateHeroSettings } = usePageHeroSettings('booths');
 
@@ -1004,10 +1005,28 @@ export default function BoothsCatalog() {
           )}
         </div>
 
-        {/* Admin Hero Edit Toolbar - centered in hero for full visibility */}
-        {isAdmin && (
+        {/* Admin Hero Edit Toggle */}
+        {isAdmin && !heroEditorOpen && (
+          <button
+            onClick={() => setHeroEditorOpen(true)}
+            className="absolute top-4 right-4 z-50 h-9 w-9 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+            title="Edit Hero"
+          >
+            <Settings className="h-4 w-4" />
+          </button>
+        )}
+
+        {/* Admin Hero Edit Toolbar - toggleable */}
+        {isAdmin && heroEditorOpen && (
           <div className="absolute inset-x-0 top-0 z-50 pointer-events-none">
             <div className="relative max-w-7xl mx-auto pointer-events-auto">
+              <button
+                onClick={() => setHeroEditorOpen(false)}
+                className="absolute top-4 right-4 z-50 h-8 w-8 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                title="Close Editor"
+              >
+                <X className="h-4 w-4" />
+              </button>
               <HeroEditToolbar
                 useVideo={false}
                 kenBurnsEffect={false}
