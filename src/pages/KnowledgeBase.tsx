@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, BookOpen, HelpCircle, Lightbulb, Search, CreditCard, Plug, Users, Globe, Shield, Play, Video, X, Home, Palette, Languages } from "lucide-react";
+import { ArrowLeft, BookOpen, HelpCircle, Lightbulb, Search, CreditCard, Plug, Users, Globe, Shield, Play, Video, X, Home, Palette, Languages, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { IconKitSection } from "@/components/help/IconKitSection";
+import { BiasAccessibilitySection } from "@/components/help/BiasAccessibilitySection";
 
 // Import tutorial videos
 import tutorialGettingStarted from "@/assets/videos/tutorial-getting-started.mp4";
@@ -397,7 +398,7 @@ const faqs = [
 const KnowledgeBase = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedVideo, setSelectedVideo] = useState<typeof tutorials[0] | null>(null);
-  const [activeSection, setActiveSection] = useState<"general" | "iconkit">("general");
+  const [activeSection, setActiveSection] = useState<"general" | "iconkit" | "bias">("general");
   const { settings } = useAppSettings();
   
   const filteredFaqs = faqs.map(category => ({
@@ -476,6 +477,15 @@ const KnowledgeBase = () => {
               <Palette className="h-4 w-4" />
               IconKIT
             </Button>
+            <Button
+              variant={activeSection === "bias" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setActiveSection("bias")}
+              className="gap-2"
+            >
+              <Scale className="h-4 w-4" />
+              Bias & Accessibility
+            </Button>
           </div>
         </div>
       </section>
@@ -530,6 +540,8 @@ const KnowledgeBase = () => {
         <div className="max-w-3xl mx-auto space-y-8">
           {activeSection === "iconkit" ? (
             <IconKitSection searchQuery={searchQuery} />
+          ) : activeSection === "bias" ? (
+            <BiasAccessibilitySection searchQuery={searchQuery} />
           ) : (
             <>
               {filteredFaqs.length === 0 ? (
