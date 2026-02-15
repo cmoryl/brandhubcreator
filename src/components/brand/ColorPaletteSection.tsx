@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { SectionHeader } from './SectionHeader';
 import { ColorAccessibilityBadge } from './ColorAccessibilityBadge';
 import { ColorAccessibilityPanel } from './ColorAccessibilityPanel';
+import { ColorStrategyPanel } from './ColorStrategyPanel';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -340,7 +341,10 @@ export const ColorPaletteSection = ({
 
         {/* OKLCH Accessibility Report Panel */}
         {colors.length >= 2 && (
-          <ColorAccessibilityPanel colors={colors} />
+          <div className="space-y-3">
+            <ColorStrategyPanel colors={colors} />
+            <ColorAccessibilityPanel colors={colors} />
+          </div>
         )}
       </div>
 
