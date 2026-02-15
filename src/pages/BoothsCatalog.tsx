@@ -1836,15 +1836,8 @@ export default function BoothsCatalog() {
         )}
 
         <div className="relative max-w-7xl mx-auto z-10 py-20 px-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="cursor-pointer" onClick={() => navigate('/org/transperfect')}><BrandHubLogo size="sm" /></div>
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/org/transperfect')} 
-              className="text-white/70 hover:text-white hover:bg-white/10"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" /> Back
-            </Button>
+          <div className="mb-6">
+            <div className="cursor-pointer inline-block" onClick={() => navigate('/org/transperfect')}><BrandHubLogo size="sm" /></div>
           </div>
           <div className="flex items-center gap-4 mb-4">
             <div className="h-1 w-16 bg-[hsl(195,100%,50%)] rounded-full" />
