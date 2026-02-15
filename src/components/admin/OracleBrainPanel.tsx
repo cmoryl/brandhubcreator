@@ -568,7 +568,7 @@ function OracleKnowledgeBase({
           </CardContent>
         </Card>
       ) : (
-        <ScrollArea className="max-h-[500px]">
+        <div className="max-h-[800px] overflow-y-auto">
           <div className="space-y-2">
             {knowledge.map((entry) => (
               <Card key={entry.id} className="border-border/50 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => openEntry(entry)}>
@@ -620,7 +620,7 @@ function OracleKnowledgeBase({
               </Card>
             ))}
           </div>
-        </ScrollArea>
+        </div>
       )}
 
       {/* View / Edit Dialog */}
