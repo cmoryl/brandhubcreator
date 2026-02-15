@@ -543,7 +543,31 @@ const KeyStatsManager = ({ divisionId, isAdmin, color }: { divisionId: string; i
             <Input placeholder="Label (e.g. Languages)" value={newLabel} onChange={(e) => setNewLabel(e.target.value)} className="text-sm" />
             <Input placeholder="Value (e.g. 170+)" value={newValue} onChange={(e) => setNewValue(e.target.value)} className="text-sm" />
           </div>
-          <Textarea placeholder="SVG icon code (optional, paste <svg>...</svg>)" value={newIconSvg} onChange={(e) => setNewIconSvg(e.target.value)} className="text-xs font-mono min-h-[60px]" />
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Textarea placeholder="SVG icon code (optional, paste <svg>...</svg>)" value={newIconSvg} onChange={(e) => setNewIconSvg(e.target.value)} className="text-xs font-mono min-h-[60px] flex-1" />
+            </div>
+            <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+              <input
+                type="file"
+                accept=".svg,image/svg+xml"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      const text = ev.target?.result as string;
+                      if (text) setNewIconSvg(text);
+                    };
+                    reader.readAsText(file);
+                  }
+                  e.target.value = '';
+                }}
+              />
+              <Plus className="h-3 w-3" /> Upload SVG file
+            </label>
+          </div>
           <div className="flex gap-2">
             <Button size="sm" className="text-xs" onClick={handleAdd}>Add</Button>
             <Button size="sm" variant="ghost" className="text-xs" onClick={() => { setAdding(false); setNewLabel(""); setNewValue(""); setNewIconSvg(""); }}>Cancel</Button>
@@ -560,7 +584,29 @@ const KeyStatsManager = ({ divisionId, isAdmin, color }: { divisionId: string; i
                   <Input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} className="text-sm" />
                   <Input value={editValue} onChange={(e) => setEditValue(e.target.value)} className="text-sm" />
                 </div>
-                <Textarea placeholder="SVG icon code (optional)" value={editIconSvg} onChange={(e) => setEditIconSvg(e.target.value)} className="text-xs font-mono min-h-[60px]" />
+                <div className="space-y-1">
+                  <Textarea placeholder="SVG icon code (optional)" value={editIconSvg} onChange={(e) => setEditIconSvg(e.target.value)} className="text-xs font-mono min-h-[60px]" />
+                  <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                    <input
+                      type="file"
+                      accept=".svg,image/svg+xml"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            const text = ev.target?.result as string;
+                            if (text) setEditIconSvg(text);
+                          };
+                          reader.readAsText(file);
+                        }
+                        e.target.value = '';
+                      }}
+                    />
+                    <Plus className="h-3 w-3" /> Upload SVG file
+                  </label>
+                </div>
                 <div className="flex gap-2">
                   <Button size="sm" className="text-xs" onClick={handleUpdate}>Save</Button>
                   <Button size="sm" variant="ghost" className="text-xs" onClick={() => setEditingId(null)}>Cancel</Button>
