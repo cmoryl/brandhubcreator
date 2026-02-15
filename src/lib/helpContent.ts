@@ -1825,6 +1825,137 @@ export const helpSections: HelpSection[] = [
     ],
     relatedSections: ['logo-management', 'typography'],
   },
+
+  // ============================
+  // BIAS AWARENESS & ACCESSIBILITY
+  // ============================
+  {
+    id: 'bias-awareness',
+    title: 'Bias Awareness Scanning',
+    description: 'AI-powered governance that evaluates your brand content for language, imagery, and accessibility bias.',
+    icon: 'Scale',
+    category: 'advanced',
+    keywords: ['bias', 'inclusion', 'inclusive', 'accessibility', 'governance', 'persona', 'spectrum', 'wcag', 'scan'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Trigger a Bias Scan',
+        description: 'Open any brand, product, or event editor and launch a Bias Awareness scan from the AI tools panel. The scan evaluates Language, Visual, Accessibility, and AI Governance dimensions.',
+        tips: [
+          'Scans run asynchronously — you can continue editing while they process',
+          'Results persist in the database for historical tracking',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Review Dimension Scores',
+        description: 'Each scan produces scores across four dimensions: Language (inclusive terminology), Visual (representation), Accessibility (WCAG compliance), and AI Governance (responsible AI usage).',
+        tips: [
+          'Scores range from 0-100 with color-coded thresholds',
+          'Click any dimension to see detailed findings and recommendations',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Persona Spectrum Coverage',
+        description: 'The scan evaluates your content against the Microsoft Persona Spectrum — permanent, temporary, and situational needs across Vision, Mobility, Hearing, Speech, and Cognitive dimensions.',
+        tips: [
+          'Vision coverage: alt-text and high contrast',
+          'Mobility coverage: responsive layouts and touch targets',
+          'Hearing/Speech: captions and chat availability',
+          'Cognitive: plain language and navigation clarity',
+        ],
+      },
+      {
+        id: 'step-4',
+        title: 'Act on Findings',
+        description: 'Each finding includes severity (info/warning/error) and actionable recommendations. Address high-severity items first for the biggest impact on your inclusion score.',
+        tips: [
+          'Findings feed into the Insights & Updates section for org-wide visibility',
+          'The Admin Dashboard Bias Awareness tab shows aggregate scores across all entities',
+        ],
+      },
+    ],
+    relatedSections: ['color-accessibility', 'inclusive-imagery'],
+  },
+
+  {
+    id: 'color-accessibility',
+    title: 'Color Accessibility & Contrast',
+    description: 'Ensure your brand colors meet accessibility standards with automated contrast checks, colorblind simulations, and cultural color analysis.',
+    icon: 'Blend',
+    category: 'advanced',
+    keywords: ['color', 'contrast', 'wcag', 'colorblind', 'accessibility', 'oklch', 'cultural', 'symbolism'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Automated Contrast Checks',
+        description: 'BrandHub uses OKLCH perceptual color logic to automatically check your palette against WCAG 2.2 AA and AAA contrast requirements (4.5:1 and 7:1 ratios).',
+        tips: [
+          'Contrast issues are flagged automatically in bias scans',
+          'Auto-generated palettes always pass contrast checks',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Colorblind Simulations',
+        description: 'Preview how your brand colors appear under Protanopia, Deuteranopia, Tritanopia, and Achromatopsia simulations to ensure readability for all users.',
+        tips: [
+          'About 8% of men and 0.5% of women have some form of color vision deficiency',
+          'Avoid relying solely on color to convey information',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Cultural Color Symbolism',
+        description: 'The Global Cultural Symbolism Map alerts you when color choices conflict with cultural meanings in target markets (e.g., red = luck in Asia, mourning in South Africa).',
+        tips: [
+          'Review cultural alerts before launching in new markets',
+          'Integrate with GlobalLink regional variants for market-specific palettes',
+        ],
+      },
+    ],
+    relatedSections: ['bias-awareness', 'color-palette'],
+  },
+
+  {
+    id: 'inclusive-imagery',
+    title: 'Inclusive Imagery & Representation',
+    description: 'AI-powered imagery audit that checks for stereotypes, representation diversity, and authentic visual storytelling.',
+    icon: 'Eye',
+    category: 'advanced',
+    keywords: ['imagery', 'inclusive', 'representation', 'stereotypes', 'diversity', 'audit', 'wfa', 'pie'],
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Imagery Audit',
+        description: 'The Inclusive Imagery Audit evaluates brand photos and visuals for representation diversity, power hierarchies, and common tropes using the PI&E "Who Else?" and WFA litmus tests.',
+        tips: [
+          'Audit runs as part of the full Bias Awareness scan',
+          'Focuses on both who is represented and how they are portrayed',
+        ],
+      },
+      {
+        id: 'step-2',
+        title: 'Review Recommendations',
+        description: 'For each flagged image, get specific suggestions for more authentic, representative alternatives that avoid stereotypes.',
+        tips: [
+          'The platform recommends photojournalistic style over staged corporate imagery',
+          'Consider temporary and situational needs, not just permanent disabilities',
+        ],
+      },
+      {
+        id: 'step-3',
+        title: 'Creative Checklist',
+        description: 'A 12-step WFA-aligned review checklist ensures your creative work is on-brand, engaging, and inclusive before publication.',
+        tips: [
+          'Complete the checklist for each major campaign or brand refresh',
+          'Results contribute to your overall inclusion score',
+        ],
+      },
+    ],
+    relatedSections: ['bias-awareness', 'brand-identity'],
+  },
 ];
 
 // Helper function to search help content

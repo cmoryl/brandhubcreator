@@ -337,6 +337,36 @@ const faqs = [
     ]
   },
   {
+    category: "Bias Awareness & Accessibility",
+    icon: Shield,
+    questions: [
+      {
+        q: "What is Bias Awareness scanning?",
+        a: "Bias Awareness is an AI-powered governance feature that evaluates your brand content across four dimensions: Language (inclusive terminology), Visual (representation and stereotypes), Accessibility (WCAG 2.2 compliance, contrast, readability), and AI Governance (responsible AI usage). Each scan produces dimension scores, actionable findings with severity badges, and a Persona Spectrum coverage grid based on the Microsoft Inclusive Design framework."
+      },
+      {
+        q: "What is the Persona Spectrum?",
+        a: "The Persona Spectrum is based on Microsoft's Inclusive Design methodology. It evaluates your content against permanent needs (e.g., blindness), temporary needs (e.g., broken arm), and situational needs (e.g., holding a baby) across Vision, Mobility, Hearing, Speech, and Cognitive dimensions. Coverage is determined by alt-text presence, responsive layouts, touch targets, captions, plain language, and navigation clarity."
+      },
+      {
+        q: "How does color accessibility work?",
+        a: "BrandHub uses OKLCH perceptual color logic for automated 7:1 contrast compliance, colorblind simulations (Protanopia, Deuteranopia, Tritanopia, Achromatopsia), and Helmholtz-Kohlrausch correction for perceived brightness. It also includes a Global Cultural Symbolism Map for geo-targeted color associations across 7+ markets."
+      },
+      {
+        q: "What accessibility standards are supported?",
+        a: "The platform evaluates content against WCAG 2.2 guidelines, ADA/IBC physical accessibility standards (door/corridor widths for events), and inclusive imagery audits for representation, power hierarchies, and trope detection. Results integrate into automated bias monitoring and cohesion reviews."
+      },
+      {
+        q: "Where can I see Bias Awareness reports?",
+        a: "Bias Awareness reports are available in three places: (1) The Admin Dashboard 'Bias Awareness' tab with org-wide KPIs and entity scores, (2) The Insights & Updates section as insight cards with deep-dive dialogs, and (3) Individual brand/product/event editors where scans can be triggered. Reports include dimension averages, findings with severity levels, and the Persona Spectrum coverage grid."
+      },
+      {
+        q: "What is the Inclusive Imagery Audit?",
+        a: "The Inclusive Imagery Audit deconstructs multi-modal brand assets using the PI&E 'Who Else?' and WFA litmus tests. It evaluates representation diversity, power hierarchies in imagery, and detects visual tropes or stereotypes — providing recommendations for more authentic, representative alternatives."
+      },
+    ]
+  },
+  {
     category: "Security & Privacy",
     icon: Shield,
     questions: [

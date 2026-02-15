@@ -91,6 +91,14 @@ const faqs = [
     question: "What is the Creative Studio?",
     answer: "AI-powered imagery generation using your brand context — colors, archetype, and industry."
   },
+  {
+    question: "What is Bias Awareness scanning?",
+    answer: "AI reviews language, imagery, and accessibility for bias — then provides actionable inclusion reports."
+  },
+  {
+    question: "How does accessibility reporting work?",
+    answer: "Automated WCAG 2.2 checks, contrast analysis, colorblind simulations, and persona spectrum coverage scoring."
+  },
 ];
 
 // Helper to get display text for loading screen

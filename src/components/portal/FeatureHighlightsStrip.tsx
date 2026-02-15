@@ -14,6 +14,7 @@ import {
   Brain,
   BookOpen,
   Wand2,
+  Scale,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -84,6 +85,14 @@ const FEATURES: FeatureTile[] = [
     iconColor: 'text-red-500',
   },
   {
+    icon: Scale,
+    title: 'Bias & Inclusion',
+    description: 'Accessibility & bias reporting',
+    path: '/help',
+    gradient: 'from-violet-500/10 to-indigo-500/10',
+    iconColor: 'text-violet-500',
+  },
+  {
     icon: BookOpen,
     title: 'Knowledge Base',
     description: 'Help docs & tutorials',
@@ -92,6 +101,8 @@ const FEATURES: FeatureTile[] = [
     iconColor: 'text-violet-500',
   },
 ];
+
+// Import is already available from lucide-react above
 
 export function FeatureHighlightsStrip() {
   const navigate = useNavigate();
