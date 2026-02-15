@@ -56,7 +56,7 @@ export const GradientBarsHero = memo(function GradientBarsHero({
 
   const colors = colorScheme === 'custom' && customColors 
     ? { primary: parseInt(customColors.primary), secondary: parseInt(customColors.secondary) }
-    : COLOR_SCHEMES[colorScheme === 'custom' ? 'cyan-purple' : colorScheme];
+    : COLOR_SCHEMES[colorScheme === 'custom' ? 'cyan-purple' : colorScheme as Exclude<GradientBarsColorScheme, 'custom'>] || COLOR_SCHEMES['cyan-purple'];
 
   const brightnessMultiplier = 0.3 + (brightness / 100) * 1.2;
 
