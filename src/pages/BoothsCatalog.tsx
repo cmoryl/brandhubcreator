@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, 
   Radio, Heart, Database, Microscope, Globe, X, ChevronLeft, ChevronRight,
-  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown
+  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown, Upload, RotateCcw
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { useBoothKeyStats } from "@/hooks/useBoothKeyStats";
 import { useBoothVariantInfo } from "@/hooks/useBoothVariantInfo";
 import { useBoothQRCodes } from "@/hooks/useBoothQRCodes";
 import { useBoothProductionSpecs } from "@/hooks/useBoothProductionSpecs";
+import { useBoothImages } from "@/hooks/useBoothImages";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
@@ -304,8 +305,9 @@ const DIVISIONS: BoothDivision[] = [
   },
 ];
 
-const BoothCard = ({ division, onClick }: { division: BoothDivision; onClick: () => void }) => {
+const BoothCard = ({ division, onClick, cardImage, isAdmin, onUploadCardImage }: { division: BoothDivision; onClick: () => void; cardImage?: string; isAdmin?: boolean; onUploadCardImage?: (file: File) => void }) => {
   const Icon = division.icon;
+  const fileInputRef = useRef<HTMLInputElement>(null);
   return (
     <motion.button
       onClick={onClick}
@@ -315,11 +317,11 @@ const BoothCard = ({ division, onClick }: { division: BoothDivision; onClick: ()
     >
       <div className="relative aspect-[16/10] overflow-hidden">
         <img
-          src={division.images[0]}
+          src={cardImage || division.images[0]}
           alt={`${division.name} booth`}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
-          style={division.imageRotation ? { transform: `rotate(${division.imageRotation}deg) scale(1.6)`, objectFit: 'cover' } : undefined}
+          style={!cardImage && division.imageRotation ? { transform: `rotate(${division.imageRotation}deg) scale(1.6)`, objectFit: 'cover' } : undefined}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
@@ -334,7 +336,29 @@ const BoothCard = ({ division, onClick }: { division: BoothDivision; onClick: ()
           </div>
           <p className="text-xs text-white/80 line-clamp-1">{division.tagline}</p>
         </div>
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3 flex gap-1.5">
+          {isAdmin && onUploadCardImage && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) onUploadCardImage(f);
+                  e.target.value = '';
+                }}
+              />
+              <button
+                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                className="h-7 w-7 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                title="Upload card image"
+              >
+                <Upload className="h-3.5 w-3.5" />
+              </button>
+            </>
+          )}
           <Badge variant="secondary" className="bg-white/90 text-foreground text-xs backdrop-blur-sm">
             {division.variants.length} {division.variants.length === 1 ? "variant" : "variants"}
           </Badge>
@@ -356,6 +380,24 @@ const BoothCard = ({ division, onClick }: { division: BoothDivision; onClick: ()
         </div>
       </div>
     </motion.button>
+  );
+};
+
+const BoothCardWithImages = ({ division, onClick, isAdmin }: { division: BoothDivision; onClick: () => void; isAdmin: boolean }) => {
+  const { getVariantImage, uploadImage } = useBoothImages(division.id);
+  // Use the first variant's label to get card image override
+  const cardImage = getVariantImage("__card__", "");
+  const handleUpload = async (file: File) => {
+    await uploadImage("__card__", file);
+  };
+  return (
+    <BoothCard
+      division={division}
+      onClick={onClick}
+      cardImage={cardImage || undefined}
+      isAdmin={isAdmin}
+      onUploadCardImage={handleUpload}
+    />
   );
 };
 
@@ -1167,7 +1209,20 @@ const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divi
 const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivision; onClose: () => void; isAdmin: boolean }) => {
   const [activeVariant, setActiveVariant] = useState(0);
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const Icon = division.icon;
+  const { getVariantImage, uploadImage, deleteImage, images } = useBoothImages(division.id);
+  const variantImgRef = useRef<HTMLInputElement>(null);
+
+  const currentVariant = division.variants[activeVariant];
+  const resolvedImage = getVariantImage(currentVariant.label, currentVariant.image);
+  const hasCustomImage = images.some(img => img.variant_label === currentVariant.label);
+
+  const handleVariantUpload = async (file: File) => {
+    setUploading(true);
+    await uploadImage(currentVariant.label, file);
+    setUploading(false);
+  };
 
   return (
     <motion.div
@@ -1212,22 +1267,59 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
               onClick={() => setImagePreviewOpen(true)}
               title="Click to enlarge"
             >
+              {uploading && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                  <Loader2 className="h-8 w-8 text-white animate-spin" />
+                </div>
+              )}
               <AnimatePresence mode="wait">
                 <motion.img
-                  key={activeVariant}
-                  src={division.variants[activeVariant].image}
-                  alt={division.variants[activeVariant].label}
+                  key={`${activeVariant}-${resolvedImage}`}
+                  src={resolvedImage}
+                  alt={currentVariant.label}
                   className="w-full h-full object-contain bg-muted"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  style={division.imageRotation ? { transform: `rotate(${division.imageRotation}deg)` } : undefined}
+                  style={!hasCustomImage && division.imageRotation ? { transform: `rotate(${division.imageRotation}deg)` } : undefined}
                 />
               </AnimatePresence>
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity bg-black/20 pointer-events-none">
                 <ZoomIn className="h-8 w-8 text-white drop-shadow-lg" />
               </div>
+              {/* Admin upload button overlay */}
+              {isAdmin && (
+                <div className="absolute top-3 right-3 z-10 flex gap-1.5">
+                  <input
+                    ref={variantImgRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleVariantUpload(f);
+                      e.target.value = '';
+                    }}
+                  />
+                  <button
+                    onClick={(e) => { e.stopPropagation(); variantImgRef.current?.click(); }}
+                    className="h-8 w-8 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                    title="Upload image for this variant"
+                  >
+                    <Upload className="h-4 w-4" />
+                  </button>
+                  {hasCustomImage && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteImage(currentVariant.label); }}
+                      className="h-8 w-8 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-red-600/70 transition-colors"
+                      title="Revert to default image"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              )}
               {division.variants.length > 1 && (
                 <>
                   <button
@@ -1260,10 +1352,10 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
             <PreviewDialog
               open={imagePreviewOpen}
               onOpenChange={setImagePreviewOpen}
-              title={`${division.name} — ${division.variants[activeVariant].label}`}
-              previewUrl={division.variants[activeVariant].image}
+              title={`${division.name} — ${currentVariant.label}`}
+              previewUrl={resolvedImage}
               type="image"
-              imageStyle={division.imageRotation ? { rotate: `${division.imageRotation}deg` } : undefined}
+              imageStyle={!hasCustomImage && division.imageRotation ? { rotate: `${division.imageRotation}deg` } : undefined}
             />
 
             {/* Variant Labels */}
@@ -1560,7 +1652,7 @@ export default function BoothsCatalog() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05, duration: 0.4 }}
             >
-              <BoothCard division={div} onClick={() => setSelected(div)} />
+              <BoothCardWithImages division={div} onClick={() => setSelected(div)} isAdmin={isAdmin} />
             </motion.div>
           ))}
         </div>
