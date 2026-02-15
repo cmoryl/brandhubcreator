@@ -683,7 +683,7 @@ const ServicesManager = ({ divisionId, isAdmin, color }: { divisionId: string; i
             ) : (
               <div key={svc.id} className="bg-muted/50 rounded-lg px-4 py-3 text-center relative group min-w-[80px] flex flex-col items-center gap-1.5">
                 {svc.icon_svg ? (
-                  <div className="flex justify-center" dangerouslySetInnerHTML={{ __html: svc.icon_svg }} />
+                  <div className="flex justify-center [&>svg]:h-5 [&>svg]:w-5" style={{ color: color + "80" }} dangerouslySetInnerHTML={{ __html: svc.icon_svg }} />
                 ) : (
                   <BarChart3 className="h-4 w-4" style={{ color: color + "80" }} />
                 )}
