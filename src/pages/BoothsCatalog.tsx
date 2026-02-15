@@ -360,7 +360,7 @@ const BoothCard = ({ division, onClick, cardImage, isAdmin, onUploadCardImage }:
               </button>
             </>
           )}
-          <Badge variant="secondary" className="bg-white/90 text-foreground text-xs backdrop-blur-sm">
+          <Badge variant="secondary" className="bg-white/90 text-gray-900 text-xs backdrop-blur-sm border-none">
             {division.variants.length} {division.variants.length === 1 ? "variant" : "variants"}
           </Badge>
         </div>
