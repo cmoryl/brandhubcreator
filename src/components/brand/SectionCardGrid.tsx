@@ -233,7 +233,8 @@ function CardGrid({
         const isHidden = hiddenSections.includes(sectionId);
         const tint = CARD_TINTS[index % CARD_TINTS.length];
         const isHovered = hoveredId === sectionId;
-        const isShrunk = hoveredId !== null && hoveredId !== sectionId;
+        const isExpanded = isHovered || isActive;
+        const isShrunk = hoveredId !== null && hoveredId !== sectionId && !isActive;
         const description = SECTION_DESCRIPTIONS[sectionId] || `Manage ${meta.label.toLowerCase()} settings and guidelines.`;
         const capabilities = SECTION_CAPABILITIES[sectionId] || ['Configure', 'Manage', 'Export'];
 
@@ -248,8 +249,8 @@ function CardGrid({
               visible: { opacity: 1, y: 0, scale: 1 },
             }}
             animate={
-              isHovered
-                ? { scale: 1, y: 0 }
+              isExpanded
+                ? { scale: 1, y: 0, opacity: 1 }
                 : isShrunk
                   ? { scale: 0.88, y: 0, opacity: 0.6 }
                   : { scale: 1, y: 0, opacity: 1 }
@@ -259,9 +260,9 @@ function CardGrid({
             className={cn(
               'section-card-shimmer group relative flex flex-col items-center justify-center rounded-xl',
               'transition-all duration-300 origin-center overflow-hidden',
-              isHovered ? 'col-span-3 row-span-2 z-30 p-3 gap-2' : 'col-span-1 p-2 gap-1 aspect-square',
+              isExpanded ? 'col-span-3 row-span-2 z-30 p-3 gap-2' : 'col-span-1 p-2 gap-1 aspect-square',
               isActive
-                ? 'text-white ring-1'
+                ? 'text-white ring-2'
                 : 'bg-card/80 backdrop-blur-sm text-card-foreground',
               isHidden && isAdmin && 'opacity-40 grayscale',
               isShrunk && 'filter brightness-75'
@@ -273,14 +274,14 @@ function CardGrid({
                 background: `linear-gradient(135deg, ${tint.bg}, ${tint.bg.replace(')', ' / 0.7)')})`,
                 boxShadow: `0 0 20px ${tint.bg.replace(')', ' / 0.4)')}, 0 0 40px ${tint.bg.replace(')', ' / 0.15)')}`,
                 ringColor: tint.bg.replace(')', ' / 0.6)'),
-              } : isHovered ? {
+              } : isExpanded ? {
                 boxShadow: `0 4px 30px ${tint.bg.replace(')', ' / 0.25)')}, 0 0 60px ${tint.bg.replace(')', ' / 0.1)')}`,
                 border: `1px solid ${tint.bg.replace(')', ' / 0.3)')}`,
               } : {}),
             } as any}
           >
-            {/* Hover glow background */}
-            {isHovered && (
+            {/* Hover/expanded glow background */}
+            {isExpanded && !isActive && (
               <motion.div
                 className="absolute inset-0 rounded-xl pointer-events-none"
                 initial={{ opacity: 0 }}
@@ -308,13 +309,13 @@ function CardGrid({
 
             {/* Icon — larger when expanded */}
             <motion.div
-              animate={isHovered ? { scale: 1.3 } : { scale: 1 }}
+              animate={isExpanded ? { scale: 1.3 } : { scale: 1 }}
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
               className="relative z-10"
             >
               <Icon className={cn(
                 'h-5 w-5 sm:h-6 sm:w-6 transition-all duration-300',
-                isHovered && 'h-7 w-7 sm:h-8 sm:w-8',
+                isExpanded && 'h-7 w-7 sm:h-8 sm:w-8',
                 isActive && 'drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]'
               )} />
             </motion.div>
@@ -322,7 +323,7 @@ function CardGrid({
             {/* Label */}
             <span className={cn(
               'relative z-10 leading-tight text-center font-normal tracking-wide',
-              isHovered ? 'text-xs font-semibold' : 'text-[9px] sm:text-[10px] line-clamp-2',
+              isExpanded ? 'text-xs font-semibold' : 'text-[9px] sm:text-[10px] line-clamp-2',
               isActive ? 'text-white' : 'text-foreground/70 group-hover:text-foreground'
             )}>
               {meta.label}
@@ -330,7 +331,7 @@ function CardGrid({
 
             {/* Expanded detail content */}
             <AnimatePresence>
-              {isHovered && (
+              {isExpanded && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
@@ -341,10 +342,10 @@ function CardGrid({
                   {/* Category badge */}
                   <div className="flex justify-center">
                     <span
-                      className="text-[9px] font-semibold px-2 py-0.5 rounded-full"
+                      className={cn("text-[9px] font-semibold px-2 py-0.5 rounded-full")}
                       style={{
-                        backgroundColor: tint.bg.replace(')', ' / 0.15)'),
-                        color: tint.bg,
+                        backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : tint.bg.replace(')', ' / 0.15)'),
+                        color: isActive ? 'rgba(255,255,255,0.9)' : tint.bg,
                       }}
                     >
                       {meta.category}
@@ -352,7 +353,10 @@ function CardGrid({
                   </div>
 
                   {/* Description */}
-                  <p className="text-[10px] leading-relaxed text-muted-foreground text-center line-clamp-2 px-1">
+                  <p className={cn(
+                    "text-[10px] leading-relaxed text-center line-clamp-2 px-1",
+                    isActive ? "text-white/70" : "text-muted-foreground"
+                  )}>
                     {description}
                   </p>
 
@@ -364,24 +368,31 @@ function CardGrid({
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: i * 0.04, type: 'spring', stiffness: 500 }}
-                        className="text-[8px] px-1.5 py-0.5 rounded-md bg-muted/50 text-muted-foreground border border-border/40"
+                        className={cn(
+                          "text-[8px] px-1.5 py-0.5 rounded-md border",
+                          isActive
+                            ? "bg-white/10 text-white/80 border-white/20"
+                            : "bg-muted/50 text-muted-foreground border-border/40"
+                        )}
                       >
                         {cap}
                       </motion.span>
                     ))}
                   </div>
 
-                  {/* Action hint */}
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.15 }}
-                    className="flex items-center justify-center gap-1 text-[9px] font-medium pt-1"
-                    style={{ color: tint.bg }}
-                  >
-                    <ChevronRight className="h-2.5 w-2.5" />
-                    <span>Open section</span>
-                  </motion.div>
+                  {/* Action hint — only on hover, not on persistent active */}
+                  {isHovered && !isActive && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.15 }}
+                      className="flex items-center justify-center gap-1 text-[9px] font-medium pt-1"
+                      style={{ color: tint.bg }}
+                    >
+                      <ChevronRight className="h-2.5 w-2.5" />
+                      <span>Open section</span>
+                    </motion.div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
