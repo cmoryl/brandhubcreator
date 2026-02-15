@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Palette, ChevronRight, Play, ExternalLink } from "lucide-react";
+import { Palette, ChevronRight, Play, ExternalLink, Shapes, Ruler } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -252,6 +252,30 @@ const IconArchitectureDiagram = () => {
         </div>
       </div>
 
+      {/* Shape Manager */}
+      <div className="flex justify-center">
+        <div className="w-px h-8 bg-border" />
+      </div>
+
+      <div className="bg-gradient-to-r from-violet-500/10 to-purple-500/10 rounded-xl p-4 border border-violet-500/20">
+        <h4 className="text-sm font-semibold text-foreground mb-3 text-center">🔷 Shape Manager (1,300+ Shapes)</h4>
+        <div className="flex justify-center gap-4 flex-wrap">
+          {[
+            { name: "General (600+)", icon: "🔶" },
+            { name: "Industry (700+)", icon: "🏢" },
+            { name: "Shape Editor", icon: "✏️" },
+          ].map((item) => (
+            <div 
+              key={item.name}
+              className="text-center p-3 bg-background rounded-lg border border-border/50"
+            >
+              <div className="text-lg mb-1">{item.icon}</div>
+              <span className="text-xs font-medium text-muted-foreground">{item.name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Connection Lines */}
       <div className="flex justify-center">
         <div className="w-px h-8 bg-border" />
@@ -267,6 +291,7 @@ const IconArchitectureDiagram = () => {
             { name: "App Bundles", icon: "📱" },
             { name: "Brand PDF", icon: "📄" },
             { name: "CSS Vars", icon: "💅" },
+            { name: "Shapes", icon: "🔷" },
           ].map((output) => (
             <div 
               key={output.name}
