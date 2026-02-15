@@ -1454,6 +1454,75 @@ const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divi
   );
 };
 
+const ContactWebsiteEditor = ({ division, isAdmin }: { division: BoothDivision; isAdmin: boolean }) => {
+  const [editing, setEditing] = useState(false);
+  const [email, setEmail] = useState(division.email);
+  const [website, setWebsite] = useState(division.website);
+  const { divisions: customDivisions, updateDivision, refetch } = useCustomDivisions();
+
+  useEffect(() => {
+    setEmail(division.email);
+    setWebsite(division.website);
+  }, [division.email, division.website]);
+
+  const handleSave = async () => {
+    const existsInDb = customDivisions.some(c => c.division_id === division.id);
+    if (existsInDb) {
+      await updateDivision(division.id, { email: email.trim(), website: website.trim() });
+    } else {
+      await supabase.from("booth_custom_divisions").insert({
+        division_id: division.id,
+        name: division.name,
+        tagline: division.tagline,
+        description: division.description || "",
+        color: division.color,
+        email: email.trim(),
+        website: website.trim(),
+        display_order: 0,
+        created_by: (await supabase.auth.getUser()).data.user?.id,
+      });
+    }
+    await refetch();
+    setEditing(false);
+    toast.success("Contact info updated");
+  };
+
+  if (editing && isAdmin) {
+    return (
+      <div className="space-y-2 p-3 rounded-lg border border-border/60 bg-muted/20">
+        <div className="flex items-center gap-2">
+          <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+          <Input value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" className="text-sm h-8" />
+        </div>
+        <div className="flex items-center gap-2">
+          <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0" />
+          <Input value={website} onChange={e => setWebsite(e.target.value)} placeholder="www.example.com" className="text-sm h-8" />
+        </div>
+        <div className="flex gap-2">
+          <Button size="sm" className="text-xs" onClick={handleSave}>Save</Button>
+          <Button size="sm" variant="ghost" className="text-xs" onClick={() => { setEditing(false); setEmail(division.email); setWebsite(division.website); }}>Cancel</Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2 group relative">
+      <a href={`mailto:${division.email}`} className="flex items-center gap-2 text-sm text-primary hover:underline">
+        <Mail className="h-4 w-4" /> {division.email}
+      </a>
+      <a href={`https://${division.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+        <ExternalLink className="h-4 w-4" /> {division.website}
+      </a>
+      {isAdmin && (
+        <Button variant="ghost" size="sm" className="absolute -top-1 -right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setEditing(true)}>
+          <Pencil className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
+  );
+};
+
 const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivision; onClose: () => void; isAdmin: boolean }) => {
   const [activeVariant, setActiveVariant] = useState(0);
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
@@ -1740,14 +1809,10 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
 
                           <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
-                          <div className="flex flex-col gap-2">
-                            <a href={`mailto:${division.email}`} className="flex items-center gap-2 text-sm text-primary hover:underline">
-                              <Mail className="h-4 w-4" /> {division.email}
-                            </a>
-                            <a href={`https://${division.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
-                              <ExternalLink className="h-4 w-4" /> {division.website}
-                            </a>
-                          </div>
+                          <ContactWebsiteEditor
+                            division={division}
+                            isAdmin={isAdmin}
+                          />
                         </div>
 
                         <div className="space-y-6">
