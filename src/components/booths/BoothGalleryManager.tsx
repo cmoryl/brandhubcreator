@@ -1,10 +1,10 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Camera, Plus, Trash2, Pencil, X, Check, Loader2, ZoomIn } from "lucide-react";
 import { useBoothGalleryPhotos } from "@/hooks/useBoothGalleryPhotos";
 import { OptimizedImage } from "@/components/ui/optimized-image";
-import { PreviewDialog } from "@/components/ui/preview-dialog";
 
 interface BoothGalleryManagerProps {
   divisionId: string;
@@ -18,13 +18,15 @@ export const BoothGalleryManager = ({ divisionId, isAdmin, color }: BoothGallery
   const [uploading, setUploading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editCaption, setEditCaption] = useState("");
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewPhoto, setPreviewPhoto] = useState<{ url: string; caption: string } | null>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
     setUploading(true);
-    await uploadPhoto(file, "");
+    for (const file of files) {
+      await uploadPhoto(file, "");
+    }
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -62,6 +64,7 @@ export const BoothGalleryManager = ({ divisionId, isAdmin, color }: BoothGallery
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
               onChange={handleFileChange}
             />
@@ -73,68 +76,45 @@ export const BoothGalleryManager = ({ divisionId, isAdmin, color }: BoothGallery
               disabled={uploading}
             >
               {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-              {uploading ? "Uploading..." : "Add Photo"}
+              {uploading ? "Uploading..." : "Add Photos"}
             </Button>
           </>
         )}
       </div>
 
       {photos.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
           {photos.map((photo) => (
-            <div key={photo.id} className="group relative rounded-lg overflow-hidden border border-border/40 bg-background">
-              <div className="aspect-[4/3] relative">
-                <OptimizedImage
-                  src={photo.image_url}
-                  alt={photo.caption || "Booth photo"}
-                  className="w-full h-full"
-                  objectFit="cover"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                    <button
-                      onClick={() => setPreviewUrl(photo.image_url)}
-                      className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background"
-                    >
-                      <ZoomIn className="h-3.5 w-3.5" />
-                    </button>
-                    {isAdmin && (
-                      <>
-                        <button
-                          onClick={() => startEdit(photo.id, photo.caption)}
-                          className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => deletePhoto(photo.id)}
-                          className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
+            <div
+              key={photo.id}
+              className="group relative rounded-lg overflow-hidden border border-border/40 bg-background cursor-pointer aspect-square"
+              onClick={() => setPreviewPhoto({ url: photo.image_url, caption: photo.caption })}
+            >
+              <OptimizedImage
+                src={photo.image_url}
+                alt={photo.caption || "Booth photo"}
+                className="w-full h-full"
+                objectFit="cover"
+              />
+              {/* Hover overlay */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                <ZoomIn className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              {editingId === photo.id ? (
-                <div className="p-2 flex gap-1">
-                  <Input
-                    value={editCaption}
-                    onChange={(e) => setEditCaption(e.target.value)}
-                    placeholder="Caption"
-                    className="h-7 text-xs"
-                  />
-                  <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={saveCaption}>
-                    <Check className="h-3 w-3" />
-                  </Button>
-                  <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => setEditingId(null)}>
-                    <X className="h-3 w-3" />
-                  </Button>
+              {/* Admin delete button */}
+              {isAdmin && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); deletePhoto(photo.id); }}
+                  className="absolute top-1 right-1 p-1 rounded-full bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              )}
+              {/* Caption indicator */}
+              {photo.caption && (
+                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <p className="text-[10px] text-white line-clamp-1">{photo.caption}</p>
                 </div>
-              ) : photo.caption ? (
-                <p className="text-xs text-muted-foreground p-2 line-clamp-1">{photo.caption}</p>
-              ) : null}
+              )}
             </div>
           ))}
         </div>
@@ -142,13 +122,58 @@ export const BoothGalleryManager = ({ divisionId, isAdmin, color }: BoothGallery
         <p className="text-xs text-muted-foreground italic">No booth photos yet. Add real booth shots to showcase this division.</p>
       )}
 
-      <PreviewDialog
-        open={!!previewUrl}
-        onOpenChange={() => setPreviewUrl(null)}
-        previewUrl={previewUrl || ""}
-        title="Booth Photo"
-        type="image"
-      />
+      {/* Full-size preview dialog */}
+      <Dialog open={!!previewPhoto} onOpenChange={() => setPreviewPhoto(null)}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black/95 border-border/30">
+          {previewPhoto && (
+            <div className="relative">
+              <img
+                src={previewPhoto.url}
+                alt={previewPhoto.caption || "Booth photo"}
+                className="w-full h-auto max-h-[80vh] object-contain"
+              />
+              {previewPhoto.caption && (
+                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                  <p className="text-sm text-white">{previewPhoto.caption}</p>
+                </div>
+              )}
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    const photo = photos.find(p => p.image_url === previewPhoto.url);
+                    if (photo) {
+                      startEdit(photo.id, photo.caption);
+                      setPreviewPhoto(null);
+                    }
+                  }}
+                  className="absolute top-3 right-3 p-2 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white transition-colors"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Inline caption editor */}
+      {editingId && (
+        <div className="flex gap-2 items-center p-2 rounded-lg border border-primary/30 bg-muted/30">
+          <Input
+            value={editCaption}
+            onChange={(e) => setEditCaption(e.target.value)}
+            placeholder="Add a caption..."
+            className="h-8 text-xs flex-1"
+            autoFocus
+          />
+          <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={saveCaption}>
+            <Check className="h-3.5 w-3.5" />
+          </Button>
+          <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={() => setEditingId(null)}>
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
