@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
+import { DigitalTemplatesSection } from "@/components/booths/DigitalTemplatesSection";
 import { HeroEditToolbar, HeroEffectType } from "@/components/brand/HeroEditToolbar";
 import { GradientBarsHero } from "@/components/backgrounds/GradientBarsHero";
 import { HorizonGlowHero } from "@/components/backgrounds/HorizonGlowHero";
@@ -1593,6 +1594,9 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                 </div>
               </div>
             )}
+
+            {/* Digital Templates - AI Generated */}
+            <DigitalTemplatesSection division={division} isAdmin={isAdmin} />
 
             {/* Download Links - Database-backed with admin management */}
             <DownloadLinksManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
