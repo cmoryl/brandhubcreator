@@ -283,11 +283,11 @@ function CardGrid({
                   ? { scale: 0.92, y: 0, opacity: 0.65 }
                   : { scale: 1, y: 0, opacity: 1 }
             }
-            whileTap={{ scale: 0.96 }}
-            transition={{ type: 'spring', stiffness: 180, damping: 24, mass: 0.8 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 120, damping: 26, mass: 1 }}
             className={cn(
               'section-card-shimmer group relative flex flex-col items-center justify-center rounded-xl',
-              'transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] origin-center overflow-hidden',
+              'transition-[background,box-shadow,filter,border-color,ring-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] origin-center overflow-hidden',
               isExpanded ? 'col-span-3 row-span-2 z-30 p-3 gap-2' : 'col-span-1 p-2 gap-1 aspect-square',
               isActive
                 ? 'text-white ring-2'
