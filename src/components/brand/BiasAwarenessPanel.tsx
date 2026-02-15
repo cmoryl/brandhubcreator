@@ -196,7 +196,7 @@ const EntityAdvancedModules = ({ scan }: { scan: any }) => {
   }
 
   return (
-    <ScrollArea className="max-h-[500px]">
+    <div className="overflow-y-auto max-h-[700px]">
       <div className="space-y-3">
         {/* PI&E */}
         {pie?.touchpoints && (
@@ -334,7 +334,7 @@ const EntityAdvancedModules = ({ scan }: { scan: any }) => {
           </Card>
         )}
       </div>
-    </ScrollArea>
+    </div>
   );
 };
 
@@ -473,7 +473,7 @@ export const BiasAwarenessPanel = ({ entityType, entityId, entityName, organizat
             </TabsContent>
 
             <TabsContent value="findings" className="mt-3">
-              <ScrollArea className="max-h-[400px]">
+              <div className="overflow-y-auto max-h-[600px]">
                 <div className="space-y-2">
                   {Array.isArray(scan.findings) && scan.findings.length > 0 ? (
                     scan.findings.map((finding, i) => (
@@ -521,7 +521,7 @@ export const BiasAwarenessPanel = ({ entityType, entityId, entityName, organizat
                     </div>
                   )}
                 </div>
-              </ScrollArea>
+              </div>
             </TabsContent>
 
             <TabsContent value="persona" className="mt-3">

@@ -682,7 +682,7 @@ export const BiasAwarenessAdminPanel = () => {
               <p className="text-[10px] text-muted-foreground">Click a row to expand full scan details</p>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollArea className="max-h-[600px]">
+              <div className="max-h-[800px] overflow-y-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -704,7 +704,7 @@ export const BiasAwarenessAdminPanel = () => {
                     ))}
                   </TableBody>
                 </Table>
-              </ScrollArea>
+              </div>
             </CardContent>
           </Card>
         </>
