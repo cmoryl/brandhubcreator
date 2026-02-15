@@ -613,6 +613,39 @@ export type Database = {
         }
         Relationships: []
       }
+      booth_services: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          display_order: number
+          division_id: string
+          icon_svg: string | null
+          id: string
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          division_id: string
+          icon_svg?: string | null
+          id?: string
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          division_id?: string
+          icon_svg?: string | null
+          id?: string
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       booth_variant_info: {
         Row: {
           created_at: string
