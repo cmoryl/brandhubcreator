@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
 import { BoothContentManager } from "@/components/booths/BoothContentManager";
 import { BoothGalleryManager } from "@/components/booths/BoothGalleryManager";
+import { GlitchText } from "@/components/ui/GlitchText";
 
 import { HeroEditToolbar, HeroEffectType } from "@/components/brand/HeroEditToolbar";
 import { GradientBarsHero } from "@/components/backgrounds/GradientBarsHero";
@@ -1848,7 +1849,7 @@ export default function BoothsCatalog() {
             </span>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-white font-heading mb-3 tracking-tight">
-            Booth <span className="text-[hsl(195,100%,60%)]">Catalog</span>
+            Booth <GlitchText text="Catalog" glowColor="hsl(195 100% 60%)" className="text-4xl md:text-6xl font-bold font-heading" />
           </h1>
           <p className="text-lg text-white/70 max-w-2xl">
             Explore booth designs across all 12 TransPerfect divisions. Click any card to view variants, services, and contact details.
