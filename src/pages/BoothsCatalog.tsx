@@ -1904,6 +1904,7 @@ export default function BoothsCatalog() {
               </DropdownMenu>
             )}
           </div>
+          <p className="text-xs font-semibold tracking-[0.3em] uppercase text-white/40 mb-1">Tagline</p>
           <div className="flex items-center gap-4 mb-4">
             <div className="h-1 w-16 bg-[hsl(195,100%,50%)] rounded-full" />
             <span className="text-[hsl(195,100%,70%)] text-sm font-semibold tracking-[0.2em] uppercase">
