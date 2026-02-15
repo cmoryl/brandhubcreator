@@ -1727,7 +1727,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                         <div className="space-y-4">
                           <div>
                             <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-primary">Tagline</h3>
-                            <p className="text-xl font-normal leading-relaxed text-primary" style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 400 }}>{division.tagline}</p>
+                            <p className="text-2xl md:text-3xl font-normal leading-relaxed text-primary" style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 400 }}>{division.tagline}</p>
                             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
                               <span>Font: Poppins Regular 400</span>
                               <span>Booth: 48–72pt</span>
