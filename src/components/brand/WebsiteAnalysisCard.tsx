@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   BarChart3,
   TrendingUp,
@@ -149,6 +149,31 @@ export const WebsiteAnalysisCard = ({
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [urlInput, setUrlInput] = useState(initialUrl || '');
   const websiteUrl = urlInput.trim();
+
+  // Load persisted report from database on mount if no savedReport provided
+  useEffect(() => {
+    if (savedReport || !entityId || !websiteUrl) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('website_analysis_reports')
+          .select('report_data')
+          .eq('entity_id', entityId)
+          .eq('entity_type', entityType)
+          .eq('website_url', websiteUrl)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (!cancelled && data?.report_data) {
+          setReport(data.report_data as unknown as WebsiteReport);
+        }
+      } catch (err) {
+        console.error('[WebsiteAnalysis] Error loading saved report:', err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [entityId, entityType, websiteUrl, savedReport]);
 
   // Save ALL analysis results into brand intelligence (the "brand brain")
   const feedIntoBrandBrain = async (analysisReport: WebsiteReport) => {
@@ -329,6 +354,41 @@ export const WebsiteAnalysisCard = ({
     }
   };
 
+  // Persist report to dedicated database table
+  const persistReportToDb = async (analysisReport: WebsiteReport) => {
+    if (!entityId) return;
+    try {
+      // Upsert: delete old report for same entity+url, then insert new
+      await supabase
+        .from('website_analysis_reports')
+        .delete()
+        .eq('entity_id', entityId)
+        .eq('entity_type', entityType)
+        .eq('website_url', websiteUrl);
+
+      const { data: { user } } = await supabase.auth.getUser();
+
+      await supabase
+        .from('website_analysis_reports')
+        .insert({
+          entity_id: entityId,
+          entity_type: entityType,
+          entity_name: entityName || null,
+          organization_id: organizationId || null,
+          website_url: websiteUrl,
+          overall_score: analysisReport.overallScore,
+          grade: analysisReport.grade,
+          summary: analysisReport.summary,
+          report_data: analysisReport as any,
+          created_by: user?.id || null,
+        });
+
+      console.log('[WebsiteAnalysis] Report persisted to database');
+    } catch (err) {
+      console.error('[WebsiteAnalysis] Error persisting report to DB:', err);
+    }
+  };
+
   const runAnalysis = async () => {
     setIsAnalyzing(true);
     try {
@@ -342,13 +402,16 @@ export const WebsiteAnalysisCard = ({
       setReport(data.report);
       setShowReport(true);
       
+      // Persist to dedicated database table (hard save)
+      persistReportToDb(data.report);
+
       // Feed results into brand brain in background
       feedIntoBrandBrain(data.report);
       
       // Persist to insights via callback
       onAnalysisComplete?.(websiteUrl, data.report);
       
-      toast.success('Website analysis complete — insights added to Brand Brain!');
+      toast.success('Website analysis complete — report saved & insights added to Brand Brain!');
     } catch (err) {
       console.error('Website analysis error:', err);
       toast.error(err instanceof Error ? err.message : 'Analysis failed');

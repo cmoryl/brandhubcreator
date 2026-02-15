@@ -3497,6 +3497,62 @@ export type Database = {
         }
         Relationships: []
       }
+      website_analysis_reports: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_name: string | null
+          entity_type: string
+          grade: string | null
+          id: string
+          organization_id: string | null
+          overall_score: number | null
+          report_data: Json
+          summary: string | null
+          updated_at: string
+          website_url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_name?: string | null
+          entity_type?: string
+          grade?: string | null
+          id?: string
+          organization_id?: string | null
+          overall_score?: number | null
+          report_data?: Json
+          summary?: string | null
+          updated_at?: string
+          website_url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_name?: string | null
+          entity_type?: string
+          grade?: string | null
+          id?: string
+          organization_id?: string | null
+          overall_score?: number | null
+          report_data?: Json
+          summary?: string | null
+          updated_at?: string
+          website_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_analysis_reports_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       audit_logs_safe: {
