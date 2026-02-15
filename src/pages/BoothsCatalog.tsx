@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
+import { BoothContentManager } from "@/components/booths/BoothContentManager";
 
 import { HeroEditToolbar, HeroEffectType } from "@/components/brand/HeroEditToolbar";
 import { GradientBarsHero } from "@/components/backgrounds/GradientBarsHero";
@@ -1573,27 +1574,8 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
               </div>
             </div>
 
-            {/* Booth Content Details */}
-            {division.boothContent && division.boothContent.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Booth Details</h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {division.boothContent.map((section) => (
-                    <div key={section.heading} className="bg-muted/30 rounded-lg p-4 border border-border/40">
-                      <h4 className="text-sm font-semibold mb-2" style={{ color: division.color }}>{section.heading}</h4>
-                      <ul className="space-y-1.5">
-                        {section.bullets.map((bullet, i) => (
-                          <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
-                            <span className="mt-1.5 h-1 w-1 rounded-full shrink-0" style={{ backgroundColor: division.color }} />
-                            {bullet}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Booth Content Details - Database-backed with admin management */}
+            <BoothContentManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
 
             {/* Download Links - Database-backed with admin management */}
