@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useBoothDownloadLinks } from "@/hooks/useBoothDownloadLinks";
-import { useBoothKeyStats } from "@/hooks/useBoothKeyStats";
+
 import { useBoothVariantInfo } from "@/hooks/useBoothVariantInfo";
 import { useBoothQRCodes } from "@/hooks/useBoothQRCodes";
 import { useBoothProductionSpecs } from "@/hooks/useBoothProductionSpecs";
@@ -576,160 +576,6 @@ const DownloadLinksManager = ({ divisionId, isAdmin, color }: { divisionId: stri
         onUpdate={updateLink}
         onDelete={deleteLink}
       />
-    </div>
-  );
-};
-
-const KeyStatsManager = ({ divisionId, isAdmin, color }: { divisionId: string; isAdmin: boolean; color: string }) => {
-  const { stats, loading, addStat, updateStat, deleteStat } = useBoothKeyStats(divisionId);
-  const [adding, setAdding] = useState(false);
-  const [newLabel, setNewLabel] = useState("");
-  const [newValue, setNewValue] = useState("");
-  const [newIconSvg, setNewIconSvg] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editLabel, setEditLabel] = useState("");
-  const [editValue, setEditValue] = useState("");
-  const [editIconSvg, setEditIconSvg] = useState("");
-
-  const handleAdd = async () => {
-    if (!newLabel.trim() || !newValue.trim()) return;
-    await addStat(newLabel.trim(), newValue.trim(), newIconSvg.trim() || undefined);
-    setNewLabel(""); setNewValue(""); setNewIconSvg(""); setAdding(false);
-  };
-
-  const handleUpdate = async () => {
-    if (!editingId || !editLabel.trim() || !editValue.trim()) return;
-    await updateStat(editingId, editLabel.trim(), editValue.trim(), editIconSvg.trim() || null);
-    setEditingId(null);
-  };
-
-  const startEdit = (stat: { id: string; label: string; value: string; icon_svg: string | null }) => {
-    setEditingId(stat.id);
-    setEditLabel(stat.label);
-    setEditValue(stat.value);
-    setEditIconSvg(stat.icon_svg || "");
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-        <Loader2 className="h-4 w-4 animate-spin" /> Loading stats...
-      </div>
-    );
-  }
-
-  if (stats.length === 0 && !isAdmin) return null;
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Key Stats</h3>
-        {isAdmin && !adding && (
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setAdding(true)}>
-            <Plus className="h-3.5 w-3.5" /> Add Stat
-          </Button>
-        )}
-      </div>
-
-      {adding && isAdmin && (
-        <div className="mb-3 space-y-2 p-3 rounded-lg border border-border/60 bg-muted/20">
-          <div className="grid grid-cols-2 gap-2">
-            <Input placeholder="Label (e.g. Languages)" value={newLabel} onChange={(e) => setNewLabel(e.target.value)} className="text-sm" />
-            <Input placeholder="Value (e.g. 170+)" value={newValue} onChange={(e) => setNewValue(e.target.value)} className="text-sm" />
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Textarea placeholder="SVG icon code (optional, paste <svg>...</svg>)" value={newIconSvg} onChange={(e) => setNewIconSvg(e.target.value)} className="text-xs font-mono min-h-[60px] flex-1" />
-            </div>
-            <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
-              <input
-                type="file"
-                accept=".svg,image/svg+xml"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                      const text = ev.target?.result as string;
-                      if (text) setNewIconSvg(text);
-                    };
-                    reader.readAsText(file);
-                  }
-                  e.target.value = '';
-                }}
-              />
-              <Plus className="h-3 w-3" /> Upload SVG file
-            </label>
-          </div>
-          <div className="flex gap-2">
-            <Button size="sm" className="text-xs" onClick={handleAdd}>Add</Button>
-            <Button size="sm" variant="ghost" className="text-xs" onClick={() => { setAdding(false); setNewLabel(""); setNewValue(""); setNewIconSvg(""); }}>Cancel</Button>
-          </div>
-        </div>
-      )}
-
-      {stats.length > 0 && (
-        <div className="flex flex-wrap gap-3">
-          {stats.map((s) => (
-            editingId === s.id && isAdmin ? (
-              <div key={s.id} className="space-y-2 p-3 rounded-lg border border-primary/30 bg-muted/20 w-full">
-                <div className="grid grid-cols-2 gap-2">
-                  <Input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} className="text-sm" />
-                  <Input value={editValue} onChange={(e) => setEditValue(e.target.value)} className="text-sm" />
-                </div>
-                <div className="space-y-1">
-                  <Textarea placeholder="SVG icon code (optional)" value={editIconSvg} onChange={(e) => setEditIconSvg(e.target.value)} className="text-xs font-mono min-h-[60px]" />
-                  <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
-                    <input
-                      type="file"
-                      accept=".svg,image/svg+xml"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = (ev) => {
-                            const text = ev.target?.result as string;
-                            if (text) setEditIconSvg(text);
-                          };
-                          reader.readAsText(file);
-                        }
-                        e.target.value = '';
-                      }}
-                    />
-                    <Plus className="h-3 w-3" /> Upload SVG file
-                  </label>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" className="text-xs" onClick={handleUpdate}>Save</Button>
-                  <Button size="sm" variant="ghost" className="text-xs" onClick={() => setEditingId(null)}>Cancel</Button>
-                </div>
-              </div>
-            ) : (
-              <div key={s.id} className="bg-muted/50 rounded-lg px-4 py-3 text-center relative group min-w-[80px]">
-                {s.icon_svg ? (
-                  <div className="flex justify-center mb-1" dangerouslySetInnerHTML={{ __html: s.icon_svg }} />
-                ) : (
-                  <BarChart3 className="h-4 w-4 mx-auto mb-1 text-muted-foreground/50" />
-                )}
-                <div className="text-lg font-bold" style={{ color }}>{s.value}</div>
-                <div className="text-xs text-muted-foreground">{s.label}</div>
-                {isAdmin && (
-                  <div className="absolute -top-1 -right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEdit(s)}>
-                      <Pencil className="h-3 w-3" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteStat(s.id)}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )
-          ))}
-        </div>
-      )}
     </div>
   );
 };
@@ -1654,7 +1500,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                   <p className="text-sm leading-relaxed">{division.description}</p>
                 </div>
 
-                <KeyStatsManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+                
 
                 <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
