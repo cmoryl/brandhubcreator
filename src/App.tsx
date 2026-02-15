@@ -43,6 +43,7 @@ const OrganizationPortal = lazy(() => import("./pages/OrganizationPortal"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const PendingApprovalPage = lazy(() => import("./pages/PendingApprovalPage"));
 const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
+const GettingStarted = lazy(() => import("./pages/GettingStarted"));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 const OrganizationSettings = lazy(() => import("./pages/OrganizationSettings"));
 const ContactUs = lazy(() => import("./pages/ContactUs"));
@@ -151,6 +152,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <KnowledgeBase />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="getting-started"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <GettingStarted />
                         </Suspense>
                       }
                     />
