@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, 
   Radio, Heart, Database, Microscope, Globe, X, ChevronLeft, ChevronRight,
-  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown, Upload, RotateCcw, Type, Download, ArrowUpDown,
+  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown, Upload, RotateCcw, Type, Download, ArrowUpDown, Ruler,
   LogOut, User, HelpCircle, LayoutDashboard
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -1727,7 +1727,42 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                         <div className="space-y-4">
                           <div>
                             <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-primary">Tagline</h3>
-                            <p className="text-base font-bold leading-relaxed text-primary">{division.tagline}</p>
+                            <p className="text-base font-normal leading-relaxed text-primary" style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 400 }}>{division.tagline}</p>
+                          </div>
+
+                          {/* Booth Sizing & Safe Zones */}
+                          <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
+                            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                              <Ruler className="h-4 w-4" /> Booth Sizing & Safe Zones
+                            </h3>
+                            <div className="space-y-3">
+                              <div className="space-y-1.5">
+                                <p className="text-xs font-semibold text-primary">RDT-108 — 10' × 8' Backwall</p>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                                  <span>Visual Area: 113.5" × 89.5"</span>
+                                  <span>Cut Size: 114.5" × 90.5"</span>
+                                  <span>Bleed Size: 115.5" × 91.5"</span>
+                                  <span>Safe Zone: 2" from edges</span>
+                                </div>
+                              </div>
+                              <div className="border-t border-border/40" />
+                              <div className="space-y-1.5">
+                                <p className="text-xs font-semibold text-primary">RDT-110 — 10' × 10' Backwall</p>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                                  <span>Visual Area: 113.5" × 113.5"</span>
+                                  <span>Cut Size: 114.5" × 114.5"</span>
+                                  <span>Bleed Size: 115.5" × 115.5"</span>
+                                  <span>Safe Zone: 2" from edges</span>
+                                </div>
+                              </div>
+                              <div className="border-t border-border/40" />
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                                <span>Resolution: 150 DPI</span>
+                                <span>Monitor: 42" LCD (1080p)</span>
+                                <span>Format: PDF / AI / EPS</span>
+                                <span>Color: CMYK preferred</span>
+                              </div>
+                            </div>
                           </div>
 
                           <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
