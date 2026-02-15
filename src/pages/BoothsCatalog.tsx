@@ -1658,7 +1658,6 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                 {/* Color Palette */}
                 <BoothColorPalette color={division.color} boothColors={division.boothColors} />
 
-
                 <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
                 <div className="flex flex-col gap-2">
