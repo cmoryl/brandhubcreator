@@ -630,6 +630,42 @@ const rgbToCmyk = (r: number, g: number, b: number) => {
   };
 };
 
+const rgbToHsv = (r: number, g: number, b: number) => {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const v = max, d = max - min;
+  const s = max === 0 ? 0 : d / max;
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+  }
+  return { h: Math.round(h * 360), s: Math.round(s * 100), v: Math.round(v * 100) };
+};
+
+const nearestPantone = (r: number, g: number, b: number): string => {
+  const pantones: [string, number, number, number][] = [
+    ['PMS 186 C', 200, 16, 46], ['PMS 485 C', 218, 41, 28], ['PMS 021 C', 254, 80, 0],
+    ['PMS 137 C', 252, 163, 17], ['PMS 116 C', 255, 205, 0], ['PMS 382 C', 196, 214, 0],
+    ['PMS 361 C', 30, 181, 58], ['PMS 3285 C', 0, 178, 169], ['PMS 299 C', 0, 163, 224],
+    ['PMS 286 C', 0, 51, 160], ['PMS 2685 C', 86, 0, 160], ['PMS 254 C', 160, 45, 150],
+    ['PMS Process Black C', 39, 37, 31], ['PMS Cool Gray 11 C', 83, 86, 90],
+    ['PMS Cool Gray 7 C', 151, 153, 155], ['PMS Cool Gray 3 C', 200, 201, 199],
+    ['PMS White', 255, 255, 255], ['PMS 7463 C', 0, 60, 76], ['PMS 7476 C', 0, 104, 120],
+    ['PMS 7489 C', 116, 170, 80], ['PMS 7548 C', 255, 183, 0], ['PMS 7621 C', 135, 24, 27],
+    ['PMS 7687 C', 29, 56, 134], ['PMS 7694 C', 0, 93, 137], ['PMS 7725 C', 0, 122, 82],
+    ['PMS 1795 C', 210, 38, 48], ['PMS 7455 C', 58, 93, 174], ['PMS 7461 C', 0, 133, 173],
+    ['PMS 539 C', 0, 42, 76], ['PMS 534 C', 27, 54, 93], ['PMS 289 C', 12, 35, 64],
+  ];
+  let best = pantones[0][0], bestDist = Infinity;
+  for (const [name, pr, pg, pb] of pantones) {
+    const dist = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
+    if (dist < bestDist) { bestDist = dist; best = name; }
+  }
+  return best + (bestDist > 2500 ? ' (approx)' : '');
+};
+
 const ColorCodeRow = ({ label, value }: { label: string; value: string }) => (
   <div className="flex items-center justify-between py-1.5 px-3 rounded-md bg-muted/40 group/code">
     <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
@@ -817,6 +853,8 @@ const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId }: { color:
   const selRgb = hexToRgb(selHex);
   const selHsl = rgbToHsl(selRgb.r, selRgb.g, selRgb.b);
   const selCmyk = rgbToCmyk(selRgb.r, selRgb.g, selRgb.b);
+  const selHsv = rgbToHsv(selRgb.r, selRgb.g, selRgb.b);
+  const selPantone = nearestPantone(selRgb.r, selRgb.g, selRgb.b);
 
   const startEdit = () => {
     setEditColors([...palette]);
@@ -907,7 +945,9 @@ const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId }: { color:
               <ColorCodeRow label="HEX" value={selHex.toUpperCase()} />
               <ColorCodeRow label="RGB" value={`${selRgb.r}, ${selRgb.g}, ${selRgb.b}`} />
               <ColorCodeRow label="HSL" value={`${selHsl.h}°, ${selHsl.s}%, ${selHsl.l}%`} />
+              <ColorCodeRow label="HSV" value={`${selHsv.h}°, ${selHsv.s}%, ${selHsv.v}%`} />
               <ColorCodeRow label="CMYK" value={`${selCmyk.c}, ${selCmyk.m}, ${selCmyk.y}, ${selCmyk.k}`} />
+              <ColorCodeRow label="Pantone" value={selPantone} />
             </div>
           </div>
         </>
