@@ -3,11 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, 
   Radio, Heart, Database, Microscope, Globe, X, ChevronLeft, ChevronRight,
-  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings
+  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PreviewDialog } from "@/components/ui/preview-dialog";
 // ScrollArea removed - using native overflow for mobile compatibility
 import { supabase } from "@/integrations/supabase/client";
 import { useBoothDownloadLinks } from "@/hooks/useBoothDownloadLinks";
@@ -729,6 +730,7 @@ const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divi
 
 const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivision; onClose: () => void; isAdmin: boolean }) => {
   const [activeVariant, setActiveVariant] = useState(0);
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const Icon = division.icon;
 
   return (
@@ -769,7 +771,11 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
         <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
           <div className="p-6 space-y-6">
             {/* Image Viewer */}
-            <div className="relative rounded-xl overflow-hidden bg-muted aspect-[16/9]">
+            <div
+              className="relative rounded-xl overflow-hidden bg-muted aspect-[16/9] cursor-zoom-in group/img"
+              onClick={() => setImagePreviewOpen(true)}
+              title="Click to enlarge"
+            >
               <AnimatePresence mode="wait">
                 <motion.img
                   key={activeVariant}
@@ -783,6 +789,9 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                   style={division.imageRotation ? { transform: `rotate(${division.imageRotation}deg)` } : undefined}
                 />
               </AnimatePresence>
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity bg-black/20 pointer-events-none">
+                <ZoomIn className="h-8 w-8 text-white drop-shadow-lg" />
+              </div>
               {division.variants.length > 1 && (
                 <>
                   <button
@@ -811,6 +820,14 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                 ))}
               </div>
             </div>
+
+            <PreviewDialog
+              open={imagePreviewOpen}
+              onOpenChange={setImagePreviewOpen}
+              title={`${division.name} — ${division.variants[activeVariant].label}`}
+              previewUrl={division.variants[activeVariant].image}
+              type="image"
+            />
 
             {/* Variant Labels */}
             {division.variants.length > 1 && (
