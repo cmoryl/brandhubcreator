@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
 import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
 import { GradientEditor } from './GradientEditor';
+import { GradientAccessibilityBadge } from './GradientAccessibilityBadge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -196,18 +197,24 @@ export const GradientsSection = ({
                   onDone={() => setEditingId(null)}
                 />
               ) : (
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-medium text-foreground">{gradient.name}</h3>
-                    <p className="text-xs font-mono text-muted-foreground mt-1 truncate max-w-[180px]">{gradient.css}</p>
+                <>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-medium text-foreground">{gradient.name}</h3>
+                      <p className="text-xs font-mono text-muted-foreground mt-1 truncate max-w-[180px]">{gradient.css}</p>
+                    </div>
+                    <button
+                      onClick={() => setEditingId(gradient.id)}
+                      className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+                    >
+                      <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => setEditingId(gradient.id)}
-                    className="p-1.5 rounded-md hover:bg-secondary transition-colors"
-                  >
-                    <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                  </button>
-                </div>
+                  {/* OKLCH Accessibility Badge */}
+                  <div className="pt-2 border-t border-border">
+                    <GradientAccessibilityBadge css={gradient.css} />
+                  </div>
+                </>
               )}
             </div>
           </div>

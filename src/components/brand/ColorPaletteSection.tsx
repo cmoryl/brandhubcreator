@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 import { getAllColorFormats, getContrastColor, downloadColorPalette, ColorExportData } from '@/lib/colorUtils';
 import { toast } from 'sonner';
 import { SectionHeader } from './SectionHeader';
+import { ColorAccessibilityBadge } from './ColorAccessibilityBadge';
+import { ColorAccessibilityPanel } from './ColorAccessibilityPanel';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -309,6 +311,11 @@ export const ColorPaletteSection = ({
                           />
                         </div>
 
+                        {/* OKLCH Accessibility Badge */}
+                        <div className="pt-2 border-t border-border">
+                          <ColorAccessibilityBadge hex={color.hex} name={color.name} />
+                        </div>
+
                         {color.usage && (
                           <p className="text-sm text-muted-foreground pt-2 border-t border-border">{color.usage}</p>
                         )}
@@ -330,6 +337,11 @@ export const ColorPaletteSection = ({
             </button>
           )}
         </div>
+
+        {/* OKLCH Accessibility Report Panel */}
+        {colors.length >= 2 && (
+          <ColorAccessibilityPanel colors={colors} />
+        )}
       </div>
 
       {/* Color Combinations A/B Testing */}
