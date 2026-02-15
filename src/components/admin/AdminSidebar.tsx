@@ -42,9 +42,7 @@ function SidebarContent({
 }: AdminSidebarProps & { onItemClick?: () => void }) {
   const allNavItems: NavItem[] = [
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="h-4 w-4" />, group: 'core' },
-    { id: 'approvals', label: 'Approvals', icon: <UserCheck className="h-4 w-4" />, badge: pendingApprovals, group: 'core' },
-    { id: 'leads', label: 'Lead Submissions', icon: <Mail className="h-4 w-4" />, group: 'core' },
-    { id: 'users', label: 'Users & Members', icon: <Users className="h-4 w-4" />, group: 'management' },
+    { id: 'people', label: 'People', icon: <Users className="h-4 w-4" />, badge: pendingApprovals, group: 'core' },
     { id: 'organizations', label: 'Organizations', icon: <Building2 className="h-4 w-4" />, group: 'management' },
     { id: 'locations', label: 'Company Locations', icon: <MapPin className="h-4 w-4" />, group: 'management' },
     { id: 'globallink', label: 'GlobalLink', icon: <Globe2 className="h-4 w-4" />, group: 'localization' },
