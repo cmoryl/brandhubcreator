@@ -913,7 +913,9 @@ const QRCodesManager = ({ divisionId, isAdmin, color }: { divisionId: string; is
               <div key={qr.id} className="bg-muted/50 rounded-lg p-3 text-center relative group">
                 {qr.image_url ? (
                   <div className="mb-2 flex justify-center">
-                    <img src={qr.image_url} alt={qr.label} className="w-24 h-24 object-contain rounded" />
+                    <a href={qr.image_url} download={`${qr.label.replace(/[^a-z0-9]/gi, '_')}-qr.svg`} title="Click to download QR code" className="cursor-pointer hover:opacity-80 transition-opacity">
+                      <img src={qr.image_url} alt={qr.label} className="w-24 h-24 object-contain rounded" />
+                    </a>
                   </div>
                 ) : (
                   <div className="mb-2 flex justify-center">
