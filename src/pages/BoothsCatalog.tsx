@@ -1507,7 +1507,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">About</h3>
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">{division.name}</h3>
                   <p className="text-sm leading-relaxed">{division.description}</p>
                 </div>
 
