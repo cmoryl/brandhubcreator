@@ -1530,13 +1530,14 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
 
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Services & Capabilities</h3>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {division.services.map((s) => (
                       <div
                         key={s}
-                        className="bg-muted/50 rounded-lg px-4 py-3 text-center min-w-[80px]"
+                        className="bg-muted/50 rounded-lg px-4 py-3 text-center min-w-[80px] flex flex-col items-center gap-1.5"
                       >
-                        <div className="text-xs font-medium" style={{ color: division.color }}>{s}</div>
+                        <BarChart3 className="h-4 w-4" style={{ color: division.color + "80" }} />
+                        <div className="text-xs font-medium leading-tight" style={{ color: division.color }}>{s}</div>
                       </div>
                     ))}
                   </div>
