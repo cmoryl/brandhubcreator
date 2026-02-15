@@ -38,6 +38,7 @@ import { BoothContentManager } from "@/components/booths/BoothContentManager";
 import { BoothGalleryManager } from "@/components/booths/BoothGalleryManager";
 import { GlitchText } from "@/components/ui/GlitchText";
 import { BrandHubLogo } from "@/components/BrandHubLogo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 import { HeroEditToolbar, HeroEffectType } from "@/components/brand/HeroEditToolbar";
 import { GradientBarsHero } from "@/components/backgrounds/GradientBarsHero";
@@ -1812,6 +1813,8 @@ export default function BoothsCatalog() {
         <div className="relative max-w-7xl mx-auto z-10 py-20 px-6">
           <div className="flex items-center justify-between mb-6">
             <div className="cursor-pointer inline-block" onClick={() => navigate('/org/transperfect')}><BrandHubLogo size="sm" /></div>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
             {isAdmin && userEmail && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -1863,6 +1866,7 @@ export default function BoothsCatalog() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+            </div>
           </div>
           
           <div className="flex items-center gap-4 mb-4">
