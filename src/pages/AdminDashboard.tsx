@@ -63,6 +63,7 @@ import { DataForceAdminPanel } from '@/components/admin/DataForceAdminPanel';
 import { BotManagementPanel } from '@/components/admin/BotManagementPanel';
 import { OracleBrainPanel } from '@/components/admin/OracleBrainPanel';
 import { BiasAwarenessAdminPanel } from '@/components/admin/BiasAwarenessAdminPanel';
+import { AccessibilityStandardsPanel } from '@/components/admin/AccessibilityStandardsPanel';
 import { 
   DashboardStats, 
   ActivityLog, 
@@ -784,6 +785,11 @@ export default function AdminDashboard() {
           {/* Bot Management Tab */}
           <TabsContent value="bot-management" className="space-y-6">
             <BotManagementPanel />
+          </TabsContent>
+
+          {/* Accessibility Standards Tab */}
+          <TabsContent value="accessibility" className="space-y-6">
+            <AccessibilityStandardsPanel />
           </TabsContent>
 
           {/* Activity Tab */}
