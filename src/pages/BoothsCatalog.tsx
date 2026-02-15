@@ -1506,7 +1506,21 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
 
                 <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
-                <ProductionSpecsManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+                <div>
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Services & Capabilities</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {division.services.map((s) => (
+                      <Badge
+                        key={s}
+                        variant="secondary"
+                        className="text-xs"
+                        style={{ borderColor: division.color + "40" }}
+                      >
+                        {s}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
 
                 <div className="flex flex-col gap-2">
                   <a href={`mailto:${division.email}`} className="flex items-center gap-2 text-sm text-primary hover:underline">
@@ -1519,19 +1533,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Services & Capabilities</h3>
-                <div className="flex flex-wrap gap-2">
-                  {division.services.map((s) => (
-                    <Badge
-                      key={s}
-                      variant="secondary"
-                      className="text-xs"
-                      style={{ borderColor: division.color + "40" }}
-                    >
-                      {s}
-                    </Badge>
-                  ))}
-                </div>
+                <ProductionSpecsManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
               </div>
             </div>
 
