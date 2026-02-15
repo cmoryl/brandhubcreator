@@ -61,6 +61,7 @@ const BrandExportSchema = lazy(() => import("./pages/BrandExportSchema"));
 const HeroEffectsShowcase = lazy(() => import("./pages/HeroEffectsShowcase"));
 const Sitemap = lazy(() => import("./pages/Sitemap"));
 const SectionsShowcase = lazy(() => import("./pages/SectionsShowcase"));
+const BoothsCatalog = lazy(() => import("./pages/BoothsCatalog"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -160,6 +161,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <GettingStarted />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="booths"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <BoothsCatalog />
                         </Suspense>
                       }
                     />
