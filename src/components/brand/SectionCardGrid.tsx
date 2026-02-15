@@ -1,14 +1,105 @@
-import { useMemo, useState, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useMemo, useState, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { SectionId, BrandBackgroundType } from '@/types/brand';
 import { sectionMeta as defaultSectionMeta } from './ReorderableBrandSidebar';
 import { HeroBackground } from '@/components/HeroBackground';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Paintbrush, Sparkles, Waves, LayoutGrid, X, ArrowUpDown, Upload, Sun, Moon, BarChart3, Brain, Shield } from 'lucide-react';
+import { Paintbrush, Sparkles, Waves, LayoutGrid, X, ArrowUpDown, Upload, Sun, Moon, BarChart3, Brain, Shield, ChevronRight } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
+
+// Section descriptions for hover detail
+const SECTION_DESCRIPTIONS: Record<string, string> = {
+  colors: 'Define primary, secondary, and accent color palettes with accessibility contrast ratios.',
+  typography: 'Set font families, weights, and hierarchy rules for consistent text styling.',
+  logos: 'Upload and manage logo variants, clear space rules, and usage guidelines.',
+  gradients: 'Create and manage gradient combinations derived from your brand palette.',
+  patterns: 'Design repeatable visual patterns for backgrounds and textures.',
+  identity: 'Core brand identity including mission, vision, values, and personality.',
+  voice: 'Brand voice and tone guidelines for consistent communication.',
+  imagery: 'Photography style, illustration guidelines, and image treatment rules.',
+  iconography: 'Icon style, grid system, and usage standards.',
+  website: 'Web presence guidelines, UI component standards, and digital patterns.',
+  products: 'Product-specific brand applications and sub-brand management.',
+  templates: 'Downloadable templates for presentations, documents, and assets.',
+  collateral: 'Print and digital collateral specifications and examples.',
+  brochures: 'Brochure designs, layouts, and brand-compliant templates.',
+  casestudies: 'Case study formats and success story presentation guidelines.',
+  socialassets: 'Social media templates, sizing guides, and platform-specific rules.',
+  signatures: 'Email signature templates and business card standards.',
+  qrcodes: 'Branded QR code styles and placement guidelines.',
+  antipatterns: 'Common brand misuse examples and what to avoid.',
+  symbolstandards: 'Symbol usage rules, minimum sizes, and placement standards.',
+  geometricprimitives: 'Core geometric shapes and construction principles.',
+  events: 'Event branding standards and experiential guidelines.',
+  statistics: 'Key brand metrics, research data, and performance benchmarks.',
+  platformmarketer: 'Platform-specific marketing guidelines and ad templates.',
+  digitalcollateral: 'Digital asset library for online brand materials.',
+};
+
+// Hover detail tooltip component
+function CardHoverDetail({
+  label,
+  category,
+  description,
+  tintColor,
+  icon: Icon,
+}: {
+  label: string;
+  category: string;
+  description: string;
+  tintColor: string;
+  icon: React.ElementType;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8, scale: 0.92 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 4, scale: 0.95 }}
+      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 pointer-events-none w-48 sm:w-56"
+    >
+      <div className="relative rounded-xl border border-border/60 bg-card/95 backdrop-blur-xl shadow-2xl overflow-hidden">
+        {/* Top accent bar */}
+        <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, transparent, ${tintColor}, transparent)` }} />
+
+        <div className="p-3 space-y-2">
+          {/* Header */}
+          <div className="flex items-center gap-2">
+            <div
+              className="p-1.5 rounded-lg"
+              style={{ backgroundColor: tintColor.replace(')', ' / 0.15)').replace('hsl(', 'hsl(') }}
+            >
+              <Icon className="h-4 w-4" style={{ color: tintColor }} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-foreground truncate">{label}</p>
+              <p className="text-[10px] text-muted-foreground font-medium">{category}</p>
+            </div>
+          </div>
+
+          {/* Description */}
+          <p className="text-[10px] leading-relaxed text-muted-foreground line-clamp-3">
+            {description}
+          </p>
+
+          {/* Action hint */}
+          <div className="flex items-center gap-1 text-[9px] text-accent font-medium pt-0.5">
+            <ChevronRight className="h-2.5 w-2.5" />
+            <span>Click to open section</span>
+          </div>
+        </div>
+
+        {/* Caret */}
+        <div
+          className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 border-r border-b border-border/60 bg-card/95"
+        />
+      </div>
+    </motion.div>
+  );
+}
 
 interface SectionCardGridProps {
   sectionOrder: string[];
@@ -126,6 +217,161 @@ const sortSections = (sections: string[], mode: SortMode, meta: Record<string, {
       return sorted;
   }
 };
+
+// Extracted card grid with hover detail support
+function CardGrid({
+  sections,
+  sectionMeta,
+  activeSection,
+  hiddenSections,
+  isAdmin,
+  onSectionSelect,
+}: {
+  sections: string[];
+  sectionMeta: Record<string, { label: string; icon: React.ElementType; category: string }>;
+  activeSection: string;
+  hiddenSections: string[];
+  isAdmin: boolean;
+  onSectionSelect: (id: string) => void;
+}) {
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleMouseEnter = useCallback((id: string) => {
+    if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+    hoverTimeout.current = setTimeout(() => setHoveredId(id), 200);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+    setHoveredId(null);
+  }, []);
+
+  return (
+    <motion.div
+      className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-1.5 sm:gap-2"
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.02 } },
+      }}
+    >
+      {sections.map((sectionId, index) => {
+        const meta = sectionMeta[sectionId];
+        if (!meta) return null;
+        const Icon = meta.icon;
+        const isActive = activeSection === sectionId;
+        const isHidden = hiddenSections.includes(sectionId);
+        const tint = CARD_TINTS[index % CARD_TINTS.length];
+        const isHovered = hoveredId === sectionId;
+        const description = SECTION_DESCRIPTIONS[sectionId] || `Manage ${meta.label.toLowerCase()} settings and guidelines.`;
+
+        return (
+          <motion.button
+            key={sectionId}
+            onClick={() => onSectionSelect(sectionId)}
+            onMouseEnter={() => handleMouseEnter(sectionId)}
+            onMouseLeave={handleMouseLeave}
+            title={meta.label}
+            variants={{
+              hidden: { opacity: 0, y: 12, scale: 0.9 },
+              visible: { opacity: 1, y: 0, scale: 1 },
+            }}
+            whileHover={{ scale: 1.15, y: -6, zIndex: 30 }}
+            whileTap={{ scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+            className={cn(
+              'section-card-shimmer group relative flex flex-col items-center justify-center gap-1 p-2 rounded-xl aspect-square',
+              'transition-all duration-300',
+              isActive
+                ? 'text-white ring-1'
+                : 'bg-card/80 backdrop-blur-sm text-card-foreground',
+              isHidden && isAdmin && 'opacity-40 grayscale'
+            )}
+            style={{
+              '--shimmer-color': tint.bg,
+              backgroundColor: isActive ? undefined : tint.tint,
+              ...(isActive ? {
+                background: `linear-gradient(135deg, ${tint.bg}, ${tint.bg.replace(')', ' / 0.7)')})`,
+                boxShadow: `0 0 20px ${tint.bg.replace(')', ' / 0.4)')}, 0 0 40px ${tint.bg.replace(')', ' / 0.15)')}`,
+                ringColor: tint.bg.replace(')', ' / 0.6)'),
+              } : {}),
+            } as React.CSSProperties}
+          >
+            {/* Hover glow ring */}
+            <AnimatePresence>
+              {isHovered && !isActive && (
+                <motion.div
+                  className="absolute inset-0 rounded-xl pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{
+                    boxShadow: `0 0 16px ${tint.bg.replace(')', ' / 0.3)')}, inset 0 0 12px ${tint.bg.replace(')', ' / 0.08)')}`,
+                    border: `1px solid ${tint.bg.replace(')', ' / 0.3)')}`,
+                    borderRadius: 'inherit',
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
+            {/* Active prismatic overlay */}
+            {isActive && (
+              <>
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-transparent via-white/10 to-white/20 pointer-events-none" />
+                <motion.div
+                  className="absolute inset-0 rounded-xl pointer-events-none"
+                  style={{
+                    background: 'conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.15) 25%, transparent 50%, rgba(255,255,255,0.1) 75%, transparent 100%)',
+                  }}
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
+                />
+              </>
+            )}
+
+            <Icon className={cn(
+              'relative z-10 h-5 w-5 sm:h-6 sm:w-6 transition-all duration-300',
+              isActive && 'drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]'
+            )} />
+            <span className={cn(
+              'relative z-10 text-[9px] sm:text-[10px] leading-tight text-center line-clamp-2 font-normal tracking-wide',
+              isActive ? 'text-white' : 'text-foreground/70 group-hover:text-foreground'
+            )}>
+              {meta.label}
+            </span>
+
+            {/* Animated bottom accent bar */}
+            {isActive && (
+              <motion.div
+                layoutId="section-card-indicator"
+                className="absolute bottom-0.5 left-2 right-2 h-[2px] rounded-full"
+                style={{
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent)',
+                }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              />
+            )}
+
+            {/* Hover detail tooltip */}
+            <AnimatePresence>
+              {isHovered && (
+                <CardHoverDetail
+                  label={meta.label}
+                  category={meta.category}
+                  description={description}
+                  tintColor={tint.bg}
+                  icon={Icon}
+                />
+              )}
+            </AnimatePresence>
+          </motion.button>
+        );
+      })}
+    </motion.div>
+  );
+}
 
 export const SectionCardGrid = ({
   sectionOrder,
@@ -426,94 +672,14 @@ export const SectionCardGrid = ({
           )}
         </div>
 
-        <motion.div 
-          className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-1.5 sm:gap-2"
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: {},
-            visible: { transition: { staggerChildren: 0.02 } },
-          }}
-        >
-          {sections.map((sectionId, index) => {
-            const meta = sectionMeta[sectionId];
-            if (!meta) return null;
-            const Icon = meta.icon;
-            const isActive = activeSection === sectionId;
-            const isHidden = hiddenSections.includes(sectionId);
-            const tint = CARD_TINTS[index % CARD_TINTS.length];
-
-            return (
-              <motion.button
-                key={sectionId}
-                onClick={() => onSectionSelect(sectionId)}
-                title={meta.label}
-                variants={{
-                  hidden: { opacity: 0, y: 12, scale: 0.9 },
-                  visible: { opacity: 1, y: 0, scale: 1 },
-                }}
-                whileHover={{ scale: 1.08, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                className={cn(
-                  'section-card-shimmer group relative flex flex-col items-center justify-center gap-1 p-2 rounded-xl aspect-square',
-                  'transition-all duration-300',
-                  isActive
-                    ? 'text-white ring-1'
-                    : 'bg-card/80 backdrop-blur-sm text-card-foreground',
-                  isHidden && isAdmin && 'opacity-40 grayscale'
-                )}
-                style={{
-                  '--shimmer-color': tint.bg,
-                  backgroundColor: isActive ? undefined : tint.tint,
-                  ...(isActive ? {
-                    background: `linear-gradient(135deg, ${tint.bg}, ${tint.bg.replace(')', ' / 0.7)')})`,
-                    boxShadow: `0 0 20px ${tint.bg.replace(')', ' / 0.4)')}, 0 0 40px ${tint.bg.replace(')', ' / 0.15)')}`,
-                    ringColor: tint.bg.replace(')', ' / 0.6)'),
-                  } : {}),
-                } as React.CSSProperties}
-              >
-                {/* Active prismatic overlay */}
-                {isActive && (
-                  <>
-                    <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-transparent via-white/10 to-white/20 pointer-events-none" />
-                    <motion.div
-                      className="absolute inset-0 rounded-xl pointer-events-none"
-                      style={{
-                        background: 'conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.15) 25%, transparent 50%, rgba(255,255,255,0.1) 75%, transparent 100%)',
-                      }}
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
-                    />
-                  </>
-                )}
-
-                <Icon className={cn(
-                  'relative z-10 h-5 w-5 sm:h-6 sm:w-6 transition-all duration-300',
-                  isActive && 'drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]'
-                )} />
-                <span className={cn(
-                  'relative z-10 text-[9px] sm:text-[10px] leading-tight text-center line-clamp-2 font-normal tracking-wide',
-                  isActive ? 'text-white' : 'text-foreground/70 group-hover:text-foreground'
-                )}>
-                  {meta.label}
-                </span>
-
-                {/* Animated bottom accent bar */}
-                {isActive && (
-                  <motion.div
-                    layoutId="section-card-indicator"
-                    className="absolute bottom-0.5 left-2 right-2 h-[2px] rounded-full"
-                    style={{
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent)',
-                    }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  />
-                )}
-              </motion.button>
-            );
-          })}
-        </motion.div>
+        <CardGrid
+          sections={sections}
+          sectionMeta={sectionMeta}
+          activeSection={activeSection}
+          hiddenSections={hiddenSections}
+          isAdmin={isAdmin}
+          onSectionSelect={onSectionSelect}
+        />
       </div>
     </div>
   );
