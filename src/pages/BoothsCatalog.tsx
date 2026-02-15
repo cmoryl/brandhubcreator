@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, 
   Radio, Heart, Database, Microscope, Globe, X, ChevronLeft, ChevronRight,
-  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown, Upload, RotateCcw, Type, Download
+  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown, Upload, RotateCcw, Type, Download, ArrowUpDown
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import { useBoothImages } from "@/hooks/useBoothImages";
 import { useCustomDivisions, type CustomDivision } from "@/hooks/useCustomDivisions";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
 import { HeroEditToolbar, HeroEffectType } from "@/components/brand/HeroEditToolbar";
 import { GradientBarsHero } from "@/components/backgrounds/GradientBarsHero";
@@ -1631,11 +1632,21 @@ export default function BoothsCatalog() {
   const { divisions: customDivisions, addDivision, updateDivision, deleteDivision } = useCustomDivisions();
   const [editingBooth, setEditingBooth] = useState<CustomDivision | null>(null);
   const [editFields, setEditFields] = useState({ name: "", tagline: "", description: "", color: "", email: "", website: "" });
+  const [sortBy, setSortBy] = useState<'default' | 'a-z' | 'z-a' | 'services'>('default');
 
   const allDivisions: BoothDivision[] = [
     ...DIVISIONS,
     ...customDivisions.map(customToBoothDivision),
   ];
+
+  const sortedDivisions = [...allDivisions].sort((a, b) => {
+    switch (sortBy) {
+      case 'a-z': return a.name.localeCompare(b.name);
+      case 'z-a': return b.name.localeCompare(a.name);
+      case 'services': return b.services.length - a.services.length;
+      default: return 0;
+    }
+  });
 
   // Check if current user is authenticated (admin)
   useEffect(() => {
@@ -1862,8 +1873,28 @@ export default function BoothsCatalog() {
 
       {/* Grid */}
       <div className="max-w-7xl mx-auto px-6 py-12">
+        {/* Sort Bar */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-foreground">{sortedDivisions.length} Divisions</h2>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Sort by</span>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+              <SelectTrigger className="w-[150px] h-8 text-xs">
+                <ArrowUpDown className="h-3 w-3 mr-1.5 text-muted-foreground" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default</SelectItem>
+                <SelectItem value="a-z">A → Z</SelectItem>
+                <SelectItem value="z-a">Z → A</SelectItem>
+                <SelectItem value="services">Most Services</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {allDivisions.map((div, i) => (
+          {sortedDivisions.map((div, i) => (
             <motion.div
               key={div.id}
               initial={{ opacity: 0, y: 20 }}
