@@ -1,13 +1,20 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-interface BoothImage {
+export interface BoothImage {
   id: string;
   division_id: string;
   variant_label: string;
   image_url: string;
   display_order: number;
+}
+
+export interface MergedVariant {
+  label: string;
+  image: string;
+  isCustom: boolean; // true = from DB, false = hardcoded default
+  hasOverride: boolean; // true = hardcoded but image overridden in DB
 }
 
 export function useBoothImages(divisionId: string) {
@@ -34,6 +41,37 @@ export function useBoothImages(divisionId: string) {
     [images]
   );
 
+  /** Merge hardcoded variants with DB-added custom variants */
+  const getMergedVariants = useCallback(
+    (hardcodedVariants: { label: string; image: string }[]): MergedVariant[] => {
+      const hardcodedLabels = new Set(hardcodedVariants.map(v => v.label));
+      
+      // Start with hardcoded, applying overrides
+      const merged: MergedVariant[] = hardcodedVariants.map(v => {
+        const override = images.find(img => img.variant_label === v.label);
+        return {
+          label: v.label,
+          image: override ? override.image_url : v.image,
+          isCustom: false,
+          hasOverride: !!override,
+        };
+      });
+
+      // Add DB-only variants (custom additions, excluding __card__ and hardcoded overrides)
+      const customVariants = images
+        .filter(img => !hardcodedLabels.has(img.variant_label) && img.variant_label !== "__card__")
+        .map(img => ({
+          label: img.variant_label,
+          image: img.image_url,
+          isCustom: true,
+          hasOverride: false,
+        }));
+
+      return [...merged, ...customVariants];
+    },
+    [images]
+  );
+
   const uploadImage = useCallback(
     async (variantLabel: string, file: File) => {
       const ext = file.name.split(".").pop() || "jpg";
@@ -49,7 +87,7 @@ export function useBoothImages(divisionId: string) {
         .from("organization-assets")
         .getPublicUrl(path);
 
-      // Upsert the record
+      const nextOrder = images.length;
       const { error: dbErr } = await supabase
         .from("booth_images")
         .upsert(
@@ -57,6 +95,7 @@ export function useBoothImages(divisionId: string) {
             division_id: divisionId,
             variant_label: variantLabel,
             image_url: urlData.publicUrl,
+            display_order: nextOrder,
             created_by: (await supabase.auth.getUser()).data.user?.id,
           },
           { onConflict: "division_id,variant_label" }
@@ -69,7 +108,7 @@ export function useBoothImages(divisionId: string) {
       await fetchImages();
       return urlData.publicUrl;
     },
-    [divisionId, fetchImages]
+    [divisionId, fetchImages, images.length]
   );
 
   const deleteImage = useCallback(
@@ -83,11 +122,28 @@ export function useBoothImages(divisionId: string) {
         toast.error("Delete failed");
         return;
       }
-      toast.success("Reverted to default image");
+      toast.success("Image removed");
       await fetchImages();
     },
     [divisionId, fetchImages]
   );
 
-  return { images, loading, getVariantImage, uploadImage, deleteImage };
+  const renameVariant = useCallback(
+    async (oldLabel: string, newLabel: string) => {
+      const { error } = await supabase
+        .from("booth_images")
+        .update({ variant_label: newLabel })
+        .eq("division_id", divisionId)
+        .eq("variant_label", oldLabel);
+      if (error) {
+        toast.error("Rename failed: " + error.message);
+        return false;
+      }
+      await fetchImages();
+      return true;
+    },
+    [divisionId, fetchImages]
+  );
+
+  return { images, loading, getVariantImage, getMergedVariants, uploadImage, deleteImage, renameVariant };
 }

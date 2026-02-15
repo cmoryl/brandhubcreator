@@ -384,15 +384,17 @@ const BoothCard = ({ division, onClick, cardImage, isAdmin, onUploadCardImage }:
 };
 
 const BoothCardWithImages = ({ division, onClick, isAdmin }: { division: BoothDivision; onClick: () => void; isAdmin: boolean }) => {
-  const { getVariantImage, uploadImage } = useBoothImages(division.id);
-  // Use the first variant's label to get card image override
+  const { getVariantImage, getMergedVariants, uploadImage } = useBoothImages(division.id);
   const cardImage = getVariantImage("__card__", "");
+  const mergedVariants = getMergedVariants(division.variants);
   const handleUpload = async (file: File) => {
     await uploadImage("__card__", file);
   };
+  // Override variant count with merged count
+  const divisionWithCount = { ...division, variants: mergedVariants.map(v => ({ label: v.label, image: v.image })) };
   return (
     <BoothCard
-      division={division}
+      division={divisionWithCount}
       onClick={onClick}
       cardImage={cardImage || undefined}
       isAdmin={isAdmin}
@@ -1210,18 +1212,54 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
   const [activeVariant, setActiveVariant] = useState(0);
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [addingVariant, setAddingVariant] = useState(false);
+  const [newVariantLabel, setNewVariantLabel] = useState("");
   const Icon = division.icon;
-  const { getVariantImage, uploadImage, deleteImage, images } = useBoothImages(division.id);
+  const { getMergedVariants, uploadImage, deleteImage, images } = useBoothImages(division.id);
   const variantImgRef = useRef<HTMLInputElement>(null);
+  const newVariantFileRef = useRef<HTMLInputElement>(null);
 
-  const currentVariant = division.variants[activeVariant];
-  const resolvedImage = getVariantImage(currentVariant.label, currentVariant.image);
-  const hasCustomImage = images.some(img => img.variant_label === currentVariant.label);
+  const mergedVariants = getMergedVariants(division.variants);
+  const currentVariant = mergedVariants[activeVariant] || mergedVariants[0];
+  const resolvedImage = currentVariant?.image || division.images[0];
+  const hasCustomImage = currentVariant?.isCustom || currentVariant?.hasOverride;
+
+  // Clamp activeVariant if variants changed
+  useEffect(() => {
+    if (activeVariant >= mergedVariants.length && mergedVariants.length > 0) {
+      setActiveVariant(mergedVariants.length - 1);
+    }
+  }, [mergedVariants.length, activeVariant]);
 
   const handleVariantUpload = async (file: File) => {
+    if (!currentVariant) return;
     setUploading(true);
     await uploadImage(currentVariant.label, file);
     setUploading(false);
+  };
+
+  const handleAddVariant = async (file: File) => {
+    if (!newVariantLabel.trim()) {
+      toast.error("Enter a label for the new variant");
+      return;
+    }
+    setUploading(true);
+    await uploadImage(newVariantLabel.trim(), file);
+    setUploading(false);
+    setNewVariantLabel("");
+    setAddingVariant(false);
+    // Jump to the new variant
+    setActiveVariant(mergedVariants.length); // will be the next index
+  };
+
+  const handleDeleteVariant = async () => {
+    if (!currentVariant) return;
+    if (currentVariant.isCustom) {
+      await deleteImage(currentVariant.label);
+      setActiveVariant(0);
+    } else if (currentVariant.hasOverride) {
+      await deleteImage(currentVariant.label);
+    }
   };
 
   return (
@@ -1276,7 +1314,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                 <motion.img
                   key={`${activeVariant}-${resolvedImage}`}
                   src={resolvedImage}
-                  alt={currentVariant.label}
+                  alt={currentVariant?.label || division.name}
                   className="w-full h-full object-contain bg-muted"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -1311,25 +1349,25 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                   </button>
                   {hasCustomImage && (
                     <button
-                      onClick={(e) => { e.stopPropagation(); deleteImage(currentVariant.label); }}
-                      className="h-8 w-8 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-red-600/70 transition-colors"
-                      title="Revert to default image"
+                      onClick={(e) => { e.stopPropagation(); handleDeleteVariant(); }}
+                      className="h-8 w-8 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-destructive/70 transition-colors"
+                      title={currentVariant?.isCustom ? "Delete this variant" : "Revert to default image"}
                     >
-                      <RotateCcw className="h-4 w-4" />
+                      {currentVariant?.isCustom ? <Trash2 className="h-4 w-4" /> : <RotateCcw className="h-4 w-4" />}
                     </button>
                   )}
                 </div>
               )}
-              {division.variants.length > 1 && (
+              {mergedVariants.length > 1 && (
                 <>
                   <button
-                    onClick={(e) => { e.stopPropagation(); setActiveVariant((p) => (p - 1 + division.variants.length) % division.variants.length); }}
+                    onClick={(e) => { e.stopPropagation(); setActiveVariant((p) => (p - 1 + mergedVariants.length) % mergedVariants.length); }}
                     className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
                   <button
-                    onClick={(e) => { e.stopPropagation(); setActiveVariant((p) => (p + 1) % division.variants.length); }}
+                    onClick={(e) => { e.stopPropagation(); setActiveVariant((p) => (p + 1) % mergedVariants.length); }}
                     className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
                   >
                     <ChevronRight className="h-5 w-5" />
@@ -1337,7 +1375,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                 </>
               )}
               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                {division.variants.map((_, i) => (
+                {mergedVariants.map((_, i) => (
                   <button
                     key={i}
                     onClick={(e) => { e.stopPropagation(); setActiveVariant(i); }}
@@ -1352,36 +1390,79 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
             <PreviewDialog
               open={imagePreviewOpen}
               onOpenChange={setImagePreviewOpen}
-              title={`${division.name} — ${currentVariant.label}`}
+              title={`${division.name} — ${currentVariant?.label || ''}`}
               previewUrl={resolvedImage}
               type="image"
               imageStyle={!hasCustomImage && division.imageRotation ? { rotate: `${division.imageRotation}deg` } : undefined}
             />
 
-            {/* Variant Labels */}
-            {division.variants.length > 1 && (
-              <div className="flex gap-2 flex-wrap">
-                {division.variants.map((v, i) => (
+            {/* Variant Labels + Add Variant */}
+            <div className="flex gap-2 flex-wrap items-center">
+              {mergedVariants.map((v, i) => (
+                <Button
+                  key={v.label}
+                  variant={i === activeVariant ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveVariant(i)}
+                  className="text-xs gap-1"
+                >
+                  {v.label}
+                  {v.isCustom && <span className="text-[9px] opacity-60">(custom)</span>}
+                </Button>
+              ))}
+              {isAdmin && !addingVariant && (
+                <Button variant="outline" size="sm" className="text-xs gap-1 border-dashed" onClick={() => setAddingVariant(true)}>
+                  <Plus className="h-3 w-3" /> Add Variant
+                </Button>
+              )}
+            </div>
+
+            {/* Add Variant Form */}
+            {isAdmin && addingVariant && (
+              <div className="flex flex-col sm:flex-row gap-2 p-3 rounded-lg border border-border bg-muted/30">
+                <Input
+                  placeholder="Variant label (e.g. RDT-110 Dark)"
+                  value={newVariantLabel}
+                  onChange={(e) => setNewVariantLabel(e.target.value)}
+                  className="text-sm h-9"
+                />
+                <input
+                  ref={newVariantFileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleAddVariant(f);
+                    e.target.value = '';
+                  }}
+                />
+                <div className="flex gap-1.5 shrink-0">
                   <Button
-                    key={v.label}
-                    variant={i === activeVariant ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setActiveVariant(i)}
-                    className="text-xs"
+                    className="h-9 gap-1"
+                    onClick={() => newVariantFileRef.current?.click()}
+                    disabled={!newVariantLabel.trim() || uploading}
                   >
-                    {v.label}
+                    {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                    {uploading ? "Uploading..." : "Upload Image"}
                   </Button>
-                ))}
+                  <Button size="sm" variant="ghost" className="h-9" onClick={() => { setAddingVariant(false); setNewVariantLabel(""); }}>
+                    Cancel
+                  </Button>
+                </div>
               </div>
             )}
 
             {/* Variant-Specific Info Section */}
-            <VariantInfoSection
-              divisionId={division.id}
-              variantLabel={division.variants[activeVariant].label}
-              isAdmin={isAdmin}
-              color={division.color}
-            />
+            {currentVariant && (
+              <VariantInfoSection
+                divisionId={division.id}
+                variantLabel={currentVariant.label}
+                isAdmin={isAdmin}
+                color={division.color}
+              />
+            )}
 
             {/* Info Grid */}
             <div className="grid md:grid-cols-2 gap-6">
