@@ -1736,9 +1736,9 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                             </div>
                           </div>
 
-                          <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
-
                           <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+
+                          <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
                           <div className="flex flex-col gap-2">
                             <a href={`mailto:${division.email}`} className="flex items-center gap-2 text-sm text-primary hover:underline">
