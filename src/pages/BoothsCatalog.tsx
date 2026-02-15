@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useBoothDownloadLinks } from "@/hooks/useBoothDownloadLinks";
 import { useBoothKeyStats } from "@/hooks/useBoothKeyStats";
+import { useBoothVariantInfo } from "@/hooks/useBoothVariantInfo";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
@@ -592,6 +593,140 @@ const KeyStatsManager = ({ divisionId, isAdmin, color }: { divisionId: string; i
   );
 };
 
+const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divisionId: string; variantLabel: string; isAdmin: boolean; color: string }) => {
+  const { info, loading, saveInfo } = useBoothVariantInfo(divisionId, variantLabel);
+  const [editing, setEditing] = useState(false);
+  const [editDesc, setEditDesc] = useState("");
+  const [editSections, setEditSections] = useState<{ heading: string; bullets: string[] }[]>([]);
+
+  const startEditing = () => {
+    setEditDesc(info?.description || "");
+    setEditSections(info?.details?.length ? info.details : [{ heading: "", bullets: [""] }]);
+    setEditing(true);
+  };
+
+  const handleSave = async () => {
+    const cleanedSections = editSections
+      .filter(s => s.heading.trim() || s.bullets.some(b => b.trim()))
+      .map(s => ({ heading: s.heading.trim(), bullets: s.bullets.filter(b => b.trim()) }));
+    await saveInfo(editDesc.trim(), cleanedSections);
+    setEditing(false);
+  };
+
+  const addSection = () => setEditSections([...editSections, { heading: "", bullets: [""] }]);
+  const removeSection = (idx: number) => setEditSections(editSections.filter((_, i) => i !== idx));
+  const updateSectionHeading = (idx: number, heading: string) => {
+    const copy = [...editSections];
+    copy[idx] = { ...copy[idx], heading };
+    setEditSections(copy);
+  };
+  const addBullet = (sIdx: number) => {
+    const copy = [...editSections];
+    copy[sIdx] = { ...copy[sIdx], bullets: [...copy[sIdx].bullets, ""] };
+    setEditSections(copy);
+  };
+  const updateBullet = (sIdx: number, bIdx: number, val: string) => {
+    const copy = [...editSections];
+    const bullets = [...copy[sIdx].bullets];
+    bullets[bIdx] = val;
+    copy[sIdx] = { ...copy[sIdx], bullets };
+    setEditSections(copy);
+  };
+  const removeBullet = (sIdx: number, bIdx: number) => {
+    const copy = [...editSections];
+    copy[sIdx] = { ...copy[sIdx], bullets: copy[sIdx].bullets.filter((_, i) => i !== bIdx) };
+    setEditSections(copy);
+  };
+
+  if (loading) return <div className="flex items-center gap-2 text-xs text-muted-foreground py-2"><Loader2 className="h-3 w-3 animate-spin" /> Loading variant info...</div>;
+
+  if (!info && !isAdmin) return null;
+
+  if (editing && isAdmin) {
+    return (
+      <div className="mt-4 p-4 rounded-xl border border-primary/30 bg-muted/20 space-y-4">
+        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+          Edit: {variantLabel} Info
+        </h4>
+        <div>
+          <label className="text-xs text-muted-foreground mb-1 block">Description</label>
+          <Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} className="text-sm min-h-[60px]" placeholder="About this specific booth variant..." />
+        </div>
+        {editSections.map((section, sIdx) => (
+          <div key={sIdx} className="p-3 rounded-lg border border-border/40 bg-card space-y-2">
+            <div className="flex items-center gap-2">
+              <Input value={section.heading} onChange={e => updateSectionHeading(sIdx, e.target.value)} placeholder="Section heading" className="text-sm flex-1" />
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0" onClick={() => removeSection(sIdx)}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
+            {section.bullets.map((bullet, bIdx) => (
+              <div key={bIdx} className="flex items-center gap-2 ml-4">
+                <span className="h-1 w-1 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                <Input value={bullet} onChange={e => updateBullet(sIdx, bIdx, e.target.value)} placeholder="Detail point" className="text-xs flex-1" />
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive shrink-0" onClick={() => removeBullet(sIdx, bIdx)}>
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ))}
+            <Button variant="ghost" size="sm" className="text-xs ml-4" onClick={() => addBullet(sIdx)}>
+              <Plus className="h-3 w-3 mr-1" /> Add point
+            </Button>
+          </div>
+        ))}
+        <Button variant="outline" size="sm" className="text-xs" onClick={addSection}>
+          <Plus className="h-3 w-3 mr-1" /> Add Section
+        </Button>
+        <div className="flex gap-2 pt-2">
+          <Button size="sm" className="text-xs" onClick={handleSave}>Save</Button>
+          <Button size="sm" variant="ghost" className="text-xs" onClick={() => setEditing(false)}>Cancel</Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4">
+      <div className="flex items-center justify-between mb-2">
+        <h4 className="text-sm font-semibold uppercase tracking-wider" style={{ color }}>
+          {variantLabel}
+        </h4>
+        {isAdmin && (
+          <Button variant="outline" size="sm" className="text-xs gap-1" onClick={startEditing}>
+            <Pencil className="h-3 w-3" /> {info ? "Edit" : "Add Info"}
+          </Button>
+        )}
+      </div>
+      {info ? (
+        <div className="space-y-3">
+          {info.description && (
+            <p className="text-sm text-muted-foreground leading-relaxed">{info.description}</p>
+          )}
+          {info.details && info.details.length > 0 && (
+            <div className="grid gap-3">
+              {info.details.map((section, i) => (
+                <div key={i} className="bg-muted/30 rounded-lg p-3 border border-border/40">
+                  <h5 className="text-xs font-semibold mb-1.5" style={{ color }}>{section.heading}</h5>
+                  <ul className="space-y-1">
+                    {section.bullets.map((bullet, j) => (
+                      <li key={j} className="text-xs text-muted-foreground flex items-start gap-2">
+                        <span className="mt-1.5 h-1 w-1 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                        {bullet}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : isAdmin ? (
+        <p className="text-xs text-muted-foreground italic">No info added for this variant yet. Click "Add Info" to add details.</p>
+      ) : null}
+    </div>
+  );
+};
+
 const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivision; onClose: () => void; isAdmin: boolean }) => {
   const [activeVariant, setActiveVariant] = useState(0);
   const Icon = division.icon;
@@ -693,6 +828,14 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                 ))}
               </div>
             )}
+
+            {/* Variant-Specific Info Section */}
+            <VariantInfoSection
+              divisionId={division.id}
+              variantLabel={division.variants[activeVariant].label}
+              isAdmin={isAdmin}
+              color={division.color}
+            />
 
             {/* Info Grid */}
             <div className="grid md:grid-cols-2 gap-6">
