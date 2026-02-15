@@ -685,7 +685,7 @@ const ServicesManager = ({ divisionId, isAdmin, color }: { divisionId: string; i
                 {svc.icon_svg ? (
                   <div className="flex justify-center [&>svg]:h-7 [&>svg]:w-7" style={{ color: color + "80" }} dangerouslySetInnerHTML={{ __html: svc.icon_svg }} />
                 ) : (
-                  <BarChart3 className="h-4 w-4" style={{ color: color + "80" }} />
+                  <BarChart3 className="h-7 w-7" style={{ color: color + "80" }} />
                 )}
                 <div className="text-xs font-medium leading-tight" style={{ color }}>{svc.label}</div>
                 {svc.icon_svg && (
