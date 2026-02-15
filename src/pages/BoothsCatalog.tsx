@@ -647,6 +647,72 @@ const ColorCodeRow = ({ label, value }: { label: string; value: string }) => (
 );
 
 const exportPalette = (palette: string[], name: string) => {
+  const rgbFromHex = (h: string) => {
+    const rv = parseInt(h.slice(1, 3), 16);
+    const gv = parseInt(h.slice(3, 5), 16);
+    const bv = parseInt(h.slice(5, 7), 16);
+    return { r: rv, g: gv, b: bv };
+  };
+  const rgbToHsl = (r: number, g: number, b: number) => {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const l = (max + min) / 2;
+    if (max === min) return { h: 0, s: 0, l: Math.round(l * 100) };
+    const d = max - min;
+    const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    let h = 0;
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+  };
+  const rgbToCmyk = (r: number, g: number, b: number) => {
+    if (r === 0 && g === 0 && b === 0) return { c: 0, m: 0, y: 0, k: 100 };
+    const c1 = 1 - r / 255, m1 = 1 - g / 255, y1 = 1 - b / 255;
+    const k = Math.min(c1, m1, y1);
+    return {
+      c: Math.round(((c1 - k) / (1 - k)) * 100),
+      m: Math.round(((m1 - k) / (1 - k)) * 100),
+      y: Math.round(((y1 - k) / (1 - k)) * 100),
+      k: Math.round(k * 100),
+    };
+  };
+  const rgbToHsv = (r: number, g: number, b: number) => {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const v = max, d = max - min;
+    const s = max === 0 ? 0 : d / max;
+    let h = 0;
+    if (d !== 0) {
+      if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+      else if (max === g) h = ((b - r) / d + 2) / 6;
+      else h = ((r - g) / d + 4) / 6;
+    }
+    return { h: Math.round(h * 360), s: Math.round(s * 100), v: Math.round(v * 100) };
+  };
+  // Approximate Pantone lookup based on nearest match from common Pantone colors
+  const nearestPantone = (r: number, g: number, b: number): string => {
+    const pantones: [string, number, number, number][] = [
+      ['PMS 186 C', 200, 16, 46], ['PMS 485 C', 218, 41, 28], ['PMS 021 C', 254, 80, 0],
+      ['PMS 137 C', 252, 163, 17], ['PMS 116 C', 255, 205, 0], ['PMS 382 C', 196, 214, 0],
+      ['PMS 361 C', 30, 181, 58], ['PMS 3285 C', 0, 178, 169], ['PMS 299 C', 0, 163, 224],
+      ['PMS 286 C', 0, 51, 160], ['PMS 2685 C', 86, 0, 160], ['PMS 254 C', 160, 45, 150],
+      ['PMS Process Black C', 39, 37, 31], ['PMS Cool Gray 11 C', 83, 86, 90],
+      ['PMS Cool Gray 7 C', 151, 153, 155], ['PMS Cool Gray 3 C', 200, 201, 199],
+      ['PMS White', 255, 255, 255], ['PMS 7463 C', 0, 60, 76], ['PMS 7476 C', 0, 104, 120],
+      ['PMS 7489 C', 116, 170, 80], ['PMS 7548 C', 255, 183, 0], ['PMS 7621 C', 135, 24, 27],
+      ['PMS 7687 C', 29, 56, 134], ['PMS 7694 C', 0, 93, 137], ['PMS 7725 C', 0, 122, 82],
+      ['PMS 1795 C', 210, 38, 48], ['PMS 7455 C', 58, 93, 174], ['PMS 7461 C', 0, 133, 173],
+      ['PMS 539 C', 0, 42, 76], ['PMS 534 C', 27, 54, 93], ['PMS 289 C', 12, 35, 64],
+    ];
+    let best = pantones[0][0], bestDist = Infinity;
+    for (const [name, pr, pg, pb] of pantones) {
+      const dist = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
+      if (dist < bestDist) { bestDist = dist; best = name; }
+    }
+    return best + (bestDist > 2500 ? ' (approx)' : '');
+  };
+
   // Generate PNG swatch
   const canvas = document.createElement('canvas');
   const swatchW = 120, swatchH = 80, padding = 20, labelH = 24;
@@ -657,7 +723,6 @@ const exportPalette = (palette: string[], name: string) => {
   const ctx = canvas.getContext('2d')!;
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, totalW, totalH);
-
   palette.forEach((c, i) => {
     const x = padding + i * (swatchW + 8);
     ctx.fillStyle = c;
@@ -669,7 +734,6 @@ const exportPalette = (palette: string[], name: string) => {
     ctx.textAlign = 'center';
     ctx.fillText(c.toUpperCase(), x + swatchW / 2, padding + swatchH + 16);
   });
-
   canvas.toBlob((blob) => {
     if (!blob) return;
     const url = URL.createObjectURL(blob);
@@ -680,19 +744,26 @@ const exportPalette = (palette: string[], name: string) => {
     URL.revokeObjectURL(url);
   }, 'image/png');
 
-  // Also export a text file with all color values
-  const rgbFromHex = (h: string) => {
-    const rv = parseInt(h.slice(1, 3), 16);
-    const gv = parseInt(h.slice(3, 5), 16);
-    const bv = parseInt(h.slice(5, 7), 16);
-    return { r: rv, g: gv, b: bv };
-  };
-  const lines = [`${name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} — Color Palette`, ''];
+  // Export text file with HEX, RGB, CMYK, HSL (as HSV), and Pantone
+  const title = name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const lines = [`${title} — Color Palette`, '═'.repeat(60), ''];
   palette.forEach((c, i) => {
     const rgb = rgbFromHex(c);
-    lines.push(`Color ${i + 1}: ${c.toUpperCase()}  |  RGB(${rgb.r}, ${rgb.g}, ${rgb.b})`);
+    const cmyk = rgbToCmyk(rgb.r, rgb.g, rgb.b);
+    const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+    const pantone = nearestPantone(rgb.r, rgb.g, rgb.b);
+    lines.push(`Color ${i + 1}`);
+    lines.push(`  HEX:     ${c.toUpperCase()}`);
+    lines.push(`  RGB:     ${rgb.r}, ${rgb.g}, ${rgb.b}`);
+    lines.push(`  CMYK:    ${cmyk.c}%, ${cmyk.m}%, ${cmyk.y}%, ${cmyk.k}%`);
+    lines.push(`  HSL:     ${hsl.h}°, ${hsl.s}%, ${hsl.l}%`);
+    lines.push(`  HSV:     ${hsv.h}°, ${hsv.s}%, ${hsv.v}%`);
+    lines.push(`  Pantone: ${pantone}`);
+    lines.push('');
   });
-  lines.push('', `Exported from TransPerfect Booth Catalog`);
+  lines.push('─'.repeat(60));
+  lines.push(`Exported from TransPerfect Booth Catalog`);
   const textBlob = new Blob([lines.join('\n')], { type: 'text/plain' });
   const textUrl = URL.createObjectURL(textBlob);
   const a2 = document.createElement('a');
