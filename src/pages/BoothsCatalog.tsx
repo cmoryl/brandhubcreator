@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, 
@@ -654,6 +655,42 @@ const QRCodesManager = ({ divisionId, isAdmin, color }: { divisionId: string; is
   const [editLabel, setEditLabel] = useState("");
   const [editUrl, setEditUrl] = useState("");
   const [editImageUrl, setEditImageUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileUpload = async (
+    file: File,
+    setImageUrl: (url: string) => void
+  ) => {
+    if (!file) return;
+    const validTypes = ['image/svg+xml', 'image/png', 'image/jpeg', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Please upload an SVG, PNG, JPG, or WebP file');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File must be under 5MB');
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop() || 'svg';
+      const path = `booth-qr/${divisionId}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('organization-assets')
+        .upload(path, file, { contentType: file.type, upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage
+        .from('organization-assets')
+        .getPublicUrl(path);
+      setImageUrl(urlData.publicUrl);
+      toast.success('QR image uploaded');
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      toast.error('Upload failed: ' + (err.message || 'Unknown error'));
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleAdd = async () => {
     if (!newLabel.trim() || !newUrl.trim()) return;
@@ -699,7 +736,23 @@ const QRCodesManager = ({ divisionId, isAdmin, color }: { divisionId: string; is
         <div className="mb-3 space-y-2 p-3 rounded-lg border border-border/60 bg-muted/20">
           <Input placeholder="Label (e.g. Booth Registration)" value={newLabel} onChange={(e) => setNewLabel(e.target.value)} className="text-sm" />
           <Input placeholder="URL (e.g. https://example.com)" value={newUrl} onChange={(e) => setNewUrl(e.target.value)} className="text-sm" />
-          <Input placeholder="QR Code Image URL (optional)" value={newImageUrl} onChange={(e) => setNewImageUrl(e.target.value)} className="text-sm" />
+          <div className="space-y-1">
+            <div className="flex gap-2 items-center">
+              <Input placeholder="QR Code Image URL (optional)" value={newImageUrl} onChange={(e) => setNewImageUrl(e.target.value)} className="text-sm flex-1" />
+              <label className="cursor-pointer">
+                <input type="file" accept=".svg,.png,.jpg,.jpeg,.webp,image/svg+xml,image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f, setNewImageUrl); e.target.value = ''; }} />
+                <Button type="button" variant="outline" size="sm" className="text-xs gap-1" disabled={uploading} asChild>
+                  <span>{uploading ? <><Loader2 className="h-3 w-3 animate-spin" /> Uploading...</> : 'Upload SVG/Image'}</span>
+                </Button>
+              </label>
+            </div>
+            {newImageUrl && (
+              <div className="flex items-center gap-2">
+                <img src={newImageUrl} alt="Preview" className="w-10 h-10 object-contain rounded border border-border/40" />
+                <button onClick={() => setNewImageUrl("")} className="text-xs text-muted-foreground hover:text-destructive">Remove</button>
+              </div>
+            )}
+          </div>
           <div className="flex gap-2">
             <Button size="sm" className="text-xs" onClick={handleAdd}>Add</Button>
             <Button size="sm" variant="ghost" className="text-xs" onClick={() => { setAdding(false); setNewLabel(""); setNewUrl(""); setNewImageUrl(""); }}>Cancel</Button>
@@ -714,7 +767,23 @@ const QRCodesManager = ({ divisionId, isAdmin, color }: { divisionId: string; is
               <div key={qr.id} className="space-y-2 p-3 rounded-lg border border-primary/30 bg-muted/20 col-span-full">
                 <Input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} placeholder="Label" className="text-sm" />
                 <Input value={editUrl} onChange={(e) => setEditUrl(e.target.value)} placeholder="URL" className="text-sm" />
-                <Input value={editImageUrl} onChange={(e) => setEditImageUrl(e.target.value)} placeholder="QR Image URL (optional)" className="text-sm" />
+                <div className="space-y-1">
+                  <div className="flex gap-2 items-center">
+                    <Input value={editImageUrl} onChange={(e) => setEditImageUrl(e.target.value)} placeholder="QR Image URL (optional)" className="text-sm flex-1" />
+                    <label className="cursor-pointer">
+                      <input type="file" accept=".svg,.png,.jpg,.jpeg,.webp,image/svg+xml,image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f, setEditImageUrl); e.target.value = ''; }} />
+                      <Button type="button" variant="outline" size="sm" className="text-xs gap-1" disabled={uploading} asChild>
+                        <span>{uploading ? <><Loader2 className="h-3 w-3 animate-spin" /> Uploading...</> : 'Upload SVG/Image'}</span>
+                      </Button>
+                    </label>
+                  </div>
+                  {editImageUrl && (
+                    <div className="flex items-center gap-2">
+                      <img src={editImageUrl} alt="Preview" className="w-10 h-10 object-contain rounded border border-border/40" />
+                      <button onClick={() => setEditImageUrl("")} className="text-xs text-muted-foreground hover:text-destructive">Remove</button>
+                    </div>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <Button size="sm" className="text-xs" onClick={handleUpdate}>Save</Button>
                   <Button size="sm" variant="ghost" className="text-xs" onClick={() => setEditingId(null)}>Cancel</Button>
