@@ -33,6 +33,7 @@ interface BoothDivision {
   variants: { label: string; image: string }[];
   imageRotation?: number;
   downloadLinks?: { label: string; url: string }[];
+  boothContent?: { heading: string; bullets: string[] }[];
 }
 
 const DIVISIONS: BoothDivision[] = [
@@ -52,6 +53,11 @@ const DIVISIONS: BoothDivision[] = [
       { label: "Dark Theme", image: "/booths/corporate-dark.jpg" },
       { label: "Lite Theme", image: "/booths/corporate-lite.jpg" },
       { label: "Custom / Ryanair", image: "/booths/corporate-custom.jpg" },
+    ],
+    boothContent: [
+      { heading: "Core Messaging", bullets: ["The Language of Global Business", "Any Customer. Any Language. Any Channel.", "Any Member, Any Language. Any Format Every Time", "Engage Locally, Grow Globally"] },
+      { heading: "Key Capabilities", bullets: ["Efficient Translation", "Analytics & Insights", "Real-Time Updates", "Improved User Experience & Management", "Accessibility", "Same-Day Services", "Telephonic Support", "Boutique Interpretation"] },
+      { heading: "Healthcare Innovation", bullets: ["Dedicated healthcare innovation division", "Contact: healthcareinnovation@transperfect.com"] },
     ],
   },
   {
@@ -74,6 +80,12 @@ const DIVISIONS: BoothDivision[] = [
       { label: "Tabletop Dark", image: "/booths/lifesciences-4.jpg" },
       { label: "Tabletop Lite", image: "/booths/lifesciences-5.jpg" },
     ],
+    boothContent: [
+      { heading: "Core Messaging", bullets: ["Simplify Your Path From Lab to Launch", "10 of Top-10 Pharmas, CROs, Biotechs", "100+ Worldwide Offices", "170+ Language Support"] },
+      { heading: "R&D Services", bullets: ["Regulatory Affairs & Labeling", "COA/eCOA & Digital Health", "Patient Recruitment", "Medical Writing", "AI/ML Automation & Translation", "eClinical & CTD eSubmission", "Linguistic Validation & eCOA"] },
+      { heading: "Commercial Services", bullets: ["Global Product Launch", "Training & Development", "Pharmacovigilance", "Literature Monitoring", "Digital Health", "Digital Marketing", "Regulatory Consulting", "Training & eLearning"] },
+      { heading: "China Market", bullets: ["AI Technology & Consulting", "Translation", "TMF Service", "Medical Writing", "Official WeChat integration"] },
+    ],
   },
   {
     id: "legal",
@@ -88,6 +100,11 @@ const DIVISIONS: BoothDivision[] = [
     images: ["/booths/legal.jpg"],
     variants: [{ label: "Standard", image: "/booths/legal.jpg" }],
     imageRotation: -90,
+    boothContent: [
+      { heading: "Core Messaging", bullets: ["The Global Leader in Legal Technology & Support"] },
+      { heading: "Key Differentiators", bullets: ["Faster Case Outcomes", "Innovative Legal Technology", "Strategic Industry Expertise", "Seamless Multilingual Support"] },
+      { heading: "Services", bullets: ["eDiscovery", "Forensic Technology", "Managed Review"] },
+    ],
   },
   {
     id: "ip",
@@ -101,6 +118,10 @@ const DIVISIONS: BoothDivision[] = [
     services: ["Global Patent Quality & Efficiency", "Streamlined Patent Filing", "AI-Powered Translation", "Quality & Expertise", "Accelerated Filing Timelines", "GlobalLink Integration"],
     images: ["/booths/ip.jpg"],
     variants: [{ label: "Standard", image: "/booths/ip.jpg" }],
+    boothContent: [
+      { heading: "Core Messaging", bullets: ["Protect Your IP in Any Country"] },
+      { heading: "Key Capabilities", bullets: ["Leverage Global Patent Quality, Efficiency, with AI-Powered Translation Memory", "Streamline Patent Filing Processes", "Quality, Efficiency and Expertise", "Accelerate Translation and Global Filing Timelines with GlobalLink"] },
+    ],
   },
   {
     id: "digital",
@@ -116,6 +137,10 @@ const DIVISIONS: BoothDivision[] = [
     variants: [
       { label: "Dark Theme", image: "/booths/digital-1.jpg" },
       { label: "Lite Theme", image: "/booths/digital-2.jpg" },
+    ],
+    boothContent: [
+      { heading: "Core Messaging", bullets: ["Global Performance for International Brands", "Any Market. Any Language.", "Performance-led. Measurable Results."] },
+      { heading: "Services", bullets: ["International SEO & Paid Media", "Performance Content & Copywriting", "LLM Solutions", "Social Media Intelligence", "AI Copywriting", "Market Intelligence"] },
     ],
   },
   {
@@ -136,6 +161,13 @@ const DIVISIONS: BoothDivision[] = [
       { label: "IBC / GlobalLink", image: "/booths/media-3.jpg" },
       { label: "Kidscreen", image: "/booths/media-4.jpg" },
     ],
+    boothContent: [
+      { heading: "Localization", bullets: ["Subtitling in all industry formats and 200+ languages and dialects with in-context review", "Dubbing & Voiceover — Traditional and cloud-based recording, with custom casting", "In-studio and remote recording, AI-enabled workflows"] },
+      { heading: "Post-Production", bullets: ["Image and sound design and editing", "VFX, SFX, GFX, and creative post", "Content Creation — Secure storage, packaging and delivery in all industry formats"] },
+      { heading: "Accessibility", bullets: ["SDH, CC, AD, and sign language for pre-recorded and live content", "Captioning, SDH, HOH, live CC and audio descriptions"] },
+      { heading: "Distribution & QC", bullets: ["Quality Control — Master QC, digital, physical QC, and device certification", "Distribution — Secure encoding, transcoding, packaging, metadata, artwork and distribution", "Film Restoration — Digitization and restoration in 2K, 4K, and Dolby Cinema"] },
+      { heading: "GlobalLink Media", bullets: ["BluQC — One interface, infinite possibilities", "BluConductor — Product Management, Editing & Transcoding, Compliance & Content Moderation", "Quality Control, Packaging & Delivery, Localization & Accessibility"] },
+    ],
   },
   {
     id: "games",
@@ -149,6 +181,10 @@ const DIVISIONS: BoothDivision[] = [
     services: ["Art & Development", "Localization", "Marketing", "QA Testing", "Player Support", "AI Integration"],
     images: ["/booths/games.jpg"],
     variants: [{ label: "Standard", image: "/booths/games.jpg" }],
+    boothContent: [
+      { heading: "Core Messaging", bullets: ["The Language of Global Games", "Where Boutique Expertise Meets Global Excellence"] },
+      { heading: "Full Lifecycle Services", bullets: ["Art & Development", "Localization", "Marketing", "QA Testing", "Player Support", "AI Integration"] },
+    ],
   },
   {
     id: "live",
@@ -166,6 +202,12 @@ const DIVISIONS: BoothDivision[] = [
       { label: "Lite Theme", image: "/booths/live-2.jpg" },
       { label: "Custom Build", image: "/booths/live-3.jpg" },
     ],
+    boothContent: [
+      { heading: "Core Messaging", bullets: ["Multilingual Event Solutions", "Powered by GlobalLink", "Deliver engaging, inclusive, and accessible events for global audiences"] },
+      { heading: "Services", bullets: ["Content Creation", "Technology Consulting", "App, Web & Platform Localization", "Post-Launch Activities"] },
+      { heading: "Key Differentiators", bullets: ["Expert Interpreters", "Global Availability", "Tailored Service", "Human Expertise", "AI Services", "Event Technology"] },
+      { heading: "Custom Build Features", bullets: ["Exterior & Interior Canopy Branding", "43\" Monitor Integration", "Corner and Canopy Signage"] },
+    ],
   },
   {
     id: "health",
@@ -181,6 +223,11 @@ const DIVISIONS: BoothDivision[] = [
     variants: [
       { label: "Dark Theme", image: "/booths/health-1.jpg" },
       { label: "Lite Theme", image: "/booths/health-2.jpg" },
+    ],
+    boothContent: [
+      { heading: "Core Messaging", bullets: ["Serving Seniors Through the Continuum of Care", "With holistic, outcome-driven support", "Effortless Localization for all your digital health needs"] },
+      { heading: "Outcome Based Rehabilitation Solutions", bullets: ["Physical, Occupational & Speech Therapy", "Rehabilitation Services & Staffing", "Flexible Partnership Models", "30+ Years of Experience"] },
+      { heading: "Additional Services", bullets: ["Access to Marketing Data", "Translation & Localization", "Digital Health Solutions"] },
     ],
   },
   {
@@ -198,6 +245,11 @@ const DIVISIONS: BoothDivision[] = [
       { label: "Standard", image: "/booths/dataforce-1.jpg" },
       { label: "China Smart", image: "/booths/dataforce-2.jpg" },
     ],
+    boothContent: [
+      { heading: "Core Messaging", bullets: ["Human Insights for AI that is Reliable. Refined. Respected."] },
+      { heading: "Services", bullets: ["Data Collection", "Data Annotation", "Data Relevance", "Transcription", "Generative AI", "User Studies & Rating", "Business Process Chatbot", "Bias Mitigation", "Ethical Content Moderation"] },
+      { heading: "China Smart Booth", bullets: ["6 core AI disciplines", "46 specialized capabilities", "140+ use case scenarios"] },
+    ],
   },
   {
     id: "trial-interactive",
@@ -214,6 +266,10 @@ const DIVISIONS: BoothDivision[] = [
       { label: "Dark Theme", image: "/booths/trial-interactive-1.jpg" },
       { label: "Lite Theme", image: "/booths/trial-interactive-2.jpg" },
     ],
+    boothContent: [
+      { heading: "Core Messaging", bullets: ["eClinical Platform", "Enabling Trial Collaboration in the Cloud"] },
+      { heading: "Key Capabilities", bullets: ["Connected Support", "White-Glove Expert Service", "Expert Support Services", "AI-Powered Trial Intelligence", "eClinical Platform Support Services"] },
+    ],
   },
   {
     id: "g3",
@@ -229,6 +285,12 @@ const DIVISIONS: BoothDivision[] = [
     variants: [
       { label: "Dark Theme", image: "/booths/g3-1.jpg" },
       { label: "Lite Theme", image: "/booths/g3-2.jpg" },
+    ],
+    boothContent: [
+      { heading: "Core Messaging", bullets: ["Shaping Global Content. Empowering Human Connection.", "AI-Driven Global Content — Scalable, AI-powered, and human-driven content solutions for a connected world", "To Optimize your Communication Impact"] },
+      { heading: "Services", bullets: ["Learning & Development", "Localization & Content Solutions", "Market & Insights", "Scalable Growth Partnership", "Content Enablement"] },
+      { heading: "Certifications", bullets: ["WBENC Certified", "ISO Certified"] },
+      { heading: "Websites", bullets: ["theg3company.com", "g3lifesciences.com"] },
     ],
   },
 ];
@@ -438,6 +500,28 @@ const DivisionDetail = ({ division, onClose }: { division: BoothDivision; onClos
                 </div>
               </div>
             </div>
+
+            {/* Booth Content Details */}
+            {division.boothContent && division.boothContent.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Booth Details</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {division.boothContent.map((section) => (
+                    <div key={section.heading} className="bg-muted/30 rounded-lg p-4 border border-border/40">
+                      <h4 className="text-sm font-semibold mb-2" style={{ color: division.color }}>{section.heading}</h4>
+                      <ul className="space-y-1.5">
+                        {section.bullets.map((bullet, i) => (
+                          <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
+                            <span className="mt-1.5 h-1 w-1 rounded-full shrink-0" style={{ backgroundColor: division.color }} />
+                            {bullet}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Download Links */}
             {division.downloadLinks && division.downloadLinks.length > 0 && (
