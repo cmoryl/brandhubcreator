@@ -316,6 +316,57 @@ export type Database = {
           },
         ]
       }
+      booth_custom_divisions: {
+        Row: {
+          color: string
+          created_at: string
+          created_by: string | null
+          description: string
+          display_order: number
+          division_id: string
+          email: string
+          icon_name: string
+          id: string
+          name: string
+          services: string[]
+          tagline: string
+          updated_at: string
+          website: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          display_order?: number
+          division_id: string
+          email?: string
+          icon_name?: string
+          id?: string
+          name: string
+          services?: string[]
+          tagline?: string
+          updated_at?: string
+          website?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          display_order?: number
+          division_id?: string
+          email?: string
+          icon_name?: string
+          id?: string
+          name?: string
+          services?: string[]
+          tagline?: string
+          updated_at?: string
+          website?: string
+        }
+        Relationships: []
+      }
       booth_download_links: {
         Row: {
           created_at: string

@@ -18,6 +18,7 @@ import { useBoothVariantInfo } from "@/hooks/useBoothVariantInfo";
 import { useBoothQRCodes } from "@/hooks/useBoothQRCodes";
 import { useBoothProductionSpecs } from "@/hooks/useBoothProductionSpecs";
 import { useBoothImages } from "@/hooks/useBoothImages";
+import { useCustomDivisions, type CustomDivision } from "@/hooks/useCustomDivisions";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
@@ -1536,12 +1537,46 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
   );
 };
 
+const ICON_MAP: Record<string, React.ElementType> = {
+  Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2,
+  Radio, Heart, Database, Microscope, Globe, BarChart3,
+};
+
+function customToBoothDivision(c: CustomDivision): BoothDivision {
+  return {
+    id: c.division_id,
+    name: c.name,
+    tagline: c.tagline,
+    description: c.description,
+    icon: ICON_MAP[c.icon_name] || Building2,
+    color: c.color,
+    email: c.email,
+    website: c.website,
+    services: c.services || [],
+    images: [],
+    variants: [],
+  };
+}
+
 export default function BoothsCatalog() {
   const [selected, setSelected] = useState<BoothDivision | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [heroEditorOpen, setHeroEditorOpen] = useState(false);
+  const [addingBooth, setAddingBooth] = useState(false);
+  const [newBoothName, setNewBoothName] = useState("");
+  const [newBoothTagline, setNewBoothTagline] = useState("");
+  const [newBoothDesc, setNewBoothDesc] = useState("");
+  const [newBoothColor, setNewBoothColor] = useState("hsl(200, 70%, 45%)");
+  const [newBoothEmail, setNewBoothEmail] = useState("");
+  const [newBoothWebsite, setNewBoothWebsite] = useState("");
   const navigate = useNavigate();
   const { settings: heroSettings, updateSettings: updateHeroSettings } = usePageHeroSettings('booths');
+  const { divisions: customDivisions, addDivision, deleteDivision } = useCustomDivisions();
+
+  const allDivisions: BoothDivision[] = [
+    ...DIVISIONS,
+    ...customDivisions.map(customToBoothDivision),
+  ];
 
   // Check if current user is authenticated (admin)
   useEffect(() => {
@@ -1555,6 +1590,29 @@ export default function BoothsCatalog() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  const handleAddBooth = async () => {
+    if (!newBoothName.trim()) return;
+    const result = await addDivision({
+      name: newBoothName.trim(),
+      tagline: newBoothTagline.trim(),
+      description: newBoothDesc.trim(),
+      color: newBoothColor,
+      email: newBoothEmail.trim(),
+      website: newBoothWebsite.trim(),
+    });
+    if (result) {
+      setAddingBooth(false);
+      setNewBoothName("");
+      setNewBoothTagline("");
+      setNewBoothDesc("");
+      setNewBoothColor("hsl(200, 70%, 45%)");
+      setNewBoothEmail("");
+      setNewBoothWebsite("");
+    }
+  };
+
+  const isCustomDivision = (divId: string) => customDivisions.some(c => c.division_id === divId);
 
   const renderHeroEffect = () => {
     const effect = heroSettings.heroEffect;
@@ -1726,16 +1784,101 @@ export default function BoothsCatalog() {
       {/* Grid */}
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {DIVISIONS.map((div, i) => (
+          {allDivisions.map((div, i) => (
             <motion.div
               key={div.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05, duration: 0.4 }}
+              className="relative group/card"
             >
               <BoothCardWithImages division={div} onClick={() => setSelected(div)} isAdmin={isAdmin} />
+              {/* Delete button for custom booths */}
+              {isAdmin && isCustomDivision(div.id) && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); deleteDivision(div.id); }}
+                  className="absolute top-3 left-3 z-10 h-7 w-7 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-destructive/70 transition-colors opacity-0 group-hover/card:opacity-100"
+                  title="Delete this booth"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              )}
             </motion.div>
           ))}
+
+          {/* Add Booth Card - Admin only */}
+          {isAdmin && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: allDivisions.length * 0.05, duration: 0.4 }}
+            >
+              {!addingBooth ? (
+                <button
+                  onClick={() => setAddingBooth(true)}
+                  className="w-full h-full min-h-[280px] rounded-2xl border-2 border-dashed border-border/60 bg-card/50 hover:border-primary/40 hover:bg-card transition-all flex flex-col items-center justify-center gap-3 text-muted-foreground hover:text-foreground group"
+                >
+                  <div className="h-12 w-12 rounded-xl bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                    <Plus className="h-6 w-6" />
+                  </div>
+                  <span className="text-sm font-medium">Add New Booth</span>
+                </button>
+              ) : (
+                <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
+                  <h3 className="text-sm font-semibold">New Booth Division</h3>
+                  <Input
+                    placeholder="Booth name *"
+                    value={newBoothName}
+                    onChange={(e) => setNewBoothName(e.target.value)}
+                    className="text-sm"
+                  />
+                  <Input
+                    placeholder="Tagline"
+                    value={newBoothTagline}
+                    onChange={(e) => setNewBoothTagline(e.target.value)}
+                    className="text-sm"
+                  />
+                  <Textarea
+                    placeholder="Description"
+                    value={newBoothDesc}
+                    onChange={(e) => setNewBoothDesc(e.target.value)}
+                    className="text-sm min-h-[60px]"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      placeholder="Email"
+                      value={newBoothEmail}
+                      onChange={(e) => setNewBoothEmail(e.target.value)}
+                      className="text-sm"
+                    />
+                    <Input
+                      placeholder="Website"
+                      value={newBoothWebsite}
+                      onChange={(e) => setNewBoothWebsite(e.target.value)}
+                      className="text-sm"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-muted-foreground">Color:</label>
+                    <input
+                      type="color"
+                      value={newBoothColor.startsWith("hsl") ? "#3b82f6" : newBoothColor}
+                      onChange={(e) => setNewBoothColor(e.target.value)}
+                      className="h-8 w-10 rounded border border-border cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <Button size="sm" onClick={handleAddBooth} disabled={!newBoothName.trim()}>
+                      Create Booth
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => { setAddingBooth(false); setNewBoothName(""); setNewBoothTagline(""); setNewBoothDesc(""); }}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
         </div>
       </div>
 
