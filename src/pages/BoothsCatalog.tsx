@@ -1736,6 +1736,8 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                             </div>
                           </div>
 
+                          <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+
                           <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
                           <div className="flex flex-col gap-2">
@@ -1746,8 +1748,6 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                               <ExternalLink className="h-4 w-4" /> {division.website}
                             </a>
                           </div>
-
-                          <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
                         </div>
 
                         <div className="space-y-6">
