@@ -861,9 +861,12 @@ const QRCodesManager = ({ divisionId, isAdmin, color }: { divisionId: string; is
               </label>
             </div>
             {newImageUrl && (
-              <div className="flex items-center gap-2">
-                <img src={newImageUrl} alt="Preview" className="w-10 h-10 object-contain rounded border border-border/40" />
-                <button onClick={() => setNewImageUrl("")} className="text-xs text-muted-foreground hover:text-destructive">Remove</button>
+              <div className="flex items-center gap-3 p-2 rounded-lg border border-border/40 bg-card">
+                <img src={newImageUrl} alt="QR Preview" className="w-20 h-20 object-contain rounded" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">QR Code Preview</span>
+                  <button onClick={() => setNewImageUrl("")} className="text-xs text-destructive hover:underline text-left">Remove</button>
+                </div>
               </div>
             )}
           </div>
@@ -892,9 +895,12 @@ const QRCodesManager = ({ divisionId, isAdmin, color }: { divisionId: string; is
                     </label>
                   </div>
                   {editImageUrl && (
-                    <div className="flex items-center gap-2">
-                      <img src={editImageUrl} alt="Preview" className="w-10 h-10 object-contain rounded border border-border/40" />
-                      <button onClick={() => setEditImageUrl("")} className="text-xs text-muted-foreground hover:text-destructive">Remove</button>
+                    <div className="flex items-center gap-3 p-2 rounded-lg border border-border/40 bg-card">
+                      <img src={editImageUrl} alt="QR Preview" className="w-20 h-20 object-contain rounded" />
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs text-muted-foreground">QR Code Preview</span>
+                        <button onClick={() => setEditImageUrl("")} className="text-xs text-destructive hover:underline text-left">Remove</button>
+                      </div>
                     </div>
                   )}
                 </div>
