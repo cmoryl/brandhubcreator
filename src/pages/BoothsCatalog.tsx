@@ -404,8 +404,25 @@ const BoothCardWithImages = ({ division, onClick, isAdmin }: { division: BoothDi
   );
 };
 
-const DownloadLinksManager = ({ divisionId, isAdmin, color }: { divisionId: string; isAdmin: boolean; color: string }) => {
-  const { links, loading, addLink, updateLink, deleteLink } = useBoothDownloadLinks(divisionId);
+const DownloadLinksList = ({ 
+  links, 
+  isAdmin, 
+  linkType, 
+  title, 
+  addLabel,
+  onAdd, 
+  onUpdate, 
+  onDelete 
+}: { 
+  links: { id: string; label: string; url: string }[];
+  isAdmin: boolean;
+  linkType: 'project' | 'asset';
+  title: string;
+  addLabel: string;
+  onAdd: (label: string, url: string) => Promise<void>;
+  onUpdate: (id: string, label: string, url: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}) => {
   const [adding, setAdding] = useState(false);
   const [newLabel, setNewLabel] = useState("");
   const [newUrl, setNewUrl] = useState("");
@@ -415,15 +432,13 @@ const DownloadLinksManager = ({ divisionId, isAdmin, color }: { divisionId: stri
 
   const handleAdd = async () => {
     if (!newLabel.trim() || !newUrl.trim()) return;
-    await addLink(newLabel.trim(), newUrl.trim());
-    setNewLabel("");
-    setNewUrl("");
-    setAdding(false);
+    await onAdd(newLabel.trim(), newUrl.trim());
+    setNewLabel(""); setNewUrl(""); setAdding(false);
   };
 
   const handleUpdate = async () => {
     if (!editingId || !editLabel.trim() || !editUrl.trim()) return;
-    await updateLink(editingId, editLabel.trim(), editUrl.trim());
+    await onUpdate(editingId, editLabel.trim(), editUrl.trim());
     setEditingId(null);
   };
 
@@ -433,49 +448,26 @@ const DownloadLinksManager = ({ divisionId, isAdmin, color }: { divisionId: stri
     setEditUrl(link.url);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-        <Loader2 className="h-4 w-4 animate-spin" /> Loading downloads...
-      </div>
-    );
-  }
-
   if (links.length === 0 && !isAdmin) return null;
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Download Files</h3>
+      <div className="flex items-center justify-between mb-2">
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{title}</h4>
         {isAdmin && !adding && (
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setAdding(true)}>
-            <Plus className="h-3.5 w-3.5" /> Add Link
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs h-7" onClick={() => setAdding(true)}>
+            <Plus className="h-3 w-3" /> {addLabel}
           </Button>
         )}
       </div>
 
-      {/* Add form */}
       {adding && (
         <div className="flex flex-col sm:flex-row gap-2 mb-3 p-3 rounded-lg border border-border bg-muted/30">
-          <Input
-            placeholder="Label (e.g. 108 Dark)"
-            value={newLabel}
-            onChange={(e) => setNewLabel(e.target.value)}
-            className="text-sm h-9"
-          />
-          <Input
-            placeholder="URL (https://...)"
-            value={newUrl}
-            onChange={(e) => setNewUrl(e.target.value)}
-            className="text-sm h-9"
-          />
+          <Input placeholder="Label" value={newLabel} onChange={(e) => setNewLabel(e.target.value)} className="text-sm h-9" />
+          <Input placeholder="URL (https://...)" value={newUrl} onChange={(e) => setNewUrl(e.target.value)} className="text-sm h-9" />
           <div className="flex gap-1.5 shrink-0">
-            <Button size="sm" className="h-9" onClick={handleAdd} disabled={!newLabel.trim() || !newUrl.trim()}>
-              Save
-            </Button>
-            <Button size="sm" variant="ghost" className="h-9" onClick={() => { setAdding(false); setNewLabel(""); setNewUrl(""); }}>
-              Cancel
-            </Button>
+            <Button size="sm" className="h-9" onClick={handleAdd} disabled={!newLabel.trim() || !newUrl.trim()}>Save</Button>
+            <Button size="sm" variant="ghost" className="h-9" onClick={() => { setAdding(false); setNewLabel(""); setNewUrl(""); }}>Cancel</Button>
           </div>
         </div>
       )}
@@ -486,16 +478,8 @@ const DownloadLinksManager = ({ divisionId, isAdmin, color }: { divisionId: stri
             <div key={link.id}>
               {editingId === link.id ? (
                 <div className="flex flex-col gap-1.5 p-2 rounded-lg border border-primary/30 bg-muted/30">
-                  <Input
-                    value={editLabel}
-                    onChange={(e) => setEditLabel(e.target.value)}
-                    className="text-sm h-8"
-                  />
-                  <Input
-                    value={editUrl}
-                    onChange={(e) => setEditUrl(e.target.value)}
-                    className="text-sm h-8"
-                  />
+                  <Input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} className="text-sm h-8" />
+                  <Input value={editUrl} onChange={(e) => setEditUrl(e.target.value)} className="text-sm h-8" />
                   <div className="flex gap-1.5">
                     <Button size="sm" className="h-7 text-xs" onClick={handleUpdate}>Save</Button>
                     <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEditingId(null)}>Cancel</Button>
@@ -517,7 +501,7 @@ const DownloadLinksManager = ({ divisionId, isAdmin, color }: { divisionId: stri
                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEdit(link)}>
                         <Pencil className="h-3 w-3" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteLink(link.id)}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => onDelete(link.id)}>
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
@@ -528,8 +512,53 @@ const DownloadLinksManager = ({ divisionId, isAdmin, color }: { divisionId: stri
           ))}
         </div>
       ) : isAdmin ? (
-        <p className="text-xs text-muted-foreground italic">No download links yet. Click "Add Link" to add URLs for this booth.</p>
+        <p className="text-xs text-muted-foreground italic">No {linkType === 'project' ? 'project files' : 'individual assets'} yet.</p>
       ) : null}
+    </div>
+  );
+};
+
+const DownloadLinksManager = ({ divisionId, isAdmin, color }: { divisionId: string; isAdmin: boolean; color: string }) => {
+  const { links, loading, addLink, updateLink, deleteLink } = useBoothDownloadLinks(divisionId);
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+        <Loader2 className="h-4 w-4 animate-spin" /> Loading downloads...
+      </div>
+    );
+  }
+
+  const projectLinks = links.filter(l => (l as any).link_type !== 'asset');
+  const assetLinks = links.filter(l => (l as any).link_type === 'asset');
+
+  if (projectLinks.length === 0 && assetLinks.length === 0 && !isAdmin) return null;
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Download Files</h3>
+      
+      <DownloadLinksList
+        links={projectLinks}
+        isAdmin={isAdmin}
+        linkType="project"
+        title="Project Files"
+        addLabel="Add Project File"
+        onAdd={(label, url) => addLink(label, url, 'project')}
+        onUpdate={updateLink}
+        onDelete={deleteLink}
+      />
+
+      <DownloadLinksList
+        links={assetLinks}
+        isAdmin={isAdmin}
+        linkType="asset"
+        title="Individual Assets"
+        addLabel="Add Asset"
+        onAdd={(label, url) => addLink(label, url, 'asset')}
+        onUpdate={updateLink}
+        onDelete={deleteLink}
+      />
     </div>
   );
 };

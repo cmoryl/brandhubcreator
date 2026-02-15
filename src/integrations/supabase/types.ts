@@ -375,6 +375,7 @@ export type Database = {
           division_id: string
           id: string
           label: string
+          link_type: string
           updated_at: string
           url: string
         }
@@ -385,6 +386,7 @@ export type Database = {
           division_id: string
           id?: string
           label: string
+          link_type?: string
           updated_at?: string
           url: string
         }
@@ -395,6 +397,7 @@ export type Database = {
           division_id?: string
           id?: string
           label?: string
+          link_type?: string
           updated_at?: string
           url?: string
         }

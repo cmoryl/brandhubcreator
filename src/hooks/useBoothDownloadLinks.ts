@@ -8,6 +8,7 @@ export interface BoothDownloadLink {
   label: string;
   url: string;
   display_order: number;
+  link_type: 'project' | 'asset';
 }
 
 export function useBoothDownloadLinks(divisionId: string) {
@@ -33,7 +34,7 @@ export function useBoothDownloadLinks(divisionId: string) {
     fetchLinks();
   }, [fetchLinks]);
 
-  const addLink = useCallback(async (label: string, url: string) => {
+  const addLink = useCallback(async (label: string, url: string, linkType: 'project' | 'asset' = 'project') => {
     const maxOrder = links.length > 0 ? Math.max(...links.map(l => l.display_order)) + 1 : 0;
     const { data: userData } = await supabase.auth.getUser();
     
@@ -45,7 +46,8 @@ export function useBoothDownloadLinks(divisionId: string) {
         url,
         display_order: maxOrder,
         created_by: userData.user?.id || null,
-      });
+        link_type: linkType,
+      } as any);
 
     if (error) {
       toast.error('Failed to add download link');
