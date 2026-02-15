@@ -324,17 +324,46 @@ function CardGrid({
               />
             )}
 
-            {/* Active prismatic overlay */}
+            {/* Active liquid metal overlay */}
             {isActive && (
               <>
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-transparent via-white/10 to-white/20 pointer-events-none" />
+                {/* Base chrome sheen */}
                 <motion.div
+                  className="absolute inset-0 rounded-xl pointer-events-none opacity-30"
+                  style={{
+                    background: `
+                      radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.4) 0%, transparent 50%),
+                      radial-gradient(ellipse at 70% 80%, rgba(255,255,255,0.25) 0%, transparent 45%)
+                    `,
+                  }}
+                  animate={{
+                    backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
+                  }}
+                  transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+                />
+                {/* Slow liquid morph blob */}
+                <motion.div
+                  className="absolute pointer-events-none rounded-full blur-2xl"
+                  style={{
+                    width: '120%',
+                    height: '120%',
+                    left: '-10%',
+                    top: '-10%',
+                    background: `radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 60%)`,
+                  }}
+                  animate={{
+                    x: [0, 15, -10, 5, 0],
+                    y: [0, -10, 8, -5, 0],
+                    scale: [1, 1.05, 0.97, 1.03, 1],
+                  }}
+                  transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+                />
+                {/* Subtle edge highlight */}
+                <div
                   className="absolute inset-0 rounded-xl pointer-events-none"
                   style={{
-                    background: 'conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.15) 25%, transparent 50%, rgba(255,255,255,0.1) 75%, transparent 100%)',
+                    background: 'linear-gradient(160deg, rgba(255,255,255,0.15) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.08) 100%)',
                   }}
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
                 />
               </>
             )}
