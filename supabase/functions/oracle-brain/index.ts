@@ -268,9 +268,20 @@ Evaluate the organization's portfolio through persona-based design thinking, exp
 - Cognitive: permanent (ADHD), temporary (concussion), situational (information overload)
 Include a "persona_design_maturity" object assessing how well products, events, and brand touchpoints address the full spectrum.
 
-Return ONLY valid JSON:
-{"org_summary":"3-4 sentences","portfolio_analysis":{"synergies":["up to 4"],"gaps":["up to 3"],"conflicts":["risks"],"recommendations":["up to 3"]},"market_landscape":{"overall_position":"1-2 sentences","market_opportunities":["up to 3"],"threats":["up to 2"]},"strategic_recommendations":[{"priority":"high|medium|low","recommendation":"rec","rationale":"why","impact":"impact"}],"cross_entity_patterns":{"voice_consistency":"1 sentence","audience_overlap":"1 sentence","visual_coherence":"1 sentence"},"unified_voice_profile":{"primary_tone":"1-2 words","secondary_tones":["up to 3"],"communication_style":"1 sentence","personality_traits":["up to 4"]},"unified_audience_map":{"primary_segment":"1 sentence","secondary_segments":["up to 3"],"underserved_segments":["up to 2"]},"competitive_overview":{"market_position":"1 sentence","key_competitors":["up to 3"],"competitive_moat":"1 sentence"},"cultural_readiness":{"overall_score":50,"strongest_markets":["up to 3"],"expansion_opportunities":["up to 3"]},"governance_posture":{"eaa_readiness":"high|medium|low","inclusive_ai_maturity":"high|medium|low","recommended_sprint_activities":["up to 2 from: Computer Trust Exercise, Human-to-Computer Role-Play, Interaction Diary"],"regulatory_action_items":["up to 3"]},"persona_design_maturity":{"overall_score":50,"mobility_coverage":"1 sentence","vision_coverage":"1 sentence","hearing_coverage":"1 sentence","speech_coverage":"1 sentence","cognitive_coverage":"1 sentence","gaps":["up to 3"],"recommendations":["up to 3"]}}`;
+AUTHENTIC PHOTOGRAPHY & IMAGERY STRATEGY:
+Evaluate and guide the organization's visual content strategy toward authentic, photojournalistic imagery:
+- Evolve beyond generic 'corporate happy people' stock photography toward real-world documentary-style captures
+- Prioritize images of actual experts, employees, and clients in genuine work situations — not posed or staged
+- Use photojournalistic techniques: natural lighting, candid moments, real environments, unscripted interactions
+- Build credibility through behind-the-scenes content showing real processes, expertise in action, and client collaboration
+- Capture emotional authenticity: real reactions, genuine problem-solving, actual team dynamics
+- Avoid: overly polished studio shots, artificial diversity staging, disconnected stock imagery, forced smiles
+- Ensure diverse representation is natural and contextual, not tokenistic — people as active participants in real scenarios
+- Show equal power dynamics in client-expert interactions: collaborative, not hierarchical or pity-based
+Include a "photography_strategy" object: {"authenticity_score":0-100,"current_style":"generic_corporate|transitional|photojournalistic|documentary","credibility_gaps":["up to 3"],"evolution_recommendations":["up to 3"],"emotional_connection_score":0-100}
 
+Return ONLY valid JSON:
+{"org_summary":"3-4 sentences","portfolio_analysis":{"synergies":["up to 4"],"gaps":["up to 3"],"conflicts":["risks"],"recommendations":["up to 3"]},"market_landscape":{"overall_position":"1-2 sentences","market_opportunities":["up to 3"],"threats":["up to 2"]},"strategic_recommendations":[{"priority":"high|medium|low","recommendation":"rec","rationale":"why","impact":"impact"}],"cross_entity_patterns":{"voice_consistency":"1 sentence","audience_overlap":"1 sentence","visual_coherence":"1 sentence"},"unified_voice_profile":{"primary_tone":"1-2 words","secondary_tones":["up to 3"],"communication_style":"1 sentence","personality_traits":["up to 4"]},"unified_audience_map":{"primary_segment":"1 sentence","secondary_segments":["up to 3"],"underserved_segments":["up to 2"]},"competitive_overview":{"market_position":"1 sentence","key_competitors":["up to 3"],"competitive_moat":"1 sentence"},"cultural_readiness":{"overall_score":50,"strongest_markets":["up to 3"],"expansion_opportunities":["up to 3"]},"governance_posture":{"eaa_readiness":"high|medium|low","inclusive_ai_maturity":"high|medium|low","recommended_sprint_activities":["up to 2 from: Computer Trust Exercise, Human-to-Computer Role-Play, Interaction Diary"],"regulatory_action_items":["up to 3"]},"persona_design_maturity":{"overall_score":50,"mobility_coverage":"1 sentence","vision_coverage":"1 sentence","hearing_coverage":"1 sentence","speech_coverage":"1 sentence","cognitive_coverage":"1 sentence","gaps":["up to 3"],"recommendations":["up to 3"]},"photography_strategy":{"authenticity_score":50,"current_style":"generic_corporate","credibility_gaps":["up to 3"],"evolution_recommendations":["up to 3"],"emotional_connection_score":50}}`;
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
@@ -322,6 +333,7 @@ Return ONLY valid JSON:
         ...(synthesis.cultural_readiness || {}),
         governance_posture: synthesis.governance_posture || {},
         persona_design_maturity: synthesis.persona_design_maturity || {},
+        photography_strategy: synthesis.photography_strategy || {},
       },
       knowledge_entry_count: (knowledge || []).length,
       entity_brain_count: (brains || []).length,
