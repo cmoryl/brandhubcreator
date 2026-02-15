@@ -439,6 +439,39 @@ export type Database = {
         }
         Relationships: []
       }
+      booth_gallery_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          created_by: string | null
+          display_order: number | null
+          division_id: string
+          id: string
+          image_url: string
+          updated_at: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_order?: number | null
+          division_id: string
+          id?: string
+          image_url: string
+          updated_at?: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_order?: number | null
+          division_id?: string
+          id?: string
+          image_url?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       booth_images: {
         Row: {
           created_at: string

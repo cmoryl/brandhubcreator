@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
 import { BoothContentManager } from "@/components/booths/BoothContentManager";
+import { BoothGalleryManager } from "@/components/booths/BoothGalleryManager";
 
 import { HeroEditToolbar, HeroEffectType } from "@/components/brand/HeroEditToolbar";
 import { GradientBarsHero } from "@/components/backgrounds/GradientBarsHero";
@@ -1571,6 +1572,9 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                     ))}
                   </div>
                 </div>
+
+                {/* Booth Gallery - Real booth shots */}
+                <BoothGalleryManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
               </div>
             </div>
 
