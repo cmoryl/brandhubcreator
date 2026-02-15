@@ -1530,16 +1530,14 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
 
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Services & Capabilities</h3>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-3">
                     {division.services.map((s) => (
-                      <Badge
+                      <div
                         key={s}
-                        variant="secondary"
-                        className="text-xs"
-                        style={{ borderColor: division.color + "40" }}
+                        className="bg-muted/50 rounded-lg px-4 py-3 text-center min-w-[80px]"
                       >
-                        {s}
-                      </Badge>
+                        <div className="text-xs font-medium" style={{ color: division.color }}>{s}</div>
+                      </div>
                     ))}
                   </div>
                 </div>
