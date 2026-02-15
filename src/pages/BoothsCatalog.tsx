@@ -1728,40 +1728,11 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                           <div>
                             <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-primary">Tagline</h3>
                             <p className="text-base font-normal leading-relaxed text-primary" style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 400 }}>{division.tagline}</p>
-                          </div>
-
-                          {/* Booth Sizing & Safe Zones */}
-                          <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
-                            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                              <Ruler className="h-4 w-4" /> Booth Sizing & Safe Zones
-                            </h3>
-                            <div className="space-y-3">
-                              <div className="space-y-1.5">
-                                <p className="text-xs font-semibold text-primary">RDT-108 — 10' × 8' Backwall</p>
-                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                                  <span>Visual Area: 113.5" × 89.5"</span>
-                                  <span>Cut Size: 114.5" × 90.5"</span>
-                                  <span>Bleed Size: 115.5" × 91.5"</span>
-                                  <span>Safe Zone: 2" from edges</span>
-                                </div>
-                              </div>
-                              <div className="border-t border-border/40" />
-                              <div className="space-y-1.5">
-                                <p className="text-xs font-semibold text-primary">RDT-110 — 10' × 10' Backwall</p>
-                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                                  <span>Visual Area: 113.5" × 113.5"</span>
-                                  <span>Cut Size: 114.5" × 114.5"</span>
-                                  <span>Bleed Size: 115.5" × 115.5"</span>
-                                  <span>Safe Zone: 2" from edges</span>
-                                </div>
-                              </div>
-                              <div className="border-t border-border/40" />
-                              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                                <span>Resolution: 150 DPI</span>
-                                <span>Monitor: 42" LCD (1080p)</span>
-                                <span>Format: PDF / AI / EPS</span>
-                                <span>Color: CMYK preferred</span>
-                              </div>
+                            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                              <span>Font: Poppins Regular 400</span>
+                              <span>Booth: 48–72pt</span>
+                              <span>Banner: 36–48pt</span>
+                              <span>Safe Zone: 2" from edges</span>
                             </div>
                           </div>
 
