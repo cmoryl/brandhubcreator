@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useCallback } from 'react';
+import React, { useMemo, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { SectionId, BrandBackgroundType } from '@/types/brand';
@@ -211,16 +211,11 @@ const sortSections = (sections: string[], mode: SortMode, meta: Record<string, {
   }
 };
 
+// Unified spring config for consistent motion rhythm
+const CARD_SPRING = { type: 'spring' as const, stiffness: 140, damping: 28, mass: 0.9 };
+
 // Extracted card grid with expanding hover cards
-function CardGrid({
-  sections,
-  sectionMeta,
-  activeSection,
-  hiddenSections,
-  isAdmin,
-  onSectionSelect,
-  isDark,
-}: {
+const CardGrid = React.forwardRef<HTMLDivElement, {
   sections: string[];
   sectionMeta: Record<string, { label: string; icon: React.ElementType; category: string }>;
   activeSection: string;
@@ -228,13 +223,22 @@ function CardGrid({
   isAdmin: boolean;
   onSectionSelect: (id: string) => void;
   isDark: boolean;
-}) {
+}>(function CardGrid({
+  sections,
+  sectionMeta,
+  activeSection,
+  hiddenSections,
+  isAdmin,
+  onSectionSelect,
+  isDark,
+}, ref) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleMouseEnter = useCallback((id: string) => {
     if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
-    hoverTimeout.current = setTimeout(() => setHoveredId(id), 150);
+    // Reduced delay for snappier response
+    hoverTimeout.current = setTimeout(() => setHoveredId(id), 80);
   }, []);
 
   const handleMouseLeave = useCallback(() => {
@@ -244,13 +248,8 @@ function CardGrid({
 
   return (
     <motion.div
+      ref={ref}
       className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-1.5 sm:gap-2"
-      initial="hidden"
-      animate="visible"
-      variants={{
-        hidden: {},
-        visible: { transition: { staggerChildren: 0.02 } },
-      }}
       style={{ alignItems: 'start' }}
     >
       {sections.map((sectionId, index) => {
@@ -269,33 +268,28 @@ function CardGrid({
         return (
           <motion.button
             key={sectionId}
+            layout="position"
             onClick={() => onSectionSelect(sectionId)}
             onMouseEnter={() => handleMouseEnter(sectionId)}
             onMouseLeave={handleMouseLeave}
-            variants={{
-              hidden: { opacity: 0, y: 12, scale: 0.9 },
-              visible: { opacity: 1, y: 0, scale: 1 },
+            initial={{ opacity: 0, y: 12 }}
+            animate={{
+              opacity: isShrunk ? 0.65 : 1,
+              scale: isShrunk ? 0.94 : 1,
+              filter: isShrunk ? (isDark ? 'brightness(0.8)' : 'brightness(0.95)') : 'brightness(1)',
             }}
-            animate={
-              isExpanded
-                ? { scale: 1, y: 0, opacity: 1 }
-                : isShrunk
-                  ? { scale: 0.92, y: 0, opacity: 0.65 }
-                  : { scale: 1, y: 0, opacity: 1 }
-            }
-            whileTap={{ scale: 0.98 }}
-            transition={{ type: 'spring', stiffness: 120, damping: 26, mass: 1 }}
+            whileTap={{ scale: 0.97 }}
+            transition={CARD_SPRING}
             className={cn(
               'section-card-shimmer group relative flex flex-col items-center justify-center rounded-xl',
-              'transition-[background,box-shadow,filter,border-color,ring-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] origin-center overflow-hidden',
+              'transition-[background,box-shadow,border-color,ring-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] origin-center overflow-hidden',
               isExpanded ? 'col-span-3 row-span-2 z-30 p-3 gap-2' : 'col-span-1 p-2 gap-1 aspect-square',
               isActive
                 ? 'text-white ring-2'
                 : isDark
                   ? 'bg-card/80 backdrop-blur-sm text-card-foreground'
                   : 'bg-white/90 backdrop-blur-sm text-foreground shadow-sm border border-border/30',
-              isHidden && isAdmin && 'opacity-40 grayscale',
-              isShrunk && (isDark ? 'filter brightness-80' : 'filter brightness-95 opacity-70')
+              isHidden && isAdmin && 'opacity-40 grayscale'
             )}
             style={{
               '--shimmer-color': tint.bg,
@@ -370,8 +364,8 @@ function CardGrid({
 
             {/* Icon — larger when expanded */}
             <motion.div
-              animate={isExpanded ? { scale: 1.2 } : { scale: 1 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 22, mass: 0.6 }}
+              animate={isExpanded ? { scale: 1.15 } : { scale: 1 }}
+              transition={CARD_SPRING}
               className="relative z-10"
             >
               <Icon className={cn(
@@ -397,7 +391,7 @@ function CardGrid({
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  transition={{ type: 'spring', stiffness: 160, damping: 22, mass: 0.7 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                   className="relative z-10 w-full space-y-1.5 overflow-hidden"
                 >
                   {/* Category badge */}
@@ -428,7 +422,7 @@ function CardGrid({
                         key={cap}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.06, type: 'spring', stiffness: 200, damping: 18 }}
+                        transition={{ delay: i * 0.04, duration: 0.25, ease: 'easeOut' }}
                         className={cn(
                           "text-[8px] px-1.5 py-0.5 rounded-md border",
                           isActive
@@ -458,15 +452,16 @@ function CardGrid({
               )}
             </AnimatePresence>
 
-            {/* Animated bottom accent bar */}
+            {/* Subtle bottom accent bar */}
             {isActive && (
               <motion.div
-                layoutId="section-card-indicator"
                 className="absolute bottom-0.5 left-2 right-2 h-[2px] rounded-full"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
                 style={{
                   background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent)',
                 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               />
             )}
           </motion.button>
@@ -474,7 +469,7 @@ function CardGrid({
       })}
     </motion.div>
   );
-}
+});
 
 export const SectionCardGrid = ({
   sectionOrder,
