@@ -115,7 +115,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
   const userEngagement = stats?.totalUsers ? Math.round((stats.activeUsersToday / stats.totalUsers) * 100) : 0;
 
   const quickActions: QuickAction[] = [
-    { id: 'approvals', label: 'Review Approvals', icon: <UserCheck className="h-4 w-4" />, onClick: () => onTabChange('approvals'), badge: stats?.pendingApprovals, variant: (stats?.pendingApprovals || 0) > 0 ? 'destructive' : 'outline' },
+    { id: 'approvals', label: 'Review Approvals', icon: <UserCheck className="h-4 w-4" />, onClick: () => onTabChange('people'), badge: stats?.pendingApprovals, variant: (stats?.pendingApprovals || 0) > 0 ? 'destructive' : 'outline' },
     { id: 'reports', label: 'Generate Report', icon: <FileText className="h-4 w-4" />, onClick: () => onTabChange('reports') },
     { id: 'ai-analysis', label: 'Intelligence Hub', icon: <Brain className="h-4 w-4" />, onClick: () => onTabChange('intelligence') },
     { id: 'backups', label: 'Manage Backups', icon: <HardDrive className="h-4 w-4" />, onClick: () => onTabChange('backups') },
@@ -145,7 +145,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
         {(stats?.pendingApprovals || 0) > 0 && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
             <button
-              onClick={() => onTabChange('approvals')}
+              onClick={() => onTabChange('people')}
               className="w-full flex items-center gap-3 p-3 rounded-xl bg-destructive/10 border border-destructive/25 hover:bg-destructive/15 transition-all group"
             >
               <div className="h-8 w-8 rounded-lg bg-destructive/20 flex items-center justify-center shrink-0">
@@ -165,7 +165,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
       <motion.div variants={fadeUp} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
         <StatChip icon={Users} color="text-primary" bg="bg-primary/10" value={stats?.totalUsers || 0} label="Users"
           trend={(stats?.newUsersThisWeek || 0) > 0 ? `+${stats?.newUsersThisWeek}` : undefined}
-          onClick={() => onTabChange('users')} />
+          onClick={() => onTabChange('people')} />
         <StatChip icon={Building2} color="text-violet-500" bg="bg-violet-500/10" value={stats?.totalOrganizations || 0} label="Organizations"
           onClick={() => onTabChange('organizations')} />
         <StatChip icon={Palette} color="text-blue-500" bg="bg-blue-500/10" value={stats?.totalBrands || 0} label="Brands"

@@ -51,6 +51,7 @@ import { AdminImageLibrary } from '@/components/admin/AdminImageLibrary';
 import { GlobalLogoHub } from '@/components/admin/GlobalLogoHub';
 import { AdminSidebar, AdminMobileNav } from '@/components/admin/AdminSidebar';
 import { LeadSubmissionsPanel } from '@/components/admin/LeadSubmissionsPanel';
+import { PeopleHub } from '@/components/admin/PeopleHub';
 import { CompanyLocationsManager } from '@/components/admin/CompanyLocationsManager';
 import { GlobalMapThemeEditor } from '@/components/admin/GlobalMapThemeEditor';
 import { AdminOverview } from '@/components/admin/AdminOverview';
@@ -85,7 +86,12 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState('7d');
   const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'overview');
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = searchParams.get('tab') || 'overview';
+    // Redirect legacy tab IDs to the unified People hub
+    if (tab === 'users' || tab === 'approvals' || tab === 'leads') return 'people';
+    return tab;
+  });
 
   // Sync activeTab with URL query param on mount and when it changes
   useEffect(() => {
@@ -614,14 +620,11 @@ export default function AdminDashboard() {
             />
           </TabsContent>
 
-          {/* Approvals Tab */}
-          <TabsContent value="approvals" className="space-y-6">
-            <UserApprovalManager />
+          {/* People Hub (Users, Approvals, Leads) */}
+          <TabsContent value="people" className="space-y-6">
+            <PeopleHub pendingApprovals={stats?.pendingApprovals} />
           </TabsContent>
 
-          <TabsContent value="users" className="space-y-6">
-            <UsersAndMembersTab />
-          </TabsContent>
 
           {/* Organizations Tab */}
           <TabsContent value="organizations" className="space-y-6">
@@ -861,10 +864,8 @@ export default function AdminDashboard() {
             </Tabs>
           </TabsContent>
 
-          {/* Lead Submissions Tab */}
-          <TabsContent value="leads" className="space-y-6">
-            <LeadSubmissionsPanel />
-          </TabsContent>
+
+
 
           {/* Demo Pages Tab */}
           <TabsContent value="demo-pages" className="space-y-6">
