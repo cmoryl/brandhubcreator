@@ -1836,12 +1836,12 @@ export default function BoothsCatalog() {
         )}
 
         <div className="relative max-w-7xl mx-auto z-10 py-20 px-6">
-          <BrandHubLogo size="sm" className="mb-4" />
           <div className="flex items-center justify-between mb-6">
+            <BrandHubLogo size="sm" />
             <Button 
               variant="ghost" 
               onClick={() => navigate('/org/transperfect')} 
-              className="text-white/70 hover:text-white hover:bg-white/10 -ml-2"
+              className="text-white/70 hover:text-white hover:bg-white/10"
             >
               <ArrowLeft className="h-4 w-4 mr-2" /> Back
             </Button>
