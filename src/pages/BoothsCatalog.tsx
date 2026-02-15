@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, 
   Radio, Heart, Database, Microscope, Globe, X, ChevronLeft, ChevronRight,
-  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown, Upload, RotateCcw
+  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown, Upload, RotateCcw, Type, Download
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -1532,8 +1532,34 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                 </div>
               </div>
 
-              <div>
+              <div className="space-y-6">
                 <ProductionSpecsManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+
+                {/* Font Family Callout */}
+                <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                    <Type className="h-4 w-4" /> Font Family
+                  </h3>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold" style={{ fontFamily: 'Poppins, sans-serif' }}>Poppins</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Used across all booth materials — weights 300–800</p>
+                    </div>
+                    <a
+                      href="https://fonts.google.com/specimen/Poppins"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md border border-primary/30 text-primary hover:bg-primary/10 transition-colors shrink-0"
+                    >
+                      <Download className="h-3 w-3" /> Download
+                    </a>
+                  </div>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {['Light 300', 'Regular 400', 'Medium 500', 'SemiBold 600', 'Bold 700', 'ExtraBold 800'].map(w => (
+                      <span key={w} className="text-[10px] px-2 py-0.5 rounded-full bg-muted border border-border/40 text-muted-foreground">{w}</span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
