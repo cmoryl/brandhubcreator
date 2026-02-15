@@ -39,67 +39,34 @@ const SECTION_DESCRIPTIONS: Record<string, string> = {
   digitalcollateral: 'Digital asset library for online brand materials.',
 };
 
-// Hover detail tooltip component
-function CardHoverDetail({
-  label,
-  category,
-  description,
-  tintColor,
-  icon: Icon,
-}: {
-  label: string;
-  category: string;
-  description: string;
-  tintColor: string;
-  icon: React.ElementType;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8, scale: 0.92 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 4, scale: 0.95 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 pointer-events-none w-48 sm:w-56"
-    >
-      <div className="relative rounded-xl border border-border/60 bg-card/95 backdrop-blur-xl shadow-2xl overflow-hidden">
-        {/* Top accent bar */}
-        <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, transparent, ${tintColor}, transparent)` }} />
-
-        <div className="p-3 space-y-2">
-          {/* Header */}
-          <div className="flex items-center gap-2">
-            <div
-              className="p-1.5 rounded-lg"
-              style={{ backgroundColor: tintColor.replace(')', ' / 0.15)').replace('hsl(', 'hsl(') }}
-            >
-              <Icon className="h-4 w-4" style={{ color: tintColor }} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-foreground truncate">{label}</p>
-              <p className="text-[10px] text-muted-foreground font-medium">{category}</p>
-            </div>
-          </div>
-
-          {/* Description */}
-          <p className="text-[10px] leading-relaxed text-muted-foreground line-clamp-3">
-            {description}
-          </p>
-
-          {/* Action hint */}
-          <div className="flex items-center gap-1 text-[9px] text-accent font-medium pt-0.5">
-            <ChevronRight className="h-2.5 w-2.5" />
-            <span>Click to open section</span>
-          </div>
-        </div>
-
-        {/* Caret */}
-        <div
-          className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 border-r border-b border-border/60 bg-card/95"
-        />
-      </div>
-    </motion.div>
-  );
-}
+// Capabilities per section for expanded view
+const SECTION_CAPABILITIES: Record<string, string[]> = {
+  colors: ['Palette management', 'Contrast checker', 'Tint generator'],
+  typography: ['Font pairing', 'Scale system', 'Web fonts'],
+  logos: ['Multi-format export', 'Clear space', 'Usage rules'],
+  gradients: ['Gradient builder', 'CSS export', 'Palette-derived'],
+  patterns: ['Tile patterns', 'Textures', 'Scalable SVGs'],
+  identity: ['Mission & vision', 'Values', 'Personality'],
+  voice: ['Tone spectrum', 'Writing guides', 'Examples'],
+  imagery: ['Photo direction', 'Illustration', 'Treatments'],
+  iconography: ['Icon grid', 'Style presets', 'Generator'],
+  website: ['Components', 'SEO audit', 'Performance'],
+  products: ['Sub-brands', 'Product lines', 'Packaging'],
+  templates: ['Presentations', 'Documents', 'Social'],
+  collateral: ['Print specs', 'Digital assets', 'Mockups'],
+  brochures: ['Layouts', 'Content blocks', 'Print-ready'],
+  casestudies: ['Story format', 'Metrics', 'Templates'],
+  socialassets: ['Platform sizing', 'Calendar', 'Templates'],
+  signatures: ['Email templates', 'Cards', 'HTML export'],
+  qrcodes: ['Branded codes', 'Dynamic links', 'Analytics'],
+  antipatterns: ['Misuse gallery', 'Corrections', 'Approvals'],
+  symbolstandards: ['Min sizes', 'Placement', 'Color rules'],
+  geometricprimitives: ['Shape library', 'Construction', 'Proportions'],
+  events: ['Event branding', 'Signage', 'Swag guidelines'],
+  statistics: ['Brand metrics', 'Research', 'Benchmarks'],
+  platformmarketer: ['Ad templates', 'Platform rules', 'Targeting'],
+  digitalcollateral: ['Asset library', 'Files', 'Sharing'],
+};
 
 interface SectionCardGridProps {
   sectionOrder: string[];
@@ -218,7 +185,7 @@ const sortSections = (sections: string[], mode: SortMode, meta: Record<string, {
   }
 };
 
-// Extracted card grid with hover detail support
+// Extracted card grid with expanding hover cards
 function CardGrid({
   sections,
   sectionMeta,
@@ -239,7 +206,7 @@ function CardGrid({
 
   const handleMouseEnter = useCallback((id: string) => {
     if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
-    hoverTimeout.current = setTimeout(() => setHoveredId(id), 200);
+    hoverTimeout.current = setTimeout(() => setHoveredId(id), 150);
   }, []);
 
   const handleMouseLeave = useCallback(() => {
@@ -256,6 +223,7 @@ function CardGrid({
         hidden: {},
         visible: { transition: { staggerChildren: 0.02 } },
       }}
+      style={{ alignItems: 'start' }}
     >
       {sections.map((sectionId, index) => {
         const meta = sectionMeta[sectionId];
@@ -265,7 +233,9 @@ function CardGrid({
         const isHidden = hiddenSections.includes(sectionId);
         const tint = CARD_TINTS[index % CARD_TINTS.length];
         const isHovered = hoveredId === sectionId;
+        const isShrunk = hoveredId !== null && hoveredId !== sectionId;
         const description = SECTION_DESCRIPTIONS[sectionId] || `Manage ${meta.label.toLowerCase()} settings and guidelines.`;
+        const capabilities = SECTION_CAPABILITIES[sectionId] || ['Configure', 'Manage', 'Export'];
 
         return (
           <motion.button
@@ -273,21 +243,28 @@ function CardGrid({
             onClick={() => onSectionSelect(sectionId)}
             onMouseEnter={() => handleMouseEnter(sectionId)}
             onMouseLeave={handleMouseLeave}
-            title={meta.label}
             variants={{
               hidden: { opacity: 0, y: 12, scale: 0.9 },
               visible: { opacity: 1, y: 0, scale: 1 },
             }}
-            whileHover={{ scale: 1.15, y: -6, zIndex: 30 }}
+            animate={
+              isHovered
+                ? { scale: 1, y: 0 }
+                : isShrunk
+                  ? { scale: 0.88, y: 0, opacity: 0.6 }
+                  : { scale: 1, y: 0, opacity: 1 }
+            }
             whileTap={{ scale: 0.92 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
             className={cn(
-              'section-card-shimmer group relative flex flex-col items-center justify-center gap-1 p-2 rounded-xl aspect-square',
-              'transition-all duration-300',
+              'section-card-shimmer group relative flex flex-col items-center justify-center rounded-xl',
+              'transition-all duration-300 origin-center overflow-hidden',
+              isHovered ? 'col-span-3 row-span-2 z-30 p-3 gap-2' : 'col-span-1 p-2 gap-1 aspect-square',
               isActive
                 ? 'text-white ring-1'
                 : 'bg-card/80 backdrop-blur-sm text-card-foreground',
-              isHidden && isAdmin && 'opacity-40 grayscale'
+              isHidden && isAdmin && 'opacity-40 grayscale',
+              isShrunk && 'filter brightness-75'
             )}
             style={{
               '--shimmer-color': tint.bg,
@@ -296,25 +273,23 @@ function CardGrid({
                 background: `linear-gradient(135deg, ${tint.bg}, ${tint.bg.replace(')', ' / 0.7)')})`,
                 boxShadow: `0 0 20px ${tint.bg.replace(')', ' / 0.4)')}, 0 0 40px ${tint.bg.replace(')', ' / 0.15)')}`,
                 ringColor: tint.bg.replace(')', ' / 0.6)'),
+              } : isHovered ? {
+                boxShadow: `0 4px 30px ${tint.bg.replace(')', ' / 0.25)')}, 0 0 60px ${tint.bg.replace(')', ' / 0.1)')}`,
+                border: `1px solid ${tint.bg.replace(')', ' / 0.3)')}`,
               } : {}),
-            } as React.CSSProperties}
+            } as any}
           >
-            {/* Hover glow ring */}
-            <AnimatePresence>
-              {isHovered && !isActive && (
-                <motion.div
-                  className="absolute inset-0 rounded-xl pointer-events-none"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  style={{
-                    boxShadow: `0 0 16px ${tint.bg.replace(')', ' / 0.3)')}, inset 0 0 12px ${tint.bg.replace(')', ' / 0.08)')}`,
-                    border: `1px solid ${tint.bg.replace(')', ' / 0.3)')}`,
-                    borderRadius: 'inherit',
-                  }}
-                />
-              )}
-            </AnimatePresence>
+            {/* Hover glow background */}
+            {isHovered && (
+              <motion.div
+                className="absolute inset-0 rounded-xl pointer-events-none"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                style={{
+                  background: `radial-gradient(ellipse at center, ${tint.bg.replace(')', ' / 0.12)')}, transparent 70%)`,
+                }}
+              />
+            )}
 
             {/* Active prismatic overlay */}
             {isActive && (
@@ -331,16 +306,85 @@ function CardGrid({
               </>
             )}
 
-            <Icon className={cn(
-              'relative z-10 h-5 w-5 sm:h-6 sm:w-6 transition-all duration-300',
-              isActive && 'drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]'
-            )} />
+            {/* Icon — larger when expanded */}
+            <motion.div
+              animate={isHovered ? { scale: 1.3 } : { scale: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              className="relative z-10"
+            >
+              <Icon className={cn(
+                'h-5 w-5 sm:h-6 sm:w-6 transition-all duration-300',
+                isHovered && 'h-7 w-7 sm:h-8 sm:w-8',
+                isActive && 'drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]'
+              )} />
+            </motion.div>
+
+            {/* Label */}
             <span className={cn(
-              'relative z-10 text-[9px] sm:text-[10px] leading-tight text-center line-clamp-2 font-normal tracking-wide',
+              'relative z-10 leading-tight text-center font-normal tracking-wide',
+              isHovered ? 'text-xs font-semibold' : 'text-[9px] sm:text-[10px] line-clamp-2',
               isActive ? 'text-white' : 'text-foreground/70 group-hover:text-foreground'
             )}>
               {meta.label}
             </span>
+
+            {/* Expanded detail content */}
+            <AnimatePresence>
+              {isHovered && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  className="relative z-10 w-full space-y-1.5 overflow-hidden"
+                >
+                  {/* Category badge */}
+                  <div className="flex justify-center">
+                    <span
+                      className="text-[9px] font-semibold px-2 py-0.5 rounded-full"
+                      style={{
+                        backgroundColor: tint.bg.replace(')', ' / 0.15)'),
+                        color: tint.bg,
+                      }}
+                    >
+                      {meta.category}
+                    </span>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-[10px] leading-relaxed text-muted-foreground text-center line-clamp-2 px-1">
+                    {description}
+                  </p>
+
+                  {/* Capabilities */}
+                  <div className="flex flex-wrap gap-1 justify-center pt-0.5">
+                    {capabilities.map((cap, i) => (
+                      <motion.span
+                        key={cap}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.04, type: 'spring', stiffness: 500 }}
+                        className="text-[8px] px-1.5 py-0.5 rounded-md bg-muted/50 text-muted-foreground border border-border/40"
+                      >
+                        {cap}
+                      </motion.span>
+                    ))}
+                  </div>
+
+                  {/* Action hint */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.15 }}
+                    className="flex items-center justify-center gap-1 text-[9px] font-medium pt-1"
+                    style={{ color: tint.bg }}
+                  >
+                    <ChevronRight className="h-2.5 w-2.5" />
+                    <span>Open section</span>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Animated bottom accent bar */}
             {isActive && (
@@ -353,19 +397,6 @@ function CardGrid({
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               />
             )}
-
-            {/* Hover detail tooltip */}
-            <AnimatePresence>
-              {isHovered && (
-                <CardHoverDetail
-                  label={meta.label}
-                  category={meta.category}
-                  description={description}
-                  tintColor={tint.bg}
-                  icon={Icon}
-                />
-              )}
-            </AnimatePresence>
           </motion.button>
         );
       })}
