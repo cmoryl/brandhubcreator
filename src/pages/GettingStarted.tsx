@@ -4,13 +4,28 @@
  * Targets: team members, public visitors, new users
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CheckCircle, Circle, ChevronRight, Play, BookOpen, 
   Palette, Type, Image, Globe, Layers, ArrowRight,
-  Sparkles, FileText, Users, Settings, Eye, Rocket
+  Sparkles, FileText, Users, Settings, Eye, Rocket,
+  Pause, Volume2, VolumeX
 } from 'lucide-react';
+
+import step1Video from '@/assets/videos/step-1-organization.mp4';
+import step2Video from '@/assets/videos/step-2-brand.mp4';
+import step3Video from '@/assets/videos/step-3-colors.mp4';
+import step4Video from '@/assets/videos/step-4-typography.mp4';
+import step5Video from '@/assets/videos/step-5-logos.mp4';
+import step6Video from '@/assets/videos/step-6-voice.mp4';
+import step7Video from '@/assets/videos/step-7-team.mp4';
+import step8Video from '@/assets/videos/step-8-publish.mp4';
+
+const STEP_VIDEOS = [
+  step1Video, step2Video, step3Video, step4Video,
+  step5Video, step6Video, step7Video, step8Video,
+];
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -226,6 +241,66 @@ const StepCard = ({
   );
 };
 
+const StepVideo = ({ step }: { step: GuideStep }) => {
+  const Icon = step.icon;
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoSrc = STEP_VIDEOS[step.id - 1];
+
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  return (
+    <div className="relative aspect-video rounded-xl bg-muted/50 border border-border/50 overflow-hidden group">
+      <video
+        ref={videoRef}
+        src={videoSrc}
+        className="w-full h-full object-cover"
+        loop
+        muted={isMuted}
+        playsInline
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+      />
+      {/* Play overlay */}
+      {!isPlaying && (
+        <button onClick={togglePlay} className="absolute inset-0 flex items-center justify-center bg-background/30 transition-opacity">
+          <div className="w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center shadow-lg hover:bg-primary transition-colors">
+            <Play className="h-7 w-7 text-primary-foreground ml-1" />
+          </div>
+        </button>
+      )}
+      {/* Controls */}
+      <div className={cn(
+        "absolute bottom-3 right-3 flex gap-1.5 transition-opacity",
+        isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"
+      )}>
+        <Button variant="secondary" size="icon" className="h-8 w-8 bg-background/80 backdrop-blur-sm" onClick={togglePlay}>
+          {isPlaying ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+        </Button>
+        <Button variant="secondary" size="icon" className="h-8 w-8 bg-background/80 backdrop-blur-sm" onClick={() => { setIsMuted(!isMuted); if (videoRef.current) videoRef.current.muted = !isMuted; }}>
+          {isMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+        </Button>
+      </div>
+      {/* Step badge */}
+      <div className="absolute top-3 left-3">
+        <Badge className="bg-primary/90 text-primary-foreground text-xs gap-1">
+          <Icon className="h-3 w-3" />
+          Step {step.id}
+        </Badge>
+      </div>
+    </div>
+  );
+};
+
 const StepDetail = ({ step }: { step: GuideStep }) => {
   const Icon = step.icon;
   
@@ -238,22 +313,7 @@ const StepDetail = ({ step }: { step: GuideStep }) => {
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-6"
     >
-      {/* Video placeholder */}
-      <div className="relative aspect-video rounded-xl bg-muted/50 border border-border/50 overflow-hidden group cursor-pointer">
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-          <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
-            <Play className="h-7 w-7 text-primary ml-1" />
-          </div>
-          <p className="text-sm font-medium text-muted-foreground">{step.videoPlaceholder}</p>
-          <Badge variant="outline" className="text-xs">Coming Soon</Badge>
-        </div>
-        <div className="absolute top-3 left-3">
-          <Badge className="bg-primary/90 text-primary-foreground text-xs gap-1">
-            <Icon className="h-3 w-3" />
-            Step {step.id}
-          </Badge>
-        </div>
-      </div>
+      <StepVideo step={step} />
 
       {/* Step content */}
       <div>
