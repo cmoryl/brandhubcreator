@@ -94,18 +94,18 @@ const EXCLUDED_FROM_NAV: string[] = ['socialmetrics', 'hero'];
 
 // Each card gets a unique tint color based on index
 const CARD_TINTS = [
-  { bg: 'hsl(210 80% 55%)',  tint: 'hsl(210 80% 55% / 0.08)' },
-  { bg: 'hsl(280 70% 55%)',  tint: 'hsl(280 70% 55% / 0.08)' },
-  { bg: 'hsl(340 75% 55%)',  tint: 'hsl(340 75% 55% / 0.08)' },
-  { bg: 'hsl(160 60% 45%)',  tint: 'hsl(160 60% 45% / 0.08)' },
-  { bg: 'hsl(35 90% 55%)',   tint: 'hsl(35 90% 55% / 0.08)' },
-  { bg: 'hsl(190 75% 50%)',  tint: 'hsl(190 75% 50% / 0.08)' },
-  { bg: 'hsl(250 65% 60%)',  tint: 'hsl(250 65% 60% / 0.08)' },
-  { bg: 'hsl(15 80% 55%)',   tint: 'hsl(15 80% 55% / 0.08)' },
-  { bg: 'hsl(320 70% 55%)',  tint: 'hsl(320 70% 55% / 0.08)' },
-  { bg: 'hsl(145 55% 48%)',  tint: 'hsl(145 55% 48% / 0.08)' },
-  { bg: 'hsl(200 85% 50%)',  tint: 'hsl(200 85% 50% / 0.08)' },
-  { bg: 'hsl(45 95% 55%)',   tint: 'hsl(45 95% 55% / 0.08)' },
+  { bg: 'hsl(210 80% 55%)',  tint: 'hsl(210 80% 55% / 0.08)', tintLight: 'hsl(210 80% 55% / 0.06)' },
+  { bg: 'hsl(280 70% 55%)',  tint: 'hsl(280 70% 55% / 0.08)', tintLight: 'hsl(280 70% 55% / 0.06)' },
+  { bg: 'hsl(340 75% 55%)',  tint: 'hsl(340 75% 55% / 0.08)', tintLight: 'hsl(340 75% 55% / 0.06)' },
+  { bg: 'hsl(160 60% 45%)',  tint: 'hsl(160 60% 45% / 0.08)', tintLight: 'hsl(160 60% 45% / 0.06)' },
+  { bg: 'hsl(35 90% 55%)',   tint: 'hsl(35 90% 55% / 0.08)',  tintLight: 'hsl(35 90% 55% / 0.06)' },
+  { bg: 'hsl(190 75% 50%)',  tint: 'hsl(190 75% 50% / 0.08)', tintLight: 'hsl(190 75% 50% / 0.06)' },
+  { bg: 'hsl(250 65% 60%)',  tint: 'hsl(250 65% 60% / 0.08)', tintLight: 'hsl(250 65% 60% / 0.06)' },
+  { bg: 'hsl(15 80% 55%)',   tint: 'hsl(15 80% 55% / 0.08)',  tintLight: 'hsl(15 80% 55% / 0.06)' },
+  { bg: 'hsl(320 70% 55%)',  tint: 'hsl(320 70% 55% / 0.08)', tintLight: 'hsl(320 70% 55% / 0.06)' },
+  { bg: 'hsl(145 55% 48%)',  tint: 'hsl(145 55% 48% / 0.08)', tintLight: 'hsl(145 55% 48% / 0.06)' },
+  { bg: 'hsl(200 85% 50%)',  tint: 'hsl(200 85% 50% / 0.08)', tintLight: 'hsl(200 85% 50% / 0.06)' },
+  { bg: 'hsl(45 95% 55%)',   tint: 'hsl(45 95% 55% / 0.08)',  tintLight: 'hsl(45 95% 55% / 0.06)' },
 ];
 
 const CARD_BG_OPTIONS: { type: BrandBackgroundType; label: string; icon: typeof Sparkles }[] = [
@@ -193,6 +193,7 @@ function CardGrid({
   hiddenSections,
   isAdmin,
   onSectionSelect,
+  isDark,
 }: {
   sections: string[];
   sectionMeta: Record<string, { label: string; icon: React.ElementType; category: string }>;
@@ -200,6 +201,7 @@ function CardGrid({
   hiddenSections: string[];
   isAdmin: boolean;
   onSectionSelect: (id: string) => void;
+  isDark: boolean;
 }) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -263,20 +265,24 @@ function CardGrid({
               isExpanded ? 'col-span-3 row-span-2 z-30 p-3 gap-2' : 'col-span-1 p-2 gap-1 aspect-square',
               isActive
                 ? 'text-white ring-2'
-                : 'bg-card/80 backdrop-blur-sm text-card-foreground',
+                : isDark
+                  ? 'bg-card/80 backdrop-blur-sm text-card-foreground'
+                  : 'bg-white/90 backdrop-blur-sm text-foreground shadow-sm border border-border/30',
               isHidden && isAdmin && 'opacity-40 grayscale',
-              isShrunk && 'filter brightness-80'
+              isShrunk && (isDark ? 'filter brightness-80' : 'filter brightness-95 opacity-70')
             )}
             style={{
               '--shimmer-color': tint.bg,
-              backgroundColor: isActive ? undefined : tint.tint,
+              backgroundColor: isActive ? undefined : (isDark ? tint.tint : tint.tintLight),
               ...(isActive ? {
                 background: `linear-gradient(135deg, ${tint.bg}, ${tint.bg.replace(')', ' / 0.7)')})`,
                 boxShadow: `0 0 20px ${tint.bg.replace(')', ' / 0.4)')}, 0 0 40px ${tint.bg.replace(')', ' / 0.15)')}`,
                 ringColor: tint.bg.replace(')', ' / 0.6)'),
               } : isExpanded ? {
-                boxShadow: `0 4px 30px ${tint.bg.replace(')', ' / 0.25)')}, 0 0 60px ${tint.bg.replace(')', ' / 0.1)')}`,
-                border: `1px solid ${tint.bg.replace(')', ' / 0.3)')}`,
+                boxShadow: isDark
+                  ? `0 4px 30px ${tint.bg.replace(')', ' / 0.25)')}, 0 0 60px ${tint.bg.replace(')', ' / 0.1)')}`
+                  : `0 4px 20px ${tint.bg.replace(')', ' / 0.15)')}, 0 8px 30px rgba(0,0,0,0.08)`,
+                border: `1px solid ${tint.bg.replace(')', isDark ? ' / 0.3)' : ' / 0.25)')}`,
               } : {}),
             } as any}
           >
@@ -472,7 +478,12 @@ export const SectionCardGrid = ({
   const activeLogoUrl = resolvedTheme === 'dark' ? (entityDarkLogoUrl || entityLightLogoUrl) : (entityLightLogoUrl || entityDarkLogoUrl);
 
   return (
-    <div className="w-full mb-8 relative">
+    <div className={cn(
+      "w-full mb-8 relative rounded-2xl",
+      !hasBackground && (resolvedTheme === 'dark'
+        ? 'bg-background'
+        : 'bg-gradient-to-br from-muted/40 via-background to-muted/30 border border-border/20 shadow-sm p-4')
+    )}>
       {/* Card View Background */}
       {hasBackground && (
         <div className="absolute inset-0 -inset-x-4 -top-4 -bottom-2 rounded-2xl overflow-hidden pointer-events-none z-0">
@@ -481,7 +492,10 @@ export const SectionCardGrid = ({
             animationSpeed="medium"
             tintColor={cardViewBackgroundTint || undefined}
           />
-          <div className="absolute inset-0 bg-background/30 backdrop-blur-[1px]" />
+          <div className={cn(
+            "absolute inset-0 backdrop-blur-[1px]",
+            resolvedTheme === 'dark' ? 'bg-background/30' : 'bg-white/40'
+          )} />
         </div>
       )}
 
@@ -721,6 +735,7 @@ export const SectionCardGrid = ({
           hiddenSections={hiddenSections}
           isAdmin={isAdmin}
           onSectionSelect={onSectionSelect}
+          isDark={resolvedTheme === 'dark'}
         />
       </div>
     </div>
