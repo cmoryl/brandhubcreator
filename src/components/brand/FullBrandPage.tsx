@@ -36,6 +36,7 @@ import { EventsSection } from './EventsSection';
 import { WebinarSeriesSection } from './WebinarSeriesSection';
 import AwardsSection from './AwardsSection';
 import { GlobalLinkUniverseSection } from './GlobalLinkUniverseSection';
+import { BrandUniverseOrbit } from './BrandUniverseOrbit';
 import { InsightsSection } from './InsightsSection';
 const LeafletLocationsSection = lazy(() => import('./LeafletLocationsSection').then(m => ({ default: m.LeafletLocationsSection })));
 import { BrandEventSignageSection } from './BrandEventSignageSection';
@@ -321,13 +322,11 @@ export const FullBrandPage = ({
           ? <EventsSection brandId={brandId} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} canEdit={canEdit} />
           : null;
       case 'universe':
-        // Only show for product suites (products with linkedGuides)
-        // Check if this is a product with linked guides (like GlobalLink)
-        if (brand.type === 'product' && brand.linkedGuides && brand.linkedGuides.length > 0) {
+        if (brand.linkedGuides && brand.linkedGuides.length > 0) {
           const primaryColor = brand.colors?.[0]?.hex || '#6366f1';
           return <GlobalLinkUniverseSection linkedGuides={brand.linkedGuides} primaryColor={primaryColor} />;
         }
-        return null;
+        return <BrandUniverseOrbit organizationId={organizationId} brandColors={brand.colors} organizationName={brand.hero?.name} />;
       case 'insights':
         return <InsightsSection 
           insights={brand.insights || []} 

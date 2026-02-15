@@ -62,6 +62,7 @@ import { EventsSection } from '@/components/brand/EventsSection';
 import AwardsSection from '@/components/brand/AwardsSection';
 import { ImageAssetsSection } from '@/components/brand/ImageAssetsSection';
 import { GlobalLinkUniverseSection } from '@/components/brand/GlobalLinkUniverseSection';
+import { BrandUniverseOrbit } from '@/components/brand/BrandUniverseOrbit';
 import { BrandEventSignageSection } from '@/components/brand/BrandEventSignageSection';
 import { PresentationTemplatesSection } from '@/components/brand/PresentationTemplatesSection';
 const LeafletLocationsSection = lazy(() => import('@/components/brand/LeafletLocationsSection').then(m => ({ default: m.LeafletLocationsSection })));
@@ -817,7 +818,11 @@ const BrandEditor = () => {
       case 'imageassets': return <ImageAssetsSection imageAssets={brand.imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => updateBrand({ imageAssets }))} canEdit={canEdit} entityId={brand.id} entityType="brand" />;
       case 'events': return <EventsSection brandId={brand.id} canEdit={canEdit} />;
       case 'eventsignage': return <BrandEventSignageSection eventSignage={brand.eventSignage || []} onEventSignageChange={editHandler((eventSignage) => updateBrand({ eventSignage }))} brandColors={brand.colors || []} />;
-      case 'universe': return <GlobalLinkUniverseSection linkedGuides={brand.linkedGuides || []} primaryColor={brand.colors?.[0]?.hex} />;
+      case 'universe': 
+        if (brand.linkedGuides && brand.linkedGuides.length > 0) {
+          return <GlobalLinkUniverseSection linkedGuides={brand.linkedGuides} primaryColor={brand.colors?.[0]?.hex} />;
+        }
+        return <BrandUniverseOrbit organizationId={brand.organizationId} brandColors={brand.colors} organizationName={brand.hero?.name} />;
       case 'presentations': return <PresentationTemplatesSection presentations={brand.presentationTemplates || []} onUpdate={editHandler((presentationTemplates) => updateBrand({ presentationTemplates }))} />;
       default: return null;
     }
