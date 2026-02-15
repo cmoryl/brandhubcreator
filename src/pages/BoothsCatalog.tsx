@@ -1812,9 +1812,9 @@ export default function BoothsCatalog() {
 
         <div className="relative max-w-7xl mx-auto z-10 py-20 px-6">
           <div className="flex items-center justify-between mb-6">
-            <div className="cursor-pointer inline-block" onClick={() => navigate('/org/transperfect')}><BrandHubLogo size="sm" /></div>
+            <div className="cursor-pointer inline-block" onClick={() => navigate('/org/transperfect')}><BrandHubLogo size="sm" forceDark /></div>
             <div className="flex items-center gap-2">
-              <ThemeToggle />
+              <ThemeToggle className="h-8 w-8 text-white hover:bg-white/10" />
             {isAdmin && userEmail && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
