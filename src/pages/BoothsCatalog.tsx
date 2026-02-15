@@ -763,36 +763,38 @@ export default function BoothsCatalog() {
           )}
         </div>
 
-        {/* Admin Hero Edit Toolbar - outside overflow-hidden */}
+        {/* Admin Hero Edit Toolbar - centered in hero for full visibility */}
         {isAdmin && (
-          <div className="absolute top-4 right-4 z-50">
-            <HeroEditToolbar
-              useVideo={false}
-              kenBurnsEffect={false}
-              kenBurnsPreview={false}
-              isUploading={false}
-              onMediaTypeChange={() => {}}
-              onKenBurnsToggle={() => {}}
-              onKenBurnsPreviewStart={() => {}}
-              onKenBurnsPreviewEnd={() => {}}
-              onUploadClick={() => {}}
-              onVideoUrlClick={() => {}}
-              onLibrarySelect={() => {}}
-              heroEffect={heroSettings.heroEffect}
-              heroEffectIntensity={heroSettings.heroEffectIntensity}
-              heroEffectColorScheme={heroSettings.heroEffectColorScheme}
-              heroEffectMode={heroSettings.heroEffectMode}
-              heroEffectBrightness={heroSettings.heroEffectBrightness}
-              heroEffectDensity={heroSettings.heroEffectDensity}
-              heroEffectSpeed={heroSettings.heroEffectSpeed}
-              onHeroEffectChange={(effect) => updateHeroSettings({ heroEffect: effect })}
-              onHeroEffectIntensityChange={(v) => updateHeroSettings({ heroEffectIntensity: v })}
-              onHeroEffectColorSchemeChange={(v) => updateHeroSettings({ heroEffectColorScheme: v })}
-              onHeroEffectModeChange={(v) => updateHeroSettings({ heroEffectMode: v })}
-              onHeroEffectBrightnessChange={(v) => updateHeroSettings({ heroEffectBrightness: v })}
-              onHeroEffectDensityChange={(v) => updateHeroSettings({ heroEffectDensity: v })}
-              onHeroEffectSpeedChange={(v) => updateHeroSettings({ heroEffectSpeed: v })}
-            />
+          <div className="absolute inset-x-0 top-0 z-50 pointer-events-none">
+            <div className="relative max-w-7xl mx-auto pointer-events-auto">
+              <HeroEditToolbar
+                useVideo={false}
+                kenBurnsEffect={false}
+                kenBurnsPreview={false}
+                isUploading={false}
+                onMediaTypeChange={() => {}}
+                onKenBurnsToggle={() => {}}
+                onKenBurnsPreviewStart={() => {}}
+                onKenBurnsPreviewEnd={() => {}}
+                onUploadClick={() => {}}
+                onVideoUrlClick={() => {}}
+                onLibrarySelect={() => {}}
+                heroEffect={heroSettings.heroEffect}
+                heroEffectIntensity={heroSettings.heroEffectIntensity}
+                heroEffectColorScheme={heroSettings.heroEffectColorScheme}
+                heroEffectMode={heroSettings.heroEffectMode}
+                heroEffectBrightness={heroSettings.heroEffectBrightness}
+                heroEffectDensity={heroSettings.heroEffectDensity}
+                heroEffectSpeed={heroSettings.heroEffectSpeed}
+                onHeroEffectChange={(effect) => updateHeroSettings({ heroEffect: effect })}
+                onHeroEffectIntensityChange={(v) => updateHeroSettings({ heroEffectIntensity: v })}
+                onHeroEffectColorSchemeChange={(v) => updateHeroSettings({ heroEffectColorScheme: v })}
+                onHeroEffectModeChange={(v) => updateHeroSettings({ heroEffectMode: v })}
+                onHeroEffectBrightnessChange={(v) => updateHeroSettings({ heroEffectBrightness: v })}
+                onHeroEffectDensityChange={(v) => updateHeroSettings({ heroEffectDensity: v })}
+                onHeroEffectSpeedChange={(v) => updateHeroSettings({ heroEffectSpeed: v })}
+              />
+            </div>
           </div>
         )}
 
