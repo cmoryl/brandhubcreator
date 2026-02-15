@@ -349,6 +349,42 @@ export type Database = {
         }
         Relationships: []
       }
+      booth_key_stats: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          display_order: number
+          division_id: string
+          icon_svg: string | null
+          id: string
+          label: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          division_id: string
+          icon_svg?: string | null
+          id?: string
+          label: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          division_id?: string
+          icon_svg?: string | null
+          id?: string
+          label?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       bot_config: {
         Row: {
           bot_type: string
