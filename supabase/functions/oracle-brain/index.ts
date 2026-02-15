@@ -259,8 +259,17 @@ ${brainSummaries || "No entity brains yet."}
 KNOWLEDGE (${(knowledge||[]).length} entries):
 ${knowledgeCtx || "None."}
 
+PERSONA-BASED INCLUSIVE DESIGN (Microsoft Persona Spectrum):
+Evaluate the organization's portfolio through persona-based design thinking, explicitly considering permanent, temporary, and situational needs across ALL user groups:
+- Mobility: permanent (wheelchair user), temporary (broken arm), situational (carrying child)
+- Vision: permanent (blind), temporary (dilated pupils), situational (bright sunlight)
+- Hearing: permanent (deaf), temporary (ear infection), situational (noisy venue)
+- Speech: permanent (non-verbal), temporary (laryngitis), situational (foreign language setting)
+- Cognitive: permanent (ADHD), temporary (concussion), situational (information overload)
+Include a "persona_design_maturity" object assessing how well products, events, and brand touchpoints address the full spectrum.
+
 Return ONLY valid JSON:
-{"org_summary":"3-4 sentences","portfolio_analysis":{"synergies":["up to 4"],"gaps":["up to 3"],"conflicts":["risks"],"recommendations":["up to 3"]},"market_landscape":{"overall_position":"1-2 sentences","market_opportunities":["up to 3"],"threats":["up to 2"]},"strategic_recommendations":[{"priority":"high|medium|low","recommendation":"rec","rationale":"why","impact":"impact"}],"cross_entity_patterns":{"voice_consistency":"1 sentence","audience_overlap":"1 sentence","visual_coherence":"1 sentence"},"unified_voice_profile":{"primary_tone":"1-2 words","secondary_tones":["up to 3"],"communication_style":"1 sentence","personality_traits":["up to 4"]},"unified_audience_map":{"primary_segment":"1 sentence","secondary_segments":["up to 3"],"underserved_segments":["up to 2"]},"competitive_overview":{"market_position":"1 sentence","key_competitors":["up to 3"],"competitive_moat":"1 sentence"},"cultural_readiness":{"overall_score":50,"strongest_markets":["up to 3"],"expansion_opportunities":["up to 3"]},"governance_posture":{"eaa_readiness":"high|medium|low","inclusive_ai_maturity":"high|medium|low","recommended_sprint_activities":["up to 2 from: Computer Trust Exercise, Human-to-Computer Role-Play, Interaction Diary"],"regulatory_action_items":["up to 3"]}}`;
+{"org_summary":"3-4 sentences","portfolio_analysis":{"synergies":["up to 4"],"gaps":["up to 3"],"conflicts":["risks"],"recommendations":["up to 3"]},"market_landscape":{"overall_position":"1-2 sentences","market_opportunities":["up to 3"],"threats":["up to 2"]},"strategic_recommendations":[{"priority":"high|medium|low","recommendation":"rec","rationale":"why","impact":"impact"}],"cross_entity_patterns":{"voice_consistency":"1 sentence","audience_overlap":"1 sentence","visual_coherence":"1 sentence"},"unified_voice_profile":{"primary_tone":"1-2 words","secondary_tones":["up to 3"],"communication_style":"1 sentence","personality_traits":["up to 4"]},"unified_audience_map":{"primary_segment":"1 sentence","secondary_segments":["up to 3"],"underserved_segments":["up to 2"]},"competitive_overview":{"market_position":"1 sentence","key_competitors":["up to 3"],"competitive_moat":"1 sentence"},"cultural_readiness":{"overall_score":50,"strongest_markets":["up to 3"],"expansion_opportunities":["up to 3"]},"governance_posture":{"eaa_readiness":"high|medium|low","inclusive_ai_maturity":"high|medium|low","recommended_sprint_activities":["up to 2 from: Computer Trust Exercise, Human-to-Computer Role-Play, Interaction Diary"],"regulatory_action_items":["up to 3"]},"persona_design_maturity":{"overall_score":50,"mobility_coverage":"1 sentence","vision_coverage":"1 sentence","hearing_coverage":"1 sentence","speech_coverage":"1 sentence","cognitive_coverage":"1 sentence","gaps":["up to 3"],"recommendations":["up to 3"]}}`;
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -312,6 +321,7 @@ Return ONLY valid JSON:
       cultural_readiness: {
         ...(synthesis.cultural_readiness || {}),
         governance_posture: synthesis.governance_posture || {},
+        persona_design_maturity: synthesis.persona_design_maturity || {},
       },
       knowledge_entry_count: (knowledge || []).length,
       entity_brain_count: (brains || []).length,
