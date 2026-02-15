@@ -166,12 +166,37 @@ serve(async (req) => {
     // Fetch Oracle context directly via REST (no SDK)
     const oracleContext = await fetchOracleContextRest(db, job.organization_id);
 
-    const prompt = `Analyze "${entityName}" brand. Return compact JSON:
+    // Build event-specific physical accessibility context
+    const isEvent = job.entity_type === 'event';
+    const physicalAccessibilityContext = isEvent ? `
+PHYSICAL EVENT ACCESSIBILITY STANDARDS (ADA/IBC/ISO 21542):
+Evaluate the event's venue and logistics against these critical physical accessibility requirements:
+- Doors: ≥32in clear width, ≤5lbf operating force, ≤0.5in thresholds
+- Corridors: ≥64in for two-way traffic, ≥44in one-way, protruding objects ≤4in
+- Aisles: ≥36in minimum, 60×60in passing spaces
+- Ramps: Max 1:12 slope, ≤30in rise per run, handrails 34-38in, 60in landings
+- Elevators: Car ≥51×80in, door ≥36in, Braille buttons, audible announcements
+- Restrooms: 60in turning circle, grab bars, toilet 17-19in, accessible lavatory
+- Seating: 1% wheelchair spaces dispersed, 36×48in clear floor, companion seats
+- Stages: Accessible route (ramp/lift), adjustable podium 28-34in
+- Registration: Counter at 28-34in, knee clearance ≥27in
+- Parking: Van-accessible 11ft+5ft aisle, shortest route to entrance
+- Signage: Tactile signs 48-60in AFF, overhead chars ≥3in, Braille
+- Floors: Slip-resistant, carpet ≤0.5in pile, level changes ≤0.25in
+- Emergency: Accessible egress, areas of refuge, visual+audible alarms
+- Outdoor: Accessible mats on soft surfaces ≥36in wide, shade at waiting areas
+- Quiet/Sensory rooms: Low stimulation, available throughout event
+Include a "physical_accessibility" object in your response with: {"venue_readiness_score":0-100,"ada_compliance_gaps":["..."],"recommended_accommodations":["..."],"critical_measurements":["category: measurement required"]}
+` : '';
+
+    const eventJsonExtra = isEvent ? ',"physical_accessibility":{"venue_readiness_score":50,"ada_compliance_gaps":["up to 5"],"recommended_accommodations":["up to 5"],"critical_measurements":["up to 5 category: spec pairs"]}' : '';
+
+    const prompt = `Analyze "${entityName}" ${isEvent ? 'event' : 'brand'}. Return compact JSON:
 ${brandContext}
 ${oracleContext ? `\nORACLE BRAIN CONTEXT:\n${oracleContext}` : ''}
-
-Analyze for brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''} Return ONLY valid JSON:
-{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]}`;
+${physicalAccessibilityContext}
+Analyze for ${isEvent ? 'event experience, venue accessibility, and' : ''} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''} Return ONLY valid JSON:
+{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]${eventJsonExtra}}`;
 
     // Text-only analysis — no multimodal to save memory on large brands
     let aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -333,6 +358,7 @@ Analyze for brand coherence and market positioning.${oracleContext ? ' Align wit
       ...(analysis.social_performance ? { social_performance: analysis.social_performance } : {}),
       ...(analysis.visual_analysis ? { visual_analysis: analysis.visual_analysis } : {}),
       ...(analysis.document_analysis ? { document_analysis: analysis.document_analysis } : {}),
+      ...(analysis.physical_accessibility ? { physical_accessibility: analysis.physical_accessibility } : {}),
       last_updated: new Date().toISOString(),
     };
 

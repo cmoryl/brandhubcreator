@@ -314,14 +314,105 @@ export interface EventAccessibilityItem {
 }
 
 export const EVENT_ACCESSIBILITY_CHECKLIST: EventAccessibilityItem[] = [
-  { category: 'Entrances', specification: 'Doors at least 32 inches wide; require < 5 pounds of force to open.' },
-  { category: 'Hallways', specification: 'Pathways between exhibits at least 64 inches wide for two-way traffic.' },
-  { category: 'Aisles', specification: 'Minimum 36 inches wide to accommodate wheelchairs/scooters.' },
-  { category: 'Communication', specification: 'CamelCase for all hashtags (#InclusiveArchitecture); Roving microphones for Q&A.' },
-  { category: 'Presentations', specification: 'Speakers describe all visuals; Sans serif fonts (min 24pt); Captions on all videos.' },
-  { category: 'Seating', specification: 'Wheelchair-accessible seating integrated throughout, not isolated.' },
-  { category: 'Signage', specification: 'High-contrast, large-print signage with Braille at key locations.' },
-  { category: 'Digital', specification: 'Event apps/sites meet WCAG 2.2 AA; live captions for streaming.' },
+  // ── Physical Venue: Doors & Entrances ──
+  { category: 'Doors & Entrances', specification: 'Primary entry doors minimum 32 inches (815mm) clear width when open 90°. Double-leaf doors: at least one leaf 32in clear. Automatic/power-assist doors preferred at main entrances.' },
+  { category: 'Door Hardware', specification: 'Lever handles or push-pull bars (no round knobs). Operating force ≤ 5 lbs (22N) for interior, ≤ 8.5 lbs (38N) for exterior. Threshold height ≤ 0.5 inches (13mm), beveled.' },
+  { category: 'Door Clearances', specification: 'Maneuvering clearance 60 inches (1525mm) on pull side, 48 inches (1220mm) on push side. Clear floor space 18 inches (455mm) on latch side of pull doors.' },
+  
+  // ── Physical Venue: Hallways & Corridors ──
+  { category: 'Hallways', specification: 'Minimum 64 inches (1625mm) wide for two-way wheelchair traffic. One-way corridors minimum 44 inches (1120mm). Protruding objects ≤ 4 inches (100mm) from wall between 27-80 inches above floor.' },
+  { category: 'Passing Spaces', specification: 'Passing spaces (60×60 inches / 1525×1525mm) every 200 feet (61m) in corridors narrower than 60 inches.' },
+  
+  // ── Physical Venue: Aisles & Circulation ──
+  { category: 'Aisles', specification: 'Minimum 36 inches (915mm) wide; 42 inches (1065mm) preferred. Exhibition booths: 44 inches (1120mm) minimum approach. Dead-end aisles: 36-inch T-turn or 60-inch circle turn at end.' },
+  { category: 'Floor Surfaces', specification: 'Firm, stable, slip-resistant. Carpet pile ≤ 0.5 inches. No unanchored mats. Grating openings ≤ 0.5 inches in direction of travel. Changes in level > 0.25 inches require ramps.' },
+  
+  // ── Physical Venue: Ramps & Elevation Changes ──
+  { category: 'Ramps', specification: 'Maximum slope 1:12 (8.33%). Maximum rise 30 inches (760mm) per run. Minimum width 36 inches (915mm). Handrails on both sides 34-38 inches high. Level landings at top/bottom (60 inches long minimum).' },
+  { category: 'Elevators', specification: 'Car interior minimum 51×80 inches (1295×2030mm). Door opening 36 inches (915mm) minimum. Raised/Braille buttons. Audible floor announcements. Emergency phone with volume control and TTY.' },
+  
+  // ── Physical Venue: Restrooms ──
+  { category: 'Accessible Restrooms', specification: 'At least one per cluster. Door 32 inches clear. Interior 60-inch turning circle. Grab bars (42in side, 36in rear). Toilet seat 17-19 inches high. Lavatory max 34 inches, knee clearance 27 inches.' },
+  { category: 'Gender-Neutral Facilities', specification: 'At least one single-occupancy gender-neutral/family restroom per floor. Changing tables in all restroom types, not only women\'s.' },
+  
+  // ── Physical Venue: Stages & Presentation Areas ──
+  { category: 'Stages & Platforms', specification: 'Accessible route to stage (ramp or lift). Speaker podium adjustable height or with lowered section (28-34 inches). Accessible presentation technology controls.' },
+  { category: 'Viewing Areas', specification: 'Wheelchair spaces integrated, not segregated. Sight lines over standing spectators (elevated platforms). Companion seating adjacent to wheelchair spaces.' },
+  
+  // ── Seating ──
+  { category: 'Seating', specification: 'Wheelchair-accessible seating integrated throughout (not isolated). 1% of seats minimum, dispersed across sections. Companion seat adjacent. Removable armrests on aisle seats. Clear floor space 36×48 inches per wheelchair space.' },
+  
+  // ── Wayfinding & Signage ──
+  { category: 'Signage', specification: 'High-contrast (70%+ ratio), large-print (min 24pt sans-serif) signage with Braille at key locations. Tactile room signs 48-60 inches from floor. Overhead signs min 3-inch characters. Floor-level directional markers. Consistent pictogram system.' },
+  { category: 'Wayfinding', specification: 'Tactile ground surface indicators (TGSIs) at hazard transitions. Color-coded zones with non-color-dependent alternative. Audio-described maps available. Indoor wayfinding app with accessibility overlay.' },
+  
+  // ── Sensory & Communication ──
+  { category: 'Communication', specification: 'CamelCase for all hashtags (#InclusiveArchitecture). Roving microphones for Q&A. Hearing loops/FM systems in main sessions. Sign language interpreters for keynotes. Real-time captioning (CART).' },
+  { category: 'Presentations', specification: 'Speakers describe all visuals verbally. Sans-serif fonts minimum 24pt on slides. Captions on all videos. High-contrast slide templates. Content warnings for strobing/flashing. Presentations available in advance.' },
+  { category: 'Quiet/Sensory Rooms', specification: 'Designated quiet rooms with low lighting, minimal stimulation. Available throughout event hours. Clearly marked on maps. Noise-reducing headphones available on request.' },
+  
+  // ── Outdoor & Temporary Structures ──
+  { category: 'Outdoor Surfaces', specification: 'Accessible pathways on grass/gravel: interlocking mats or firm boards minimum 36 inches wide. Temporary ramps at curbs. Shade structures at accessible waiting areas.' },
+  { category: 'Temporary Structures', specification: 'Pop-up/tent entrances minimum 36 inches wide. Internal clearance for wheelchair circulation. Accessible counters at 28-34 inches height alongside standard height.' },
+  
+  // ── Emergency & Safety ──
+  { category: 'Emergency Evacuation', specification: 'Accessible egress routes clearly marked. Areas of refuge/rescue assistance on each floor. Visual + audible alarms. Staff trained in evacuation assistance for mobility-device users. Evacuation chairs at stairwells.' },
+  { category: 'Service Animals', specification: 'Relief areas designated and communicated. Water bowls at registration. Staff trained on service animal etiquette (no petting, no questioning).' },
+  
+  // ── Registration & Services ──
+  { category: 'Registration Desks', specification: 'At least one counter at 28-34 inches (710-865mm) height. Knee clearance 27 inches. Approach space 30×48 inches. Large-print and digital registration options. Accessibility info pack available.' },
+  { category: 'Food & Beverage', specification: 'Accessible buffet lines (items within reach range 15-48 inches). Clearly labeled allergens + dietary info in large print. Seated dining option. Straws available on request.' },
+  
+  // ── Digital Accessibility ──
+  { category: 'Digital', specification: 'Event apps/sites meet WCAG 2.2 AA. Live captions for streaming. Screen-reader compatible schedules. Alternative text for all images. Accessible PDF programs. Pre-event accessibility survey for attendees.' },
+  
+  // ── Transportation & Parking ──
+  { category: 'Parking & Drop-off', specification: 'Accessible parking within shortest route to entrance. Van-accessible spaces (11ft wide + 5ft access aisle). Drop-off zone with curb cut and cover. Clear signage to accessible entrance from parking.' },
+  { category: 'Transportation', specification: 'Accessible shuttle/transport information provided in advance. Route accessibility details (step-free, ramp-equipped). On-demand assistance at transit stops.' },
+];
+
+// ── Physical Accessibility Standards Reference (ADA/IBC/ISO 21542) ──
+// Used by brand-intelligence-worker for event brain analysis
+
+export interface PhysicalAccessibilityStandard {
+  category: string;
+  standard: string;
+  measurement: string;
+  source: string;
+}
+
+export const PHYSICAL_ACCESSIBILITY_STANDARDS: PhysicalAccessibilityStandard[] = [
+  { category: 'Doors', standard: 'Clear opening width', measurement: '≥ 32 in (815mm) at 90° open', source: 'ADA 404.2.3' },
+  { category: 'Doors', standard: 'Operating force (interior)', measurement: '≤ 5 lbf (22N)', source: 'ADA 404.2.9' },
+  { category: 'Doors', standard: 'Threshold height', measurement: '≤ 0.5 in (13mm), beveled', source: 'ADA 404.2.5' },
+  { category: 'Doors', standard: 'Closing speed', measurement: '≥ 5 seconds from 90° to 12°', source: 'ADA 404.2.8' },
+  { category: 'Corridors', standard: 'Two-way traffic width', measurement: '≥ 64 in (1625mm)', source: 'IBC 1018.2' },
+  { category: 'Corridors', standard: 'One-way minimum width', measurement: '≥ 44 in (1120mm)', source: 'IBC 1018.2' },
+  { category: 'Corridors', standard: 'Protruding objects', measurement: '≤ 4 in (100mm) from wall, 27-80 in AFF', source: 'ADA 307' },
+  { category: 'Aisles', standard: 'Minimum aisle width', measurement: '≥ 36 in (915mm)', source: 'ADA 403.5.1' },
+  { category: 'Aisles', standard: 'Wheelchair passing space', measurement: '60 × 60 in (1525 × 1525mm)', source: 'ADA 403.5.3' },
+  { category: 'Ramps', standard: 'Maximum slope', measurement: '1:12 (8.33%)', source: 'ADA 405.2' },
+  { category: 'Ramps', standard: 'Maximum rise per run', measurement: '30 in (760mm)', source: 'ADA 405.6' },
+  { category: 'Ramps', standard: 'Minimum width', measurement: '≥ 36 in (915mm)', source: 'ADA 405.5' },
+  { category: 'Ramps', standard: 'Handrail height', measurement: '34-38 in (865-965mm)', source: 'ADA 505.4' },
+  { category: 'Ramps', standard: 'Landing length', measurement: '≥ 60 in (1525mm)', source: 'ADA 405.7' },
+  { category: 'Elevators', standard: 'Car interior minimum', measurement: '51 × 80 in (1295 × 2030mm)', source: 'ADA 407.4.1' },
+  { category: 'Elevators', standard: 'Door opening', measurement: '≥ 36 in (915mm)', source: 'ADA 407.3.6' },
+  { category: 'Restrooms', standard: 'Turning space', measurement: '60 in (1525mm) diameter circle', source: 'ADA 603.2.1' },
+  { category: 'Restrooms', standard: 'Grab bar (side wall)', measurement: '42 in (1065mm) length', source: 'ADA 604.5.1' },
+  { category: 'Restrooms', standard: 'Toilet seat height', measurement: '17-19 in (430-485mm)', source: 'ADA 604.4' },
+  { category: 'Restrooms', standard: 'Lavatory max height', measurement: '34 in (865mm)', source: 'ADA 606.3' },
+  { category: 'Counters', standard: 'Accessible counter height', measurement: '28-34 in (710-865mm)', source: 'ADA 904.4' },
+  { category: 'Counters', standard: 'Knee clearance', measurement: '≥ 27 in (685mm)', source: 'ADA 306.3.1' },
+  { category: 'Seating', standard: 'Wheelchair space', measurement: '36 × 48 in (915 × 1220mm)', source: 'ADA 802.1' },
+  { category: 'Seating', standard: 'Minimum wheelchair spaces', measurement: '1% of total seats, dispersed', source: 'ADA 221.2' },
+  { category: 'Parking', standard: 'Van-accessible space', measurement: '11 ft wide + 5 ft access aisle', source: 'ADA 502.2' },
+  { category: 'Parking', standard: 'Accessible route to entrance', measurement: 'Shortest accessible path', source: 'ADA 502.6' },
+  { category: 'Signage', standard: 'Tactile sign height', measurement: '48-60 in (1220-1525mm) AFF', source: 'ADA 703.4.1' },
+  { category: 'Signage', standard: 'Overhead sign characters', measurement: '≥ 3 in (75mm) height', source: 'ADA 703.5.5' },
+  { category: 'Floor Surfaces', standard: 'Carpet pile height', measurement: '≤ 0.5 in (13mm)', source: 'ADA 302.2' },
+  { category: 'Floor Surfaces', standard: 'Level change without ramp', measurement: '≤ 0.25 in (6mm)', source: 'ADA 303.2' },
+  { category: 'Floor Surfaces', standard: 'Grating openings', measurement: '≤ 0.5 in (13mm) in travel direction', source: 'ADA 302.3' },
 ];
 
 // ── Module 11: Microsoft Persona Spectrum (2026 Extended) ──
