@@ -214,7 +214,11 @@ Evaluate all marketing materials and brand imagery against these mandatory princ
 - Ensure representation spans age, ethnicity, gender identity, body type, and visible/invisible disability
 - Depict assistive technology (wheelchairs, hearing aids, prosthetics) as neutral everyday tools, not props
 - Show diverse individuals as active participants, decision-makers, and leaders — not passive recipients
-Include an "inclusive_imagery" object: {"diversity_score":0-100,"power_hierarchy_balance":"equal|skewed|problematic","trope_risks":["up to 3"],"representation_gaps":["up to 3"],"recommendations":["up to 3"]}
+- PRIORITIZE authentic, high-quality imagery over generic stock photos — showcase real people in genuine work environments, labs, innovation spaces, and community settings
+- Feature innovative environments authentically: real labs, workshops, offices, field locations — not staged sets or overly polished corporate backdrops
+- Capture candid expertise: scientists at work, engineers problem-solving, clinicians with patients, teams collaborating in real time
+- Reject visual clichés: no handshake photos, no pointing-at-screens, no arms-crossed power poses, no blue-tinted stock "technology" imagery
+Include an "inclusive_imagery" object: {"diversity_score":0-100,"power_hierarchy_balance":"equal|skewed|problematic","trope_risks":["up to 3"],"representation_gaps":["up to 3"],"authenticity_score":0-100,"stock_photo_dependency":"low|medium|high","recommendations":["up to 3"]}
 `;
 
     const patientResearchContext = `
@@ -240,7 +244,7 @@ Evaluate and recommend content that visually explains the complete 'lab to launc
 Include a "lab_to_launch" object: {"journey_clarity_score":0-100,"stages_covered":["which pipeline stages are well-represented"],"visualization_gaps":["up to 3 stages or transitions lacking visual content"],"storytelling_opportunities":["up to 3 specific content pieces that would strengthen the narrative"],"audience_accessibility":"low|medium|high","recommendations":["up to 3"]}
 `;
 
-    const personaJsonExtra = ',"persona_design":{"spectrum_score":50,"dimension_scores":{"mobility":50,"vision":50,"hearing":50,"speech":50,"cognitive":50},"gaps":["up to 3"],"recommendations":["up to 3"]},"inclusive_imagery":{"diversity_score":50,"power_hierarchy_balance":"equal","trope_risks":[],"representation_gaps":["up to 3"],"recommendations":["up to 3"]}';
+    const personaJsonExtra = ',"persona_design":{"spectrum_score":50,"dimension_scores":{"mobility":50,"vision":50,"hearing":50,"speech":50,"cognitive":50},"gaps":["up to 3"],"recommendations":["up to 3"]},"inclusive_imagery":{"diversity_score":50,"power_hierarchy_balance":"equal","trope_risks":[],"representation_gaps":["up to 3"],"authenticity_score":50,"stock_photo_dependency":"medium","recommendations":["up to 3"]}';
 
     const patientResearchJsonExtra = ',"patient_research_integration":{"research_utilization_score":50,"curb_cut_opportunities":["up to 3"],"localization_insights":["up to 3"],"feedback_loop_maturity":"developing","recommendations":["up to 3"]}';
 
