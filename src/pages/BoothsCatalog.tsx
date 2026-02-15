@@ -581,6 +581,124 @@ const DownloadLinksManager = ({ divisionId, isAdmin, color }: { divisionId: stri
   );
 };
 
+// --- Color Palette Component ---
+const hexToRgb = (hex: string) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return { r, g, b };
+};
+
+const rgbToHsl = (r: number, g: number, b: number) => {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+};
+
+const rgbToCmyk = (r: number, g: number, b: number) => {
+  if (r === 0 && g === 0 && b === 0) return { c: 0, m: 0, y: 0, k: 100 };
+  const c1 = 1 - r / 255, m1 = 1 - g / 255, y1 = 1 - b / 255;
+  const k = Math.min(c1, m1, y1);
+  return {
+    c: Math.round(((c1 - k) / (1 - k)) * 100),
+    m: Math.round(((m1 - k) / (1 - k)) * 100),
+    y: Math.round(((y1 - k) / (1 - k)) * 100),
+    k: Math.round(k * 100),
+  };
+};
+
+const ColorCodeRow = ({ label, value }: { label: string; value: string }) => (
+  <div className="flex items-center justify-between py-1.5 px-3 rounded-md bg-muted/40 group/code">
+    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+    <div className="flex items-center gap-1.5">
+      <span className="text-xs font-mono font-medium text-foreground">{value}</span>
+      <button
+        className="opacity-0 group-hover/code:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
+        title="Copy"
+        onClick={() => { navigator.clipboard.writeText(value); toast.success(`${label} copied`); }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3 w-3"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      </button>
+    </div>
+  </div>
+);
+
+const BoothColorPalette = ({ color }: { color: string }) => {
+  const hex = color.startsWith('#') ? color : `#${color}`;
+  const { r, g, b } = hexToRgb(hex);
+  const hsl = rgbToHsl(r, g, b);
+  const cmyk = rgbToCmyk(r, g, b);
+
+  // Generate tints and shades
+  const tintShade = (factor: number) => {
+    const nr = Math.round(r + (255 - r) * factor);
+    const ng = Math.round(g + (255 - g) * factor);
+    const nb = Math.round(b + (255 - b) * factor);
+    return `#${nr.toString(16).padStart(2, '0')}${ng.toString(16).padStart(2, '0')}${nb.toString(16).padStart(2, '0')}`;
+  };
+  const shade = (factor: number) => {
+    const nr = Math.round(r * (1 - factor));
+    const ng = Math.round(g * (1 - factor));
+    const nb = Math.round(b * (1 - factor));
+    return `#${nr.toString(16).padStart(2, '0')}${ng.toString(16).padStart(2, '0')}${nb.toString(16).padStart(2, '0')}`;
+  };
+
+  const palette = [
+    shade(0.4),
+    shade(0.2),
+    hex,
+    tintShade(0.3),
+    tintShade(0.6),
+  ];
+
+  return (
+    <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
+      <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Booth Color</h3>
+
+      {/* Color swatch strip */}
+      <div className="flex rounded-lg overflow-hidden h-10">
+        {palette.map((c, i) => (
+          <div
+            key={i}
+            className="flex-1 relative group/swatch cursor-pointer transition-all hover:flex-[1.5]"
+            style={{ backgroundColor: c }}
+            title={c.toUpperCase()}
+            onClick={() => { navigator.clipboard.writeText(c.toUpperCase()); toast.success(`${c.toUpperCase()} copied`); }}
+          >
+            {i === 2 && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-1.5 h-1.5 rounded-full bg-white/80 ring-1 ring-white/40" />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Main swatch + codes */}
+      <div className="grid grid-cols-[auto_1fr] gap-3 items-start">
+        <div className="w-16 h-16 rounded-lg shadow-sm border border-border/40" style={{ backgroundColor: hex }} />
+        <div className="space-y-1">
+          <ColorCodeRow label="HEX" value={hex.toUpperCase()} />
+          <ColorCodeRow label="RGB" value={`${r}, ${g}, ${b}`} />
+          <ColorCodeRow label="HSL" value={`${hsl.h}°, ${hsl.s}%, ${hsl.l}%`} />
+          <ColorCodeRow label="CMYK" value={`${cmyk.c}, ${cmyk.m}, ${cmyk.y}, ${cmyk.k}`} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ServicesManager = ({ divisionId, isAdmin, color }: { divisionId: string; isAdmin: boolean; color: string }) => {
   const { services, loading, addService, updateService, deleteService } = useBoothServices(divisionId);
   const [adding, setAdding] = useState(false);
@@ -1518,7 +1636,9 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                   <p className="text-sm leading-relaxed">{division.description}</p>
                 </div>
 
-                
+                {/* Color Palette */}
+                <BoothColorPalette color={division.color} />
+
 
                 <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
