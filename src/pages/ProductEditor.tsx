@@ -56,6 +56,11 @@ import { ProductsSection } from '@/components/brand/ProductsSection';
 import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
 import { ClientLogosSection } from '@/components/brand/ClientLogosSection';
 import { InsightsSection } from '@/components/brand/InsightsSection';
+import { WebinarSeriesSection } from '@/components/brand/WebinarSeriesSection';
+import { ImageAssetsSection } from '@/components/brand/ImageAssetsSection';
+import { EventsSection } from '@/components/brand/EventsSection';
+import { BrandEventSignageSection } from '@/components/brand/BrandEventSignageSection';
+import { PresentationTemplatesSection } from '@/components/brand/PresentationTemplatesSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
@@ -84,6 +89,9 @@ type ViewMode = 'sections' | 'full' | 'cards';
 const CompetitiveReportCardLazy = lazy(() =>
   import('@/components/brand/CompetitiveReportCard').then((m) => ({ default: m.CompetitiveReportCard }))
 );
+const LeafletLocationsSection = lazy(() => import('@/components/brand/LeafletLocationsSection').then(m => ({ default: m.LeafletLocationsSection })));
+const AwardsSection = lazy(() => import('@/components/brand/AwardsSection'));
+const GlobalLinkUniverseSection = lazy(() => import('@/components/brand/GlobalLinkUniverseSection'));
 
 // Legacy/short slugs that may exist in old links, emails, or bookmarks.
 // Keep this small and explicit to avoid unexpected matches.
@@ -661,6 +669,25 @@ const ProductEditor = () => {
           insightsAccessCode={(currentProduct as any).insightsAccessCode}
           onAccessCodeChange={canEdit ? (insightsAccessCode) => handleUpdateProduct({ insightsAccessCode } as any) : undefined}
         />
+      );
+      case 'logos': return <LogoSection logos={currentProduct.logos} onLogosChange={editHandler((logos) => handleUpdateProduct({ logos }))} />;
+      case 'imageassets': return <ImageAssetsSection imageAssets={(currentProduct as any).imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => handleUpdateProduct({ imageAssets } as any))} />;
+      case 'webinars': return <WebinarSeriesSection webinars={(currentProduct as any).webinars || []} onWebinarsChange={editHandler((webinars) => handleUpdateProduct({ webinars } as any))} />;
+      case 'awards': return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading...</div>}><AwardsSection awards={(currentProduct as any).awards || []} onUpdate={editHandler((awards) => handleUpdateProduct({ awards } as any))} entityType="product" entityId={currentProduct.id} /></Suspense>;
+      case 'events': return <EventsSection brandId={currentProduct.id} />;
+      case 'universe': return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading...</div>}><GlobalLinkUniverseSection linkedGuides={currentProduct.linkedGuides || []} primaryColor={currentProduct.colors?.[0]?.hex} /></Suspense>;
+      case 'eventsignage': return <BrandEventSignageSection eventSignage={(currentProduct as any).eventSignage || []} onEventSignageChange={editHandler((eventSignage) => handleUpdateProduct({ eventSignage } as any))} />;
+      case 'presentations': return <PresentationTemplatesSection presentations={(currentProduct as any).presentations || []} onUpdate={canEdit ? (presentations) => handleUpdateProduct({ presentations } as any) : undefined} isEditable={canEdit} />;
+      case 'locations': return (
+        <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading map...</div>}>
+          <LeafletLocationsSection
+            locations={(currentProduct as any).locations || []}
+            locationStats={(currentProduct as any).locationStats || []}
+            onLocationsChange={editHandler((locations) => handleUpdateProduct({ locations } as any))}
+            onLocationStatsChange={editHandler((locationStats) => handleUpdateProduct({ locationStats } as any))}
+            accentColor={currentProduct.colors?.[0]?.hex}
+          />
+        </Suspense>
       );
       default: return null;
     }
