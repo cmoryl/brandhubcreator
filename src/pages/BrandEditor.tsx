@@ -129,6 +129,7 @@ const BrandEditor = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('full');
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
+  const [gridSections, setGridSections] = useState<string[]>([]);
   const [publicBrand, setPublicBrand] = useState<BrandGuide | null>(null);
   // Start as true to prevent flash of "not found" before fetch begins
   const [publicBrandLoading, setPublicBrandLoading] = useState(true);
@@ -1263,6 +1264,7 @@ const BrandEditor = () => {
                     onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined}
                     entityType="brand"
                     entityId={brand?.id}
+                    onSectionsComputed={setGridSections}
                   />
                   {activeSection !== 'hero' && (
                     <>
@@ -1270,6 +1272,7 @@ const BrandEditor = () => {
                         activeSection={activeSection}
                         sectionOrder={sectionOrder}
                         hiddenSections={hiddenSections}
+                        gridSections={gridSections}
                       />
                       <div className="animate-zoom-in">
                         {renderSection()}

@@ -10,26 +10,28 @@ interface ActiveSectionHeaderProps {
   sectionOrder: string[];
   hiddenSections?: string[];
   customSectionMeta?: Record<string, { label: string; icon: React.ElementType; category: string }>;
+  /** The exact ordered sections array rendered in the card grid, used to match tint colors */
+  gridSections?: string[];
 }
-
-const EXCLUDED_FROM_NAV: string[] = ['socialmetrics', 'hero'];
 
 export function ActiveSectionHeader({
   activeSection,
   sectionOrder,
   hiddenSections = [],
   customSectionMeta,
+  gridSections,
 }: ActiveSectionHeaderProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const meta = customSectionMeta || sectionMeta;
 
-  // Compute the tint index matching the card grid order
+  // Use the exact grid sections array if provided, otherwise fall back to sectionOrder
   const visibleSections = useMemo(() => {
+    if (gridSections) return gridSections;
     return sectionOrder.filter(
-      (id) => meta[id] && !EXCLUDED_FROM_NAV.includes(id)
+      (id) => meta[id] && !['socialmetrics', 'hero'].includes(id)
     );
-  }, [sectionOrder, meta]);
+  }, [gridSections, sectionOrder, meta]);
 
   const sectionIndex = visibleSections.indexOf(activeSection);
   const tint = sectionIndex >= 0 ? CARD_TINTS[sectionIndex % CARD_TINTS.length] : null;
