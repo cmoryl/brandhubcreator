@@ -874,7 +874,7 @@ const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId }: { color:
   };
 
   return (
-    <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
+    <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3 hover:border-primary/30 hover:shadow-lg transition-all duration-200">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Booth Color Palette</h3>
         <div className="flex items-center gap-1">
@@ -1056,7 +1056,7 @@ const ServicesManager = ({ divisionId, isAdmin, color }: { divisionId: string; i
                 </div>
               </div>
             ) : (
-              <div key={svc.id} className="bg-muted/50 rounded-lg px-4 py-3 text-center relative group min-w-[80px] flex flex-col items-center gap-1.5">
+              <div key={svc.id} className="bg-muted/50 rounded-lg px-4 py-3 text-center relative group min-w-[80px] flex flex-col items-center gap-1.5 hover:bg-muted/80 hover:shadow-md hover:scale-[1.03] hover:border-primary/30 border border-transparent transition-all duration-200 cursor-default">
                 {svc.icon_svg ? (
                   <div className="flex justify-center [&>svg]:h-7 [&>svg]:w-7" style={{ color: color + "80" }} dangerouslySetInnerHTML={{ __html: svc.icon_svg }} />
                 ) : (
@@ -1291,7 +1291,7 @@ const QRCodesManager = ({ divisionId, isAdmin, color }: { divisionId: string; is
                 </div>
               </div>
             ) : (
-              <div key={qr.id} className="bg-muted/50 rounded-lg p-3 text-center relative group">
+              <div key={qr.id} className="bg-muted/50 rounded-lg p-3 text-center relative group hover:bg-muted/80 hover:shadow-md hover:scale-[1.03] border border-transparent hover:border-primary/30 transition-all duration-200">
                 {qr.image_url ? (
                   <div className="mb-2 flex justify-center">
                     <img src={qr.image_url} alt={qr.label} className="w-24 h-24 object-contain rounded" />
@@ -1484,7 +1484,7 @@ const ProductionSpecsManager = ({ divisionId, isAdmin, color }: { divisionId: st
                     >
                       <div className="p-2 space-y-2">
                         {group.items.map(spec => (
-                          <div key={spec.id} className="bg-muted/40 rounded-lg p-3 relative group">
+                          <div key={spec.id} className="bg-muted/40 rounded-lg p-3 relative group hover:bg-muted/60 hover:shadow-md border border-transparent hover:border-primary/30 transition-all duration-200">
                             <div className="text-xs font-semibold text-foreground mb-1">{spec.title}</div>
                             <div className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">{spec.content}</div>
                             {isAdmin && !editingId && (
@@ -2023,7 +2023,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                           <ProductionSpecsManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
                           {/* Font Family Callout */}
-                          <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
+                          <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3 hover:border-primary/30 hover:shadow-lg transition-all duration-200">
                             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                               <Type className="h-4 w-4" /> Font Family
                             </h3>
