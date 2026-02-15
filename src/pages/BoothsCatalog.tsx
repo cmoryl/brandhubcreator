@@ -1495,8 +1495,8 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <p className="text-[10px] font-semibold tracking-[0.3em] uppercase text-muted-foreground/50 mb-1">Tagline</p>
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">{division.tagline}</h3>
+                  <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-primary">Tagline</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{division.tagline}</p>
                   <p className="text-sm leading-relaxed">{division.description}</p>
                 </div>
 
