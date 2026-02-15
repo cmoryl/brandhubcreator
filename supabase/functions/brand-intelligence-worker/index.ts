@@ -228,9 +228,23 @@ Leverage insights from patient-focused research, user studies, and localization 
 Include a "patient_research_integration" object: {"research_utilization_score":0-100,"curb_cut_opportunities":["up to 3 features designed for specific needs that benefit everyone"],"localization_insights":["up to 3 insights from localization that improved universal design"],"feedback_loop_maturity":"nascent|developing|established|advanced","recommendations":["up to 3"]}
 `;
 
+    const labToLaunchContext = `
+LAB-TO-LAUNCH JOURNEY VISUALIZATION:
+Evaluate and recommend content that visually explains the complete 'lab to launch' journey for life sciences and similar innovation-driven entities:
+- Assess whether existing content clearly maps the pipeline stages: discovery/research → preclinical → clinical trials → regulatory review → manufacturing → market launch → post-market surveillance
+- Identify opportunities for visual storytelling: infographics, timeline graphics, process diagrams, milestone markers, and behind-the-scenes photography at each stage
+- Evaluate how well the brand communicates scientific rigor and innovation process to diverse audiences (patients, investors, regulators, healthcare providers, general public)
+- Check for transparency: does the content demystify complex processes without oversimplifying or creating unrealistic expectations?
+- Recommend visual formats that build trust: data visualization of trial results, real lab/facility photography, expert commentary overlays, patient journey integration points
+- Ensure accessibility: all journey visualizations should work for colorblind users, screen readers (alt-text), and multiple languages
+Include a "lab_to_launch" object: {"journey_clarity_score":0-100,"stages_covered":["which pipeline stages are well-represented"],"visualization_gaps":["up to 3 stages or transitions lacking visual content"],"storytelling_opportunities":["up to 3 specific content pieces that would strengthen the narrative"],"audience_accessibility":"low|medium|high","recommendations":["up to 3"]}
+`;
+
     const personaJsonExtra = ',"persona_design":{"spectrum_score":50,"dimension_scores":{"mobility":50,"vision":50,"hearing":50,"speech":50,"cognitive":50},"gaps":["up to 3"],"recommendations":["up to 3"]},"inclusive_imagery":{"diversity_score":50,"power_hierarchy_balance":"equal","trope_risks":[],"representation_gaps":["up to 3"],"recommendations":["up to 3"]}';
 
     const patientResearchJsonExtra = ',"patient_research_integration":{"research_utilization_score":50,"curb_cut_opportunities":["up to 3"],"localization_insights":["up to 3"],"feedback_loop_maturity":"developing","recommendations":["up to 3"]}';
+
+    const labToLaunchJsonExtra = ',"lab_to_launch":{"journey_clarity_score":50,"stages_covered":["up to 5"],"visualization_gaps":["up to 3"],"storytelling_opportunities":["up to 3"],"audience_accessibility":"medium","recommendations":["up to 3"]}';
 
     const prompt = `Analyze "${entityName}" ${isEvent ? 'event' : isProduct ? 'product' : 'brand'}. Return compact JSON:
 ${brandContext}
@@ -239,8 +253,9 @@ ${physicalAccessibilityContext}
 ${personaDesignContext}
 ${inclusiveImageryContext}
 ${patientResearchContext}
+${labToLaunchContext}
 Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct ? 'product inclusive design, user accessibility, and' : 'brand inclusive representation, imagery standards, and'} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''} Return ONLY valid JSON:
-{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]${eventJsonExtra}${personaJsonExtra}${patientResearchJsonExtra}}`;
+{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]${eventJsonExtra}${personaJsonExtra}${patientResearchJsonExtra}${labToLaunchJsonExtra}}`;
 
     // Text-only analysis — no multimodal to save memory on large brands
     let aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -406,6 +421,7 @@ Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct
       ...(analysis.persona_design ? { persona_design: analysis.persona_design } : {}),
       ...(analysis.inclusive_imagery ? { inclusive_imagery: analysis.inclusive_imagery } : {}),
       ...(analysis.patient_research_integration ? { patient_research_integration: analysis.patient_research_integration } : {}),
+      ...(analysis.lab_to_launch ? { lab_to_launch: analysis.lab_to_launch } : {}),
       last_updated: new Date().toISOString(),
     };
 
