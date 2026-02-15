@@ -1213,7 +1213,7 @@ const BrandEditor = () => {
           />
 
           {/* Content */}
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
+          <main className="flex-1 pt-2 px-4 pb-4 sm:pt-2 sm:px-6 sm:pb-6 lg:pt-3 lg:px-8 lg:pb-8 overflow-x-hidden">
             <div className={`${getContentWidthClass()} mx-auto animate-fade-in-up ${getSectionSpacingClass()}`}>
               {/* Sticky Breadcrumbs */}
               <StickyBreadcrumbs
