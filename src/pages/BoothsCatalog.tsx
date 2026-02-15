@@ -15,6 +15,7 @@ import { useBoothDownloadLinks } from "@/hooks/useBoothDownloadLinks";
 import { useBoothKeyStats } from "@/hooks/useBoothKeyStats";
 import { useBoothVariantInfo } from "@/hooks/useBoothVariantInfo";
 import { useBoothQRCodes } from "@/hooks/useBoothQRCodes";
+import { useBoothProductionSpecs } from "@/hooks/useBoothProductionSpecs";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
@@ -759,6 +760,143 @@ const QRCodesManager = ({ divisionId, isAdmin, color }: { divisionId: string; is
   );
 };
 
+const SPEC_CATEGORIES = [
+  { value: "content-sizing", label: "Content Sizing" },
+  { value: "resolution", label: "Resolution & DPI" },
+  { value: "file-formats", label: "File Formats" },
+  { value: "color-space", label: "Color Space" },
+  { value: "safe-zones", label: "Safe Zones" },
+  { value: "best-practices", label: "Best Practices" },
+  { value: "general", label: "General" },
+];
+
+const ProductionSpecsManager = ({ divisionId, isAdmin, color }: { divisionId: string; isAdmin: boolean; color: string }) => {
+  const { specs, loading, addSpec, updateSpec, deleteSpec } = useBoothProductionSpecs(divisionId);
+  const [adding, setAdding] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newContent, setNewContent] = useState("");
+  const [newCategory, setNewCategory] = useState("general");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [editCategory, setEditCategory] = useState("general");
+
+  const handleAdd = async () => {
+    if (!newTitle.trim() || !newContent.trim()) return;
+    await addSpec(newTitle.trim(), newContent.trim(), newCategory);
+    setNewTitle(""); setNewContent(""); setNewCategory("general"); setAdding(false);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId || !editTitle.trim() || !editContent.trim()) return;
+    await updateSpec(editingId, editTitle.trim(), editContent.trim(), editCategory);
+    setEditingId(null);
+  };
+
+  const startEdit = (spec: { id: string; title: string; content: string; category: string }) => {
+    setEditingId(spec.id);
+    setEditTitle(spec.title);
+    setEditContent(spec.content);
+    setEditCategory(spec.category);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+        <Loader2 className="h-4 w-4 animate-spin" /> Loading production specs...
+      </div>
+    );
+  }
+
+  if (specs.length === 0 && !isAdmin) return null;
+
+  const grouped = SPEC_CATEGORIES.map(cat => ({
+    ...cat,
+    items: specs.filter(s => s.category === cat.value),
+  })).filter(g => g.items.length > 0);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Production Specifications</h3>
+        {isAdmin && !adding && (
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setAdding(true)}>
+            <Plus className="h-3.5 w-3.5" /> Add Spec
+          </Button>
+        )}
+      </div>
+
+      {adding && isAdmin && (
+        <div className="mb-3 space-y-2 p-3 rounded-lg border border-border/60 bg-muted/20">
+          <Input placeholder="Title (e.g. Banner Dimensions)" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="text-sm" />
+          <select
+            value={newCategory}
+            onChange={(e) => setNewCategory(e.target.value)}
+            className="w-full text-sm rounded-md border border-input bg-background px-3 py-2"
+          >
+            {SPEC_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+          <Textarea placeholder="Specification details..." value={newContent} onChange={(e) => setNewContent(e.target.value)} className="text-sm min-h-[80px]" />
+          <div className="flex gap-2">
+            <Button size="sm" className="text-xs" onClick={handleAdd}>Add</Button>
+            <Button size="sm" variant="ghost" className="text-xs" onClick={() => { setAdding(false); setNewTitle(""); setNewContent(""); setNewCategory("general"); }}>Cancel</Button>
+          </div>
+        </div>
+      )}
+
+      {editingId && isAdmin && (
+        <div className="mb-3 space-y-2 p-3 rounded-lg border border-primary/30 bg-muted/20">
+          <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="Title" className="text-sm" />
+          <select
+            value={editCategory}
+            onChange={(e) => setEditCategory(e.target.value)}
+            className="w-full text-sm rounded-md border border-input bg-background px-3 py-2"
+          >
+            {SPEC_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+          <Textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} placeholder="Details" className="text-sm min-h-[80px]" />
+          <div className="flex gap-2">
+            <Button size="sm" className="text-xs" onClick={handleUpdate}>Save</Button>
+            <Button size="sm" variant="ghost" className="text-xs" onClick={() => setEditingId(null)}>Cancel</Button>
+          </div>
+        </div>
+      )}
+
+      {grouped.length > 0 && (
+        <div className="space-y-3">
+          {grouped.map(group => (
+            <div key={group.value}>
+              <div className="text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color }}>{group.label}</div>
+              <div className="space-y-2">
+                {group.items.map(spec => (
+                  <div key={spec.id} className="bg-muted/40 rounded-lg p-3 relative group">
+                    <div className="text-xs font-semibold text-foreground mb-1">{spec.title}</div>
+                    <div className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">{spec.content}</div>
+                    {isAdmin && !editingId && (
+                      <div className="absolute top-1.5 right-1.5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEdit(spec)}>
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteSpec(spec.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {specs.length === 0 && isAdmin && !adding && (
+        <p className="text-xs text-muted-foreground italic">No production specs yet. Click "Add Spec" to add one.</p>
+      )}
+    </div>
+  );
+};
+
 const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divisionId: string; variantLabel: string; isAdmin: boolean; color: string }) => {
   const { info, loading, saveInfo } = useBoothVariantInfo(divisionId, variantLabel);
   const [editing, setEditing] = useState(false);
@@ -1031,6 +1169,8 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                 <KeyStatsManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
                 <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+
+                <ProductionSpecsManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
                 <div className="flex flex-col gap-2">
                   <a href={`mailto:${division.email}`} className="flex items-center gap-2 text-sm text-primary hover:underline">
