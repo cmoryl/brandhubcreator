@@ -299,13 +299,13 @@ const CardGrid = React.forwardRef<HTMLDivElement, {
               backgroundColor: isActive ? undefined : (isDark ? tint.tint : tint.tintLight),
               ...(isActive ? {
                 background: `linear-gradient(135deg, ${tint.bg}, ${tint.bg.replace(')', ' / 0.7)')})`,
-                boxShadow: `0 0 20px ${tint.bg.replace(')', ' / 0.4)')}, 0 0 40px ${tint.bg.replace(')', ' / 0.15)')}`,
+                boxShadow: `0 0 12px ${tint.bg.replace(')', ' / 0.2)')}, 0 0 24px ${tint.bg.replace(')', ' / 0.08)')}`,
                 ringColor: tint.bg.replace(')', ' / 0.6)'),
               } : isExpanded ? {
                 boxShadow: isDark
-                  ? `0 4px 30px ${tint.bg.replace(')', ' / 0.25)')}, 0 0 60px ${tint.bg.replace(')', ' / 0.1)')}`
-                  : `0 4px 20px ${tint.bg.replace(')', ' / 0.15)')}, 0 8px 30px rgba(0,0,0,0.08)`,
-                border: `1px solid ${tint.bg.replace(')', isDark ? ' / 0.3)' : ' / 0.25)')}`,
+                  ? `0 2px 16px ${tint.bg.replace(')', ' / 0.12)')}`
+                  : `0 2px 12px ${tint.bg.replace(')', ' / 0.08)')}, 0 4px 16px rgba(0,0,0,0.05)`,
+                border: `1px solid ${tint.bg.replace(')', isDark ? ' / 0.2)' : ' / 0.15)')}`,
               } : {}),
             } as any}
           >
