@@ -795,13 +795,13 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
               {division.variants.length > 1 && (
                 <>
                   <button
-                    onClick={() => setActiveVariant((p) => (p - 1 + division.variants.length) % division.variants.length)}
+                    onClick={(e) => { e.stopPropagation(); setActiveVariant((p) => (p - 1 + division.variants.length) % division.variants.length); }}
                     className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
                   <button
-                    onClick={() => setActiveVariant((p) => (p + 1) % division.variants.length)}
+                    onClick={(e) => { e.stopPropagation(); setActiveVariant((p) => (p + 1) % division.variants.length); }}
                     className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
                   >
                     <ChevronRight className="h-5 w-5" />
@@ -812,7 +812,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                 {division.variants.map((_, i) => (
                   <button
                     key={i}
-                    onClick={() => setActiveVariant(i)}
+                    onClick={(e) => { e.stopPropagation(); setActiveVariant(i); }}
                     className={`h-2 rounded-full transition-all ${
                       i === activeVariant ? "w-6 bg-white" : "w-2 bg-white/50"
                     }`}
