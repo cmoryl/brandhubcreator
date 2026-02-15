@@ -646,13 +646,10 @@ const ColorCodeRow = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-const BoothColorPalette = ({ color, boothColors }: { color: string; boothColors?: string[] }) => {
+const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId }: { color: string; boothColors?: string[]; isAdmin?: boolean; divisionId?: string }) => {
   const hex = color.startsWith('#') ? color : `#${color}`;
   const { r, g, b } = hexToRgb(hex);
-  const hsl = rgbToHsl(r, g, b);
-  const cmyk = rgbToCmyk(r, g, b);
 
-  // Generate tints and shades
   const tintShade = (factor: number) => {
     const nr = Math.round(r + (255 - r) * factor);
     const ng = Math.round(g + (255 - g) * factor);
@@ -666,54 +663,121 @@ const BoothColorPalette = ({ color, boothColors }: { color: string; boothColors?
     return `#${nr.toString(16).padStart(2, '0')}${ng.toString(16).padStart(2, '0')}${nb.toString(16).padStart(2, '0')}`;
   };
 
-  const palette = boothColors && boothColors.length >= 6 ? boothColors.slice(0, 6) : [
-    shade(0.5),
-    shade(0.3),
-    hex,
-    tintShade(0.25),
-    tintShade(0.5),
-    tintShade(0.75),
+  const defaultPalette = boothColors && boothColors.length >= 6 ? boothColors.slice(0, 6) : [
+    shade(0.5), shade(0.3), hex, tintShade(0.25), tintShade(0.5), tintShade(0.75),
   ];
 
-  const [selectedIdx, setSelectedIdx] = useState(2);
-  const selHex = palette[selectedIdx];
+  // Load saved palette from DB
+  const [dbColors, setDbColors] = useState<string[] | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [editColors, setEditColors] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!divisionId) return;
+    supabase.from('booth_color_palettes').select('colors').eq('division_id', divisionId).maybeSingle()
+      .then(({ data }) => {
+        if (data?.colors && data.colors.length >= 6) {
+          setDbColors(data.colors.slice(0, 6));
+        }
+      });
+  }, [divisionId]);
+
+  const palette = dbColors || defaultPalette;
+
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const selHex = palette[selectedIdx] || palette[0];
   const selRgb = hexToRgb(selHex);
   const selHsl = rgbToHsl(selRgb.r, selRgb.g, selRgb.b);
   const selCmyk = rgbToCmyk(selRgb.r, selRgb.g, selRgb.b);
 
+  const startEdit = () => {
+    setEditColors([...palette]);
+    setEditing(true);
+  };
+
+  const saveColors = async () => {
+    if (!divisionId) return;
+    setSaving(true);
+    const { error } = await supabase.from('booth_color_palettes' as any)
+      .upsert({ division_id: divisionId, colors: editColors, updated_at: new Date().toISOString() } as any, { onConflict: 'division_id' });
+    setSaving(false);
+    if (error) { toast.error('Failed to save palette'); return; }
+    setDbColors(editColors);
+    setEditing(false);
+    toast.success('Color palette saved');
+  };
+
   return (
     <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
-      <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Booth Color Palette</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Booth Color Palette</h3>
+        {isAdmin && !editing && (
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={startEdit}>
+            <Pencil className="h-3 w-3" />
+          </Button>
+        )}
+      </div>
 
-      {/* 6-color swatch strip */}
-      <div className="flex rounded-lg overflow-hidden h-12">
-        {palette.map((c, i) => (
-          <div
-            key={i}
-            className={`flex-1 relative cursor-pointer transition-all ${selectedIdx === i ? 'flex-[1.8] ring-2 ring-foreground/30 z-10' : 'hover:flex-[1.3]'}`}
-            style={{ backgroundColor: c }}
-            title={c.toUpperCase()}
-            onClick={() => setSelectedIdx(i)}
-          >
-            {selectedIdx === i && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-white/90 ring-1 ring-white/50 shadow-sm" />
+      {editing ? (
+        <div className="space-y-3">
+          <div className="grid grid-cols-6 gap-2">
+            {editColors.map((c, i) => (
+              <div key={i} className="flex flex-col items-center gap-1">
+                <input
+                  type="color"
+                  value={c}
+                  onChange={(e) => {
+                    const updated = [...editColors];
+                    updated[i] = e.target.value;
+                    setEditColors(updated);
+                  }}
+                  className="h-10 w-full rounded border border-border cursor-pointer"
+                />
+                <span className="text-[9px] font-mono text-muted-foreground">{c.toUpperCase()}</span>
               </div>
-            )}
+            ))}
           </div>
-        ))}
-      </div>
-
-      {/* Selected color codes */}
-      <div className="grid grid-cols-[auto_1fr] gap-3 items-start">
-        <div className="w-14 h-14 rounded-lg shadow-sm border border-border/40" style={{ backgroundColor: selHex }} />
-        <div className="space-y-1">
-          <ColorCodeRow label="HEX" value={selHex.toUpperCase()} />
-          <ColorCodeRow label="RGB" value={`${selRgb.r}, ${selRgb.g}, ${selRgb.b}`} />
-          <ColorCodeRow label="HSL" value={`${selHsl.h}°, ${selHsl.s}%, ${selHsl.l}%`} />
-          <ColorCodeRow label="CMYK" value={`${selCmyk.c}, ${selCmyk.m}, ${selCmyk.y}, ${selCmyk.k}`} />
+          <div className="flex gap-2 justify-end">
+            <Button size="sm" variant="ghost" onClick={() => setEditing(false)} disabled={saving}>Cancel</Button>
+            <Button size="sm" onClick={saveColors} disabled={saving} className="gap-1">
+              {saving && <Loader2 className="h-3 w-3 animate-spin" />} Save
+            </Button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <>
+          {/* 6-color swatch strip */}
+          <div className="flex rounded-lg overflow-hidden h-12">
+            {palette.map((c, i) => (
+              <div
+                key={i}
+                className={`flex-1 relative cursor-pointer transition-all ${selectedIdx === i ? 'flex-[1.8] ring-2 ring-foreground/30 z-10' : 'hover:flex-[1.3]'}`}
+                style={{ backgroundColor: c }}
+                title={c.toUpperCase()}
+                onClick={() => setSelectedIdx(i)}
+              >
+                {selectedIdx === i && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-white/90 ring-1 ring-white/50 shadow-sm" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Selected color codes */}
+          <div className="grid grid-cols-[auto_1fr] gap-3 items-start">
+            <div className="w-14 h-14 rounded-lg shadow-sm border border-border/40" style={{ backgroundColor: selHex }} />
+            <div className="space-y-1">
+              <ColorCodeRow label="HEX" value={selHex.toUpperCase()} />
+              <ColorCodeRow label="RGB" value={`${selRgb.r}, ${selRgb.g}, ${selRgb.b}`} />
+              <ColorCodeRow label="HSL" value={`${selHsl.h}°, ${selHsl.s}%, ${selHsl.l}%`} />
+              <ColorCodeRow label="CMYK" value={`${selCmyk.c}, ${selCmyk.m}, ${selCmyk.y}, ${selCmyk.k}`} />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
@@ -1656,7 +1720,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                 </div>
 
                 {/* Color Palette */}
-                <BoothColorPalette color={division.color} boothColors={division.boothColors} />
+                <BoothColorPalette color={division.color} boothColors={division.boothColors} isAdmin={isAdmin} divisionId={division.id} />
 
                 <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 

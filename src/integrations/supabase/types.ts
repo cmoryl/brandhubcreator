@@ -316,6 +316,33 @@ export type Database = {
           },
         ]
       }
+      booth_color_palettes: {
+        Row: {
+          colors: string[]
+          created_at: string
+          created_by: string | null
+          division_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          colors?: string[]
+          created_at?: string
+          created_by?: string | null
+          division_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          colors?: string[]
+          created_at?: string
+          created_by?: string | null
+          division_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       booth_content_sections: {
         Row: {
           bullets: string[]
