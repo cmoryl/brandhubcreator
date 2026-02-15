@@ -315,7 +315,7 @@ const BoothCard = ({ division, onClick }: { division: BoothDivision; onClick: ()
           alt={`${division.name} booth`}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
-          style={division.imageRotation ? { transform: `rotate(${division.imageRotation}deg)`, objectFit: 'contain' } : undefined}
+          style={division.imageRotation ? { transform: `rotate(${division.imageRotation}deg) scale(1.6)`, objectFit: 'cover' } : undefined}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
