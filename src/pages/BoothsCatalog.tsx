@@ -42,7 +42,7 @@ interface BoothDivision {
   stats?: { label: string; value: string }[];
   images: string[];
   variants: { label: string; image: string }[];
-  imageRotation?: number;
+  
   downloadLinks?: { label: string; url: string }[];
   boothContent?: { heading: string; bullets: string[] }[];
 }
@@ -110,7 +110,7 @@ const DIVISIONS: BoothDivision[] = [
     services: ["Faster Case Outcomes", "Innovative Legal Technology", "Strategic Industry Expertise", "Seamless Multilingual Support", "eDiscovery", "Forensic Technology", "Managed Review"],
     images: ["/booths/legal.jpg"],
     variants: [{ label: "Standard", image: "/booths/legal.jpg" }],
-    imageRotation: -90,
+    
     boothContent: [
       { heading: "Core Messaging", bullets: ["The Global Leader in Legal Technology & Support"] },
       { heading: "Key Differentiators", bullets: ["Faster Case Outcomes", "Innovative Legal Technology", "Strategic Industry Expertise", "Seamless Multilingual Support"] },
@@ -322,7 +322,7 @@ const BoothCard = ({ division, onClick, cardImage, isAdmin, onUploadCardImage }:
           alt={`${division.name} booth`}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
-          style={!cardImage && division.imageRotation ? { transform: `rotate(${division.imageRotation}deg) scale(1.6)`, objectFit: 'cover' } : undefined}
+          
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
@@ -1350,7 +1350,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  style={!hasCustomImage && division.imageRotation ? { transform: `rotate(${division.imageRotation}deg)` } : undefined}
+                  
                 />
               </AnimatePresence>
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity bg-black/20 pointer-events-none">
@@ -1423,7 +1423,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
               title={`${division.name} — ${currentVariant?.label || ''}`}
               previewUrl={resolvedImage}
               type="image"
-              imageStyle={!hasCustomImage && division.imageRotation ? { rotate: `${division.imageRotation}deg` } : undefined}
+              
             />
 
             {/* Variant Labels + Add Variant */}
