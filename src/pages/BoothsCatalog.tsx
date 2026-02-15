@@ -1317,7 +1317,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
             </div>
             <div>
               <h2 className="text-xl font-bold font-heading">{division.name}</h2>
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mt-1">{division.tagline}</h3>
+              <h3 className="text-base font-bold text-primary uppercase tracking-wider mt-1">{division.tagline}</h3>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
@@ -1497,7 +1497,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
               <div className="space-y-4">
                 <div>
                   <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-primary">Tagline</h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">{division.tagline}</p>
+                  <p className="text-base font-bold leading-relaxed text-primary">{division.tagline}</p>
                   <p className="text-sm leading-relaxed">{division.description}</p>
                 </div>
 
