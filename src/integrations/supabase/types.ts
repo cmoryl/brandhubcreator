@@ -385,6 +385,42 @@ export type Database = {
         }
         Relationships: []
       }
+      booth_production_specs: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          created_by: string | null
+          display_order: number
+          division_id: string
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          division_id: string
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          division_id?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       booth_qr_codes: {
         Row: {
           created_at: string
