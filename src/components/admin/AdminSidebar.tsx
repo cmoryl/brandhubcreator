@@ -56,6 +56,7 @@ function SidebarContent({
     { id: 'bot-management', label: 'Bot Manager', icon: <Bot className="h-4 w-4" />, group: 'analytics' },
     { id: 'downloads', label: 'Downloads', icon: <FileDown className="h-4 w-4" />, group: 'analytics' },
     { id: 'reports', label: 'Reports', icon: <FileText className="h-4 w-4" />, group: 'tools' },
+    { id: 'accessibility', label: 'Accessibility', icon: <Shield className="h-4 w-4" />, group: 'tools' },
     { id: 'activity', label: 'Activity Log', icon: <Activity className="h-4 w-4" />, group: 'tools' },
     { id: 'image-library', label: 'Image Library', icon: <Image className="h-4 w-4" />, group: 'tools' },
     { id: 'logo-hub', label: 'Logo Hub', icon: <Crown className="h-4 w-4" />, group: 'tools' },
