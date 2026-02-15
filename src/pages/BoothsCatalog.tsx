@@ -1459,6 +1459,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [addingVariant, setAddingVariant] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [newVariantLabel, setNewVariantLabel] = useState("");
   const Icon = division.icon;
   const { getMergedVariants, uploadImage, deleteImage, images } = useBoothImages(division.id);
@@ -1710,72 +1711,84 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
               />
             )}
 
-            {/* Info Grid */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-primary">Tagline</h3>
-                  <p className="text-base font-bold leading-relaxed text-primary">{division.tagline}</p>
-                  
-                </div>
+            {/* Booth Details - Collapsible, default closed */}
+            <div className="rounded-xl border border-border/60 bg-background overflow-hidden">
+              <button
+                className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-muted/40 transition-colors"
+                onClick={() => setDetailsOpen(!detailsOpen)}
+              >
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Booth Details</h3>
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${detailsOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {detailsOpen && (
+                    <div className="px-5 pb-5 space-y-6">
+                      {/* Info Grid */}
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-primary">Tagline</h3>
+                            <p className="text-base font-bold leading-relaxed text-primary">{division.tagline}</p>
+                          </div>
 
-                {/* Color Palette */}
-                <BoothColorPalette color={division.color} boothColors={division.boothColors} isAdmin={isAdmin} divisionId={division.id} />
+                          <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
-                <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+                          <div className="flex flex-col gap-2">
+                            <a href={`mailto:${division.email}`} className="flex items-center gap-2 text-sm text-primary hover:underline">
+                              <Mail className="h-4 w-4" /> {division.email}
+                            </a>
+                            <a href={`https://${division.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+                              <ExternalLink className="h-4 w-4" /> {division.website}
+                            </a>
+                          </div>
 
-                <div className="flex flex-col gap-2">
-                  <a href={`mailto:${division.email}`} className="flex items-center gap-2 text-sm text-primary hover:underline">
-                    <Mail className="h-4 w-4" /> {division.email}
-                  </a>
-                  <a href={`https://${division.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
-                    <ExternalLink className="h-4 w-4" /> {division.website}
-                  </a>
-                </div>
+                          <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+                        </div>
 
-                <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
-              </div>
+                        <div className="space-y-6">
+                          <ProductionSpecsManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
 
-              <div className="space-y-6">
-                <ProductionSpecsManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+                          {/* Font Family Callout */}
+                          <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
+                            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                              <Type className="h-4 w-4" /> Font Family
+                            </h3>
+                            <div className="flex items-center gap-3">
+                              <div className="flex-1">
+                                <p className="text-sm font-semibold" style={{ fontFamily: 'Poppins, sans-serif' }}>Poppins</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">Used across all booth materials — weights 300–800</p>
+                              </div>
+                              <a
+                                href="https://fonts.google.com/specimen/Poppins"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md border border-primary/30 text-primary hover:bg-primary/10 transition-colors shrink-0"
+                              >
+                                <Download className="h-3 w-3" /> Download
+                              </a>
+                            </div>
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              {['Light 300', 'Regular 400', 'Medium 500', 'SemiBold 600', 'Bold 700', 'ExtraBold 800'].map(w => (
+                                <span key={w} className="text-[10px] px-2 py-0.5 rounded-full bg-muted border border-border/40 text-muted-foreground">{w}</span>
+                              ))}
+                            </div>
+                          </div>
 
-                {/* Font Family Callout */}
-                <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                    <Type className="h-4 w-4" /> Font Family
-                  </h3>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold" style={{ fontFamily: 'Poppins, sans-serif' }}>Poppins</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Used across all booth materials — weights 300–800</p>
+                          {/* Color Palette */}
+                          <BoothColorPalette color={division.color} boothColors={division.boothColors} isAdmin={isAdmin} divisionId={division.id} />
+
+                          {/* Booth Gallery */}
+                          <BoothGalleryManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+                        </div>
+                      </div>
+
+                      {/* Booth Content Details */}
+                      <BoothContentManager divisionId={division.id} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} variants={mergedVariants.map(v => v.label)} />
+
+                      {/* Download Links */}
+                      <DownloadLinksManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
                     </div>
-                    <a
-                      href="https://fonts.google.com/specimen/Poppins"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md border border-primary/30 text-primary hover:bg-primary/10 transition-colors shrink-0"
-                    >
-                      <Download className="h-3 w-3" /> Download
-                    </a>
-                  </div>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {['Light 300', 'Regular 400', 'Medium 500', 'SemiBold 600', 'Bold 700', 'ExtraBold 800'].map(w => (
-                      <span key={w} className="text-[10px] px-2 py-0.5 rounded-full bg-muted border border-border/40 text-muted-foreground">{w}</span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Booth Gallery - Real booth shots */}
-                <BoothGalleryManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
-              </div>
+                  )}
             </div>
-
-            {/* Booth Content Details - Database-backed with admin management */}
-            <BoothContentManager divisionId={division.id} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} variants={mergedVariants.map(v => v.label)} />
-
-
-            {/* Download Links - Database-backed with admin management */}
-            <DownloadLinksManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
           </div>
         </div>
       </motion.div>
