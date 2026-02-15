@@ -12,6 +12,7 @@ interface PreviewDialogProps {
   externalUrl?: string;
   type?: 'image' | 'iframe' | 'video';
   aspectRatio?: 'video' | 'square' | 'portrait' | 'auto';
+  imageStyle?: React.CSSProperties;
 }
 
 export const PreviewDialog = ({
@@ -22,6 +23,7 @@ export const PreviewDialog = ({
   externalUrl,
   type = 'image',
   aspectRatio = 'auto',
+  imageStyle,
 }: PreviewDialogProps) => {
   const [zoom, setZoom] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -91,7 +93,7 @@ export const PreviewDialog = ({
                   zoom === 1 ? "max-w-full max-h-[65vh]" : "",
                   getAspectClass()
                 )}
-                style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}
+                style={{ transform: `scale(${zoom})`, transformOrigin: 'center center', ...imageStyle }}
                 onLoad={() => setIsLoading(false)}
                 onError={() => setIsLoading(false)}
               />

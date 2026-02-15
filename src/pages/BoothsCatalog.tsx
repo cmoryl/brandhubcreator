@@ -873,6 +873,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
               title={`${division.name} — ${division.variants[activeVariant].label}`}
               previewUrl={division.variants[activeVariant].image}
               type="image"
+              imageStyle={division.imageRotation ? { rotate: `${division.imageRotation}deg` } : undefined}
             />
 
             {/* Variant Labels */}
