@@ -3,13 +3,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, 
   Radio, Heart, Database, Microscope, Globe, X, ChevronLeft, ChevronRight,
-  Mail, ExternalLink, ArrowLeft
+  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 // ScrollArea removed - using native overflow for mobile compatibility
 import { supabase } from "@/integrations/supabase/client";
+import { useBoothDownloadLinks } from "@/hooks/useBoothDownloadLinks";
+import { Input } from "@/components/ui/input";
 import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
 import { HeroEditToolbar, HeroEffectType } from "@/components/brand/HeroEditToolbar";
 import { GradientBarsHero } from "@/components/backgrounds/GradientBarsHero";
@@ -350,7 +352,137 @@ const BoothCard = ({ division, onClick }: { division: BoothDivision; onClick: ()
   );
 };
 
-const DivisionDetail = ({ division, onClose }: { division: BoothDivision; onClose: () => void }) => {
+const DownloadLinksManager = ({ divisionId, isAdmin, color }: { divisionId: string; isAdmin: boolean; color: string }) => {
+  const { links, loading, addLink, updateLink, deleteLink } = useBoothDownloadLinks(divisionId);
+  const [adding, setAdding] = useState(false);
+  const [newLabel, setNewLabel] = useState("");
+  const [newUrl, setNewUrl] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+  const [editUrl, setEditUrl] = useState("");
+
+  const handleAdd = async () => {
+    if (!newLabel.trim() || !newUrl.trim()) return;
+    await addLink(newLabel.trim(), newUrl.trim());
+    setNewLabel("");
+    setNewUrl("");
+    setAdding(false);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId || !editLabel.trim() || !editUrl.trim()) return;
+    await updateLink(editingId, editLabel.trim(), editUrl.trim());
+    setEditingId(null);
+  };
+
+  const startEdit = (link: { id: string; label: string; url: string }) => {
+    setEditingId(link.id);
+    setEditLabel(link.label);
+    setEditUrl(link.url);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+        <Loader2 className="h-4 w-4 animate-spin" /> Loading downloads...
+      </div>
+    );
+  }
+
+  if (links.length === 0 && !isAdmin) return null;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Download Files</h3>
+        {isAdmin && !adding && (
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setAdding(true)}>
+            <Plus className="h-3.5 w-3.5" /> Add Link
+          </Button>
+        )}
+      </div>
+
+      {/* Add form */}
+      {adding && (
+        <div className="flex flex-col sm:flex-row gap-2 mb-3 p-3 rounded-lg border border-border bg-muted/30">
+          <Input
+            placeholder="Label (e.g. 108 Dark)"
+            value={newLabel}
+            onChange={(e) => setNewLabel(e.target.value)}
+            className="text-sm h-9"
+          />
+          <Input
+            placeholder="URL (https://...)"
+            value={newUrl}
+            onChange={(e) => setNewUrl(e.target.value)}
+            className="text-sm h-9"
+          />
+          <div className="flex gap-1.5 shrink-0">
+            <Button size="sm" className="h-9" onClick={handleAdd} disabled={!newLabel.trim() || !newUrl.trim()}>
+              Save
+            </Button>
+            <Button size="sm" variant="ghost" className="h-9" onClick={() => { setAdding(false); setNewLabel(""); setNewUrl(""); }}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {links.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {links.map((link) => (
+            <div key={link.id}>
+              {editingId === link.id ? (
+                <div className="flex flex-col gap-1.5 p-2 rounded-lg border border-primary/30 bg-muted/30">
+                  <Input
+                    value={editLabel}
+                    onChange={(e) => setEditLabel(e.target.value)}
+                    className="text-sm h-8"
+                  />
+                  <Input
+                    value={editUrl}
+                    onChange={(e) => setEditUrl(e.target.value)}
+                    className="text-sm h-8"
+                  />
+                  <div className="flex gap-1.5">
+                    <Button size="sm" className="h-7 text-xs" onClick={handleUpdate}>Save</Button>
+                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEditingId(null)}>Cancel</Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 group">
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border/60 bg-muted/30 hover:bg-muted/60 hover:border-primary/30 transition-colors text-sm"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="truncate">{link.label}</span>
+                  </a>
+                  {isAdmin && (
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEdit(link)}>
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteLink(link.id)}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : isAdmin ? (
+        <p className="text-xs text-muted-foreground italic">No download links yet. Click "Add Link" to add URLs for this booth.</p>
+      ) : null}
+    </div>
+  );
+};
+
+const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivision; onClose: () => void; isAdmin: boolean }) => {
   const [activeVariant, setActiveVariant] = useState(0);
   const Icon = division.icon;
 
@@ -523,26 +655,8 @@ const DivisionDetail = ({ division, onClose }: { division: BoothDivision; onClos
               </div>
             )}
 
-            {/* Download Links */}
-            {division.downloadLinks && division.downloadLinks.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Download Files</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {division.downloadLinks.map((link) => (
-                    <a
-                      key={link.label}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border/60 bg-muted/30 hover:bg-muted/60 hover:border-primary/30 transition-colors text-sm group"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary shrink-0" />
-                      <span className="truncate">{link.label}</span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Download Links - Database-backed with admin management */}
+            <DownloadLinksManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
           </div>
         </div>
       </motion.div>
@@ -735,7 +849,7 @@ export default function BoothsCatalog() {
       {/* Detail Modal */}
       <AnimatePresence>
         {selected && (
-          <DivisionDetail division={selected} onClose={() => setSelected(null)} />
+          <DivisionDetail division={selected} onClose={() => setSelected(null)} isAdmin={isAdmin} />
         )}
       </AnimatePresence>
     </div>

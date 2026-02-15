@@ -316,6 +316,39 @@ export type Database = {
           },
         ]
       }
+      booth_download_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          display_order: number
+          division_id: string
+          id: string
+          label: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          division_id: string
+          id?: string
+          label: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          division_id?: string
+          id?: string
+          label?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       bot_config: {
         Row: {
           bot_type: string
