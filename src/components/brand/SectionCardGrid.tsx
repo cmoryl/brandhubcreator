@@ -252,20 +252,20 @@ function CardGrid({
               isExpanded
                 ? { scale: 1, y: 0, opacity: 1 }
                 : isShrunk
-                  ? { scale: 0.88, y: 0, opacity: 0.6 }
+                  ? { scale: 0.92, y: 0, opacity: 0.65 }
                   : { scale: 1, y: 0, opacity: 1 }
             }
-            whileTap={{ scale: 0.92 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 180, damping: 24, mass: 0.8 }}
             className={cn(
               'section-card-shimmer group relative flex flex-col items-center justify-center rounded-xl',
-              'transition-all duration-300 origin-center overflow-hidden',
+              'transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] origin-center overflow-hidden',
               isExpanded ? 'col-span-3 row-span-2 z-30 p-3 gap-2' : 'col-span-1 p-2 gap-1 aspect-square',
               isActive
                 ? 'text-white ring-2'
                 : 'bg-card/80 backdrop-blur-sm text-card-foreground',
               isHidden && isAdmin && 'opacity-40 grayscale',
-              isShrunk && 'filter brightness-75'
+              isShrunk && 'filter brightness-80'
             )}
             style={{
               '--shimmer-color': tint.bg,
@@ -309,8 +309,8 @@ function CardGrid({
 
             {/* Icon — larger when expanded */}
             <motion.div
-              animate={isExpanded ? { scale: 1.3 } : { scale: 1 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              animate={isExpanded ? { scale: 1.2 } : { scale: 1 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 22, mass: 0.6 }}
               className="relative z-10"
             >
               <Icon className={cn(
@@ -336,7 +336,7 @@ function CardGrid({
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  transition={{ type: 'spring', stiffness: 160, damping: 22, mass: 0.7 }}
                   className="relative z-10 w-full space-y-1.5 overflow-hidden"
                 >
                   {/* Category badge */}
@@ -367,7 +367,7 @@ function CardGrid({
                         key={cap}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.04, type: 'spring', stiffness: 500 }}
+                        transition={{ delay: i * 0.06, type: 'spring', stiffness: 200, damping: 18 }}
                         className={cn(
                           "text-[8px] px-1.5 py-0.5 rounded-md border",
                           isActive
