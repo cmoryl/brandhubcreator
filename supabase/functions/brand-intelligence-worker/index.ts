@@ -217,7 +217,20 @@ Evaluate all marketing materials and brand imagery against these mandatory princ
 Include an "inclusive_imagery" object: {"diversity_score":0-100,"power_hierarchy_balance":"equal|skewed|problematic","trope_risks":["up to 3"],"representation_gaps":["up to 3"],"recommendations":["up to 3"]}
 `;
 
+    const patientResearchContext = `
+PATIENT-FOCUSED RESEARCH & LOCALIZATION INTEGRATION:
+Leverage insights from patient-focused research, user studies, and localization efforts to inform inclusive design decisions:
+- Identify how patient/user research findings (clinical trials, patient journeys, caregiver feedback) can improve design for a wider audience
+- Assess whether localization efforts (translations, cultural adaptations, regional variants) have surfaced accessibility or usability insights that benefit ALL users — not just target demographics
+- Evaluate the "curb-cut effect": features designed for specific patient/user needs that create universal benefits (e.g., plain-language medical instructions helping non-native speakers, high-contrast labels aiding low-vision AND bright-sunlight scenarios)
+- Check if research insights are systematically fed back into design iterations, not siloed in reports
+- Recommend how patient/user research pipelines can be strengthened to continuously inform inclusive product and brand evolution
+Include a "patient_research_integration" object: {"research_utilization_score":0-100,"curb_cut_opportunities":["up to 3 features designed for specific needs that benefit everyone"],"localization_insights":["up to 3 insights from localization that improved universal design"],"feedback_loop_maturity":"nascent|developing|established|advanced","recommendations":["up to 3"]}
+`;
+
     const personaJsonExtra = ',"persona_design":{"spectrum_score":50,"dimension_scores":{"mobility":50,"vision":50,"hearing":50,"speech":50,"cognitive":50},"gaps":["up to 3"],"recommendations":["up to 3"]},"inclusive_imagery":{"diversity_score":50,"power_hierarchy_balance":"equal","trope_risks":[],"representation_gaps":["up to 3"],"recommendations":["up to 3"]}';
+
+    const patientResearchJsonExtra = ',"patient_research_integration":{"research_utilization_score":50,"curb_cut_opportunities":["up to 3"],"localization_insights":["up to 3"],"feedback_loop_maturity":"developing","recommendations":["up to 3"]}';
 
     const prompt = `Analyze "${entityName}" ${isEvent ? 'event' : isProduct ? 'product' : 'brand'}. Return compact JSON:
 ${brandContext}
@@ -225,8 +238,9 @@ ${oracleContext ? `\nORACLE BRAIN CONTEXT:\n${oracleContext}` : ''}
 ${physicalAccessibilityContext}
 ${personaDesignContext}
 ${inclusiveImageryContext}
+${patientResearchContext}
 Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct ? 'product inclusive design, user accessibility, and' : 'brand inclusive representation, imagery standards, and'} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''} Return ONLY valid JSON:
-{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]${eventJsonExtra}${personaJsonExtra}}`;
+{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]${eventJsonExtra}${personaJsonExtra}${patientResearchJsonExtra}}`;
 
     // Text-only analysis — no multimodal to save memory on large brands
     let aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -391,6 +405,7 @@ Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct
       ...(analysis.physical_accessibility ? { physical_accessibility: analysis.physical_accessibility } : {}),
       ...(analysis.persona_design ? { persona_design: analysis.persona_design } : {}),
       ...(analysis.inclusive_imagery ? { inclusive_imagery: analysis.inclusive_imagery } : {}),
+      ...(analysis.patient_research_integration ? { patient_research_integration: analysis.patient_research_integration } : {}),
       last_updated: new Date().toISOString(),
     };
 
