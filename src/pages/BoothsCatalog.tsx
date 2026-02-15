@@ -2108,7 +2108,7 @@ export default function BoothsCatalog() {
             </span>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-white font-heading mb-3 tracking-tight">
-            Booth <GlitchText text="Catalog" glowColor="hsl(195 100% 60%)" className="text-4xl md:text-6xl font-bold font-heading" />
+            Booth <GlitchText text="Catalog" glowColor="hsl(195 100% 60%)" className="text-4xl md:text-6xl font-bold font-heading" forceDark />
           </h1>
           <p className="text-lg text-white/70 max-w-2xl">
             Explore booth designs across all 12 TransPerfect divisions. Click any card to view variants, services, and contact details.
