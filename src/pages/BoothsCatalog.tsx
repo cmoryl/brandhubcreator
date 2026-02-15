@@ -60,7 +60,7 @@ interface BoothDivision {
   stats?: { label: string; value: string }[];
   images: string[];
   variants: { label: string; image: string }[];
-  
+  boothColors?: string[];
   downloadLinks?: { label: string; url: string }[];
   boothContent?: { heading: string; bullets: string[] }[];
 }
@@ -73,6 +73,7 @@ const DIVISIONS: BoothDivision[] = [
     description: "Any Customer. Any Language. Any Channel. TransPerfect Corporate delivers efficient translation, real-time analytics, and improved user experience across all channels.",
     icon: Building2,
     color: "hsl(200, 85%, 45%)",
+    boothColors: ["#0a3d5c", "#0d6eab", "#139cd8", "#3ab8e8", "#7ed3f2", "#c4ecfa"],
     email: "info@transperfect.com",
     website: "www.transperfect.com",
     services: ["Efficient Translation", "Analytics & Insights", "Real-Time Updates", "User Experience", "Accessibility", "Same-Day Services", "Telephonic Support", "Boutique Interpretation", "Healthcare Innovation"],
@@ -96,6 +97,7 @@ const DIVISIONS: BoothDivision[] = [
     description: "End-to-end language and technology solutions for pharmaceutical, biotech, and medical device companies—from clinical trials through global product launch.",
     icon: FlaskConical,
     color: "hsl(195, 80%, 40%)",
+    boothColors: ["#0b3a4a", "#0e6680", "#1295b6", "#38b4d4", "#74d0e8", "#b8e8f4"],
     email: "lifesciences@transperfect.com",
     website: "lifesciences.transperfect.com",
     services: ["Regulatory Affairs & Labeling", "COA/eCOA & Digital Health", "Patient Recruitment", "Global Product Launch", "Medical Writing", "AI/ML Automation & Translation", "Training & Development", "Pharmacovigilance", "eClinical & CTD eSubmission", "Literature Monitoring"],
@@ -123,6 +125,7 @@ const DIVISIONS: BoothDivision[] = [
     description: "Faster case outcomes through innovative legal technology, strategic industry expertise, and seamless multilingual support.",
     icon: Scale,
     color: "hsl(210, 70%, 35%)",
+    boothColors: ["#0f2440", "#1a3a66", "#2a5a8f", "#4a7ab8", "#7da3d4", "#b8cceb"],
     email: "legal@transperfect.com",
     website: "www.transperfectlegal.com",
     services: ["Faster Case Outcomes", "Innovative Legal Technology", "Strategic Industry Expertise", "Seamless Multilingual Support", "eDiscovery", "Forensic Technology", "Managed Review"],
@@ -142,6 +145,7 @@ const DIVISIONS: BoothDivision[] = [
     description: "Leverage global patent expertise, streamline filing processes, and accelerate translation timelines with AI-powered GlobalLink solutions.",
     icon: Shield,
     color: "hsl(220, 65%, 40%)",
+    boothColors: ["#12234a", "#1e3a73", "#2e55a3", "#5078c4", "#839fdb", "#bac9ed"],
     email: "patents@transperfect.com",
     website: "www.transperfectip.com",
     services: ["Global Patent Quality & Efficiency", "Streamlined Patent Filing", "AI-Powered Translation", "Quality & Expertise", "Accelerated Filing Timelines", "GlobalLink Integration"],
@@ -159,6 +163,7 @@ const DIVISIONS: BoothDivision[] = [
     description: "Any Market. Any Language. Performance-led. Measurable Results. Full-service international digital marketing powered by AI and data.",
     icon: Monitor,
     color: "hsl(265, 60%, 50%)",
+    boothColors: ["#2d1a5e", "#4a2d8c", "#6b3fc4", "#8e66d9", "#b399e6", "#d6ccf2"],
     email: "TPDigital@transperfect.com",
     website: "www.transperfectdigital.com",
     services: ["International SEO & Paid Media", "Performance Content & Copywriting", "LLM Solutions", "Social Media Intelligence", "AI Copywriting", "Market Intelligence"],
@@ -179,6 +184,7 @@ const DIVISIONS: BoothDivision[] = [
     description: "Full-spectrum media localization, post-production, accessibility, distribution, and content creation with 130+ recording studios worldwide.",
     icon: Film,
     color: "hsl(340, 65%, 45%)",
+    boothColors: ["#4a0f2a", "#7a1a45", "#b32861", "#d45a88", "#e48fae", "#f2c4d5"],
     email: "media@transperfect.com",
     website: "media.transperfect.com",
     services: ["Subtitling & Captioning", "Dubbing & Voiceover", "Post-Production & VFX", "Accessibility (SDH, CC, AD)", "Quality Control", "Distribution & Fulfillment", "Film Restoration (2K/4K/Dolby)", "Content Creation", "AI-Enabled Workflows"],
@@ -205,6 +211,7 @@ const DIVISIONS: BoothDivision[] = [
     description: "Where Boutique Expertise Meets Global Excellence. Full lifecycle game services from art and development to localization, marketing, QA, and player support.",
     icon: Gamepad2,
     color: "hsl(150, 60%, 40%)",
+    boothColors: ["#0d3d2a", "#1a6b48", "#2a9d6a", "#5abf8e", "#8ed9b3", "#c4edd9"],
     email: "games@transperfect.com",
     website: "transperfectgames.com",
     services: ["Art & Development", "Localization", "Marketing", "QA Testing", "Player Support", "AI Integration"],
@@ -222,6 +229,7 @@ const DIVISIONS: BoothDivision[] = [
     description: "Powered by GlobalLink. Deliver engaging, inclusive, and accessible events for global audiences with human expertise, AI services, and event technology.",
     icon: Radio,
     color: "hsl(180, 55%, 40%)",
+    boothColors: ["#0d3d3d", "#1a6b6b", "#2a9e9e", "#55bfbf", "#8ad9d9", "#c0edeb"],
     email: "live@transperfect.com",
     website: "www.transperfect.com",
     services: ["Content Creation", "Technology Consulting", "App, Web & Platform Localization", "Post-Launch Activities", "Expert Interpreters", "Global Availability", "Tailored Service", "Human Expertise", "AI Services", "Event Technology"],
@@ -245,6 +253,7 @@ const DIVISIONS: BoothDivision[] = [
     description: "Holistic, outcome-driven rehabilitation services and partnership models with translation, localization, and digital health solutions.",
     icon: Heart,
     color: "hsl(350, 70%, 50%)",
+    boothColors: ["#5c0a1a", "#991030", "#d42050", "#e05578", "#eb8da6", "#f5c4d0"],
     email: "tphealth@transperfect.com",
     website: "www.transperfect.com",
     services: ["Physical, Occupational & Speech Therapy", "Rehabilitation Services & Staffing", "Flexible Partnership Models", "Marketing Data Access", "Translation & Localization", "Digital Health", "30+ Years Experience"],
@@ -266,6 +275,7 @@ const DIVISIONS: BoothDivision[] = [
     description: "AI training data services including data collection, annotation, transcription, generative AI support, user studies, and ethical content moderation.",
     icon: Database,
     color: "hsl(270, 55%, 50%)",
+    boothColors: ["#2a1055", "#45208a", "#6633bf", "#8a5cd4", "#ad8ce3", "#d1bff0"],
     email: "dataforce@transperfect.com",
     website: "www.dataforce.ai",
     services: ["Data Collection", "Data Annotation", "Data Relevance", "Transcription", "Generative AI", "User Studies & Rating", "Business Process Chatbot", "Bias Mitigation", "Ethical Content Moderation"],
@@ -287,6 +297,7 @@ const DIVISIONS: BoothDivision[] = [
     description: "eClinical platform delivering connected, white-glove expert support services with AI-powered trial intelligence for clinical research.",
     icon: Microscope,
     color: "hsl(190, 65%, 42%)",
+    boothColors: ["#0a3642", "#126070", "#1d90a8", "#42b3cc", "#7ccde0", "#bbe5f0"],
     email: "info@trialinteractive.com",
     website: "www.trialinteractive.com",
     services: ["eClinical Platform", "Connected Support", "White-Glove Service", "Expert Support Services", "AI-Powered Trial Intelligence", "Cloud Collaboration"],
@@ -307,6 +318,7 @@ const DIVISIONS: BoothDivision[] = [
     description: "AI-driven global content solutions—scalable, AI-powered, and human-driven—for learning, localization, market insights, and growth partnerships. WBENC & ISO certified.",
     icon: Globe,
     color: "hsl(25, 70%, 50%)",
+    boothColors: ["#5c2a0a", "#994510", "#d96a1a", "#e8924a", "#f0b880", "#f7dbb8"],
     email: "info@theg3company.com",
     website: "theg3company.com",
     services: ["Learning & Development", "Localization & Content Solutions", "Market & Insights", "Scalable Growth Partnership", "Content Enablement", "AI-Driven Content"],
@@ -634,7 +646,7 @@ const ColorCodeRow = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-const BoothColorPalette = ({ color }: { color: string }) => {
+const BoothColorPalette = ({ color, boothColors }: { color: string; boothColors?: string[] }) => {
   const hex = color.startsWith('#') ? color : `#${color}`;
   const { r, g, b } = hexToRgb(hex);
   const hsl = rgbToHsl(r, g, b);
@@ -654,7 +666,7 @@ const BoothColorPalette = ({ color }: { color: string }) => {
     return `#${nr.toString(16).padStart(2, '0')}${ng.toString(16).padStart(2, '0')}${nb.toString(16).padStart(2, '0')}`;
   };
 
-  const palette = [
+  const palette = boothColors && boothColors.length >= 6 ? boothColors.slice(0, 6) : [
     shade(0.5),
     shade(0.3),
     hex,
@@ -1644,7 +1656,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                 </div>
 
                 {/* Color Palette */}
-                <BoothColorPalette color={division.color} />
+                <BoothColorPalette color={division.color} boothColors={division.boothColors} />
 
 
                 <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
