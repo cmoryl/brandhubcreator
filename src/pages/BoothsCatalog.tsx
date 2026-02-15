@@ -1183,9 +1183,7 @@ const QRCodesManager = ({ divisionId, isAdmin, color }: { divisionId: string; is
               <div key={qr.id} className="bg-muted/50 rounded-lg p-3 text-center relative group">
                 {qr.image_url ? (
                   <div className="mb-2 flex justify-center">
-                    <a href={qr.image_url} download={`${qr.label.replace(/[^a-z0-9]/gi, '_')}-qr.svg`} title="Click to download QR code" className="cursor-pointer hover:opacity-80 transition-opacity">
-                      <img src={qr.image_url} alt={qr.label} className="w-24 h-24 object-contain rounded" />
-                    </a>
+                    <img src={qr.image_url} alt={qr.label} className="w-24 h-24 object-contain rounded" />
                   </div>
                 ) : (
                   <div className="mb-2 flex justify-center">
@@ -1198,6 +1196,30 @@ const QRCodesManager = ({ divisionId, isAdmin, color }: { divisionId: string; is
                 <a href={qr.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-muted-foreground hover:text-primary truncate block mt-0.5">
                   {qr.url.replace(/^https?:\/\//, '').slice(0, 30)}
                 </a>
+                {qr.image_url && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 text-[10px] h-6 px-2 gap-1"
+                    onClick={async () => {
+                      try {
+                        const resp = await fetch(qr.image_url!);
+                        const blob = await resp.blob();
+                        const ext = qr.image_url!.toLowerCase().includes('.svg') ? 'svg' : 'png';
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${qr.label.replace(/[^a-z0-9]/gi, '_')}-qr.${ext}`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      } catch {
+                        toast.error('Failed to download QR code');
+                      }
+                    }}
+                  >
+                    <Download className="h-3 w-3" /> Download
+                  </Button>
+                )}
                 {isAdmin && (
                   <div className="absolute -top-1 -right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEdit(qr)}>
