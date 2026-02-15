@@ -31,7 +31,7 @@ export const StickyBreadcrumbs = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          'fixed top-0 left-0 right-0 z-40 px-4 sm:px-6 lg:px-8 py-2',
+          'fixed top-0 left-0 right-0 z-40 px-4 sm:px-6 lg:px-8 py-1',
           'bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80',
           'border-b border-border/50',
           'shadow-sm',
@@ -50,7 +50,7 @@ export const StickyBreadcrumbs = React.forwardRef<
         </div>
       </div>
       {/* Spacer to prevent content from being hidden under fixed header */}
-      <div className="h-10" aria-hidden="true" />
+      <div className="h-5" aria-hidden="true" />
     </>
   );
 });
