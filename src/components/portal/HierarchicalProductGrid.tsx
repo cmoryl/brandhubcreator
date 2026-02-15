@@ -172,11 +172,11 @@ const MasterProductSection = memo(forwardRef<HTMLDivElement, MasterProductSectio
     <div ref={ref} className="space-y-3">
       {/* Master product card - full width with gradient accent */}
       <Card 
-        className="group hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg relative ring-2 ring-accent/30"
+        className="group hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg relative"
       >
-        {/* Accent gradient overlay */}
-        <div className="absolute inset-0 rounded-lg pointer-events-none z-10">
-          <div className="absolute -inset-[2px] rounded-lg bg-gradient-to-br from-accent/40 via-primary/20 to-accent/40 opacity-60" />
+        {/* Accent gradient overlay - inset to prevent corner dead zones */}
+        <div className="absolute inset-0 rounded-lg pointer-events-none z-10 overflow-hidden">
+          <div className="absolute inset-0 rounded-lg ring-2 ring-inset ring-accent/30 bg-gradient-to-br from-accent/10 via-transparent to-accent/10" />
         </div>
         
         <CardContent className="p-0 relative">

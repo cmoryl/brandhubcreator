@@ -188,11 +188,11 @@ const MasterBrandSection = memo(({
     <div className="space-y-3">
       {/* Master brand card - full width with gradient accent */}
       <Card 
-        className="group hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg relative ring-2 ring-primary/30"
+        className="group hover:shadow-2xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-lg relative"
       >
-        {/* Accent gradient overlay */}
-        <div className="absolute inset-0 rounded-lg pointer-events-none z-10">
-          <div className="absolute -inset-[2px] rounded-lg bg-gradient-to-br from-primary/40 via-accent/20 to-primary/40 opacity-60" />
+        {/* Accent gradient overlay - inset to prevent corner dead zones */}
+        <div className="absolute inset-0 rounded-lg pointer-events-none z-10 overflow-hidden">
+          <div className="absolute inset-0 rounded-lg ring-2 ring-inset ring-primary/30 bg-gradient-to-br from-primary/10 via-transparent to-primary/10" />
         </div>
         
         <CardContent className="p-0 relative">
