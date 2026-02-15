@@ -1575,7 +1575,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
             </div>
 
             {/* Booth Content Details - Database-backed with admin management */}
-            <BoothContentManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+            <BoothContentManager divisionId={division.id} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} variants={mergedVariants.map(v => v.label)} />
 
 
             {/* Download Links - Database-backed with admin management */}
