@@ -118,8 +118,8 @@ interface SectionCardGridProps {
 
 const EXCLUDED_FROM_NAV: string[] = ['socialmetrics', 'hero'];
 
-// Each card gets a unique tint color based on index
-const CARD_TINTS = [
+// Each card gets a unique tint color based on index — exported for section header
+export const CARD_TINTS = [
   { bg: 'hsl(210 80% 55%)',  tint: 'hsl(210 80% 55% / 0.08)', tintLight: 'hsl(210 80% 55% / 0.06)' },
   { bg: 'hsl(280 70% 55%)',  tint: 'hsl(280 70% 55% / 0.08)', tintLight: 'hsl(280 70% 55% / 0.06)' },
   { bg: 'hsl(340 75% 55%)',  tint: 'hsl(340 75% 55% / 0.08)', tintLight: 'hsl(340 75% 55% / 0.06)' },
@@ -133,6 +133,9 @@ const CARD_TINTS = [
   { bg: 'hsl(200 85% 50%)',  tint: 'hsl(200 85% 50% / 0.08)', tintLight: 'hsl(200 85% 50% / 0.06)' },
   { bg: 'hsl(45 95% 55%)',   tint: 'hsl(45 95% 55% / 0.08)',  tintLight: 'hsl(45 95% 55% / 0.06)' },
 ];
+
+// Exported for ActiveSectionHeader
+export { SECTION_DESCRIPTIONS };
 
 const CARD_BG_OPTIONS: { type: BrandBackgroundType; label: string; icon: typeof Sparkles }[] = [
   { type: 'inherit', label: 'None', icon: X },

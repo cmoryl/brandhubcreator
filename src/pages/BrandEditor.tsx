@@ -82,6 +82,7 @@ import { HeroBackground } from '@/components/HeroBackground';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
 import { SectionCardGrid } from '@/components/brand/SectionCardGrid';
+import { ActiveSectionHeader } from '@/components/brand/ActiveSectionHeader';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -1259,9 +1260,16 @@ const BrandEditor = () => {
                     entityId={brand?.id}
                   />
                   {activeSection !== 'hero' && (
-                    <div className="animate-zoom-in">
-                      {renderSection()}
-                    </div>
+                    <>
+                      <ActiveSectionHeader
+                        activeSection={activeSection}
+                        sectionOrder={sectionOrder}
+                        hiddenSections={hiddenSections}
+                      />
+                      <div className="animate-zoom-in">
+                        {renderSection()}
+                      </div>
+                    </>
                   )}
                 </div>
               ) : viewMode === 'sections' ? (
