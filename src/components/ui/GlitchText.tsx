@@ -5,10 +5,11 @@ interface GlitchTextProps {
   text: string;
   className?: string;
   glowColor?: string;
+  forceDark?: boolean;
 }
 
 export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
-  ({ text, className = '', glowColor = 'hsl(199 89% 48%)' }, ref) => {
+  ({ text, className = '', glowColor = 'hsl(199 89% 48%)', forceDark = false }, ref) => {
   const [glitchOffset, setGlitchOffset] = useState({ x: 0, y: 0 });
   const [mounted, setMounted] = useState(false);
   const { resolvedTheme } = useTheme();
@@ -34,7 +35,7 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
   }, []);
   
   // Default to dark during SSR/initial render, then use actual theme
-  const isDark = !mounted || resolvedTheme === 'dark';
+  const isDark = !mounted || resolvedTheme === 'dark' || forceDark;
 
   // Light mode: render clean accent text only (no glitch effects)
   if (mounted && !isDark) {
