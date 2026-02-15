@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useCallback } from 'react';
+import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { SectionId, BrandBackgroundType } from '@/types/brand';
@@ -114,6 +114,8 @@ interface SectionCardGridProps {
   entityType?: 'brand' | 'product' | 'event';
   entityId?: string;
   customSectionMeta?: Record<string, { label: string; icon: React.ElementType; category: string }>;
+  /** Reports the computed/sorted sections array so consumers can sync tint colors */
+  onSectionsComputed?: (sections: string[]) => void;
 }
 
 const EXCLUDED_FROM_NAV: string[] = ['socialmetrics', 'hero'];
@@ -494,6 +496,7 @@ export const SectionCardGrid = ({
   entityType = 'brand',
   entityId,
   customSectionMeta,
+  onSectionsComputed,
 }: SectionCardGridProps) => {
   const sectionMeta = customSectionMeta || defaultSectionMeta;
   const [bgPickerOpen, setBgPickerOpen] = useState(false);
@@ -511,6 +514,11 @@ export const SectionCardGrid = ({
     const visible = isAdmin ? base : base.filter((id) => !hiddenSections.includes(id));
     return sortSections(visible, sortMode, sectionMeta);
   }, [sectionOrder, hiddenSections, isAdmin, sortMode, sectionMeta]);
+
+  // Report computed sections to parent for tint synchronization
+  useEffect(() => {
+    onSectionsComputed?.(sections);
+  }, [sections, onSectionsComputed]);
 
   const hasBackground = cardViewBackground && cardViewBackground !== 'inherit';
 
