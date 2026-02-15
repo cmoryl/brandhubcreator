@@ -2028,17 +2028,7 @@ export default function BoothsCatalog() {
               {renderHeroEffect()}
             </div>
           ) : (
-            <>
-              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(200,85%,20%)] via-[hsl(205,75%,30%)] to-[hsl(210,70%,25%)]" />
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-0 left-0 w-full h-full" style={{
-                  backgroundImage: `url('/booths/page-cover.jpg')`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  filter: 'blur(2px)',
-                }} />
-              </div>
-            </>
+            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(200,85%,20%)] via-[hsl(205,75%,30%)] to-[hsl(210,70%,25%)]" />
           )}
         </div>
 
