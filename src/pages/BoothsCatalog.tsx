@@ -646,6 +646,62 @@ const ColorCodeRow = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
+const exportPalette = (palette: string[], name: string) => {
+  // Generate PNG swatch
+  const canvas = document.createElement('canvas');
+  const swatchW = 120, swatchH = 80, padding = 20, labelH = 24;
+  const totalW = padding * 2 + palette.length * swatchW + (palette.length - 1) * 8;
+  const totalH = padding * 2 + swatchH + labelH;
+  canvas.width = totalW;
+  canvas.height = totalH;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, totalW, totalH);
+
+  palette.forEach((c, i) => {
+    const x = padding + i * (swatchW + 8);
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.roundRect(x, padding, swatchW, swatchH, 8);
+    ctx.fill();
+    ctx.fillStyle = '#333333';
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(c.toUpperCase(), x + swatchW / 2, padding + swatchH + 16);
+  });
+
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name}-color-palette.png`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+
+  // Also export a text file with all color values
+  const rgbFromHex = (h: string) => {
+    const rv = parseInt(h.slice(1, 3), 16);
+    const gv = parseInt(h.slice(3, 5), 16);
+    const bv = parseInt(h.slice(5, 7), 16);
+    return { r: rv, g: gv, b: bv };
+  };
+  const lines = [`${name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} — Color Palette`, ''];
+  palette.forEach((c, i) => {
+    const rgb = rgbFromHex(c);
+    lines.push(`Color ${i + 1}: ${c.toUpperCase()}  |  RGB(${rgb.r}, ${rgb.g}, ${rgb.b})`);
+  });
+  lines.push('', `Exported from TransPerfect Booth Catalog`);
+  const textBlob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const textUrl = URL.createObjectURL(textBlob);
+  const a2 = document.createElement('a');
+  a2.href = textUrl;
+  a2.download = `${name}-color-palette.txt`;
+  a2.click();
+  URL.revokeObjectURL(textUrl);
+};
+
 const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId }: { color: string; boothColors?: string[]; isAdmin?: boolean; divisionId?: string }) => {
   const hex = color.startsWith('#') ? color : `#${color}`;
   const { r, g, b } = hexToRgb(hex);
@@ -712,11 +768,18 @@ const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId }: { color:
     <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Booth Color Palette</h3>
-        {isAdmin && !editing && (
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={startEdit}>
-            <Pencil className="h-3 w-3" />
-          </Button>
-        )}
+        <div className="flex items-center gap-1">
+          {!editing && (
+            <Button variant="ghost" size="icon" className="h-6 w-6" title="Export palette" onClick={() => exportPalette(palette, divisionId || 'booth')}>
+              <Download className="h-3 w-3" />
+            </Button>
+          )}
+          {isAdmin && !editing && (
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={startEdit}>
+              <Pencil className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {editing ? (
