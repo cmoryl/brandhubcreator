@@ -2072,6 +2072,9 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                       {/* Booth Content Details */}
                       <BoothContentManager divisionId={division.id} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} variants={mergedVariants.map(v => v.label)} />
 
+                      {/* Download Links */}
+                      <DownloadLinksManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+
                       {/* AI Booth Analysis */}
                       <BoothAIAnalysis
                         divisionId={division.id}
@@ -2083,7 +2086,6 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                         variantLabel={currentVariant?.label}
                         isAdmin={isAdmin}
                       />
-                      <DownloadLinksManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
                         </div>
                       </motion.div>
                     )}
