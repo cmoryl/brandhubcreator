@@ -116,15 +116,50 @@ export const LinkBoothDialog = ({ open, onOpenChange, linkedBooths, onLink }: {
   onLink: (booth: LinkedBoothCard) => void;
 }) => {
   const [search, setSearch] = useState('');
+  const { divisions: customDivisions } = useCustomDivisions();
   const linkedIds = new Set(linkedBooths.map(b => b.divisionId));
 
+  // Merge static divisions with DB overrides + add any purely custom divisions
+  const allDivisions = useMemo(() => {
+    // Apply DB overrides to static divisions
+    const merged = BOOTH_DIVISIONS.map(staticDiv => {
+      const dbOverride = customDivisions.find(d => d.division_id === staticDiv.id);
+      if (dbOverride) {
+        return {
+          ...staticDiv,
+          name: dbOverride.name || staticDiv.name,
+          tagline: dbOverride.tagline || staticDiv.tagline,
+          color: dbOverride.color || staticDiv.color,
+          iconName: dbOverride.icon_name || staticDiv.iconName,
+          services: dbOverride.services?.length ? dbOverride.services : staticDiv.services,
+        };
+      }
+      return staticDiv;
+    });
+
+    // Add custom divisions that don't match any static ID
+    const staticIds = new Set(BOOTH_DIVISIONS.map(d => d.id));
+    const uniqueCustoms = customDivisions
+      .filter(d => !staticIds.has(d.division_id))
+      .map(d => ({
+        id: d.division_id,
+        name: d.name,
+        tagline: d.tagline || '',
+        iconName: d.icon_name || 'Building2',
+        color: d.color || 'hsl(200, 70%, 45%)',
+        services: d.services || [],
+      }));
+
+    return [...merged, ...uniqueCustoms];
+  }, [customDivisions]);
+
   const filtered = useMemo(() => {
-    if (!search.trim()) return BOOTH_DIVISIONS;
+    if (!search.trim()) return allDivisions;
     const q = search.toLowerCase();
-    return BOOTH_DIVISIONS.filter(d =>
+    return allDivisions.filter(d =>
       d.name.toLowerCase().includes(q) || d.tagline.toLowerCase().includes(q)
     );
-  }, [search]);
+  }, [search, allDivisions]);
 
   const handleSelect = (div: typeof BOOTH_DIVISIONS[0]) => {
     onLink({
@@ -173,6 +208,13 @@ export const LinkBoothDialog = ({ open, onOpenChange, linkedBooths, onLink }: {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate">{div.name}</p>
                     <p className="text-xs text-muted-foreground line-clamp-1">{div.tagline}</p>
+                    {div.services.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {div.services.slice(0, 3).map(s => (
+                          <Badge key={s} variant="outline" className="text-[10px] font-normal py-0">{s}</Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   {alreadyLinked ? (
                     <Badge variant="secondary" className="text-[10px] shrink-0">Linked</Badge>
@@ -191,7 +233,6 @@ export const LinkBoothDialog = ({ open, onOpenChange, linkedBooths, onLink }: {
     </Dialog>
   );
 };
-
 // Helper: resolve a LinkedBoothCard to a full BoothDivision for DivisionDetail — exported for inline use
 export function resolveBoothDivision(booth: LinkedBoothCard, customDivisions: ReturnType<typeof useCustomDivisions>['divisions']): BoothDivision | null {
   // Check static DIVISIONS first

@@ -115,16 +115,33 @@ const BoothPickerInline = ({ linkedBooths, onLink, search, onSearchChange }: {
   const linkedIds = new Set(linkedBooths.map(b => b.divisionId));
 
   const allDivisions = useMemo(() => {
-    const customs = customDivisions.map(d => ({
-      id: d.division_id,
-      name: d.name,
-      tagline: d.tagline || '',
-      color: d.color || 'hsl(200, 70%, 45%)',
-      services: d.services || [],
-    }));
+    // Apply DB overrides to static divisions
+    const merged = STATIC_BOOTH_DIVISIONS.map(staticDiv => {
+      const dbOverride = customDivisions.find(d => d.division_id === staticDiv.id);
+      if (dbOverride) {
+        return {
+          ...staticDiv,
+          name: dbOverride.name || staticDiv.name,
+          tagline: dbOverride.tagline || staticDiv.tagline,
+          color: dbOverride.color || staticDiv.color,
+          services: dbOverride.services?.length ? dbOverride.services : staticDiv.services,
+        };
+      }
+      return staticDiv;
+    });
+
+    // Add custom divisions that don't match any static ID
     const staticIds = new Set(STATIC_BOOTH_DIVISIONS.map(d => d.id));
-    const uniqueCustoms = customs.filter(c => !staticIds.has(c.id));
-    return [...STATIC_BOOTH_DIVISIONS, ...uniqueCustoms];
+    const uniqueCustoms = customDivisions
+      .filter(d => !staticIds.has(d.division_id))
+      .map(d => ({
+        id: d.division_id,
+        name: d.name,
+        tagline: d.tagline || '',
+        color: d.color || 'hsl(200, 70%, 45%)',
+        services: d.services || [],
+      }));
+    return [...merged, ...uniqueCustoms];
   }, [customDivisions]);
 
   const filtered = useMemo(() => {
