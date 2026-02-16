@@ -322,10 +322,6 @@ export const FullBrandPage = ({
           ? <EventsSection brandId={brandId} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} canEdit={canEdit} />
           : null;
       case 'universe':
-        if (brand.linkedGuides && brand.linkedGuides.length > 0) {
-          const primaryColor = brand.colors?.[0]?.hex || '#6366f1';
-          return <GlobalLinkUniverseSection linkedGuides={brand.linkedGuides} primaryColor={primaryColor} />;
-        }
         return <BrandUniverseOrbit organizationId={organizationId} brandColors={brand.colors} organizationName={brand.hero?.name} />;
       case 'insights':
         return <InsightsSection 
