@@ -34,8 +34,8 @@ const BOOTH_DIVISIONS = [
   { id: 'healthcare', name: 'Healthcare', tagline: 'Connecting Patients Through Language', iconName: 'Heart', color: 'hsl(0, 65%, 50%)', services: ['Patient Communication', 'Telephonic Interpreting', 'Healthcare Innovation'] },
 ];
 
-// Card that renders a linked booth in the brand guide
-const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDetail }: {
+// Card that renders a linked booth in the brand guide — exported for inline use
+export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDetail }: {
   booth: LinkedBoothCard;
   isEditable: boolean;
   onRemove: () => void;
@@ -191,8 +191,8 @@ export const LinkBoothDialog = ({ open, onOpenChange, linkedBooths, onLink }: {
   );
 };
 
-// Helper: resolve a LinkedBoothCard to a full BoothDivision for DivisionDetail
-function resolveBoothDivision(booth: LinkedBoothCard, customDivisions: ReturnType<typeof useCustomDivisions>['divisions']): BoothDivision | null {
+// Helper: resolve a LinkedBoothCard to a full BoothDivision for DivisionDetail — exported for inline use
+export function resolveBoothDivision(booth: LinkedBoothCard, customDivisions: ReturnType<typeof useCustomDivisions>['divisions']): BoothDivision | null {
   // Check static DIVISIONS first
   const staticDiv = DIVISIONS.find(d => d.id === booth.divisionId);
   if (staticDiv) return staticDiv;

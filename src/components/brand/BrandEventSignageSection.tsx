@@ -17,7 +17,9 @@ import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { RichTextEditor, RichTextDisplay } from '@/components/ui/rich-text-editor';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { EditBrandSignageDialog } from './EditBrandSignageDialog';
-import { LinkedBoothsSection, LinkBoothDialog } from './LinkedBoothCards';
+import { LinkedBoothPreviewCard, resolveBoothDivision, LinkBoothDialog } from './LinkedBoothCards';
+import { DivisionDetail, type BoothDivision } from '@/pages/BoothsCatalog';
+import { AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useCustomDivisions } from '@/hooks/useCustomDivisions';
@@ -247,6 +249,10 @@ export const BrandEventSignageSection = ({
   const canEditSubtitle = !!onSubtitleChange;
   const defaultSubtitle = "Physical signage specifications for booth, banners, and venue graphics";
   const displaySubtitle = customSubtitle || defaultSubtitle;
+
+  // Booth detail state
+  const { divisions: customDivisions } = useCustomDivisions();
+  const [selectedDivision, setSelectedDivision] = useState<BoothDivision | null>(null);
 
   const openPreview = (item: BrandEventSignage) => {
     setPreviewItem(item);
@@ -1023,16 +1029,16 @@ export const BrandEventSignageSection = ({
         )}
       </div>
 
-      {eventSignage.length === 0 ? (
+      {eventSignage.length === 0 && linkedBooths.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Maximize className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="font-semibold text-lg mb-2">No signage specifications yet</h3>
-            <p className="text-muted-foreground mb-4">Add booth backdrops, banners, and other physical event signage</p>
+            <p className="text-muted-foreground mb-4">Add booth backdrops, banners, link booth cards, and other physical event signage</p>
             {isEditable && (
               <Button onClick={() => setIsDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Add First Signage
+                Add Signage or Booth
               </Button>
             )}
           </CardContent>
@@ -1175,17 +1181,50 @@ export const BrandEventSignageSection = ({
               </div>
             </div>
           ))}
+
+          {/* Booth Cards - rendered in same grid area */}
+          {linkedBooths.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Booth Cards
+                <Badge variant="secondary" className="font-normal">
+                  {linkedBooths.length}
+                </Badge>
+              </h3>
+              <div className={gridClass}>
+                {linkedBooths.map((booth) => (
+                  <LinkedBoothPreviewCard
+                    key={booth.id}
+                    booth={booth}
+                    isEditable={!!onLinkedBoothsChange}
+                    onRemove={() => onLinkedBoothsChange?.(linkedBooths.filter(b => b.id !== booth.id))}
+                    onOpenDetail={() => {
+                      const division = resolveBoothDivision(booth, customDivisions);
+                      if (division) setSelectedDivision(division);
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Quick Stats */}
-      {eventSignage.length > 0 && (
+      {(eventSignage.length > 0 || linkedBooths.length > 0) && (
         <div className="mt-6 p-4 bg-muted/50 rounded-lg">
           <div className="flex flex-wrap gap-6 text-sm">
             <div>
-              <span className="text-muted-foreground">Total Items:</span>
+              <span className="text-muted-foreground">Signage Items:</span>
               <span className="ml-2 font-medium">{eventSignage.length}</span>
             </div>
+            {linkedBooths.length > 0 && (
+              <div>
+                <span className="text-muted-foreground">Booth Cards:</span>
+                <span className="ml-2 font-medium">{linkedBooths.length}</span>
+              </div>
+            )}
             <div>
               <span className="text-muted-foreground">Types:</span>
               <span className="ml-2 font-medium">{Object.keys(groupedSignage).length}</span>
@@ -1193,10 +1232,6 @@ export const BrandEventSignageSection = ({
             <div>
               <span className="text-muted-foreground">With Previews:</span>
               <span className="ml-2 font-medium">{eventSignage.filter(s => s.previewUrl).length}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">With Templates:</span>
-              <span className="ml-2 font-medium">{eventSignage.filter(s => s.templateUrl).length}</span>
             </div>
           </div>
         </div>
@@ -1225,12 +1260,16 @@ export const BrandEventSignageSection = ({
         />
       )}
 
-      {/* Linked Booth Cards */}
-      <LinkedBoothsSection
-        linkedBooths={linkedBooths}
-        isEditable={!!onLinkedBoothsChange}
-        onChange={onLinkedBoothsChange}
-      />
+      {/* Full Booth Detail Popup */}
+      <AnimatePresence>
+        {selectedDivision && (
+          <DivisionDetail
+            division={selectedDivision}
+            onClose={() => setSelectedDivision(null)}
+            isAdmin={false}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 };
