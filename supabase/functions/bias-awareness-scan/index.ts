@@ -385,6 +385,65 @@ RESPONSE FORMAT (strict JSON):
           return;
         }
 
+        // Post-process persona coverage: infer from scores & context when AI defaults all to false
+        const pc = result.persona_coverage || {};
+        const allFalse = ['mobility', 'vision', 'hearing', 'speech', 'cognitive'].every(
+          d => !pc[d]?.permanent && !pc[d]?.temporary && !pc[d]?.situational
+        );
+        if (allFalse && result.inclusion_score > 0) {
+          const textLower = entityText.toLowerCase();
+          const accScore = result.accessibility_score || 0;
+          const langScore = result.language_score || 0;
+          const visScore = result.visual_score || 0;
+
+          // Vision: alt text, contrast, color accessibility, dark mode, screen reader
+          const hasVisionSignals = accScore >= 40 || visScore >= 50 ||
+            /alt[\s-]?text|contrast|color.?blind|screen.?reader|dark.?mode|wcag|a11y|aria|high.?contrast/i.test(textLower);
+          if (hasVisionSignals) {
+            pc.vision = { permanent: accScore >= 60, temporary: accScore >= 40, situational: true };
+          }
+
+          // Cognitive: plain language, clear navigation, readable
+          const hasCogSignals = langScore >= 40 ||
+            /plain.?language|clear|simple|readable|easy.?to|intuitive|user.?friendly|cognitive|consistent/i.test(textLower);
+          if (hasCogSignals) {
+            pc.cognitive = { permanent: langScore >= 60, temporary: langScore >= 40, situational: true };
+          }
+
+          // Mobility: responsive, touch, adaptive, mobile
+          const hasMobilitySignals = accScore >= 40 ||
+            /responsive|mobile|touch|adaptive|flexible|ergonomic|assistive/i.test(textLower);
+          if (hasMobilitySignals) {
+            pc.mobility = { permanent: accScore >= 70, temporary: accScore >= 50, situational: true };
+          }
+
+          // Hearing: captions, transcripts, visual alerts
+          const hasHearingSignals =
+            /caption|subtitle|transcript|visual.?notif|deaf|hearing|sign.?language|closed.?caption/i.test(textLower);
+          if (hasHearingSignals) {
+            pc.hearing = { permanent: true, temporary: true, situational: true };
+          }
+
+          // Speech: text chat, non-verbal, written
+          const hasSpeechSignals =
+            /chat|text.?based|non.?verbal|written|messaging|email|contact.?form/i.test(textLower);
+          if (hasSpeechSignals) {
+            pc.speech = { permanent: hasSpeechSignals, temporary: true, situational: true };
+          }
+
+          // Recalculate coverage percentage
+          let covered = 0;
+          let total = 0;
+          for (const dim of ['mobility', 'vision', 'hearing', 'speech', 'cognitive']) {
+            for (const level of ['permanent', 'temporary', 'situational']) {
+              total++;
+              if (pc[dim]?.[level]) covered++;
+            }
+          }
+          pc.coverage_percentage = total > 0 ? Math.round((covered / total) * 100) : 0;
+          result.persona_coverage = pc;
+        }
+
         // Update scan record with results including advanced modules
         await supabase.from('bias_awareness_scans').update({
           status: 'completed',
