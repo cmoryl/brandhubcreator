@@ -42,8 +42,9 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
   onOpenDetail: () => void;
 }) => {
   const Icon = ICON_MAP[booth.iconName] || Building2;
-  const { getVariantImage } = useBoothImages(booth.divisionId);
-  const cardImage = getVariantImage('__card__', '');
+  const { images, getVariantImage } = useBoothImages(booth.divisionId);
+  // Try __card__ first, then fall back to the first available image from the division
+  const cardImage = getVariantImage('__card__', '') || images[0]?.image_url || '';
 
   return (
     <motion.button
