@@ -557,8 +557,8 @@ const DownloadLinksList = ({
   );
 };
 
-const DownloadLinksManager = ({ divisionId, isAdmin, color }: { divisionId: string; isAdmin: boolean; color: string }) => {
-  const { links, loading, addLink, updateLink, deleteLink } = useBoothDownloadLinks(divisionId);
+const DownloadLinksManager = ({ divisionId, isAdmin, color, variantLabel }: { divisionId: string; isAdmin: boolean; color: string; variantLabel?: string }) => {
+  const { links, loading, addLink, updateLink, deleteLink } = useBoothDownloadLinks(divisionId, variantLabel);
 
   if (loading) {
     return (
@@ -822,7 +822,7 @@ const exportPalette = (palette: string[], name: string) => {
   URL.revokeObjectURL(textUrl);
 };
 
-const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId }: { color: string; boothColors?: string[]; isAdmin?: boolean; divisionId?: string }) => {
+const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId, variantLabel }: { color: string; boothColors?: string[]; isAdmin?: boolean; divisionId?: string; variantLabel?: string }) => {
   const hex = color.startsWith('#') ? color : `#${color}`;
   const { r, g, b } = hexToRgb(hex);
 
@@ -851,13 +851,18 @@ const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId }: { color:
 
   useEffect(() => {
     if (!divisionId) return;
-    supabase.from('booth_color_palettes').select('colors').eq('division_id', divisionId).maybeSingle()
+    supabase.from('booth_color_palettes').select('colors, variant_label').eq('division_id', divisionId)
       .then(({ data }) => {
-        if (data?.colors && data.colors.length >= 6) {
-          setDbColors(data.colors.slice(0, 6));
+        if (data) {
+          // Find variant-specific or shared palette
+          const match = data.find(d => d.variant_label === (variantLabel || null))
+            || data.find(d => d.variant_label === null);
+          if (match?.colors && match.colors.length >= 6) {
+            setDbColors(match.colors.slice(0, 6));
+          }
         }
       });
-  }, [divisionId]);
+  }, [divisionId, variantLabel]);
 
   const palette = dbColors || defaultPalette;
 
@@ -878,7 +883,7 @@ const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId }: { color:
     if (!divisionId) return;
     setSaving(true);
     const { error } = await supabase.from('booth_color_palettes' as any)
-      .upsert({ division_id: divisionId, colors: editColors, updated_at: new Date().toISOString() } as any, { onConflict: 'division_id' });
+      .upsert({ division_id: divisionId, colors: editColors, variant_label: variantLabel || null, updated_at: new Date().toISOString() } as any, { onConflict: 'division_id' });
     setSaving(false);
     if (error) { toast.error('Failed to save palette'); return; }
     setDbColors(editColors);
@@ -969,8 +974,8 @@ const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId }: { color:
   );
 };
 
-const ServicesManager = ({ divisionId, isAdmin, color }: { divisionId: string; isAdmin: boolean; color: string }) => {
-  const { services, loading, addService, updateService, deleteService } = useBoothServices(divisionId);
+const ServicesManager = ({ divisionId, isAdmin, color, variantLabel }: { divisionId: string; isAdmin: boolean; color: string; variantLabel?: string }) => {
+  const { services, loading, addService, updateService, deleteService } = useBoothServices(divisionId, variantLabel);
   const [adding, setAdding] = useState(false);
   const [newLabel, setNewLabel] = useState("");
   const [newIconSvg, setNewIconSvg] = useState("");
@@ -1114,8 +1119,8 @@ const ServicesManager = ({ divisionId, isAdmin, color }: { divisionId: string; i
 
 interface BoothQRCode { id: string; division_id: string; label: string; url: string; image_url: string | null; display_order: number; }
 
-const QRCodesManager = ({ divisionId, isAdmin, color }: { divisionId: string; isAdmin: boolean; color: string }) => {
-  const { qrCodes, loading, addQRCode, updateQRCode, deleteQRCode } = useBoothQRCodes(divisionId);
+const QRCodesManager = ({ divisionId, isAdmin, color, variantLabel }: { divisionId: string; isAdmin: boolean; color: string; variantLabel?: string }) => {
+  const { qrCodes, loading, addQRCode, updateQRCode, deleteQRCode } = useBoothQRCodes(divisionId, variantLabel);
   const [adding, setAdding] = useState(false);
   const [newLabel, setNewLabel] = useState("");
   const [newUrl, setNewUrl] = useState("");
@@ -1377,8 +1382,8 @@ const SPEC_CATEGORIES = [
   { value: "general", label: "General" },
 ];
 
-const ProductionSpecsManager = ({ divisionId, isAdmin, color }: { divisionId: string; isAdmin: boolean; color: string }) => {
-  const { specs, loading, addSpec, updateSpec, deleteSpec } = useBoothProductionSpecs(divisionId);
+const ProductionSpecsManager = ({ divisionId, isAdmin, color, variantLabel }: { divisionId: string; isAdmin: boolean; color: string; variantLabel?: string }) => {
+  const { specs, loading, addSpec, updateSpec, deleteSpec } = useBoothProductionSpecs(divisionId, variantLabel);
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -2022,9 +2027,9 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                                 </div>
                               </div>
 
-                              <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+                               <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} />
 
-                              <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+                               <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} />
 
                               <ContactWebsiteEditor
                                 division={division}
@@ -2033,7 +2038,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                         </div>
 
                         <div className="space-y-6">
-                          <ProductionSpecsManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+                          <ProductionSpecsManager divisionId={division.id} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} />
 
                           {/* Font Family Callout */}
                           <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3 hover:border-primary/30 hover:shadow-lg transition-all duration-200">
@@ -2062,10 +2067,10 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                           </div>
 
                           {/* Color Palette */}
-                          <BoothColorPalette color={division.color} boothColors={division.boothColors} isAdmin={isAdmin} divisionId={division.id} />
+                          <BoothColorPalette color={division.color} boothColors={division.boothColors} isAdmin={isAdmin} divisionId={division.id} variantLabel={currentVariant?.label} />
 
                           {/* Booth Gallery */}
-                          <BoothGalleryManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+                          <BoothGalleryManager divisionId={division.id} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} />
                         </div>
                       </div>
 
@@ -2073,7 +2078,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                       <BoothContentManager divisionId={division.id} divisionName={division.name} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} variants={mergedVariants.map(v => v.label)} />
 
                       {/* Download Links */}
-                      <DownloadLinksManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
+                      <DownloadLinksManager divisionId={division.id} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} />
 
                       {/* AI Booth Analysis */}
                       <BoothAIAnalysis

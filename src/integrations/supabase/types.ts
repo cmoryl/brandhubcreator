@@ -366,6 +366,7 @@ export type Database = {
           division_id: string
           id: string
           updated_at: string
+          variant_label: string | null
         }
         Insert: {
           colors?: string[]
@@ -374,6 +375,7 @@ export type Database = {
           division_id: string
           id?: string
           updated_at?: string
+          variant_label?: string | null
         }
         Update: {
           colors?: string[]
@@ -382,6 +384,7 @@ export type Database = {
           division_id?: string
           id?: string
           updated_at?: string
+          variant_label?: string | null
         }
         Relationships: []
       }
@@ -483,6 +486,7 @@ export type Database = {
           link_type: string
           updated_at: string
           url: string
+          variant_label: string | null
         }
         Insert: {
           created_at?: string
@@ -494,6 +498,7 @@ export type Database = {
           link_type?: string
           updated_at?: string
           url: string
+          variant_label?: string | null
         }
         Update: {
           created_at?: string
@@ -505,6 +510,7 @@ export type Database = {
           link_type?: string
           updated_at?: string
           url?: string
+          variant_label?: string | null
         }
         Relationships: []
       }
@@ -518,6 +524,7 @@ export type Database = {
           id: string
           image_url: string
           updated_at: string
+          variant_label: string | null
         }
         Insert: {
           caption?: string | null
@@ -528,6 +535,7 @@ export type Database = {
           id?: string
           image_url: string
           updated_at?: string
+          variant_label?: string | null
         }
         Update: {
           caption?: string | null
@@ -538,6 +546,7 @@ export type Database = {
           id?: string
           image_url?: string
           updated_at?: string
+          variant_label?: string | null
         }
         Relationships: []
       }
@@ -585,6 +594,7 @@ export type Database = {
           label: string
           updated_at: string
           value: string
+          variant_label: string | null
         }
         Insert: {
           created_at?: string
@@ -596,6 +606,7 @@ export type Database = {
           label: string
           updated_at?: string
           value: string
+          variant_label?: string | null
         }
         Update: {
           created_at?: string
@@ -607,6 +618,7 @@ export type Database = {
           label?: string
           updated_at?: string
           value?: string
+          variant_label?: string | null
         }
         Relationships: []
       }
@@ -621,6 +633,7 @@ export type Database = {
           id: string
           title: string
           updated_at: string
+          variant_label: string | null
         }
         Insert: {
           category?: string
@@ -632,6 +645,7 @@ export type Database = {
           id?: string
           title: string
           updated_at?: string
+          variant_label?: string | null
         }
         Update: {
           category?: string
@@ -643,6 +657,7 @@ export type Database = {
           id?: string
           title?: string
           updated_at?: string
+          variant_label?: string | null
         }
         Relationships: []
       }
@@ -657,6 +672,7 @@ export type Database = {
           label: string
           updated_at: string
           url: string
+          variant_label: string | null
         }
         Insert: {
           created_at?: string
@@ -668,6 +684,7 @@ export type Database = {
           label: string
           updated_at?: string
           url: string
+          variant_label?: string | null
         }
         Update: {
           created_at?: string
@@ -679,6 +696,7 @@ export type Database = {
           label?: string
           updated_at?: string
           url?: string
+          variant_label?: string | null
         }
         Relationships: []
       }
@@ -742,6 +760,7 @@ export type Database = {
           id: string
           label: string
           updated_at: string
+          variant_label: string | null
         }
         Insert: {
           created_at?: string
@@ -752,6 +771,7 @@ export type Database = {
           id?: string
           label: string
           updated_at?: string
+          variant_label?: string | null
         }
         Update: {
           created_at?: string
@@ -762,6 +782,7 @@ export type Database = {
           id?: string
           label?: string
           updated_at?: string
+          variant_label?: string | null
         }
         Relationships: []
       }

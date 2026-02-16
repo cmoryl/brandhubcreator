@@ -8,25 +8,31 @@ export interface BoothGalleryPhoto {
   image_url: string;
   caption: string;
   display_order: number;
+  variant_label: string | null;
 }
 
-export function useBoothGalleryPhotos(divisionId: string) {
+export function useBoothGalleryPhotos(divisionId: string, variantLabel?: string) {
   const [photos, setPhotos] = useState<BoothGalleryPhoto[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchPhotos = useCallback(async () => {
     const { data, error } = await supabase
       .from("booth_gallery_photos")
-      .select("id, division_id, image_url, caption, display_order")
+      .select("id, division_id, image_url, caption, display_order, variant_label")
       .eq("division_id", divisionId)
       .order("display_order");
-    if (!error && data) setPhotos(data);
+    if (!error && data) {
+      const filtered = data.filter(s =>
+        s.variant_label === null || s.variant_label === (variantLabel || null)
+      );
+      setPhotos(filtered);
+    }
     setLoading(false);
-  }, [divisionId]);
+  }, [divisionId, variantLabel]);
 
   useEffect(() => { fetchPhotos(); }, [fetchPhotos]);
 
-  const uploadPhoto = useCallback(async (file: File, caption: string) => {
+  const uploadPhoto = useCallback(async (file: File, caption: string, forVariant?: string | null) => {
     const ext = file.name.split(".").pop() || "jpg";
     const path = `booth-gallery/${divisionId}/${Date.now()}.${ext}`;
     const { error: uploadErr } = await supabase.storage
@@ -48,6 +54,7 @@ export function useBoothGalleryPhotos(divisionId: string) {
         caption,
         display_order: photos.length,
         created_by: (await supabase.auth.getUser()).data.user?.id,
+        variant_label: forVariant ?? null,
       });
     if (dbErr) {
       toast.error("Save failed: " + dbErr.message);

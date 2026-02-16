@@ -9,9 +9,10 @@ export interface BoothDownloadLink {
   url: string;
   display_order: number;
   link_type: 'project' | 'asset';
+  variant_label: string | null;
 }
 
-export function useBoothDownloadLinks(divisionId: string) {
+export function useBoothDownloadLinks(divisionId: string, variantLabel?: string) {
   const [links, setLinks] = useState<BoothDownloadLink[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,16 +26,20 @@ export function useBoothDownloadLinks(divisionId: string) {
     if (error) {
       console.warn('Failed to fetch booth download links:', error);
     } else {
-      setLinks((data as BoothDownloadLink[]) || []);
+      const all = (data as BoothDownloadLink[]) || [];
+      const filtered = all.filter(s =>
+        s.variant_label === null || s.variant_label === (variantLabel || null)
+      );
+      setLinks(filtered);
     }
     setLoading(false);
-  }, [divisionId]);
+  }, [divisionId, variantLabel]);
 
   useEffect(() => {
     fetchLinks();
   }, [fetchLinks]);
 
-  const addLink = useCallback(async (label: string, url: string, linkType: 'project' | 'asset' = 'project') => {
+  const addLink = useCallback(async (label: string, url: string, linkType: 'project' | 'asset' = 'project', forVariant?: string | null) => {
     const maxOrder = links.length > 0 ? Math.max(...links.map(l => l.display_order)) + 1 : 0;
     const { data: userData } = await supabase.auth.getUser();
     
@@ -47,6 +52,7 @@ export function useBoothDownloadLinks(divisionId: string) {
         display_order: maxOrder,
         created_by: userData.user?.id || null,
         link_type: linkType,
+        variant_label: forVariant ?? null,
       } as any);
 
     if (error) {

@@ -8,9 +8,10 @@ export interface BoothProductionSpec {
   title: string;
   content: string;
   display_order: number;
+  variant_label: string | null;
 }
 
-export function useBoothProductionSpecs(divisionId: string) {
+export function useBoothProductionSpecs(divisionId: string, variantLabel?: string) {
   const [specs, setSpecs] = useState<BoothProductionSpec[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -18,26 +19,32 @@ export function useBoothProductionSpecs(divisionId: string) {
     setLoading(true);
     const { data, error } = await supabase
       .from("booth_production_specs")
-      .select("id, division_id, category, title, content, display_order")
+      .select("id, division_id, category, title, content, display_order, variant_label")
       .eq("division_id", divisionId)
       .order("display_order", { ascending: true });
 
-    if (!error && data) setSpecs(data);
+    if (!error && data) {
+      const filtered = data.filter(s =>
+        s.variant_label === null || s.variant_label === (variantLabel || null)
+      );
+      setSpecs(filtered);
+    }
     setLoading(false);
-  }, [divisionId]);
+  }, [divisionId, variantLabel]);
 
   useEffect(() => {
     fetchSpecs();
   }, [fetchSpecs]);
 
   const addSpec = useCallback(
-    async (title: string, content: string, category: string = "general") => {
+    async (title: string, content: string, category: string = "general", forVariant?: string | null) => {
       const { error } = await supabase.from("booth_production_specs").insert({
         division_id: divisionId,
         title,
         content,
         category,
         display_order: specs.length,
+        variant_label: forVariant ?? null,
       });
       if (!error) await fetchSpecs();
     },
