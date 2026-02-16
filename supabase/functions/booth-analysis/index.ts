@@ -189,6 +189,13 @@ Return your analysis using the suggest_booth_analysis tool.`;
 
   const [saved] = await saveRes.json();
 
+  // Bubble up booth insights to Brand Intelligence & Oracle Knowledge Base
+  try {
+    await bubbleUpToIntelligence(analysis, division_name, variant_label, user.id, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  } catch (bubbleErr) {
+    console.warn("Non-fatal: Failed to bubble up booth insights:", bubbleErr);
+  }
+
   return new Response(JSON.stringify({ success: true, analysis: { ...analysis, id: saved.id, created_at: saved.created_at } }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
@@ -315,4 +322,141 @@ async function callAI(apiKey: string, systemPrompt: string, userPrompt: string, 
   } catch {
     throw new Error("Failed to parse analysis");
   }
+}
+
+/**
+ * Bubble up booth analysis insights into Brand Intelligence knowledge entries
+ * and Oracle Knowledge Base for cross-entity strategic reference.
+ */
+async function bubbleUpToIntelligence(
+  analysis: any,
+  divisionName: string,
+  variantLabel: string | null,
+  userId: string,
+  supabaseUrl: string,
+  serviceKey: string,
+) {
+  const headers = {
+    apikey: serviceKey,
+    Authorization: `Bearer ${serviceKey}`,
+    "Content-Type": "application/json",
+    Prefer: "return=representation",
+  };
+
+  // Build knowledge entry from booth analysis
+  const regionalSummary = Array.isArray(analysis.regional_insights)
+    ? analysis.regional_insights.map((r: any) => `${r.region}: ${r.predicted_score}/100`).join(", ")
+    : "";
+
+  const knowledgeContent = [
+    `Booth Division "${divisionName}"${variantLabel ? ` (${variantLabel})` : ""} scored ${analysis.overall_score}/100.`,
+    analysis.summary || "",
+    `Dimension scores: Design ${analysis.design_score}, Production ${analysis.production_score}, Messaging ${analysis.messaging_score}, Content ${analysis.content_score}, Differentiation ${analysis.differentiation_score}, Engagement ${analysis.engagement_score}.`,
+    regionalSummary ? `Regional performance: ${regionalSummary}.` : "",
+    Array.isArray(analysis.strengths) && analysis.strengths.length > 0
+      ? `Key strengths: ${analysis.strengths.slice(0, 3).map((s: any) => s.title).join(", ")}.`
+      : "",
+    Array.isArray(analysis.improvements) && analysis.improvements.length > 0
+      ? `Priority improvements: ${analysis.improvements.filter((i: any) => i.priority === "high").slice(0, 3).map((i: any) => i.title).join(", ")}.`
+      : "",
+  ].filter(Boolean).join(" ");
+
+  const knowledgeEntry = {
+    id: crypto.randomUUID(),
+    type: "booth_analysis",
+    source: "auto",
+    title: `Booth Analysis: ${divisionName}${variantLabel ? ` — ${variantLabel}` : ""}`,
+    content: knowledgeContent,
+    tags: ["booth", "trade-show", "exhibition", divisionName.toLowerCase().replace(/\s+/g, "-")],
+    created_at: new Date().toISOString(),
+    confidence: 0.8,
+    overall_score: analysis.overall_score,
+  };
+
+  // 1. Find any existing brand_intelligence records and append knowledge entry
+  // We look for org-level intelligence records to bubble up to
+  const intelRes = await fetch(
+    `${supabaseUrl}/rest/v1/brand_intelligence?entity_type=eq.brand&select=id,knowledge_entries,cultural_insights,learning_context&limit=5`,
+    { headers }
+  );
+
+  if (intelRes.ok) {
+    const intelRecords = await intelRes.json();
+    for (const intel of intelRecords) {
+      const entries = Array.isArray(intel.knowledge_entries) ? intel.knowledge_entries : [];
+
+      // Deduplicate by title
+      const isDuplicate = entries.some(
+        (e: any) => e.title === knowledgeEntry.title && e.type === "booth_analysis"
+      );
+
+      const updatedEntries = isDuplicate
+        ? entries.map((e: any) =>
+            e.title === knowledgeEntry.title && e.type === "booth_analysis"
+              ? knowledgeEntry
+              : e
+          )
+        : [...entries, knowledgeEntry];
+
+      // Merge regional insights into cultural_insights
+      const existingCultural = (intel.cultural_insights as any) || {};
+      const boothRegionalData = Array.isArray(analysis.regional_insights)
+        ? analysis.regional_insights.map((r: any) => ({
+            region: r.region,
+            score: r.predicted_score,
+            source: "booth_analysis",
+            division: divisionName,
+            considerations: r.cultural_considerations,
+          }))
+        : [];
+
+      const existingBoothRegional = Array.isArray(existingCultural.booth_regional_performance)
+        ? existingCultural.booth_regional_performance
+        : [];
+
+      // Merge: keep latest per region+division
+      const mergedRegional = [...existingBoothRegional];
+      for (const newR of boothRegionalData) {
+        const idx = mergedRegional.findIndex(
+          (e: any) => e.region === newR.region && e.division === newR.division
+        );
+        if (idx >= 0) mergedRegional[idx] = newR;
+        else mergedRegional.push(newR);
+      }
+
+      const updatedCultural = {
+        ...existingCultural,
+        booth_regional_performance: mergedRegional,
+      };
+
+      // Merge booth context into learning_context
+      const existingLearning = (intel.learning_context as any) || {};
+      const updatedLearning = {
+        ...existingLearning,
+        booth_analyses: {
+          ...(existingLearning.booth_analyses || {}),
+          [divisionName]: {
+            overall_score: analysis.overall_score,
+            variant: variantLabel,
+            design_score: analysis.design_score,
+            messaging_score: analysis.messaging_score,
+            updated_at: new Date().toISOString(),
+          },
+        },
+        last_updated: new Date().toISOString(),
+      };
+
+      await fetch(`${supabaseUrl}/rest/v1/brand_intelligence?id=eq.${intel.id}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({
+          knowledge_entries: updatedEntries,
+          cultural_insights: updatedCultural,
+          learning_context: updatedLearning,
+        }),
+      });
+    }
+  }
+
+  console.log(`[booth-analysis] Bubbled up insights for "${divisionName}" to Brand Intelligence & Oracle`);
 }

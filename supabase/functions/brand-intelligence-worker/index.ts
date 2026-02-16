@@ -613,6 +613,27 @@ function buildContextFromTextFields(ctx: any): string {
     parts.push(`Awards (${ctx.awards_count || awards.length}): ${awardDetails.join('; ')}`);
   }
 
+  // Booth analyses (enriched)
+  const boothAnalyses = ctx.booth_analyses;
+  if (Array.isArray(boothAnalyses) && boothAnalyses.length > 0) {
+    const boothDetails = boothAnalyses.map((b: any) => {
+      const d: string[] = [`${b.division_name || 'Division'}: ${b.overall_score}/100`];
+      if (b.variant) d.push(`(${b.variant})`);
+      if (b.summary) d.push(`- ${b.summary.slice(0, 150)}`);
+      const scores = [];
+      if (b.design_score) scores.push(`Design:${b.design_score}`);
+      if (b.messaging_score) scores.push(`Msg:${b.messaging_score}`);
+      if (b.engagement_score) scores.push(`Eng:${b.engagement_score}`);
+      if (scores.length) d.push(`[${scores.join(', ')}]`);
+      if (Array.isArray(b.regional_insights) && b.regional_insights.length > 0) {
+        const regions = b.regional_insights.slice(0, 3).map((r: any) => `${r.region}:${r.predicted_score}`).join(', ');
+        d.push(`Regions: ${regions}`);
+      }
+      return d.join(' ');
+    });
+    parts.push(`Booth Analyses (${boothAnalyses.length}): ${boothDetails.join('; ')}`);
+  }
+
   // Webinars (enriched)
   const webinars = ctx.webinars;
   if (Array.isArray(webinars) && webinars.length > 0) {
