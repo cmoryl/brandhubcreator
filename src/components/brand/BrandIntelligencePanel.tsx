@@ -46,7 +46,14 @@ import { BiasAwarenessPanel } from './BiasAwarenessPanel';
 import { CompetitiveLandscapeSection } from './intelligence/CompetitiveLandscapeSection';
 import { CulturalIntelligenceSection } from './intelligence/CulturalIntelligenceSection';
 import { ImportReportDialog } from './intelligence/ImportReportDialog';
-import { exportBrandIntelligenceHtml } from '@/lib/exportHtml';
+import { exportBrandIntelligenceHtml, exportBrandIntelligencePdf } from '@/lib/exportHtml';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { FileText, FileDown } from 'lucide-react';
 
 interface KnowledgeEntry {
   id: string;
@@ -437,18 +444,41 @@ export const BrandIntelligencePanel = ({
           <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
               {intelligence && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => {
-                    exportBrandIntelligenceHtml(intelligence, { entityName, entityType });
-                    toast.success('HTML report downloaded');
-                  }}
-                >
-                  <Download className="h-4 w-4" />
-                  Export
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Download className="h-4 w-4" />
+                      Export
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      className="gap-2"
+                      onClick={async () => {
+                        try {
+                          toast.loading('Generating PDF...', { id: 'pdf-export' });
+                          await exportBrandIntelligencePdf(intelligence, { entityName, entityType });
+                          toast.success('PDF report downloaded', { id: 'pdf-export' });
+                        } catch {
+                          toast.error('PDF export failed', { id: 'pdf-export' });
+                        }
+                      }}
+                    >
+                      <FileDown className="h-4 w-4" />
+                      Export as PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="gap-2"
+                      onClick={() => {
+                        exportBrandIntelligenceHtml(intelligence, { entityName, entityType });
+                        toast.success('HTML report downloaded');
+                      }}
+                    >
+                      <FileText className="h-4 w-4" />
+                      Export as HTML
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               <Button 
                 onClick={runAnalysis} 
