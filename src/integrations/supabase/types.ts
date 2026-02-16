@@ -682,6 +682,56 @@ export type Database = {
         }
         Relationships: []
       }
+      booth_section_analyses: {
+        Row: {
+          analysis_data: Json
+          created_at: string
+          created_by: string | null
+          division_id: string
+          id: string
+          improvements: Json | null
+          overall_score: number | null
+          section_heading: string
+          section_id: string
+          strengths: Json | null
+          updated_at: string
+        }
+        Insert: {
+          analysis_data?: Json
+          created_at?: string
+          created_by?: string | null
+          division_id: string
+          id?: string
+          improvements?: Json | null
+          overall_score?: number | null
+          section_heading: string
+          section_id: string
+          strengths?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          analysis_data?: Json
+          created_at?: string
+          created_by?: string | null
+          division_id?: string
+          id?: string
+          improvements?: Json | null
+          overall_score?: number | null
+          section_heading?: string
+          section_id?: string
+          strengths?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booth_section_analyses_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "booth_content_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booth_services: {
         Row: {
           created_at: string
