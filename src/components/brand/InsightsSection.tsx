@@ -134,7 +134,7 @@ const InsightCard = ({
         )}
       </div>
 
-      <CardHeader className="pb-1.5 pt-4 px-3">
+      <CardHeader className="pb-1.5 pt-3 sm:pt-4 px-3">
         <div className="flex items-start gap-2">
           <div className={cn(
             "p-1.5 rounded-md border",
@@ -165,7 +165,7 @@ const InsightCard = ({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-2 px-3 pb-3">
+      <CardContent className="space-y-1.5 sm:space-y-2 px-3 pb-2.5 sm:pb-3">
         {/* Metric display */}
         {insight.value && (
           <div className="flex items-baseline gap-2 p-2 rounded-md bg-muted/30 border border-border/50">
@@ -234,27 +234,27 @@ const InfographicLayout = ({ insights }: { insights: InsightItem[] }) => {
   const alertItems = insights.filter(i => i.type === 'alert' || i.priority === 'high');
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-8">
       {/* Key Metrics Banner */}
       {analyticsItems.length > 0 && (
-        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-accent/10 via-primary/5 to-accent/10 border border-accent/20 overflow-hidden">
+        <div className="relative p-3 sm:p-6 rounded-xl sm:rounded-2xl bg-gradient-to-br from-accent/10 via-primary/5 to-accent/10 border border-accent/20 overflow-hidden">
           <div className="absolute inset-0 opacity-5">
             <div className="absolute inset-0" style={{
               backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 50px, hsl(var(--accent)) 50px, hsl(var(--accent)) 51px)',
             }} />
           </div>
           <div className="relative">
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="h-5 w-5 text-accent" />
-              <h3 className="text-lg font-semibold">Key Metrics</h3>
+            <div className="flex items-center gap-2 mb-2 sm:mb-4">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
+              <h3 className="text-base sm:text-lg font-semibold">Key Metrics</h3>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
               {analyticsItems.slice(0, 4).map((item) => {
                 const TrendIcon = item.trend === 'up' ? TrendingUp : item.trend === 'down' ? TrendingDown : Minus;
-                return (
-                  <div key={item.id} className="text-center p-4 rounded-xl bg-background/80 border border-border/50">
-                    <div className="text-3xl font-bold text-foreground mb-1">{item.value}</div>
-                    <div className="text-sm text-muted-foreground mb-2">{item.valueLabel || item.title}</div>
+                  return (
+                    <div key={item.id} className="text-center p-2 sm:p-4 rounded-lg sm:rounded-xl bg-background/80 border border-border/50">
+                      <div className="text-xl sm:text-3xl font-bold text-foreground mb-0.5 sm:mb-1">{item.value}</div>
+                    <div className="text-xs text-muted-foreground mb-1 sm:mb-2">{item.valueLabel || item.title}</div>
                     {item.trend && (
                       <div className={cn(
                         "inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full",
@@ -296,7 +296,7 @@ const InfographicLayout = ({ insights }: { insights: InsightItem[] }) => {
       {newsItems.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Latest Updates</h3>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
             {newsItems.map((item) => (
               <InsightCard key={item.id} insight={item} />
             ))}
@@ -450,7 +450,7 @@ export const InsightsSection = ({
   }
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-3 sm:space-y-6">
       <SectionHeader
         title="Insights & Updates"
         defaultSubtitle="Latest reports, analytics, and important updates for stakeholders"
@@ -519,15 +519,15 @@ export const InsightsSection = ({
 
         {/* Sort Controls */}
         {allInsights.length > 1 && (
-          <div className="flex items-center gap-2">
-            <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground font-medium">Sort:</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1">
+            <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <span className="text-xs text-muted-foreground font-medium shrink-0">Sort:</span>
             {(['newest', 'oldest', 'priority', 'category'] as const).map((opt) => (
               <Button
                 key={opt}
                 variant={sortBy === opt ? 'default' : 'outline'}
                 size="sm"
-                className="h-7 text-xs capitalize px-2.5"
+                className="h-6 sm:h-7 text-[10px] sm:text-xs capitalize px-2 shrink-0"
                 onClick={() => setSortBy(opt)}
               >
                 {opt}
@@ -580,7 +580,7 @@ export const InsightsSection = ({
               {(layout === 'infographic' || layout === 'dashboard') ? (
                 <InfographicLayout insights={displayInsights} />
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {displayInsights.map((insight) => {
                     const isCompetitive = insight.id.startsWith('competitive-');
                     const isBrain = insight.id.startsWith('brain-');
@@ -627,9 +627,9 @@ export const InsightsSection = ({
 
         {/* Website Analysis Cards - admin only */}
         {canEdit && (
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Website Analysis</h3>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-muted-foreground">Website Analysis</h3>
+            <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {websitesWithUrls.map((link) => (
                 <WebsiteAnalysisCard
                   key={`analysis-${link.id}`}
