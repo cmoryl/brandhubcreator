@@ -316,6 +316,48 @@ export type Database = {
           },
         ]
       }
+      booth_ai_analyses: {
+        Row: {
+          analysis_data: Json
+          created_at: string
+          created_by: string | null
+          division_id: string
+          id: string
+          improvements: Json | null
+          overall_score: number | null
+          recommendations: Json | null
+          strengths: Json | null
+          updated_at: string
+          variant_label: string | null
+        }
+        Insert: {
+          analysis_data?: Json
+          created_at?: string
+          created_by?: string | null
+          division_id: string
+          id?: string
+          improvements?: Json | null
+          overall_score?: number | null
+          recommendations?: Json | null
+          strengths?: Json | null
+          updated_at?: string
+          variant_label?: string | null
+        }
+        Update: {
+          analysis_data?: Json
+          created_at?: string
+          created_by?: string | null
+          division_id?: string
+          id?: string
+          improvements?: Json | null
+          overall_score?: number | null
+          recommendations?: Json | null
+          strengths?: Json | null
+          updated_at?: string
+          variant_label?: string | null
+        }
+        Relationships: []
+      }
       booth_color_palettes: {
         Row: {
           colors: string[]
