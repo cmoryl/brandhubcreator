@@ -11,6 +11,7 @@ import { normalizeGuide } from '@/lib/guideNormalization';
 import { supabase } from '@/integrations/supabase/client';
 import { AggregatedSocialMetrics, SocialMetricsSnapshot } from '@/types/socialMetrics';
 import { SocialMetricsPdfSection } from '@/components/brand/pdf/SocialMetricsPdfSection';
+import { BrandIntelligencePdfSection, FullBrandIntelligenceData } from '@/components/brand/pdf/BrandIntelligencePdfSection';
 import {
   Dialog,
   DialogContent,
@@ -33,27 +34,8 @@ import { cn } from '@/lib/utils';
 import { PageBreakIndicator, PrintPageSimulator, PrintPreviewContainer, PageBreakDivider, PrintPreviewHeader, useEstimatedPages } from '@/components/pdf-export';
 import '@/styles/pdf-export.css';
 
-// Intelligence data type
-interface BrandIntelligenceData {
-  brand_summary: string | null;
-  market_position: string | null;
-  target_audience: {
-    primary: string;
-    secondary: string[];
-    demographics: string[];
-  } | null;
-  competitive_advantages: string[];
-  brand_voice_profile: {
-    tone: string[];
-    personality: string[];
-    communication_style: string;
-  } | null;
-  growth_recommendations: {
-    priority: 'high' | 'medium' | 'low';
-    recommendation: string;
-    rationale: string;
-  }[];
-}
+// Intelligence data type - re-exported from dedicated PDF section
+type BrandIntelligenceData = FullBrandIntelligenceData;
 
 interface ExportPdfButtonProps {
   guide: BaseGuide;
@@ -119,7 +101,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
         try {
           const { data } = await supabase
             .from('brand_intelligence')
-            .select('brand_summary, market_position, target_audience, competitive_advantages, brand_voice_profile, growth_recommendations')
+            .select('brand_summary, market_position, target_audience, competitive_advantages, brand_voice_profile, growth_recommendations, cultural_insights, competitive_landscape, knowledge_entries, globallink_recommendations, regional_adaptations, bias_awareness_profile, localization_readiness_score, analysis_count, last_analyzed_at')
             .eq('entity_id', guide.id)
             .single();
           
@@ -131,6 +113,15 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
               competitive_advantages: (data.competitive_advantages as string[]) || [],
               brand_voice_profile: data.brand_voice_profile as BrandIntelligenceData['brand_voice_profile'],
               growth_recommendations: (data.growth_recommendations as BrandIntelligenceData['growth_recommendations']) || [],
+              cultural_insights: data.cultural_insights as Record<string, unknown> | null,
+              competitive_landscape: data.competitive_landscape as Record<string, unknown> | null,
+              knowledge_entries: (data.knowledge_entries as BrandIntelligenceData['knowledge_entries']) || [],
+              globallink_recommendations: data.globallink_recommendations as Record<string, unknown> | null,
+              regional_adaptations: data.regional_adaptations as Record<string, unknown> | null,
+              bias_awareness_profile: data.bias_awareness_profile as Record<string, unknown> | null,
+              localization_readiness_score: data.localization_readiness_score,
+              analysis_count: data.analysis_count,
+              last_analyzed_at: data.last_analyzed_at,
             });
           }
         } catch (err) {
@@ -669,137 +660,13 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
         );
 
       case 'brief':
-        if (!intelligence?.brand_summary && !intelligence?.market_position && (intelligence?.growth_recommendations?.length ?? 0) === 0) return null;
+        if (!intelligence) return null;
         return (
-          <div id="pdf-section-brief" className={cn("py-6 border-b pdf-page-break-before", t.border)} key="brief">
-            <div className="pdf-section-header" style={{ marginBottom: '16px' }}>
-              <Brain className="h-5 w-5" />
-              <h2>Brand Brief & Intelligence</h2>
-            </div>
-            
-            {/* Brand Summary */}
-            {intelligence.brand_summary && (
-              <div className={cn("p-4 rounded-lg mb-4 pdf-avoid-break", t.card)}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Lightbulb className="h-4 w-4 text-amber-500" />
-                  <h3 className={cn("font-semibold text-sm", t.text)}>Executive Summary</h3>
-                </div>
-                <p className={cn("text-sm leading-relaxed", t.text)}>{intelligence.brand_summary}</p>
-              </div>
-            )}
-
-            {/* Market Position & Target Audience */}
-            <div className="pdf-grid-2" style={{ marginBottom: '16px' }}>
-              {intelligence.market_position && (
-                <div className={cn("p-4 rounded-lg pdf-avoid-break", t.card)}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Target className="h-4 w-4 text-blue-500" />
-                    <h3 className={cn("font-semibold text-sm", t.text)}>Market Position</h3>
-                  </div>
-                  <p className={cn("text-xs", t.textMuted)}>{intelligence.market_position}</p>
-                </div>
-              )}
-              
-              {intelligence.target_audience && (
-                <div className={cn("p-4 rounded-lg pdf-avoid-break", t.card)}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Users className="h-4 w-4 text-green-500" />
-                    <h3 className={cn("font-semibold text-sm", t.text)}>Target Audience</h3>
-                  </div>
-                  <p className={cn("text-xs font-medium mb-1", t.text)}>{intelligence.target_audience.primary}</p>
-                  {intelligence.target_audience.demographics?.length > 0 && (
-                    <p className={cn("text-xs", t.textMuted)}>
-                      {intelligence.target_audience.demographics.join(' • ')}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Competitive Advantages */}
-            {intelligence.competitive_advantages && intelligence.competitive_advantages.length > 0 && (
-              <div className={cn("p-4 rounded-lg mb-4 pdf-avoid-break", t.card)}>
-                <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="h-4 w-4 text-purple-500" />
-                  <h3 className={cn("font-semibold text-sm", t.text)}>Competitive Advantages</h3>
-                </div>
-                <div className="pdf-grid-2">
-                  {intelligence.competitive_advantages.slice(0, 6).map((adv, idx) => (
-                    <div 
-                      key={idx} 
-                      className={cn("px-3 py-2 rounded-md text-xs font-medium pdf-avoid-break", 
-                        pdfTheme === 'dark' ? 'bg-purple-500/10 text-purple-300' : 'bg-purple-50 text-purple-700'
-                      )}
-                    >
-                      {adv}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Growth Recommendations */}
-            {intelligence.growth_recommendations && intelligence.growth_recommendations.length > 0 && (
-              <div className={cn("p-4 rounded-lg pdf-avoid-break", t.card)}>
-                <h3 className={cn("font-semibold text-sm mb-3", t.text)}>Strategic Recommendations</h3>
-                <div className="space-y-3">
-                  {intelligence.growth_recommendations.slice(0, 4).map((rec, idx) => (
-                    <div 
-                      key={idx} 
-                      className={cn("p-3 rounded-lg border-l-3 pdf-avoid-break",
-                        rec.priority === 'high' ? 'border-l-red-500 bg-red-500/5' :
-                        rec.priority === 'medium' ? 'border-l-amber-500 bg-amber-500/5' :
-                        'border-l-green-500 bg-green-500/5'
-                      )}
-                      style={{ borderLeftWidth: '3px' }}
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={cn(
-                          "text-xs font-bold uppercase px-2 py-0.5 rounded",
-                          rec.priority === 'high' ? 'bg-red-100 text-red-700' :
-                          rec.priority === 'medium' ? 'bg-amber-100 text-amber-700' :
-                          'bg-green-100 text-green-700'
-                        )}>
-                          {rec.priority}
-                        </span>
-                      </div>
-                      <p className={cn("text-sm font-medium mb-1", t.text)}>{rec.recommendation}</p>
-                      {rec.rationale && (
-                        <p className={cn("text-xs", t.textMuted)}>{rec.rationale}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Brand Voice Profile */}
-            {intelligence.brand_voice_profile && (
-              <div className={cn("p-4 rounded-lg mt-4 pdf-avoid-break", t.card)}>
-                <h3 className={cn("font-semibold text-sm mb-3", t.text)}>Brand Voice Profile</h3>
-                <div className="pdf-grid-3">
-                  {intelligence.brand_voice_profile.tone?.length > 0 && (
-                    <div>
-                      <p className={cn("text-xs font-medium mb-1", t.textMuted)}>Tone</p>
-                      <p className={cn("text-sm", t.text)}>{intelligence.brand_voice_profile.tone.join(', ')}</p>
-                    </div>
-                  )}
-                  {intelligence.brand_voice_profile.personality?.length > 0 && (
-                    <div>
-                      <p className={cn("text-xs font-medium mb-1", t.textMuted)}>Personality</p>
-                      <p className={cn("text-sm", t.text)}>{intelligence.brand_voice_profile.personality.join(', ')}</p>
-                    </div>
-                  )}
-                  {intelligence.brand_voice_profile.communication_style && (
-                    <div>
-                      <p className={cn("text-xs font-medium mb-1", t.textMuted)}>Style</p>
-                      <p className={cn("text-sm", t.text)}>{intelligence.brand_voice_profile.communication_style}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+          <BrandIntelligencePdfSection
+            key="brief"
+            intelligence={intelligence}
+            theme={pdfTheme}
+          />
         );
 
       case 'logos':
