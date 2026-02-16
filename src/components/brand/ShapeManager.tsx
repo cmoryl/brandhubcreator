@@ -534,7 +534,7 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
             </div>
 
             {/* Shape Grid */}
-            <ScrollArea className="flex-1 min-h-0" style={{ maxHeight: 'calc(90vh - 320px)' }}>
+            <div className="flex-1 min-h-0 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 320px)' }}>
               <div className="p-6">
                 {filteredShapes.length > 0 ? (
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5">
@@ -558,12 +558,12 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
                   </div>
                 )}
               </div>
-            </ScrollArea>
+            </div>
           </TabsContent>
 
           {/* ─── MANUAL SVG TAB ─── */}
           <TabsContent value="manual" className="flex-1 min-h-0 m-0 data-[state=inactive]:hidden">
-            <ScrollArea className="h-full" style={{ maxHeight: 'calc(90vh - 200px)' }}>
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 200px)' }}>
               <div className="p-6 space-y-4">
                 {/* Example Templates */}
                 <div className="space-y-2">
@@ -657,12 +657,12 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
                   </Button>
                 </div>
               </div>
-            </ScrollArea>
+            </div>
           </TabsContent>
 
           {/* ─── AI GENERATE TAB ─── */}
           <TabsContent value="generate" className="flex-1 min-h-0 m-0 data-[state=inactive]:hidden">
-            <ScrollArea className="h-full" style={{ maxHeight: 'calc(90vh - 200px)' }}>
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 200px)' }}>
               <div className="p-6 space-y-4">
                 <div className="space-y-2">
                   <Label>Describe your shape</Label>
@@ -730,7 +730,7 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
                   )}
                 </Button>
               </div>
-            </ScrollArea>
+            </div>
           </TabsContent>
         </Tabs>
 
@@ -738,7 +738,7 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
         {shapes.length > 0 && (
           <div className="border-t px-6 py-4 min-h-0 flex flex-col" style={{ maxHeight: '35vh' }}>
             <h4 className="text-sm font-medium mb-3 shrink-0">Your Custom Shapes ({shapes.length})</h4>
-            <ScrollArea className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 overflow-y-auto">
             <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
               {shapes.map(shape => (
                 <div 
@@ -820,7 +820,7 @@ export const ShapeManager = ({ shapes, onShapesChange, brandColors, brandName }:
                 </div>
               ))}
             </div>
-            </ScrollArea>
+            </div>
           </div>
         )}
       </DialogContent>
