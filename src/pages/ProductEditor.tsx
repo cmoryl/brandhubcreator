@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useOrgSlug } from '@/hooks/useOrgSlug';
 import { useGuideAdmin } from '@/hooks/useGuideAdmin';
+import { useLatestComplianceScores } from '@/hooks/dataforce/useLatestComplianceScores';
 import { supabase } from '@/integrations/supabase/client';
 import { normalizeProductGuide } from '@/lib/guideNormalization';
 import { trackEntityView } from '@/hooks/usePageTracking';
@@ -342,6 +343,9 @@ const ProductEditor = () => {
     entityOrgId: currentProduct?.organizationId 
   });
 
+  // Compliance scores
+  const { data: complianceScores } = useLatestComplianceScores(currentProduct?.organizationId);
+
   useEffect(() => {
     if (currentProduct?.id && user?.id) {
       trackEntityView(user.id, 'product', currentProduct.id, currentProduct.hero?.name || 'Unknown Product');
@@ -614,7 +618,7 @@ const ProductEditor = () => {
     const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
     
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={editHandler((hero) => handleUpdateProduct({ hero }))} onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined} guideData={currentProduct as unknown as Record<string, unknown>} entityType="product" entityId={currentProduct.id} hiddenSections={hiddenSections} />;
+      case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={editHandler((hero) => handleUpdateProduct({ hero }))} onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined} guideData={currentProduct as unknown as Record<string, unknown>} entityType="product" entityId={currentProduct.id} complianceScore={complianceScores?.get(currentProduct.id)?.score} hiddenSections={hiddenSections} compact={viewMode === 'cards'} />;
       case 'tagline': return <TaglineSection tagline={currentProduct.tagline} onTaglineChange={editHandler((tagline) => handleUpdateProduct({ tagline }))} />;
       case 'identity': return <IdentitySection identity={currentProduct.identity} onIdentityChange={editHandler((identity) => handleUpdateProduct({ identity }))} />;
       case 'values': return <ValuesSection values={currentProduct.values} onValuesChange={editHandler((values) => handleUpdateProduct({ values }))} organizationId={currentProduct.organizationId} brandId={currentProduct.id} brandName={currentProduct.hero.name} canEdit={canEdit} />;
@@ -1063,6 +1067,7 @@ const ProductEditor = () => {
                     entityName={currentProduct?.hero?.name}
                     entityTagline={currentProduct?.hero?.tagline}
                     healthScore={cardViewHealthScore}
+                    complianceScore={complianceScores?.get(currentProduct.id)?.score}
                     onOpenIntelligence={isGuideAdmin ? () => setIntelligenceOpen(true) : undefined}
                     entityType="product"
                     entityId={currentProduct?.id}
