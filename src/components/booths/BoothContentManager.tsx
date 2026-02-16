@@ -113,7 +113,7 @@ export const BoothContentManager = ({ divisionId, isAdmin, color, variantLabel, 
       )}
 
       {sections.length > 0 && (
-        <Accordion type="multiple" defaultValue={sections.map(s => s.id)} className="space-y-2">
+        <Accordion type="multiple" className="space-y-2">
           {sections.map((section) =>
             editingId === section.id && isAdmin ? (
               <div key={section.id} className="bg-muted/30 rounded-lg p-4 border border-primary/30 space-y-2">
