@@ -182,6 +182,7 @@ export const LeafletMapWrapper: React.FC<LeafletMapWrapperProps> = ({
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const [isReady, setIsReady] = useState(false);
+  const [isActivated, setIsActivated] = useState(false);
   const mountedRef = useRef(false);
 
   // Initialize map on mount
@@ -224,7 +225,8 @@ export const LeafletMapWrapper: React.FC<LeafletMapWrapperProps> = ({
         center: [20, 0],
         zoom: 2,
         zoomControl: true,
-        scrollWheelZoom: true,
+        scrollWheelZoom: false,
+        dragging: false,
       });
 
       const layer = L.tileLayer(tileConfig.url, {
@@ -324,17 +326,48 @@ export const LeafletMapWrapper: React.FC<LeafletMapWrapperProps> = ({
   const mapBackground = theme.tileStyle === 'light' ? '#e5e7eb' : 
                         theme.tileStyle === 'satellite' ? '#1a2e1a' : '#0a1628';
 
+  // Activate map on click
+  const handleActivateMap = () => {
+    if (!isActivated && mapRef.current) {
+      mapRef.current.scrollWheelZoom.enable();
+      mapRef.current.dragging.enable();
+      setIsActivated(true);
+    }
+  };
+
+  // Deactivate when mouse leaves
+  const handleMouseLeave = () => {
+    if (isActivated && mapRef.current) {
+      mapRef.current.scrollWheelZoom.disable();
+      mapRef.current.dragging.disable();
+      setIsActivated(false);
+    }
+  };
+
   if (!isReady) {
     return <MapLoadingState />;
   }
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full" onMouseLeave={handleMouseLeave}>
       <div 
         ref={mapContainerRef} 
         className="h-full w-full"
         style={{ background: mapBackground }}
+        onClick={handleActivateMap}
       />
+      {/* Click-to-activate overlay */}
+      {!isActivated && (
+        <div
+          className="absolute inset-0 z-[999] flex items-center justify-center cursor-pointer bg-foreground/5 transition-opacity duration-300 hover:bg-foreground/10"
+          onClick={handleActivateMap}
+        >
+          <div className="bg-background/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg border border-border/50 flex items-center gap-2 text-sm text-muted-foreground pointer-events-none">
+            <Compass className="h-4 w-4" />
+            Click to interact with map
+          </div>
+        </div>
+      )}
       <RegionFilter
         selectedRegion={selectedRegion}
         onRegionChange={onRegionChange}
