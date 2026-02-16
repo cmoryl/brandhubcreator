@@ -4,19 +4,80 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { Plus, Pencil, Trash2, Loader2, X, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, X, Check, Brain, RefreshCw } from "lucide-react";
 import { useBoothContentSections, BoothContentSection } from "@/hooks/useBoothContentSections";
+import { useBoothSectionAnalysis, type SectionAnalysis } from "@/hooks/useBoothSectionAnalysis";
 
 interface BoothContentManagerProps {
   divisionId: string;
+  divisionName?: string;
   isAdmin: boolean;
   color: string;
   variantLabel?: string;
   variants?: string[];
 }
 
-export const BoothContentManager = ({ divisionId, isAdmin, color, variantLabel, variants = [] }: BoothContentManagerProps) => {
+const clarityColors: Record<string, string> = {
+  excellent: "text-green-500",
+  good: "text-blue-500",
+  "needs-work": "text-yellow-500",
+  poor: "text-red-500",
+};
+
+const priorityColors: Record<string, string> = {
+  high: "text-red-500",
+  medium: "text-yellow-500",
+  low: "text-green-500",
+};
+
+const SectionAnalysisDisplay = ({ analysis }: { analysis: SectionAnalysis }) => {
+  const safeStrengths = Array.isArray(analysis.strengths) ? analysis.strengths : [];
+  const safeImprovements = Array.isArray(analysis.improvements) ? analysis.improvements : [];
+
+  return (
+    <div className="mt-2 pt-2 border-t border-border/30 space-y-2">
+      <div className="flex items-center gap-2">
+        <Brain className="h-3 w-3 text-primary" />
+        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">AI Analysis</span>
+        <Badge variant="outline" className="text-[9px] px-1.5 py-0">
+          {analysis.overall_score}/100
+        </Badge>
+        {analysis.analysis_data?.clarity_rating && (
+          <span className={`text-[9px] font-medium ${clarityColors[analysis.analysis_data.clarity_rating] || "text-muted-foreground"}`}>
+            {analysis.analysis_data.clarity_rating}
+          </span>
+        )}
+      </div>
+      <p className="text-[10px] text-muted-foreground leading-relaxed">{analysis.analysis_data?.summary}</p>
+      {safeStrengths.length > 0 && (
+        <div className="space-y-0.5">
+          <span className="text-[9px] font-semibold text-green-600 dark:text-green-400">Strengths:</span>
+          {safeStrengths.map((s, i) => (
+            <p key={i} className="text-[10px] text-muted-foreground pl-2">• {s.point}</p>
+          ))}
+        </div>
+      )}
+      {safeImprovements.length > 0 && (
+        <div className="space-y-0.5">
+          <span className="text-[9px] font-semibold text-yellow-600 dark:text-yellow-400">Improvements:</span>
+          {safeImprovements.map((item, i) => (
+            <p key={i} className="text-[10px] text-muted-foreground pl-2">
+              • {item.point}
+              <span className={`ml-1 text-[8px] font-medium ${priorityColors[item.priority] || ""}`}>({item.priority})</span>
+            </p>
+          ))}
+        </div>
+      )}
+      <p className="text-[8px] text-muted-foreground/60">
+        Analyzed {new Date(analysis.created_at).toLocaleDateString()}
+      </p>
+    </div>
+  );
+};
+
+export const BoothContentManager = ({ divisionId, divisionName, isAdmin, color, variantLabel, variants = [] }: BoothContentManagerProps) => {
   const { sections, loading, addSection, updateSection, deleteSection } = useBoothContentSections(divisionId, variantLabel);
+  const { analyses, analyzingSection, analyzeSection } = useBoothSectionAnalysis(divisionId);
   const [adding, setAdding] = useState(false);
   const [newHeading, setNewHeading] = useState("");
   const [newBullets, setNewBullets] = useState("");
@@ -136,18 +197,45 @@ export const BoothContentManager = ({ divisionId, isAdmin, color, variantLabel, 
                           {section.variant_label}
                         </Badge>
                       )}
+                      {analyses[section.id] && (
+                        <Badge variant="outline" className="text-[9px] px-1.5 py-0 gap-0.5">
+                          <Brain className="h-2.5 w-2.5" />
+                          {analyses[section.id].overall_score}
+                        </Badge>
+                      )}
                     </div>
                   </AccordionTrigger>
-                  {isAdmin && (
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); startEdit(section); }}>
-                        <Pencil className="h-3 w-3" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={(e) => { e.stopPropagation(); deleteSection(section.id); }}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  )}
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
+                    {isAdmin && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          title="Analyze section"
+                          disabled={analyzingSection === section.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            analyzeSection(section.id, section.heading, section.bullets, divisionName);
+                          }}
+                        >
+                          {analyzingSection === section.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : analyses[section.id] ? (
+                            <RefreshCw className="h-3 w-3" />
+                          ) : (
+                            <Brain className="h-3 w-3" />
+                          )}
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); startEdit(section); }}>
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={(e) => { e.stopPropagation(); deleteSection(section.id); }}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <AccordionContent>
                   <ul className="space-y-1.5 pb-1">
@@ -158,6 +246,10 @@ export const BoothContentManager = ({ divisionId, isAdmin, color, variantLabel, 
                       </li>
                     ))}
                   </ul>
+                  {/* Per-section AI analysis */}
+                  {analyses[section.id] && (
+                    <SectionAnalysisDisplay analysis={analyses[section.id]} />
+                  )}
                 </AccordionContent>
               </AccordionItem>
             )

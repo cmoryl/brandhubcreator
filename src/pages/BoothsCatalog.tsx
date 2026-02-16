@@ -2070,7 +2070,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                       </div>
 
                       {/* Booth Content Details */}
-                      <BoothContentManager divisionId={division.id} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} variants={mergedVariants.map(v => v.label)} />
+                      <BoothContentManager divisionId={division.id} divisionName={division.name} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} variants={mergedVariants.map(v => v.label)} />
 
                       {/* Download Links */}
                       <DownloadLinksManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
