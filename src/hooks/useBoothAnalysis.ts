@@ -31,17 +31,25 @@ interface BoothDivisionContext {
   content_sections?: { heading: string; bullets: string[] }[];
 }
 
-export function useBoothAnalysis(divisionId: string) {
+export function useBoothAnalysis(divisionId: string, variantLabel?: string) {
   const [analysis, setAnalysis] = useState<BoothAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
 
   const fetchLatest = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    let query = supabase
       .from("booth_ai_analyses")
       .select("*")
-      .eq("division_id", divisionId)
+      .eq("division_id", divisionId);
+
+    if (variantLabel) {
+      query = query.eq("variant_label", variantLabel);
+    } else {
+      query = query.is("variant_label", null);
+    }
+
+    const { data, error } = await query
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -62,7 +70,7 @@ export function useBoothAnalysis(divisionId: string) {
       setAnalysis(null);
     }
     setLoading(false);
-  }, [divisionId]);
+  }, [divisionId, variantLabel]);
 
   useEffect(() => {
     fetchLatest();

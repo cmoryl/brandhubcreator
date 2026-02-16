@@ -50,7 +50,7 @@ export const BoothAIAnalysis = ({
   divisionId, divisionName, divisionTagline, divisionDescription,
   divisionServices, divisionColor, variantLabel, isAdmin,
 }: BoothAIAnalysisProps) => {
-  const { analysis, loading, analyzing, runAnalysis } = useBoothAnalysis(divisionId);
+  const { analysis, loading, analyzing, runAnalysis } = useBoothAnalysis(divisionId, variantLabel);
   const { sections } = useBoothContentSections(divisionId, variantLabel);
   const [expanded, setExpanded] = useState(false);
 
