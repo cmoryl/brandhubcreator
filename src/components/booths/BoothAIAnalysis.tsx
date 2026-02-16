@@ -89,7 +89,8 @@ export const BoothAIAnalysis = ({
     );
   }
 
-  const { analysis_data, strengths, improvements, recommendations, overall_score, created_at } = analysis;
+  const { analysis_data: rawAnalysisData, strengths, improvements, recommendations, overall_score, created_at } = analysis;
+  const analysis_data = rawAnalysisData as Record<string, any>;
   const safeStrengths = Array.isArray(strengths) ? strengths : [];
   const safeImprovements = Array.isArray(improvements) ? improvements : [];
   const safeRecommendations = Array.isArray(recommendations) ? recommendations : [];
@@ -117,6 +118,8 @@ export const BoothAIAnalysis = ({
 
           {/* Score Gauges */}
           <div className="grid grid-cols-2 gap-3">
+            <ScoreGauge label="Design" score={analysis_data?.design_score ?? 0} color={divisionColor || "hsl(var(--primary))"} />
+            <ScoreGauge label="Production" score={analysis_data?.production_score ?? 0} color={divisionColor || "hsl(var(--primary))"} />
             <ScoreGauge label="Messaging" score={analysis_data?.messaging_score ?? 0} color={divisionColor || "hsl(var(--primary))"} />
             <ScoreGauge label="Content" score={analysis_data?.content_score ?? 0} color={divisionColor || "hsl(var(--primary))"} />
             <ScoreGauge label="Differentiation" score={analysis_data?.differentiation_score ?? 0} color={divisionColor || "hsl(var(--primary))"} />
