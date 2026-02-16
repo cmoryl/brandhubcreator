@@ -575,8 +575,10 @@ export const ValuesSection = ({
               <>
                   {/* Full-width image at top for image mode - use custom or resolve from assets */}
                   {(() => {
+                    // Always prefer fresh local keyword-matched assets over stale stored URLs
+                    const keywordMatch = getPillarImage(value.text);
                     const resolvedImage = value.useImage 
-                      ? (value.imageUrl || getPillarImage(value.text) || getStablePillarImage(value.text))
+                      ? (keywordMatch || value.imageUrl || getStablePillarImage(value.text))
                       : null;
                     
                     return resolvedImage && (
