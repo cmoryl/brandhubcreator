@@ -95,13 +95,18 @@ const STATIC_BOOTH_DIVISIONS = [
   { id: 'legal', name: 'Legal', tagline: 'The Global Leader in Legal Technology & Support', color: 'hsl(210, 70%, 35%)', services: ['eDiscovery', 'Forensic Technology', 'Managed Review'] },
   { id: 'ip', name: 'IP (Intellectual Property)', tagline: 'Protect Your IP in Any Country', color: 'hsl(220, 65%, 40%)', services: ['Patent Filing', 'AI Translation', 'GlobalLink'] },
   { id: 'digital', name: 'Digital', tagline: 'Global Performance for International Brands', color: 'hsl(265, 60%, 50%)', services: ['SEO & Paid Media', 'AI Copywriting', 'Social Intelligence'] },
-  { id: 'media', name: 'Media', tagline: "The World's Largest Provider of Media Services", color: 'hsl(350, 70%, 50%)', services: ['Subtitling', 'Dubbing', 'Accessibility'] },
-  { id: 'gaming', name: 'Gaming', tagline: 'Level Up Your Global Reach', color: 'hsl(280, 70%, 55%)', services: ['Game Localization', 'QA Testing', 'Voiceover'] },
+  { id: 'media', name: 'Media', tagline: 'Where Boutique Expertise Meets Global Excellence', color: 'hsl(340, 65%, 45%)', services: ['Subtitling', 'Dubbing', 'Accessibility'] },
+  { id: 'games', name: 'Games', tagline: 'The Language of Global Games', color: 'hsl(150, 60%, 40%)', services: ['Game Localization', 'QA Testing', 'Voiceover'] },
+  { id: 'live', name: 'Live', tagline: 'Multilingual Event Solutions', color: 'hsl(180, 55%, 40%)', services: ['Content Creation', 'Interpreters', 'Event Technology'] },
   { id: 'globallink', name: 'GlobalLink', tagline: 'Unlock Global Content Velocity', color: 'hsl(190, 75%, 42%)', services: ['TMS', 'AI Translation', 'CMS Connectors'] },
   { id: 'regulated-industries', name: 'Regulated Industries', tagline: 'Risk-Free Compliance at Scale', color: 'hsl(200, 60%, 35%)', services: ['Compliance', 'Regulatory', 'Quality'] },
   { id: 'ai', name: 'AI Solutions', tagline: 'AI-Powered Language Technology', color: 'hsl(250, 65%, 55%)', services: ['NMT', 'LLM Solutions', 'Data Services'] },
   { id: 'techresearch', name: 'Tech & Research', tagline: 'Powering Discovery Through Language', color: 'hsl(175, 60%, 40%)', services: ['Patent Analytics', 'Research Translation', 'Data Mining'] },
   { id: 'healthcare', name: 'Healthcare', tagline: 'Connecting Patients Through Language', color: 'hsl(0, 65%, 50%)', services: ['Patient Communication', 'Telephonic Interpreting', 'Healthcare Innovation'] },
+  { id: 'health', name: 'Health', tagline: 'Serving Seniors Through the Continuum of Care', color: 'hsl(350, 70%, 50%)', services: ['Physical Therapy', 'Rehabilitation', 'Digital Health'] },
+  { id: 'dataforce', name: 'DataForce', tagline: 'Human Insights for AI that is Reliable. Refined. Respected.', color: 'hsl(270, 55%, 50%)', services: ['Data Collection', 'Data Annotation', 'Bias Mitigation'] },
+  { id: 'trial-interactive', name: 'Trial Interactive', tagline: 'Enabling Trial Collaboration in the Cloud', color: 'hsl(190, 65%, 42%)', services: ['eClinical Platform', 'AI-Powered Intelligence', 'Expert Support'] },
+  { id: 'g3', name: 'G3', tagline: 'Shaping Global Content. Empowering Human Connection.', color: 'hsl(25, 70%, 50%)', services: ['Learning & Development', 'Localization', 'Market Insights'] },
 ];
 
 // Inline booth picker for the Add Signage dialog
