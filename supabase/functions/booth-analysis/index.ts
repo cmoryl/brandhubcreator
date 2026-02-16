@@ -55,15 +55,24 @@ async function handleOverallAnalysis(body: any, user: any, SUPABASE_URL: string,
     content_sections?.length ? `Content Sections:\n${content_sections.map((s: any) => `  - ${s.heading}: ${s.bullets?.join("; ")}`).join("\n")}` : null,
   ].filter(Boolean).join("\n");
 
-  const systemPrompt = `You are a trade show booth and brand presence analyst. You audit exhibition booth divisions for messaging effectiveness, visual branding, content quality, and trade show best practices.
+  const systemPrompt = `You are an expert trade show booth designer and brand presence analyst. You audit exhibition booth divisions for BOTH design excellence and messaging effectiveness. You have deep expertise in exhibition design, visual communication, spatial branding, and trade show best practices.
 
-Analyze the following booth division and provide a structured audit. Be specific, actionable, and constructive. Consider:
-1. Messaging clarity and impact
-2. Service offering completeness
-3. Content organization and hierarchy
-4. Brand differentiation
-5. Trade show visitor engagement potential
-6. Call-to-action effectiveness
+Analyze the following booth division and provide a structured audit. Be specific, actionable, and constructive. Evaluate across these dimensions:
+
+**Design & Visual Identity:**
+1. Color palette effectiveness — contrast, harmony, brand consistency, visibility from distance
+2. Visual hierarchy — layout flow, focal points, typography scale, information density
+3. Spatial design — use of space, traffic flow considerations, sightlines, modularity
+4. Brand cohesion — consistency across materials, logo placement, visual language
+5. Production quality signals — material choices, finish quality, lighting considerations
+
+**Content & Messaging:**
+6. Messaging clarity and impact — headline strength, value proposition clarity
+7. Service offering completeness and presentation
+8. Content organization and information architecture
+9. Brand differentiation — unique positioning, competitive standout
+10. Visitor engagement potential — interactive elements, dwell-time drivers
+11. Call-to-action effectiveness — conversion pathways, lead capture
 
 Return your analysis using the suggest_booth_analysis tool.`;
 
@@ -77,11 +86,13 @@ Return your analysis using the suggest_booth_analysis tool.`;
           type: "object",
           properties: {
             overall_score: { type: "number", description: "Overall booth quality score from 0-100" },
-            summary: { type: "string", description: "2-3 sentence executive summary of booth quality" },
-            messaging_score: { type: "number", description: "Messaging clarity score 0-100" },
-            content_score: { type: "number", description: "Content quality score 0-100" },
-            differentiation_score: { type: "number", description: "Brand differentiation score 0-100" },
-            engagement_score: { type: "number", description: "Visitor engagement potential score 0-100" },
+            summary: { type: "string", description: "2-3 sentence executive summary covering both design and messaging quality" },
+            messaging_score: { type: "number", description: "Messaging clarity and impact score 0-100" },
+            content_score: { type: "number", description: "Content quality and information architecture score 0-100" },
+            differentiation_score: { type: "number", description: "Brand differentiation and competitive standout score 0-100" },
+            engagement_score: { type: "number", description: "Visitor engagement and dwell-time potential score 0-100" },
+            design_score: { type: "number", description: "Visual design quality — color palette, hierarchy, spatial layout, brand cohesion 0-100" },
+            production_score: { type: "number", description: "Production readiness — material specs, finish quality, scalability 0-100" },
             strengths: {
               type: "array",
               items: { type: "object", properties: { title: { type: "string" }, detail: { type: "string" } }, required: ["title", "detail"] },
@@ -95,7 +106,7 @@ Return your analysis using the suggest_booth_analysis tool.`;
               items: { type: "object", properties: { action: { type: "string" }, impact: { type: "string" } }, required: ["action", "impact"] },
             },
           },
-          required: ["overall_score", "summary", "messaging_score", "content_score", "differentiation_score", "engagement_score", "strengths", "improvements", "recommendations"],
+          required: ["overall_score", "summary", "messaging_score", "content_score", "differentiation_score", "engagement_score", "design_score", "production_score", "strengths", "improvements", "recommendations"],
           additionalProperties: false,
         },
       },
@@ -123,6 +134,8 @@ Return your analysis using the suggest_booth_analysis tool.`;
         content_score: analysis.content_score,
         differentiation_score: analysis.differentiation_score,
         engagement_score: analysis.engagement_score,
+        design_score: analysis.design_score,
+        production_score: analysis.production_score,
       },
       strengths: analysis.strengths,
       improvements: analysis.improvements,
