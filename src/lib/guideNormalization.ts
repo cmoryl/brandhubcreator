@@ -306,6 +306,7 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     
     // Event Signage & Presentations
     eventSignage: safeArray(g.eventSignage),
+    linkedBooths: safeArray(g.linkedBooths),
     presentationTemplates: safeArray(g.presentationTemplates),
     
     // Timestamps

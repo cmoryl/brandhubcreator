@@ -369,6 +369,8 @@ export const FullBrandPage = ({
         return <BrandEventSignageSection 
           eventSignage={brand.eventSignage || []} 
           onEventSignageChange={editHandler((eventSignage) => onBrandUpdate({ eventSignage }))} 
+          linkedBooths={brand.linkedBooths || []}
+          onLinkedBoothsChange={editHandler((linkedBooths) => onBrandUpdate({ linkedBooths }))}
           customSubtitle={customSubtitle} 
           onSubtitleChange={onSubtitleChange}
           layout={layout}

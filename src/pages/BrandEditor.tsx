@@ -818,7 +818,7 @@ const BrandEditor = () => {
       case 'awards': return <AwardsSection awards={brand.awards || []} onUpdate={editHandler((awards) => updateBrand({ awards }))} entityType="brand" entityId={brand.id} />;
       case 'imageassets': return <ImageAssetsSection imageAssets={brand.imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => updateBrand({ imageAssets }))} canEdit={canEdit} entityId={brand.id} entityType="brand" />;
       case 'events': return <EventsSection brandId={brand.id} canEdit={canEdit} />;
-      case 'eventsignage': return <BrandEventSignageSection eventSignage={brand.eventSignage || []} onEventSignageChange={editHandler((eventSignage) => updateBrand({ eventSignage }))} brandColors={brand.colors || []} />;
+      case 'eventsignage': return <BrandEventSignageSection eventSignage={brand.eventSignage || []} onEventSignageChange={editHandler((eventSignage) => updateBrand({ eventSignage }))} linkedBooths={brand.linkedBooths || []} onLinkedBoothsChange={editHandler((linkedBooths) => updateBrand({ linkedBooths }))} brandColors={brand.colors || []} />;
       case 'universe': 
         if (brand.linkedGuides && brand.linkedGuides.length > 0) {
           return <GlobalLinkUniverseSection linkedGuides={brand.linkedGuides} primaryColor={brand.colors?.[0]?.hex} />;

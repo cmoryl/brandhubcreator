@@ -351,6 +351,18 @@ export interface BrandEventSignage {
   specifications?: string;
 }
 
+// LINKED BOOTH CARDS - References to booth catalog divisions
+export interface LinkedBoothCard {
+  id: string;
+  divisionId: string;
+  divisionName: string;
+  tagline: string;
+  color: string;
+  iconName: string;
+  services: string[];
+  linkedAt: string;
+}
+
 // IMAGE ASSETS - Downloadable Image Library
 export interface ImageAsset {
   id: string;
@@ -979,6 +991,8 @@ export interface BaseGuide {
   mapTheme?: import('@/types/mapTheme').MapThemeConfig;
   // Event Signage (Booths, Banners for brand events)
   eventSignage?: BrandEventSignage[];
+  // Linked Booth Cards from /booths catalog
+  linkedBooths?: LinkedBoothCard[];
   // Presentation Templates (PowerPoint slide galleries)
   presentationTemplates?: PresentationTemplate[];
   // Metadata

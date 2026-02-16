@@ -192,6 +192,7 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     sectionLayouts: asObject(guideData.sectionLayouts, {}) as BrandGuide['sectionLayouts'],
     pageSettings: asObject(guideData.pageSettings, DEFAULT_PAGE_SETTINGS) as BrandGuide['pageSettings'],
     eventSignage: asArray(guideData.eventSignage, []) as BrandGuide['eventSignage'],
+    linkedBooths: asArray(guideData.linkedBooths, []) as BrandGuide['linkedBooths'],
     presentationTemplates: asArray(guideData.presentationTemplates, []) as BrandGuide['presentationTemplates'],
     mapTheme: guideData.mapTheme as BrandGuide['mapTheme'],
     createdAt: new Date(db.created_at),
