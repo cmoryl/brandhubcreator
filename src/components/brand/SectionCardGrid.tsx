@@ -6,9 +6,10 @@ import { sectionMeta as defaultSectionMeta } from './ReorderableBrandSidebar';
 import { HeroBackground } from '@/components/HeroBackground';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Paintbrush, Sparkles, Waves, LayoutGrid, X, ArrowUpDown, Upload, Sun, Moon, BarChart3, Brain, Shield, ChevronRight } from 'lucide-react';
+import { Paintbrush, Sparkles, Waves, LayoutGrid, X, ArrowUpDown, Upload, Sun, Moon, BarChart3, Brain, Shield, ChevronRight, Star } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { useSectionFavorites } from '@/hooks/useSectionFavorites';
 
 // Section descriptions for hover detail
 const SECTION_DESCRIPTIONS: Record<string, string> = {
@@ -167,10 +168,11 @@ const TINT_PRESETS = [
   { label: 'Cyan', value: '#06b6d4' },
 ];
 
-type SortMode = 'default' | 'category' | 'alphabetical' | 'identity-first' | 'visual-first' | 'assets-first';
+type SortMode = 'default' | 'category' | 'alphabetical' | 'identity-first' | 'visual-first' | 'assets-first' | 'favorites-first';
 
 const SORT_OPTIONS: { value: SortMode; label: string }[] = [
   { value: 'default', label: 'Custom Order' },
+  { value: 'favorites-first', label: 'Favorites First' },
   { value: 'category', label: 'By Category' },
   { value: 'alphabetical', label: 'A–Z' },
   { value: 'identity-first', label: 'Identity First' },
@@ -180,12 +182,18 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
 
 const CATEGORY_ORDER = ['Identity', 'Visual', 'Typography', 'Assets', 'Communication', 'Resources', 'Collateral'];
 
-const sortSections = (sections: string[], mode: SortMode, meta: Record<string, { label: string; icon: React.ElementType; category: string }>): string[] => {
+const sortSections = (sections: string[], mode: SortMode, meta: Record<string, { label: string; icon: React.ElementType; category: string }>, favoritedIds?: Set<string>): string[] => {
   if (mode === 'default') return sections;
   
   const sorted = [...sections];
   
   switch (mode) {
+    case 'favorites-first':
+      return sorted.sort((a, b) => {
+        const aFav = favoritedIds?.has(a) ? 1 : 0;
+        const bFav = favoritedIds?.has(b) ? 1 : 0;
+        return bFav - aFav;
+      });
     case 'alphabetical':
       return sorted.sort((a, b) => {
         const labelA = meta[a]?.label || '';
@@ -229,6 +237,8 @@ const CardGrid = React.forwardRef<HTMLDivElement, {
   onSectionSelect: (id: string) => void;
   isDark: boolean;
   entityTagline?: string;
+  favoritedIds?: Set<string>;
+  onToggleFavorite?: (sectionId: string) => void;
 }>(function CardGrid({
   sections,
   sectionMeta,
@@ -238,6 +248,8 @@ const CardGrid = React.forwardRef<HTMLDivElement, {
   onSectionSelect,
   isDark,
   entityTagline,
+  favoritedIds,
+  onToggleFavorite,
 }, ref) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -384,14 +396,19 @@ const CardGrid = React.forwardRef<HTMLDivElement, {
               )} />
             </motion.div>
 
-            {/* Label */}
-            <span className={cn(
-              'relative z-10 leading-tight text-center font-normal tracking-wide',
-              isExpanded ? 'text-xs font-semibold' : 'text-[9px] sm:text-[10px] line-clamp-2',
-              isActive ? 'text-white' : 'text-foreground/70 group-hover:text-foreground'
-            )}>
-              {meta.label}
-            </span>
+            {/* Label + favorite star */}
+            <div className="relative z-10 flex items-center gap-1">
+              <span className={cn(
+                'leading-tight text-center font-normal tracking-wide',
+                isExpanded ? 'text-xs font-semibold' : 'text-[9px] sm:text-[10px] line-clamp-2',
+                isActive ? 'text-white' : 'text-foreground/70 group-hover:text-foreground'
+              )}>
+                {meta.label}
+              </span>
+              {favoritedIds?.has(sectionId) && !isExpanded && (
+                <Star className="h-2.5 w-2.5 text-amber-500 fill-current shrink-0" />
+              )}
+            </div>
 
             {/* Expanded detail content */}
             <AnimatePresence>
@@ -444,17 +461,33 @@ const CardGrid = React.forwardRef<HTMLDivElement, {
                     ))}
                   </div>
 
-                  {/* Action hint — only on hover, not on persistent active */}
+                  {/* Action row — favorite toggle + open hint */}
                   {isHovered && !isActive && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.15 }}
-                      className="flex items-center justify-center gap-1 text-[9px] font-medium pt-1"
-                      style={{ color: tint.bg }}
+                      className="flex items-center justify-center gap-2 text-[9px] font-medium pt-1"
                     >
-                      <ChevronRight className="h-2.5 w-2.5" />
-                      <span>Open section</span>
+                      {onToggleFavorite && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); onToggleFavorite(sectionId); }}
+                          className={cn(
+                            "flex items-center gap-0.5 px-1.5 py-0.5 rounded-md transition-colors",
+                            favoritedIds?.has(sectionId)
+                              ? "text-amber-500 hover:text-amber-600"
+                              : "text-muted-foreground hover:text-amber-500"
+                          )}
+                          title={favoritedIds?.has(sectionId) ? 'Remove from favorites' : 'Add to favorites'}
+                        >
+                          <Star className={cn("h-2.5 w-2.5", favoritedIds?.has(sectionId) && "fill-current")} />
+                        </button>
+                      )}
+                      <span style={{ color: tint.bg }} className="flex items-center gap-0.5">
+                        <ChevronRight className="h-2.5 w-2.5" />
+                        Open
+                      </span>
                     </motion.div>
                   )}
                 </motion.div>
@@ -510,14 +543,21 @@ export const SectionCardGrid = ({
   const darkLogoInputRef = useRef<HTMLInputElement>(null);
   const { resolvedTheme } = useTheme();
   const { uploadFile } = useStorageUpload({ entityType, entityId });
+  const {
+    isFavorited,
+    toggleFavorite: toggleSectionFavorite,
+    favoritedSectionIds,
+  } = useSectionFavorites({ entityType, entityId });
+
+  const favoritedSet = useMemo(() => new Set(favoritedSectionIds || []), [favoritedSectionIds]);
 
   const sections = useMemo(() => {
     const base = sectionOrder.filter(
       (id) => sectionMeta[id] && !EXCLUDED_FROM_NAV.includes(id)
     );
     const visible = isAdmin ? base : base.filter((id) => !hiddenSections.includes(id));
-    return sortSections(visible, sortMode, sectionMeta);
-  }, [sectionOrder, hiddenSections, isAdmin, sortMode, sectionMeta]);
+    return sortSections(visible, sortMode, sectionMeta, favoritedSet);
+  }, [sectionOrder, hiddenSections, isAdmin, sortMode, sectionMeta, favoritedSet]);
 
   // Report computed sections to parent for tint synchronization
   useEffect(() => {
@@ -802,6 +842,8 @@ export const SectionCardGrid = ({
           onSectionSelect={onSectionSelect}
           isDark={resolvedTheme === 'dark'}
           entityTagline={entityTagline}
+          favoritedIds={favoritedSet}
+          onToggleFavorite={toggleSectionFavorite}
         />
       </div>
     </div>
