@@ -82,3 +82,6 @@ verify_jwt = false
 
 [functions.bias-awareness-scan]
 verify_jwt = false
+
+[functions.booth-analysis]
+verify_jwt = false

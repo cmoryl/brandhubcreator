@@ -36,6 +36,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
 import { BoothContentManager } from "@/components/booths/BoothContentManager";
 import { BoothGalleryManager } from "@/components/booths/BoothGalleryManager";
+import { BoothAIAnalysis } from "@/components/booths/BoothAIAnalysis";
 import { GlitchText } from "@/components/ui/GlitchText";
 import { BrandHubLogo } from "@/components/BrandHubLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -2063,7 +2064,17 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                       {/* Booth Content Details */}
                       <BoothContentManager divisionId={division.id} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} variants={mergedVariants.map(v => v.label)} />
 
-                      {/* Download Links */}
+                      {/* AI Booth Analysis */}
+                      <BoothAIAnalysis
+                        divisionId={division.id}
+                        divisionName={division.name}
+                        divisionTagline={division.tagline}
+                        divisionDescription={division.description}
+                        divisionServices={division.services}
+                        divisionColor={division.color}
+                        variantLabel={currentVariant?.label}
+                        isAdmin={isAdmin}
+                      />
                       <DownloadLinksManager divisionId={division.id} isAdmin={isAdmin} color={division.color} />
                         </div>
                       </motion.div>
