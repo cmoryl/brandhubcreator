@@ -48,7 +48,7 @@ import { FloatingOrbsHero } from "@/components/backgrounds/FloatingOrbsHero";
 import { GradientSpheresHero } from "@/components/backgrounds/GradientSpheresHero";
 import { ImageOrbsHero } from "@/components/backgrounds/ImageOrbsHero";
 import { ImagePanelsHero } from "@/components/backgrounds/ImagePanelsHero";
-interface BoothDivision {
+export interface BoothDivision {
   id: string;
   name: string;
   tagline: string;
@@ -66,7 +66,7 @@ interface BoothDivision {
   boothContent?: { heading: string; bullets: string[] }[];
 }
 
-const DIVISIONS: BoothDivision[] = [
+export const DIVISIONS: BoothDivision[] = [
   {
     id: "corporate",
     name: "Corporate",
@@ -1771,7 +1771,7 @@ const ContactWebsiteEditor = ({ division, isAdmin }: { division: BoothDivision; 
   );
 };
 
-const DivisionDetail = ({ division, onClose, isAdmin, onUpdateTagline }: { division: BoothDivision; onClose: () => void; isAdmin: boolean; onUpdateTagline?: (tagline: string) => Promise<void> }) => {
+export const DivisionDetail = ({ division, onClose, isAdmin, onUpdateTagline }: { division: BoothDivision; onClose: () => void; isAdmin: boolean; onUpdateTagline?: (tagline: string) => Promise<void> }) => {
   const [activeVariant, setActiveVariant] = useState(0);
   const [editingTagline, setEditingTagline] = useState(false);
   const [taglineValue, setTaglineValue] = useState(division.tagline);
@@ -2178,7 +2178,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Radio, Heart, Database, Microscope, Globe, BarChart3,
 };
 
-function customToBoothDivision(c: CustomDivision): BoothDivision {
+export function customToBoothDivision(c: CustomDivision): BoothDivision {
   return {
     id: c.division_id,
     name: c.name,
