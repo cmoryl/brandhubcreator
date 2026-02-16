@@ -682,7 +682,7 @@ const ProductEditor = () => {
       case 'awards': return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading...</div>}><AwardsSection awards={(currentProduct as any).awards || []} onUpdate={editHandler((awards) => handleUpdateProduct({ awards } as any))} entityType="product" entityId={currentProduct.id} /></Suspense>;
       case 'events': return <EventsSection brandId={currentProduct.id} />;
       case 'universe': return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading...</div>}><GlobalLinkUniverseSection linkedGuides={currentProduct.linkedGuides || []} primaryColor={currentProduct.colors?.[0]?.hex} /></Suspense>;
-      case 'eventsignage': return <BrandEventSignageSection eventSignage={(currentProduct as any).eventSignage || []} onEventSignageChange={editHandler((eventSignage) => handleUpdateProduct({ eventSignage } as any))} />;
+      case 'eventsignage': return <BrandEventSignageSection eventSignage={(currentProduct as any).eventSignage || []} onEventSignageChange={editHandler((eventSignage) => handleUpdateProduct({ eventSignage } as any))} isAdmin={isGuideAdmin} />;
       case 'presentations': return <PresentationTemplatesSection presentations={(currentProduct as any).presentations || []} onUpdate={canEdit ? (presentations) => handleUpdateProduct({ presentations } as any) : undefined} isEditable={canEdit} />;
       case 'locations': return (
         <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading map...</div>}>

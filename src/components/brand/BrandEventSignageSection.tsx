@@ -51,6 +51,7 @@ interface BrandEventSignageSectionProps {
   onLayoutChange?: (layout: LayoutPreset) => void;
   brandName?: string;
   brandColors?: BrandColor[];
+  isAdmin?: boolean;
 }
 
 const SIGNAGE_TYPES = [
@@ -234,6 +235,7 @@ export const BrandEventSignageSection = ({
   onLayoutChange,
   brandName,
   brandColors,
+  isAdmin = false,
 }: BrandEventSignageSectionProps) => {
   const { gridClass } = useLayoutClasses(layout);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -1289,7 +1291,7 @@ export const BrandEventSignageSection = ({
           <DivisionDetail
             division={selectedDivision}
             onClose={() => setSelectedDivision(null)}
-            isAdmin={false}
+            isAdmin={isAdmin}
           />
         </AnimatePresence>,
         document.body
