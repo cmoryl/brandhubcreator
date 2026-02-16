@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, 
   Radio, Heart, Database, Microscope, Globe, X, ChevronLeft, ChevronRight,
-  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown, Upload, RotateCcw, Type, Download, ArrowUpDown, Ruler,
+  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown, Upload, RotateCcw, Type, Download, ArrowUpDown, Ruler, Brain,
   LogOut, User, HelpCircle, LayoutDashboard
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -822,7 +822,7 @@ const exportPalette = (palette: string[], name: string) => {
   URL.revokeObjectURL(textUrl);
 };
 
-const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId, variantLabel }: { color: string; boothColors?: string[]; isAdmin?: boolean; divisionId?: string; variantLabel?: string }) => {
+const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId, variantLabel, divisionName, imageUrls }: { color: string; boothColors?: string[]; isAdmin?: boolean; divisionId?: string; variantLabel?: string; divisionName?: string; imageUrls?: string[] }) => {
   const hex = color.startsWith('#') ? color : `#${color}`;
   const { r, g, b } = hexToRgb(hex);
 
@@ -848,6 +848,7 @@ const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId, variantLab
   const [editing, setEditing] = useState(false);
   const [editColors, setEditColors] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [aiExtracting, setAiExtracting] = useState(false);
 
   useEffect(() => {
     if (!divisionId) return;
@@ -891,6 +892,34 @@ const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId, variantLab
     toast.success('Color palette saved');
   };
 
+  const extractPaletteFromImages = async () => {
+    if (!divisionId || !imageUrls?.length) {
+      toast.error("No booth images available to analyze");
+      return;
+    }
+    setAiExtracting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("booth-palette-analyzer", {
+        body: {
+          division_id: divisionId,
+          division_name: divisionName,
+          variant_label: variantLabel || null,
+          image_urls: imageUrls,
+        },
+      });
+      if (error) throw error;
+      if (data?.colors) {
+        setDbColors(data.colors);
+        toast.success(data.reasoning ? `Palette extracted: ${data.reasoning.slice(0, 80)}...` : "AI color palette extracted from booth images");
+      }
+    } catch (err: any) {
+      console.error("AI palette extraction error:", err);
+      toast.error(err.message || "Failed to extract palette from images");
+    } finally {
+      setAiExtracting(false);
+    }
+  };
+
   return (
     <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3 hover:border-primary/30 hover:shadow-lg transition-all duration-200">
       <div className="flex items-center justify-between">
@@ -899,6 +928,11 @@ const BoothColorPalette = ({ color, boothColors, isAdmin, divisionId, variantLab
           {!editing && (
             <Button variant="ghost" size="icon" className="h-6 w-6" title="Export palette" onClick={() => exportPalette(palette, divisionId || 'booth')}>
               <Download className="h-3 w-3" />
+            </Button>
+          )}
+          {isAdmin && !editing && imageUrls && imageUrls.length > 0 && (
+            <Button variant="ghost" size="icon" className="h-6 w-6" title="AI extract palette from images" onClick={extractPaletteFromImages} disabled={aiExtracting}>
+              {aiExtracting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3" />}
             </Button>
           )}
           {isAdmin && !editing && (
@@ -2067,7 +2101,7 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                           </div>
 
                           {/* Color Palette */}
-                          <BoothColorPalette color={division.color} boothColors={division.boothColors} isAdmin={isAdmin} divisionId={division.id} variantLabel={currentVariant?.label} />
+                          <BoothColorPalette color={division.color} boothColors={division.boothColors} isAdmin={isAdmin} divisionId={division.id} variantLabel={currentVariant?.label} divisionName={division.name} imageUrls={images.map(img => img.image_url)} />
 
                           {/* Booth Gallery */}
                           <BoothGalleryManager divisionId={division.id} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} />
