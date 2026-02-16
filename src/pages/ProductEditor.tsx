@@ -83,6 +83,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { Badge } from '@/components/ui/badge';
 import { normalizeHiddenSections, normalizeSectionOrder } from '@/lib/sectionOrder';
 import { SectionCardGrid } from '@/components/brand/SectionCardGrid';
+import { ActiveSectionHeader } from '@/components/brand/ActiveSectionHeader';
 import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
 
 type ViewMode = 'sections' | 'full' | 'cards';
@@ -130,6 +131,7 @@ const ProductEditor = () => {
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('full');
+  const [gridSections, setGridSections] = useState<string[]>([]);
   const [scrollToSection, setScrollToSection] = useState<SectionId | null>(null);
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
   // Regional analysis panel state
@@ -1071,11 +1073,20 @@ const ProductEditor = () => {
                     onOpenIntelligence={isGuideAdmin ? () => setIntelligenceOpen(true) : undefined}
                     entityType="product"
                     entityId={currentProduct?.id}
+                    onSectionsComputed={setGridSections}
                   />
                   {activeSection !== 'hero' && (
-                    <div className="animate-zoom-in">
-                      {renderSection()}
-                    </div>
+                    <>
+                      <ActiveSectionHeader
+                        activeSection={activeSection}
+                        sectionOrder={sectionOrder}
+                        hiddenSections={hiddenSections}
+                        gridSections={gridSections}
+                      />
+                      <div className="animate-zoom-in">
+                        {renderSection()}
+                      </div>
+                    </>
                   )}
                 </div>
               ) : viewMode === 'sections' ? (
