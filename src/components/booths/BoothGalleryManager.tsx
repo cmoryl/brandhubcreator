@@ -10,10 +10,11 @@ interface BoothGalleryManagerProps {
   divisionId: string;
   isAdmin: boolean;
   color: string;
+  variantLabel?: string;
 }
 
-export const BoothGalleryManager = ({ divisionId, isAdmin, color }: BoothGalleryManagerProps) => {
-  const { photos, loading, uploadPhoto, updateCaption, deletePhoto } = useBoothGalleryPhotos(divisionId);
+export const BoothGalleryManager = ({ divisionId, isAdmin, color, variantLabel }: BoothGalleryManagerProps) => {
+  const { photos, loading, uploadPhoto, updateCaption, deletePhoto } = useBoothGalleryPhotos(divisionId, variantLabel);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);

@@ -8,9 +8,10 @@ export interface BoothQRCode {
   url: string;
   image_url: string | null;
   display_order: number;
+  variant_label: string | null;
 }
 
-export function useBoothQRCodes(divisionId: string) {
+export function useBoothQRCodes(divisionId: string, variantLabel?: string) {
   const [qrCodes, setQrCodes] = useState<BoothQRCode[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -18,26 +19,32 @@ export function useBoothQRCodes(divisionId: string) {
     setLoading(true);
     const { data, error } = await supabase
       .from("booth_qr_codes")
-      .select("id, division_id, label, url, image_url, display_order")
+      .select("id, division_id, label, url, image_url, display_order, variant_label")
       .eq("division_id", divisionId)
       .order("display_order", { ascending: true });
 
-    if (!error && data) setQrCodes(data);
+    if (!error && data) {
+      const filtered = data.filter(s =>
+        s.variant_label === null || s.variant_label === (variantLabel || null)
+      );
+      setQrCodes(filtered);
+    }
     setLoading(false);
-  }, [divisionId]);
+  }, [divisionId, variantLabel]);
 
   useEffect(() => {
     fetchQRCodes();
   }, [fetchQRCodes]);
 
   const addQRCode = useCallback(
-    async (label: string, url: string, imageUrl?: string) => {
+    async (label: string, url: string, imageUrl?: string, forVariant?: string | null) => {
       const { error } = await supabase.from("booth_qr_codes").insert({
         division_id: divisionId,
         label,
         url,
         image_url: imageUrl || null,
         display_order: qrCodes.length,
+        variant_label: forVariant ?? null,
       });
       if (!error) await fetchQRCodes();
     },

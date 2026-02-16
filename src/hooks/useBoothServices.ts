@@ -7,9 +7,10 @@ export interface BoothService {
   label: string;
   icon_svg: string | null;
   display_order: number;
+  variant_label: string | null;
 }
 
-export function useBoothServices(divisionId: string) {
+export function useBoothServices(divisionId: string, variantLabel?: string) {
   const [services, setServices] = useState<BoothService[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,25 +18,31 @@ export function useBoothServices(divisionId: string) {
     setLoading(true);
     const { data, error } = await supabase
       .from("booth_services")
-      .select("id, division_id, label, icon_svg, display_order")
+      .select("id, division_id, label, icon_svg, display_order, variant_label")
       .eq("division_id", divisionId)
       .order("display_order", { ascending: true });
 
-    if (!error && data) setServices(data);
+    if (!error && data) {
+      const filtered = data.filter(s =>
+        s.variant_label === null || s.variant_label === (variantLabel || null)
+      );
+      setServices(filtered);
+    }
     setLoading(false);
-  }, [divisionId]);
+  }, [divisionId, variantLabel]);
 
   useEffect(() => {
     fetchServices();
   }, [fetchServices]);
 
   const addService = useCallback(
-    async (label: string, iconSvg?: string) => {
+    async (label: string, iconSvg?: string, forVariant?: string | null) => {
       const { error } = await supabase.from("booth_services").insert({
         division_id: divisionId,
         label,
         icon_svg: iconSvg || null,
         display_order: services.length,
+        variant_label: forVariant ?? null,
       });
       if (!error) await fetchServices();
     },
