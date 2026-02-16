@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Plus, Pencil, Trash2, Loader2, X, Check } from "lucide-react";
 import { useBoothContentSections, BoothContentSection } from "@/hooks/useBoothContentSections";
 
@@ -112,7 +113,7 @@ export const BoothContentManager = ({ divisionId, isAdmin, color, variantLabel, 
       )}
 
       {sections.length > 0 && (
-        <div className="grid md:grid-cols-2 gap-4">
+        <Accordion type="multiple" defaultValue={sections.map(s => s.id)} className="space-y-2">
           {sections.map((section) =>
             editingId === section.id && isAdmin ? (
               <div key={section.id} className="bg-muted/30 rounded-lg p-4 border border-primary/30 space-y-2">
@@ -125,37 +126,43 @@ export const BoothContentManager = ({ divisionId, isAdmin, color, variantLabel, 
                 </div>
               </div>
             ) : (
-              <div key={section.id} className="bg-muted/30 rounded-lg p-4 border border-border/40 group relative">
-                {isAdmin && (
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEdit(section)}>
-                      <Pencil className="h-3 w-3" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteSection(section.id)}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                )}
-                <div className="flex items-center gap-2 mb-2">
-                  <h4 className="text-sm font-semibold" style={{ color }}>{section.heading}</h4>
-                  {section.variant_label && isAdmin && (
-                    <Badge variant="outline" className="text-[9px] px-1.5 py-0" style={{ borderColor: color + "40" }}>
-                      {section.variant_label}
-                    </Badge>
+              <AccordionItem key={section.id} value={section.id} className="border border-border/40 rounded-lg bg-muted/30 px-4 overflow-hidden hover:border-primary/30 hover:shadow-md transition-all duration-200">
+                <div className="flex items-center group relative">
+                  <AccordionTrigger className="flex-1 py-3 hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-semibold" style={{ color }}>{section.heading}</h4>
+                      {section.variant_label && isAdmin && (
+                        <Badge variant="outline" className="text-[9px] px-1.5 py-0" style={{ borderColor: color + "40" }}>
+                          {section.variant_label}
+                        </Badge>
+                      )}
+                    </div>
+                  </AccordionTrigger>
+                  {isAdmin && (
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); startEdit(section); }}>
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={(e) => { e.stopPropagation(); deleteSection(section.id); }}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   )}
                 </div>
-                <ul className="space-y-1.5">
-                  {section.bullets.map((bullet, i) => (
-                    <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
-                      <span className="mt-1.5 h-1 w-1 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                      {bullet}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                <AccordionContent>
+                  <ul className="space-y-1.5 pb-1">
+                    {section.bullets.map((bullet, i) => (
+                      <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
+                        <span className="mt-1.5 h-1 w-1 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                        {bullet}
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
             )
           )}
-        </div>
+        </Accordion>
       )}
     </div>
   );
