@@ -23,7 +23,7 @@ export function CompetitiveReportCard({
   organizationId,
 }: CompetitiveReportCardProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { latestReport, isLoading } = useCompetitiveAnalysis({ entityType, entityId, organizationId });
+  const { latestReport, isLoading, refetch } = useCompetitiveAnalysis({ entityType, entityId, organizationId });
 
   return (
     <>
@@ -92,6 +92,7 @@ export function CompetitiveReportCard({
         entityId={entityId}
         entityName={entityName}
         organizationId={organizationId}
+        onReportGenerated={refetch}
       />
     </>
   );
