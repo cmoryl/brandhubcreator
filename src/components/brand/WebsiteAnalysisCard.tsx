@@ -433,28 +433,28 @@ export const WebsiteAnalysisCard = ({
     <>
       {/* Analysis Trigger Card */}
       <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
-        <div className="aspect-video bg-gradient-to-br from-primary/5 via-accent/5 to-primary/10 flex flex-col items-center justify-center gap-3 p-4">
+        <div className="aspect-[16/10] sm:aspect-video bg-gradient-to-br from-primary/5 via-accent/5 to-primary/10 flex flex-col items-center justify-center gap-2 sm:gap-3 p-3 sm:p-4">
           {report ? (
-            <div className="text-center space-y-2">
-              <div className={cn('inline-flex items-center justify-center w-14 h-14 rounded-full text-2xl font-bold text-white', getGradeBg(report.grade))}>
+            <div className="text-center space-y-1 sm:space-y-2">
+              <div className={cn('inline-flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 rounded-full text-lg sm:text-2xl font-bold text-white', getGradeBg(report.grade))}>
                 {report.grade}
               </div>
-              <div className={cn('text-2xl font-bold', getScoreColor(report.overallScore))}>
+              <div className={cn('text-xl sm:text-2xl font-bold', getScoreColor(report.overallScore))}>
                 {report.overallScore}/100
               </div>
-              <p className="text-xs text-muted-foreground">Site Score</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Site Score</p>
             </div>
           ) : (
             <>
-              <BarChart3 className="h-10 w-10 text-primary/60" />
-              <p className="text-sm font-medium text-foreground">Site Analysis</p>
-              <p className="text-xs text-muted-foreground text-center">
+              <BarChart3 className="h-8 w-8 sm:h-10 sm:w-10 text-primary/60" />
+              <p className="text-xs sm:text-sm font-medium text-foreground">Site Analysis</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground text-center">
                 AI-powered audit report
               </p>
             </>
           )}
         </div>
-        <div className="p-4 space-y-3">
+        <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
           <h3 className="font-medium text-foreground text-sm truncate">
             {websiteLabel || 'Website'} Analysis
           </h3>
