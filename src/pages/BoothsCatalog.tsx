@@ -562,12 +562,16 @@ const DownloadLinksManager = ({ divisionId, isAdmin, color }: { divisionId: stri
   const projectLinks = links.filter(l => (l as any).link_type !== 'asset');
   const assetLinks = links.filter(l => (l as any).link_type === 'asset');
 
-  if (projectLinks.length === 0 && assetLinks.length === 0 && !isAdmin) return null;
+  const hasContent = projectLinks.length > 0 || assetLinks.length > 0;
 
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Download Files</h3>
       
+      {!hasContent && !isAdmin && (
+        <p className="text-xs text-muted-foreground italic py-2">No download files available for this division.</p>
+      )}
+
       <DownloadLinksList
         links={projectLinks}
         isAdmin={isAdmin}
