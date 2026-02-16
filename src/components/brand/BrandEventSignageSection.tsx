@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef } from 'react';
-import { Plus, Trash2, Maximize, FileImage, Download, Eye, Pencil, Check, Upload, Sparkles, Loader2, ImagePlus, Link, FileText, Image, X } from 'lucide-react';
+import { useState, useCallback, useRef, useMemo } from 'react';
+import { Plus, Trash2, Maximize, FileImage, Download, Eye, Pencil, Check, Upload, Sparkles, Loader2, ImagePlus, Link, FileText, Image, X, Building2, Search, ExternalLink } from 'lucide-react';
 import { BrandEventSignage, LayoutPreset, BrandColor, LinkedBoothCard } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -17,9 +17,11 @@ import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { RichTextEditor, RichTextDisplay } from '@/components/ui/rich-text-editor';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { EditBrandSignageDialog } from './EditBrandSignageDialog';
-import { LinkedBoothsSection } from './LinkedBoothCards';
+import { LinkedBoothsSection, LinkBoothDialog } from './LinkedBoothCards';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useCustomDivisions } from '@/hooks/useCustomDivisions';
+import { useBoothImages } from '@/hooks/useBoothImages';
 
 // Reference image types for AI generation context
 interface ReferenceImage {
@@ -83,6 +85,119 @@ const getTypeColor = (type: BrandEventSignage['type']) => {
   return colors[type] || colors.other;
 };
 
+// Static booth division data for picker
+const STATIC_BOOTH_DIVISIONS = [
+  { id: 'corporate', name: 'Corporate', tagline: 'The Language of Global Business', color: 'hsl(200, 85%, 45%)', services: ['Efficient Translation', 'Analytics & Insights', 'Real-Time Updates'] },
+  { id: 'life-sciences', name: 'Life Sciences', tagline: 'Simplify Your Path From Lab to Launch', color: 'hsl(195, 80%, 40%)', services: ['Regulatory Affairs', 'Patient Recruitment', 'Medical Writing'] },
+  { id: 'legal', name: 'Legal', tagline: 'The Global Leader in Legal Technology & Support', color: 'hsl(210, 70%, 35%)', services: ['eDiscovery', 'Forensic Technology', 'Managed Review'] },
+  { id: 'ip', name: 'IP (Intellectual Property)', tagline: 'Protect Your IP in Any Country', color: 'hsl(220, 65%, 40%)', services: ['Patent Filing', 'AI Translation', 'GlobalLink'] },
+  { id: 'digital', name: 'Digital', tagline: 'Global Performance for International Brands', color: 'hsl(265, 60%, 50%)', services: ['SEO & Paid Media', 'AI Copywriting', 'Social Intelligence'] },
+  { id: 'media', name: 'Media', tagline: "The World's Largest Provider of Media Services", color: 'hsl(350, 70%, 50%)', services: ['Subtitling', 'Dubbing', 'Accessibility'] },
+  { id: 'gaming', name: 'Gaming', tagline: 'Level Up Your Global Reach', color: 'hsl(280, 70%, 55%)', services: ['Game Localization', 'QA Testing', 'Voiceover'] },
+  { id: 'globallink', name: 'GlobalLink', tagline: 'Unlock Global Content Velocity', color: 'hsl(190, 75%, 42%)', services: ['TMS', 'AI Translation', 'CMS Connectors'] },
+  { id: 'regulated-industries', name: 'Regulated Industries', tagline: 'Risk-Free Compliance at Scale', color: 'hsl(200, 60%, 35%)', services: ['Compliance', 'Regulatory', 'Quality'] },
+  { id: 'ai', name: 'AI Solutions', tagline: 'AI-Powered Language Technology', color: 'hsl(250, 65%, 55%)', services: ['NMT', 'LLM Solutions', 'Data Services'] },
+  { id: 'techresearch', name: 'Tech & Research', tagline: 'Powering Discovery Through Language', color: 'hsl(175, 60%, 40%)', services: ['Patent Analytics', 'Research Translation', 'Data Mining'] },
+  { id: 'healthcare', name: 'Healthcare', tagline: 'Connecting Patients Through Language', color: 'hsl(0, 65%, 50%)', services: ['Patient Communication', 'Telephonic Interpreting', 'Healthcare Innovation'] },
+];
+
+// Inline booth picker for the Add Signage dialog
+const BoothPickerInline = ({ linkedBooths, onLink, search, onSearchChange }: {
+  linkedBooths: LinkedBoothCard[];
+  onLink: (booth: LinkedBoothCard) => void;
+  search: string;
+  onSearchChange: (s: string) => void;
+}) => {
+  const { divisions: customDivisions } = useCustomDivisions();
+  const linkedIds = new Set(linkedBooths.map(b => b.divisionId));
+
+  const allDivisions = useMemo(() => {
+    const customs = customDivisions.map(d => ({
+      id: d.division_id,
+      name: d.name,
+      tagline: d.tagline || '',
+      color: d.color || 'hsl(200, 70%, 45%)',
+      services: d.services || [],
+    }));
+    const staticIds = new Set(STATIC_BOOTH_DIVISIONS.map(d => d.id));
+    const uniqueCustoms = customs.filter(c => !staticIds.has(c.id));
+    return [...STATIC_BOOTH_DIVISIONS, ...uniqueCustoms];
+  }, [customDivisions]);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return allDivisions;
+    const q = search.toLowerCase();
+    return allDivisions.filter(d =>
+      d.name.toLowerCase().includes(q) || d.tagline.toLowerCase().includes(q)
+    );
+  }, [search, allDivisions]);
+
+  const handleSelect = (div: typeof STATIC_BOOTH_DIVISIONS[0]) => {
+    onLink({
+      id: crypto.randomUUID(),
+      divisionId: div.id,
+      divisionName: div.name,
+      tagline: div.tagline,
+      color: div.color,
+      iconName: 'Building2',
+      services: div.services,
+      linkedAt: new Date().toISOString(),
+    });
+  };
+
+  return (
+    <div className="flex-1 flex flex-col min-h-0">
+      <div className="relative mb-3">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search booth divisions..."
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+      <ScrollArea className="flex-1 -mx-6 px-6">
+        <div className="space-y-2 pb-2">
+          {filtered.map((div) => {
+            const alreadyLinked = linkedIds.has(div.id);
+            return (
+              <button
+                key={div.id}
+                onClick={() => !alreadyLinked && handleSelect(div)}
+                disabled={alreadyLinked}
+                className="w-full flex items-center gap-3 p-3 rounded-lg border border-border/40 hover:border-primary/40 hover:bg-muted/40 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg shrink-0" style={{ backgroundColor: div.color }}>
+                  <Building2 className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate">{div.name}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-1">{div.tagline}</p>
+                  {div.services.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {div.services.slice(0, 3).map(s => (
+                        <Badge key={s} variant="outline" className="text-[10px] font-normal py-0">{s}</Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {alreadyLinked ? (
+                  <Badge variant="secondary" className="text-[10px] shrink-0">Linked</Badge>
+                ) : (
+                  <Plus className="h-4 w-4 text-muted-foreground shrink-0" />
+                )}
+              </button>
+            );
+          })}
+          {filtered.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-8">No matching divisions found</p>
+          )}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+};
+
 export const BrandEventSignageSection = ({
   eventSignage,
   onEventSignageChange,
@@ -97,6 +212,8 @@ export const BrandEventSignageSection = ({
 }: BrandEventSignageSectionProps) => {
   const { gridClass } = useLayoutClasses(layout);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<'signage' | 'booth'>('signage');
+  const [boothSearch, setBoothSearch] = useState('');
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<BrandEventSignage | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -249,6 +366,8 @@ export const BrandEventSignageSection = ({
     setVenueReferences([]);
     setPreviewTab('ai');
     setNewItemAiStyle('photorealistic');
+    setDialogMode('signage');
+    setBoothSearch('');
   };
 
   const handleAdd = async (generateAi: boolean = false) => {
@@ -466,9 +585,54 @@ export const BrandEventSignageSection = ({
               <DialogHeader>
                 <DialogTitle>Add Event Signage</DialogTitle>
                 <DialogDescription>
-                  Add booth backdrops, banners, and other physical signage with optional AI-generated previews
+                  Add custom signage or link a booth card from the catalog
                 </DialogDescription>
               </DialogHeader>
+
+              {/* Mode Switcher */}
+              <div className="grid grid-cols-2 rounded-lg border bg-muted/50 p-1 gap-1">
+                <button
+                  type="button"
+                  onClick={() => setDialogMode('signage')}
+                  className={cn(
+                    "flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors",
+                    dialogMode === 'signage' 
+                      ? "bg-background shadow-sm text-foreground" 
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Plus className="h-4 w-4" />
+                  New Signage
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDialogMode('booth')}
+                  className={cn(
+                    "flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors",
+                    dialogMode === 'booth' 
+                      ? "bg-background shadow-sm text-foreground" 
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Building2 className="h-4 w-4" />
+                  Link Booth Card
+                </button>
+              </div>
+
+              {dialogMode === 'booth' ? (
+                <BoothPickerInline
+                  linkedBooths={linkedBooths}
+                  onLink={(booth) => {
+                    onLinkedBoothsChange?.([...linkedBooths, booth]);
+                    toast.success(`"${booth.divisionName}" booth linked`);
+                    resetDialog();
+                    setIsDialogOpen(false);
+                  }}
+                  search={boothSearch}
+                  onSearchChange={setBoothSearch}
+                />
+              ) : (
+                <>
               <ScrollArea className="flex-1 pr-4">
                 <div className="space-y-4 pt-4 pb-2">
                   {/* Name & Type */}
@@ -664,9 +828,9 @@ export const BrandEventSignageSection = ({
                       <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
                         <div className="p-2 bg-background rounded">
                           {templateReference.type === 'application/pdf' ? (
-                            <FileText className="h-5 w-5 text-red-500" />
+                            <FileText className="h-5 w-5 text-destructive" />
                           ) : (
-                            <Image className="h-5 w-5 text-blue-500" />
+                            <Image className="h-5 w-5 text-primary" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -852,6 +1016,8 @@ export const BrandEventSignageSection = ({
                   )}
                 </Button>
               </div>
+                </>
+              )}
             </DialogContent>
           </Dialog>
         )}
