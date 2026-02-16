@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { TrendingUp, Plus, X, Loader2, Sparkles, BarChart3, Target, Lightbulb, FileText, Users, AlertTriangle, CheckCircle, Download, Wand2, Search, Star, Heart, Globe2, MapPin, Shield, Swords, Eye, MessageSquare, Zap } from 'lucide-react';
 import {
   Dialog,
@@ -60,6 +60,8 @@ interface CompetitiveAnalysisDialogProps {
   organizationId?: string | null;
   /** Which tab to show when the dialog opens */
   defaultTab?: 'generate' | 'results';
+  /** Callback when a new report is generated (for parent state sync) */
+  onReportGenerated?: () => void;
 }
 
 export function CompetitiveAnalysisDialog({
@@ -70,6 +72,7 @@ export function CompetitiveAnalysisDialog({
   entityName,
   organizationId,
   defaultTab = 'generate',
+  onReportGenerated,
 }: CompetitiveAnalysisDialogProps) {
   const [competitors, setCompetitors] = useState<string[]>([]);
   const [newCompetitor, setNewCompetitor] = useState('');
@@ -103,6 +106,15 @@ export function CompetitiveAnalysisDialog({
     isGenerating,
     generateReport,
   } = useCompetitiveAnalysis({ entityType, entityId, organizationId });
+
+  // Notify parent when a new report arrives (from polling or direct)
+  const prevReportIdRef = useRef(latestReport?.id);
+  useEffect(() => {
+    if (latestReport?.id && latestReport.id !== prevReportIdRef.current) {
+      prevReportIdRef.current = latestReport.id;
+      onReportGenerated?.();
+    }
+  }, [latestReport?.id, onReportGenerated]);
 
   const {
     favorites,
