@@ -566,6 +566,337 @@ const drawRecommendations = (pdf: jsPDF, report: CompetitiveAnalysisReportData, 
   return y;
 };
 
+const drawVisualIdentity = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number): number => {
+  const via = report.visualIdentityAudit;
+  if (!via) return y;
+
+  y = drawSectionTitle(pdf, 'Visual Identity Audit', y);
+
+  // Logo Analysis
+  if (via.logoAnalysis) {
+    y = drawSubheading(pdf, 'Logo Analysis', y);
+    const entries = [
+      ['Style', via.logoAnalysis.style],
+      ['Typography', via.logoAnalysis.typography],
+      ['Symbolism', via.logoAnalysis.symbolism],
+      ['Scalability', via.logoAnalysis.scalability],
+      ['Memorability', via.logoAnalysis.memorability],
+    ].filter(([, v]) => v);
+    for (const [label, text] of entries) {
+      const cardH = 14;
+      y = ensureSpace(pdf, y, cardH + 2);
+      drawCard(pdf, M, y, CW, cardH, C.background.light, C.border.light);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8.5);
+      setColor(pdf, C.text.secondary);
+      pdf.text(String(label), M + 4, y + 5);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8);
+      setColor(pdf, C.text.muted);
+      const lines = wrapText(pdf, str(text), CW - 10);
+      pdf.text(lines[0] || '', M + 4, y + 10);
+      y += cardH + 3;
+    }
+  }
+
+  // Color Palette
+  if (via.colorPalette) {
+    y = drawSubheading(pdf, 'Color Palette', y);
+    if (via.colorPalette.psychology) y = drawParagraph(pdf, `Psychology: ${via.colorPalette.psychology}`, y);
+    if (via.colorPalette.accessibility) y = drawParagraph(pdf, `Accessibility: ${via.colorPalette.accessibility}`, y);
+    if (via.colorPalette.consistency) y = drawParagraph(pdf, `Consistency: ${via.colorPalette.consistency}`, y);
+  }
+
+  // Typography System
+  if (via.typographySystem) {
+    y = drawSubheading(pdf, 'Typography System', y);
+    if (via.typographySystem.fonts?.length) y = drawBullets(pdf, via.typographySystem.fonts.map(f => `Font: ${f}`), y);
+    if (via.typographySystem.hierarchy) y = drawParagraph(pdf, `Hierarchy: ${via.typographySystem.hierarchy}`, y);
+    if (via.typographySystem.personality) y = drawParagraph(pdf, `Personality: ${via.typographySystem.personality}`, y);
+  }
+
+  // Visual Style
+  if (via.visualStyle) {
+    y = drawSubheading(pdf, 'Visual Style', y);
+    const items = [via.visualStyle.photographyStyle, via.visualStyle.illustrationApproach, via.visualStyle.iconography, via.visualStyle.aesthetic].filter(Boolean);
+    if (items.length) y = drawBullets(pdf, items.map(String), y);
+  }
+
+  // Design Patterns
+  if (via.designPatterns) {
+    y = drawSubheading(pdf, 'Design Patterns', y);
+    const items = [
+      via.designPatterns.uiElements && `UI Elements: ${via.designPatterns.uiElements}`,
+      via.designPatterns.whitespace && `Whitespace: ${via.designPatterns.whitespace}`,
+      via.designPatterns.interactions && `Interactions: ${via.designPatterns.interactions}`,
+    ].filter(Boolean) as string[];
+    if (items.length) y = drawBullets(pdf, items, y);
+  }
+
+  return y;
+};
+
+const drawDigitalPresence = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number): number => {
+  const dp = report.digitalPresence;
+  if (!dp) return y;
+
+  y = drawSectionTitle(pdf, 'Digital Presence Analysis', y);
+
+  if (dp.homepageImpression) {
+    y = drawSubheading(pdf, 'Homepage Impression', y);
+    const items = [
+      dp.homepageImpression.heroImpact && `Hero Impact: ${dp.homepageImpression.heroImpact}`,
+      dp.homepageImpression.hierarchy && `Hierarchy: ${dp.homepageImpression.hierarchy}`,
+      dp.homepageImpression.ctaDesign && `CTA Design: ${dp.homepageImpression.ctaDesign}`,
+      dp.homepageImpression.effectiveness && `Effectiveness: ${dp.homepageImpression.effectiveness}`,
+    ].filter(Boolean) as string[];
+    y = drawBullets(pdf, items, y);
+  }
+
+  if (dp.uxAnalysis) {
+    y = drawSubheading(pdf, 'UX Analysis', y);
+    const items = [
+      dp.uxAnalysis.navigation && `Navigation: ${dp.uxAnalysis.navigation}`,
+      dp.uxAnalysis.contentOrganization && `Content Organization: ${dp.uxAnalysis.contentOrganization}`,
+      dp.uxAnalysis.mobileResponsive && `Mobile Responsive: ${dp.uxAnalysis.mobileResponsive}`,
+      dp.uxAnalysis.overallPolish && `Overall Polish: ${dp.uxAnalysis.overallPolish}`,
+    ].filter(Boolean) as string[];
+    y = drawBullets(pdf, items, y);
+  }
+
+  if (dp.contentPresentation) {
+    y = drawSubheading(pdf, 'Content Presentation', y);
+    const items = [
+      dp.contentPresentation.videoUsage && `Video Usage: ${dp.contentPresentation.videoUsage}`,
+      dp.contentPresentation.dataVisualization && `Data Visualization: ${dp.contentPresentation.dataVisualization}`,
+      dp.contentPresentation.caseStudyDesign && `Case Study Design: ${dp.contentPresentation.caseStudyDesign}`,
+    ].filter(Boolean) as string[];
+    y = drawBullets(pdf, items, y);
+  }
+
+  return y;
+};
+
+const drawMarketingCollateral = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number): number => {
+  const mc = report.marketingCollateral;
+  if (!mc) return y;
+
+  y = drawSectionTitle(pdf, 'Marketing Collateral', y);
+
+  if (mc.materialQuality?.length) {
+    y = drawSubheading(pdf, 'Material Quality', y);
+    y = drawBullets(pdf, safe(mc.materialQuality), y);
+  }
+  if (mc.productMarketing?.length) {
+    y = drawSubheading(pdf, 'Product Marketing', y);
+    y = drawBullets(pdf, safe(mc.productMarketing), y);
+  }
+  if (mc.socialConsistency) {
+    y = drawSubheading(pdf, 'Social Consistency', y);
+    y = drawParagraph(pdf, mc.socialConsistency, y);
+  }
+
+  return y;
+};
+
+const drawSwotAnalysis = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number): number => {
+  const swot = report.swotAnalysis;
+  if (!swot) return y;
+
+  y = drawSectionTitle(pdf, 'SWOT Analysis', y);
+
+  const quadrants: [string, string[], string, string][] = [
+    ['Strengths', safe(swot.strengths), '#f0fdf4', '#166534'],
+    ['Weaknesses', safe(swot.weaknesses), '#fef2f2', '#991b1b'],
+    ['Opportunities', safe(swot.opportunities), '#eff6ff', '#1e40af'],
+    ['Threats', safe(swot.threats), '#fef3c7', '#92400e'],
+  ];
+
+  // 2x2 grid
+  const qW = (CW - 6) / 2;
+  for (let row = 0; row < 2; row++) {
+    const left = quadrants[row * 2];
+    const right = quadrants[row * 2 + 1];
+    const maxItems = Math.max(left[1].length, right[1].length);
+    const qH = Math.max(maxItems * 5 + 14, 25);
+    y = ensureSpace(pdf, y, qH + 4);
+
+    for (let col = 0; col < 2; col++) {
+      const [title, items, bg, color] = col === 0 ? left : right;
+      const qx = M + col * (qW + 6);
+      drawCard(pdf, qx, y, qW, qH, bg);
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(9);
+      setColor(pdf, color);
+      pdf.text(title, qx + 4, y + 7);
+
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8);
+      setColor(pdf, color);
+      let iy = y + 14;
+      for (const item of items) {
+        const t = '• ' + item.substring(0, 55);
+        if (iy < y + qH - 2) {
+          pdf.text(t, qx + 4, iy);
+          iy += 4.5;
+        }
+      }
+    }
+    y += qH + 4;
+  }
+
+  return y;
+};
+
+const drawCompetitorProfiles = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number): number => {
+  const profiles = report.competitorProfiles;
+  if (!profiles?.length) return y;
+
+  y = drawSectionTitle(pdf, 'Competitor Profiles', y);
+
+  for (const cp of profiles) {
+    const cardH = 38;
+    y = ensureSpace(pdf, y, cardH + 4);
+
+    const borderColor = cp.threatLevel === 'high' ? '#ef4444' : cp.threatLevel === 'medium' ? '#f59e0b' : '#22c55e';
+    drawCard(pdf, M, y, CW, cardH, C.background.light, borderColor);
+
+    // Name + type badge
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(11);
+    setColor(pdf, C.text.primary);
+    pdf.text(cp.name, M + 4, y + 7);
+
+    const typeColor = cp.type === 'direct' ? '#dc2626' : cp.type === 'emerging' ? '#f59e0b' : '#6b7280';
+    drawBadge(pdf, cp.type, M + 4 + pdf.getTextWidth(cp.name) + 4, y + 7, typeColor, typeColor + '20');
+
+    // Score
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(14);
+    const sColor = getScoreColor(cp.overallScore);
+    setColor(pdf, sColor);
+    pdf.text(`${cp.overallScore}`, A4_W - M - 10, y + 8, { align: 'right' });
+
+    // Details
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    setColor(pdf, C.text.muted);
+    let dy = y + 14;
+    if (cp.brandStrength) { pdf.text(`Brand Strength: ${cp.brandStrength.substring(0, 80)}`, M + 4, dy); dy += 4; }
+    if (cp.keyDifferentiator) { pdf.text(`Differentiator: ${cp.keyDifferentiator.substring(0, 80)}`, M + 4, dy); dy += 4; }
+    if (cp.biggestWeakness) { pdf.text(`Weakness: ${cp.biggestWeakness.substring(0, 80)}`, M + 4, dy); dy += 4; }
+    if (cp.visualIdentitySummary) { pdf.text(`Visual Identity: ${cp.visualIdentitySummary.substring(0, 80)}`, M + 4, dy); dy += 4; }
+    if (cp.digitalPresenceSummary) { pdf.text(`Digital Presence: ${cp.digitalPresenceSummary.substring(0, 80)}`, M + 4, dy); }
+
+    y += cardH + 4;
+  }
+
+  return y;
+};
+
+const drawContentMessaging = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number): number => {
+  const cm = report.contentMessaging;
+  if (!cm) return y;
+
+  y = drawSectionTitle(pdf, 'Content & Messaging Analysis', y);
+
+  if (cm.toneSummary) {
+    y = drawSubheading(pdf, 'Tone Summary', y);
+    y = drawParagraph(pdf, cm.toneSummary, y);
+  }
+  if (cm.messagingPillars?.length) {
+    y = drawSubheading(pdf, 'Messaging Pillars', y);
+    y = drawBullets(pdf, safe(cm.messagingPillars), y);
+  }
+  if (cm.contentStrategy) {
+    y = drawSubheading(pdf, 'Content Strategy', y);
+    y = drawParagraph(pdf, cm.contentStrategy, y);
+  }
+  if (cm.socialMediaApproach) {
+    y = drawSubheading(pdf, 'Social Media Approach', y);
+    y = drawParagraph(pdf, cm.socialMediaApproach, y);
+  }
+  if (cm.thoughtLeadership) {
+    y = drawSubheading(pdf, 'Thought Leadership', y);
+    y = drawParagraph(pdf, cm.thoughtLeadership, y);
+  }
+  if (cm.contentGaps?.length) {
+    y = drawSubheading(pdf, 'Content Gaps', y);
+    y = drawBullets(pdf, safe(cm.contentGaps), y);
+  }
+
+  return y;
+};
+
+const drawMarketTrends = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number): number => {
+  const mt = report.marketTrends;
+  if (!mt) return y;
+
+  y = drawSectionTitle(pdf, 'Market Trends & Innovation', y);
+
+  if (mt.industryTrends?.length) {
+    y = drawSubheading(pdf, 'Industry Trends', y);
+    y = drawBullets(pdf, safe(mt.industryTrends), y);
+  }
+  if (mt.innovationGaps?.length) {
+    y = drawSubheading(pdf, 'Innovation Gaps', y);
+    y = drawBullets(pdf, safe(mt.innovationGaps), y);
+  }
+  if (mt.emergingOpportunities?.length) {
+    y = drawSubheading(pdf, 'Emerging Opportunities', y);
+    y = drawBullets(pdf, safe(mt.emergingOpportunities), y);
+  }
+  if (mt.disruptionRisks?.length) {
+    y = drawSubheading(pdf, 'Disruption Risks', y);
+    y = drawBullets(pdf, safe(mt.disruptionRisks), y);
+  }
+  if (mt.technologyAdoption) {
+    y = drawSubheading(pdf, 'Technology Adoption', y);
+    y = drawParagraph(pdf, mt.technologyAdoption, y);
+  }
+
+  return y;
+};
+
+const drawRegionalInsights = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number): number => {
+  const ri = report.regionalInsights;
+  if (!ri) return y;
+
+  y = drawSectionTitle(pdf, 'Regional Insights', y);
+
+  if (ri.marketContext) {
+    y = drawSubheading(pdf, 'Market Context', y);
+    y = drawParagraph(pdf, ri.marketContext, y);
+  }
+  if (ri.localCompetitors?.length) {
+    y = drawSubheading(pdf, 'Local Competitors', y);
+    y = drawBullets(pdf, safe(ri.localCompetitors), y);
+  }
+  if (ri.culturalConsiderations?.length) {
+    y = drawSubheading(pdf, 'Cultural Considerations', y);
+    y = drawBullets(pdf, safe(ri.culturalConsiderations), y);
+  }
+  if (ri.localizationPriorities?.length) {
+    y = drawSubheading(pdf, 'Localization Priorities', y);
+    y = drawBullets(pdf, safe(ri.localizationPriorities), y);
+  }
+  if (ri.regulatoryConsiderations) {
+    y = drawSubheading(pdf, 'Regulatory Considerations', y);
+    y = drawParagraph(pdf, ri.regulatoryConsiderations, y);
+  }
+  if (ri.marketOpportunities?.length) {
+    y = drawSubheading(pdf, 'Market Opportunities', y);
+    y = drawBullets(pdf, safe(ri.marketOpportunities), y);
+  }
+  if (ri.entryBarriers?.length) {
+    y = drawSubheading(pdf, 'Entry Barriers', y);
+    y = drawBullets(pdf, safe(ri.entryBarriers), y);
+  }
+
+  return y;
+};
+
 const drawActionPlan = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number, date: string): number => {
   y = drawSectionTitle(pdf, '30 / 60 / 90 Day Action Plan', y);
 
@@ -666,9 +997,17 @@ export const exportCompetitiveAnalysisPdf = async (
     let y = M;
 
     y = drawExecSummary(pdf, report, y);
+    y = drawSwotAnalysis(pdf, report, y);
     y = drawMarketPerception(pdf, report, y);
+    y = drawCompetitorProfiles(pdf, report, y);
+    y = drawVisualIdentity(pdf, report, y);
+    y = drawDigitalPresence(pdf, report, y);
+    y = drawMarketingCollateral(pdf, report, y);
+    y = drawContentMessaging(pdf, report, y);
     y = drawSwMatrix(pdf, report, y);
     y = drawPositioning(pdf, report, y);
+    y = drawMarketTrends(pdf, report, y);
+    y = drawRegionalInsights(pdf, report, y);
     y = drawRecommendations(pdf, report, y);
     y = drawActionPlan(pdf, report, y, date);
 
