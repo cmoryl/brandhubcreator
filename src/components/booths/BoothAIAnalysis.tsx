@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { Brain, Loader2, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, ChevronRight, ChevronDown, Globe, MapPin } from "lucide-react";
+import { Brain, Loader2, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, ChevronRight, ChevronDown, Globe, MapPin, Download } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useBoothAnalysis, type BoothAnalysis } from "@/hooks/useBoothAnalysis";
 import { useBoothContentSections } from "@/hooks/useBoothContentSections";
 
@@ -280,18 +281,44 @@ export const BoothAIAnalysis = ({
             <span className="text-[10px] text-muted-foreground">
               Analyzed {new Date(created_at).toLocaleDateString()} at {new Date(created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
             </span>
-            {isAdmin && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 text-[10px] h-6 px-2"
-                onClick={handleRunAnalysis}
-                disabled={analyzing}
-              >
-                {analyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
-                Re-analyze
-              </Button>
-            )}
+            <div className="flex items-center gap-1">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-1.5 text-[10px] h-6 px-2">
+                    <Download className="h-3 w-3" />
+                    Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => {
+                    import('@/lib/exportBoothAnalysis').then(({ exportBoothAnalysisHtml }) => {
+                      exportBoothAnalysisHtml({
+                        divisionName, divisionTagline, divisionColor,
+                        overall_score, created_at,
+                        analysis_data: analysis_data as Record<string, any>,
+                        strengths: safeStrengths, improvements: safeImprovements,
+                        recommendations: safeRecommendations,
+                      });
+                    });
+                  }}>
+                    <Download className="h-3.5 w-3.5 mr-2" />
+                    Download HTML Report
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 text-[10px] h-6 px-2"
+                  onClick={handleRunAnalysis}
+                  disabled={analyzing}
+                >
+                  {analyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                  Re-analyze
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       )}
