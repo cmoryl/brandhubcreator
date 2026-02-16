@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { Plus, Trash2, Maximize, FileImage, Download, Eye, Pencil, Check, Upload, Sparkles, Loader2, ImagePlus, Link, FileText, Image, X } from 'lucide-react';
-import { BrandEventSignage, LayoutPreset, BrandColor } from '@/types/brand';
+import { BrandEventSignage, LayoutPreset, BrandColor, LinkedBoothCard } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -17,6 +17,7 @@ import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { RichTextEditor, RichTextDisplay } from '@/components/ui/rich-text-editor';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { EditBrandSignageDialog } from './EditBrandSignageDialog';
+import { LinkedBoothsSection } from './LinkedBoothCards';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -37,6 +38,8 @@ interface TemplateReference {
 interface BrandEventSignageSectionProps {
   eventSignage: BrandEventSignage[];
   onEventSignageChange?: (signage: BrandEventSignage[]) => void;
+  linkedBooths?: LinkedBoothCard[];
+  onLinkedBoothsChange?: (booths: LinkedBoothCard[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   layout?: LayoutPreset;
@@ -83,6 +86,8 @@ const getTypeColor = (type: BrandEventSignage['type']) => {
 export const BrandEventSignageSection = ({
   eventSignage,
   onEventSignageChange,
+  linkedBooths = [],
+  onLinkedBoothsChange,
   customSubtitle,
   onSubtitleChange,
   layout = 'grid-3',
@@ -1053,6 +1058,13 @@ export const BrandEventSignageSection = ({
           brandColors={brandColors?.map(c => c.hex)}
         />
       )}
+
+      {/* Linked Booth Cards */}
+      <LinkedBoothsSection
+        linkedBooths={linkedBooths}
+        isEditable={!!onLinkedBoothsChange}
+        onChange={onLinkedBoothsChange}
+      />
     </section>
   );
 };

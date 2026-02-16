@@ -7,7 +7,7 @@ import {
   Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown, Upload, RotateCcw, Type, Download, ArrowUpDown, Ruler, Brain,
   LogOut, User, HelpCircle, LayoutDashboard
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PreviewDialog } from "@/components/ui/preview-dialog";
@@ -2204,6 +2204,17 @@ export default function BoothsCatalog() {
   });
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Auto-open a division if navigated from a linked booth card
+  useEffect(() => {
+    const state = location.state as { openDivision?: string } | null;
+    if (state?.openDivision) {
+      const div = allDivisions.find(d => d.id === state.openDivision);
+      if (div) setSelected(div);
+      navigate('/booths', { replace: true, state: {} });
+    }
+  }, [location.state, allDivisions]);
 
   // Check if current user is authenticated (admin)
   useEffect(() => {
