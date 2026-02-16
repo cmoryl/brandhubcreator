@@ -18,6 +18,8 @@ export interface ImageAsset {
   size: string;
   type: string;
   uploadedAt: string;
+  removed?: boolean;
+  reason?: string;
 }
 
 interface ImageAssetsSectionProps {
@@ -149,8 +151,12 @@ export const ImageAssetsSection = ({
     link.click();
   };
 
-  // Only show section if there are assets OR user can edit
-  if (imageAssets.length === 0 && !canEdit) {
+  // Filter out removed/broken assets for display
+  const validAssets = imageAssets.filter(a => !a.removed && a.url);
+  const removedCount = imageAssets.length - validAssets.length;
+
+  // Only show section if there are valid assets OR user can edit
+  if (validAssets.length === 0 && !canEdit) {
     return null;
   }
 
@@ -219,9 +225,19 @@ export const ImageAssetsSection = ({
         </div>
       )}
 
-      {imageAssets.length > 0 ? (
+      {/* Notice about migrated/removed assets */}
+      {removedCount > 0 && canEdit && (
+        <div className="flex items-center gap-3 p-3 rounded-lg border border-destructive/30 bg-destructive/5 text-sm">
+          <Upload className="h-4 w-4 text-destructive shrink-0" />
+          <p className="text-muted-foreground">
+            <span className="font-medium text-foreground">{removedCount} image{removedCount !== 1 ? 's' : ''}</span> migrated out of database storage — re-upload via the button above to restore.
+          </p>
+        </div>
+      )}
+
+      {validAssets.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {imageAssets.map((asset, index) => (
+          {validAssets.map((asset, index) => (
             <div
               key={asset.id}
               className="group relative bg-card rounded-xl border border-border overflow-hidden animate-fade-in"
