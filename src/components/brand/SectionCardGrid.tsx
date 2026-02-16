@@ -228,6 +228,7 @@ const CardGrid = React.forwardRef<HTMLDivElement, {
   isAdmin: boolean;
   onSectionSelect: (id: string) => void;
   isDark: boolean;
+  entityTagline?: string;
 }>(function CardGrid({
   sections,
   sectionMeta,
@@ -236,6 +237,7 @@ const CardGrid = React.forwardRef<HTMLDivElement, {
   isAdmin,
   onSectionSelect,
   isDark,
+  entityTagline,
 }, ref) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -267,7 +269,9 @@ const CardGrid = React.forwardRef<HTMLDivElement, {
         const isHovered = hoveredId === sectionId;
         const isExpanded = isHovered || isActive;
         const isShrunk = hoveredId !== null && hoveredId !== sectionId && !isActive;
-        const description = SECTION_DESCRIPTIONS[sectionId] || `Manage ${meta.label.toLowerCase()} settings and guidelines.`;
+        const description = (sectionId === 'tagline' && entityTagline)
+          ? `"${entityTagline}"`
+          : (SECTION_DESCRIPTIONS[sectionId] || `Manage ${meta.label.toLowerCase()} settings and guidelines.`);
         const capabilities = SECTION_CAPABILITIES[sectionId] || ['Configure', 'Manage', 'Export'];
 
         return (
@@ -797,6 +801,7 @@ export const SectionCardGrid = ({
           isAdmin={isAdmin}
           onSectionSelect={onSectionSelect}
           isDark={resolvedTheme === 'dark'}
+          entityTagline={entityTagline}
         />
       </div>
     </div>
