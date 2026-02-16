@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { Brain, Loader2, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, ChevronRight, ChevronDown } from "lucide-react";
+import { Brain, Loader2, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, ChevronRight, ChevronDown, Globe, MapPin } from "lucide-react";
 import { useBoothAnalysis, type BoothAnalysis } from "@/hooks/useBoothAnalysis";
 import { useBoothContentSections } from "@/hooks/useBoothContentSections";
 
@@ -64,6 +64,47 @@ const ScoreGauge = ({ label, score, color, explanation }: { label: string; score
   );
 };
 
+const RegionCard = ({ region, color }: { region: any; color?: string }) => {
+  const [open, setOpen] = useState(false);
+  const score = region.predicted_score ?? 0;
+  return (
+    <div className="rounded-lg border border-border/30 bg-card/50 overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between p-2.5 hover:bg-muted/30 transition-colors text-left"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <MapPin className="h-3 w-3 text-purple-500 shrink-0" />
+          <span className="text-xs font-semibold truncate">{region.region}</span>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="w-16">
+            <Progress value={score} className="h-1.5" style={{ ['--progress-color' as string]: color || 'hsl(var(--primary))' }} />
+          </div>
+          <span className={`text-xs font-bold w-7 text-right ${scoreColor(score)}`}>{score}</span>
+          <ChevronDown className={`h-3 w-3 text-muted-foreground/60 transition-transform ${open ? "rotate-180" : ""}`} />
+        </div>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 space-y-2 animate-in fade-in-0 slide-in-from-top-1 duration-150">
+          <div>
+            <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Cultural Considerations</span>
+            <p className="text-[10px] text-muted-foreground leading-relaxed mt-0.5">{region.cultural_considerations}</p>
+          </div>
+          <div>
+            <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Adaptations</span>
+            <p className="text-[10px] text-muted-foreground leading-relaxed mt-0.5">{region.adaptations}</p>
+          </div>
+          <div>
+            <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Trade Show Norms</span>
+            <p className="text-[10px] text-muted-foreground leading-relaxed mt-0.5">{region.trade_show_norms}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const BoothAIAnalysis = ({
   divisionId, divisionName, divisionTagline, divisionDescription,
   divisionServices, divisionColor, variantLabel, isAdmin,
@@ -112,6 +153,7 @@ export const BoothAIAnalysis = ({
   const safeStrengths = Array.isArray(strengths) ? strengths : [];
   const safeImprovements = Array.isArray(improvements) ? improvements : [];
   const safeRecommendations = Array.isArray(recommendations) ? recommendations : [];
+  const safeRegionalInsights = Array.isArray(analysis_data?.regional_insights) ? analysis_data.regional_insights : [];
 
   return (
     <div className="mt-4">
@@ -210,6 +252,24 @@ export const BoothAIAnalysis = ({
                       </li>
                     ))}
                   </ul>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+            {safeRegionalInsights.length > 0 && (
+              <AccordionItem value="regional" className="border border-purple-500/20 rounded-lg bg-purple-500/5 px-3 overflow-hidden">
+                <AccordionTrigger className="py-2 hover:no-underline">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-3.5 w-3.5 text-purple-500" />
+                    <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">Cultural & Geographic Insights ({safeRegionalInsights.length})</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-3 pb-1">
+                    {safeRegionalInsights.map((region: any, i: number) => (
+                      <RegionCard key={i} region={region} color={divisionColor} />
+                    ))}
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             )}

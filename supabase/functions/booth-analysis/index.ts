@@ -55,7 +55,7 @@ async function handleOverallAnalysis(body: any, user: any, SUPABASE_URL: string,
     content_sections?.length ? `Content Sections:\n${content_sections.map((s: any) => `  - ${s.heading}: ${s.bullets?.join("; ")}`).join("\n")}` : null,
   ].filter(Boolean).join("\n");
 
-  const systemPrompt = `You are an expert trade show booth designer and brand presence analyst. You audit exhibition booth divisions for BOTH design excellence and messaging effectiveness. You have deep expertise in exhibition design, visual communication, spatial branding, and trade show best practices.
+  const systemPrompt = `You are an expert trade show booth designer, brand presence analyst, and global cultural strategist. You audit exhibition booth divisions for design excellence, messaging effectiveness, and cross-cultural performance. You have deep expertise in exhibition design, visual communication, spatial branding, trade show best practices, and international market dynamics.
 
 Analyze the following booth division and provide a structured audit. Be specific, actionable, and constructive. Evaluate across these dimensions:
 
@@ -73,6 +73,13 @@ Analyze the following booth division and provide a structured audit. Be specific
 9. Brand differentiation — unique positioning, competitive standout
 10. Visitor engagement potential — interactive elements, dwell-time drivers
 11. Call-to-action effectiveness — conversion pathways, lead capture
+
+**Cultural & Geographic Performance:**
+12. Analyze how this booth's messaging, design, and services would perform in 5-6 key global regions/markets (e.g., North America, Western Europe, Middle East/North Africa, East Asia, Latin America, South/Southeast Asia). For each region, provide:
+  - A predicted performance score (0-100)
+  - Key cultural considerations (color symbolism, messaging tone, imagery sensitivities)
+  - Specific adaptation recommendations
+  - Local trade show norms that could affect reception
 
 Return your analysis using the suggest_booth_analysis tool.`;
 
@@ -118,8 +125,23 @@ Return your analysis using the suggest_booth_analysis tool.`;
               type: "array",
               items: { type: "object", properties: { action: { type: "string" }, impact: { type: "string" } }, required: ["action", "impact"] },
             },
+            regional_insights: {
+              type: "array",
+              description: "Cultural and geographic performance analysis for 5-6 key global regions",
+              items: {
+                type: "object",
+                properties: {
+                  region: { type: "string", description: "Region name e.g. 'North America', 'East Asia', 'Middle East & North Africa'" },
+                  predicted_score: { type: "number", description: "Predicted performance score 0-100 for this region" },
+                  cultural_considerations: { type: "string", description: "Key cultural factors affecting reception — color symbolism, messaging tone, imagery sensitivities, business etiquette" },
+                  adaptations: { type: "string", description: "Specific recommendations for adapting the booth for this region" },
+                  trade_show_norms: { type: "string", description: "Local trade show conventions and expectations that could affect reception" },
+                },
+                required: ["region", "predicted_score", "cultural_considerations", "adaptations", "trade_show_norms"],
+              },
+            },
           },
-          required: ["overall_score", "summary", "messaging_score", "content_score", "differentiation_score", "engagement_score", "design_score", "production_score", "score_explanations", "strengths", "improvements", "recommendations"],
+          required: ["overall_score", "summary", "messaging_score", "content_score", "differentiation_score", "engagement_score", "design_score", "production_score", "score_explanations", "strengths", "improvements", "recommendations", "regional_insights"],
           additionalProperties: false,
         },
       },
@@ -150,6 +172,7 @@ Return your analysis using the suggest_booth_analysis tool.`;
         design_score: analysis.design_score,
         production_score: analysis.production_score,
         score_explanations: analysis.score_explanations || {},
+        regional_insights: analysis.regional_insights || [],
       },
       strengths: analysis.strengths,
       improvements: analysis.improvements,
