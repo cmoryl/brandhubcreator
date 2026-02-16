@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Trash2, Maximize, FileImage, Download, Eye, Pencil, Check, Upload, Sparkles, Loader2, ImagePlus, Link, FileText, Image, X, Building2, Search, ExternalLink } from 'lucide-react';
 import { BrandEventSignage, LayoutPreset, BrandColor, LinkedBoothCard } from '@/types/brand';
 import { Input } from '@/components/ui/input';
@@ -1260,16 +1261,17 @@ export const BrandEventSignageSection = ({
         />
       )}
 
-      {/* Full Booth Detail Popup */}
-      <AnimatePresence>
-        {selectedDivision && (
+      {/* Full Booth Detail Popup - portaled to body to avoid transform/overflow issues */}
+      {selectedDivision && createPortal(
+        <AnimatePresence>
           <DivisionDetail
             division={selectedDivision}
             onClose={() => setSelectedDivision(null)}
             isAdmin={false}
           />
-        )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+      )}
     </section>
   );
 };
