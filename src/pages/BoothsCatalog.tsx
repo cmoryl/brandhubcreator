@@ -337,9 +337,11 @@ const DIVISIONS: BoothDivision[] = [
   },
 ];
 
-const BoothCard = ({ division, onClick, cardImage, isAdmin, onUploadCardImage }: { division: BoothDivision; onClick: () => void; cardImage?: string; isAdmin?: boolean; onUploadCardImage?: (file: File) => void }) => {
+const BoothCard = ({ division, onClick, cardImage, isAdmin, onUploadCardImage, imagesLoading }: { division: BoothDivision; onClick: () => void; cardImage?: string; isAdmin?: boolean; onUploadCardImage?: (file: File) => void; imagesLoading?: boolean }) => {
   const Icon = division.icon;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Determine the final image: use DB card image, skip hardcoded fallbacks during loading
+  const displayImage = cardImage || (!imagesLoading ? division.images[0] : undefined);
   return (
     <motion.button
       onClick={onClick}
@@ -348,13 +350,18 @@ const BoothCard = ({ division, onClick, cardImage, isAdmin, onUploadCardImage }:
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
     >
       <div className="relative aspect-[16/10] overflow-hidden">
-        <img
-          src={cardImage || division.images[0]}
-          alt={`${division.name} booth`}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          loading="lazy"
-          
-        />
+        {displayImage ? (
+          <img
+            src={displayImage}
+            alt={`${division.name} booth`}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="h-full w-full flex items-center justify-center" style={{ backgroundColor: division.color + "20" }}>
+            <Icon className="h-12 w-12 text-muted-foreground/30" />
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
           <div className="flex items-center gap-2 mb-1">
@@ -416,7 +423,7 @@ const BoothCard = ({ division, onClick, cardImage, isAdmin, onUploadCardImage }:
 };
 
 const BoothCardWithImages = ({ division, onClick, isAdmin }: { division: BoothDivision; onClick: () => void; isAdmin: boolean }) => {
-  const { getVariantImage, getMergedVariants, uploadImage } = useBoothImages(division.id);
+  const { getVariantImage, getMergedVariants, uploadImage, loading: imagesLoading } = useBoothImages(division.id);
   const cardImage = getVariantImage("__card__", "");
   const mergedVariants = getMergedVariants(division.variants);
   const handleUpload = async (file: File) => {
@@ -431,6 +438,7 @@ const BoothCardWithImages = ({ division, onClick, isAdmin }: { division: BoothDi
       cardImage={cardImage || undefined}
       isAdmin={isAdmin}
       onUploadCardImage={handleUpload}
+      imagesLoading={imagesLoading}
     />
   );
 };
