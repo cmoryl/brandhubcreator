@@ -391,10 +391,32 @@ export function exportMarketAnalysisHtml(
 }
 
 // ─── Brand Intelligence Report ──────────────────────────────
-export function exportBrandIntelligenceHtml(
-  intelligence: any,
-  options: { entityName: string; entityType: string }
-) {
+
+function safeObj(val: unknown): Record<string, unknown> {
+  if (val && typeof val === 'object' && !Array.isArray(val)) return val as Record<string, unknown>;
+  return {};
+}
+
+function renderKeyValueSection(obj: Record<string, unknown>, title: string): string {
+  const entries = Object.entries(obj).filter(([, v]) => v != null && v !== '');
+  if (!entries.length) return '';
+  let html = `<h2>${esc(title)}</h2><div class="card">`;
+  entries.forEach(([key, val]) => {
+    const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    html += `<h3>${esc(label)}</h3>`;
+    if (Array.isArray(val)) html += listHtml(val);
+    else if (typeof val === 'object' && val !== null) {
+      Object.entries(val as Record<string, unknown>).forEach(([k2, v2]) => {
+        const l2 = k2.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        html += `<p><strong style="color:var(--fg)">${esc(l2)}:</strong> ${esc(Array.isArray(v2) ? v2.join(', ') : String(v2 ?? ''))}</p>`;
+      });
+    } else html += `<p>${esc(String(val))}</p>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function buildBrandIntelligenceBody(intelligence: any): string {
   const i = intelligence;
   let body = '';
 
@@ -409,6 +431,7 @@ export function exportBrandIntelligenceHtml(
     <div class="stat-card"><div class="stat-value">${safeArr(i.knowledge_entries).length}</div><div class="stat-label">Knowledge Entries</div></div>
     ${i.market_position ? `<div class="stat-card"><div class="stat-value" style="font-size:14px">${esc(i.market_position)}</div><div class="stat-label">Market Position</div></div>` : ''}
     ${i.localization_readiness_score ? `<div class="stat-card">${scoreBar(i.localization_readiness_score, 'Localization Readiness')}</div>` : ''}
+    ${i.feedback_score ? `<div class="stat-card">${scoreBar(i.feedback_score, 'Feedback Score')}</div>` : ''}
   </div>`;
 
   // Competitive Advantages
@@ -417,16 +440,73 @@ export function exportBrandIntelligenceHtml(
   }
 
   // Growth Recommendations
-  if (safeArr(i.growth_recommendations).length) {
-    body += `<h2>Growth Recommendations</h2><div class="card">${listHtml(safeArr(i.growth_recommendations))}</div>`;
+  const recs = safeArr(i.growth_recommendations);
+  if (recs.length) {
+    body += `<h2>Growth Recommendations</h2>`;
+    recs.forEach((rec: any, idx: number) => {
+      if (typeof rec === 'object' && rec !== null) {
+        const r = rec as Record<string, unknown>;
+        body += `<div class="card">
+          <div class="card-header">
+            <span class="card-title">${esc(r.title || r.recommendation || `Recommendation ${idx + 1}`)}</span>
+            ${r.priority ? `<span class="badge badge-${r.priority === 'high' ? 'red' : r.priority === 'medium' ? 'amber' : 'primary'}">${esc(String(r.priority))}</span>` : ''}
+          </div>
+          ${r.description ? `<p>${esc(String(r.description))}</p>` : ''}
+          ${r.rationale ? `<p><strong style="color:var(--fg)">Rationale:</strong> ${esc(String(r.rationale))}</p>` : ''}
+          ${r.impact ? `<p><strong style="color:var(--fg)">Expected Impact:</strong> ${esc(String(r.impact))}</p>` : ''}
+          ${r.timeline ? `<p><strong style="color:var(--fg)">Timeline:</strong> ${esc(String(r.timeline))}</p>` : ''}
+          ${Array.isArray(r.action_items) ? `<p><strong style="color:var(--fg)">Action Items:</strong></p>${listHtml(r.action_items)}` : ''}
+        </div>`;
+      } else {
+        body += `<div class="card"><p>${esc(String(rec))}</p></div>`;
+      }
+    });
   }
 
   // Target Audience
   if (i.target_audience) {
-    const ta = i.target_audience as Record<string, unknown>;
-    body += `<h2>Target Audience</h2><div class="card">`;
-    Object.entries(ta).forEach(([key, val]) => {
-      body += `<h3>${esc(key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()))}</h3>`;
+    body += renderKeyValueSection(safeObj(i.target_audience), 'Target Audience');
+  }
+
+  // Brand Voice
+  if (i.brand_voice_profile) {
+    body += renderKeyValueSection(safeObj(i.brand_voice_profile), 'Brand Voice Profile');
+  }
+
+  // Competitive Landscape
+  const landscape = safeObj(i.competitive_landscape);
+  if (Object.keys(landscape).length) {
+    body += `<h2>Competitive Landscape</h2><div class="card">`;
+    const competitors = safeArr(landscape.competitors || landscape.key_competitors);
+    if (competitors.length) {
+      body += `<table><thead><tr><th>Competitor</th><th>Strengths</th><th>Weaknesses</th></tr></thead><tbody>`;
+      competitors.forEach((c: any) => {
+        if (typeof c === 'object' && c !== null) {
+          const comp = c as Record<string, unknown>;
+          body += `<tr>
+            <td style="font-weight:600">${esc(comp.name || comp.competitor || '')}</td>
+            <td>${esc(Array.isArray(comp.strengths) ? comp.strengths.join(', ') : String(comp.strengths || '—'))}</td>
+            <td>${esc(Array.isArray(comp.weaknesses) ? comp.weaknesses.join(', ') : String(comp.weaknesses || '—'))}</td>
+          </tr>`;
+        } else {
+          body += `<tr><td colspan="3">${esc(String(c))}</td></tr>`;
+        }
+      });
+      body += `</tbody></table>`;
+    }
+    const threats = safeArr(landscape.threats);
+    const opportunities = safeArr(landscape.opportunities);
+    if (threats.length || opportunities.length) {
+      body += `<div class="two-col">`;
+      if (opportunities.length) body += `<div><h3>Opportunities</h3>${listHtml(opportunities, 'list-check')}</div>`;
+      if (threats.length) body += `<div><h3>Threats</h3>${listHtml(threats, 'list-warn')}</div>`;
+      body += `</div>`;
+    }
+    // Render remaining keys
+    const skip = new Set(['competitors', 'key_competitors', 'threats', 'opportunities']);
+    Object.entries(landscape).filter(([k]) => !skip.has(k)).forEach(([key, val]) => {
+      const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      body += `<h3>${esc(label)}</h3>`;
       if (Array.isArray(val)) body += listHtml(val);
       else if (typeof val === 'string') body += `<p>${esc(val)}</p>`;
       else body += `<p>${esc(JSON.stringify(val))}</p>`;
@@ -434,35 +514,70 @@ export function exportBrandIntelligenceHtml(
     body += '</div>';
   }
 
-  // Brand Voice
-  if (i.brand_voice_profile) {
-    const bv = i.brand_voice_profile as Record<string, unknown>;
-    body += `<h2>Brand Voice Profile</h2><div class="card">`;
-    Object.entries(bv).forEach(([key, val]) => {
-      body += `<h3>${esc(key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()))}</h3>`;
-      if (Array.isArray(val)) body += listHtml(val);
-      else if (typeof val === 'string') body += `<p>${esc(val)}</p>`;
-    });
-    body += '</div>';
-  }
-
   // Cultural Insights
   if (i.cultural_insights) {
-    const ci = i.cultural_insights as Record<string, unknown>;
-    body += `<h2>Cultural Insights</h2><div class="card">`;
-    Object.entries(ci).forEach(([key, val]) => {
-      body += `<h3>${esc(key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()))}</h3>`;
-      if (Array.isArray(val)) body += listHtml(val);
-      else if (typeof val === 'string') body += `<p>${esc(val)}</p>`;
+    body += renderKeyValueSection(safeObj(i.cultural_insights), 'Cultural Insights');
+  }
+
+  // GlobalLink Recommendations
+  const glRecs = safeArr(i.globallink_recommendations);
+  if (glRecs.length) {
+    body += `<h2>GlobalLink Recommendations</h2>`;
+    glRecs.forEach((rec: any) => {
+      if (typeof rec === 'object' && rec !== null) {
+        const r = rec as Record<string, unknown>;
+        body += `<div class="card">
+          <div class="card-header">
+            <span class="card-title">${esc(r.title || r.recommendation || r.region || '')}</span>
+            ${r.priority ? `<span class="badge badge-${r.priority === 'high' ? 'red' : 'amber'}">${esc(String(r.priority))}</span>` : ''}
+          </div>
+          ${r.description ? `<p>${esc(String(r.description))}</p>` : ''}
+          ${r.rationale ? `<p>${esc(String(r.rationale))}</p>` : ''}
+          ${r.region ? `<p><strong style="color:var(--fg)">Region:</strong> ${esc(String(r.region))}</p>` : ''}
+          ${Array.isArray(r.actions) ? listHtml(r.actions) : ''}
+        </div>`;
+      } else {
+        body += `<div class="card"><p>${esc(String(rec))}</p></div>`;
+      }
     });
-    body += '</div>';
+  }
+
+  // Regional Adaptations
+  const regAdapt = safeArr(i.regional_adaptations);
+  if (regAdapt.length) {
+    body += `<h2>Regional Adaptations</h2>`;
+    regAdapt.forEach((ra: any) => {
+      if (typeof ra === 'object' && ra !== null) {
+        const r = ra as Record<string, unknown>;
+        body += `<div class="card">
+          <div class="card-header"><span class="card-title">${esc(r.region || r.market || r.name || '')}</span></div>
+          ${r.description ? `<p>${esc(String(r.description))}</p>` : ''}
+          ${r.adaptations ? `<p>${esc(Array.isArray(r.adaptations) ? r.adaptations.join(', ') : String(r.adaptations))}</p>` : ''}
+          ${r.status ? `<p><strong style="color:var(--fg)">Status:</strong> ${esc(String(r.status))}</p>` : ''}
+        </div>`;
+      } else {
+        body += `<div class="card"><p>${esc(String(ra))}</p></div>`;
+      }
+    });
+  }
+
+  // Bias Awareness Profile
+  const bias = safeObj(i.bias_awareness_profile);
+  if (Object.keys(bias).length) {
+    body += renderKeyValueSection(bias, 'Bias & Inclusivity Profile');
+  }
+
+  // Learning Context
+  const learning = safeObj(i.learning_context);
+  if (Object.keys(learning).length) {
+    body += renderKeyValueSection(learning, 'Learning Context');
   }
 
   // Knowledge Entries
   const entries = safeArr(i.knowledge_entries);
   if (entries.length) {
     body += `<h2>Knowledge Base (${entries.length} entries)</h2>`;
-    entries.slice(0, 30).forEach((e: any) => {
+    entries.slice(0, 50).forEach((e: any) => {
       body += `<div class="card">
         <div class="card-header">
           <span class="badge badge-${e.type === 'insight' ? 'amber' : e.type === 'learning' ? 'violet' : 'primary'}">${esc(e.type || 'note')}</span>
@@ -470,10 +585,36 @@ export function exportBrandIntelligenceHtml(
         </div>
         <p>${esc(e.content)}</p>
         ${e.category ? `<span style="font-size:11px;color:var(--fg-muted)">${esc(e.category)}</span>` : ''}
+        ${e.source ? `<span style="font-size:11px;color:var(--fg-muted);margin-left:8px">Source: ${esc(e.source)}</span>` : ''}
       </div>`;
     });
   }
 
+  // Analysis History
+  const history = safeArr(i.analysis_history);
+  if (history.length) {
+    body += `<h2>Analysis History</h2><table><thead><tr><th>Date</th><th>Type</th><th>Summary</th></tr></thead><tbody>`;
+    history.slice(0, 20).forEach((h: any) => {
+      if (typeof h === 'object' && h !== null) {
+        const entry = h as Record<string, unknown>;
+        body += `<tr>
+          <td>${entry.date || entry.analyzed_at ? new Date(String(entry.date || entry.analyzed_at)).toLocaleDateString() : '—'}</td>
+          <td>${esc(entry.type || entry.analysis_type || '—')}</td>
+          <td>${esc(entry.summary || entry.result || '—')}</td>
+        </tr>`;
+      }
+    });
+    body += `</tbody></table>`;
+  }
+
+  return body;
+}
+
+export function exportBrandIntelligenceHtml(
+  intelligence: any,
+  options: { entityName: string; entityType: string }
+) {
+  const body = buildBrandIntelligenceBody(intelligence);
   const html = wrapDocument(
     `Brand Intelligence — ${options.entityName}`,
     `${options.entityType} Intelligence Report`,
@@ -481,6 +622,39 @@ export function exportBrandIntelligenceHtml(
   );
   const slug = options.entityName.replace(/\s+/g, '-').toLowerCase();
   downloadHtml(html, `brand-intelligence-${slug}.html`);
+}
+
+export async function exportBrandIntelligencePdf(
+  intelligence: any,
+  options: { entityName: string; entityType: string }
+) {
+  const body = buildBrandIntelligenceBody(intelligence);
+  const html = wrapDocument(
+    `Brand Intelligence — ${options.entityName}`,
+    `${options.entityType} Intelligence Report`,
+    body
+  );
+
+  // Create hidden container
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;top:0;left:0;width:800px;z-index:-1;opacity:0.01;pointer-events:none;';
+  container.innerHTML = `<div style="background:#0c0d12;padding:40px 24px;max-width:800px;">${html.replace(/<!DOCTYPE[\s\S]*?<body>/, '').replace(/<\/body>[\s\S]*$/, '')}</div>`;
+  document.body.appendChild(container);
+
+  try {
+    const { default: html2pdf } = await import('html2pdf.js');
+    const slug = options.entityName.replace(/\s+/g, '-').toLowerCase();
+    await (html2pdf() as any).set({
+      margin: [10, 10, 10, 10],
+      filename: `brand-intelligence-${slug}.pdf`,
+      image: { type: 'jpeg', quality: 0.75 },
+      html2canvas: { scale: 1.5, useCORS: true, backgroundColor: '#0c0d12' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    }).from(container.firstElementChild as HTMLElement).save();
+  } finally {
+    document.body.removeChild(container);
+  }
 }
 
 // ─── Website Analysis Report ────────────────────────────────
