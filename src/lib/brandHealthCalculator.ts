@@ -325,7 +325,15 @@ function calculateSectionCompleteness(
     case 'awards':
     case 'webinars':
     case 'insights':
-    case 'eventSignage':
+    case 'eventSignage': {
+      const signageArr = safeArray(guideData[section]);
+      const linkedBooths = safeArray(guideData.linkedBooths);
+      const combined = signageArr.length + linkedBooths.length;
+      if (combined === 0) return 0;
+      if (combined >= 3) return 1;
+      if (combined >= 2) return 0.7;
+      return 0.4;
+    }
     case 'clientLogos':
     case 'sponsorLogos':
     case 'linkedGuides':
