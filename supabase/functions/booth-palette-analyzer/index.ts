@@ -130,10 +130,9 @@ Use the extract_palette tool to return the results.`,
 
     console.log(`Extracted palette for ${division_name}:`, colors);
 
-    // Upsert to booth_color_palettes
-    // First check if a record exists
+    // Upsert to booth_color_palettes — use division_id match since unique constraint is on division_id
     const checkRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/booth_color_palettes?division_id=eq.${division_id}&variant_label=${variant_label ? `eq.${variant_label}` : "is.null"}&select=id`,
+      `${SUPABASE_URL}/rest/v1/booth_color_palettes?division_id=eq.${encodeURIComponent(division_id)}&select=id,variant_label`,
       {
         headers: {
           apikey: SUPABASE_SERVICE_ROLE_KEY,
@@ -142,12 +141,13 @@ Use the extract_palette tool to return the results.`,
       }
     );
     const existing = await checkRes.json();
+    const targetVariant = variant_label || null;
+    const match = Array.isArray(existing) ? existing.find((e: any) => e.variant_label === targetVariant) : null;
 
     let saveRes: Response;
-    if (existing && existing.length > 0) {
-      // Update existing
+    if (match) {
       saveRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/booth_color_palettes?id=eq.${existing[0].id}`,
+        `${SUPABASE_URL}/rest/v1/booth_color_palettes?id=eq.${match.id}`,
         {
           method: "PATCH",
           headers: {
@@ -162,8 +162,26 @@ Use the extract_palette tool to return the results.`,
           }),
         }
       );
+    } else if (Array.isArray(existing) && existing.length > 0 && !targetVariant) {
+      // Update the existing row if same division, no variant
+      saveRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/booth_color_palettes?id=eq.${existing[0].id}`,
+        {
+          method: "PATCH",
+          headers: {
+            apikey: SUPABASE_SERVICE_ROLE_KEY,
+            Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            "Content-Type": "application/json",
+            Prefer: "return=representation",
+          },
+          body: JSON.stringify({
+            colors,
+            variant_label: null,
+            updated_at: new Date().toISOString(),
+          }),
+        }
+      );
     } else {
-      // Insert new
       saveRes = await fetch(`${SUPABASE_URL}/rest/v1/booth_color_palettes`, {
         method: "POST",
         headers: {
@@ -174,7 +192,7 @@ Use the extract_palette tool to return the results.`,
         },
         body: JSON.stringify({
           division_id,
-          variant_label: variant_label || null,
+          variant_label: targetVariant,
           colors,
           created_by: user.id,
         }),
