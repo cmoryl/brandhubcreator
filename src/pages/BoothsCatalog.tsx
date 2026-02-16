@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, 
   Radio, Heart, Database, Microscope, Globe, X, ChevronLeft, ChevronRight,
-  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown, Upload, RotateCcw, Type, Download, ArrowUpDown, Ruler, Brain,
+  Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown, Upload, RotateCcw, Type, Download, ArrowUpDown, Ruler, Brain, Check,
   LogOut, User, HelpCircle, LayoutDashboard
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -1771,8 +1771,11 @@ const ContactWebsiteEditor = ({ division, isAdmin }: { division: BoothDivision; 
   );
 };
 
-const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivision; onClose: () => void; isAdmin: boolean }) => {
+const DivisionDetail = ({ division, onClose, isAdmin, onUpdateTagline }: { division: BoothDivision; onClose: () => void; isAdmin: boolean; onUpdateTagline?: (tagline: string) => Promise<void> }) => {
   const [activeVariant, setActiveVariant] = useState(0);
+  const [editingTagline, setEditingTagline] = useState(false);
+  const [taglineValue, setTaglineValue] = useState(division.tagline);
+  const [savingTagline, setSavingTagline] = useState(false);
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [addingVariant, setAddingVariant] = useState(false);
@@ -2051,8 +2054,41 @@ const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivisio
                           <div className="grid md:grid-cols-2 gap-6">
                             <div className="space-y-4">
                               <div>
-                                <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-primary">Tagline</h3>
-                                <p className="text-2xl md:text-3xl font-normal leading-relaxed text-primary" style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 400 }}>{division.tagline}</p>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Tagline</h3>
+                                  {isAdmin && !editingTagline && (
+                                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setTaglineValue(division.tagline); setEditingTagline(true); }}>
+                                      <Pencil className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                                {editingTagline && isAdmin ? (
+                                  <div className="space-y-2">
+                                    <Textarea
+                                      value={taglineValue}
+                                      onChange={(e) => setTaglineValue(e.target.value)}
+                                      className="text-lg font-normal text-primary resize-none"
+                                      style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 400 }}
+                                      rows={2}
+                                    />
+                                    <div className="flex gap-2">
+                                      <Button size="sm" className="text-xs gap-1" disabled={savingTagline} onClick={async () => {
+                                        if (!onUpdateTagline || !taglineValue.trim()) return;
+                                        setSavingTagline(true);
+                                        await onUpdateTagline(taglineValue.trim());
+                                        setSavingTagline(false);
+                                        setEditingTagline(false);
+                                      }}>
+                                        {savingTagline ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />} Save
+                                      </Button>
+                                      <Button size="sm" variant="ghost" className="text-xs gap-1" onClick={() => setEditingTagline(false)}>
+                                        <X className="h-3 w-3" /> Cancel
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <p className="text-2xl md:text-3xl font-normal leading-relaxed text-primary" style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 400 }}>{division.tagline}</p>
+                                )}
                                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
                                   <span>Font: Poppins Regular 400</span>
                                   <span>Booth: 48–72pt</span>
@@ -2714,7 +2750,11 @@ export default function BoothsCatalog() {
       {/* Detail Modal */}
       <AnimatePresence>
         {selected && (
-          <DivisionDetail division={selected} onClose={() => setSelected(null)} isAdmin={isAdmin} />
+          <DivisionDetail division={selected} onClose={() => setSelected(null)} isAdmin={isAdmin} onUpdateTagline={async (tagline) => {
+            await updateDivision(selected.id, { tagline });
+            // Update local state so the UI reflects the change immediately
+            setSelected(prev => prev ? { ...prev, tagline } : prev);
+          }} />
         )}
       </AnimatePresence>
     </div>
