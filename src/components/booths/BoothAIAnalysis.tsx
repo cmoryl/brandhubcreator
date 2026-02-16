@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { Brain, Loader2, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, ChevronRight } from "lucide-react";
+import { Brain, Loader2, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, ChevronRight, ChevronDown } from "lucide-react";
 import { useBoothAnalysis, type BoothAnalysis } from "@/hooks/useBoothAnalysis";
 import { useBoothContentSections } from "@/hooks/useBoothContentSections";
 
@@ -36,15 +36,33 @@ const priorityColor = (priority: string) => {
   return "border-green-500/40 text-green-500";
 };
 
-const ScoreGauge = ({ label, score, color }: { label: string; score: number; color: string }) => (
-  <div className="space-y-1">
-    <div className="flex justify-between items-center">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <span className={`text-xs font-bold ${scoreColor(score)}`}>{score}</span>
+const ScoreGauge = ({ label, score, color, explanation }: { label: string; score: number; color: string; explanation?: string }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="space-y-1">
+      <button
+        onClick={() => explanation && setOpen(!open)}
+        className={`w-full text-left ${explanation ? "cursor-pointer hover:bg-muted/30 rounded-md -mx-1 px-1 py-0.5 transition-colors" : ""}`}
+      >
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-muted-foreground flex items-center gap-1">
+            {label}
+            {explanation && (
+              <ChevronDown className={`h-2.5 w-2.5 text-muted-foreground/60 transition-transform ${open ? "rotate-180" : ""}`} />
+            )}
+          </span>
+          <span className={`text-xs font-bold ${scoreColor(score)}`}>{score}</span>
+        </div>
+        <Progress value={score} className="h-1.5" style={{ ['--progress-color' as string]: color }} />
+      </button>
+      {open && explanation && (
+        <p className="text-[10px] text-muted-foreground/80 leading-relaxed pl-0.5 animate-in fade-in-0 slide-in-from-top-1 duration-150">
+          {explanation}
+        </p>
+      )}
     </div>
-    <Progress value={score} className="h-1.5" style={{ ['--progress-color' as string]: color }} />
-  </div>
-);
+  );
+};
 
 export const BoothAIAnalysis = ({
   divisionId, divisionName, divisionTagline, divisionDescription,
@@ -116,14 +134,14 @@ export const BoothAIAnalysis = ({
           {/* Summary */}
           <p className="text-xs text-muted-foreground leading-relaxed">{analysis_data?.summary}</p>
 
-          {/* Score Gauges */}
+          {/* Score Gauges — click for detail */}
           <div className="grid grid-cols-2 gap-3">
-            <ScoreGauge label="Design" score={analysis_data?.design_score ?? 0} color={divisionColor || "hsl(var(--primary))"} />
-            <ScoreGauge label="Production" score={analysis_data?.production_score ?? 0} color={divisionColor || "hsl(var(--primary))"} />
-            <ScoreGauge label="Messaging" score={analysis_data?.messaging_score ?? 0} color={divisionColor || "hsl(var(--primary))"} />
-            <ScoreGauge label="Content" score={analysis_data?.content_score ?? 0} color={divisionColor || "hsl(var(--primary))"} />
-            <ScoreGauge label="Differentiation" score={analysis_data?.differentiation_score ?? 0} color={divisionColor || "hsl(var(--primary))"} />
-            <ScoreGauge label="Engagement" score={analysis_data?.engagement_score ?? 0} color={divisionColor || "hsl(var(--primary))"} />
+            <ScoreGauge label="Design" score={analysis_data?.design_score ?? 0} color={divisionColor || "hsl(var(--primary))"} explanation={analysis_data?.score_explanations?.design} />
+            <ScoreGauge label="Production" score={analysis_data?.production_score ?? 0} color={divisionColor || "hsl(var(--primary))"} explanation={analysis_data?.score_explanations?.production} />
+            <ScoreGauge label="Messaging" score={analysis_data?.messaging_score ?? 0} color={divisionColor || "hsl(var(--primary))"} explanation={analysis_data?.score_explanations?.messaging} />
+            <ScoreGauge label="Content" score={analysis_data?.content_score ?? 0} color={divisionColor || "hsl(var(--primary))"} explanation={analysis_data?.score_explanations?.content} />
+            <ScoreGauge label="Differentiation" score={analysis_data?.differentiation_score ?? 0} color={divisionColor || "hsl(var(--primary))"} explanation={analysis_data?.score_explanations?.differentiation} />
+            <ScoreGauge label="Engagement" score={analysis_data?.engagement_score ?? 0} color={divisionColor || "hsl(var(--primary))"} explanation={analysis_data?.score_explanations?.engagement} />
           </div>
 
           {/* Strengths / Improvements / Recommendations */}
