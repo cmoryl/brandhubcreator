@@ -272,7 +272,7 @@ export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtit
             return (
               <Card key={video.id} className="group overflow-hidden">
                 <div className="relative aspect-video bg-muted">
-                  {video.platform !== 'direct' && video.platform !== 'transperfect' ? (
+                  {video.platform !== 'direct' ? (
                     <iframe
                       src={embedUrl}
                       className="w-full h-full"
