@@ -83,6 +83,15 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Auto-approve admin-created users so they don't appear as "pending"
+    if (newUser.user) {
+      await supabaseAdmin.from("profiles").update({
+        is_approved: true,
+        approved_at: new Date().toISOString(),
+        approved_by: user.id,
+      }).eq("user_id", newUser.user.id);
+    }
+
     // Add to organization if specified
     if (organizationId && newUser.user) {
       await supabaseAdmin.from("organization_members").insert({

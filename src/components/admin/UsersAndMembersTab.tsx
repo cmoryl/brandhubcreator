@@ -4,7 +4,7 @@
  * Super admin capabilities: create users, delete users, reset passwords, change roles
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Users, Search, Building2, Crown, Shield, User,
@@ -215,7 +215,7 @@ export function UsersAndMembersTab() {
   };
 
   const demoteFromAdmin = async (userId: string) => {
-    const { error } = await supabase.from('user_roles').delete().eq('user_id', userId);
+    const { error } = await supabase.from('user_roles').upsert({ user_id: userId, role: 'user' }, { onConflict: 'user_id' });
     if (error) { toast.error('Failed to demote user'); return; }
     toast.success('User demoted to regular user');
     fetchUsersAndMembers();
@@ -509,8 +509,8 @@ export function UsersAndMembersTab() {
                     </TableRow>
                   ) : (
                     filteredUsers.map((u) => (
-                      <>
-                        <TableRow key={u.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setExpandedUserId(expandedUserId === u.id ? null : u.id)}>
+                      <React.Fragment key={u.id}>
+                        <TableRow className="cursor-pointer hover:bg-muted/50" onClick={() => setExpandedUserId(expandedUserId === u.id ? null : u.id)}>
                           <TableCell className="w-8 px-2">
                             {u.memberships.length > 0 ? (
                               expandedUserId === u.id
@@ -669,7 +669,7 @@ export function UsersAndMembersTab() {
                             </TableCell>
                           </TableRow>
                         )}
-                      </>
+                      </React.Fragment>
                     ))
                   )}
                 </TableBody>

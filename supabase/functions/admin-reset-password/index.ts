@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Prevent resetting other admin passwords
+    // Prevent non-super-admins from resetting admin passwords
     const { data: targetIsAdmin } = await supabaseAdmin.rpc("has_role", {
       _user_id: userId,
       _role: "admin",
@@ -83,9 +83,17 @@ Deno.serve(async (req) => {
       _role: "super_admin",
     });
 
-    if (targetIsAdmin || targetIsSuperAdmin) {
+    // Super admins can reset admin passwords, but nobody can reset another super admin's password
+    if (targetIsSuperAdmin) {
       return new Response(
-        JSON.stringify({ error: "Cannot reset another admin's password" }),
+        JSON.stringify({ error: "Cannot reset a super admin's password" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (targetIsAdmin && !isSuperAdmin) {
+      return new Response(
+        JSON.stringify({ error: "Only super admins can reset admin passwords" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
