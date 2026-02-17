@@ -46,6 +46,11 @@ import {
   SponsorLogo,
   InsightItem,
   InsightsLayout,
+  BrandWebinar,
+  BrandAward,
+  BrandLocation,
+  LocationStat,
+  PresentationTemplate,
 } from './brand';
 
 // Event-specific types
@@ -395,13 +400,28 @@ export interface EventGuide {
   // Insights & Updates
   insights?: InsightItem[];
   insightsLayout?: InsightsLayout;
+  insightsAccessCode?: string;
   
   // Partner assets
   sponsorLogos?: SponsorLogo[];
   clientLogos?: ClientLogo[];
   
   // Presentation Templates (PowerPoint slide galleries)
-  presentationTemplates?: import('./brand').PresentationTemplate[];
+  presentationTemplates?: PresentationTemplate[];
+  presentations?: PresentationTemplate[];
+  
+  // Shared Assets (for event inheritance)
+  sharedAssets?: any[];
+  
+  // Webinars
+  webinars?: BrandWebinar[];
+  
+  // Awards
+  awards?: BrandAward[];
+  
+  // Locations
+  locations?: BrandLocation[];
+  locationStats?: LocationStat[];
   
   // Metadata
   createdAt: Date;

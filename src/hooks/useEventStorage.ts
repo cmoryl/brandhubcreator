@@ -100,6 +100,9 @@ const dbToEventGuide = (db: DbEvent): EventGuide => {
     imageAssets: asArray(guideData.imageAssets, []) as EventGuide['imageAssets'],
     misuse: asArray(guideData.misuse, []) as EventGuide['misuse'],
     atmosphere: asObject(guideData.atmosphere, { style: 'gradient', animate: true, opacity: 0.5, blur: 0 }) as EventGuide['atmosphere'],
+    sharedAssets: asArray(guideData.sharedAssets, []) as EventGuide['sharedAssets'],
+    webinars: asArray(guideData.webinars, []) as EventGuide['webinars'],
+    awards: asArray(guideData.awards, []) as EventGuide['awards'],
     
     // Collateral
     caseStudies: asArray(guideData.caseStudies, []) as EventGuide['caseStudies'],
@@ -109,6 +112,7 @@ const dbToEventGuide = (db: DbEvent): EventGuide => {
     linkedGuides: asArray(guideData.linkedGuides, []) as EventGuide['linkedGuides'],
     templateSpecs: asArray(guideData.templateSpecs, []) as EventGuide['templateSpecs'],
     presentationTemplates: asArray(guideData.presentationTemplates, []) as EventGuide['presentationTemplates'],
+    presentations: asArray(guideData.presentations, []) as EventGuide['presentations'],
     
     // Data & Analytics
     revenueData: asArray(guideData.revenueData, []) as EventGuide['revenueData'],
@@ -118,6 +122,15 @@ const dbToEventGuide = (db: DbEvent): EventGuide => {
     // Partners
     sponsorLogos: asArray(guideData.sponsorLogos, []) as EventGuide['sponsorLogos'],
     clientLogos: asArray(guideData.clientLogos, []) as EventGuide['clientLogos'],
+    
+    // Insights & Updates
+    insights: asArray(guideData.insights, []) as EventGuide['insights'],
+    insightsLayout: guideData.insightsLayout as EventGuide['insightsLayout'],
+    insightsAccessCode: (guideData.insightsAccessCode as string) || undefined,
+    
+    // Locations
+    locations: asArray(guideData.locations, []) as EventGuide['locations'],
+    locationStats: asArray(guideData.locationStats, []) as EventGuide['locationStats'],
     
     // Settings
     sectionSubtitles: asObject(guideData.sectionSubtitles, {}) as EventGuide['sectionSubtitles'],
