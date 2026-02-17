@@ -20,7 +20,7 @@ import { ClientLogosSection } from '@/components/brand/ClientLogosSection';
 import { EventDetailsSection } from './EventDetailsSection';
 import { EventLogosSection } from './EventLogosSection';
 import { EventSignageSection } from './EventSignageSection';
-import { EventBannersSection } from './EventBannersSection';
+
 import { EventDigitalSection } from './EventDigitalSection';
 import { EventSponsorsSection } from './EventSponsorsSection';
 import { EventScheduleSection } from './EventScheduleSection';
@@ -173,24 +173,19 @@ export const FullEventPage = ({
           />
         );
       case 'eventbanners':
-        return (
-          <EventBannersSection
-            banners={event.eventBanners || []}
-            onUpdate={canEdit ? (eventBanners) => updateEvent({ eventBanners }) : () => {}}
-            isEditable={canEdit}
-            eventId={event.id}
-          />
-        );
       case 'eventdigital':
         return (
           <EventDigitalSection
             materials={event.eventDigitalMaterials || []}
             onUpdate={canEdit ? (eventDigitalMaterials) => updateEvent({ eventDigitalMaterials }) : () => {}}
+            banners={event.eventBanners || []}
+            onBannersChange={canEdit ? (eventBanners) => updateEvent({ eventBanners }) : undefined}
             templates={event.templates || []}
             onTemplatesChange={editHandler((templates) => updateEvent({ templates }))}
             brochures={event.brochures || []}
             onBrochuresChange={editHandler((brochures) => updateEvent({ brochures }))}
             isEditable={canEdit}
+            eventId={event.id}
           />
         );
       case 'eventwebsites':

@@ -299,8 +299,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'eventlocation',
   'eventlogos',
   'eventsignage',
-  'eventbanners',
-  'eventdigital',        // Unified digital collateral (materials, templates, brochures)
+  'eventdigital',        // Unified digital collateral (banners, materials, templates, brochures)
   'eventvideos',
   'colors',
   'gradients',

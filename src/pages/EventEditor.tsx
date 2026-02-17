@@ -28,7 +28,7 @@ import { EventSidebar } from '@/components/event/EventSidebar';
 import { EventDetailsSection } from '@/components/event/EventDetailsSection';
 import { EventLogosSection } from '@/components/event/EventLogosSection';
 import { EventSignageSection } from '@/components/event/EventSignageSection';
-import { EventBannersSection } from '@/components/event/EventBannersSection';
+
 import { EventDigitalSection } from '@/components/event/EventDigitalSection';
 import { EventSponsorsSection } from '@/components/event/EventSponsorsSection';
 import { EventScheduleSection } from '@/components/event/EventScheduleSection';
@@ -572,9 +572,8 @@ const EventEditor = () => {
       case 'eventsignage':
         return <EventSignageSection signage={event.eventSignage || []} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('eventsignage', layout) : undefined} brandName={event.hero?.name} brandColors={event.colors?.map(c => c.hex)} eventId={event.id} />;
       case 'eventbanners':
-        return <EventBannersSection banners={event.eventBanners || []} onUpdate={(eventBanners) => updateEvent({ eventBanners })} isEditable={canEdit || false} eventId={event.id} />;
       case 'eventdigital':
-        return <EventDigitalSection materials={event.eventDigitalMaterials || []} onUpdate={(eventDigitalMaterials) => updateEvent({ eventDigitalMaterials })} isEditable={canEdit || false} />;
+        return <EventDigitalSection materials={event.eventDigitalMaterials || []} onUpdate={(eventDigitalMaterials) => updateEvent({ eventDigitalMaterials })} banners={event.eventBanners || []} onBannersChange={canEdit ? (eventBanners) => updateEvent({ eventBanners }) : undefined} isEditable={canEdit || false} eventId={event.id} />;
       case 'colors': 
         return <ColorPaletteSection colors={event.colors} onColorsChange={editHandler((colors) => updateEvent({ colors }))} colorCombinations={event.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateEvent({ colorCombinations }))} brandName={event.hero.name} />;
       case 'gradients': 
