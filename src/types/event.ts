@@ -306,6 +306,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'gradients',
   'eventpatterns',       // Event-specific patterns
   'typography',
+  'textstyles',          // Content hierarchy / CSS styles
   'imagery',
   'social',
   'socialassets',

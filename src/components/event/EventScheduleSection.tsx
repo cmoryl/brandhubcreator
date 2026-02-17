@@ -730,10 +730,35 @@ export const EventScheduleSection = ({
             <h3 className="font-semibold text-lg mb-2">No schedule yet</h3>
             <p className="text-muted-foreground mb-4">Add sessions, keynotes, and breaks to build your event timeline</p>
             {isEditable && (
-              <Button onClick={() => setIsAddingNew(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add First Session
-              </Button>
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <Button onClick={() => setIsAddingNew(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First Session
+                </Button>
+                <Button variant="outline" onClick={() => {
+                  const demoSchedule: EventScheduleItem[] = [
+                    { id: crypto.randomUUID(), time: 'Day 1 - 8:00 AM', title: 'Registration & Welcome Coffee', description: 'Check in, grab your badge, and network over coffee before the main program begins.', speaker: '', location: 'Main Lobby', track: 'registration' },
+                    { id: crypto.randomUUID(), time: 'Day 1 - 9:00 AM', title: 'Opening Keynote', description: 'Welcome address and vision for the year ahead. Setting the stage for two days of innovation and collaboration.', speaker: '', location: 'Grand Ballroom', track: 'keynote' },
+                    { id: crypto.randomUUID(), time: 'Day 1 - 10:15 AM', title: 'The Future of Localization', description: 'How AI and automation are transforming the localization industry. Trends, challenges, and opportunities.', speaker: '', location: 'Grand Ballroom', track: 'session' },
+                    { id: crypto.randomUUID(), time: 'Day 1 - 11:15 AM', title: 'Networking Break', description: 'Refreshments and networking in the exhibition area.', speaker: '', location: 'Exhibition Hall', track: 'break' },
+                    { id: crypto.randomUUID(), time: 'Day 1 - 11:45 AM', title: 'Hands-On Workshop: AI Translation Tools', description: 'Interactive workshop exploring the latest AI-powered translation tools and workflows.', speaker: '', location: 'Workshop Room A', track: 'workshop' },
+                    { id: crypto.randomUUID(), time: 'Day 1 - 12:45 PM', title: 'Lunch', description: 'Seated lunch with themed discussion tables.', speaker: '', location: 'Dining Pavilion', track: 'lunch' },
+                    { id: crypto.randomUUID(), time: 'Day 1 - 2:00 PM', title: 'Panel: Global Brand Consistency', description: 'Industry leaders discuss maintaining brand integrity across markets, cultures, and languages.', speaker: '', location: 'Grand Ballroom', track: 'panel' },
+                    { id: crypto.randomUUID(), time: 'Day 1 - 3:15 PM', title: 'Customer Success Stories', description: 'Real-world case studies from organizations that have transformed their global content strategy.', speaker: '', location: 'Breakout Room 1', track: 'session' },
+                    { id: crypto.randomUUID(), time: 'Day 1 - 4:15 PM', title: 'Networking Reception', description: 'Cocktails, canapés, and conversation to close out Day 1.', speaker: '', location: 'Rooftop Terrace', track: 'networking' },
+                    { id: crypto.randomUUID(), time: 'Day 2 - 9:00 AM', title: 'Day 2 Keynote: Innovation Showcase', description: 'Unveiling new product features and roadmap highlights for the coming year.', speaker: '', location: 'Grand Ballroom', track: 'keynote' },
+                    { id: crypto.randomUUID(), time: 'Day 2 - 10:15 AM', title: 'Workshop: Cultural Adaptation Best Practices', description: 'Deep dive into cultural adaptation strategies for global campaigns.', speaker: '', location: 'Workshop Room B', track: 'workshop' },
+                    { id: crypto.randomUUID(), time: 'Day 2 - 11:30 AM', title: 'Panel: Measuring Localization ROI', description: 'Data-driven approaches to quantifying the impact of localization investments.', speaker: '', location: 'Grand Ballroom', track: 'panel' },
+                    { id: crypto.randomUUID(), time: 'Day 2 - 12:30 PM', title: 'Lunch & Learn', description: 'Lunch with expert-led roundtable discussions on trending topics.', speaker: '', location: 'Dining Pavilion', track: 'lunch' },
+                    { id: crypto.randomUUID(), time: 'Day 2 - 2:00 PM', title: 'Closing Session & Awards', description: 'Recap of key takeaways, award ceremony, and looking ahead to next year.', speaker: '', location: 'Grand Ballroom', track: 'keynote' },
+                  ];
+                  onUpdate(demoSchedule);
+                  toast.success('Demo schedule loaded — customize it for your event!');
+                }}>
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Load Demo Schedule
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
