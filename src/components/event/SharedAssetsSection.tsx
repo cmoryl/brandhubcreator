@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,9 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Plus, Download, ExternalLink, Trash2, Image, FileText, 
-  Palette, Type, Layout, Share2, Copy, Check, FolderOpen
+  Palette, Type, Layout, Share2, Copy, Check, FolderOpen, Upload, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
 
 export interface SharedAsset {
   id: string;
@@ -21,7 +22,7 @@ export interface SharedAsset {
   previewUrl?: string;
   description?: string;
   fileType?: string;
-  isRequired?: boolean; // Must be used by all regional events
+  isRequired?: boolean;
   tags?: string[];
 }
 
@@ -30,6 +31,7 @@ interface SharedAssetsSectionProps {
   onAssetsChange?: (assets: SharedAsset[]) => void;
   isEditable?: boolean;
   subtitle?: string;
+  eventId?: string;
 }
 
 const ASSET_TYPES = [
@@ -67,13 +69,22 @@ export const SharedAssetsSection = ({
   onAssetsChange,
   isEditable = false,
   subtitle,
+  eventId,
 }: SharedAssetsSectionProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('all');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [uploadingAssetId, setUploadingAssetId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [targetAssetId, setTargetAssetId] = useState<string | null>(null);
   const [newAsset, setNewAsset] = useState<Partial<SharedAsset>>({
     type: 'logo',
     isRequired: false,
+  });
+
+  const { uploadFile } = useStorageUpload({
+    entityType: 'event',
+    entityId: eventId || '',
   });
 
   const handleAdd = () => {
@@ -113,6 +124,35 @@ export const SharedAssetsSection = ({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleUpdateCardImage = (assetId: string) => {
+    setTargetAssetId(assetId);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !targetAssetId || !onAssetsChange || !eventId) return;
+
+    setUploadingAssetId(targetAssetId);
+    try {
+      const result = await uploadFile(file, 'asset', `shared-asset-${targetAssetId}`);
+      if (result?.url) {
+        const updated = assets.map(a =>
+          a.id === targetAssetId ? { ...a, previewUrl: result.url } : a
+        );
+        onAssetsChange(updated);
+        toast.success('Card image updated');
+      }
+    } catch (err) {
+      console.error('Failed to upload card image:', err);
+      toast.error('Failed to upload image');
+    } finally {
+      setUploadingAssetId(null);
+      setTargetAssetId(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   // Group assets by type
   const groupedAssets = ASSET_TYPES.reduce((acc, type) => {
     acc[type.value] = assets.filter(a => a.type === type.value);
@@ -127,6 +167,15 @@ export const SharedAssetsSection = ({
 
   return (
     <section className="space-y-6">
+      {/* Hidden file input for card image uploads */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileSelected}
+      />
+
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <h2 className="text-xl sm:text-2xl font-serif font-semibold text-foreground">
@@ -263,6 +312,7 @@ export const SharedAssetsSection = ({
           {filteredAssets.map((asset) => {
             const TypeIcon = getTypeIcon(asset.type);
             const isCopied = copiedId === asset.id;
+            const isUploading = uploadingAssetId === asset.id;
 
             return (
               <Card key={asset.id} className="group overflow-hidden">
@@ -278,6 +328,13 @@ export const SharedAssetsSection = ({
                     <TypeIcon className="h-12 w-12 text-muted-foreground/30" />
                   )}
                   
+                  {/* Loading overlay */}
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <Loader2 className="h-6 w-6 text-primary-foreground animate-spin" />
+                    </div>
+                  )}
+
                   {/* Required badge */}
                   {asset.isRequired && (
                     <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
@@ -294,8 +351,17 @@ export const SharedAssetsSection = ({
                   </Badge>
 
                   {/* Hover actions */}
-                  {isEditable && (
+                  {isEditable && !isUploading && (
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        title="Update card image"
+                        onClick={() => handleUpdateCardImage(asset.id)}
+                        disabled={!eventId}
+                      >
+                        <Upload className="h-4 w-4" />
+                      </Button>
                       <Button
                         size="icon"
                         variant="secondary"

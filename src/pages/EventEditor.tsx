@@ -681,6 +681,7 @@ const EventEditor = () => {
             assets={sharedAssets}
             onAssetsChange={canEdit ? (assets) => updateEvent({ sharedAssets: assets } as any) : undefined}
             isEditable={canEdit || false}
+            eventId={event?.id}
           />
         );
       }
