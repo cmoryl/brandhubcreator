@@ -473,11 +473,11 @@ export const EventLocationSection = ({
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Image URL</Label>
+                      <Label>Image URL or Maps Embed</Label>
                       <Input
                         value={newMap.imageUrl || ''}
                         onChange={(e) => setNewMap({ ...newMap, imageUrl: e.target.value })}
-                        placeholder="https://..."
+                        placeholder="https://... or paste Google Maps iframe"
                       />
                     </div>
                     <div className="flex items-end gap-2">
@@ -512,11 +512,35 @@ export const EventLocationSection = ({
                 {location.venueMaps?.map((map) => (
                   <Card key={map.id} className="group overflow-hidden">
                     <div className="aspect-[4/3] bg-muted relative">
-                      <img
-                        src={map.imageUrl}
-                        alt={map.name}
-                        className="w-full h-full object-cover"
-                      />
+                      {(() => {
+                        // Detect if the URL is an iframe embed or Google Maps URL
+                        const url = map.imageUrl || '';
+                        const srcMatch = url.match(/src=["']([^"']+)["']/i);
+                        const extractedSrc = srcMatch ? srcMatch[1] : url;
+                        const isEmbed = extractedSrc.includes('google.com/maps') || extractedSrc.includes('maps.google.com') || url.includes('<iframe');
+                        
+                        if (isEmbed) {
+                          return (
+                            <iframe
+                              src={extractedSrc}
+                              className="w-full h-full border-0"
+                              allowFullScreen
+                              loading="lazy"
+                              referrerPolicy="no-referrer-when-downgrade"
+                            />
+                          );
+                        }
+                        return (
+                          <img
+                            src={url}
+                            alt={map.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        );
+                      })()}
                       <Badge className="absolute top-2 left-2">
                         {MAP_TYPES.find(t => t.value === map.type)?.label}
                       </Badge>
