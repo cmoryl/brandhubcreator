@@ -86,7 +86,7 @@ const getThumbnail = (url: string, platform: EventVideo['platform']): string | n
 export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtitle }: EventVideosSectionProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('all');
-  const [previewVideo, setPreviewVideo] = useState<EventVideo | null>(null);
+  // previewVideo state kept for potential future use
   const [newVideo, setNewVideo] = useState<Partial<EventVideo>>({
     title: '',
     url: '',
@@ -277,13 +277,16 @@ export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtit
                 <div className="relative aspect-video bg-muted">
                   {isTransperfect ? (
                     <button
-                      onClick={() => setPreviewVideo(video)}
-                      className="w-full h-full flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-muted to-muted/60 hover:from-muted/80 hover:to-muted/40 transition-all"
+                      onClick={() => window.open(video.url, '_blank')}
+                      className="w-full h-full flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/20 transition-all"
                     >
-                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Play className="h-8 w-8 text-primary ml-1" />
+                      <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+                        <Tv className="h-6 w-6 text-primary" />
                       </div>
-                      <span className="text-xs text-muted-foreground font-medium">Click to watch</span>
+                      <div className="text-center px-4">
+                        <span className="text-xs font-semibold text-foreground block">GlobalLink TV</span>
+                        <span className="text-[10px] text-muted-foreground mt-0.5 block">Opens in new tab</span>
+                      </div>
                     </button>
                   ) : video.platform !== 'direct' ? (
                     <iframe
@@ -349,29 +352,8 @@ export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtit
             );
           })}
         </div>
-
-        {/* TransPerfect TV Video Preview Modal */}
-        {previewVideo && (
-          <Dialog open={!!previewVideo} onOpenChange={(open) => !open && setPreviewVideo(null)}>
-            <DialogContent className="max-w-5xl max-h-[90vh] p-0 overflow-hidden">
-              <DialogHeader className="p-4 border-b border-border">
-                <DialogTitle>{previewVideo.title}</DialogTitle>
-              </DialogHeader>
-              <div className="aspect-video w-full">
-                <iframe
-                  src={getEmbedUrl(previewVideo.url, previewVideo.platform)}
-                  className="w-full h-full"
-                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                />
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
         </>
       )}
-
       {/* Quick Stats */}
       {videos.length > 0 && (
         <div className="mt-6 p-4 bg-muted/50 rounded-lg">
