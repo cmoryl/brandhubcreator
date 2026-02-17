@@ -175,14 +175,20 @@ export const EventSponsorsSection = ({
             <GlobalLogoPickerDialog
               existingLogoNames={sponsors.map(s => s.name)}
               onImport={(imported) => {
-                const newSponsors: EventSponsor[] = imported.map(logo => ({
-                  id: crypto.randomUUID(),
-                  name: logo.name,
-                  tier: 'partner' as const,
-                  logoUrl: logo.files?.find(f => f.variant === 'color')?.url || logo.files?.[0]?.url || '',
-                  logoVariants: [],
-                  websiteUrl: logo.websiteUrl,
-                }));
+                const newSponsors: EventSponsor[] = imported.map(logo => {
+                  // Prefer black (transparent) logo, then color, then any available
+                  const preferredFile = logo.files?.find(f => f.variant === 'black')
+                    || logo.files?.find(f => f.variant === 'color')
+                    || logo.files?.[0];
+                  return {
+                    id: crypto.randomUUID(),
+                    name: logo.name,
+                    tier: 'partner' as const,
+                    logoUrl: preferredFile?.url || '',
+                    logoVariants: [],
+                    websiteUrl: logo.websiteUrl,
+                  };
+                });
                 onUpdate([...sponsors, ...newSponsors]);
               }}
             />
@@ -343,14 +349,19 @@ export const EventSponsorsSection = ({
                 <GlobalLogoPickerDialog
                   existingLogoNames={sponsors.map(s => s.name)}
                   onImport={(imported) => {
-                    const newSponsors: EventSponsor[] = imported.map(logo => ({
-                      id: crypto.randomUUID(),
-                      name: logo.name,
-                      tier: 'partner' as const,
-                      logoUrl: logo.files?.find(f => f.variant === 'color')?.url || logo.files?.[0]?.url || '',
-                      logoVariants: [],
-                      websiteUrl: logo.websiteUrl,
-                    }));
+                    const newSponsors: EventSponsor[] = imported.map(logo => {
+                      const preferredFile = logo.files?.find(f => f.variant === 'black')
+                        || logo.files?.find(f => f.variant === 'color')
+                        || logo.files?.[0];
+                      return {
+                        id: crypto.randomUUID(),
+                        name: logo.name,
+                        tier: 'partner' as const,
+                        logoUrl: preferredFile?.url || '',
+                        logoVariants: [],
+                        websiteUrl: logo.websiteUrl,
+                      };
+                    });
                     onUpdate([...sponsors, ...newSponsors]);
                   }}
                 />

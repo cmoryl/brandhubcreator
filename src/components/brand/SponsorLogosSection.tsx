@@ -168,7 +168,7 @@ export const SponsorLogosSection = ({
                     const newSponsors: SponsorLogo[] = imported.map(logo => ({
                       id: crypto.randomUUID(),
                       name: logo.name,
-                      url: logo.files?.find(f => f.variant === 'color')?.url || logo.files?.[0]?.url || '',
+                      url: logo.files?.find(f => f.variant === 'black')?.url || logo.files?.find(f => f.variant === 'color')?.url || logo.files?.[0]?.url || '',
                       tier: 'partner' as const,
                       websiteUrl: logo.websiteUrl,
                     }));
@@ -333,7 +333,7 @@ export const SponsorLogosSection = ({
                   const newSponsors: SponsorLogo[] = imported.map(logo => ({
                     id: crypto.randomUUID(),
                     name: logo.name,
-                    url: logo.files?.find(f => f.variant === 'color')?.url || logo.files?.[0]?.url || '',
+                    url: logo.files?.find(f => f.variant === 'black')?.url || logo.files?.find(f => f.variant === 'color')?.url || logo.files?.[0]?.url || '',
                     tier: 'partner' as const,
                     websiteUrl: logo.websiteUrl,
                   }));
