@@ -86,6 +86,7 @@ const getThumbnail = (url: string, platform: EventVideo['platform']): string | n
 export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtitle }: EventVideosSectionProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [previewVideo, setPreviewVideo] = useState<EventVideo | null>(null);
   const [newVideo, setNewVideo] = useState<Partial<EventVideo>>({
     title: '',
     url: '',
@@ -264,33 +265,71 @@ export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtit
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
-          {/* Full-width TransPerfect TV videos */}
-          {filteredVideos.filter(v => v.platform === 'transperfect').map((video) => {
+        <>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredVideos.map((video) => {
             const embedUrl = getEmbedUrl(video.url, video.platform);
+            const thumbnail = video.thumbnailUrl || getThumbnail(video.url, video.platform);
+            const isTransperfect = video.platform === 'transperfect';
+            
             return (
               <Card key={video.id} className="group overflow-hidden">
                 <div className="relative aspect-video bg-muted">
-                  <iframe
-                    src={embedUrl}
-                    className="w-full h-full"
-                    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                  />
+                  {isTransperfect ? (
+                    <button
+                      onClick={() => setPreviewVideo(video)}
+                      className="w-full h-full flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-muted to-muted/60 hover:from-muted/80 hover:to-muted/40 transition-all"
+                    >
+                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Play className="h-8 w-8 text-primary ml-1" />
+                      </div>
+                      <span className="text-xs text-muted-foreground font-medium">Click to watch</span>
+                    </button>
+                  ) : video.platform !== 'direct' ? (
+                    <iframe
+                      src={embedUrl}
+                      className="w-full h-full"
+                      allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                    />
+                  ) : thumbnail ? (
+                    <div className="relative w-full h-full">
+                      <img src={thumbnail} alt={video.title} className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => window.open(video.url, '_blank')}
+                        className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors"
+                      >
+                        <Play className="h-12 w-12 text-white" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => window.open(video.url, '_blank')}
+                      className="w-full h-full flex flex-col items-center justify-center gap-2 hover:bg-muted/80 transition-colors"
+                    >
+                      <Link2 className="h-8 w-8 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">Click to open video</span>
+                    </button>
+                  )}
+                  <Badge className={cn("absolute top-2 left-2", getTypeColor(video.type))}>
+                    {VIDEO_TYPES.find(t => t.value === video.type)?.label}
+                  </Badge>
+                  {video.duration && (
+                    <Badge variant="secondary" className="absolute bottom-2 right-2 bg-black/70 text-white">
+                      {video.duration}
+                    </Badge>
+                  )}
                 </div>
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold">{video.title}</h3>
+                      <h3 className="font-medium truncate">{video.title}</h3>
                       {video.description && (
-                        <p className="text-sm text-muted-foreground mt-1">{video.description}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{video.description}</p>
                       )}
                       <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                        <Badge className={cn(getTypeColor(video.type))}>
-                          {VIDEO_TYPES.find(t => t.value === video.type)?.label}
-                        </Badge>
-                        {video.duration && <span>{video.duration}</span>}
+                        <span className="capitalize">{video.platform}</span>
                         {video.year && <span>• {video.year}</span>}
                       </div>
                     </div>
@@ -309,83 +348,28 @@ export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtit
               </Card>
             );
           })}
-
-          {/* Grid for other video types */}
-          {filteredVideos.filter(v => v.platform !== 'transperfect').length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredVideos.filter(v => v.platform !== 'transperfect').map((video) => {
-                const embedUrl = getEmbedUrl(video.url, video.platform);
-                const thumbnail = video.thumbnailUrl || getThumbnail(video.url, video.platform);
-                
-                return (
-                  <Card key={video.id} className="group overflow-hidden">
-                    <div className="relative aspect-video bg-muted">
-                      {video.platform !== 'direct' ? (
-                        <iframe
-                          src={embedUrl}
-                          className="w-full h-full"
-                          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                          sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                        />
-                      ) : thumbnail ? (
-                        <div className="relative w-full h-full">
-                          <img src={thumbnail} alt={video.title} className="w-full h-full object-cover" />
-                          <button
-                            onClick={() => window.open(video.url, '_blank')}
-                            className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors"
-                          >
-                            <Play className="h-12 w-12 text-white" />
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => window.open(video.url, '_blank')}
-                          className="w-full h-full flex flex-col items-center justify-center gap-2 hover:bg-muted/80 transition-colors"
-                        >
-                          <Link2 className="h-8 w-8 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">Click to open video</span>
-                        </button>
-                      )}
-                      <Badge className={cn("absolute top-2 left-2", getTypeColor(video.type))}>
-                        {VIDEO_TYPES.find(t => t.value === video.type)?.label}
-                      </Badge>
-                      {video.duration && (
-                        <Badge variant="secondary" className="absolute bottom-2 right-2 bg-black/70 text-white">
-                          {video.duration}
-                        </Badge>
-                      )}
-                    </div>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">{video.title}</h3>
-                          {video.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{video.description}</p>
-                          )}
-                          <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                            <span className="capitalize">{video.platform}</span>
-                            {video.year && <span>• {video.year}</span>}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => window.open(video.url, '_blank')}>
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                          {isEditable && (
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(video.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
         </div>
+
+        {/* TransPerfect TV Video Preview Modal */}
+        {previewVideo && (
+          <Dialog open={!!previewVideo} onOpenChange={(open) => !open && setPreviewVideo(null)}>
+            <DialogContent className="max-w-5xl max-h-[90vh] p-0 overflow-hidden">
+              <DialogHeader className="p-4 border-b border-border">
+                <DialogTitle>{previewVideo.title}</DialogTitle>
+              </DialogHeader>
+              <div className="aspect-video w-full">
+                <iframe
+                  src={getEmbedUrl(previewVideo.url, previewVideo.platform)}
+                  className="w-full h-full"
+                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+        </>
       )}
 
       {/* Quick Stats */}
